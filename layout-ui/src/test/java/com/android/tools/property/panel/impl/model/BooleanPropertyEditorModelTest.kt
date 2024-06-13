@@ -35,7 +35,7 @@ class BooleanPropertyEditorModelTest {
       FakePropertyItem(
         SdkConstants.ANDROID_URI,
         SdkConstants.ATTR_INDETERMINATE,
-        SdkConstants.VALUE_TRUE
+        SdkConstants.VALUE_TRUE,
       )
     property.resolvedValue = SdkConstants.VALUE_TRUE
     return BooleanPropertyEditorModel(property)

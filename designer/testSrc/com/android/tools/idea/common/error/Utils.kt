@@ -35,7 +35,7 @@ internal data class TestIssue(
   override val source: IssueSource = EmptyIssueSource,
   override val category: String = "",
   val fixList: List<Fix> = emptyList(),
-  override val hyperlinkListener: HyperlinkListener? = null
+  override val hyperlinkListener: HyperlinkListener? = null,
 ) : Issue() {
 
   override val fixes: Stream<Fix>
@@ -64,6 +64,10 @@ internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) 
 
   override fun update() = Unit
 
+  override fun activate() = Unit
+
+  override fun deactivate() = Unit
+
   override fun dispose() = Unit
 }
 
@@ -83,14 +87,13 @@ fun createTestVisualLintRenderIssue(
   type: VisualLintErrorType,
   components: List<NlComponent>,
   issueProvider: VisualLintIssueProvider,
-  summary: String = ""
+  summary: String = "",
 ): VisualLintRenderIssue {
   return VisualLintRenderIssue.builder()
     .model(components.first().model)
     .summary(summary)
     .severity(HighlightSeverity.WARNING)
     .contentDescriptionProvider { HtmlBuilder() }
-    .model(components.first().model)
     .components(components.toMutableList())
     .type(type)
     .build()

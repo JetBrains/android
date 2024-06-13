@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.dsl.api.crashlytics;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface FirebaseCrashlyticsModel {
+public interface FirebaseCrashlyticsModel extends GradleBlockModel {
   @NotNull
   ResolvedPropertyModel nativeSymbolUploadEnabled();
 }

@@ -12,7 +12,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
@@ -21,7 +21,7 @@
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />

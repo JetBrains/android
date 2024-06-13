@@ -17,8 +17,11 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
@@ -28,6 +31,9 @@ import java.awt.Component
 import java.lang.Integer.min
 import javax.swing.JPanel
 
+val REQUEST_SOURCE_KEY = DataKey.create<StudioBot.RequestSource>("RequestSource")
+val CURRENT_ISSUE_KEY = DataKey.create<AppInsightsIssue>("CurrentIssue")
+
 class AppInsightsContentPanel(
   projectController: AppInsightsProjectLevelController,
   project: Project,
@@ -35,7 +41,7 @@ class AppInsightsContentPanel(
   cellRenderer: AppInsightsTableCellRenderer,
   name: String,
   secondaryToolWindows: List<ToolWindowDefinition<AppInsightsToolWindowContext>>,
-  createCenterPanel: ((Int) -> Unit) -> Component
+  createCenterPanel: ((Int) -> Unit) -> Component,
 ) : JPanel(BorderLayout()), Disposable {
   private val issuesTableView: AppInsightsIssuesTableView
 
@@ -48,7 +54,7 @@ class AppInsightsContentPanel(
     mainContentPanel.add(createCenterPanel(issuesTableView::setHeaderHeight))
 
     val splitter =
-      ThreeComponentsSplitter(false, true, this).apply {
+      ThreeComponentsSplitter(false, true).apply {
         setHonorComponentsMinimumSize(true)
         firstComponent = issuesTableView.component
         innerComponent = mainContentPanel

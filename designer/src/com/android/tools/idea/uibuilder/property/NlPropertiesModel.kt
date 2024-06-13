@@ -48,6 +48,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.pom.Navigatable
@@ -73,7 +74,7 @@ open class NlPropertiesModel(
   val provider: PropertiesProvider,
   val facet: AndroidFacet,
   @get:VisibleForTesting val updateQueue: MergingUpdateQueue,
-  private val updateOnComponentSelectionChanges: Boolean
+  private val updateOnComponentSelectionChanges: Boolean,
 ) : PropertiesModel<NlPropertyItem>, Disposable {
   val project: Project = facet.module.project
 
@@ -104,12 +105,12 @@ open class NlPropertiesModel(
   constructor(
     parentDisposable: Disposable,
     facet: AndroidFacet,
-    updateQueue: MergingUpdateQueue
+    updateQueue: MergingUpdateQueue,
   ) : this(parentDisposable, NlPropertiesProvider(facet), facet, updateQueue, true)
 
   constructor(
     parentDisposable: Disposable,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ) : this(
     parentDisposable,
     facet,
@@ -120,8 +121,8 @@ open class NlPropertiesModel(
       null,
       parentDisposable,
       null,
-      Alarm.ThreadToUse.SWING_THREAD
-    )
+      Alarm.ThreadToUse.SWING_THREAD,
+    ),
   )
 
   var surface: DesignSurface<*>?
@@ -186,7 +187,10 @@ open class NlPropertiesModel(
   open fun getPropertyTag(property: NlPropertyItem): XmlTag? = property.firstTag
 
   open fun getPropertyValue(property: NlPropertyItem): String? {
-    ApplicationManager.getApplication().assertReadAccessAllowed()
+    return runReadAction { readPropertyValue(property) }
+  }
+
+  private fun readPropertyValue(property: NlPropertyItem): String? {
     var prev: String? = null
     for (component in property.components) {
       val value = component.getLiveAttribute(property.namespace, property.name) ?: return null
@@ -214,7 +218,7 @@ open class NlPropertiesModel(
         {
           NlWriteCommandActionUtil.run(
             property.components,
-            "Set $componentName.${property.name} to $newValue"
+            "Set $componentName.${property.name} to $newValue",
           ) {
             property.components.forEach {
               it.setAttribute(property.namespace, property.name, newValue)
@@ -245,7 +249,7 @@ open class NlPropertiesModel(
             }
           }
         },
-        { Disposer.isDisposed(this) }
+        { Disposer.isDisposed(this) },
       )
   }
 
@@ -311,7 +315,7 @@ open class NlPropertiesModel(
 
   private fun setAccessorySelectionListener(
     old: AccessoryPanelInterface?,
-    new: AccessoryPanelInterface?
+    new: AccessoryPanelInterface?,
   ) {
     old?.removeListener(accessorySelectionListener)
     new?.addListener(accessorySelectionListener)
@@ -322,7 +326,7 @@ open class NlPropertiesModel(
     panel: AccessoryPanelInterface?,
     type: Any?,
     accessory: Any?,
-    components: List<NlComponent>
+    components: List<NlComponent>,
   ) {
     updateLiveListeners(Collections.emptyList())
     updateQueue.queue(
@@ -345,7 +349,7 @@ open class NlPropertiesModel(
     accessoryPanel: AccessoryPanelInterface?,
     activePanel: AccessoryPanelInterface?,
     selectedAccessoryType: Any?,
-    selectedAccessory: Any?
+    selectedAccessory: Any?,
   ): Boolean {
     return surface != null &&
       surface == activeSurface &&
@@ -360,7 +364,7 @@ open class NlPropertiesModel(
     panel: AccessoryPanelInterface?,
     type: Any?,
     accessory: Any?,
-    components: List<NlComponent>
+    components: List<NlComponent>,
   ) {
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
@@ -389,7 +393,7 @@ open class NlPropertiesModel(
     panel: AccessoryPanelInterface,
     selectedAccessoryType: Any?,
     selectedAccessory: Any?,
-    components: List<NlComponent>
+    components: List<NlComponent>,
   ) {
     if (
       wantSelectionUpdate(
@@ -398,7 +402,7 @@ open class NlPropertiesModel(
         panel,
         activePanel,
         selectedAccessoryType,
-        selectedAccessory
+        selectedAccessory,
       )
     ) {
       scheduleSelectionUpdate(
@@ -406,7 +410,7 @@ open class NlPropertiesModel(
         panel,
         selectedAccessoryType,
         selectedAccessory,
-        components
+        components,
       )
     }
   }
@@ -415,7 +419,7 @@ open class NlPropertiesModel(
     type: Any?,
     accessory: Any?,
     components: List<NlComponent>,
-    wantUpdate: () -> Boolean
+    wantUpdate: () -> Boolean,
   ) {
     if (!wantUpdate()) {
       return
@@ -486,7 +490,7 @@ open class NlPropertiesModel(
       ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(
         resourceReference,
         tag,
-        folderConfiguration
+        folderConfiguration,
       ) ?: return
     if (targetElement is Navigatable) {
       targetElement.navigate(true)
@@ -496,7 +500,7 @@ open class NlPropertiesModel(
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
     override fun componentSelectionChanged(
       surface: DesignSurface<*>,
-      newSelection: List<NlComponent>
+      newSelection: List<NlComponent>,
     ) {
       val displayedComponents =
         if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)

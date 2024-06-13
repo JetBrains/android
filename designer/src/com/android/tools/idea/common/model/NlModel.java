@@ -115,7 +115,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   /** Model name. This can be used when multiple models are displayed at the same time */
   @Nullable private String myModelDisplayName = null;
   /** Text to display when displaying a tooltip related to this model */
-  @Nullable private final String myModelTooltip;
+  @Nullable private String myModelTooltip;
   @Nullable private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
@@ -129,6 +129,9 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   private ChangeType myModificationTrigger;
   /** Executor used for asynchronous updates. */
   private final @NotNull ExecutorService myUpdateExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("NlModel", 1);
+  /** Executor used from NlComponents to run background tasks for this model. */
+  private final @NotNull ExecutorService myNlComponentExecutor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("NlModelComponentExecutor", 4);
   private final @NotNull AtomicReference<Disposable> myThemeUpdateComputation = new AtomicReference<>();
   private boolean myDisposed;
 
@@ -154,6 +157,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @NotNull private NlModelUpdaterInterface myModelUpdater;
 
   @NotNull private DataContext myDataContext;
+  @NotNull private ResourceResolver myCachedResourceResolver;
 
   /**
    * Indicate which group this NlModel belongs. This can be used to categorize the NlModel when rendering or layouting.
@@ -175,7 +179,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @Slow
   @NotNull
   static NlModel create(@NotNull Disposable parent,
-                        @Nullable String modelTooltip,
                         @NotNull AndroidFacet facet,
                         @NotNull VirtualFile file,
                         @NotNull Configuration configuration,
@@ -183,12 +186,11 @@ public class NlModel implements ModificationTracker, DataContextHolder {
                         @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
                         @Nullable NlModelUpdaterInterface modelUpdater,
                         @NotNull DataContext dataContext) {
-    return new NlModel(parent, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
+    return new NlModel(parent, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
   @VisibleForTesting
   protected NlModel(@NotNull Disposable parent,
-                    @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
@@ -198,7 +200,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
                     @NotNull DataContext dataContext) {
     myFacet = facet;
     myXmlFileProvider = xmlFileProvider;
-    myModelTooltip = modelTooltip;
     myFile = file;
     myConfiguration = configuration;
     myComponentRegistrar = componentRegistrar;
@@ -215,6 +216,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     myUpdateQueue.suspend();
     myModelUpdater = Objects.requireNonNullElseGet(modelUpdater, DefaultModelUpdater::new);
     myDataContext = dataContext;
+    myCachedResourceResolver = myConfiguration.getResourceResolver();
   }
 
   @NotNull
@@ -268,8 +270,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   public void updateTheme() {
-    ResourceUrl themeUrl = ResourceUrl.parse(myConfiguration.getTheme());
-    if (themeUrl != null && themeUrl.type == ResourceType.STYLE) {
       Disposable computationToken = Disposer.newDisposable();
       Disposer.register(this, computationToken);
       Disposable oldComputation = myThemeUpdateComputation.getAndSet(computationToken);
@@ -277,10 +277,15 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         Disposer.dispose(oldComputation);
       }
       ReadAction.nonBlocking((Callable<Void>) () -> {
-        updateTheme(themeUrl, computationToken);
+        if (myThemeUpdateComputation.get() != computationToken) {
+          return null; // A new update has already been scheduled.
+        }
+        ResourceUrl themeUrl = ResourceUrl.parse(myConfiguration.getTheme());
+        if (themeUrl != null && themeUrl.type == ResourceType.STYLE) {
+          updateTheme(themeUrl, computationToken);
+        }
         return null;
       }).expireWith(computationToken).submit(myUpdateExecutor);
-    }
   }
 
   @Slow
@@ -298,7 +303,8 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         if (myThemeUpdateComputation.get() != computationToken) {
           return; // A new update has already been scheduled.
         }
-        ApplicationManager.getApplication().invokeLater(() -> myConfiguration.setTheme(theme), a -> myDisposed);
+        myConfiguration.setTheme(theme);
+        myCachedResourceResolver = myConfiguration.getResourceResolver();
       }
     }
     finally {
@@ -841,9 +847,26 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     return myModelDisplayName;
   }
 
+  public void setTooltip(@Nullable String tooltip) {
+    myModelTooltip = tooltip;
+  }
+
   @Nullable
   public String getModelTooltip() {
     return myModelTooltip;
+  }
+
+  /**
+   * Returns the latest calculated {@link ResourceResolver}. This is just to be used from those context where obtaining the resource
+   * resolver can not be done like the UI thread.
+   * The cached resource resolver is updated after every model update, including theme changes.
+   *
+   * @deprecated Call Configuration.getResourceResolver from a background context
+   */
+  @SuppressWarnings("DeprecatedIsStillUsed")
+  @NotNull
+  public ResourceResolver getCachedResourceResolver() {
+    return myCachedResourceResolver;
   }
 
   @Override
@@ -1001,5 +1024,15 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   public void setModelUpdater(@NotNull NlModelUpdaterInterface modelUpdater) {
     myModelUpdater = modelUpdater;
+  }
+
+  /**
+   * Returns an {@link ExecutorService} to be used by the {@link NlComponent} to run background tasks.
+   * This ensures that all components in one model share the same pool, and they are limited to an specific number
+   * of threads.
+   */
+  @NotNull
+  ExecutorService getNlComponentExecutor() {
+    return myNlComponentExecutor;
   }
 }

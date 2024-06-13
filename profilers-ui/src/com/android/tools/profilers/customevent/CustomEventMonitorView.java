@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 public class CustomEventMonitorView extends ProfilerMonitorView<CustomEventMonitor> {
 
   public CustomEventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull CustomEventMonitor monitor) {
-    super(monitor);
+    super(profilersView, monitor);
   }
 
   @Override

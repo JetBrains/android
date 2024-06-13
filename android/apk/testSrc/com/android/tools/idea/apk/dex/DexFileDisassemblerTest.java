@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.apk.dex;
 
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
 
 /**
  * Tests for {@link DexFileDisassembler}.

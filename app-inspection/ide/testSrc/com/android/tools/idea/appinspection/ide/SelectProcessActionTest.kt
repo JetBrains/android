@@ -41,7 +41,7 @@ class SelectProcessActionTest {
 
   private fun createFakeStream(
     serial: String = UUID.randomUUID().toString(),
-    isEmulator: Boolean = true
+    isEmulator: Boolean = true,
   ): Common.Stream {
     val device =
       FakeTransportService.FAKE_DEVICE.toBuilder()
@@ -55,14 +55,14 @@ class SelectProcessActionTest {
 
   private fun Common.Stream.createFakeProcess(
     name: String? = null,
-    pid: Int = 0
+    pid: Int = 0,
   ): ProcessDescriptor {
     return TransportProcessDescriptor(
       this,
       FakeTransportService.FAKE_PROCESS.toBuilder()
         .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
         .setPid(pid)
-        .build()
+        .build(),
     )
   }
 
@@ -109,7 +109,7 @@ class SelectProcessActionTest {
       SelectProcessAction(
         model,
         stopPresentation =
-          SelectProcessAction.StopPresentation("Test stop label", "Test stop description")
+          SelectProcessAction.StopPresentation("Test stop label", "Test stop description"),
       )
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
@@ -296,7 +296,7 @@ class SelectProcessActionTest {
         onStopAction = {
           model.stop()
           callbackFiredLatch.countDown()
-        }
+        },
       )
 
     testNotifier.addDevice(processB.device)
@@ -340,7 +340,7 @@ class SelectProcessActionTest {
       SelectProcessAction(
         model,
         customDeviceAttribution = deviceAttribution,
-        customProcessAttribution = processAttribution
+        customProcessAttribution = processAttribution,
       )
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)

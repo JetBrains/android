@@ -30,7 +30,7 @@ object FontFileType : DesignerEditorFileType {
       FileDescriptionUtils.isResourceOfTypeWithRootTag(
         file,
         ResourceFolderType.FONT,
-        setOf(SdkConstants.TAG_FONT_FAMILY)
+        setOf(SdkConstants.TAG_FONT_FAMILY),
       )
 
   override fun getToolbarActionGroups(surface: DesignSurface<*>) = ToolbarActionGroups(surface)

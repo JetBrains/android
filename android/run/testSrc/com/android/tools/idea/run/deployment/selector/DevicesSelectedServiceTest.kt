@@ -17,12 +17,13 @@ package com.android.tools.idea.run.deployment.selector
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ActivityTracker
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DevicesSelectedServiceTest {
@@ -53,7 +54,7 @@ class DevicesSelectedServiceTest {
       state.copy(
         selectionMode = SelectionMode.DROPDOWN,
         dropdownSelection =
-          DropdownSelection(target = target1.id, timestamp = clock.now() - 10.seconds)
+          DropdownSelection(target = target1.id, timestamp = clock.now() - 10.seconds),
       )
     )
 
@@ -65,11 +66,13 @@ class DevicesSelectedServiceTest {
     // Favor the more recently connected device over the selected device.
     assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target2)
 
+    val modificationCount = ActivityTracker.getInstance().count
     devicesSelectedService.setTargetSelectedWithComboBox(target1)
     testScope.advanceUntilIdle()
 
     // Now favor the just-selected device
     assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target1)
+    assertThat(ActivityTracker.getInstance().count).isGreaterThan(modificationCount)
   }
 
   @Test

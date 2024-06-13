@@ -17,10 +17,19 @@ package com.android.tools.profilers.tasks.taskhandlers
 
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
+import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
-import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
@@ -28,6 +37,26 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.withSettings
 
 class ProfilerTaskHandlerTest {
+  private val myTimer = FakeTimer()
+  private val ideProfilerServices = FakeIdeProfilerServices().apply {
+    enableTaskBasedUx(true)
+  }
+  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
+
+  @get:Rule
+  var myGrpcChannel = FakeGrpcChannel("ProfilerTaskHandlerTestChannel", myTransportService, FakeEventService())
+
+  private lateinit var myProfilers: StudioProfilers
+
+  @Before
+  fun setup() {
+    myProfilers = StudioProfilers(
+      ProfilerClient(myGrpcChannel.channel),
+      ideProfilerServices,
+      myTimer
+    )
+  }
+
   /**
    * Constructs and returns a mock {@link ProfilerTaskHandler} using a mocked {@link SessionsManager} and {@link TaskArgs} instance.
    *
@@ -45,14 +74,18 @@ class ProfilerTaskHandlerTest {
   @Test
   fun testEnterWithAliveSession() {
     val mockArgs = MockitoKt.mock<TaskArgs>()
-    // Creating a mock instance of SessionsManager that returns that the session is currently alive.
+
     val mockSessionsManager = MockitoKt.mock<SessionsManager>().apply {
+      MockitoKt.whenever(this.studioProfilers).thenReturn(myProfilers)
       MockitoKt.whenever(this.isSessionAlive).thenReturn(true)
+      MockitoKt.whenever(this.selectedSession).thenReturn(Common.Session.getDefaultInstance())
     }
+
+    // Creating a mock instance of SessionsManager that returns that the session is currently alive.
     val mockProfilerTaskHandler = createMockProfilerTaskHandler(mockSessionsManager, mockArgs)
     val args = mockProfilerTaskHandler.enter(mockArgs)
     // Verify that the startTask method was invoked once.
-    verify(mockProfilerTaskHandler, times(1)).startTask()
+    verify(mockProfilerTaskHandler, times(1)).startTask(mockArgs)
     // Verify that the loadTask method was not invoked.
     verify(mockProfilerTaskHandler, never()).loadTask(any())
     assertThat(args).isTrue()
@@ -63,12 +96,13 @@ class ProfilerTaskHandlerTest {
     val mockArgs = MockitoKt.mock<TaskArgs>()
     // Creating a mock instance of SessionsManager that returns that the session is currently not alive.
     val mockSessionsManager = MockitoKt.mock<SessionsManager>().apply {
+      MockitoKt.whenever(this.studioProfilers).thenReturn(myProfilers)
       MockitoKt.whenever(this.isSessionAlive).thenReturn(false)
     }
     val mockProfilerTaskHandler = createMockProfilerTaskHandler(mockSessionsManager, mockArgs)
     val args = mockProfilerTaskHandler.enter(mockArgs)
     // Verify that the startTask method was never invoked.
-    verify(mockProfilerTaskHandler, never()).startTask()
+    verify(mockProfilerTaskHandler, never()).startTask(mockArgs)
     // Verify that the loadTask method was invoked once.
     verify(mockProfilerTaskHandler, times(1)).loadTask(any())
     assertThat(args).isTrue()

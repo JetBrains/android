@@ -7,7 +7,6 @@ iml_module(
     name = "intellij.android.device-explorer",
     srcs = ["src"],
     iml_files = ["intellij.android.device-explorer.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -15,7 +14,8 @@ iml_module(
         "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files[module]",
         "//tools/adt/idea/device-explorer-monitor:intellij.android.device-explorer-monitor[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
@@ -44,7 +44,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module, test]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -55,6 +56,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
 )
 
@@ -67,7 +69,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

@@ -32,7 +32,7 @@ data class Dimension(val type: DimensionType, val value: DimensionValue, val dis
       return Dimension(
         type = dimensionType,
         value = dimensionValue,
-        displayValue = proto.valueLabel
+        displayValue = proto.valueLabel,
       )
     }
   }
@@ -140,7 +140,7 @@ enum class DimensionType(val value: String) {
   //  *  `deviceScreenDpi`
   //     ([string][google.play.developer.reporting.{$api_version}.DimensionValue.string_value]):
   //     Screen density of the device, e.g., mdpi, hdpi.
-  DEVICE_SCREEN_DPI("deviceScreenDpi")
+  DEVICE_SCREEN_DPI("deviceScreenDpi"),
 }
 
 fun String.toEnumDimensionType(): DimensionType {

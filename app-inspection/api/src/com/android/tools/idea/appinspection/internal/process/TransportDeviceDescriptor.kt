@@ -25,7 +25,7 @@ private data class TransportDeviceDescriptor(
   override val isEmulator: Boolean,
   override val apiLevel: Int,
   override val version: String,
-  override val codename: String?
+  override val codename: String?,
 ) : DeviceDescriptor {
   constructor(
     device: Common.Device
@@ -36,7 +36,7 @@ private data class TransportDeviceDescriptor(
     device.isEmulator,
     device.apiLevel,
     device.version,
-    device.codename.takeUnless { it.isNullOrBlank() }
+    device.codename.takeUnless { it.isNullOrBlank() },
   )
 }
 

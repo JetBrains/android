@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -24,32 +25,22 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
 
-/**
- * Action that controls when to enable the Interactive mode.
- *
- * @param isEssentialsModeEnabled returns true if Essentials Mode is enabled. The action is disabled
- *   when Essentials Mode is enabled.
- * @param essentialsModeDescription the description that will be used when the action is disabled
- *   due to Essentials Mode.
- */
-class EnableInteractiveAction(
-  private val isEssentialsModeEnabled: () -> Boolean,
-  private val essentialsModeDescription: String =
-    message("action.interactive.essentials.mode.description.default"),
-) :
+/** Action that controls when to enable the Interactive mode. */
+class EnableInteractiveAction :
   DumbAwareAction(
     message("action.interactive.title"),
     message("action.interactive.description"),
-    INTERACTIVE_PREVIEW
+    INTERACTIVE_PREVIEW,
   ) {
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    val isEssentialsModeEnabled = isEssentialsModeEnabled()
+    val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
+    e.presentation.isVisible = true
     e.presentation.isEnabled = !isEssentialsModeEnabled
     e.presentation.text = if (isEssentialsModeEnabled) null else message("action.interactive.title")
     e.presentation.description =
-      if (isEssentialsModeEnabled) essentialsModeDescription
+      if (isEssentialsModeEnabled) message("action.interactive.essentials.mode.description")
       else message("action.interactive.description")
   }
 

@@ -16,23 +16,24 @@
 package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
-import com.intellij.facet.ProjectFacetManager
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.ToolWindowManager
-import org.jetbrains.android.facet.AndroidFacet
+import icons.StudioIcons
 
 /**
  * Opens the Resource Manager Tool Window
  */
-internal class OpenResourceManagerAction : DumbAwareAction() {
+class OpenResourceManagerAction : DumbAwareAction("Resource Manager", "Open the Resource Manager",
+                                                  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS) {
 
   override fun update(e: AnActionEvent) {
     val project = e.project
     e.presentation.isEnabledAndVisible = project != null
-                                         && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+                                         && CommonAndroidUtil.getInstance().isAndroidProject(project)
                                          && ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) != null
   }
 

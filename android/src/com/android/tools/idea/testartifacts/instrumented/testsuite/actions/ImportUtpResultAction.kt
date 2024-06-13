@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTestResultAdapter
@@ -24,8 +23,7 @@ import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.notification.NotificationDisplayType
-import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -80,7 +78,7 @@ class ImportUtpResultAction(icon: Icon? = null,
                             val importFile: VirtualFile? = null) : AnAction(text, text, icon) {
   companion object {
     const val IMPORTED_TEST_WINDOW_ID = "Imported Tests"
-    private val NOTIFICATION_GROUP = NotificationGroup("Import Android Test Results", NotificationDisplayType.BALLOON)
+    private val NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Import Android Test Results")
   }
 
   /**
@@ -123,7 +121,7 @@ class ImportUtpResultAction(icon: Icon? = null,
                                               + "import the test results from a different project?", NotificationType.WARNING)
           .notify(project)
       }
-      val testSuiteView = AndroidTestSuiteView(disposable, project, module, IMPORTED_TEST_WINDOW_ID)
+      val testSuiteView = AndroidTestSuiteView(disposable, project, module, IMPORTED_TEST_WINDOW_ID, myIsImportedResult = true)
       val toolWindow = getToolWindow(project)
       val contentManager = toolWindow.contentManager
       val content = contentManager.factory.createContent(testSuiteView.component, toolWindowDisplayName, true)
@@ -178,8 +176,7 @@ class ImportUtpResultAction(icon: Icon? = null,
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabledAndVisible = (e.project != null
-                                          && StudioFlags.UTP_TEST_RESULT_SUPPORT.get())
+    e.presentation.isEnabledAndVisible = (e.project != null)
   }
 }
 

@@ -31,6 +31,7 @@ fun IrMethod.isInline(): Boolean {
   return localVariables.filter { it.name == inlineName }.any { it.start.index <= 1 && it.end.index == instructions.labels.size - 1 }
 }
 
+private val lambdaNameMatcher: Regex by lazy { Regex(".*\\\$lambda\\$\\d+") }
 /**
  * Checks if a method is a synthetic method.
  *
@@ -42,5 +43,5 @@ fun IrMethod.isInline(): Boolean {
  * all synthetic methods are compiler-generated, so this method indicates that the method in question wasn't added by a user.
  */
 fun IrMethod.isSynthetic(): Boolean {
-  return access.contains(IrAccessFlag.SYNTHETIC)
+  return access.contains(IrAccessFlag.SYNTHETIC) || name.matches(lambdaNameMatcher)
 }

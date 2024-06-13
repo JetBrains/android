@@ -4,9 +4,9 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import com.example.smithbradley.contentlib.AwesomeContentProvider
-import kotlinx.android.synthetic.main.activity_fullscreen.*
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -20,7 +20,7 @@ class FullscreenActivity : AppCompatActivity() {
     // Note that some of these constants are new as of API 16 (Jelly Bean)
     // and API 19 (KitKat). It is safe to use them, as they are inlined
     // at compile-time and do nothing on earlier devices.
-    fullscreen_content.systemUiVisibility =
+    findViewById<TextView>(R.id.fullscreen_content).systemUiVisibility =
         View.SYSTEM_UI_FLAG_LOW_PROFILE or
         View.SYSTEM_UI_FLAG_FULLSCREEN or
         View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
@@ -31,7 +31,7 @@ class FullscreenActivity : AppCompatActivity() {
   private val mShowPart2Runnable = Runnable {
     // Delayed display of UI elements
     supportActionBar?.show()
-    fullscreen_content_controls.visibility = View.VISIBLE
+    findViewById<View>(R.id.fullscreen_content_controls).visibility = View.VISIBLE
   }
   private var mVisible: Boolean = false
   private val mHideRunnable = Runnable { hide() }
@@ -58,12 +58,12 @@ class FullscreenActivity : AppCompatActivity() {
     mVisible = true
 
     // Set up the user interaction to manually show or hide the system UI.
-    fullscreen_content.setOnClickListener { toggle() }
+    findViewById<TextView>(R.id.fullscreen_content).setOnClickListener { toggle() }
 
     // Upon interacting with UI controls, delay any scheduled hide()
     // operations to prevent the jarring behavior of controls going away
     // while interacting with the UI.
-    dummy_button.setOnTouchListener(mDelayHideTouchListener)
+    findViewById<Button>(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener)
 
     // Update the view with the data from the content provider.
     val v = findViewById<TextView>(R.id.fullscreen_content);
@@ -90,7 +90,7 @@ class FullscreenActivity : AppCompatActivity() {
   private fun hide() {
     // Hide UI first
     supportActionBar?.hide()
-    fullscreen_content_controls.visibility = View.GONE
+    findViewById<View>(R.id.fullscreen_content_controls).visibility = View.GONE
     mVisible = false
 
     // Schedule a runnable to remove the status and navigation bar after a delay
@@ -100,7 +100,7 @@ class FullscreenActivity : AppCompatActivity() {
 
   private fun show() {
     // Show the system bar
-    fullscreen_content.systemUiVisibility =
+    findViewById<TextView>(R.id.fullscreen_content).systemUiVisibility =
         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
         View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
     mVisible = true

@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.ManifestDetector
 class AndroidLintRedundantLabelInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.redundant.label"),
-    ManifestDetector.REDUNDANT_LABEL
+    ManifestDetector.REDUNDANT_LABEL,
   )

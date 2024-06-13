@@ -26,6 +26,11 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger
 import com.android.tools.idea.execution.common.debug.utils.AndroidConnectDebugger
 import com.intellij.execution.RunManager
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -36,6 +41,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 @UiThread
+@Service(Service.Level.PROJECT)
 class DeviceProcessService @NonInjectable constructor(private val connectDebuggerAction: (debugger: AndroidDebugger<AndroidDebuggerState>, client: Client, config: RunConfigurationWithDebugger) -> Unit) {
 
   @Suppress("unused")
@@ -48,6 +54,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
    * The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread.
    */
   private val workerThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread
+  private val uiThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.uiThread
 
   suspend fun fetchProcessList(device: AdbDevice): List<ProcessInfo> {
     ThreadingAssertions.assertEventDispatchThread()
@@ -104,6 +111,9 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
           device.kill(process.packageName)
         } else {
           thisLogger().debug("Kill process invoked on a null package name")
+          withContext(uiThreadDispatcher) {
+            reportError("kill process", "Couldn't find package name for process.")
+          }
         }
         process.killAction?.invoke()
       }
@@ -123,7 +133,10 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
         if (process.packageName != null) {
           device.forceStop(process.packageName)
         } else {
-          thisLogger().debug("Kill process invoked on a null package name")
+          thisLogger().debug("Force stop invoked on a null package name")
+          withContext(uiThreadDispatcher) {
+            reportError("force stop", "Couldn't find package name for process.")
+          }
         }
       }
     }
@@ -142,8 +155,18 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
           connectDebuggerAction.invoke(debugger, client, config)
         } else {
           thisLogger().debug("Attach Debugger invoke on a null client, config, or debugger")
+          withContext(uiThreadDispatcher) {
+            reportError("attach debugger", "Couldn't find process to attach or debugger to use.")
+          }
         }
       }
+    }
+  }
+
+  private fun reportError(title: String, messageToReport: String) {
+    val notification = Notification("Device Explorer", "Unable to $title", messageToReport, NotificationType.WARNING)
+    ApplicationManager.getApplication().invokeLater {
+      Notifications.Bus.notify(notification)
     }
   }
 

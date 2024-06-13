@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.stripPrefixFromId
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
@@ -27,6 +28,7 @@ import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
@@ -37,7 +39,7 @@ object ComponentUtil {
     projectRule: AndroidProjectRule,
     vararg descriptors: ComponentDescriptor,
     parentTag: String = SdkConstants.LINEAR_LAYOUT,
-    resourceFolder: String = SdkConstants.FD_RES_LAYOUT
+    resourceFolder: String = SdkConstants.FD_RES_LAYOUT,
   ): List<NlComponent> {
     var y = 0
     for (descriptor in descriptors) {
@@ -54,7 +56,7 @@ object ComponentUtil {
             projectRule,
             resourceFolder,
             "preferences.xml",
-            component(parentTag).withBounds(0, 0, 1000, 1500).children(*descriptors)
+            component(parentTag).withBounds(0, 0, 1000, 1500).children(*descriptors),
           )
         SdkConstants.FD_RES_LAYOUT ->
           NlModelBuilderUtil.model(
@@ -69,9 +71,9 @@ object ComponentUtil {
               .withAttribute(
                 SdkConstants.TOOLS_URI,
                 SdkConstants.ATTR_CONTEXT,
-                "com.example.MyActivity"
+                "com.example.MyActivity",
               )
-              .children(*descriptors)
+              .children(*descriptors),
           )
         else -> throw NotImplementedError()
       }
@@ -97,8 +99,8 @@ object ComponentUtil {
     model: NlPropertiesModel =
       NlPropertiesModel(
         projectRule.testRootDisposable,
-        AndroidFacet.getInstance(projectRule.module)!!
-      )
+        AndroidFacet.getInstance(projectRule.module)!!,
+      ),
   ): NlPropertyItem {
     val nlModel = components[0].model as SyncNlModel
     model.surface = nlModel.surface
@@ -110,5 +112,12 @@ object ComponentUtil {
         ?.attributeDefinitions
         ?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
     return NlPropertyItem(attrNamespace, attrName, type, definition, "", "", model, components)
+      .also {
+        runBlocking {
+          // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
+          // asynchronously.
+          delayUntilCondition(10) { it.resolver != null }
+        }
+      }
   }
 }

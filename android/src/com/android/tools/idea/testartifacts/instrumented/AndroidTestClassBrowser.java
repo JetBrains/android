@@ -21,12 +21,12 @@ import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
-import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import javax.swing.JComponent;
+import org.jetbrains.android.util.AndroidTreeClassChooserFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,12 +44,8 @@ public class AndroidTestClassBrowser<T extends JComponent> extends AndroidClassB
   protected TreeClassChooser createTreeClassChooser(@NotNull Project project,
                                                     @NotNull GlobalSearchScope scope,
                                                     @Nullable PsiClass initialSelection, @NotNull final ClassFilter classFilter) {
-    return TreeClassChooserFactory.getInstance(project).createNoInnerClassesScopeChooser(myDialogTitle, scope, new ClassFilter() {
-      @Override
-      public boolean isAccepted(PsiClass aClass) {
-        return classFilter.isAccepted(aClass) && JUnitUtil.isTestClass(aClass);
-      }
-    }, initialSelection);
+    return AndroidTreeClassChooserFactory.INSTANCE.createNoInnerClassesScopeChooser(
+      project, myDialogTitle, scope, aClass -> classFilter.isAccepted(aClass) && JUnitUtil.isTestClass(aClass), initialSelection);
   }
 
   @Override

@@ -30,8 +30,7 @@ object NavColors {
     "UIDesigner.Component.foreground", JBColor(0xa7a7a7, 0x888888))
   val SUBDUED_TEXT = JBColor.namedColor(
     "UIDesigner.Label.foreground", JBColor(0x656565, 0xbababb))
-  val ACTION = JBColor.namedColor(
-    "UIDesigner.Connector.borderColor", JBColor(Color(-0x4d585859, true), Color(-0x4d777778, true)))
+  val ACTION = JBColor(0xdfe1e5, 0x43454a)
   val HIGHLIGHTED_ACTION = JBColor.namedColor(
     "UIDesigner.Connector.hoverBorderColor", JBColor(0xa7a7a7, 0x888888))
   val ACTIVITY_BORDER = JBColor.namedColor(

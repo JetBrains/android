@@ -41,7 +41,7 @@ interface MockDebugProcessScope {
     signature: String,
     superClass: ClassType? = null,
     interfaces: List<InterfaceType> = emptyList(),
-    block: MockReferenceTypeScope.() -> Unit = {}
+    block: MockReferenceTypeScope.() -> Unit = {},
   ): ReferenceType
 }
 
@@ -51,7 +51,7 @@ interface MockReferenceTypeScope {
     signature: String? = null,
     argumentTypeNames: List<String> = emptyList(),
     lines: List<Int> = emptyList(),
-    block: MockValueScope.() -> Unit = {}
+    block: MockValueScope.() -> Unit = {},
   )
 }
 
@@ -62,7 +62,7 @@ interface MockValueScope {
 fun mockDebugProcess(
   project: Project,
   disposable: Disposable,
-  block: MockDebugProcessScope.() -> Unit
+  block: MockDebugProcessScope.() -> Unit,
 ): MockDebugProcessImpl {
   val debugProcess = MockDebugProcessImpl(project)
   Disposer.register(disposable) {
@@ -80,7 +80,7 @@ fun mockDebugProcess(
         signature: String,
         superClass: ClassType?,
         interfaces: List<InterfaceType>,
-        block: MockReferenceTypeScope.() -> Unit
+        block: MockReferenceTypeScope.() -> Unit,
       ): ClassType {
         val classType =
           debugProcess.addClassType(signature, superClass, interfaces) as MockClassType
@@ -90,7 +90,7 @@ fun mockDebugProcess(
               signature: String?,
               argumentTypeNames: List<String>,
               lines: List<Int>,
-              block: MockValueScope.() -> Unit
+              block: MockValueScope.() -> Unit,
             ) {
               val method =
                 MockMethod(name, signature, argumentTypeNames, lines, classType, debugProcess)
@@ -122,7 +122,7 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
     object : RequestManagerImpl(this) {
       override fun createClassPrepareRequest(
         requestor: ClassPrepareRequestor,
-        pattern: String
+        pattern: String,
       ): ClassPrepareRequest? {
         prepareRequestPatterns.add(pattern)
         return MockitoKt.mock()
@@ -141,7 +141,7 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
     evaluationContext: EvaluationContext,
     objRef: ObjectReference,
     method: Method,
-    args: List<Value>
+    args: List<Value>,
   ): Value {
     val referenceType: ReferenceType =
       referencesByName[objRef.type().name()]
@@ -158,7 +158,7 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
     objRef: ObjectReference,
     method: Method,
     args: List<Value>,
-    invocationOptions: Int
+    invocationOptions: Int,
   ): Value {
     return invokeMethod(evaluationContext, objRef, method, args)
   }
@@ -166,7 +166,7 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
   fun addClassType(
     name: String,
     superClass: ClassType?,
-    interfaces: List<InterfaceType>
+    interfaces: List<InterfaceType>,
   ): ClassType {
     return MockClassType(this, name, superClass, interfaces).apply { referencesByName[name] = this }
   }

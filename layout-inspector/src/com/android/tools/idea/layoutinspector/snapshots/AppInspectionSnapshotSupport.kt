@@ -61,7 +61,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
     file: Path,
     model: InspectorModel,
     notificationModel: NotificationModel,
-    stats: SessionStatistics
+    stats: SessionStatistics,
   ): SnapshotMetadata? {
     val viewPropertiesCache = DisconnectedViewPropertiesCache(model)
     val composeParametersCache = ComposeParametersCache(null, model)
@@ -114,7 +114,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
         model.resourceLookup.updateConfiguration(
           metadata.dpi,
           metadata.fontScale,
-          metadata.screenDimension
+          metadata.screenDimension,
         )
       }
       snapshot.foldInfo?.let { model.foldInfo = it.convert() }
@@ -129,7 +129,7 @@ fun saveAppInspectorSnapshot(
   properties: Map<Long, LayoutInspectorViewProtocol.PropertiesEvent>,
   composeProperties: Map<Long, GetAllParametersResponse>,
   snapshotMetadata: SnapshotMetadata,
-  foldInfo: InspectorModel.FoldInfo?
+  foldInfo: InspectorModel.FoldInfo?,
 ) {
   val response =
     LayoutInspectorViewProtocol.CaptureSnapshotResponse.newBuilder()
@@ -163,7 +163,7 @@ fun saveAppInspectorSnapshot(
   data: LayoutInspectorViewProtocol.CaptureSnapshotResponse,
   composeInfo: Map<Long, Pair<GetComposablesResult?, GetAllParametersResponse>>,
   snapshotMetadata: SnapshotMetadata,
-  foldInfo: InspectorModel.FoldInfo?
+  foldInfo: InspectorModel.FoldInfo?,
 ) {
   snapshotMetadata.containsCompose = composeInfo.isNotEmpty()
   val snapshot =
@@ -190,7 +190,7 @@ fun saveAppInspectorSnapshot(
     objectOutput.writeUTF(
       LayoutInspectorCaptureOptions(
           APP_INSPECTION_SNAPSHOT_VERSION,
-          snapshotMetadata.processName ?: "Unknown"
+          snapshotMetadata.processName ?: "Unknown",
         )
         .toString()
     )

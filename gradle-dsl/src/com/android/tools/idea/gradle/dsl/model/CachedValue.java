@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.parser.ModificationAware;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Function;
 
 /**
  * Represents a cached value, this class encapsulates the logic to produce the value (stored as Object) and a

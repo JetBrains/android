@@ -9,8 +9,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common[module]",
         "//tools/adt/idea/analytics[module]",

@@ -21,17 +21,18 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.res.ResourceClassRegistry
+import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.res.ids.ResourceIdManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.jetbrains.android.util.AndroidUtils
 
 /**
  * Project component responsible for clearing the resource cache after the initial project build if any resources
@@ -84,8 +85,10 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
    *
    * @param onCacheClean callback to execute once the resource cache has been validated
    * @param onSourceGenerationError callback to execute if source generation failed
+   * @param parentDisposable parent disposable for the CacheClearedCallback that will be created. Corresponding CacheClearedCallback will be
+   * removed when parentDisposable is disposed.
    */
-  fun runWhenResourceCacheClean(onCacheClean: Runnable, onSourceGenerationError: Runnable) {
+  fun runWhenResourceCacheClean(onCacheClean: Runnable, onSourceGenerationError: Runnable, parentDisposable: Disposable) {
     // There's no need to wait for the first successful project sync this session if the project's sync state
     // is already clean. In this case, we can go ahead and clear the cache and notify callbacks of a success.
     messageBusConnection?.apply {
@@ -101,7 +104,9 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
 
     val (cacheClean, errorOccurred) = synchronized(lock) {
       if (!cacheClean) {
-        callbacks.add(CacheClearedCallback(onCacheClean, onSourceGenerationError))
+        val callback = CacheClearedCallback(onCacheClean, onSourceGenerationError)
+        Disposer.register(parentDisposable) { callbacks.remove(callback) }
+        callbacks.add(callback)
       }
 
       Pair(cacheClean, errorOccurred)
@@ -140,7 +145,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
 
       ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).forEach { facet ->
         StudioResourceRepositoryManager.getInstance(facet).resetAllCaches()
-        ResourceIdManager.get(facet.module).resetDynamicIds()
+        StudioResourceIdManager.get(facet.module).resetDynamicIds()
         ResourceClassRegistry.get(project).clearCache()
         ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
       }

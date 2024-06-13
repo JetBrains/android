@@ -43,4 +43,7 @@ public interface BuildFeaturesModel extends GradleBlockModel {
 
   @NotNull
   ResolvedPropertyModel aidl();
+
+  @NotNull
+  ResolvedPropertyModel shaders();
 }

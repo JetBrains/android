@@ -37,8 +37,5 @@ internal val ExpectedStrictBoolean =
 /** Value should be either 'landscape' or 'portrait'. */
 internal val ExpectedOrientation = MultipleChoiceValueType(Orientation.values().map { it.name })
 
-/** Value should be an Integer with a unit suffix. Eg: 120dp */
-internal val ExpectedIntegerWithUnit = OpenEndedValueType("Integer(dp/px)")
-
 /** Value should be a Float with a unit suffix. Eg: 120.1dp */
 internal val ExpectedFloatWithUnit = OpenEndedValueType("Float(dp/px)")

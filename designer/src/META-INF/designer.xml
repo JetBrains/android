@@ -18,7 +18,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
-    <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
     <troubleInfoCollector implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsTroubleInfoCollector" />
   </extensions>
 
@@ -33,10 +32,6 @@
                     interface="com.intellij.troubleshooting.TroubleInfoCollector"/>
   </extensionPoints>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="com.android.tools.idea.configurations.AdditionalDeviceService" />
-  </extensions>
-
   <!-- New layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">
@@ -50,12 +45,10 @@
                         anchor="right"
                         icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW"
                         canCloseContents="false" />
-    <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" headlessImplementation="" />
-    <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
 
     <projectService serviceInterface="com.android.tools.idea.common.error.DesignerCommonIssuePanelModelProvider"
                     serviceImplementation="com.android.tools.idea.common.error.AsyncDesignerCommonIssuePanelModelProvider"/>
-    <postStartupActivity implementation="com.android.tools.idea.common.error.IssuePanelStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.common.error.IssuePanelProjectActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder">
@@ -73,7 +66,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              instance="com.android.tools.idea.uibuilder.options.NlOptionsConfigurable"
                              bundle="messages.AndroidDesignerActionsBundle"
@@ -85,12 +77,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <keymapExtension implementation="com.android.tools.idea.DesignerKeymapExtension"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceImplementation="com.android.tools.idea.common.surface.DesignSurfaceSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolSettings"/>
-    <projectService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolProjectSettings"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -171,11 +157,9 @@
     </group>
 
     <group id="Android.Designer.IssuePanel.ToolbarActions">
-      <group id="Android.Designer.IssuePanel.ViewOptions" text="View Options" icon="AllIcons.Actions.Show" popup="true">
-        <group id="Android.Designer.IssuePanel.SeverityFilter"
-               class="com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup"
-               text="Severity Filters of Issue Panel"/>
-      </group>
+      <group id="Android.Designer.IssuePanel.SeverityFilter"
+             class="com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup"
+             text="View Options" icon="AllIcons.Actions.Show" popup="true"/>
       <action id="Android.Designer.IssuePanel.ToggleIssueDetailAction"
               text="Show Issue Detail"
               icon="AllIcons.Actions.PreviewDetails"
@@ -268,5 +252,9 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.diagnostics.report">
     <logsProvider implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsDiagnosticsSummaryFileProvider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <problemsViewPanelProvider implementation="com.android.tools.idea.common.error.SharedIssuePanelProvider" />
   </extensions>
 </idea-plugin>

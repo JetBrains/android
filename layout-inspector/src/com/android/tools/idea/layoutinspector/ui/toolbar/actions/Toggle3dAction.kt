@@ -78,7 +78,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
         },
         0,
         15,
-        TimeUnit.MILLISECONDS
+        TimeUnit.MILLISECONDS,
       )
     }
   }
@@ -97,7 +97,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
     if (
       model.overlay == null &&
         client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&
-        (client.isCapturing || inspectorModel?.pictureType == AndroidWindow.ImageType.SKP)
+        (client.inLiveMode || inspectorModel?.pictureType == AndroidWindow.ImageType.SKP)
     ) {
       event.presentation.isEnabled = true
       if (model.isRotated) {

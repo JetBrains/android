@@ -16,28 +16,30 @@
 package com.android.tools.idea.compose.gradle.fast
 
 import com.android.testutils.delayUntilCondition
+import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.fast.OutOfProcessCompilerDaemonClientImpl
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.editors.fast.toFileNameSet
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.MutableIrClassCache
+import com.android.tools.idea.run.deployment.liveedit.PsiState
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
@@ -46,16 +48,16 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
@@ -86,7 +88,7 @@ import kotlin.time.Duration.Companion.seconds
 private fun defaultDaemonFactory(
   version: String,
   log: Logger,
-  scope: CoroutineScope
+  scope: CoroutineScope,
 ): CompilerDaemonClient {
   return OutOfProcessCompilerDaemonClientImpl(version, scope, log)
 }
@@ -118,21 +120,22 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       else
         FastPreviewManager.getTestInstance(
             projectRule.project,
-            { version, _, log, scope -> defaultDaemonFactory(version, log, scope) }
+            { version, _, log, scope -> defaultDaemonFactory(version, log, scope) },
           )
           .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
-    ApplicationManager.getApplication().invokeAndWait { projectRule.buildAndAssertIsSuccessful() }
-    runWriteActionAndWait {
+    runInEdtAndWait {
+      projectRule.buildAndAssertIsSuccessful()
       projectRule.fixture.openFileInEditor(mainFile)
-      WriteCommandAction.runWriteCommandAction(projectRule.project) {
-        // Delete the reference to PreviewInOtherFile since it's a top level function not supported
-        // by the embedded compiler (b/201728545) and it's not used by the tests.
-        projectRule.fixture.editor.replaceText("PreviewInOtherFile()", "")
+      runWriteAction {
+        WriteCommandAction.runWriteCommandAction(projectRule.project) {
+          // Delete the reference to PreviewInOtherFile since it's a top level function not
+          // supported
+          // by the embedded compiler (b/201728545) and it's not used by the tests.
+          projectRule.fixture.editor.replaceText("PreviewInOtherFile()", "")
+        }
       }
       projectRule.fixture.moveCaret("Text(\"Hello 2\")|")
       projectRule.fixture.type("\n")
-    }
-    runInEdtAndWait {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Consume editor events
     }
   }
@@ -189,14 +192,14 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       val stringResourceCallPatter =
         Regex(
           "LDC (\\d+)\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource",
-          RegexOption.MULTILINE
+          RegexOption.MULTILINE,
         )
       val matches = stringResourceCallPatter.findAll(decompiledOutput)
       assertTrue("Expected stringResource calls not found", matches.count() != 0)
       // Real ids are all above 0x7f000000
       assertTrue(
         "Fake IDs are not expected for a compiled project in the light R class",
-        matches.all { it.groupValues[1].toInt() > 0x7f000000 }
+        matches.all { it.groupValues[1].toInt() > 0x7f000000 },
       )
     }
   }
@@ -219,11 +222,13 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   @Test
   fun testFastPreviewEditChangeRender() {
     val previewElement =
-      SingleComposePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.MainActivityKt.TwoElementsPreview"
       )
-    val initialState =
-      renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
+    val appFacet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      appFacet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+    val initialState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
 
     val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
@@ -232,10 +237,10 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
       ModuleClassLoaderOverlays.getInstance(module).pushOverlayPath(File(outputPath).toPath())
     }
-    val finalState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
+    val finalState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
     assertTrue(
       "Resulting image is expected to be at least 20% higher since a new text line was added",
-      finalState.height > initialState.height * 1.20
+      finalState.height > initialState.height * 1.20,
     )
   }
 
@@ -285,17 +290,11 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val irCache = MutableIrClassCache()
     val deviceCompilations = AtomicLong(0)
     val deviceThread = thread {
-      val function = runReadAction {
-        psiMainFile.collectDescendantsOfType<KtNamedFunction>().first {
-          it.name?.contains("TwoElementsPreview") ?: false
-        }
-      }
-
       startCountDownLatch.await()
       while (compile) {
         try {
           LiveEditCompiler(projectRule.project, irCache)
-            .compile(listOf(LiveEditCompilerInput(psiMainFile, function)))
+            .compile(listOf(LiveEditCompilerInput(psiMainFile, PsiState(psiMainFile))))
           deviceCompilations.incrementAndGet()
         } catch (e: LiveEditUpdateException) {
           Logger.getInstance(FastPreviewManagerGradleTest::class.java)
@@ -322,8 +321,8 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   }
 
   private fun typeAndSaveDocument(typedString: String) {
+    projectRule.fixture.type(typedString)
     runWriteActionAndWait {
-      projectRule.fixture.type(typedString)
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       FileDocumentManager.getInstance().saveAllDocuments()
     }

@@ -31,9 +31,7 @@ import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JComponent
 
 /** Action used to Toggle Live Updates on/off. */
-class ToggleLiveUpdatesAction(
-  private val layoutInspector: LayoutInspector,
-) :
+class ToggleLiveUpdatesAction(private val layoutInspector: LayoutInspector) :
   ToggleAction({ "Live Updates" }, StudioIcons.LayoutInspector.Toolbar.LIVE_UPDATES),
   TooltipDescriptionProvider,
   TooltipLinkProvider {
@@ -68,7 +66,7 @@ class ToggleLiveUpdatesAction(
 
   // When disconnected: display the default value after the inspector is connected to the device.
   override fun isSelected(event: AnActionEvent): Boolean {
-    return layoutInspector.inspectorClientSettings.isCapturingModeOn
+    return layoutInspector.inspectorClientSettings.inLiveMode
   }
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
@@ -80,7 +78,7 @@ class ToggleLiveUpdatesAction(
         false -> layoutInspector.coroutineScope.launch { currentClient.stopFetching() }
       }
     }
-    layoutInspector.inspectorClientSettings.isCapturingModeOn = state
+    layoutInspector.inspectorClientSettings.inLiveMode = state
   }
 
   private fun client(event: AnActionEvent): InspectorClient =

@@ -97,7 +97,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     lambdaName: String,
     functionName: String,
     startLine: Int,
-    endLine: Int
+    endLine: Int,
   ): SourceLocation {
     if (startLine < 1 || endLine < 1) {
       return unknown(fileName)
@@ -137,7 +137,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     doc: Document,
     functionName: String,
     startLine: Int,
-    endLine: Int
+    endLine: Int,
   ): Map<KtExpression, Int> {
     val offsetRange =
       try {
@@ -238,7 +238,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
    */
   private fun KaSession?.selectLambdaFromSynthesizedName(
     lambdas: Map<KtExpression, Int>,
-    lambdaName: String
+    lambdaName: String,
   ): KtExpression? {
     when (lambdas.size) {
       0 -> return null
@@ -275,7 +275,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     visitor.forEachLambda(
       this@selectLambdaFromSynthesizedName,
       topElement,
-      excludeTopElements = true
+      excludeTopElements = true,
     ) { expression, _, _, _ ->
       nestedUnderTopElement.add(expression)
     }
@@ -335,13 +335,13 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       analysisSession: KaSession?,
       startElement: KtElement,
       excludeTopElements: Boolean = false,
-      callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit
+      callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit,
     ) {
       nesting = 0
       foundComposableSibling = false
       startElement.acceptChildren(
         this@LambdaVisitor,
-        VisitorData(analysisSession, excludeTopElements, callable)
+        VisitorData(analysisSession, excludeTopElements, callable),
       )
     }
 
@@ -356,7 +356,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
 
     override fun visitCallableReferenceExpression(
       expression: KtCallableReferenceExpression,
-      data: VisitorData
+      data: VisitorData,
     ): Void? {
       data.callable(expression, nesting, foundComposableSibling) {
         nestedOperation(nesting + 1) { super.visitCallableReferenceExpression(expression, data) }
@@ -422,6 +422,6 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     /** K2 Analysis API session (null for K1 plugin). */
     val analysisSession: KaSession?,
     val excludeTopElements: Boolean,
-    val callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit
+    val callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit,
   )
 }

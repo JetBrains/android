@@ -38,8 +38,8 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
     myWizard = wizard;
 
     final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(wizard.getProject());
-    myBundleButton.setSelected(settings.BUILD_TARGET_KEY.equals(ExportSignedPackageWizard.BUNDLE));
-    myApkButton.setSelected(settings.BUILD_TARGET_KEY.equals(ExportSignedPackageWizard.APK));
+    myBundleButton.setSelected(settings.BUILD_TARGET_KEY.equals(ExportSignedPackageWizard.BUNDLE.toString()));
+    myApkButton.setSelected(settings.BUILD_TARGET_KEY.equals(ExportSignedPackageWizard.APK.toString()));
 
     myLearnMoreLink.setHyperlinkText("Learn more");
     myLearnMoreLink.setHyperlinkTarget(DOC_URL);
@@ -54,7 +54,7 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
   protected void commitForNext() {
     boolean isBundle = myBundleButton.isSelected();
     GenerateSignedApkSettings.getInstance(myWizard.getProject()).BUILD_TARGET_KEY =
-      isBundle ? ExportSignedPackageWizard.BUNDLE : ExportSignedPackageWizard.APK;
+      isBundle ? ExportSignedPackageWizard.BUNDLE.toString() : ExportSignedPackageWizard.APK.toString();
     myWizard.setTargetType(isBundle ? ExportSignedPackageWizard.BUNDLE : ExportSignedPackageWizard.APK);
   }
 

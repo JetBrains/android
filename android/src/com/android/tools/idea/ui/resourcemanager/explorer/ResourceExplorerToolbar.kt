@@ -220,6 +220,7 @@ private class FilterAction internal constructor(val viewModel: ResourceExplorerT
 
 private class ShowModuleDependenciesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : ToggleAction("Show local dependencies") {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   override fun isSelected(e: AnActionEvent) = viewModel.isShowModuleDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowModuleDependencies = state
@@ -229,6 +230,7 @@ private class ShowModuleDependenciesAction internal constructor(val viewModel: R
 
 private class ShowLibrariesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : ToggleAction("Show libraries") {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   override fun isSelected(e: AnActionEvent) = viewModel.isShowLibraryDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowLibraryDependencies = state
@@ -238,6 +240,7 @@ private class ShowLibrariesAction internal constructor(val viewModel: ResourceEx
 
 private class ShowFrameworkAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : ToggleAction("Show android resources") {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   override fun isSelected(e: AnActionEvent) = viewModel.isShowFrameworkResources
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowFrameworkResources = state
@@ -247,6 +250,7 @@ private class ShowFrameworkAction internal constructor(val viewModel: ResourceEx
 
 private class ShowThemeAttributesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : ToggleAction("Show theme attributes") {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   override fun isSelected(e: AnActionEvent) = viewModel.isShowThemeAttributes
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowThemeAttributes = state
@@ -271,6 +275,7 @@ private class TypeFilterAction internal constructor(val viewModel: ResourceExplo
   : ToggleAction(fixFilterDisplayNameForActionText(displayName),
                  "Filter ${viewModel.resourceType.displayName}s by File extension or Xml root tag.",
                  null) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   override fun isSelected(e: AnActionEvent): Boolean {
     return typeFilters.any { viewModel.typeFiltersModel.isEnabled(viewModel.resourceType, it) }
   }

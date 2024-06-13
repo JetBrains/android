@@ -25,6 +25,7 @@ import javax.swing.Icon
 abstract class OpenPopUpAction : DumbAwareAction {
 
   constructor(name: String, icon: Icon) : super(name, null, icon)
+
   constructor(name: String) : super(name)
 
   abstract val actions: List<PanelAction>

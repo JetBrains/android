@@ -147,6 +147,7 @@ class RenderTemplateModel private constructor(
           paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get()
         )
         category = newTemplate.category
+        isCompose = newTemplate.constraints.contains(TemplateConstraint.Compose)
         isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3)
         useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
         useGenericLocalTests = newTemplate.useGenericLocalTests

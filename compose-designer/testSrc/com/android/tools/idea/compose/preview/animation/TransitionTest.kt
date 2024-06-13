@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.tools.idea.preview.animation.AnimatedProperty
+import com.android.tools.idea.preview.animation.Transition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

@@ -58,7 +58,7 @@ private object DesignerCommonIssuePanelUsageTrackerImpl : DesignerCommonIssuePan
 
   override fun trackNavigationFromIssue(
     target: UniversalProblemsPanelEvent.IssueNavigated,
-    project: Project
+    project: Project,
   ) {
     trackEvent(project) {
       UniversalProblemsPanelEvent.newBuilder().setIssueNavigated(target).build()
@@ -108,7 +108,7 @@ private object DesignerCommonIssuePanelNoOpUsageTracker : DesignerCommonIssuePan
 
   override fun trackNavigationFromIssue(
     target: UniversalProblemsPanelEvent.IssueNavigated,
-    project: Project
+    project: Project,
   ) = Unit
 
   override fun trackSelectingTab(tab: UniversalProblemsPanelEvent.ActivatedTab, project: Project) =

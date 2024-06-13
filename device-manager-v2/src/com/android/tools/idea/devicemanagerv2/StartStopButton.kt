@@ -97,7 +97,7 @@ internal class StartStopButton(
           .distinctUntilChanged()
           .collect {
             withContext(uiThread) {
-              toolTipText = it.label
+              toolTipText = if (it.enabled) it.label else it.detail
               baseIcon = it.icon
               isEnabled = it.enabled
             }

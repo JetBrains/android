@@ -62,6 +62,7 @@ internal class AndroidStudioDefaultToolWindowLayoutExtension : DefaultToolWindow
       // Problems
       addOrUpdate("Problems View")
       addOrUpdate("Logcat")
+      addOrUpdate("App Quality Insights")
       addOrUpdate("Build")
     }
   }

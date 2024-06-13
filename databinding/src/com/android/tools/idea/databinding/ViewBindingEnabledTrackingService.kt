@@ -16,30 +16,22 @@
 package com.android.tools.idea.databinding
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.ModificationTracker
-import java.util.concurrent.atomic.AtomicLong
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.util.SimpleModificationTracker
 import net.jcip.annotations.ThreadSafe
 
 /**
  * Service that owns an atomic counter for how many times the view binding setting is changed. This
- * allows it to provide a [ModificationTracker] which is used by IntelliJ for knowing when to clear
- * caches, etc.
+ * allows it to provide a [com.intellij.openapi.util.ModificationTracker] which is used by IntelliJ
+ * for knowing when to clear caches, etc.
  */
 @ThreadSafe
-class ViewBindingEnabledTrackingService : ModificationTracker {
+@Service(Service.Level.APP)
+class ViewBindingEnabledTrackingService : SimpleModificationTracker() {
   companion object {
     @JvmStatic
-    val instance: ViewBindingEnabledTrackingService
-      get() =
-        ApplicationManager.getApplication()
-          .getService(ViewBindingEnabledTrackingService::class.java)
+    fun getInstance(): ViewBindingEnabledTrackingService =
+      ApplicationManager.getApplication().service()
   }
-
-  private val modificationCount = AtomicLong(0)
-
-  fun incrementModificationCount() {
-    modificationCount.incrementAndGet()
-  }
-
-  override fun getModificationCount() = modificationCount.get()
 }

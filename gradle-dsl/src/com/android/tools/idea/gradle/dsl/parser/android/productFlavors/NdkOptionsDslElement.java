@@ -16,10 +16,17 @@
 package com.android.tools.idea.gradle.dsl.parser.android.productFlavors;
 
 import static com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl.ABI_FILTERS;
+import static com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl.C_FLAGS;
+import static com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl.JOBS;
+import static com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl.LD_LIBS;
+import static com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl.MODULE_NAME;
+import static com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl.STL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
@@ -43,14 +50,27 @@ public class NdkOptionsDslElement extends GradleDslBlockElement {
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAL},
-    {"abiFilters", atLeast(0), ABI_FILTERS, OTHER},
-    {"abiFilter", exactly(1), ABI_FILTERS, OTHER}
+    {"cFlags", property, C_FLAGS, VAR},
+    {"jobs", property, JOBS, VAR},
+    {"ldLibs", property, LD_LIBS, VAL},
+    {"moduleName", property, MODULE_NAME, VAR},
+    {"stl", property, STL, VAR},
   }).collect(toModelMap());
 
   private static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAR},
-    {"abiFilters", atLeast(0), ABI_FILTERS, OTHER},
-    {"abiFilter", exactly(1), ABI_FILTERS, OTHER}
+    {"abiFilters", atLeast(0), ABI_FILTERS, AUGMENT_LIST},
+    {"abiFilter", exactly(1), ABI_FILTERS, AUGMENT_LIST},
+    {"cFlags", property, C_FLAGS, VAR},
+    {"cFlags", exactly(1), C_FLAGS, SET},
+    {"jobs", property, JOBS, VAR},
+    {"jobs", exactly(1), JOBS, SET},
+    {"ldLibs", property, LD_LIBS, VAR},
+    {"ldLibs", atLeast(0), LD_LIBS, AUGMENT_LIST},
+    {"moduleName", property, MODULE_NAME, VAR},
+    {"moduleName", exactly(1), MODULE_NAME, SET},
+    {"stl", property, STL, VAR},
+    {"stl", exactly(1), STL, SET},
   }).collect(toModelMap());
 
   private static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
@@ -64,16 +84,6 @@ public class NdkOptionsDslElement extends GradleDslBlockElement {
 
   public NdkOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-    if (property.equals("abiFilters") || property.equals("abiFilter")) {
-      addToParsedExpressionList(ABI_FILTERS, element);
-      return;
-    }
-    super.addParsedElement(element);
   }
 
   public static final class NdkOptionsDslElementSchema extends GradlePropertiesDslElementSchema {

@@ -108,7 +108,7 @@ class LightDirectionsClass(navInfo: NavInfo, navEntry: NavEntry, destination: Na
         val resolvedNavigationElement =
           _navigationElement?.findFirstMatchingElementByTraversingUp(
             SdkConstants.TAG_ACTION,
-            action.id
+            action.id,
           )
         val resolvedNavDirectionsType =
           actionClasses
@@ -118,7 +118,7 @@ class LightDirectionsClass(navInfo: NavInfo, navEntry: NavEntry, destination: Na
             name = methodName,
             navigationElement = resolvedNavigationElement,
             modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-            returnType = annotateNullability(resolvedNavDirectionsType)
+            returnType = annotateNullability(resolvedNavDirectionsType),
           )
           .apply {
             action.arguments.forEach { arg ->

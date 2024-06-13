@@ -25,7 +25,8 @@ import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -40,19 +41,20 @@ import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqua
 import com.android.tools.idea.layoutinspector.view
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.ArgumentMatcher
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.any
-import org.mockito.Mockito.anyBoolean
-import org.mockito.Mockito.verify
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 import kotlin.io.path.readBytes
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.ArgumentMatcher
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyBoolean
+import org.mockito.ArgumentMatchers.eq
+import org.mockito.Mockito.verify
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -122,7 +124,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
     val (root, hash) =
       LegacyTreeParser.parseLiveViewNode(
         treeSample.toByteArray(Charsets.UTF_8),
-        propertiesUpdater
+        propertiesUpdater,
       )!!
     propertiesUpdater.apply(provider)
     provider.requestProperties(root)
@@ -214,7 +216,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           anyBoolean(),
           anyBoolean(),
           anyBoolean(),
-          any(DebugViewDumpHandler::class.java)
+          any(DebugViewDumpHandler::class.java),
         )
       )
       .thenAnswer { invocation ->
@@ -238,7 +240,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           DebugViewDumpHandler.CHUNK_VUOP,
           ByteBuffer.wrap(imageBytes),
           true,
-          1234
+          1234,
         )
     }
     legacyClient.treeLoader.ddmClientOverride = client
@@ -248,13 +250,13 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           LegacyEvent(
             "window1",
             LegacyPropertiesProvider.Updater(legacyClient.model),
-            listOf("window1")
+            listOf("window1"),
           ),
           legacyClient.model.resourceLookup,
-          legacyClient.process
+          legacyClient.process,
         )!!
         .window!!
-    window.refreshImages(1.0)
+    runBlocking { window.refreshImages(1.0) }
 
     assertThat(window.id).isEqualTo("window1")
 
@@ -308,7 +310,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           anyBoolean(),
           anyBoolean(),
           anyBoolean(),
-          any(DebugViewDumpHandler::class.java)
+          any(DebugViewDumpHandler::class.java),
         )
       )
       .thenAnswer { invocation ->
@@ -332,7 +334,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           DebugViewDumpHandler.CHUNK_VUOP,
           ByteBuffer.wrap(imageBytes),
           true,
-          1234
+          1234,
         )
     }
     legacyClient.treeLoader.ddmClientOverride = client
@@ -340,14 +342,13 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
       legacyClient.treeLoader.loadComponentTree(
         LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
         resourceLookup,
-        legacyClient.process
+        legacyClient.process,
       )
     assertThat(window).isNull()
   }
 
-  @Suppress("UndesirableClassUsage")
   @Test
-  fun testRefreshImages() {
+  fun testRefreshImages() = runBlocking {
     val imageBytes =
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").readBytes()
     val image1 = ImageIO.read(ByteArrayInputStream(imageBytes))
@@ -364,7 +365,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           anyBoolean(),
           anyBoolean(),
           anyBoolean(),
-          any(DebugViewDumpHandler::class.java)
+          any(DebugViewDumpHandler::class.java),
         )
       )
       .thenAnswer { invocation ->
@@ -391,7 +392,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           DebugViewDumpHandler.CHUNK_VUOP,
           ByteBuffer.wrap(imageBytes),
           true,
-          1234
+          1234,
         )
     }
 
@@ -401,10 +402,10 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .loadComponentTree(
           LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
           resourceLookup,
-          legacyClient.process
+          legacyClient.process,
         )!!
         .window!!
-    val model = InspectorModel(mock())
+    val model = InspectorModel(mock(), AndroidCoroutineScope(legacyRule.disposable))
     model.update(window, listOf("window1"), 0)
 
     window.refreshImages(1.0)
@@ -416,7 +417,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .filterIsInstance<DrawViewImage>()
         .first()
         .image,
-      0.0
+      0.0,
     )
 
     // Zoom and verify the image is rescaled
@@ -432,7 +433,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .filterIsInstance<DrawViewImage>()
         .first()
         .image,
-      0.0
+      0.0,
     )
 
     // Update the image returned by the device and verify the draw image is not refreshed yet
@@ -448,7 +449,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
           DebugViewDumpHandler.CHUNK_VUOP,
           ByteBuffer.wrap(image2Bytes),
           true,
-          1234
+          1234,
         )
     }
 
@@ -460,7 +461,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .filterIsInstance<DrawViewImage>()
         .first()
         .image,
-      0.0
+      0.0,
     )
 
     // Update and verify the image is updated
@@ -468,7 +469,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
       legacyClient.treeLoader.loadComponentTree(
         LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
         resourceLookup,
-        legacyClient.process
+        legacyClient.process,
       )!!
     model.update(updatedWindow, listOf("window1"), 1)
 
@@ -480,7 +481,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
         .filterIsInstance<DrawViewImage>()
         .first()
         .image,
-      0.0
+      0.0,
     )
   }
 }

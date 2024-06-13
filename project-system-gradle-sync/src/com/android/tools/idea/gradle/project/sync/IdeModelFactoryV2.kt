@@ -19,7 +19,6 @@ import com.android.builder.model.v2.ide.Library
 import com.android.builder.model.v2.ide.ProjectInfo
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
@@ -31,7 +30,7 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment
 import java.io.File
 
 class IdeModelFactoryV2(
-  agpVersion: AgpVersion,
+  private val modelVersions: ModelVersions,
   multiVariantAdditionalArtifactSupport: Boolean,
 ) {
 
@@ -39,9 +38,8 @@ class IdeModelFactoryV2(
    * Sources, JavaDocs and Samples are only provided in libraries after AGP version 8.1.0-alpha8.
    * Any attempt to read these values from a version prior to this will result in an exception.
    */
-  val isAGPVersion8dot1dot0alpha8orLater = agpVersion.isAtLeast(8, 1, 0, "alpha", 8, false)
-  val useAdditionalArtifactsFromLibraries = isAGPVersion8dot1dot0alpha8orLater && multiVariantAdditionalArtifactSupport
-  val supportsAbsoluteGradleBuildPaths = agpVersion.isAtLeast(8, 2, 0, "alpha", 13, false)
+  private val useAdditionalArtifactsFromLibraries =
+    modelVersions[ModelFeature.HAS_SOURCES_JAVADOC_AND_SAMPLES_IN_VARIANT_DEPENDENCIES] && multiVariantAdditionalArtifactSupport
 
   fun androidLibraryFrom(androidLibrary: Library, deduplicate: String.() -> String) : IdeAndroidLibraryImpl {
     fun File.deduplicateFile(): File = File(path.deduplicate())
@@ -99,7 +97,7 @@ class IdeModelFactoryV2(
   ) : IdeUnresolvedLibrary {
     val projectInfo = library.projectInfo!!
     val projectPath = projectInfo.projectPath
-    val lintJar = library.lintJar
+    val libraryLintJar = library.lintJar
     val buildId = buildPathMap.buildPathToBuildId(projectInfo)
     // TODO(b/203750717): Model this explicitly in the tooling model.
     val artifact : ArtifactRef =
@@ -110,9 +108,9 @@ class IdeModelFactoryV2(
           androidProjectPathResolver.resolve(buildId, projectInfo.projectPath)
           ?: error("Cannot find an Android module: ${projectInfo.displayName}")
         val variantName = androidModule.resolveVariantName(projectInfo, buildId)
-        AndroidArtifactRef(variantName, projectInfo.isTestFixtures)
+        AndroidArtifactRef(variantName, projectInfo.isTestFixtures, androidModule.androidProject.lintJar)
       } else {
-        library.artifact?.let {NonAndroidAndroidArtifactRef(it)} ?: error(
+        library.artifact?.let { NonAndroidAndroidArtifactRef(it) } ?: error(
           "Unresolved module dependency ${projectInfo.displayName} in " +
           "$projectPath ($buildId). Neither the source set nor the artifact property was populated" +
           " by the Android Gradle plugin."
@@ -124,21 +122,21 @@ class IdeModelFactoryV2(
           buildId = buildId.asString,
           projectPath = projectPath,
           variant = artifact.variantName,
-          lintJar = lintJar?.path?.let { File(it) },
+          lintJar = artifact.lintJar ?: libraryLintJar?.path?.let { File(it) },
           sourceSet = if (artifact.isTestFixture) IdeModuleWellKnownSourceSet.TEST_FIXTURES else IdeModuleWellKnownSourceSet.MAIN
         )
       is KmpAndroidArtifactRef ->
         IdeUnresolvedKmpAndroidModuleLibraryImpl(
           buildId = buildId.asString,
           projectPath = projectPath,
-          lintJar = lintJar?.path?.let { File(it) },
+          lintJar = libraryLintJar?.path?.let { File(it) },
         )
       is NonAndroidAndroidArtifactRef ->
         IdeUnresolvedModuleLibraryImpl(
           buildId = buildId.asString,
           projectPath = projectPath,
           variant = null,
-          lintJar = lintJar?.path?.let { File(it) },
+          lintJar = libraryLintJar?.path?.let { File(it) },
           artifact = artifact.artifactFile
         )
     }
@@ -148,7 +146,7 @@ class IdeModelFactoryV2(
 
   private fun Map<String, BuildId>.buildPathToBuildId(projectInfo: ProjectInfo): BuildId {
     val buildTreePath = projectInfo.buildTreePath
-    val buildId = if (supportsAbsoluteGradleBuildPaths) {
+    val buildId = if (modelVersions[ModelFeature.USES_ABSOLUTE_GRADLE_BUILD_PATHS_IN_DEPENDENCY_MODEL]) {
       this[projectInfo.buildTreePath]
     } else {
       // If there is no full support for Gradle build paths, we are looking only to match the last segment.
@@ -196,7 +194,7 @@ class IdeModelFactoryV2(
 
 private sealed class ArtifactRef
 private object KmpAndroidArtifactRef : ArtifactRef()
-private data class AndroidArtifactRef(val variantName: String, val isTestFixture: Boolean) : ArtifactRef()
+private data class AndroidArtifactRef(val variantName: String, val isTestFixture: Boolean, val lintJar: File?) : ArtifactRef()
 private data class NonAndroidAndroidArtifactRef(val artifactFile: File) : ArtifactRef()
 
 /**

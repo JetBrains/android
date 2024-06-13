@@ -16,29 +16,29 @@
 package com.android.tools.idea.streaming.uisettings.binding
 
 import com.android.tools.idea.util.ListenerCollection
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 
 /**
  * Standard implementation of a [TwoWayProperty].
  */
-internal class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T> {
+internal open class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T> {
   private val listeners = ListenerCollection.createWithDirectExecutor<ChangeListener<T>>()
   private var actualValue = initialValue
+  private val emptyChangeListener = ChangeListener<T> {}
+  override var uiChangeListener = emptyChangeListener
+    set(value) {
+      if (field === emptyChangeListener || value === emptyChangeListener) field = value else error("uiChangeListener is already specified")
+    }
 
-  override var uiChangeListener = ChangeListener<T> {}
+  override fun clearUiChangeListener() {
+    uiChangeListener = emptyChangeListener
+  }
 
   override val value: T
     get() = actualValue
 
-  override fun addControllerListener(disposable: Disposable, listener: ChangeListener<T>) {
+  override fun addControllerListener(listener: ChangeListener<T>) {
     listeners.add(listener)
-    Disposer.register(disposable) { removeControllerListener(listener) }
     listener.valueChanged(value)
-  }
-
-  override fun removeControllerListener(listener: ChangeListener<T>) {
-    listeners.remove(listener)
   }
 
   override fun setFromUi(newValue: T) {
@@ -51,5 +51,27 @@ internal class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T> {
   override fun setFromController(newValue: T) {
     actualValue = newValue
     listeners.forEach { it.valueChanged(newValue) }
+  }
+
+  override fun <U> createMappedProperty(toTarget: (T) -> U, fromTarget: (U) -> T): TwoWayProperty<U> {
+    val property = DefaultTwoWayProperty(toTarget(value))
+    property.uiChangeListener = ChangeListener { setFromUi(fromTarget(it)) }
+    listeners.add { property.setFromController(toTarget(it)) }
+    return property
+  }
+
+  override fun and(other: ReadOnlyProperty<Boolean>): ReadOnlyProperty<Boolean> {
+    if (actualValue !is Boolean) error("Boolean property required")
+    val result = DefaultTwoWayProperty((actualValue as Boolean) and other.value)
+    addControllerListener { result.setFromController((it as Boolean) and other.value) }
+    other.addControllerListener { result.setFromController((actualValue as Boolean) and it) }
+    return result
+  }
+
+  override fun not(): ReadOnlyProperty<Boolean> {
+    if (actualValue !is Boolean) error("Boolean property required")
+    val result = DefaultTwoWayProperty(!(actualValue as Boolean))
+    addControllerListener { result.setFromController(!(it as Boolean)) }
+    return result
   }
 }

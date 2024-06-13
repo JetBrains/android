@@ -31,12 +31,12 @@ class RenderXmlFileSnapshot(
 
   constructor(
     project: Project,
-    filePath: PathString
+    filePath: PathString,
   ) : this(
     project,
     filePath.fileName,
     ResourceFolderType.getFolderType(filePath.parentFileName!!),
-    filePath.toFile()!!.readBytes().toString(Charsets.UTF_8)
+    filePath.toFile()!!.readBytes().toString(Charsets.UTF_8),
   )
 
   constructor(project: Project, filePath: String) : this(project, PathString(filePath))

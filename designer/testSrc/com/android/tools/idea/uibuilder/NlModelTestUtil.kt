@@ -46,7 +46,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 fun createNlModelFromTagName(
   androidFacet: AndroidFacet,
-  xmlContent: String = generateRootXml(SdkConstants.LINEAR_LAYOUT)
+  xmlContent: String = generateRootXml(SdkConstants.LINEAR_LAYOUT),
 ): NlModel {
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet.module)
   val file = LightLayoutFile(xmlContent)
@@ -55,7 +55,7 @@ fun createNlModelFromTagName(
         androidFacet.module,
         androidFacet,
         file,
-        configurationManager.getConfiguration(file)
+        configurationManager.getConfiguration(file),
       )
       .withComponentRegistrar { NlComponentRegistrar }
       .build()

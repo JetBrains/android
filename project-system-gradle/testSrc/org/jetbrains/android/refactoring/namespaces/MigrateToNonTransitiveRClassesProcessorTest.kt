@@ -27,12 +27,10 @@ import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.JavaLibraryDependency
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.ModuleModelBuilder
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.tests.AdtTestKotlinArtifacts
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -80,10 +78,6 @@ class MigrateToNonTransitiveRClassesProcessorTest {
         projectBuilder = AndroidProjectBuilder(
           androidModuleDependencyList = {
             listOf(AndroidModuleDependency(":lib", "debug"))
-          },
-          // TODO(b/300170256): Remove this once 2023.3 merges and we no longer need kotlin-stdlib for every Kotlin test.
-          javaLibraryDependencyList = {
-            listOf(JavaLibraryDependency.forJar(AdtTestKotlinArtifacts.kotlinStdlib))
           },
           namespace = { "com.example.app" }
         ).build(),
@@ -479,7 +473,7 @@ class MigrateToNonTransitiveRClassesProcessorTest {
       .isEqualTo("""
         <root> (33)
          References to resources defined in com.example.lib (12)
-          Usages in (12)
+          Usages (12)
            Resource reference in code (12)
             migrateToNonTransitiveRClasses.app.main (12)
              com.example.app (6)
@@ -507,7 +501,7 @@ class MigrateToNonTransitiveRClassesProcessorTest {
                 9R.string.another_lib_string,
                 17R.styleable.styleable_from_lib_Attr_from_lib,
          References to resources defined in com.example.sublib (20)
-          Usages in (20)
+          Usages (20)
            Resource reference in code (20)
             migrateToNonTransitiveRClasses.app.main (16)
              com.example.app (8)
@@ -550,7 +544,7 @@ class MigrateToNonTransitiveRClassesProcessorTest {
                 8R.string.from_sublib,
                 13R.styleable.styleable_from_sublib_Attr_from_sublib,
          Properties flag to be added: android.nonTransitiveRClass (1)
-          Non-code usages in (1)
+          Non-code usages (1)
            Gradle properties file (1)
             migrateToNonTransitiveRClasses (1)
               (1)

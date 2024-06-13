@@ -15,52 +15,64 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.explainer.IssueExplainer
-import com.intellij.execution.filters.CompositeFilter
+import com.android.tools.idea.studiobot.StudioBot
+import com.intellij.execution.filters.Filter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Expirable
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.ExecutorService
 import org.jetbrains.annotations.VisibleForTesting
 
 /** A [HyperlinkDetector] that adds hyperlinks to an [Editor] */
-internal class EditorHyperlinkDetector(private val project: Project, private val editor: EditorEx) :
-  HyperlinkDetector {
+internal class EditorHyperlinkDetector(
+  private val project: Project,
+  editor: EditorEx,
+  parentDisposable: Disposable,
+  modalityState: ModalityState,
+  executor: ExecutorService = AppExecutorUtil.getAppExecutorService(),
+) : HyperlinkDetector, Disposable {
   private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
+  private val studioBot = StudioBot.getInstance()
+  private var isDisposed = false
 
-  private val issueExplainer = IssueExplainer.get()
+  private val expirableToken = Expirable { isDisposed }
 
-  @VisibleForTesting val filter = SdkSourceRedirectFilter(project, createFilters())
+  @VisibleForTesting val filter = SdkSourceRedirectFilter(project, SimpleFileLinkFilter(project))
+
+  init {
+    Disposer.register(parentDisposable, this)
+
+    if (studioBot.isAvailable()) {
+      filter.addFilter(StudioBotFilter(editor))
+    }
+
+    // Add all standard filters
+    // Performed as a background task based on `ConsoleViewImpl.updatePredefinedFiltersLater()`
+    ReadAction.nonBlocking<List<Filter>> {
+        ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project))
+      }
+      .expireWith(parentDisposable)
+      .finishOnUiThread(modalityState) { filters: List<Filter> ->
+        filters.forEach { filter.addFilter(it) }
+      }
+      .submit(executor)
+  }
 
   override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) {
     filter.apiLevel = sdk
-    editorHyperlinkSupport.highlightHyperlinks(filter, startLine, endLine)
+    editorHyperlinkSupport.highlightHyperlinksLater(filter, startLine, endLine, expirableToken)
   }
 
-  /**
-   * Create a composite filter containing all the standard
-   * [com.intellij.execution.filters.ConsoleFilterProvider] filters.
-   *
-   * In addition to the standard filters, also add our specialized [SimpleFileLinkFilter] which is
-   * more reliable for project file links.
-   *
-   * Note that SimpleFileLinkFilter could potentially be injected via the
-   * [com.intellij.execution.filters.ConsoleFilterProvider.FILTER_PROVIDERS] extension, we choose
-   * not to do that because that would potentially affect all Console views. We limit this filter to
-   * Logcat for now.
-   */
-  private fun createFilters(): CompositeFilter {
-    val filters = buildList {
-      addAll(
-        ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project))
-      )
-      add(SimpleFileLinkFilter(project))
-      if (issueExplainer.isAvailable()) {
-        add(StudioBotFilter(editor))
-      }
-    }
-    return CompositeFilter(project, filters).apply { setForceUseAllFilters(true) }
+  override fun dispose() {
+    isDisposed = true
   }
 }

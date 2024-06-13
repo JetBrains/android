@@ -16,26 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
 class MissingAndroidSdkIssueCheckerTest : AndroidGradleTestCase() {
   private val missingAndroidSdkIssueChecker = MissingAndroidSdkIssueChecker()
-
-  fun testCheckIssue() {
-    loadSimpleApplication()
-    val issueData = GradleIssueData(projectFolderPath.path, RuntimeException("No sdk.dir property defined in local.properties file."), null,
-                                    null)
-    val buildIssue = missingAndroidSdkIssueChecker.check(issueData)
-
-    assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains("No sdk.dir property defined in local.properties file.\nPlease fix the 'sdk.dir' property in the local.properties file.")
-    // Verify quickFix
-    assertThat(buildIssue.quickFixes).hasSize(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
-  }
 
   fun testCheckIssueHandled() {
     assertThat(

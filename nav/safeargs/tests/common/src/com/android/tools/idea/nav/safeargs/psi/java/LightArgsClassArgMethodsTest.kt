@@ -50,7 +50,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
         TypeMapping("string", "String"),
         TypeMapping("reference", PsiTypes.intType().name),
         TypeMapping("test.safeargs.MyCustomType", "MyCustomType"), // e.g Parcelable, Serializable
-        TypeMapping("test.safeargs.MyEnum", "MyEnum")
+        TypeMapping("test.safeargs.MyEnum", "MyEnum"),
       )
   }
 
@@ -78,7 +78,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
           </fragment>
         </navigation>
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -103,13 +103,13 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArgTwo",
-        returnType = "${typeMapping.after}[]"
+        returnType = "${typeMapping.after}[]",
       )
 
       methods[2].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("bundle", "Bundle"))
+        parameters = listOf(Parameter("bundle", "Bundle")),
       )
 
       methods[3].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")
@@ -142,7 +142,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
           </fragment>
         </navigation>
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -167,19 +167,19 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArgTwo",
-        returnType = "${typeMapping.after}[]"
+        returnType = "${typeMapping.after}[]",
       )
 
       methods[2].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("bundle", "Bundle"))
+        parameters = listOf(Parameter("bundle", "Bundle")),
       )
 
       methods[3].checkSignaturesAndReturnType(
         name = "fromSavedStateHandle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle"))
+        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle")),
       )
 
       methods[4].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")
@@ -212,7 +212,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
           </fragment>
         </navigation>
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -237,24 +237,24 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArgTwo",
-        returnType = "${typeMapping.after}[]"
+        returnType = "${typeMapping.after}[]",
       )
 
       methods[2].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("bundle", "Bundle"))
+        parameters = listOf(Parameter("bundle", "Bundle")),
       )
 
       methods[3].checkSignaturesAndReturnType(
         name = "fromSavedStateHandle",
         returnType = "FragmentArgs",
-        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle"))
+        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle")),
       )
 
       methods[4].checkSignaturesAndReturnType(
         name = "toSavedStateHandle",
-        returnType = "SavedStateHandle"
+        returnType = "SavedStateHandle",
       )
 
       methods[5].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")

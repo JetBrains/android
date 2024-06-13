@@ -36,7 +36,7 @@ class BottomAppBarAnalyzerTest : LayoutTestCase() {
                 .matchParentWidth()
                 .height("40dp")
                 .withMockView()
-            )
+            ),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
@@ -56,7 +56,7 @@ class BottomAppBarAnalyzerTest : LayoutTestCase() {
                 .matchParentWidth()
                 .height("40dp")
                 .withMockView()
-            )
+            ),
         )
         .build()
     val tabletConfig = RenderTestUtil.getConfiguration(myModule, model.virtualFile, "Nexus 9")

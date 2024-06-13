@@ -102,10 +102,9 @@ class WearMarginAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
-        configuration
+        configuration,
       )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
@@ -116,15 +115,15 @@ class WearMarginAnalyzerTest {
         Assert.assertEquals(3, issues.size)
         Assert.assertEquals(
           "The view image_view <ImageView> is too close to the side of the device",
-          issues[0].message
+          issues[0].message,
         )
         Assert.assertEquals(
           "The view textview3 <TextView> is too close to the side of the device",
-          issues[1].message
+          issues[1].message,
         )
         Assert.assertEquals(
           "The view textview1 <TextView> is too close to the side of the device",
-          issues[2].message
+          issues[2].message,
         )
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -142,10 +141,9 @@ class WearMarginAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
-        configuration
+        configuration,
       )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
@@ -156,19 +154,19 @@ class WearMarginAnalyzerTest {
         Assert.assertEquals(4, issues.size)
         Assert.assertEquals(
           "The view image_view <ImageView> is too close to the side of the device",
-          issues[0].message
+          issues[0].message,
         )
         Assert.assertEquals(
           "The view textview4 <TextView> is too close to the side of the device",
-          issues[1].message
+          issues[1].message,
         )
         Assert.assertEquals(
           "The view textview3 <TextView> is too close to the side of the device",
-          issues[2].message
+          issues[2].message,
         )
         Assert.assertEquals(
           "The view textview1 <TextView> is too close to the side of the device",
-          issues[3].message
+          issues[3].message,
         )
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -185,10 +183,9 @@ class WearMarginAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
-        configuration
+        configuration,
       )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
@@ -199,15 +196,15 @@ class WearMarginAnalyzerTest {
         Assert.assertEquals(3, issues.size)
         Assert.assertEquals(
           "The view image_view <ImageView> is too close to the side of the device",
-          issues[0].message
+          issues[0].message,
         )
         Assert.assertEquals(
           "The view textview3 <TextView> is too close to the side of the device",
-          issues[1].message
+          issues[1].message,
         )
         Assert.assertEquals(
           "The view textview1 <TextView> is too close to the side of the device",
-          issues[2].message
+          issues[2].message,
         )
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -224,10 +221,9 @@ class WearMarginAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
-        configuration
+        configuration,
       )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
@@ -238,11 +234,11 @@ class WearMarginAnalyzerTest {
         Assert.assertEquals(2, issues.size)
         Assert.assertEquals(
           "The view textview2 <TextView> is too close to the side of the device",
-          issues[0].message
+          issues[0].message,
         )
         Assert.assertEquals(
           "The view textview1 <TextView> is too close to the side of the device",
-          issues[1].message
+          issues[1].message,
         )
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

@@ -19,16 +19,21 @@ import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
-import com.android.tools.profilers.analytics.energy.EnergyEventMetadata
-import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata
 import com.android.tools.profilers.cpu.CpuCaptureMetadata
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager.SessionCreationSource
+import com.android.tools.profilers.tasks.TaskFinishedState
+import com.android.tools.profilers.tasks.TaskMetadata
+import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata
+import com.android.tools.profilers.tasks.TaskStartFailedMetadata
+import com.android.tools.profilers.tasks.TaskStopFailedMetadata
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata.FailingPoint
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats.QueryReturnStatus
 
 /**
@@ -329,17 +334,6 @@ interface FeatureTracker {
   fun trackToggleCpuThreadsHideablePanel()
 
   /**
-   * Track additional data when a user selects a range while in the energy profiler. Note that this
-   * event is sent in addition to a generic range selection event.
-   */
-  fun trackSelectEnergyRange(rangeMetadata: EnergyRangeMetadata)
-
-  /**
-   * Track additional data when a user selects an energy event to see its details.
-   */
-  fun trackSelectEnergyEvent(eventMetadata: EnergyEventMetadata)
-
-  /**
    * Track when the user selects instance filter for a Memory Profiler's CaptureObject.
    */
   fun trackMemoryProfilerInstanceFilter(filter: CaptureObjectInstanceFilter)
@@ -480,6 +474,15 @@ interface FeatureTracker {
    * Tracks the number of power rails and battery counters found in captured power profiler data
    */
   fun trackPowerProfilerCapture(powerRailCount: Int, batteryCounterCount: Int)
+
+  fun trackTaskSettingsOpened(isSettingsChanged: Boolean)
+
+  fun trackTaskEntered(taskMetadata: TaskMetadata)
+
+  fun trackTaskFinished(taskMetadata: TaskMetadata, taskFinishedState: TaskFinishedState)
+  fun trackTaskFailed(taskMetadata: TaskMetadata, taskStartFailedMetadata: TaskStartFailedMetadata)
+  fun trackTaskFailed(taskMetadata: TaskMetadata, taskStopFailedMetadata: TaskStopFailedMetadata)
+  fun trackTaskFailed(taskMetadata: TaskMetadata, taskProcessingFailedMetadata: TaskProcessingFailedMetadata)
 }
 
 /**

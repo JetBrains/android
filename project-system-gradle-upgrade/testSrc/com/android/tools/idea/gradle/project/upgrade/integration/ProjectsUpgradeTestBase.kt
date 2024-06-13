@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProces
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -91,6 +92,8 @@ abstract class ProjectsUpgradeTestBase {
 
   fun doTestFullUpgrade(baseProject: AUATestProjectState, to: AUATestProjectState) {
     loadAUATestProject(baseProject)
+    addStateEmbeddedJdkToTable(to)
+
     fakeSyncInvoker.fakeNextSyncSuccess = true
     //TODO run upgrade through FakeUI instead.
     val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpVersion(), to.agpVersion())
@@ -110,6 +113,7 @@ abstract class ProjectsUpgradeTestBase {
 
   fun doTestMinimalUpgrade(baseProject: AUATestProjectState, to: AUATestProjectState) {
     loadAUATestProject(baseProject)
+    addStateEmbeddedJdkToTable(to)
     fakeSyncInvoker.fakeNextSyncSuccess = true
     //TODO run upgrade through FakeUI instead.
     val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpVersion(), to.agpVersion())
@@ -133,6 +137,13 @@ abstract class ProjectsUpgradeTestBase {
     ndkVersion = testProject.ndkVersion()
   ) { projectRoot ->
     applyProjectPatch(testProject, projectRoot)
+  }
+
+  private fun addStateEmbeddedJdkToTable(state: AUATestProjectState) {
+    state.jdkVersion()?.let {
+      val embeddedToJdk = JdkUtils.getEmbeddedJdkPathWithVersion(it)
+      Jdks.getInstance().createAndAddJdk(embeddedToJdk.path)
+    }
   }
 
   private fun applyProjectPatch(testProject: AUATestProjectState, projectRoot: File) {

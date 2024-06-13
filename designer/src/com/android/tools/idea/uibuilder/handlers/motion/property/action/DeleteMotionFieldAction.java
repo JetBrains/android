@@ -22,6 +22,7 @@ import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.ptable.PTableItem;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import java.util.List;
@@ -36,6 +37,12 @@ public class DeleteMotionFieldAction extends AnAction {
     super(REMOVE_ATTRIBUTE, REMOVE_ATTRIBUTE, AllIcons.General.Remove);
     ActionManager manager = ActionManager.getInstance();
     setShortcutSet(manager.getAction(ACTION_DELETE).getShortcutSet());
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    // Updated in the EDT because of the myLinesModel model access.
+    return ActionUpdateThread.EDT;
   }
 
   public void setLineModel(@NotNull TableLineModel lineModel) {

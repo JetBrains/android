@@ -93,7 +93,7 @@ class ComposeStateReadInlayHintsProviderTest {
         package com.example;
         class Foo {}
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertThat(provider.createCollector(javaFile, fixture.editor)).isNull()
@@ -111,7 +111,7 @@ class ComposeStateReadInlayHintsProviderTest {
         package com.example
         class Foo
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertThat(provider.createCollector(kotlinFile, fixture.editor)).isNull()
@@ -127,7 +127,7 @@ class ComposeStateReadInlayHintsProviderTest {
         package com.example
         class Foo
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertThat(provider.createCollector(kotlinFile, fixture.editor))
@@ -143,7 +143,7 @@ class ComposeStateReadInlayHintsProviderTest {
       package com.example;
       class Foo {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val element = fixture.moveCaret("F|oo")
 
@@ -167,7 +167,7 @@ class ComposeStateReadInlayHintsProviderTest {
         Text(STR)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val element = fixture.getEnclosing<KtNameReferenceExpression>("(|STR|)")
 
@@ -195,7 +195,7 @@ class ComposeStateReadInlayHintsProviderTest {
         Bar(arg = stateVar.value) { stateVar.value = it }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val element = fixture.getEnclosing<KtNameReferenceExpression>("= stateVar.|value|)")
 
@@ -210,7 +210,7 @@ class ComposeStateReadInlayHintsProviderTest {
         payloads = eq(null),
         tooltip = eq(tooltip),
         hasBackground = eq(true),
-        builder = builderCaptor.captureNonNull()
+        builder = builderCaptor.captureNonNull(),
       )
     with(positionCaptor.value) {
       assertThat(offset).isEqualTo(fixture.offsetForWindow("stateVar.value|)"))
@@ -239,7 +239,7 @@ class ComposeStateReadInlayHintsProviderTest {
       package com.example
       class Foo
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val foo = fixture.getEnclosing<KtClass>("F")
     val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
@@ -259,7 +259,7 @@ class ComposeStateReadInlayHintsProviderTest {
       package com.example
       class Foo
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val foo = fixture.getEnclosing<KtClass>("F")
     val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
@@ -280,7 +280,7 @@ class ComposeStateReadInlayHintsProviderTest {
       package com.example
       class Foo
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val foo = fixture.getEnclosing<KtClass>("F")
     val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))

@@ -36,9 +36,10 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs[module, test]",
         "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common[module, test]",
         "//tools/adt/idea/nav/safeargs/k1:intellij.android.nav.safeargs.k1[module, test]",

@@ -18,25 +18,24 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.actions.hasSceneViewErrors
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 
-/** [AnAction] that can be used to show an icon according to the Compose Preview status */
+/** [DumbAwareAction] that can be used to show an icon according to the Compose Preview status */
 internal class ComposePreviewStatusIconAction : DumbAwareAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
-    val composePreviewManager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
+    val previewStatus = e.getData(PREVIEW_VIEW_MODEL_STATUS) ?: return
     val project = e.project ?: return
-    val previewStatus = composePreviewManager.status()
     e.presentation.apply {
       if (hasSceneViewErrors(e.dataContext) && !isLoading(project, previewStatus)) {
         isVisible = true
@@ -51,13 +50,13 @@ internal class ComposePreviewStatusIconAction : DumbAwareAction() {
     }
   }
 
-  private fun isLoading(project: Project, previewStatus: ComposePreviewManager.Status): Boolean =
+  private fun isLoading(project: Project, previewStatus: PreviewViewModelStatus): Boolean =
     previewStatus.isRefreshing || project.fastPreviewManager.isCompiling
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val service = IssuePanelService.getInstance(project)
-    service.setSharedIssuePanelVisibility(true) {
+    service.showSharedIssuePanel {
       e.getData(SCENE_VIEW)?.let { service.setSelectedNode(SceneViewIssueNodeVisitor(it)) }
     }
   }

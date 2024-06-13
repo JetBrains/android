@@ -18,11 +18,14 @@ package com.android.tools.idea.lint.common
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.SdkConstants.DOT_KTS
 import com.android.SdkConstants.DOT_XML
+import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.lint.checks.DeprecatedSinceApiDetector
 import com.android.tools.lint.checks.DeprecationDetector
+import com.android.tools.lint.checks.DiscouragedDetector
 import com.android.tools.lint.checks.GradleDetector
 import com.android.tools.lint.checks.WrongIdDetector
 import com.android.tools.lint.client.api.LintClient
@@ -54,6 +57,7 @@ import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.lang.properties.PropertiesFileType
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -82,6 +86,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
   companion object {
     const val INCLUDE_IDEA_SUPPRESS_ACTIONS = false
 
+    private val LOG = Logger.getInstance(LintExternalAnnotator::class.java)
+
     init {
       LintClient.clientName = LintClient.CLIENT_STUDIO
     }
@@ -100,13 +106,11 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           if (context != null) profile.isToolEnabled(key, context) else profile.isToolEnabled(key)
         if (!enabled) continue
         if (!issue.isEnabledByDefault()) {
-          // If an issue is marked as not enabled by default, lint won't run it, even if it's in the
-          // set
-          // of issues provided by an issue registry. Since in the IDE we're enforcing the
-          // enabled-state via
-          // inspection profiles, mark the issue as enabled to allow users to turn on a lint check
-          // directly
-          // via the inspections UI.
+          // If an issue is marked as not enabled by default, lint won't run it, even
+          // if it's in the set of issues provided by an issue registry. Since in the
+          // IDE we're enforcing the enabled-state via inspection profiles, mark the
+          // issue as enabled to allow users to turn on a lint check directly via the
+          // inspections UI.
           issue.setEnabledByDefault(true)
         }
         result.add(issue)
@@ -117,7 +121,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     fun getHighlightLevelAndInspection(
       project: Project,
       issue: Issue,
-      context: PsiElement
+      context: PsiElement,
     ): Pair<AndroidLintInspectionBase, HighlightDisplayLevel>? {
       val inspectionShortName =
         AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue) ?: return null
@@ -145,7 +149,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
   override fun collectInformation(
     file: PsiFile,
     editor: Editor,
-    hasErrors: Boolean
+    hasErrors: Boolean,
   ): LintEditorResult? {
     return collectInformation(file)
   }
@@ -192,6 +196,10 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
         }
       } else if (
+        StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && name.endsWith(EXT_GRADLE_DECLARATIVE)
+      ) {
+        scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
+      } else if (
         name == OLD_PROGUARD_FILE ||
           name == FN_PROJECT_PROGUARD_FILE ||
           name == FN_ANDROID_PROGUARD_FILE
@@ -222,7 +230,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           project,
           files,
           listOf(lintResult.getModule()),
-          true /* incremental */
+          true, /* incremental */
         )
       request.setScope(scope)
       val lint = client.createDriver(request)
@@ -244,6 +252,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     val fixProviders = LintIdeQuickFixProvider.EP_NAME.extensions
     val ideSupport = LintIdeSupport.get()
     for (problemData in lintResult.problems) {
+      val incident = problemData.incident
       val issue = problemData.issue
       val rawMessage = problemData.message
       val range = problemData.textRange
@@ -274,7 +283,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           issue === DeprecationDetector.ISSUE ||
             issue === GradleDetector.DEPRECATED ||
             issue === GradleDetector.DEPRECATED_CONFIGURATION ||
-            issue === DeprecatedSinceApiDetector.ISSUE
+            issue === DeprecatedSinceApiDetector.ISSUE ||
+            issue === DiscouragedDetector.ISSUE
         ) {
           ProblemHighlightType.LIKE_DEPRECATED
         } else if (
@@ -322,18 +332,41 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val tooltip = XmlStringUtil.wrapInHtml(descriptionRef + messageHtml + moreLink)
       var builder =
         holder.newAnnotation(severity, message).highlightType(type).range(range).tooltip(tooltip)
-      val fixes =
-        inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue)
-      for (fix in fixes) {
-        if (
-          fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)
-        ) {
-          val smartRange =
-            fix.range
-              ?: SmartPointerManager.getInstance(project)
-                .createSmartPsiFileRangePointer(file, range)
-          builder = builder.withFix(MyFixingIntention(fix, smartRange, issue))
+      try {
+        val fixes =
+          inspection.getAllFixes(
+            startElement,
+            endElement,
+            incident,
+            message,
+            quickfixData,
+            fixProviders,
+            issue,
+          )
+        for (fix in fixes) {
+          when (fix) {
+            is DefaultLintQuickFix -> {
+              if (
+                fix.isApplicable(
+                  startElement,
+                  endElement,
+                  AndroidQuickfixContexts.EditorContext.TYPE,
+                )
+              ) {
+                val smartRange =
+                  fix.range
+                    ?: SmartPointerManager.getInstance(project)
+                      .createSmartPsiFileRangePointer(file, range)
+                builder = builder.withFix(MyFixingIntention(fix, smartRange, issue))
+              }
+            }
+            is ModCommandLintQuickFix -> {
+              builder = builder.withFix(fix.asIntention(issue, project))
+            }
+          }
         }
+      } catch (ex: Exception) {
+        LOG.error("Exception thrown while creating quick-fixes for issue id ${issue.id}", ex)
       }
       for (intention in inspection.getIntentions(startElement, endElement)) {
         builder = builder.withFix(intention)
@@ -359,7 +392,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
                   message,
                   type,
                   true,
-                  *LocalQuickFix.EMPTY_ARRAY
+                  *LocalQuickFix.EMPTY_ARRAY,
                 )
             builder = builder.newLocalQuickFix(action, descriptor).key(key).registerFix()
           }
@@ -403,19 +436,19 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
   }
 
   class MyFixingIntention(
-    @SafeFieldForPreview private val myQuickFix: LintIdeQuickFix,
+    @SafeFieldForPreview private val myQuickFix: DefaultLintQuickFix,
     /** If non-null, the fix is targeted for a different file than the current one in the editor. */
     @SafeFieldForPreview private val myRange: SmartPsiFileRange,
-    @SafeFieldForPreview private val issue: Issue? = null
+    @SafeFieldForPreview private val issue: Issue? = null,
   ) : IntentionAction, HighPriorityAction {
     constructor(
-      quickFix: LintIdeQuickFix,
+      quickFix: DefaultLintQuickFix,
       project: Project,
       file: PsiFile,
-      range: TextRange
+      range: TextRange,
     ) : this(
       quickFix,
-      SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range)
+      SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range),
     )
 
     override fun getText(): String {
@@ -474,7 +507,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     override fun generatePreview(
       project: Project,
       editor: Editor,
-      file: PsiFile
+      file: PsiFile,
     ): IntentionPreviewInfo {
       return myQuickFix.generatePreview(project, editor, file)
         ?: super.generatePreview(project, editor, file)
@@ -483,10 +516,10 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
 
   private class MyEditInspectionToolsSettingsAction(
     key: HighlightDisplayKey,
-    inspection: AndroidLintInspectionBase
+    inspection: AndroidLintInspectionBase,
   ) :
     CustomEditInspectionToolsSettingsAction(
       key,
-      Computable { "Edit '" + inspection.displayName + "' inspection settings" }
+      Computable { "Edit '" + inspection.displayName + "' inspection settings" },
     )
 }

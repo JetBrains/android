@@ -18,10 +18,6 @@ MODULE                        : Kotlin_Multiplatform
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : com.google.auto.value:auto-value-annotations:1.6.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar
@@ -85,7 +81,6 @@ LIBRARY_TABLE
         component                     : org.jetbrains:annotations:13.0
     - library                     : <ROOT>::androidLib@typeoneModetwoDebug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/androidLib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :androidLib
         sourceSet                     : MAIN
         variant                       : typeoneModetwoDebug
@@ -96,14 +91,12 @@ LIBRARY_TABLE
         variant                       : debug
     - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :kmpFirstLib
         sourceSet                     : androidMain (IdeModuleSourceSetImpl)
             canBeConsumed                 : true
         variant                       : androidMain
     - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :kmpFirstLib
         sourceSet                     : commonMain (IdeModuleSourceSetImpl)
             canBeConsumed                 : true
@@ -124,14 +117,12 @@ LIBRARY_TABLE
             canBeConsumed                 : true
     - library                     : <ROOT>::kmpSecondLib@androidMain/androidMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :kmpSecondLib
         sourceSet                     : androidMain (IdeModuleSourceSetImpl)
             canBeConsumed                 : true
         variant                       : androidMain
     - library                     : <ROOT>::kmpSecondLib@androidMain/commonMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :kmpSecondLib
         sourceSet                     : commonMain (IdeModuleSourceSetImpl)
             canBeConsumed                 : true
@@ -151,8 +142,6 @@ MODULE                        : Kotlin_Multiplatform
                 qName                         : :androidLib
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/androidLib
                 buildDir                      : <ROOT>/androidLib/build [-]
                 buildFile                     : <ROOT>/androidLib/build.gradle.kts
@@ -174,417 +163,460 @@ MODULE                        : Kotlin_Multiplatform
                     testTypetwoModetwoReleaseUnitTest       : testTypetwoModetwoReleaseUnitTest (DefaultExternalTask)
                         qName                         : :androidLib:testTypetwoModetwoReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestModeoneAnnotationProcessor   : <empty>
-                    androidTestModeoneCompileOnly : <empty>
-                    androidTestModeoneImplementation        : <empty>
-                    androidTestModeoneRuntimeOnly : <empty>
-                    androidTestModeoneWearApp     : <empty>
-                    androidTestModetwoAnnotationProcessor   : <empty>
-                    androidTestModetwoCompileOnly : <empty>
-                    androidTestModetwoImplementation        : <empty>
-                    androidTestModetwoRuntimeOnly : <empty>
-                    androidTestModetwoWearApp     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestTypeoneAnnotationProcessor   : <empty>
-                    androidTestTypeoneCompileOnly : <empty>
-                    androidTestTypeoneImplementation        : <empty>
-                    androidTestTypeoneModeoneAnnotationProcessor      : <empty>
-                    androidTestTypeoneModeoneCompileOnly    : <empty>
-                    androidTestTypeoneModeoneDebugAnnotationProcessor : <empty>
-                    androidTestTypeoneModeoneDebugCompileOnly         : <empty>
-                    androidTestTypeoneModeoneDebugImplementation      : <empty>
-                    androidTestTypeoneModeoneDebugRuntimeOnly         : <empty>
-                    androidTestTypeoneModeoneDebugWearApp   : <empty>
-                    androidTestTypeoneModeoneImplementation : <empty>
-                    androidTestTypeoneModeoneRuntimeOnly    : <empty>
-                    androidTestTypeoneModeoneWearApp        : <empty>
-                    androidTestTypeoneModetwoAnnotationProcessor      : <empty>
-                    androidTestTypeoneModetwoCompileOnly    : <empty>
-                    androidTestTypeoneModetwoDebugAnnotationProcessor : <empty>
-                    androidTestTypeoneModetwoDebugCompileOnly         : <empty>
-                    androidTestTypeoneModetwoDebugImplementation      : <empty>
-                    androidTestTypeoneModetwoDebugRuntimeOnly         : <empty>
-                    androidTestTypeoneModetwoDebugWearApp   : <empty>
-                    androidTestTypeoneModetwoImplementation : <empty>
-                    androidTestTypeoneModetwoRuntimeOnly    : <empty>
-                    androidTestTypeoneModetwoWearApp        : <empty>
-                    androidTestTypeoneRuntimeOnly : <empty>
-                    androidTestTypeoneWearApp     : <empty>
-                    androidTestTypetwoAnnotationProcessor   : <empty>
-                    androidTestTypetwoCompileOnly : <empty>
-                    androidTestTypetwoImplementation        : <empty>
-                    androidTestTypetwoModeoneAnnotationProcessor      : <empty>
-                    androidTestTypetwoModeoneCompileOnly    : <empty>
-                    androidTestTypetwoModeoneDebugAnnotationProcessor : <empty>
-                    androidTestTypetwoModeoneDebugCompileOnly         : <empty>
-                    androidTestTypetwoModeoneDebugImplementation      : <empty>
-                    androidTestTypetwoModeoneDebugRuntimeOnly         : <empty>
-                    androidTestTypetwoModeoneDebugWearApp   : <empty>
-                    androidTestTypetwoModeoneImplementation : <empty>
-                    androidTestTypetwoModeoneRuntimeOnly    : <empty>
-                    androidTestTypetwoModeoneWearApp        : <empty>
-                    androidTestTypetwoModetwoAnnotationProcessor      : <empty>
-                    androidTestTypetwoModetwoCompileOnly    : <empty>
-                    androidTestTypetwoModetwoDebugAnnotationProcessor : <empty>
-                    androidTestTypetwoModetwoDebugCompileOnly         : <empty>
-                    androidTestTypetwoModetwoDebugImplementation      : <empty>
-                    androidTestTypetwoModetwoDebugRuntimeOnly         : <empty>
-                    androidTestTypetwoModetwoDebugWearApp   : <empty>
-                    androidTestTypetwoModetwoImplementation : <empty>
-                    androidTestTypetwoModetwoRuntimeOnly    : <empty>
-                    androidTestTypetwoModetwoWearApp        : <empty>
-                    androidTestTypetwoRuntimeOnly : <empty>
-                    androidTestTypetwoWearApp     : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugApi                      : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugWearApp                  : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    modeoneAnnotationProcessor    : <empty>
-                    modeoneApi                    : <empty>
-                    modeoneCompileOnly            : <empty>
-                    modeoneImplementation         : <empty>
-                    modeoneRuntimeOnly            : <empty>
-                    modeoneWearApp                : <empty>
-                    modetwoAnnotationProcessor    : <empty>
-                    modetwoApi                    : <empty>
-                    modetwoCompileOnly            : <empty>
-                    modetwoImplementation         : <empty>
-                    modetwoRuntimeOnly            : <empty>
-                    modetwoWearApp                : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseApi                    : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseWearApp                : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesModeoneAnnotationProcessor  : <empty>
-                    testFixturesModeoneApi        : <empty>
-                    testFixturesModeoneCompileOnly          : <empty>
-                    testFixturesModeoneImplementation       : <empty>
-                    testFixturesModeoneRuntimeOnly          : <empty>
-                    testFixturesModeoneWearApp    : <empty>
-                    testFixturesModetwoAnnotationProcessor  : <empty>
-                    testFixturesModetwoApi        : <empty>
-                    testFixturesModetwoCompileOnly          : <empty>
-                    testFixturesModetwoImplementation       : <empty>
-                    testFixturesModetwoRuntimeOnly          : <empty>
-                    testFixturesModetwoWearApp    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesTypeoneAnnotationProcessor  : <empty>
-                    testFixturesTypeoneApi        : <empty>
-                    testFixturesTypeoneCompileOnly          : <empty>
-                    testFixturesTypeoneImplementation       : <empty>
-                    testFixturesTypeoneRuntimeOnly          : <empty>
-                    testFixturesTypeoneWearApp    : <empty>
-                    testFixturesTypetwoAnnotationProcessor  : <empty>
-                    testFixturesTypetwoApi        : <empty>
-                    testFixturesTypetwoCompileOnly          : <empty>
-                    testFixturesTypetwoImplementation       : <empty>
-                    testFixturesTypetwoRuntimeOnly          : <empty>
-                    testFixturesTypetwoWearApp    : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testModeoneAnnotationProcessor          : <empty>
-                    testModeoneCompileOnly        : <empty>
-                    testModeoneImplementation     : <empty>
-                    testModeoneRuntimeOnly        : <empty>
-                    testModeoneWearApp            : <empty>
-                    testModetwoAnnotationProcessor          : <empty>
-                    testModetwoCompileOnly        : <empty>
-                    testModetwoImplementation     : <empty>
-                    testModetwoRuntimeOnly        : <empty>
-                    testModetwoWearApp            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testTypeoneAnnotationProcessor          : <empty>
-                    testTypeoneCompileOnly        : <empty>
-                    testTypeoneImplementation     : <empty>
-                    testTypeoneModeoneAnnotationProcessor   : <empty>
-                    testTypeoneModeoneCompileOnly : <empty>
-                    testTypeoneModeoneDebugAnnotationProcessor        : <empty>
-                    testTypeoneModeoneDebugCompileOnly      : <empty>
-                    testTypeoneModeoneDebugImplementation   : <empty>
-                    testTypeoneModeoneDebugRuntimeOnly      : <empty>
-                    testTypeoneModeoneDebugWearApp          : <empty>
-                    testTypeoneModeoneImplementation        : <empty>
-                    testTypeoneModeoneReleaseAnnotationProcessor      : <empty>
-                    testTypeoneModeoneReleaseCompileOnly    : <empty>
-                    testTypeoneModeoneReleaseImplementation : <empty>
-                    testTypeoneModeoneReleaseRuntimeOnly    : <empty>
-                    testTypeoneModeoneReleaseWearApp        : <empty>
-                    testTypeoneModeoneRuntimeOnly : <empty>
-                    testTypeoneModeoneWearApp     : <empty>
-                    testTypeoneModetwoAnnotationProcessor   : <empty>
-                    testTypeoneModetwoCompileOnly : <empty>
-                    testTypeoneModetwoDebugAnnotationProcessor        : <empty>
-                    testTypeoneModetwoDebugCompileOnly      : <empty>
-                    testTypeoneModetwoDebugImplementation   : <empty>
-                    testTypeoneModetwoDebugRuntimeOnly      : <empty>
-                    testTypeoneModetwoDebugWearApp          : <empty>
-                    testTypeoneModetwoImplementation        : <empty>
-                    testTypeoneModetwoReleaseAnnotationProcessor      : <empty>
-                    testTypeoneModetwoReleaseCompileOnly    : <empty>
-                    testTypeoneModetwoReleaseImplementation : <empty>
-                    testTypeoneModetwoReleaseRuntimeOnly    : <empty>
-                    testTypeoneModetwoReleaseWearApp        : <empty>
-                    testTypeoneModetwoRuntimeOnly : <empty>
-                    testTypeoneModetwoWearApp     : <empty>
-                    testTypeoneRuntimeOnly        : <empty>
-                    testTypeoneWearApp            : <empty>
-                    testTypetwoAnnotationProcessor          : <empty>
-                    testTypetwoCompileOnly        : <empty>
-                    testTypetwoImplementation     : <empty>
-                    testTypetwoModeoneAnnotationProcessor   : <empty>
-                    testTypetwoModeoneCompileOnly : <empty>
-                    testTypetwoModeoneDebugAnnotationProcessor        : <empty>
-                    testTypetwoModeoneDebugCompileOnly      : <empty>
-                    testTypetwoModeoneDebugImplementation   : <empty>
-                    testTypetwoModeoneDebugRuntimeOnly      : <empty>
-                    testTypetwoModeoneDebugWearApp          : <empty>
-                    testTypetwoModeoneImplementation        : <empty>
-                    testTypetwoModeoneReleaseAnnotationProcessor      : <empty>
-                    testTypetwoModeoneReleaseCompileOnly    : <empty>
-                    testTypetwoModeoneReleaseImplementation : <empty>
-                    testTypetwoModeoneReleaseRuntimeOnly    : <empty>
-                    testTypetwoModeoneReleaseWearApp        : <empty>
-                    testTypetwoModeoneRuntimeOnly : <empty>
-                    testTypetwoModeoneWearApp     : <empty>
-                    testTypetwoModetwoAnnotationProcessor   : <empty>
-                    testTypetwoModetwoCompileOnly : <empty>
-                    testTypetwoModetwoDebugAnnotationProcessor        : <empty>
-                    testTypetwoModetwoDebugCompileOnly      : <empty>
-                    testTypetwoModetwoDebugImplementation   : <empty>
-                    testTypetwoModetwoDebugRuntimeOnly      : <empty>
-                    testTypetwoModetwoDebugWearApp          : <empty>
-                    testTypetwoModetwoImplementation        : <empty>
-                    testTypetwoModetwoReleaseAnnotationProcessor      : <empty>
-                    testTypetwoModetwoReleaseCompileOnly    : <empty>
-                    testTypetwoModetwoReleaseImplementation : <empty>
-                    testTypetwoModetwoReleaseRuntimeOnly    : <empty>
-                    testTypetwoModetwoReleaseWearApp        : <empty>
-                    testTypetwoModetwoRuntimeOnly : <empty>
-                    testTypetwoModetwoWearApp     : <empty>
-                    testTypetwoRuntimeOnly        : <empty>
-                    testTypetwoWearApp            : <empty>
-                    testWearApp                   : <empty>
-                    typeoneAnnotationProcessor    : <empty>
-                    typeoneApi                    : <empty>
-                    typeoneCompileOnly            : <empty>
-                    typeoneImplementation         : <empty>
-                    typeoneModeoneAnnotationProcessor       : <empty>
-                    typeoneModeoneApi             : <empty>
-                    typeoneModeoneCompileOnly     : <empty>
-                    typeoneModeoneDebugAndroidTestAnnotationProcessorClasspath  : <empty>
-                    typeoneModeoneDebugAndroidTestCompileClasspath    : <empty>
-                    typeoneModeoneDebugAndroidTestRuntimeClasspath    : <empty>
-                    typeoneModeoneDebugAnnotationProcessor  : <empty>
-                    typeoneModeoneDebugAnnotationProcessorClasspath   : <empty>
-                    typeoneModeoneDebugApi        : <empty>
-                    typeoneModeoneDebugApiElements          : <empty>
-                    typeoneModeoneDebugCompileClasspath     : <empty>
-                    typeoneModeoneDebugCompileOnly          : <empty>
-                    typeoneModeoneDebugImplementation       : <empty>
-                    typeoneModeoneDebugRuntimeClasspath     : <empty>
-                    typeoneModeoneDebugRuntimeElements      : <empty>
-                    typeoneModeoneDebugRuntimeOnly          : <empty>
-                    typeoneModeoneDebugUnitTestAnnotationProcessorClasspath     : <empty>
-                    typeoneModeoneDebugUnitTestCompileClasspath       : <empty>
-                    typeoneModeoneDebugUnitTestRuntimeClasspath       : <empty>
-                    typeoneModeoneDebugWearApp    : <empty>
-                    typeoneModeoneImplementation  : <empty>
-                    typeoneModeoneReleaseAnnotationProcessor          : <empty>
-                    typeoneModeoneReleaseAnnotationProcessorClasspath : <empty>
-                    typeoneModeoneReleaseApi      : <empty>
-                    typeoneModeoneReleaseApiElements        : <empty>
-                    typeoneModeoneReleaseCompileClasspath   : <empty>
-                    typeoneModeoneReleaseCompileOnly        : <empty>
-                    typeoneModeoneReleaseImplementation     : <empty>
-                    typeoneModeoneReleaseRuntimeClasspath   : <empty>
-                    typeoneModeoneReleaseRuntimeElements    : <empty>
-                    typeoneModeoneReleaseRuntimeOnly        : <empty>
-                    typeoneModeoneReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                    typeoneModeoneReleaseUnitTestCompileClasspath     : <empty>
-                    typeoneModeoneReleaseUnitTestRuntimeClasspath     : <empty>
-                    typeoneModeoneReleaseWearApp  : <empty>
-                    typeoneModeoneRuntimeOnly     : <empty>
-                    typeoneModeoneWearApp         : <empty>
-                    typeoneModetwoAnnotationProcessor       : <empty>
-                    typeoneModetwoApi             : <empty>
-                    typeoneModetwoCompileOnly     : <empty>
-                    typeoneModetwoDebugAndroidTestAnnotationProcessorClasspath  : <empty>
-                    typeoneModetwoDebugAndroidTestCompileClasspath    : <empty>
-                    typeoneModetwoDebugAndroidTestRuntimeClasspath    : <empty>
-                    typeoneModetwoDebugAnnotationProcessor  : <empty>
-                    typeoneModetwoDebugAnnotationProcessorClasspath   : <empty>
-                    typeoneModetwoDebugApi        : <empty>
-                    typeoneModetwoDebugApiElements          : <empty>
-                    typeoneModetwoDebugCompileClasspath     : <empty>
-                    typeoneModetwoDebugCompileOnly          : <empty>
-                    typeoneModetwoDebugImplementation       : <empty>
-                    typeoneModetwoDebugRuntimeClasspath     : <empty>
-                    typeoneModetwoDebugRuntimeElements      : <empty>
-                    typeoneModetwoDebugRuntimeOnly          : <empty>
-                    typeoneModetwoDebugUnitTestAnnotationProcessorClasspath     : <empty>
-                    typeoneModetwoDebugUnitTestCompileClasspath       : <empty>
-                    typeoneModetwoDebugUnitTestRuntimeClasspath       : <empty>
-                    typeoneModetwoDebugWearApp    : <empty>
-                    typeoneModetwoImplementation  : <empty>
-                    typeoneModetwoReleaseAnnotationProcessor          : <empty>
-                    typeoneModetwoReleaseAnnotationProcessorClasspath : <empty>
-                    typeoneModetwoReleaseApi      : <empty>
-                    typeoneModetwoReleaseApiElements        : <empty>
-                    typeoneModetwoReleaseCompileClasspath   : <empty>
-                    typeoneModetwoReleaseCompileOnly        : <empty>
-                    typeoneModetwoReleaseImplementation     : <empty>
-                    typeoneModetwoReleaseRuntimeClasspath   : <empty>
-                    typeoneModetwoReleaseRuntimeElements    : <empty>
-                    typeoneModetwoReleaseRuntimeOnly        : <empty>
-                    typeoneModetwoReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                    typeoneModetwoReleaseUnitTestCompileClasspath     : <empty>
-                    typeoneModetwoReleaseUnitTestRuntimeClasspath     : <empty>
-                    typeoneModetwoReleaseWearApp  : <empty>
-                    typeoneModetwoRuntimeOnly     : <empty>
-                    typeoneModetwoWearApp         : <empty>
-                    typeoneRuntimeOnly            : <empty>
-                    typeoneWearApp                : <empty>
-                    typetwoAnnotationProcessor    : <empty>
-                    typetwoApi                    : <empty>
-                    typetwoCompileOnly            : <empty>
-                    typetwoImplementation         : <empty>
-                    typetwoModeoneAnnotationProcessor       : <empty>
-                    typetwoModeoneApi             : <empty>
-                    typetwoModeoneCompileOnly     : <empty>
-                    typetwoModeoneDebugAndroidTestAnnotationProcessorClasspath  : <empty>
-                    typetwoModeoneDebugAndroidTestCompileClasspath    : <empty>
-                    typetwoModeoneDebugAndroidTestRuntimeClasspath    : <empty>
-                    typetwoModeoneDebugAnnotationProcessor  : <empty>
-                    typetwoModeoneDebugAnnotationProcessorClasspath   : <empty>
-                    typetwoModeoneDebugApi        : <empty>
-                    typetwoModeoneDebugApiElements          : <empty>
-                    typetwoModeoneDebugCompileClasspath     : <empty>
-                    typetwoModeoneDebugCompileOnly          : <empty>
-                    typetwoModeoneDebugImplementation       : <empty>
-                    typetwoModeoneDebugRuntimeClasspath     : <empty>
-                    typetwoModeoneDebugRuntimeElements      : <empty>
-                    typetwoModeoneDebugRuntimeOnly          : <empty>
-                    typetwoModeoneDebugUnitTestAnnotationProcessorClasspath     : <empty>
-                    typetwoModeoneDebugUnitTestCompileClasspath       : <empty>
-                    typetwoModeoneDebugUnitTestRuntimeClasspath       : <empty>
-                    typetwoModeoneDebugWearApp    : <empty>
-                    typetwoModeoneImplementation  : <empty>
-                    typetwoModeoneReleaseAnnotationProcessor          : <empty>
-                    typetwoModeoneReleaseAnnotationProcessorClasspath : <empty>
-                    typetwoModeoneReleaseApi      : <empty>
-                    typetwoModeoneReleaseApiElements        : <empty>
-                    typetwoModeoneReleaseCompileClasspath   : <empty>
-                    typetwoModeoneReleaseCompileOnly        : <empty>
-                    typetwoModeoneReleaseImplementation     : <empty>
-                    typetwoModeoneReleaseRuntimeClasspath   : <empty>
-                    typetwoModeoneReleaseRuntimeElements    : <empty>
-                    typetwoModeoneReleaseRuntimeOnly        : <empty>
-                    typetwoModeoneReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                    typetwoModeoneReleaseUnitTestCompileClasspath     : <empty>
-                    typetwoModeoneReleaseUnitTestRuntimeClasspath     : <empty>
-                    typetwoModeoneReleaseWearApp  : <empty>
-                    typetwoModeoneRuntimeOnly     : <empty>
-                    typetwoModeoneWearApp         : <empty>
-                    typetwoModetwoAnnotationProcessor       : <empty>
-                    typetwoModetwoApi             : <empty>
-                    typetwoModetwoCompileOnly     : <empty>
-                    typetwoModetwoDebugAndroidTestAnnotationProcessorClasspath  : <empty>
-                    typetwoModetwoDebugAndroidTestCompileClasspath    : <empty>
-                    typetwoModetwoDebugAndroidTestRuntimeClasspath    : <empty>
-                    typetwoModetwoDebugAnnotationProcessor  : <empty>
-                    typetwoModetwoDebugAnnotationProcessorClasspath   : <empty>
-                    typetwoModetwoDebugApi        : <empty>
-                    typetwoModetwoDebugApiElements          : <empty>
-                    typetwoModetwoDebugCompileClasspath     : <empty>
-                    typetwoModetwoDebugCompileOnly          : <empty>
-                    typetwoModetwoDebugImplementation       : <empty>
-                    typetwoModetwoDebugRuntimeClasspath     : <empty>
-                    typetwoModetwoDebugRuntimeElements      : <empty>
-                    typetwoModetwoDebugRuntimeOnly          : <empty>
-                    typetwoModetwoDebugUnitTestAnnotationProcessorClasspath     : <empty>
-                    typetwoModetwoDebugUnitTestCompileClasspath       : <empty>
-                    typetwoModetwoDebugUnitTestRuntimeClasspath       : <empty>
-                    typetwoModetwoDebugWearApp    : <empty>
-                    typetwoModetwoImplementation  : <empty>
-                    typetwoModetwoReleaseAnnotationProcessor          : <empty>
-                    typetwoModetwoReleaseAnnotationProcessorClasspath : <empty>
-                    typetwoModetwoReleaseApi      : <empty>
-                    typetwoModetwoReleaseApiElements        : <empty>
-                    typetwoModetwoReleaseCompileClasspath   : <empty>
-                    typetwoModetwoReleaseCompileOnly        : <empty>
-                    typetwoModetwoReleaseImplementation     : <empty>
-                    typetwoModetwoReleaseRuntimeClasspath   : <empty>
-                    typetwoModetwoReleaseRuntimeElements    : <empty>
-                    typetwoModetwoReleaseRuntimeOnly        : <empty>
-                    typetwoModetwoReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                    typetwoModetwoReleaseUnitTestCompileClasspath     : <empty>
-                    typetwoModetwoReleaseUnitTestRuntimeClasspath     : <empty>
-                    typetwoModetwoReleaseWearApp  : <empty>
-                    typetwoModetwoRuntimeOnly     : <empty>
-                    typetwoModetwoWearApp         : <empty>
-                    typetwoRuntimeOnly            : <empty>
-                    typetwoWearApp                : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestModeoneAnnotationProcessor   : <empty>
+                        androidTestModeoneCompileOnly : <empty>
+                        androidTestModeoneImplementation        : <empty>
+                        androidTestModeoneRuntimeOnly : <empty>
+                        androidTestModeoneWearApp     : <empty>
+                        androidTestModetwoAnnotationProcessor   : <empty>
+                        androidTestModetwoCompileOnly : <empty>
+                        androidTestModetwoImplementation        : <empty>
+                        androidTestModetwoRuntimeOnly : <empty>
+                        androidTestModetwoWearApp     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestTypeoneAnnotationProcessor   : <empty>
+                        androidTestTypeoneCompileOnly : <empty>
+                        androidTestTypeoneImplementation        : <empty>
+                        androidTestTypeoneModeoneAnnotationProcessor      : <empty>
+                        androidTestTypeoneModeoneCompileOnly    : <empty>
+                        androidTestTypeoneModeoneDebugAnnotationProcessor : <empty>
+                        androidTestTypeoneModeoneDebugCompileOnly         : <empty>
+                        androidTestTypeoneModeoneDebugImplementation      : <empty>
+                        androidTestTypeoneModeoneDebugRuntimeOnly         : <empty>
+                        androidTestTypeoneModeoneDebugWearApp   : <empty>
+                        androidTestTypeoneModeoneImplementation : <empty>
+                        androidTestTypeoneModeoneRuntimeOnly    : <empty>
+                        androidTestTypeoneModeoneWearApp        : <empty>
+                        androidTestTypeoneModetwoAnnotationProcessor      : <empty>
+                        androidTestTypeoneModetwoCompileOnly    : <empty>
+                        androidTestTypeoneModetwoDebugAnnotationProcessor : <empty>
+                        androidTestTypeoneModetwoDebugCompileOnly         : <empty>
+                        androidTestTypeoneModetwoDebugImplementation      : <empty>
+                        androidTestTypeoneModetwoDebugRuntimeOnly         : <empty>
+                        androidTestTypeoneModetwoDebugWearApp   : <empty>
+                        androidTestTypeoneModetwoImplementation : <empty>
+                        androidTestTypeoneModetwoRuntimeOnly    : <empty>
+                        androidTestTypeoneModetwoWearApp        : <empty>
+                        androidTestTypeoneRuntimeOnly : <empty>
+                        androidTestTypeoneWearApp     : <empty>
+                        androidTestTypetwoAnnotationProcessor   : <empty>
+                        androidTestTypetwoCompileOnly : <empty>
+                        androidTestTypetwoImplementation        : <empty>
+                        androidTestTypetwoModeoneAnnotationProcessor      : <empty>
+                        androidTestTypetwoModeoneCompileOnly    : <empty>
+                        androidTestTypetwoModeoneDebugAnnotationProcessor : <empty>
+                        androidTestTypetwoModeoneDebugCompileOnly         : <empty>
+                        androidTestTypetwoModeoneDebugImplementation      : <empty>
+                        androidTestTypetwoModeoneDebugRuntimeOnly         : <empty>
+                        androidTestTypetwoModeoneDebugWearApp   : <empty>
+                        androidTestTypetwoModeoneImplementation : <empty>
+                        androidTestTypetwoModeoneRuntimeOnly    : <empty>
+                        androidTestTypetwoModeoneWearApp        : <empty>
+                        androidTestTypetwoModetwoAnnotationProcessor      : <empty>
+                        androidTestTypetwoModetwoCompileOnly    : <empty>
+                        androidTestTypetwoModetwoDebugAnnotationProcessor : <empty>
+                        androidTestTypetwoModetwoDebugCompileOnly         : <empty>
+                        androidTestTypetwoModetwoDebugImplementation      : <empty>
+                        androidTestTypetwoModetwoDebugRuntimeOnly         : <empty>
+                        androidTestTypetwoModetwoDebugWearApp   : <empty>
+                        androidTestTypetwoModetwoImplementation : <empty>
+                        androidTestTypetwoModetwoRuntimeOnly    : <empty>
+                        androidTestTypetwoModetwoWearApp        : <empty>
+                        androidTestTypetwoRuntimeOnly : <empty>
+                        androidTestTypetwoWearApp     : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugApi                      : <empty>
+                        debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
+                        debugImplementation           : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugWearApp                  : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        modeoneAnnotationProcessor    : <empty>
+                        modeoneApi                    : <empty>
+                        modeoneCompileOnly            : <empty>
+                        modeoneCompileOnlyApi         : <empty>
+                        modeoneImplementation         : <empty>
+                        modeoneRuntimeOnly            : <empty>
+                        modeoneWearApp                : <empty>
+                        modetwoAnnotationProcessor    : <empty>
+                        modetwoApi                    : <empty>
+                        modetwoCompileOnly            : <empty>
+                        modetwoCompileOnlyApi         : <empty>
+                        modetwoImplementation         : <empty>
+                        modetwoRuntimeOnly            : <empty>
+                        modetwoWearApp                : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseApi                    : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
+                        releaseImplementation         : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseWearApp                : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesModeoneAnnotationProcessor  : <empty>
+                        testFixturesModeoneApi        : <empty>
+                        testFixturesModeoneCompileOnly          : <empty>
+                        testFixturesModeoneCompileOnlyApi       : <empty>
+                        testFixturesModeoneImplementation       : <empty>
+                        testFixturesModeoneRuntimeOnly          : <empty>
+                        testFixturesModeoneWearApp    : <empty>
+                        testFixturesModetwoAnnotationProcessor  : <empty>
+                        testFixturesModetwoApi        : <empty>
+                        testFixturesModetwoCompileOnly          : <empty>
+                        testFixturesModetwoCompileOnlyApi       : <empty>
+                        testFixturesModetwoImplementation       : <empty>
+                        testFixturesModetwoRuntimeOnly          : <empty>
+                        testFixturesModetwoWearApp    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesTypeoneAnnotationProcessor  : <empty>
+                        testFixturesTypeoneApi        : <empty>
+                        testFixturesTypeoneCompileOnly          : <empty>
+                        testFixturesTypeoneCompileOnlyApi       : <empty>
+                        testFixturesTypeoneImplementation       : <empty>
+                        testFixturesTypeoneRuntimeOnly          : <empty>
+                        testFixturesTypeoneWearApp    : <empty>
+                        testFixturesTypetwoAnnotationProcessor  : <empty>
+                        testFixturesTypetwoApi        : <empty>
+                        testFixturesTypetwoCompileOnly          : <empty>
+                        testFixturesTypetwoCompileOnlyApi       : <empty>
+                        testFixturesTypetwoImplementation       : <empty>
+                        testFixturesTypetwoRuntimeOnly          : <empty>
+                        testFixturesTypetwoWearApp    : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testModeoneAnnotationProcessor          : <empty>
+                        testModeoneCompileOnly        : <empty>
+                        testModeoneImplementation     : <empty>
+                        testModeoneRuntimeOnly        : <empty>
+                        testModeoneWearApp            : <empty>
+                        testModetwoAnnotationProcessor          : <empty>
+                        testModetwoCompileOnly        : <empty>
+                        testModetwoImplementation     : <empty>
+                        testModetwoRuntimeOnly        : <empty>
+                        testModetwoWearApp            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testTypeoneAnnotationProcessor          : <empty>
+                        testTypeoneCompileOnly        : <empty>
+                        testTypeoneImplementation     : <empty>
+                        testTypeoneModeoneAnnotationProcessor   : <empty>
+                        testTypeoneModeoneCompileOnly : <empty>
+                        testTypeoneModeoneDebugAnnotationProcessor        : <empty>
+                        testTypeoneModeoneDebugCompileOnly      : <empty>
+                        testTypeoneModeoneDebugImplementation   : <empty>
+                        testTypeoneModeoneDebugRuntimeOnly      : <empty>
+                        testTypeoneModeoneDebugWearApp          : <empty>
+                        testTypeoneModeoneImplementation        : <empty>
+                        testTypeoneModeoneReleaseAnnotationProcessor      : <empty>
+                        testTypeoneModeoneReleaseCompileOnly    : <empty>
+                        testTypeoneModeoneReleaseImplementation : <empty>
+                        testTypeoneModeoneReleaseRuntimeOnly    : <empty>
+                        testTypeoneModeoneReleaseWearApp        : <empty>
+                        testTypeoneModeoneRuntimeOnly : <empty>
+                        testTypeoneModeoneWearApp     : <empty>
+                        testTypeoneModetwoAnnotationProcessor   : <empty>
+                        testTypeoneModetwoCompileOnly : <empty>
+                        testTypeoneModetwoDebugAnnotationProcessor        : <empty>
+                        testTypeoneModetwoDebugCompileOnly      : <empty>
+                        testTypeoneModetwoDebugImplementation   : <empty>
+                        testTypeoneModetwoDebugRuntimeOnly      : <empty>
+                        testTypeoneModetwoDebugWearApp          : <empty>
+                        testTypeoneModetwoImplementation        : <empty>
+                        testTypeoneModetwoReleaseAnnotationProcessor      : <empty>
+                        testTypeoneModetwoReleaseCompileOnly    : <empty>
+                        testTypeoneModetwoReleaseImplementation : <empty>
+                        testTypeoneModetwoReleaseRuntimeOnly    : <empty>
+                        testTypeoneModetwoReleaseWearApp        : <empty>
+                        testTypeoneModetwoRuntimeOnly : <empty>
+                        testTypeoneModetwoWearApp     : <empty>
+                        testTypeoneRuntimeOnly        : <empty>
+                        testTypeoneWearApp            : <empty>
+                        testTypetwoAnnotationProcessor          : <empty>
+                        testTypetwoCompileOnly        : <empty>
+                        testTypetwoImplementation     : <empty>
+                        testTypetwoModeoneAnnotationProcessor   : <empty>
+                        testTypetwoModeoneCompileOnly : <empty>
+                        testTypetwoModeoneDebugAnnotationProcessor        : <empty>
+                        testTypetwoModeoneDebugCompileOnly      : <empty>
+                        testTypetwoModeoneDebugImplementation   : <empty>
+                        testTypetwoModeoneDebugRuntimeOnly      : <empty>
+                        testTypetwoModeoneDebugWearApp          : <empty>
+                        testTypetwoModeoneImplementation        : <empty>
+                        testTypetwoModeoneReleaseAnnotationProcessor      : <empty>
+                        testTypetwoModeoneReleaseCompileOnly    : <empty>
+                        testTypetwoModeoneReleaseImplementation : <empty>
+                        testTypetwoModeoneReleaseRuntimeOnly    : <empty>
+                        testTypetwoModeoneReleaseWearApp        : <empty>
+                        testTypetwoModeoneRuntimeOnly : <empty>
+                        testTypetwoModeoneWearApp     : <empty>
+                        testTypetwoModetwoAnnotationProcessor   : <empty>
+                        testTypetwoModetwoCompileOnly : <empty>
+                        testTypetwoModetwoDebugAnnotationProcessor        : <empty>
+                        testTypetwoModetwoDebugCompileOnly      : <empty>
+                        testTypetwoModetwoDebugImplementation   : <empty>
+                        testTypetwoModetwoDebugRuntimeOnly      : <empty>
+                        testTypetwoModetwoDebugWearApp          : <empty>
+                        testTypetwoModetwoImplementation        : <empty>
+                        testTypetwoModetwoReleaseAnnotationProcessor      : <empty>
+                        testTypetwoModetwoReleaseCompileOnly    : <empty>
+                        testTypetwoModetwoReleaseImplementation : <empty>
+                        testTypetwoModetwoReleaseRuntimeOnly    : <empty>
+                        testTypetwoModetwoReleaseWearApp        : <empty>
+                        testTypetwoModetwoRuntimeOnly : <empty>
+                        testTypetwoModetwoWearApp     : <empty>
+                        testTypetwoRuntimeOnly        : <empty>
+                        testTypetwoWearApp            : <empty>
+                        testWearApp                   : <empty>
+                        typeoneAnnotationProcessor    : <empty>
+                        typeoneApi                    : <empty>
+                        typeoneCompileOnly            : <empty>
+                        typeoneCompileOnlyApi         : <empty>
+                        typeoneImplementation         : <empty>
+                        typeoneModeoneAnnotationProcessor       : <empty>
+                        typeoneModeoneApi             : <empty>
+                        typeoneModeoneCompileOnly     : <empty>
+                        typeoneModeoneCompileOnlyApi  : <empty>
+                        typeoneModeoneDebugAndroidTestAnnotationProcessorClasspath  : <empty>
+                        typeoneModeoneDebugAndroidTestCompileClasspath    : <empty>
+                        typeoneModeoneDebugAndroidTestRuntimeClasspath    : <empty>
+                        typeoneModeoneDebugAnnotationProcessor  : <empty>
+                        typeoneModeoneDebugAnnotationProcessorClasspath   : <empty>
+                        typeoneModeoneDebugApi        : <empty>
+                        typeoneModeoneDebugApiElements          : <empty>
+                        typeoneModeoneDebugCompileClasspath     : <empty>
+                        typeoneModeoneDebugCompileOnly          : <empty>
+                        typeoneModeoneDebugCompileOnlyApi       : <empty>
+                        typeoneModeoneDebugImplementation       : <empty>
+                        typeoneModeoneDebugRuntimeClasspath     : <empty>
+                        typeoneModeoneDebugRuntimeElements      : <empty>
+                        typeoneModeoneDebugRuntimeOnly          : <empty>
+                        typeoneModeoneDebugUnitTestAnnotationProcessorClasspath     : <empty>
+                        typeoneModeoneDebugUnitTestCompileClasspath       : <empty>
+                        typeoneModeoneDebugUnitTestRuntimeClasspath       : <empty>
+                        typeoneModeoneDebugWearApp    : <empty>
+                        typeoneModeoneImplementation  : <empty>
+                        typeoneModeoneReleaseAnnotationProcessor          : <empty>
+                        typeoneModeoneReleaseAnnotationProcessorClasspath : <empty>
+                        typeoneModeoneReleaseApi      : <empty>
+                        typeoneModeoneReleaseApiElements        : <empty>
+                        typeoneModeoneReleaseCompileClasspath   : <empty>
+                        typeoneModeoneReleaseCompileOnly        : <empty>
+                        typeoneModeoneReleaseCompileOnlyApi     : <empty>
+                        typeoneModeoneReleaseImplementation     : <empty>
+                        typeoneModeoneReleaseRuntimeClasspath   : <empty>
+                        typeoneModeoneReleaseRuntimeElements    : <empty>
+                        typeoneModeoneReleaseRuntimeOnly        : <empty>
+                        typeoneModeoneReleaseUnitTestAnnotationProcessorClasspath   : <empty>
+                        typeoneModeoneReleaseUnitTestCompileClasspath     : <empty>
+                        typeoneModeoneReleaseUnitTestRuntimeClasspath     : <empty>
+                        typeoneModeoneReleaseWearApp  : <empty>
+                        typeoneModeoneRuntimeOnly     : <empty>
+                        typeoneModeoneWearApp         : <empty>
+                        typeoneModetwoAnnotationProcessor       : <empty>
+                        typeoneModetwoApi             : <empty>
+                        typeoneModetwoCompileOnly     : <empty>
+                        typeoneModetwoCompileOnlyApi  : <empty>
+                        typeoneModetwoDebugAndroidTestAnnotationProcessorClasspath  : <empty>
+                        typeoneModetwoDebugAndroidTestCompileClasspath    : <empty>
+                        typeoneModetwoDebugAndroidTestRuntimeClasspath    : <empty>
+                        typeoneModetwoDebugAnnotationProcessor  : <empty>
+                        typeoneModetwoDebugAnnotationProcessorClasspath   : <empty>
+                        typeoneModetwoDebugApi        : <empty>
+                        typeoneModetwoDebugApiElements          : <empty>
+                        typeoneModetwoDebugCompileClasspath     : <empty>
+                        typeoneModetwoDebugCompileOnly          : <empty>
+                        typeoneModetwoDebugCompileOnlyApi       : <empty>
+                        typeoneModetwoDebugImplementation       : <empty>
+                        typeoneModetwoDebugRuntimeClasspath     : <empty>
+                        typeoneModetwoDebugRuntimeElements      : <empty>
+                        typeoneModetwoDebugRuntimeOnly          : <empty>
+                        typeoneModetwoDebugUnitTestAnnotationProcessorClasspath     : <empty>
+                        typeoneModetwoDebugUnitTestCompileClasspath       : <empty>
+                        typeoneModetwoDebugUnitTestRuntimeClasspath       : <empty>
+                        typeoneModetwoDebugWearApp    : <empty>
+                        typeoneModetwoImplementation  : <empty>
+                        typeoneModetwoReleaseAnnotationProcessor          : <empty>
+                        typeoneModetwoReleaseAnnotationProcessorClasspath : <empty>
+                        typeoneModetwoReleaseApi      : <empty>
+                        typeoneModetwoReleaseApiElements        : <empty>
+                        typeoneModetwoReleaseCompileClasspath   : <empty>
+                        typeoneModetwoReleaseCompileOnly        : <empty>
+                        typeoneModetwoReleaseCompileOnlyApi     : <empty>
+                        typeoneModetwoReleaseImplementation     : <empty>
+                        typeoneModetwoReleaseRuntimeClasspath   : <empty>
+                        typeoneModetwoReleaseRuntimeElements    : <empty>
+                        typeoneModetwoReleaseRuntimeOnly        : <empty>
+                        typeoneModetwoReleaseUnitTestAnnotationProcessorClasspath   : <empty>
+                        typeoneModetwoReleaseUnitTestCompileClasspath     : <empty>
+                        typeoneModetwoReleaseUnitTestRuntimeClasspath     : <empty>
+                        typeoneModetwoReleaseWearApp  : <empty>
+                        typeoneModetwoRuntimeOnly     : <empty>
+                        typeoneModetwoWearApp         : <empty>
+                        typeoneRuntimeOnly            : <empty>
+                        typeoneWearApp                : <empty>
+                        typetwoAnnotationProcessor    : <empty>
+                        typetwoApi                    : <empty>
+                        typetwoCompileOnly            : <empty>
+                        typetwoCompileOnlyApi         : <empty>
+                        typetwoImplementation         : <empty>
+                        typetwoModeoneAnnotationProcessor       : <empty>
+                        typetwoModeoneApi             : <empty>
+                        typetwoModeoneCompileOnly     : <empty>
+                        typetwoModeoneCompileOnlyApi  : <empty>
+                        typetwoModeoneDebugAndroidTestAnnotationProcessorClasspath  : <empty>
+                        typetwoModeoneDebugAndroidTestCompileClasspath    : <empty>
+                        typetwoModeoneDebugAndroidTestRuntimeClasspath    : <empty>
+                        typetwoModeoneDebugAnnotationProcessor  : <empty>
+                        typetwoModeoneDebugAnnotationProcessorClasspath   : <empty>
+                        typetwoModeoneDebugApi        : <empty>
+                        typetwoModeoneDebugApiElements          : <empty>
+                        typetwoModeoneDebugCompileClasspath     : <empty>
+                        typetwoModeoneDebugCompileOnly          : <empty>
+                        typetwoModeoneDebugCompileOnlyApi       : <empty>
+                        typetwoModeoneDebugImplementation       : <empty>
+                        typetwoModeoneDebugRuntimeClasspath     : <empty>
+                        typetwoModeoneDebugRuntimeElements      : <empty>
+                        typetwoModeoneDebugRuntimeOnly          : <empty>
+                        typetwoModeoneDebugUnitTestAnnotationProcessorClasspath     : <empty>
+                        typetwoModeoneDebugUnitTestCompileClasspath       : <empty>
+                        typetwoModeoneDebugUnitTestRuntimeClasspath       : <empty>
+                        typetwoModeoneDebugWearApp    : <empty>
+                        typetwoModeoneImplementation  : <empty>
+                        typetwoModeoneReleaseAnnotationProcessor          : <empty>
+                        typetwoModeoneReleaseAnnotationProcessorClasspath : <empty>
+                        typetwoModeoneReleaseApi      : <empty>
+                        typetwoModeoneReleaseApiElements        : <empty>
+                        typetwoModeoneReleaseCompileClasspath   : <empty>
+                        typetwoModeoneReleaseCompileOnly        : <empty>
+                        typetwoModeoneReleaseCompileOnlyApi     : <empty>
+                        typetwoModeoneReleaseImplementation     : <empty>
+                        typetwoModeoneReleaseRuntimeClasspath   : <empty>
+                        typetwoModeoneReleaseRuntimeElements    : <empty>
+                        typetwoModeoneReleaseRuntimeOnly        : <empty>
+                        typetwoModeoneReleaseUnitTestAnnotationProcessorClasspath   : <empty>
+                        typetwoModeoneReleaseUnitTestCompileClasspath     : <empty>
+                        typetwoModeoneReleaseUnitTestRuntimeClasspath     : <empty>
+                        typetwoModeoneReleaseWearApp  : <empty>
+                        typetwoModeoneRuntimeOnly     : <empty>
+                        typetwoModeoneWearApp         : <empty>
+                        typetwoModetwoAnnotationProcessor       : <empty>
+                        typetwoModetwoApi             : <empty>
+                        typetwoModetwoCompileOnly     : <empty>
+                        typetwoModetwoCompileOnlyApi  : <empty>
+                        typetwoModetwoDebugAndroidTestAnnotationProcessorClasspath  : <empty>
+                        typetwoModetwoDebugAndroidTestCompileClasspath    : <empty>
+                        typetwoModetwoDebugAndroidTestRuntimeClasspath    : <empty>
+                        typetwoModetwoDebugAnnotationProcessor  : <empty>
+                        typetwoModetwoDebugAnnotationProcessorClasspath   : <empty>
+                        typetwoModetwoDebugApi        : <empty>
+                        typetwoModetwoDebugApiElements          : <empty>
+                        typetwoModetwoDebugCompileClasspath     : <empty>
+                        typetwoModetwoDebugCompileOnly          : <empty>
+                        typetwoModetwoDebugCompileOnlyApi       : <empty>
+                        typetwoModetwoDebugImplementation       : <empty>
+                        typetwoModetwoDebugRuntimeClasspath     : <empty>
+                        typetwoModetwoDebugRuntimeElements      : <empty>
+                        typetwoModetwoDebugRuntimeOnly          : <empty>
+                        typetwoModetwoDebugUnitTestAnnotationProcessorClasspath     : <empty>
+                        typetwoModetwoDebugUnitTestCompileClasspath       : <empty>
+                        typetwoModetwoDebugUnitTestRuntimeClasspath       : <empty>
+                        typetwoModetwoDebugWearApp    : <empty>
+                        typetwoModetwoImplementation  : <empty>
+                        typetwoModetwoReleaseAnnotationProcessor          : <empty>
+                        typetwoModetwoReleaseAnnotationProcessorClasspath : <empty>
+                        typetwoModetwoReleaseApi      : <empty>
+                        typetwoModetwoReleaseApiElements        : <empty>
+                        typetwoModetwoReleaseCompileClasspath   : <empty>
+                        typetwoModetwoReleaseCompileOnly        : <empty>
+                        typetwoModetwoReleaseCompileOnlyApi     : <empty>
+                        typetwoModetwoReleaseImplementation     : <empty>
+                        typetwoModetwoReleaseRuntimeClasspath   : <empty>
+                        typetwoModetwoReleaseRuntimeElements    : <empty>
+                        typetwoModetwoReleaseRuntimeOnly        : <empty>
+                        typetwoModetwoReleaseUnitTestAnnotationProcessorClasspath   : <empty>
+                        typetwoModetwoReleaseUnitTestCompileClasspath     : <empty>
+                        typetwoModetwoReleaseUnitTestRuntimeClasspath     : <empty>
+                        typetwoModetwoReleaseWearApp  : <empty>
+                        typetwoModetwoRuntimeOnly     : <empty>
+                        typetwoModetwoWearApp         : <empty>
+                        typetwoRuntimeOnly            : <empty>
+                        typetwoWearApp                : <empty>
+                        wearApp                       : <empty>
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
                 identityPath                  : :app [-]
@@ -592,8 +624,6 @@ MODULE                        : Kotlin_Multiplatform
                 qName                         : :app
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle.kts
@@ -603,104 +633,127 @@ MODULE                        : Kotlin_Multiplatform
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiElements              : <empty>
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugReverseMetadataValues    : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugWearApp                  : <empty>
-                    debugWearBundling             : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiElements            : <empty>
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseReverseMetadataValues  : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseWearApp                : <empty>
-                    releaseWearBundling           : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiElements              : <empty>
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
+                        debugImplementation           : <empty>
+                        debugReverseMetadataValues    : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugWearApp                  : <empty>
+                        debugWearBundling             : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiElements            : <empty>
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
+                        releaseImplementation         : <empty>
+                        releaseReverseMetadataValues  : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        releaseWearApp                : <empty>
+                        releaseWearBundling           : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
             kmpFirstLib                   : :kmpFirstLib (DefaultExternalProject)
                 path                          : :kmpFirstLib [-]
                 identityPath                  : :kmpFirstLib [-]
@@ -708,8 +761,6 @@ MODULE                        : Kotlin_Multiplatform
                 qName                         : :kmpFirstLib
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/kmpFirstLib
                 buildDir                      : <ROOT>/kmpFirstLib/build [-]
                 buildFile                     : <ROOT>/kmpFirstLib/build.gradle.kts
@@ -717,123 +768,133 @@ MODULE                        : Kotlin_Multiplatform
                     testAndroidUnitTest           : testAndroidUnitTest (DefaultExternalTask)
                         qName                         : :kmpFirstLib:testAndroidUnitTest
                 externalSystemId              : GRADLE
-                - artifacts                   : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
-                artifactsByConfiguration
-                    _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                    _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                    _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                    _internal-unified-test-platform-android-test-plugin         : <empty>
-                    _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                    _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
-                    _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                    _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                    _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
-                    _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                    _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                    _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                    _internal-unified-test-platform-core    : <empty>
-                    _internal-unified-test-platform-launcher          : <empty>
-                    allSourceSetsCompileDependenciesMetadata          : <empty>
-                    androidApiElements            : <empty>
-                    - androidApiElements-published          : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
-                    androidApis                   : <empty>
-                    androidCompilationApi         : <empty>
-                    androidCompilationCompileOnly : <empty>
-                    androidCompilationImplementation        : <empty>
-                    androidCompilationRuntimeOnly : <empty>
-                    androidCompileClasspath       : <empty>
-                    androidInstrumentedTestApi    : <empty>
-                    androidInstrumentedTestApiDependenciesMetadata    : <empty>
-                    androidInstrumentedTestCompilationApi   : <empty>
-                    androidInstrumentedTestCompilationCompileOnly     : <empty>
-                    androidInstrumentedTestCompilationImplementation  : <empty>
-                    androidInstrumentedTestCompilationRuntimeOnly     : <empty>
-                    androidInstrumentedTestCompileClasspath : <empty>
-                    androidInstrumentedTestCompileOnly      : <empty>
-                    androidInstrumentedTestCompileOnlyDependenciesMetadata      : <empty>
-                    androidInstrumentedTestImplementation   : <empty>
-                    androidInstrumentedTestImplementationDependenciesMetadata   : <empty>
-                    androidInstrumentedTestIntransitiveDependenciesMetadata     : <empty>
-                    androidInstrumentedTestResolvableDependenciesMetadata       : <empty>
-                    androidInstrumentedTestRuntimeClasspath : <empty>
-                    androidInstrumentedTestRuntimeOnly      : <empty>
-                    androidMainApi                : <empty>
-                    androidMainApiDependenciesMetadata      : <empty>
-                    androidMainCompileOnly        : <empty>
-                    androidMainCompileOnlyDependenciesMetadata        : <empty>
-                    androidMainImplementation     : <empty>
-                    androidMainImplementationDependenciesMetadata     : <empty>
-                    androidMainIntransitiveDependenciesMetadata       : <empty>
-                    androidMainResolvableDependenciesMetadata         : <empty>
-                    androidMainRuntimeOnly        : <empty>
-                    androidRuntimeClasspath       : <empty>
-                    androidRuntimeElements        : <empty>
-                    - androidRuntimeElements-published      : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
-                    androidSourcesElements        : <empty>
-                    - androidSourcesElements-published      : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-android-sources.jar [-]
-                    androidTestUtil               : <empty>
-                    androidUnitTestApi            : <empty>
-                    androidUnitTestApiDependenciesMetadata  : <empty>
-                    androidUnitTestCompilationApi : <empty>
-                    androidUnitTestCompilationCompileOnly   : <empty>
-                    androidUnitTestCompilationImplementation          : <empty>
-                    androidUnitTestCompilationRuntimeOnly   : <empty>
-                    androidUnitTestCompileClasspath         : <empty>
-                    androidUnitTestCompileOnly    : <empty>
-                    androidUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                    androidUnitTestImplementation : <empty>
-                    androidUnitTestImplementationDependenciesMetadata : <empty>
-                    androidUnitTestIntransitiveDependenciesMetadata   : <empty>
-                    androidUnitTestResolvableDependenciesMetadata     : <empty>
-                    androidUnitTestRuntimeClasspath         : <empty>
-                    androidUnitTestRuntimeOnly    : <empty>
-                    - archives                    : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-android-sources.jar [-]
-                    - archives                    : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
-                    - archives                    : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
-                    commonMainApi                 : <empty>
-                    commonMainApiDependenciesMetadata       : <empty>
-                    commonMainCompileOnly         : <empty>
-                    commonMainCompileOnlyDependenciesMetadata         : <empty>
-                    commonMainImplementation      : <empty>
-                    commonMainImplementationDependenciesMetadata      : <empty>
-                    commonMainIntransitiveDependenciesMetadata        : <empty>
-                    commonMainResolvableDependenciesMetadata          : <empty>
-                    commonMainRuntimeOnly         : <empty>
-                    commonTestApi                 : <empty>
-                    commonTestApiDependenciesMetadata       : <empty>
-                    commonTestCompileOnly         : <empty>
-                    commonTestCompileOnlyDependenciesMetadata         : <empty>
-                    commonTestImplementation      : <empty>
-                    commonTestImplementationDependenciesMetadata      : <empty>
-                    commonTestIntransitiveDependenciesMetadata        : <empty>
-                    commonTestResolvableDependenciesMetadata          : <empty>
-                    commonTestRuntimeOnly         : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    default                       : <empty>
-                    instrumentedTestKotlinScriptDef         : <empty>
-                    instrumentedTestKotlinScriptDefExtensions         : <empty>
-                    kotlinBuildToolsApiClasspath  : <empty>
-                    kotlinCompilerClasspath       : <empty>
-                    kotlinCompilerPluginClasspath : <empty>
-                    kotlinCompilerPluginClasspathAndroidInstrumentedTest        : <empty>
-                    kotlinCompilerPluginClasspathAndroidMain          : <empty>
-                    kotlinCompilerPluginClasspathAndroidUnitTest      : <empty>
-                    kotlinCompilerPluginClasspathMetadataMain         : <empty>
-                    kotlinKlibCommonizerClasspath : <empty>
-                    kotlinNativeCompilerPluginClasspath     : <empty>
-                    kotlinScriptDef               : <empty>
-                    kotlinScriptDefExtensions     : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    - metadataApiElements         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
-                    metadataCompilationApi        : <empty>
-                    metadataCompilationCompileOnly          : <empty>
-                    metadataCompilationImplementation       : <empty>
-                    metadataCompilationRuntimeOnly          : <empty>
-                    metadataCompileClasspath      : <empty>
-                    metadataSourcesElements       : <empty>
-                    unitTestKotlinScriptDef       : <empty>
-                    unitTestKotlinScriptDefExtensions       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    - taskArtifacts               : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        allSourceSetsCompileDependenciesMetadata          : <empty>
+                        allTestSourceSetsCompileDependenciesMetadata      : <empty>
+                        androidApiElements            : <empty>
+                        - androidApiElements-published          : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
+                        androidApis                   : <empty>
+                        androidCompilationApi         : <empty>
+                        androidCompilationCompileOnly : <empty>
+                        androidCompilationImplementation        : <empty>
+                        androidCompilationRuntimeOnly : <empty>
+                        androidCompileClasspath       : <empty>
+                        androidInstrumentedTestApi    : <empty>
+                        androidInstrumentedTestApiDependenciesMetadata    : <empty>
+                        androidInstrumentedTestCompilationApi   : <empty>
+                        androidInstrumentedTestCompilationCompileOnly     : <empty>
+                        androidInstrumentedTestCompilationImplementation  : <empty>
+                        androidInstrumentedTestCompilationRuntimeOnly     : <empty>
+                        androidInstrumentedTestCompileClasspath : <empty>
+                        androidInstrumentedTestCompileOnly      : <empty>
+                        androidInstrumentedTestCompileOnlyDependenciesMetadata      : <empty>
+                        androidInstrumentedTestDependencySources          : <empty>
+                        androidInstrumentedTestImplementation   : <empty>
+                        androidInstrumentedTestImplementationDependenciesMetadata   : <empty>
+                        androidInstrumentedTestIntransitiveDependenciesMetadata     : <empty>
+                        androidInstrumentedTestResolvableDependenciesMetadata       : <empty>
+                        androidInstrumentedTestRuntimeClasspath : <empty>
+                        androidInstrumentedTestRuntimeOnly      : <empty>
+                        androidMainApi                : <empty>
+                        androidMainApiDependenciesMetadata      : <empty>
+                        androidMainCompileOnly        : <empty>
+                        androidMainCompileOnlyDependenciesMetadata        : <empty>
+                        androidMainDependencySources  : <empty>
+                        androidMainImplementation     : <empty>
+                        androidMainImplementationDependenciesMetadata     : <empty>
+                        androidMainIntransitiveDependenciesMetadata       : <empty>
+                        androidMainResolvableDependenciesMetadata         : <empty>
+                        androidMainRuntimeOnly        : <empty>
+                        androidResourcesElements-published      : <empty>
+                        androidRuntimeClasspath       : <empty>
+                        androidRuntimeElements        : <empty>
+                        - androidRuntimeElements-published      : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
+                        androidSourcesElements        : <empty>
+                        - androidSourcesElements-published      : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-android-sources.jar [-]
+                        androidTestUtil               : <empty>
+                        androidUnitTestApi            : <empty>
+                        androidUnitTestApiDependenciesMetadata  : <empty>
+                        androidUnitTestCompilationApi : <empty>
+                        androidUnitTestCompilationCompileOnly   : <empty>
+                        androidUnitTestCompilationImplementation          : <empty>
+                        androidUnitTestCompilationRuntimeOnly   : <empty>
+                        androidUnitTestCompileClasspath         : <empty>
+                        androidUnitTestCompileOnly    : <empty>
+                        androidUnitTestCompileOnlyDependenciesMetadata    : <empty>
+                        androidUnitTestDependencySources        : <empty>
+                        androidUnitTestImplementation : <empty>
+                        androidUnitTestImplementationDependenciesMetadata : <empty>
+                        androidUnitTestIntransitiveDependenciesMetadata   : <empty>
+                        androidUnitTestResolvableDependenciesMetadata     : <empty>
+                        androidUnitTestRuntimeClasspath         : <empty>
+                        androidUnitTestRuntimeOnly    : <empty>
+                        - archives                    : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
+                        commonMainApi                 : <empty>
+                        commonMainApiDependenciesMetadata       : <empty>
+                        commonMainCompileOnly         : <empty>
+                        commonMainCompileOnlyDependenciesMetadata         : <empty>
+                        commonMainDependencySources   : <empty>
+                        commonMainImplementation      : <empty>
+                        commonMainImplementationDependenciesMetadata      : <empty>
+                        commonMainIntransitiveDependenciesMetadata        : <empty>
+                        commonMainResolvableDependenciesMetadata          : <empty>
+                        commonMainRuntimeOnly         : <empty>
+                        commonTestApi                 : <empty>
+                        commonTestApiDependenciesMetadata       : <empty>
+                        commonTestCompileOnly         : <empty>
+                        commonTestCompileOnlyDependenciesMetadata         : <empty>
+                        commonTestDependencySources   : <empty>
+                        commonTestImplementation      : <empty>
+                        commonTestImplementationDependenciesMetadata      : <empty>
+                        commonTestIntransitiveDependenciesMetadata        : <empty>
+                        commonTestResolvableDependenciesMetadata          : <empty>
+                        commonTestRuntimeOnly         : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        default                       : <empty>
+                        instrumentedTestKotlinScriptDef         : <empty>
+                        instrumentedTestKotlinScriptDefExtensions         : <empty>
+                        kotlinBuildToolsApiClasspath  : <empty>
+                        kotlinCompilerClasspath       : <empty>
+                        kotlinCompilerPluginClasspath : <empty>
+                        kotlinCompilerPluginClasspathAndroidInstrumentedTest        : <empty>
+                        kotlinCompilerPluginClasspathAndroidMain          : <empty>
+                        kotlinCompilerPluginClasspathAndroidUnitTest      : <empty>
+                        kotlinCompilerPluginClasspathMetadataMain         : <empty>
+                        kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeBundleConfiguration         : <empty>
+                        kotlinNativeCompilerPluginClasspath     : <empty>
+                        kotlinScriptDef               : <empty>
+                        kotlinScriptDefExtensions     : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        - metadataApiElements         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
+                        metadataCompilationApi        : <empty>
+                        metadataCompilationCompileOnly          : <empty>
+                        metadataCompilationImplementation       : <empty>
+                        metadataCompilationRuntimeOnly          : <empty>
+                        metadataCompileClasspath      : <empty>
+                        metadataSourcesElements       : <empty>
+                        unitTestKotlinScriptDef       : <empty>
+                        unitTestKotlinScriptDefExtensions       : <empty>
+                    - additionalArtifacts         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
             kmpJvmOnly                    : :kmpJvmOnly (DefaultExternalProject)
                 path                          : :kmpJvmOnly [-]
                 identityPath                  : :kmpJvmOnly [-]
@@ -841,8 +902,6 @@ MODULE                        : Kotlin_Multiplatform
                 qName                         : :kmpJvmOnly
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/kmpJvmOnly
                 buildDir                      : <ROOT>/kmpJvmOnly/build [-]
                 buildFile                     : <ROOT>/kmpJvmOnly/build.gradle.kts
@@ -850,86 +909,94 @@ MODULE                        : Kotlin_Multiplatform
                     jvmTest                       : jvmTest (DefaultExternalTask)
                         qName                         : :kmpJvmOnly:jvmTest
                 externalSystemId              : GRADLE
-                - artifacts                   : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
-                - artifacts                   : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
-                artifactsByConfiguration
-                    allSourceSetsCompileDependenciesMetadata          : <empty>
-                    - archives                    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
-                    - archives                    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
-                    commonMainApi                 : <empty>
-                    commonMainApiDependenciesMetadata       : <empty>
-                    commonMainCompileOnly         : <empty>
-                    commonMainCompileOnlyDependenciesMetadata         : <empty>
-                    commonMainImplementation      : <empty>
-                    commonMainImplementationDependenciesMetadata      : <empty>
-                    commonMainIntransitiveDependenciesMetadata        : <empty>
-                    commonMainResolvableDependenciesMetadata          : <empty>
-                    commonMainRuntimeOnly         : <empty>
-                    commonTestApi                 : <empty>
-                    commonTestApiDependenciesMetadata       : <empty>
-                    commonTestCompileOnly         : <empty>
-                    commonTestCompileOnlyDependenciesMetadata         : <empty>
-                    commonTestImplementation      : <empty>
-                    commonTestImplementationDependenciesMetadata      : <empty>
-                    commonTestIntransitiveDependenciesMetadata        : <empty>
-                    commonTestResolvableDependenciesMetadata          : <empty>
-                    commonTestRuntimeOnly         : <empty>
-                    default                       : <empty>
-                    - jvmApiElements              : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
-                    - jvmApiElements-published    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
-                    jvmCompilationApi             : <empty>
-                    jvmCompilationCompileOnly     : <empty>
-                    jvmCompilationImplementation  : <empty>
-                    jvmCompilationRuntimeOnly     : <empty>
-                    jvmCompileClasspath           : <empty>
-                    jvmMainApi                    : <empty>
-                    jvmMainApiDependenciesMetadata          : <empty>
-                    jvmMainCompileOnly            : <empty>
-                    jvmMainCompileOnlyDependenciesMetadata  : <empty>
-                    jvmMainImplementation         : <empty>
-                    jvmMainImplementationDependenciesMetadata         : <empty>
-                    jvmMainIntransitiveDependenciesMetadata : <empty>
-                    jvmMainResolvableDependenciesMetadata   : <empty>
-                    jvmMainRuntimeOnly            : <empty>
-                    jvmRuntimeClasspath           : <empty>
-                    - jvmRuntimeElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
-                    - jvmRuntimeElements-published          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
-                    - jvmSourcesElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm-sources.jar [-]
-                    - jvmSourcesElements-published          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm-sources.jar [-]
-                    jvmTestApi                    : <empty>
-                    jvmTestApiDependenciesMetadata          : <empty>
-                    jvmTestCompilationApi         : <empty>
-                    jvmTestCompilationCompileOnly : <empty>
-                    jvmTestCompilationImplementation        : <empty>
-                    jvmTestCompilationRuntimeOnly : <empty>
-                    jvmTestCompileClasspath       : <empty>
-                    jvmTestCompileOnly            : <empty>
-                    jvmTestCompileOnlyDependenciesMetadata  : <empty>
-                    jvmTestImplementation         : <empty>
-                    jvmTestImplementationDependenciesMetadata         : <empty>
-                    jvmTestIntransitiveDependenciesMetadata : <empty>
-                    jvmTestResolvableDependenciesMetadata   : <empty>
-                    jvmTestRuntimeClasspath       : <empty>
-                    jvmTestRuntimeOnly            : <empty>
-                    kotlinBuildToolsApiClasspath  : <empty>
-                    kotlinCompilerClasspath       : <empty>
-                    kotlinCompilerPluginClasspath : <empty>
-                    kotlinCompilerPluginClasspathJvmMain    : <empty>
-                    kotlinCompilerPluginClasspathJvmTest    : <empty>
-                    kotlinCompilerPluginClasspathMetadataMain         : <empty>
-                    kotlinKlibCommonizerClasspath : <empty>
-                    kotlinNativeCompilerPluginClasspath     : <empty>
-                    kotlinScriptDef               : <empty>
-                    kotlinScriptDefExtensions     : <empty>
-                    - metadataApiElements         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
-                    metadataCompilationApi        : <empty>
-                    metadataCompilationCompileOnly          : <empty>
-                    metadataCompilationImplementation       : <empty>
-                    metadataCompilationRuntimeOnly          : <empty>
-                    metadataCompileClasspath      : <empty>
-                    metadataSourcesElements       : <empty>
-                    testKotlinScriptDef           : <empty>
-                    testKotlinScriptDefExtensions : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    - taskArtifacts               : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
+                    - taskArtifacts               : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                    configurationArtifacts
+                        allSourceSetsCompileDependenciesMetadata          : <empty>
+                        allTestSourceSetsCompileDependenciesMetadata      : <empty>
+                        - archives                    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                        - archives                    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
+                        commonMainApi                 : <empty>
+                        commonMainApiDependenciesMetadata       : <empty>
+                        commonMainCompileOnly         : <empty>
+                        commonMainCompileOnlyDependenciesMetadata         : <empty>
+                        commonMainDependencySources   : <empty>
+                        commonMainImplementation      : <empty>
+                        commonMainImplementationDependenciesMetadata      : <empty>
+                        commonMainIntransitiveDependenciesMetadata        : <empty>
+                        commonMainResolvableDependenciesMetadata          : <empty>
+                        commonMainRuntimeOnly         : <empty>
+                        commonTestApi                 : <empty>
+                        commonTestApiDependenciesMetadata       : <empty>
+                        commonTestCompileOnly         : <empty>
+                        commonTestCompileOnlyDependenciesMetadata         : <empty>
+                        commonTestDependencySources   : <empty>
+                        commonTestImplementation      : <empty>
+                        commonTestImplementationDependenciesMetadata      : <empty>
+                        commonTestIntransitiveDependenciesMetadata        : <empty>
+                        commonTestResolvableDependenciesMetadata          : <empty>
+                        commonTestRuntimeOnly         : <empty>
+                        default                       : <empty>
+                        - jvmApiElements              : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                        jvmCompilationApi             : <empty>
+                        jvmCompilationCompileOnly     : <empty>
+                        jvmCompilationImplementation  : <empty>
+                        jvmCompilationRuntimeOnly     : <empty>
+                        jvmCompileClasspath           : <empty>
+                        jvmMainApi                    : <empty>
+                        jvmMainApiDependenciesMetadata          : <empty>
+                        jvmMainCompileOnly            : <empty>
+                        jvmMainCompileOnlyDependenciesMetadata  : <empty>
+                        jvmMainDependencySources      : <empty>
+                        jvmMainImplementation         : <empty>
+                        jvmMainImplementationDependenciesMetadata         : <empty>
+                        jvmMainIntransitiveDependenciesMetadata : <empty>
+                        jvmMainResolvableDependenciesMetadata   : <empty>
+                        jvmMainRuntimeOnly            : <empty>
+                        jvmRuntimeClasspath           : <empty>
+                        - jvmRuntimeElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                        - jvmSourcesElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm-sources.jar [-]
+                        jvmTestApi                    : <empty>
+                        jvmTestApiDependenciesMetadata          : <empty>
+                        jvmTestCompilationApi         : <empty>
+                        jvmTestCompilationCompileOnly : <empty>
+                        jvmTestCompilationImplementation        : <empty>
+                        jvmTestCompilationRuntimeOnly : <empty>
+                        jvmTestCompileClasspath       : <empty>
+                        jvmTestCompileOnly            : <empty>
+                        jvmTestCompileOnlyDependenciesMetadata  : <empty>
+                        jvmTestDependencySources      : <empty>
+                        jvmTestImplementation         : <empty>
+                        jvmTestImplementationDependenciesMetadata         : <empty>
+                        jvmTestIntransitiveDependenciesMetadata : <empty>
+                        jvmTestResolvableDependenciesMetadata   : <empty>
+                        jvmTestRuntimeClasspath       : <empty>
+                        jvmTestRuntimeOnly            : <empty>
+                        kotlinBuildToolsApiClasspath  : <empty>
+                        kotlinCompilerClasspath       : <empty>
+                        kotlinCompilerPluginClasspath : <empty>
+                        kotlinCompilerPluginClasspathJvmMain    : <empty>
+                        kotlinCompilerPluginClasspathJvmTest    : <empty>
+                        kotlinCompilerPluginClasspathMetadataMain         : <empty>
+                        kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeBundleConfiguration         : <empty>
+                        kotlinNativeCompilerPluginClasspath     : <empty>
+                        kotlinScriptDef               : <empty>
+                        kotlinScriptDefExtensions     : <empty>
+                        - metadataApiElements         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
+                        metadataCompilationApi        : <empty>
+                        metadataCompilationCompileOnly          : <empty>
+                        metadataCompilationImplementation       : <empty>
+                        metadataCompilationRuntimeOnly          : <empty>
+                        metadataCompileClasspath      : <empty>
+                        metadataSourcesElements       : <empty>
+                        testKotlinScriptDef           : <empty>
+                        testKotlinScriptDefExtensions : <empty>
+                    - additionalArtifacts         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
+                    - additionalArtifacts         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
             kmpSecondLib                  : :kmpSecondLib (DefaultExternalProject)
                 path                          : :kmpSecondLib [-]
                 identityPath                  : :kmpSecondLib [-]
@@ -937,8 +1004,6 @@ MODULE                        : Kotlin_Multiplatform
                 qName                         : :kmpSecondLib
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/kmpSecondLib
                 buildDir                      : <ROOT>/kmpSecondLib/build [-]
                 buildFile                     : <ROOT>/kmpSecondLib/build.gradle.kts
@@ -946,119 +1011,128 @@ MODULE                        : Kotlin_Multiplatform
                     jvmTest                       : jvmTest (DefaultExternalTask)
                         qName                         : :kmpSecondLib:jvmTest
                 externalSystemId              : GRADLE
-                - artifacts                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
-                - artifacts                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                artifactsByConfiguration
-                    allSourceSetsCompileDependenciesMetadata          : <empty>
-                    androidApiElements            : <empty>
-                    - androidApiElements-published          : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
-                    androidApis                   : <empty>
-                    androidCompilationApi         : <empty>
-                    androidCompilationCompileOnly : <empty>
-                    androidCompilationImplementation        : <empty>
-                    androidCompilationRuntimeOnly : <empty>
-                    androidCompileClasspath       : <empty>
-                    androidMainApi                : <empty>
-                    androidMainApiDependenciesMetadata      : <empty>
-                    androidMainCompileOnly        : <empty>
-                    androidMainCompileOnlyDependenciesMetadata        : <empty>
-                    androidMainImplementation     : <empty>
-                    androidMainImplementationDependenciesMetadata     : <empty>
-                    androidMainIntransitiveDependenciesMetadata       : <empty>
-                    androidMainResolvableDependenciesMetadata         : <empty>
-                    androidMainRuntimeOnly        : <empty>
-                    androidRuntimeClasspath       : <empty>
-                    androidRuntimeElements        : <empty>
-                    - androidRuntimeElements-published      : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
-                    androidSourcesElements        : <empty>
-                    - androidSourcesElements-published      : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-android-sources.jar [-]
-                    androidTestUtil               : <empty>
-                    - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-android-sources.jar [-]
-                    - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                    - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
-                    - archives                    : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
-                    commonMainApi                 : <empty>
-                    commonMainApiDependenciesMetadata       : <empty>
-                    commonMainCompileOnly         : <empty>
-                    commonMainCompileOnlyDependenciesMetadata         : <empty>
-                    commonMainImplementation      : <empty>
-                    commonMainImplementationDependenciesMetadata      : <empty>
-                    commonMainIntransitiveDependenciesMetadata        : <empty>
-                    commonMainResolvableDependenciesMetadata          : <empty>
-                    commonMainRuntimeOnly         : <empty>
-                    commonTestApi                 : <empty>
-                    commonTestApiDependenciesMetadata       : <empty>
-                    commonTestCompileOnly         : <empty>
-                    commonTestCompileOnlyDependenciesMetadata         : <empty>
-                    commonTestImplementation      : <empty>
-                    commonTestImplementationDependenciesMetadata      : <empty>
-                    commonTestIntransitiveDependenciesMetadata        : <empty>
-                    commonTestResolvableDependenciesMetadata          : <empty>
-                    commonTestRuntimeOnly         : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    default                       : <empty>
-                    - jvmApiElements              : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                    - jvmApiElements-published    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                    jvmCompilationApi             : <empty>
-                    jvmCompilationCompileOnly     : <empty>
-                    jvmCompilationImplementation  : <empty>
-                    jvmCompilationRuntimeOnly     : <empty>
-                    jvmCompileClasspath           : <empty>
-                    jvmMainApi                    : <empty>
-                    jvmMainApiDependenciesMetadata          : <empty>
-                    jvmMainCompileOnly            : <empty>
-                    jvmMainCompileOnlyDependenciesMetadata  : <empty>
-                    jvmMainImplementation         : <empty>
-                    jvmMainImplementationDependenciesMetadata         : <empty>
-                    jvmMainIntransitiveDependenciesMetadata : <empty>
-                    jvmMainResolvableDependenciesMetadata   : <empty>
-                    jvmMainRuntimeOnly            : <empty>
-                    jvmRuntimeClasspath           : <empty>
-                    - jvmRuntimeElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                    - jvmRuntimeElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-                    - jvmSourcesElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
-                    - jvmSourcesElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
-                    jvmTestApi                    : <empty>
-                    jvmTestApiDependenciesMetadata          : <empty>
-                    jvmTestCompilationApi         : <empty>
-                    jvmTestCompilationCompileOnly : <empty>
-                    jvmTestCompilationImplementation        : <empty>
-                    jvmTestCompilationRuntimeOnly : <empty>
-                    jvmTestCompileClasspath       : <empty>
-                    jvmTestCompileOnly            : <empty>
-                    jvmTestCompileOnlyDependenciesMetadata  : <empty>
-                    jvmTestImplementation         : <empty>
-                    jvmTestImplementationDependenciesMetadata         : <empty>
-                    jvmTestIntransitiveDependenciesMetadata : <empty>
-                    jvmTestResolvableDependenciesMetadata   : <empty>
-                    jvmTestRuntimeClasspath       : <empty>
-                    jvmTestRuntimeOnly            : <empty>
-                    kotlinBuildToolsApiClasspath  : <empty>
-                    kotlinCompilerClasspath       : <empty>
-                    kotlinCompilerPluginClasspath : <empty>
-                    kotlinCompilerPluginClasspathAndroidMain          : <empty>
-                    kotlinCompilerPluginClasspathJvmMain    : <empty>
-                    kotlinCompilerPluginClasspathJvmTest    : <empty>
-                    kotlinCompilerPluginClasspathMetadataMain         : <empty>
-                    kotlinKlibCommonizerClasspath : <empty>
-                    kotlinNativeCompilerPluginClasspath     : <empty>
-                    kotlinScriptDef               : <empty>
-                    kotlinScriptDefExtensions     : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    - metadataApiElements         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
-                    metadataCompilationApi        : <empty>
-                    metadataCompilationCompileOnly          : <empty>
-                    metadataCompilationImplementation       : <empty>
-                    metadataCompilationRuntimeOnly          : <empty>
-                    metadataCompileClasspath      : <empty>
-                    metadataSourcesElements       : <empty>
-                    testKotlinScriptDef           : <empty>
-                    testKotlinScriptDefExtensions : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
+                    - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                    configurationArtifacts
+                        allSourceSetsCompileDependenciesMetadata          : <empty>
+                        allTestSourceSetsCompileDependenciesMetadata      : <empty>
+                        androidApiElements            : <empty>
+                        - androidApiElements-published          : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
+                        androidApis                   : <empty>
+                        androidCompilationApi         : <empty>
+                        androidCompilationCompileOnly : <empty>
+                        androidCompilationImplementation        : <empty>
+                        androidCompilationRuntimeOnly : <empty>
+                        androidCompileClasspath       : <empty>
+                        androidMainApi                : <empty>
+                        androidMainApiDependenciesMetadata      : <empty>
+                        androidMainCompileOnly        : <empty>
+                        androidMainCompileOnlyDependenciesMetadata        : <empty>
+                        androidMainDependencySources  : <empty>
+                        androidMainImplementation     : <empty>
+                        androidMainImplementationDependenciesMetadata     : <empty>
+                        androidMainIntransitiveDependenciesMetadata       : <empty>
+                        androidMainResolvableDependenciesMetadata         : <empty>
+                        androidMainRuntimeOnly        : <empty>
+                        androidResourcesElements-published      : <empty>
+                        androidRuntimeClasspath       : <empty>
+                        androidRuntimeElements        : <empty>
+                        - androidRuntimeElements-published      : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
+                        androidSourcesElements        : <empty>
+                        - androidSourcesElements-published      : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-android-sources.jar [-]
+                        androidTestUtil               : <empty>
+                        - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
+                        commonMainApi                 : <empty>
+                        commonMainApiDependenciesMetadata       : <empty>
+                        commonMainCompileOnly         : <empty>
+                        commonMainCompileOnlyDependenciesMetadata         : <empty>
+                        commonMainDependencySources   : <empty>
+                        commonMainImplementation      : <empty>
+                        commonMainImplementationDependenciesMetadata      : <empty>
+                        commonMainIntransitiveDependenciesMetadata        : <empty>
+                        commonMainResolvableDependenciesMetadata          : <empty>
+                        commonMainRuntimeOnly         : <empty>
+                        commonTestApi                 : <empty>
+                        commonTestApiDependenciesMetadata       : <empty>
+                        commonTestCompileOnly         : <empty>
+                        commonTestCompileOnlyDependenciesMetadata         : <empty>
+                        commonTestDependencySources   : <empty>
+                        commonTestImplementation      : <empty>
+                        commonTestImplementationDependenciesMetadata      : <empty>
+                        commonTestIntransitiveDependenciesMetadata        : <empty>
+                        commonTestResolvableDependenciesMetadata          : <empty>
+                        commonTestRuntimeOnly         : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        default                       : <empty>
+                        - jvmApiElements              : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        jvmCompilationApi             : <empty>
+                        jvmCompilationCompileOnly     : <empty>
+                        jvmCompilationImplementation  : <empty>
+                        jvmCompilationRuntimeOnly     : <empty>
+                        jvmCompileClasspath           : <empty>
+                        jvmMainApi                    : <empty>
+                        jvmMainApiDependenciesMetadata          : <empty>
+                        jvmMainCompileOnly            : <empty>
+                        jvmMainCompileOnlyDependenciesMetadata  : <empty>
+                        jvmMainDependencySources      : <empty>
+                        jvmMainImplementation         : <empty>
+                        jvmMainImplementationDependenciesMetadata         : <empty>
+                        jvmMainIntransitiveDependenciesMetadata : <empty>
+                        jvmMainResolvableDependenciesMetadata   : <empty>
+                        jvmMainRuntimeOnly            : <empty>
+                        jvmRuntimeClasspath           : <empty>
+                        - jvmRuntimeElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - jvmSourcesElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
+                        jvmTestApi                    : <empty>
+                        jvmTestApiDependenciesMetadata          : <empty>
+                        jvmTestCompilationApi         : <empty>
+                        jvmTestCompilationCompileOnly : <empty>
+                        jvmTestCompilationImplementation        : <empty>
+                        jvmTestCompilationRuntimeOnly : <empty>
+                        jvmTestCompileClasspath       : <empty>
+                        jvmTestCompileOnly            : <empty>
+                        jvmTestCompileOnlyDependenciesMetadata  : <empty>
+                        jvmTestDependencySources      : <empty>
+                        jvmTestImplementation         : <empty>
+                        jvmTestImplementationDependenciesMetadata         : <empty>
+                        jvmTestIntransitiveDependenciesMetadata : <empty>
+                        jvmTestResolvableDependenciesMetadata   : <empty>
+                        jvmTestRuntimeClasspath       : <empty>
+                        jvmTestRuntimeOnly            : <empty>
+                        kotlinBuildToolsApiClasspath  : <empty>
+                        kotlinCompilerClasspath       : <empty>
+                        kotlinCompilerPluginClasspath : <empty>
+                        kotlinCompilerPluginClasspathAndroidMain          : <empty>
+                        kotlinCompilerPluginClasspathJvmMain    : <empty>
+                        kotlinCompilerPluginClasspathJvmTest    : <empty>
+                        kotlinCompilerPluginClasspathMetadataMain         : <empty>
+                        kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeBundleConfiguration         : <empty>
+                        kotlinNativeCompilerPluginClasspath     : <empty>
+                        kotlinScriptDef               : <empty>
+                        kotlinScriptDefExtensions     : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        - metadataApiElements         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
+                        metadataCompilationApi        : <empty>
+                        metadataCompilationCompileOnly          : <empty>
+                        metadataCompilationImplementation       : <empty>
+                        metadataCompilationRuntimeOnly          : <empty>
+                        metadataCompileClasspath      : <empty>
+                        metadataSourcesElements       : <empty>
+                        testKotlinScriptDef           : <empty>
+                        testKotlinScriptDefExtensions : <empty>
+                    - additionalArtifacts         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
+                    - additionalArtifacts         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
+        sourceSetModel                : DefaultGradleSourceSetModel
 MODULE                        : Kotlin_Multiplatform.androidLib
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1125,18 +1199,27 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : typeoneModeoneDebug
         testApplicationId             : com.example.androidlib.test
+        buildType                     : debug
     - basicVariant:               : typeoneModetwoDebug
         testApplicationId             : com.example.androidlib.test
+        buildType                     : debug
     - basicVariant:               : typetwoModeoneDebug
         testApplicationId             : com.example.androidlib.test
+        buildType                     : debug
     - basicVariant:               : typetwoModetwoDebug
         testApplicationId             : com.example.androidlib.test
+        buildType                     : debug
     - basicVariant:               : typeoneModeoneRelease
+        buildType                     : release
     - basicVariant:               : typeoneModetwoRelease
+        buildType                     : release
     - basicVariant:               : typetwoModeoneRelease
+        buildType                     : release
     - basicVariant:               : typetwoModetwoRelease
+        buildType                     : release
     FlavorDimensions              : type
     FlavorDimensions              : mode
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -1199,6 +1282,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -1249,6 +1333,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -1556,7 +1641,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleTypeoneModetwoDebug
                 GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileTypeoneModetwoDebugAndroidTestSources
@@ -1603,7 +1688,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     AssembleTaskName              : assembleTypeoneModetwoDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/androidLib/build/intermediates/apk_ide_redirect_file/typeoneModetwoDebugAndroidTest/createTypeoneModetwoDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -1645,7 +1730,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                         module                        : <ROOT>-:androidLib-MAIN
                     runtimeClasspath
                         module                        : <ROOT>-:androidLib-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :androidLib (DefaultExternalProject) (*seen*)
 MODULE                        : Kotlin_Multiplatform.androidLib.androidTest
 MODULE                        : Kotlin_Multiplatform.androidLib.main
@@ -1716,11 +1801,14 @@ MODULE                        : Kotlin_Multiplatform.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.app
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -1784,6 +1872,7 @@ MODULE                        : Kotlin_Multiplatform.app
             Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -1834,6 +1923,7 @@ MODULE                        : Kotlin_Multiplatform.app
             Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -1954,7 +2044,7 @@ MODULE                        : Kotlin_Multiplatform.app
                     ApkFromBundleTaskName         : extractApksForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/createDebugApksFromBundleListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -1987,7 +2077,7 @@ MODULE                        : Kotlin_Multiplatform.app
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2090,7 +2180,7 @@ MODULE                        : Kotlin_Multiplatform.app
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : Kotlin_Multiplatform.app.androidTest
 MODULE                        : Kotlin_Multiplatform.app.main
@@ -2160,6 +2250,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : false
     - basicVariant:               : androidMain
         testApplicationId             : com.example.kmpfirstlib.test
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -2240,7 +2331,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidMain
-                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileAndroidInstrumentedTest
@@ -2343,7 +2434,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidInstrumentedTest
                     AssembleTaskOutputListingFile : <ROOT>/kmpFirstLib/build/intermediates/apk_ide_redirect_file/androidInstrumentedTest/createAndroidInstrumentedTestApkListingFileRedirect/redirect.txt [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2385,15 +2476,15 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:kmpSecondLib-androidMain
                         module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies
             androidInstrumentedTest
-                - dependency                  : :androidLib
-                - dependency                  : :kmpFirstLib/androidMain
-                - dependency                  : :kmpFirstLib/commonMain
-                - dependency                  : :kmpJvmOnly
-                - dependency                  : :kmpSecondLib
+                - dependency                  : :androidLib::androidLib
+                - dependency                  : :kmpFirstLib::kmpFirstLib/androidMain
+                - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly
+                - dependency                  : :kmpSecondLib::kmpSecondLib
                 - dependency                  : androidx.activity:activity:1.2.4
                 - dependency                  : androidx.annotation:annotation-experimental:1.1.0
                 - dependency                  : androidx.annotation:annotation:1.3.0
@@ -2431,19 +2522,19 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             androidMain
-                - dependency                  : :androidLib
-                - dependency                  : :kmpFirstLib/commonMain
-                - dependency                  : :kmpJvmOnly
-                - dependency                  : :kmpSecondLib
+                - dependency                  : :androidLib::androidLib
+                - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly
+                - dependency                  : :kmpSecondLib::kmpSecondLib
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             androidUnitTest
-                - dependency                  : :androidLib
-                - dependency                  : :kmpFirstLib/androidMain
-                - dependency                  : :kmpFirstLib/commonMain
-                - dependency                  : :kmpFirstLib/commonTest
-                - dependency                  : :kmpJvmOnly
-                - dependency                  : :kmpSecondLib
+                - dependency                  : :androidLib::androidLib
+                - dependency                  : :kmpFirstLib::kmpFirstLib/androidMain
+                - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
+                - dependency                  : :kmpFirstLib::kmpFirstLib/commonTest
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly
+                - dependency                  : :kmpSecondLib::kmpSecondLib
                 - dependency                  : junit:junit:4.13.2
                 - dependency                  : org.hamcrest:hamcrest-core:1.3
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
@@ -2451,19 +2542,19 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonMain
-                - dependency                  : :androidLib
-                - dependency                  : :kmpJvmOnly
-                - dependency                  : :kmpSecondLib
+                - dependency                  : :androidLib::androidLib
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly
+                - dependency                  : :kmpSecondLib::kmpSecondLib
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonTest
-                - dependency                  : :androidLib
-                - dependency                  : :kmpFirstLib/androidMain
-                - dependency                  : :kmpFirstLib/commonMain
-                - dependency                  : :kmpJvmOnly
-                - dependency                  : :kmpJvmOnly/commonMain
-                - dependency                  : :kmpSecondLib
-                - dependency                  : :kmpSecondLib/commonMain
+                - dependency                  : :androidLib::androidLib
+                - dependency                  : :kmpFirstLib::kmpFirstLib/androidMain
+                - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly/commonMain
+                - dependency                  : :kmpSecondLib::kmpSecondLib
+                - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
                 - dependency                  : junit:junit:4.13.2
                 - dependency                  : org.hamcrest:hamcrest-core:1.3
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
@@ -2512,6 +2603,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragments                   : androidInstrumentedTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2527,7 +2619,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/kotlin
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest [-]
                     effectiveClassesDir           : <ROOT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest [-]
@@ -2581,6 +2672,9 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : androidMain:commonMain
+                    - fragments                   : androidMain
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2595,7 +2689,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmpFirstLib/src/androidMain/kotlin
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/main [-]
                     effectiveClassesDir           : <ROOT>/kmpFirstLib/build/classes/kotlin/android/main [-]
@@ -2658,6 +2751,9 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : androidUnitTest:commonTest
+                    - fragments                   : androidUnitTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2673,7 +2769,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmpFirstLib/src/androidUnitTest/kotlin
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/unitTest [-]
                     effectiveClassesDir           : <ROOT>/kmpFirstLib/build/classes/kotlin/android/unitTest [-]
@@ -2710,18 +2805,18 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonTest
-                - dependency                  : :kmpJvmOnly/commonMain
-                - dependency                  : :kmpJvmOnly/jvmMain
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly/commonMain
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly/jvmMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             jvmMain
-                - dependency                  : :kmpJvmOnly/commonMain
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly/commonMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             jvmTest
-                - dependency                  : :kmpJvmOnly/commonMain
-                - dependency                  : :kmpJvmOnly/commonTest
-                - dependency                  : :kmpJvmOnly/jvmMain
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly/commonMain
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly/commonTest
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly/jvmMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
@@ -2777,6 +2872,9 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmMain:commonMain
+                    - fragments                   : jvmMain
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2791,7 +2889,6 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmpJvmOnly/src/jvmMain/kotlin
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
                     effectiveClassesDir           : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
@@ -2854,6 +2951,9 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmTest:commonTest
+                    - fragments                   : jvmTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2869,7 +2969,6 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmpJvmOnly/src/jvmTest/kotlin [-]
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
                     effectiveClassesDir           : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
@@ -2958,6 +3057,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : false
     - basicVariant:               : androidMain
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     DefaultSourceProvider
@@ -3004,28 +3104,28 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidMain
-                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     kotlinMppGradleModel          : {androidMain=androidMain, commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
         dependencies
             androidMain
-                - dependency                  : :kmpSecondLib/commonMain
+                - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:1.9.20
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             commonTest
-                - dependency                  : :kmpSecondLib/commonMain
-                - dependency                  : :kmpSecondLib/jvmMain
+                - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
+                - dependency                  : :kmpSecondLib::kmpSecondLib/jvmMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             jvmMain
-                - dependency                  : :kmpSecondLib/commonMain
+                - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             jvmTest
-                - dependency                  : :kmpSecondLib/commonMain
-                - dependency                  : :kmpSecondLib/commonTest
-                - dependency                  : :kmpSecondLib/jvmMain
+                - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
+                - dependency                  : :kmpSecondLib::kmpSecondLib/commonTest
+                - dependency                  : :kmpSecondLib::kmpSecondLib/jvmMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
@@ -3081,6 +3181,9 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : androidMain:commonMain
+                    - fragments                   : androidMain
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3095,7 +3198,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmpSecondLib/src/androidMain/kotlin
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpSecondLib/build/classes/kotlin/android/main [-]
                     effectiveClassesDir           : <ROOT>/kmpSecondLib/build/classes/kotlin/android/main [-]
@@ -3140,6 +3242,9 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmMain:commonMain
+                    - fragments                   : jvmMain
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3154,7 +3259,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmpSecondLib/src/jvmMain/kotlin
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
                     effectiveClassesDir           : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
@@ -3217,6 +3321,9 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmTest:commonTest
+                    - fragments                   : jvmTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3232,7 +3339,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/kmpSecondLib/src/jvmTest/kotlin [-]
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]
                     effectiveClassesDir           : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]

@@ -23,43 +23,46 @@ import com.android.tools.idea.common.scene.draw.ColorSet
 import com.android.tools.idea.common.scene.draw.drawLasso
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionEvent
+import com.android.tools.idea.common.surface.InteractionInformation
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.MouseDraggedEvent
 import com.android.tools.idea.common.surface.SceneView
 import com.intellij.util.containers.ContainerUtil
 import java.awt.Cursor
 import java.awt.Graphics2D
+import kotlin.math.abs
 
 /**
  * A [MarqueeInteraction] is an interaction for swiping out a selection rectangle. With a modifier
  * key, items that intersect the rectangle can be toggled instead of added to the new selection set.
  */
 class MarqueeInteraction(private val sceneView: SceneView, private val repaint: () -> Unit) :
-  Interaction() {
+  Interaction {
   /** The [Layer] drawn for the marquee. */
   private var overlay: MarqueeLayer? = null
+  private var startInfo: InteractionInformation? = null
 
   override fun begin(event: InteractionEvent) {
     assert(event is MouseDraggedEvent) {
-      "The instance of event should be MouseDraggedEvent but it is ${event.javaClass}; The SceneView is $sceneView, start (x, y) = $myStartX, $myStartY, start mask is $myStartMask"
+      "The instance of event should be MouseDraggedEvent but it is ${event.javaClass}; The SceneView is $sceneView, start (x, y) = ${event.info.x}, ${event.info.y}, start mask is ${event.info.modifiersEx}"
     }
-    val mouseEvent = (event as MouseDraggedEvent).eventObject
-    begin(mouseEvent.x, mouseEvent.y, mouseEvent.modifiersEx)
+    startInfo = event.info
   }
 
   override fun update(event: InteractionEvent) {
     if (event is MouseDraggedEvent) {
       val mouseEvent = event.eventObject
-      if (overlay == null) {
+      if (overlay == null || startInfo == null) {
         return
       }
       val x = mouseEvent.x
       val y = mouseEvent.y
-      val xp = Math.min(x, myStartX)
-      val yp = Math.min(y, myStartY)
-      val w = Math.abs(x - myStartX)
-      val h =
-        Math.abs(y - myStartY) // Convert to Android coordinates and compute selection overlaps
+      val startX = startInfo!!.x
+      val startY = startInfo!!.y
+      val xp = x.coerceAtMost(startX)
+      val yp = y.coerceAtMost(startY)
+      val w = abs(x - startX)
+      val h = abs(y - startY) // Convert to Android coordinates and compute selection overlaps
       val ax = Coordinates.getAndroidXDip(sceneView, xp)
       val ay = Coordinates.getAndroidYDip(sceneView, yp)
       val aw = Coordinates.getAndroidDimensionDip(sceneView, w)
@@ -132,7 +135,7 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
       @SwingCoordinate mouseX: Int,
       @SwingCoordinate mouseY: Int,
       @AndroidDpCoordinate androidWidth: Int,
-      @AndroidDpCoordinate androidHeight: Int
+      @AndroidDpCoordinate androidHeight: Int,
     ) {
       this.x = x
       this.y = y

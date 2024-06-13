@@ -31,7 +31,7 @@ import com.android.tools.idea.layoutinspector.common.StringTable
 class Resource(
   val type: Int = 0, // Key for a StringTable
   val namespace: Int = 0, // Key for a StringTable
-  val name: Int = 0 // Key for a StringTable
+  val name: Int = 0, // Key for a StringTable
 ) {
   fun createReference(strings: StringTable): ResourceReference? {
     if (!strings.keys.containsAll(listOf(type, namespace, name))) return null

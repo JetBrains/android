@@ -27,11 +27,11 @@ data class TransportProcessDescriptor(
   override val packageName: String,
   override val isRunning: Boolean,
   override val pid: Int,
-  override val streamId: Long
+  override val streamId: Long,
 ) : ProcessDescriptor {
   constructor(
     stream: Common.Stream,
-    process: Common.Process
+    process: Common.Process,
   ) : this(
     stream.device.toDeviceDescriptor(),
     process.abiCpuArch,
@@ -39,6 +39,6 @@ data class TransportProcessDescriptor(
     process.packageName,
     process.state != Common.Process.State.DEAD,
     process.pid,
-    stream.streamId
+    stream.streamId,
   )
 }

@@ -16,10 +16,9 @@
 package com.android.tools.idea.avdmanager.emulatorcommand;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import java.nio.file.Path;
 import java.util.ArrayList;

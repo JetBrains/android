@@ -18,21 +18,21 @@ package org.jetbrains.android.uipreview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.classloading.PseudoClass
-import com.android.tools.idea.rendering.classloading.PseudoClassLocator
-import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
+import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
 import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
 import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
-import com.android.tools.idea.rendering.classloading.loaders.MultiLoader
+import com.android.tools.rendering.classloading.loaders.MultiLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffinity
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapterLoader
+import com.android.utils.cache.ChangeTracker
+import com.android.utils.cache.ChangeTrackerCachedValue
 import com.android.tools.rendering.classloading.ClassBinaryCache
 import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite
+import com.android.tools.rendering.classloading.PseudoClassLocatorForLoader
 import com.android.tools.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
@@ -42,14 +42,12 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.io.URLUtil
 import com.intellij.util.lang.UrlClassLoader
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -71,39 +69,6 @@ fun createUrlClassLoader(paths: List<Path>, allowLock: Boolean = !SystemInfo.isW
     .useCache(ourLoaderCachePool) { true }
     .allowLock(allowLock)
     .get()
-}
-
-/**
- * [PseudoClassLocator] that uses the [Sequence] of [DelegatingClassLoader.Loader]s to find the `.class` file.
- * If a class is not found within the [loaders], this class will try to load it from the given [fallbackClassloader] allowing
- * to load system classes from it.
- */
-@VisibleForTesting
-class PseudoClassLocatorForLoader @JvmOverloads constructor(
-  private val loaders: Sequence<DelegatingClassLoader.Loader>,
-  private val fallbackClassloader: ClassLoader?
-)  : PseudoClassLocator {
-
-  constructor(loader: DelegatingClassLoader.Loader, classLoader: ClassLoader) :
-    this(sequenceOf(loader), classLoader)
-
-  override fun locatePseudoClass(classFqn: String): PseudoClass {
-    if (classFqn == PseudoClass.objectPseudoClass().name) return PseudoClass.objectPseudoClass() // Avoid hitting this for this common case
-    val bytes = loaders.map { it.loadClass(classFqn) }.firstNotNullOfOrNull { it }
-    if (bytes != null) return PseudoClass.fromByteArray(bytes, this)
-
-    if (fallbackClassloader != null) {
-      try {
-        return PseudoClass.fromClass(fallbackClassloader.loadClass (classFqn), this)
-      }
-      catch (ex: ClassNotFoundException) {
-        Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("Failed to load $classFqn", ex)
-      }
-    } else {
-      Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("No classloader is provided to load $classFqn")
-    }
-    return PseudoClass.objectPseudoClass()
-  }
 }
 
 private val additionalLibraries: List<Path>
@@ -159,9 +124,6 @@ internal class ModuleClassLoaderImpl(module: Module,
   private val _projectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
   private val _nonProjectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
   private val _projectOverlayLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
-
-  private val holder = UserDataHolderBase()
-
 
   /**
    * List of libraries used in this [ModuleClassLoaderImpl].
@@ -295,10 +257,7 @@ internal class ModuleClassLoaderImpl(module: Module,
       projectLoader,
       nonProjectLoader,
       RecyclerViewAdapterLoader())
-    loader = if (StudioFlags.COMPOSE_USE_LOADER_WITH_AFFINITY.get())
-      MultiLoaderWithAffinity(allLoaders)
-    else
-      MultiLoader(allLoaders)
+    loader = MultiLoaderWithAffinity(allLoaders)
   }
 
   private fun recordOverlayLoadedClass(fqcn: String) {
@@ -339,6 +298,8 @@ internal class ModuleClassLoaderImpl(module: Module,
     overlayManager.modificationStamp == overlayModificationStamp
   }
 
+  private val isUserCodeUpToDateCached: ChangeTrackerCachedValue<Boolean> = ChangeTrackerCachedValue.softReference()
+
   /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
    */
@@ -351,12 +312,13 @@ internal class ModuleClassLoaderImpl(module: Module,
       val overlayModificationTracker = ModuleClassLoaderOverlays.getInstance(module).modificationTracker
       // Avoid the cached value holding "this"
       val thisReference = WeakReference(this)
-      CachedValuesManager.getManager(module.project).getCachedValue(holder) {
-        CachedValueProvider.Result.create(
-          thisReference.get()?.isUserCodeUpToDateNonCached() ?: false,
-          PsiModificationTracker.MODIFICATION_COUNT,
-          overlayModificationTracker
-        )
+      runBlocking {
+        ChangeTrackerCachedValue.get(isUserCodeUpToDateCached, {
+          thisReference.get()?.isUserCodeUpToDateNonCached() ?: false
+        }, ChangeTracker(
+          ChangeTracker { PsiModificationTracker.getInstance(module.project).modificationCount },
+          ChangeTracker { overlayModificationTracker.modificationCount }
+        ))
       }
     }
   }

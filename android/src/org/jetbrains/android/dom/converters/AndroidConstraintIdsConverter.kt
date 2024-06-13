@@ -50,7 +50,7 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
 
   override fun getReferenceVariants(
     context: ConvertContext,
-    genericDomValue: GenericDomValue<out MutableList<ResourceReference>>?
+    genericDomValue: GenericDomValue<out MutableList<ResourceReference>>?,
   ): Array<Any> {
     val file = context?.file ?: return EMPTY_ARRAY
     return findIdUrlsInFile(file)
@@ -64,7 +64,7 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
 
   override fun resolveReference(
     resourceReference: ResourceReference?,
-    context: ConvertContext
+    context: ConvertContext,
   ): PsiElement? {
     if (resourceReference == null || context.referenceXmlElement == null) {
       return null
@@ -77,7 +77,7 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
         resourceReference,
         context.referenceXmlElement!!,
         facet,
-        false
+        false,
       )
     return pickMostRelevantId(resolveResultList, context)?.element
   }
@@ -88,7 +88,7 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
 
   private fun pickMostRelevantId(
     resolveResultList: Array<out ResolveResult>,
-    context: ConvertContext
+    context: ConvertContext,
   ): ResolveResult? {
     return resolveResultList
       .asSequence()

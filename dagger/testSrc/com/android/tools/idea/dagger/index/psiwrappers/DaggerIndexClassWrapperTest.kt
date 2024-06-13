@@ -59,7 +59,7 @@ class DaggerIndexClassWrapperTest {
 
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtClass = myFixture.findParentElement("Fo|o")
@@ -78,7 +78,7 @@ class DaggerIndexClassWrapperTest {
         """
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtClass = myFixture.findParentElement("Fo|o")
@@ -102,7 +102,7 @@ class DaggerIndexClassWrapperTest {
       @javax.inject.Inject
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtClass = myFixture.findParentElement("Fo|o")
@@ -125,7 +125,7 @@ class DaggerIndexClassWrapperTest {
 
       class Foo<A, B> {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtClass = myFixture.findParentElement("Fo|o")
@@ -147,7 +147,7 @@ class DaggerIndexClassWrapperTest {
           companion object {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtObjectDeclaration = myFixture.findParentElement("companion obj|ect")
@@ -191,7 +191,7 @@ class DaggerIndexClassWrapperTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val foo1 =
@@ -232,7 +232,7 @@ class DaggerIndexClassWrapperTest {
       package com.example;
       public class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Fo|o")
@@ -251,7 +251,7 @@ class DaggerIndexClassWrapperTest {
         """
       public class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Fo|o")
@@ -277,7 +277,7 @@ class DaggerIndexClassWrapperTest {
       @Component(true)
       public class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Fo|o")
@@ -301,7 +301,7 @@ class DaggerIndexClassWrapperTest {
 
       public class Foo<A, B> {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Fo|o")
@@ -342,7 +342,7 @@ class DaggerIndexClassWrapperTest {
           public class Inner3 {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val foo1 =

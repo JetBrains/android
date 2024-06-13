@@ -52,13 +52,13 @@ sealed class OnlyClassesShortNamesCache(private vararg val classNames: String) :
   override fun getMethodsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
-    maxCount: Int
+    maxCount: Int,
   ) = PsiMethod.EMPTY_ARRAY
 
   override fun processMethodsWithName(
     name: String,
     scope: GlobalSearchScope,
-    processor: Processor<in PsiMethod>
+    processor: Processor<in PsiMethod>,
   ) = true
 }
 

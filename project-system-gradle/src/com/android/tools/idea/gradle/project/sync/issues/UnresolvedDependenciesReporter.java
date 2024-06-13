@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -32,6 +34,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.usageView.UsageInfo;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -45,7 +49,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
   private boolean myAssumeProjectNotInitialized = false;
 
   @Override
-  int getSupportedIssueType() {
+  public int getSupportedIssueType() {
     return IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
   }
 
@@ -150,6 +154,10 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
     if (projectBuildModel == null) {
       return;
     }
+    GradleSettingsModel settingsModel = projectBuildModel.getProjectSettingsModel();
+    if (settingsModel != null && settingsModel.dependencyResolutionManagement().repositories().hasGoogleMavenRepository()) {
+      return;
+    }
 
     // Check modules
     List<VirtualFile> filesToFix = new ArrayList<>();
@@ -182,7 +190,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
   }
 
   @VisibleForTesting
-  void assumeProjectNotInitialized(boolean assumeNotInitialized) {
+  public void assumeProjectNotInitialized(boolean assumeNotInitialized) {
     myAssumeProjectNotInitialized = assumeNotInitialized;
   }
 }

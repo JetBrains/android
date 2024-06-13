@@ -35,7 +35,7 @@ object DemoExample {
 
   fun setUpDemo(
     fixture: CodeInsightTestFixture,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ): InspectorModelDescriptor.() -> Unit {
     fixture.testDataPath =
       resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
@@ -79,7 +79,7 @@ object DemoExample {
           1600,
           qualifiedName = FQCN_RELATIVE_LAYOUT,
           viewId = relativeLayoutId,
-          layout = layout
+          layout = layout,
         ) {
           view(
             3,
@@ -91,7 +91,7 @@ object DemoExample {
             viewId = textViewId,
             textValue = "@drawable/battery",
             layout = layout,
-            body = body
+            body = body,
           )
           view(
             4,
@@ -102,7 +102,7 @@ object DemoExample {
             qualifiedName = FQCN_BUTTON,
             viewId = buttonId,
             textValue = "@string/hello",
-            layout = layout
+            layout = layout,
           )
           view(
             5,
@@ -112,7 +112,7 @@ object DemoExample {
             100,
             qualifiedName = FQCN_TEXT_VIEW,
             textValue = "TextView without an ID",
-            layout = layout
+            layout = layout,
           )
           view(
             6,
@@ -123,7 +123,7 @@ object DemoExample {
             qualifiedName = FQCN_FRAME_LAYOUT,
             viewId = frameId,
             textValue = "@string/hello",
-            layout = layout
+            layout = layout,
           ) {
             view(
               7,
@@ -133,7 +133,7 @@ object DemoExample {
               100,
               qualifiedName = FQCN_TEXT_VIEW,
               textValue = "TextView without an ID",
-              layout = layout
+              layout = layout,
             )
           }
           view(8, 200, 500, 400, 100, qualifiedName = FQCN_LINEAR_LAYOUT, layout = layout)

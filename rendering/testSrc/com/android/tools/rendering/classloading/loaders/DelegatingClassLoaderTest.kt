@@ -15,19 +15,12 @@
  */
 package com.android.tools.rendering.classloading.loaders
 
+import com.android.tools.rendering.classloading.loadClassBytes
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.fail
 import org.junit.Test
-import org.jetbrains.org.objectweb.asm.Type
 
 private class TestClass
-
-private fun loadClassBytes(c: Class<*>): ByteArray {
-  val className = "${Type.getInternalName(c)}.class"
-  c.classLoader.getResourceAsStream(className)!!.use {
-    return it.readBytes()
-  }
-}
 
 internal class DelegatingClassLoaderTest {
   @Test
@@ -35,7 +28,7 @@ internal class DelegatingClassLoaderTest {
     val classLoader =
       DelegatingClassLoader(
         null,
-        StaticLoader(TestClass::class.java.canonicalName to loadClassBytes(TestClass::class.java))
+        StaticLoader(TestClass::class.java.canonicalName to loadClassBytes(TestClass::class.java)),
       )
 
     assertNotNull(classLoader.loadClass(TestClass::class.java.canonicalName))
@@ -57,7 +50,7 @@ internal class DelegatingClassLoaderTest {
     val classLoader =
       DelegatingClassLoader(
         null,
-        StaticLoader("private.Test" to loadClassBytes(TestClass::class.java))
+        StaticLoader("private.Test" to loadClassBytes(TestClass::class.java)),
       )
 
     assertNotNull(classLoader.loadClass("private.Test"))

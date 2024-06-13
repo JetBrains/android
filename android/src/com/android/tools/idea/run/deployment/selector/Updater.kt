@@ -36,7 +36,7 @@ internal class Updater(
         presentation.setIcon(target.device.icon)
         presentation.putClientProperty(
           DeviceAndSnapshotComboBoxAction.LAUNCH_COMPATIBILITY_KEY,
-          target.device.launchCompatibility
+          target.device.launchCompatibility,
         )
         presentation.setText(target.displayText(), false)
       }

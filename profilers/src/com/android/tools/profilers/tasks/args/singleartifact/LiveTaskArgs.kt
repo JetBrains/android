@@ -18,6 +18,6 @@ package com.android.tools.profilers.tasks.args.singleartifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.tasks.args.TaskArgs
 
-class LiveTaskArgs(val artifact: SessionItem): TaskArgs {
+class LiveTaskArgs(override val isFromStartup: Boolean = false, val artifact: SessionItem?): TaskArgs {
   fun getLiveTaskArtifact() = artifact
 }

@@ -16,17 +16,16 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
@@ -40,13 +39,12 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.ui.EditorNotificationPanel.Status
-import com.intellij.ui.content.Content
 import com.intellij.ui.scale.JBUIScale
 import javax.swing.JComponent
 
-const val SHOW_EXPERIMENTAL_WARNING_KEY =
-  "com.android.tools.idea.layoutinspector.runningdevices.experimental.notification.show"
-const val EMBEDDED_EXPERIMENTAL_MESSAGE_KEY = "embedded.inspector.experimental.notification.message"
+const val SHOW_EMBEDDED_LI_BANNER_KEY =
+  "com.android.tools.idea.layoutinspector.runningdevices.notification.show"
+const val EMBEDDED_LI_MESSAGE_KEY = "embedded.inspector.notification.message"
 
 const val SPLITTER_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
@@ -86,6 +84,9 @@ interface LayoutInspectorManager : Disposable {
 
   /** Returns true if Layout Inspector is enabled for [deviceId], false otherwise. */
   fun isEnabled(deviceId: DeviceId): Boolean
+
+  /** Returns true if Layout Inspector can be enabled for [deviceId], false otherwise. */
+  fun isSupported(deviceId: DeviceId): Boolean
 }
 
 /** This class is meant to be used on the UI thread, to avoid concurrency issues. */
@@ -159,14 +160,14 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         value.layoutInspector.foregroundProcessDetection?.startPollingDevice(
           selectedDevice,
           // only stop polling if the previous tab is still open.
-          previousTab?.deviceId in existingRunningDevicesTabs
+          previousTab?.deviceId in existingRunningDevicesTabs,
         )
       }
 
       // inject Layout Inspector UI
       value.enableLayoutInspector()
 
-      showExperimentalWarning(value.layoutInspector)
+      showOptOutBanner(value.layoutInspector)
     }
 
   private val stateListeners = mutableListOf<LayoutInspectorManager.StateListener>()
@@ -184,13 +185,35 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     RunningDevicesStateObserver.getInstance(project)
       .addListener(
         object : RunningDevicesStateObserver.Listener {
-          override fun onSelectedTabChanged(deviceId: DeviceId?) {
+          override fun onVisibleTabsChanged(visibleTabs: List<DeviceId>) {
+            val visibleTabsWithLayoutInspector =
+              visibleTabs.filter {
+                // Keep only tabs that have layout inspector enabled on them.
+                tabsWithLayoutInspector.contains(it)
+              }
+
+            if (visibleTabsWithLayoutInspector.size > 1) {
+              // If there is more than one visible tab with Layout Inspector, remove Layout
+              // Inspector from all tabs except for the current selected tab.
+              // This can happen if multiple tabs have Layout Inspector enabled and the user splits
+              // them into separate tool windows.
+              // We don't want multiple selected tabs with Layout Inspector enabled because we
+              // support running only one instance of Layout Inspector at a time.
+              tabsWithLayoutInspector = selectedTab?.deviceId?.let { setOf(it) } ?: emptySet()
+              return
+            }
+
+            val newSelectedTab = visibleTabsWithLayoutInspector.firstOrNull()
+
+            if (newSelectedTab == selectedTab?.deviceId) {
+              // The new selected tab is the same as the currently selected tab.
+              return
+            }
+
             selectedTab =
-              if (deviceId != null && tabsWithLayoutInspector.contains(deviceId)) {
-                // Layout Inspector was enabled for this tab.
-                createTabState(deviceId)
+              if (newSelectedTab != null) {
+                createTabState(newSelectedTab)
               } else {
-                // Layout Inspector was not enabled for this tab.
                 null
               }
           }
@@ -204,47 +227,14 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
             // So if an emulator is disconnected with Layout Inspector turned on and later
             // restarted, Layout Inspector will be on again.
           }
-
-          override fun onToolWindowHidden() {
-            clearSelectedTab()
-          }
-
-          override fun onToolWindowShown(selectedDeviceId: DeviceId?) {
-            restoreSelectedTab(selectedDeviceId)
-          }
         }
       )
   }
 
-  private var shouldRestoreToolWindowState: Boolean = false
-
-  /** Restore the state of the selected tab if it was manually cleared */
-  private fun restoreSelectedTab(selectedDeviceId: DeviceId?) {
-    if (!shouldRestoreToolWindowState) {
-      return
-    }
-
-    shouldRestoreToolWindowState = false
-    if (selectedDeviceId != null) {
-      selectedTab = createTabState(selectedDeviceId)
-    }
-  }
-
-  /** Clear the selected tab */
-  private fun clearSelectedTab() {
-    if (selectedTab == null) {
-      return
-    }
-
-    shouldRestoreToolWindowState = true
-    selectedTab = null
-  }
-
   private fun createTabState(deviceId: DeviceId): SelectedTabState {
     ThreadingAssertions.assertEventDispatchThread()
-    val runningDevicesContentManager = project.getRunningDevicesContentManager()
     val selectedTabContent =
-      runningDevicesContentManager?.contents?.find { it.deviceId == deviceId }
+      RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
     val selectedTabDataProvider = selectedTabContent?.component as? DataProvider
 
     val streamingContentPanel =
@@ -261,7 +251,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         disposable = selectedTabContent,
         tabContentPanel = streamingContentPanel,
         tabContentPanelContainer = streamingContentPanel.parent,
-        displayView = displayView
+        displayView = displayView,
       )
 
     return SelectedTabState(project, deviceId, tabComponents, project.getLayoutInspector())
@@ -276,16 +266,29 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   override fun enableLayoutInspector(deviceId: DeviceId, enable: Boolean) {
     ThreadingAssertions.assertEventDispatchThread()
 
-    val toolWindow =
-      ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
-        as? ToolWindowEx
-    toolWindow?.let {
-      val width = it.component.width
-      // Resize the tool window width, to be equal to DEFAULT_WINDOW_WIDTH
-      // stretchWidth resizes relatively to the current width of the tool window.
-      it.stretchWidth(JBUIScale.scale(DEFAULT_WINDOW_WIDTH) - width)
-    }
     if (enable) {
+      val toolWindow =
+        ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
+          as? ToolWindowEx
+      toolWindow?.let {
+        val width = it.component.width
+        // Resize the tool window width, to be equal to DEFAULT_WINDOW_WIDTH
+        // stretchWidth resizes relatively to the current width of the tool window.
+        if (width != JBUIScale.scale(DEFAULT_WINDOW_WIDTH)) {
+          it.stretchWidth(JBUIScale.scale(DEFAULT_WINDOW_WIDTH) - width)
+        }
+      }
+
+      selectedTab?.let {
+        // We are enabling Layout Inspector on a new tab, but there is already a tab with Layout
+        // Inspector enabled.
+        // Layout Inspector does not support concurrent sessions, so we disable it in the previous
+        // tab, before enabling in the new tab.
+        // This can happen if Running Devices is running in split mode and multiple tabs are
+        // visible at the same time.
+        tabsWithLayoutInspector -= it.deviceId
+      }
+
       if (tabsWithLayoutInspector.contains(deviceId)) {
         // do nothing if Layout Inspector is already enabled
         return
@@ -308,7 +311,11 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
   override fun isEnabled(deviceId: DeviceId): Boolean {
     ThreadingAssertions.assertEventDispatchThread()
-    return tabsWithLayoutInspector.contains(deviceId)
+    return selectedTab?.deviceId == deviceId
+  }
+
+  override fun isSupported(deviceId: DeviceId): Boolean {
+    return RunningDevicesStateObserver.getInstance(project).hasDevice(deviceId)
   }
 
   override fun dispose() {
@@ -323,20 +330,20 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     listenersToUpdate.forEach { listener -> listener.onStateUpdate(tabsWithLayoutInspector) }
   }
 
-  private fun showExperimentalWarning(layoutInspector: LayoutInspector) {
+  private fun showOptOutBanner(layoutInspector: LayoutInspector) {
     val notificationModel = layoutInspector.notificationModel
     val defaultValue = true
     val shouldShowWarning = {
-      PropertiesComponent.getInstance().getBoolean(SHOW_EXPERIMENTAL_WARNING_KEY, defaultValue)
+      PropertiesComponent.getInstance().getBoolean(SHOW_EMBEDDED_LI_BANNER_KEY, defaultValue)
     }
     val setValue: (Boolean) -> Unit = {
-      PropertiesComponent.getInstance().setValue(SHOW_EXPERIMENTAL_WARNING_KEY, it, defaultValue)
+      PropertiesComponent.getInstance().setValue(SHOW_EMBEDDED_LI_BANNER_KEY, it, defaultValue)
     }
 
     if (shouldShowWarning()) {
       notificationModel.addNotification(
-        id = EMBEDDED_EXPERIMENTAL_MESSAGE_KEY,
-        text = LayoutInspectorBundle.message(EMBEDDED_EXPERIMENTAL_MESSAGE_KEY),
+        id = EMBEDDED_LI_MESSAGE_KEY,
+        text = LayoutInspectorBundle.message(EMBEDDED_LI_MESSAGE_KEY),
         status = Status.Info,
         sticky = true,
         actions =
@@ -348,12 +355,12 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
             },
             StatusNotificationAction(LayoutInspectorBundle.message("opt.out")) {
               ShowSettingsUtil.getInstance()
-                .showSettingsDialog(project, ExperimentalSettingsConfigurable::class.java)
+                .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
             },
-          )
+          ),
       )
     } else {
-      notificationModel.removeNotification(EMBEDDED_EXPERIMENTAL_MESSAGE_KEY)
+      notificationModel.removeNotification(EMBEDDED_LI_MESSAGE_KEY)
     }
   }
 }
@@ -365,8 +372,3 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 private fun Project.getLayoutInspector(): LayoutInspector {
   return LayoutInspectorProjectService.getInstance(this).getLayoutInspector()
 }
-
-private val Content.deviceId: DeviceId?
-  get() {
-    return (component as? DataProvider)?.getData(DEVICE_ID_KEY.name) as? DeviceId ?: return null
-  }

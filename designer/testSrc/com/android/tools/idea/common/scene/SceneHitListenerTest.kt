@@ -60,12 +60,12 @@ class SceneHitListenerTest : SceneTest() {
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-              "100dp"
+              "100dp",
             )
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-              "100dp"
+              "100dp",
             )
             .children(
               component(SdkConstants.TEXT_VIEW)
@@ -76,15 +76,15 @@ class SceneHitListenerTest : SceneTest() {
                 .withAttribute(
                   SdkConstants.SHERPA_URI,
                   SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-                  "50dp"
+                  "50dp",
                 )
                 .withAttribute(
                   SdkConstants.SHERPA_URI,
                   SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-                  "50dp"
+                  "50dp",
                 )
             )
-        )
+        ),
     )
   }
 }

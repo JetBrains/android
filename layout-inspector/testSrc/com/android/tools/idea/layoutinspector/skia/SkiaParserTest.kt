@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.skia
 
-import com.android.flags.junit.FlagRule
+import com.android.SdkConstants
+import com.android.testutils.AssumeUtil.assumeNotMac
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.FakeSdkRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.protobuf.ByteString
@@ -37,6 +37,7 @@ import java.awt.image.BufferedImage
 import kotlin.test.assertTrue
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
+private const val RUN_MAC_INTEGRATION_TESTS = false
 
 // TODO(152816022): testBuildTree
 class SkiaParserTest {
@@ -89,7 +90,7 @@ class SkiaParserTest {
     val requestedNodes =
       mapOf(
         1L to LayoutInspectorUtils.makeRequestedNodeInfo(1, 0, 0, 10, 20)!!,
-        4L to LayoutInspectorUtils.makeRequestedNodeInfo(4, 3, 12, 4, 5)!!
+        4L to LayoutInspectorUtils.makeRequestedNodeInfo(4, 3, 12, 4, 5)!!,
       )
     val root = LayoutInspectorUtils.buildTree(tree, mapOf(), { false }, requestedNodes)!!
 
@@ -101,7 +102,7 @@ class SkiaParserTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/buildTreeImg1.png"),
       child1.image as BufferedImage,
-      0.0
+      0.0,
     )
 
     val child2 = root.children[1]
@@ -109,7 +110,7 @@ class SkiaParserTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/buildTreeImg2.png"),
       child2.image as BufferedImage,
-      0.0
+      0.0,
     )
 
     val child3 = root.children[2]
@@ -117,7 +118,7 @@ class SkiaParserTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/buildTreeImg3.png"),
       child3.image as BufferedImage,
-      0.0
+      0.0,
     )
   }
 }
@@ -137,7 +138,7 @@ class SkiaParserWithSdkTest {
         .getViewTree(
           "skiapict".toByteArray().plus(byteArrayOf(127, 1, 2, 3, 4, 5)),
           emptyList(),
-          1.0
+          1.0,
         )
       fail()
     } catch (expected: UnsupportedPictureVersionException) {}
@@ -146,11 +147,10 @@ class SkiaParserWithSdkTest {
 }
 
 class SkiaParserIntegrationTest {
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
 
   @Test
   fun testRunServer() {
+    if (!RUN_MAC_INTEGRATION_TESTS) assumeNotMac()
     val server = SkiaParserServerConnection(mock())
     // Call createGrpcClient directly to skip running the server binary
     val port = server.createGrpcClient()
@@ -201,6 +201,7 @@ class SkiaParserIntegrationTest {
    */
   @Test
   fun testThreadSafety() {
+    if (!RUN_MAC_INTEGRATION_TESTS) assumeNotMac()
     val iterations = 100
     var hasErrors = false
     val parser =
@@ -252,7 +253,7 @@ class SkiaParserIntegrationTest {
 
   private fun assertImagesCorrectInternal(
     node: InspectorView,
-    remainingImages: MutableMap<Int, ByteString>
+    remainingImages: MutableMap<Int, ByteString>,
   ) {
     if (node.imageId != 0) {
       assertTrue(node.image?.isEmpty != false)
@@ -273,7 +274,14 @@ class SkiaParserIntegrationTest {
 
   companion object {
     init {
-      System.loadLibrary("skiaparser-test")
+      if (
+        RUN_MAC_INTEGRATION_TESTS || SdkConstants.currentPlatform() != SdkConstants.PLATFORM_DARWIN
+      ) {
+        // On Mac the dylib must be manually accepted to run in the "Privacy and Security" settings.
+        // Do not run these test on mac servers.
+        // Set RUN_MAC_INTEGRATION_TESTS to tru to run locally on mac.
+        System.loadLibrary("skiaparser-test")
+      }
     }
 
     @JvmStatic private external fun generateBoxes(): ByteArray

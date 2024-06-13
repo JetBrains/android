@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.DeprecatedSinceApiDetector
 class AndroidLintDeprecatedSinceApiInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.deprecated.since.api"),
-    DeprecatedSinceApiDetector.ISSUE
+    DeprecatedSinceApiDetector.ISSUE,
   )

@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.resources.parseColor
 import com.android.resources.ResourceType
 import com.intellij.psi.util.PsiLiteralUtil
+import com.intellij.util.xml.ConvertContext
 import java.util.EnumSet
 import org.jetbrains.android.dom.converters.DimensionConverter
 
@@ -119,7 +120,7 @@ enum class NlPropertyType {
       FONT_SIZE,
       DIMENSION_PIXEL,
       DIMENSION ->
-        error(DimensionConverter.INSTANCE.doFromString(literal) == null) {
+        error(DimensionConverter.INSTANCE.fromString(literal, unchecked<ConvertContext>(null)) == null) {
           getDimensionError(literal)
         }
       DIMENSION_UNIT_LESS -> checkUnitLessDimension(literal)
@@ -162,3 +163,6 @@ enum class NlPropertyType {
     return if (isPercent) value / 100.0 else value
   }
 }
+
+@Suppress("UNCHECKED_CAST")
+private fun<T> unchecked(value: Any?): T = value as T

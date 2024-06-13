@@ -28,10 +28,10 @@ import javax.swing.Icon
  */
 data class AppInsightsGutterRenderer(
   val insights: List<AppInsight>,
-  val itemChosenCallback: (AppInsight) -> Unit
+  val itemChosenCallback: (AppInsight) -> Unit,
 ) : GutterIconRenderer() {
 
-  override fun getIcon(): Icon = StudioIcons.AppQualityInsights.ISSUE
+  override fun getIcon(): Icon = StudioIcons.GutterIcons.ISSUE
 
   override fun getTooltipText(): String {
     val eventsCount = insights.sumOf { it.issue.issueDetails.eventsCount }

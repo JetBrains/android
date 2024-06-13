@@ -15,7 +15,7 @@
  */
 package com.android.tools.configurations;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.annotations.NonNull;
 
 public enum AdaptiveIconShape {
   SQUARE("Square", "M50,0L100,0 100,100 0,100 0,0z"),
@@ -27,22 +27,22 @@ public enum AdaptiveIconShape {
   private final String myName;
   private final String myPathDescription;
 
-  AdaptiveIconShape(@NotNull String name, @NotNull String pathDescription) {
+  AdaptiveIconShape(@NonNull String name, @NonNull String pathDescription) {
     myName = name;
     myPathDescription = pathDescription;
   }
 
-  @NotNull
+  @NonNull
   public String getName() {
     return myName;
   }
 
-  @NotNull
+  @NonNull
   public String getPathDescription() {
     return myPathDescription;
   }
 
-  @NotNull
+  @NonNull
   public static AdaptiveIconShape getDefaultShape() {
     return SQUARE;
   }

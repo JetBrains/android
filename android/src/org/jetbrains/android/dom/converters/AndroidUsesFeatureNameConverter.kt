@@ -124,7 +124,7 @@ class AndroidUsesFeatureNameConverter : ResolvingConverter<String>() {
         "android.software.sip.voip",
         "android.software.verified_boot",
         "android.software.vr.mode",
-        "android.software.webview"
+        "android.software.webview",
       )
     }
   }

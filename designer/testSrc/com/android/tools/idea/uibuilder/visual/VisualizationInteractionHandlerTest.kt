@@ -59,7 +59,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
               Unit
 
             override fun onCurrentConfigurationSetUpdated() = Unit
-          }
+          },
         )
       }
 
@@ -67,7 +67,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     val mouseEvent =
       MouseEventBuilder(
           view.x + view.scaledContentSize.width * 2,
-          view.y + view.scaledContentSize.height * 2
+          view.y + view.scaledContentSize.height * 2,
         )
         .withSource(Any())
         .build()
@@ -75,7 +75,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     val popupMenuListener = Mockito.mock(ActionPopupMenuListener::class.java)
     (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(
       popupMenuListener,
-      testRootDisposable
+      testRootDisposable,
     )
 
     interactionHandler.popupMenuTrigger(mouseEvent)
@@ -103,7 +103,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
         .withBounds(0, 0, 2000, 2000)
         .id("@id/constraint")
         .matchParentWidth()
-        .matchParentHeight()
+        .matchParentHeight(),
     )
   }
 }

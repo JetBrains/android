@@ -107,7 +107,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         exportButton.simulateClick()
       },
       expectedParams =
-        ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_EXPORT_BUTTON)
+        ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_EXPORT_BUTTON),
     )
   }
 
@@ -120,7 +120,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         assertThat(popUpMenuProvider()).isEmpty()
         exportButton.simulateClick()
       },
-      expectedParams = ExportDatabaseDialogParams(databaseId, Origin.SCHEMA_TREE_EXPORT_BUTTON)
+      expectedParams = ExportDatabaseDialogParams(databaseId, Origin.SCHEMA_TREE_EXPORT_BUTTON),
     )
   }
 
@@ -134,7 +134,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         popUpMenuProvider().single().invokeSingleOption() // execute the only pop-up item
       },
       expectedParams =
-        ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_CONTEXT_MENU)
+        ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_CONTEXT_MENU),
     )
   }
 
@@ -147,7 +147,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         tree.simulateClick(nodePath, BUTTON3) // make pop-up show up
         popUpMenuProvider().single().invokeSingleOption() // execute the only pop-up item
       },
-      expectedParams = ExportDatabaseDialogParams(databaseId, Origin.SCHEMA_TREE_CONTEXT_MENU)
+      expectedParams = ExportDatabaseDialogParams(databaseId, Origin.SCHEMA_TREE_CONTEXT_MENU),
     )
   }
 
@@ -158,9 +158,9 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         nodePath: TreePath,
         tree: Tree,
         exportButton: CommonButton,
-        popUpMenuProvider: () -> List<DefaultActionGroup>
+        popUpMenuProvider: () -> List<DefaultActionGroup>,
       ) -> Unit,
-    expectedParams: ExportDialogParams
+    expectedParams: ExportDialogParams,
   ) {
     // Set up an ActionManager capturing pop-up menus
     val testActionManager =
@@ -168,7 +168,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
     val popUpMenuActionGroupList = mutableListOf<ActionGroup>()
     fun createActionPopupMenu(
       @Suppress("UNUSED_PARAMETER") place: String,
-      group: ActionGroup
+      group: ActionGroup,
     ): ActionPopupMenu {
       popUpMenuActionGroupList.add(group)
       return FakeActionPopupMenu(group)
@@ -248,7 +248,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
               nodeBounds.y,
               1,
               true,
-              button
+              button,
             )
           )
         }

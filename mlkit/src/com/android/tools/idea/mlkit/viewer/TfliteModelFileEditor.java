@@ -1061,16 +1061,16 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     private UiStyleTracker() {
       myLabelFont = StartupUiUtil.getLabelFont();
-      myUnderDarcula = StartupUiUtil.isUnderDarcula();
+      myUnderDarcula = !JBColor.isBright();
     }
 
     private boolean isUiStyleChanged() {
-      if (myLabelFont.equals(StartupUiUtil.getLabelFont()) && myUnderDarcula == StartupUiUtil.isUnderDarcula()) {
+      if (myLabelFont.equals(StartupUiUtil.getLabelFont()) && myUnderDarcula == !JBColor.isBright()) {
         return false;
       }
 
       myLabelFont = StartupUiUtil.getLabelFont();
-      myUnderDarcula = StartupUiUtil.isUnderDarcula();
+      myUnderDarcula = !JBColor.isBright();
       return true;
     }
   }

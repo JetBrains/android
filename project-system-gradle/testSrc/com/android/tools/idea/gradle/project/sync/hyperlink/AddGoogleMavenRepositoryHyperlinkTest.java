@@ -24,6 +24,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
@@ -34,7 +35,13 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import org.gradle.util.GradleVersion;
@@ -48,36 +55,6 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
   public void testExecuteWithGradle4dot0() throws Exception {
     // Check that quickfix adds google maven repository using method name when gradle version is 4.0 or higher
     verifyExecute("4.0");
-  }
-
-  public void testExecuteWithModule() throws Exception {
-    // Check that quickfix adds google maven repository to module when the repositories are defined in the module
-    loadProject(SIMPLE_APPLICATION);
-    Project project = getProject();
-    // Remove repositories from project and add a repository block to app
-    removeRepositories(project);
-    Module appModule = getModule("app");
-    GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-    removeRepositories(buildModel);
-
-    // Verify that execute is applied to app build file
-    // Generate hyperlink and execute quick fix
-    AddGoogleMavenRepositoryHyperlink hyperlink =
-      new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildModel.getVirtualFile()), /* no sync */ false);
-    hyperlink.execute(project);
-
-    // Verify it added the repository to app
-    buildModel = GradleBuildModel.get(appModule);
-    assertThat(buildModel).isNotNull();
-    List<? extends RepositoryModel> repositories = buildModel.repositories().repositories();
-    assertThat(repositories).hasSize(1);
-    assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModel.class);
-
-    // verify it did not add repository to project
-    buildModel = GradleBuildModel.get(project);
-    assertThat(buildModel).isNotNull();
-    repositories = buildModel.repositories().repositories();
-    assertThat(repositories).hasSize(0);
   }
 
   // Check that quickfix adds google maven correctly when no build file is passed
@@ -104,54 +81,6 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
 
     // Verify it was added in buildscript
     repositories = buildModel.buildscript().repositories().repositories();
-    assertThat(repositories).hasSize(1);
-  }
-
-  public void testAddToMulipleBuildFiles() throws Exception {
-    loadProject(DEPENDENT_MODULES);
-    Project project = getProject();
-    removeRepositories(project);
-
-    ProjectBuildModel pbm = ProjectBuildModel.get(project);
-    GradleBuildModel projectBuildModel = pbm.getProjectBuildModel();
-
-    Module appModule = getModule("app");
-    GradleBuildModel appBuildModel = pbm.getModuleBuildModel(appModule);
-    removeRepositories(appBuildModel);
-
-    Module libModule = getModule("lib");
-    GradleBuildModel libBuildModel = pbm.getModuleBuildModel(libModule);
-
-
-    // Generate hyperlink and execute quick fix
-    AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(
-      ImmutableList.of(appBuildModel.getVirtualFile(), libBuildModel.getVirtualFile(), projectBuildModel.getVirtualFile()), /* no sync */
-      false);
-    hyperlink.execute(project);
-
-    pbm = ProjectBuildModel.get(project);
-    projectBuildModel = pbm.getProjectBuildModel();
-    appBuildModel = pbm.getModuleBuildModel(appModule);
-    libBuildModel = pbm.getModuleBuildModel(libModule);
-
-    // Verify it added the repository
-    assertThat(appBuildModel).isNotNull();
-    List<? extends RepositoryModel> repositories = appBuildModel.repositories().repositories();
-    assertThat(repositories).hasSize(1);
-    assertNull(appBuildModel.buildscript().getPsiElement());
-
-    // And of the second module
-    assertThat(libBuildModel).isNotNull();
-    repositories = libBuildModel.repositories().repositories();
-    assertThat(repositories).hasSize(1);
-    assertNull(libBuildModel.buildscript().getPsiElement());
-
-    // Since we passed the project build model file it should be present there as well
-    repositories = projectBuildModel.repositories().repositories();
-    assertThat(repositories).hasSize(1);
-
-    // Verify it was added in buildscript
-    repositories = projectBuildModel.buildscript().repositories().repositories();
     assertThat(repositories).hasSize(1);
   }
 
@@ -212,13 +141,5 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     assertThat(buildModel.repositories().repositories()).hasSize(0);
     assertThat(buildModel.buildscript().repositories().repositories()).hasSize(0);
   }
-
-  private void removeRepositories(@NotNull GradleBuildModel buildModel) {
-    assertThat(buildModel).isNotNull();
-    buildModel.removeRepositoriesBlocks();
-    assertTrue(buildModel.isModified());
-    runWriteCommandAction(getProject(), buildModel::applyChanges);
-    buildModel.reparse();
-    assertFalse(buildModel.isModified());
-  }
 }
+

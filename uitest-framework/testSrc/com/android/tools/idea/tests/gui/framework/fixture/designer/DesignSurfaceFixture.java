@@ -77,7 +77,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
   }
 
   public double getScale() {
-    return target().getScale();
+    return target().getZoomController().getScale();
   }
 
   /**

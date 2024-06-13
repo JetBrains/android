@@ -25,7 +25,11 @@ import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.databinding.util.getViewBindingClassName
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.application
 import org.jetbrains.android.facet.AndroidFacet
 
 /** All values needed to generate a specific [LightBindingClass] */
@@ -83,11 +87,21 @@ interface LightBindingClassConfig {
   fun settersShouldBeAbstract(): Boolean
 }
 
-private fun BindingLayoutGroup.getAggregatedVariables(): List<Pair<VariableData, XmlTag>> {
+private fun BindingLayoutGroup.getAggregatedVariables(
+  project: Project
+): List<Pair<VariableData, XmlTag>> {
   val aggregatedVariables = mutableListOf<Pair<VariableData, XmlTag>>()
   val alreadySeen = mutableSetOf<String>()
   for (layout in layouts) {
-    val xmlFile = layout.toXmlFile() ?: continue
+    val xmlFile = layout.toXmlFile()
+    if (xmlFile == null) {
+      thisLogger()
+        .error(
+          "getAggregatedVariables: Binding layout should always be backed by an xml file. " +
+            "Dumb mode: ${DumbService.isDumb(project)}. Layout file: ${layout.file.name}"
+        )
+      continue
+    }
     val layoutData = layout.data
     for (variable in layoutData.variables) {
       val variableTag = xmlFile.findVariableTag(variable.name)
@@ -106,8 +120,10 @@ private fun BindingLayoutGroup.getAggregatedVariables(): List<Pair<VariableData,
  * A "Binding" class should always be created. "BindingImpl"s should only be created if there are
  * multiple layout configurations.
  */
-class BindingClassConfig(override val facet: AndroidFacet, private val group: BindingLayoutGroup) :
-  LightBindingClassConfig {
+data class BindingClassConfig(
+  override val facet: AndroidFacet,
+  private val group: BindingLayoutGroup,
+) : LightBindingClassConfig {
   override val targetLayout: BindingLayout
     get() = group.mainLayout
 
@@ -139,14 +155,39 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
     }
 
   override val variableTags: List<Pair<VariableData, XmlTag>>
-    get() = group.getAggregatedVariables()
+    get() = group.getAggregatedVariables(facet.module.project)
 
   override val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>
     get() {
+      if (DumbService.isDumb(facet.module.project)) {
+        thisLogger().error("scopedViewIds: called while in dumb mode")
+      }
+      if (!application.isReadAccessAllowed) {
+        thisLogger().error("scopedViewIds: called without read access")
+      }
+
       val viewIds = mutableMapOf<BindingLayout, Collection<ViewIdData>>()
       for (layout in group.layouts) {
-        val xmlFile = layout.toXmlFile() ?: continue
-        val xmlData = BindingXmlIndex.getDataForFile(xmlFile) ?: continue
+        val xmlFile = layout.toXmlFile()
+        if (xmlFile == null) {
+          thisLogger()
+            .error(
+              "scopedViewIds: Binding layout should always be backed by an xml file. " +
+                "Dumb mode: ${DumbService.isDumb(facet.module.project)}. " +
+                "Qualified name: $qualifiedName. Layout file: ${layout.file.name}"
+            )
+          continue
+        }
+        val xmlData = BindingXmlIndex.getDataForFile(xmlFile)
+        if (xmlData == null) {
+          thisLogger()
+            .error(
+              "scopedViewIds: Every binding layout should have indexed data. " +
+                "Dumb mode: ${DumbService.isDumb(facet.module.project)}. " +
+                "Qualified name: $qualifiedName. Layout file: ${layout.file.name}"
+            )
+          continue
+        }
         viewIds[layout] = xmlData.viewIds
       }
       return viewIds
@@ -165,10 +206,10 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
  * This config should only be used when there are alternate layouts defined in addition to the main
  * one; otherwise, just use [BindingClassConfig].
  */
-class BindingImplClassConfig(
+data class BindingImplClassConfig(
   override val facet: AndroidFacet,
   private val group: BindingLayoutGroup,
-  private val layoutIndex: Int
+  private val layoutIndex: Int,
 ) : LightBindingClassConfig {
   override val targetLayout: BindingLayout
     get() = group.layouts[layoutIndex]
@@ -186,7 +227,7 @@ class BindingImplClassConfig(
   override val rootType = targetLayout.data.rootTag
 
   override val variableTags: List<Pair<VariableData, XmlTag>>
-    get() = group.getAggregatedVariables()
+    get() = group.getAggregatedVariables(facet.module.project)
 
   override val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>
     get() = mapOf() // Only provided by base "Binding" class.
@@ -194,4 +235,47 @@ class BindingImplClassConfig(
   override fun shouldGenerateGettersAndStaticMethods() = false
 
   override fun settersShouldBeAbstract() = false
+}
+
+/**
+ * Implementation of [LightBindingClassConfig] that requires all data to be known at the time of
+ * construction.
+ *
+ * This is being used to address b/330744400. The hope is that by evaluating this data at
+ * construction, the contained data will never be out of date or fetched at the wrong time (ie,
+ * during indexing). If this works as intended, this class can be removed and the other config
+ * implementations can be updated to similarly evaluate their data on construction.
+ */
+data class EagerLightBindingClassConfig(
+  override val facet: AndroidFacet,
+  override val targetLayout: BindingLayout,
+  override val superName: String,
+  override val className: String,
+  override val qualifiedName: String,
+  override val rootType: String,
+  override val variableTags: List<Pair<VariableData, XmlTag>>,
+  override val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>,
+  private val shouldGenerateGettersAndStaticMethods: Boolean,
+  private val settersShouldBeAbstract: Boolean,
+) : LightBindingClassConfig {
+
+  /** Creates a [LightBindingClassConfig] by eagerly evaluating another config class's data. */
+  constructor(
+    other: LightBindingClassConfig
+  ) : this(
+    other.facet,
+    other.targetLayout,
+    other.superName,
+    other.className,
+    other.qualifiedName,
+    other.rootType,
+    other.variableTags,
+    other.scopedViewIds,
+    other.shouldGenerateGettersAndStaticMethods(),
+    other.settersShouldBeAbstract(),
+  )
+
+  override fun shouldGenerateGettersAndStaticMethods() = shouldGenerateGettersAndStaticMethods
+
+  override fun settersShouldBeAbstract() = settersShouldBeAbstract
 }

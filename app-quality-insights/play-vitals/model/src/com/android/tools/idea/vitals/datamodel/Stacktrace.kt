@@ -52,7 +52,7 @@ sealed class Line {
             value
               .substring(parsed.classFqnRange.startOffset, parsed.methodNameRange.endOffset)
               .trim(),
-          blame = Blames.UNKNOWN_BLAMED
+          blame = Blames.UNKNOWN_BLAMED,
         )
       } else {
         LOG.debug(
@@ -64,7 +64,7 @@ sealed class Line {
           file = "",
           rawSymbol = value.trim(),
           symbol = value.trim(),
-          blame = Blames.UNKNOWN_BLAMED
+          blame = Blames.UNKNOWN_BLAMED,
         )
       }
     }
@@ -75,14 +75,14 @@ sealed class Line {
     fun toCaption(): Caption {
       return Caption(
         title = value.substringBefore(":").trim(),
-        subtitle = value.substringAfter(":", missingDelimiterValue = "").trim().trimEnd(':')
+        subtitle = value.substringAfter(":", missingDelimiterValue = "").trim().trimEnd(':'),
       )
     }
   }
 }
 
 /**
- * Returns structured [StacktraceGroup] by parsing the given string.
+ * Returns a list of structured [ExceptionStack] by parsing the given string.
  *
  * Here's our best efforts to identify trace groups and extract file name, line number and symbol
  * from any given trace lines. If it's a native frame, we will still generate a [Frame] but only the
@@ -90,11 +90,11 @@ sealed class Line {
  *
  * This is more of a temporary solution to have a working insights support for Play Vitals.
  */
-internal fun String.extract(): StacktraceGroup {
-  if (trim().isEmpty()) return StacktraceGroup()
+private fun String.extract(): List<ExceptionStack> {
+  if (isBlank()) return emptyList()
 
   val exceptionStacks = mutableListOf<ExceptionStack>()
-  val lines = split("\n").filterNot { it.trim().isEmpty() }
+  val lines = split("\n").filterNot { it.isBlank() }
   val stack = ArrayDeque<Line>()
 
   fun popAndExtract() {
@@ -113,14 +113,10 @@ internal fun String.extract(): StacktraceGroup {
     val exceptionStack =
       ExceptionStack(
         stacktrace =
-          Stacktrace(
-            caption = caption,
-            blames = Blames.UNKNOWN_BLAMED,
-            frames = frames.reversed(),
-          ),
+          Stacktrace(caption = caption, blames = Blames.UNKNOWN_BLAMED, frames = frames.reversed()),
         type = caption.title,
         exceptionMessage = caption.subtitle,
-        rawExceptionMessage = rawTextContent?.value ?: ""
+        rawExceptionMessage = rawTextContent?.value ?: "",
       )
 
     exceptionStacks.add(exceptionStack)
@@ -140,5 +136,29 @@ internal fun String.extract(): StacktraceGroup {
   popAndExtract()
   check(stack.isEmpty())
 
-  return StacktraceGroup(exceptionStacks.toList())
+  return exceptionStacks.toList()
+}
+
+internal fun String.extractException(): StacktraceGroup = StacktraceGroup(extract())
+
+internal fun String.extractThreadDump(): StacktraceGroup {
+  val threads = split("\n\n")
+
+  val stacks =
+    threads
+      .flatMap { thread -> thread.extract() }
+      .mapIndexed { index, exceptionStack ->
+        exceptionStack.copy(
+          stacktrace =
+            exceptionStack.stacktrace.copy(
+              blames =
+                if (index == 0) {
+                  Blames.BLAMED
+                } else {
+                  Blames.NOT_BLAMED
+                }
+            )
+        )
+      }
+  return StacktraceGroup(stacks)
 }

@@ -254,6 +254,76 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
       selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
     assertThat(textAfterCaret).startsWith("app_name\">projectWithAppandLib</string>")
   }
+
+  protected fun setAndroidResourcesEnablementInLibAndSync(androidResourcesEnabled: Boolean) {
+    val gradleFile = File(projectRootDirectory.toIoFile(), "lib/build.gradle")
+    val gradleFileText = gradleFile.readText()
+
+    val searchString = "buildFeatures {"
+    val insertionIndex = gradleFileText.indexOf("buildFeatures {") + searchString.length
+
+    val updatedGradleFileText =
+      """${gradleFileText.substring(0, insertionIndex)}
+          androidResources ${if (androidResourcesEnabled) "true" else "false"}
+      ${gradleFileText.substring(insertionIndex)}
+      """.trimIndent()
+
+    gradleFile.writeText(updatedGradleFileText)
+
+    requestSyncAndWait()
+  }
+
+  fun doTestLibAndroidResourcesEnabled() {
+    setAndroidResourcesEnablementInLibAndSync(androidResourcesEnabled = true)
+
+    val file = createFile(
+      projectRootDirectory,
+      "lib/src/main/java/com/example/projectwithappandlib/lib/RClassInLib.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.lib;
+
+      public class RClassInLib {
+          void useResources() {
+             int[] id = new int[] {
+              com.example.projectwithappandlib.lib.R.string.libResource,
+              // The string that isn't in strings.xml should be highlighted as an error.
+              com.example.projectwithappandlib.lib.R.string.${"resource_that_does_not_exist" highlightedAs ERROR},
+             };
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.checkHighlighting()
+  }
+
+  fun doTestLibAndroidResourcesDisabled() {
+    setAndroidResourcesEnablementInLibAndSync(androidResourcesEnabled = false)
+
+    val file = createFile(
+      projectRootDirectory,
+      "lib/src/main/java/com/example/projectwithappandlib/lib/RClassInLib.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.lib;
+
+      public class RClassInLib {
+          void useResources() {
+             int[] id = new int[] {
+              // Since resources are disabled for the library, the `R` class should be highlighted as an error.
+              com.example.projectwithappandlib.lib.${"R" highlightedAs ERROR}.string.libResource,
+              com.example.projectwithappandlib.lib.${"R" highlightedAs ERROR}.string.resource_that_does_not_exist,
+             };
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.checkHighlighting()
+  }
 }
 
 /**
@@ -384,6 +454,14 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     // Private resources are filtered out.
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+  }
+
+  fun testLibAndroidResourcesEnabled() {
+    doTestLibAndroidResourcesEnabled()
+  }
+
+  fun testLibAndroidResourcesDisabled() {
+    doTestLibAndroidResourcesDisabled()
   }
 
   fun testResolveScope() {
@@ -607,6 +685,14 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
+  }
+
+  fun testLibAndroidResourcesEnabled() {
+    doTestLibAndroidResourcesEnabled()
+  }
+
+  fun testLibAndroidResourcesDisabled() {
+    doTestLibAndroidResourcesDisabled()
   }
 
   fun testNavigateToDefinitionJavaToAppTestResource() {

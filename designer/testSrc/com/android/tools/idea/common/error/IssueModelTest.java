@@ -142,13 +142,13 @@ public class IssueModelTest {
   public void testHighestSeverityIssue() {
     assertFalse(myIssueModel.hasIssues());
     NlComponent mockComponent = Mockito.mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS);
-    Issue expectedHighest = createIssue(HighlightSeverity.WARNING, IssueSource.fromNlComponent(mockComponent));
+    Issue expectedHighest = createIssue(HighlightSeverity.WARNING, new NlComponentIssueSource(mockComponent));
     myIssueModel.addIssueProvider(
       new IssueProvider() {
         @Override
         public void collectIssues(@NotNull ImmutableCollection.Builder<Issue> issueListBuilder) {
-          issueListBuilder.add(createIssue(HighlightSeverity.INFORMATION, IssueSource.fromNlComponent(mockComponent)));
-          issueListBuilder.add(createIssue(HighlightSeverity.INFORMATION, IssueSource.fromNlComponent(mockComponent)));
+          issueListBuilder.add(createIssue(HighlightSeverity.INFORMATION, new NlComponentIssueSource(mockComponent)));
+          issueListBuilder.add(createIssue(HighlightSeverity.INFORMATION, new NlComponentIssueSource(mockComponent)));
           issueListBuilder.add(expectedHighest);
         }
       });

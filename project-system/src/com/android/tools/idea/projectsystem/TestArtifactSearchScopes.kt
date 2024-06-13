@@ -29,11 +29,22 @@ interface TestArtifactSearchScopes {
   /** Returns a [GlobalSearchScope] that contains unit tests of the given module.  */
   val unitTestSourceScope: GlobalSearchScope
 
+  /** Returns a [GlobalSearchScope] that contains screenshot tests of the given module.  */
+  val screenshotTestSourceScope: GlobalSearchScope
+
   /** Checks if the given file is an android test. */
   fun isAndroidTestSource(file: VirtualFile): Boolean
 
   /** Checks if the given file is a unit test. */
   fun isUnitTestSource(file: VirtualFile): Boolean
+
+  /** Checks if the given file is a screenshot test. */
+  fun isScreenshotTestSource(file: VirtualFile): Boolean
+
+  /**
+   * Checks if the given file is a test one.
+   */
+  fun isTestSource(file: VirtualFile): Boolean
 
   companion object {
     /** Returns a [TestArtifactSearchScopes] instance for a given [module] or null the module doesn't support separate test artifacts. */

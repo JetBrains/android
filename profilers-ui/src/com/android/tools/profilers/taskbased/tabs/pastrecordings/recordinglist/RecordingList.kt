@@ -20,20 +20,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
 
 @Composable
-fun RecordingList(recordingListModel: RecordingListModel, ideProfilerComponents: IdeProfilerComponents, modifier: Modifier = Modifier) {
+fun RecordingList(recordingListModel: RecordingListModel, modifier: Modifier = Modifier) {
   Column(modifier = modifier) {
-    val isRecordingExportable = recordingListModel.isSelectedRecordingExportable()
     val selectedRecording by recordingListModel.selectedRecording.collectAsState()
-    RecordingListActionsBar(artifact = recordingListModel.exportableArtifact, isRecordingExportable = isRecordingExportable,
-                            profilers = recordingListModel.profilers, ideProfilerComponents = ideProfilerComponents)
-
     val recordingList by recordingListModel.recordingList.collectAsState()
     RecordingTable(recordingList = recordingList, selectedRecording = selectedRecording,
                    onRecordingSelection = recordingListModel::onRecordingSelection,
-                   createStringOfSupportedTasks = recordingListModel::createStringOfSupportedTasks)
+                   getSupportedTask = recordingListModel::getSupportedTask)
   }
 }

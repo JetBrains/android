@@ -17,7 +17,9 @@ package com.android.tools.idea.diagnostics
 
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -31,8 +33,15 @@ private val DIRECTORY_REGEXES = arrayOf(Regex("^${UI_FREEZE_DIR_PREFIX}.*"))
 /**
  * DiagnosticsReportCleaner deletes diagnostics reports that are older than MAX_AGE
  */
-class DiagnosticsReportCleaner : StartupActivity.Background {
-  override fun runActivity(project: Project) {
+class DiagnosticsReportCleaner : ProjectActivity {
+
+  override suspend fun execute(project: Project) {
+    withContext(Dispatchers.IO) {
+      cleanDefaultDirectories()
+    }
+  }
+
+  private fun cleanDefaultDirectories() {
     val path = Paths.get(PathManager.getLogPath())
 
     // delete all old files in these directories

@@ -41,7 +41,7 @@ open class TemporarySceneComponentTest : SceneTest() {
   override fun createModel(): ModelBuilder {
     return model(
       "temporary_scene_test.xml",
-      component(LINEAR_LAYOUT).withBounds(0, 0, 2000, 2000).matchParentWidth().matchParentHeight()
+      component(LINEAR_LAYOUT).withBounds(0, 0, 2000, 2000).matchParentWidth().matchParentHeight(),
     )
   }
 }

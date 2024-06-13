@@ -123,8 +123,8 @@ class ArtifactRepositorySearchFormKtLightTest {
   }
 
   @Test
-  fun testParseArtifactSearchQuery_nameOnly() {
-    assertThat("guava".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery(artifactName = "guava")))
+  fun testParseArtifactSearchQuery_unknown() {
+    assertThat("guava".parseArtifactSearchQuery(), equalTo(ArtifactSearchQuery(id = "*guava*")))
   }
 
   @Test

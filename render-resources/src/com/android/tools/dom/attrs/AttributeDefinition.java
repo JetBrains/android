@@ -15,20 +15,15 @@
  */
 package com.android.tools.dom.attrs;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ArrayUtil;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import com.android.tools.environment.Logger;
 import kotlin.text.StringsKt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 
 /**
  * Information about an attr resource. The same attr resource may be declared in multiple places in XML
@@ -36,26 +31,27 @@ import org.jetbrains.annotations.Nullable;
  * the attr resource from all its declarations.
  */
 public final class AttributeDefinition implements Cloneable {
-  @NotNull private final ResourceReference myAttr;
+  private final static String[] EMPTY_STRING_ARRAY = new String[0];
+  @NonNull private final ResourceReference myAttr;
   @Nullable private final String myLibraryName;
   @Nullable private String myGlobalDescription;
   /** @see com.android.ide.common.rendering.api.AttrResourceValue#getGroupName() */
   @Nullable private String myGroupName;
   /** Mapping of flag/enum names to their integer values. */
-  @NotNull private Map<String, Integer> myValueMappings = Collections.emptyMap();
+  @NonNull private Map<String, Integer> myValueMappings = Collections.emptyMap();
   /** Keys are flag/enum names, values are their descriptions. */
-  @NotNull private Map<String, String> myValueDescriptions = Collections.emptyMap();
-  @NotNull private Set<AttributeFormat> myFormats;
+  @NonNull private Map<String, String> myValueDescriptions = Collections.emptyMap();
+  @NonNull private Set<AttributeFormat> myFormats;
   // TODO: Consider moving style-specific descriptions to StyleableDefinitionImpl.
   /** Keys are styleables, values are descriptions for this attribute in the context of the styleable. */
   @Nullable private Map<ResourceReference, String> myDescriptionsInStyleableContexts;
 
-  public AttributeDefinition(@NotNull ResourceNamespace namespace, @NotNull String name) {
+  public AttributeDefinition(@NonNull ResourceNamespace namespace, @NonNull String name) {
     this(namespace, name, null, null);
   }
 
-  public AttributeDefinition(@NotNull ResourceNamespace namespace,
-                             @NotNull String name,
+  public AttributeDefinition(@NonNull ResourceNamespace namespace,
+                             @NonNull String name,
                              @Nullable String libraryName,
                              @Nullable Collection<AttributeFormat> formats) {
     assert name.indexOf(':') < 0;
@@ -64,7 +60,7 @@ public final class AttributeDefinition implements Cloneable {
     myFormats = formats == null || formats.isEmpty() ? EnumSet.noneOf(AttributeFormat.class) : EnumSet.copyOf(formats);
   }
 
-  public AttributeDefinition(@NotNull AttributeDefinition other) {
+  public AttributeDefinition(@NonNull AttributeDefinition other) {
     myAttr = other.myAttr;
     myLibraryName = other.myLibraryName;
     myGlobalDescription = other.myGlobalDescription;
@@ -80,16 +76,16 @@ public final class AttributeDefinition implements Cloneable {
    * For flag or enum attributes, it returns the int value for the value name, or null if the mapping does not exist.
    */
   @Nullable
-  public Integer getValueMapping(@NotNull String flagName) {
+  public Integer getValueMapping(@NonNull String flagName) {
     return myValueMappings.get(flagName);
   }
 
-  @NotNull
+  @NonNull
   public ResourceReference getResourceReference() {
     return myAttr;
   }
 
-  @NotNull
+  @NonNull
   public String getName() {
     return myAttr.getName();
   }
@@ -99,7 +95,7 @@ public final class AttributeDefinition implements Cloneable {
     return myLibraryName;
   }
 
-  @NotNull
+  @NonNull
   public Set<AttributeFormat> getFormats() {
     return Collections.unmodifiableSet(myFormats);
   }
@@ -112,9 +108,9 @@ public final class AttributeDefinition implements Cloneable {
     return myGroupName;
   }
 
-  @NotNull
+  @NonNull
   public String[] getValues() {
-    return myValueMappings.isEmpty() ? ArrayUtil.EMPTY_STRING_ARRAY : ArrayUtil.toStringArray(myValueMappings.keySet());
+    return myValueMappings.isEmpty() ? EMPTY_STRING_ARRAY : myValueMappings.keySet().toArray(EMPTY_STRING_ARRAY);
   }
 
   @Nullable
@@ -141,7 +137,7 @@ public final class AttributeDefinition implements Cloneable {
   }
 
   @Nullable
-  public String getValueDescription(@NotNull String value) {
+  public String getValueDescription(@NonNull String value) {
     return myValueDescriptions.get(value);
   }
 
@@ -152,23 +148,23 @@ public final class AttributeDefinition implements Cloneable {
     return myGlobalDescription != null && StringsKt.contains(myGlobalDescription, "deprecated", true);
   }
 
-  public boolean isValueDeprecated(@NotNull String value) {
+  public boolean isValueDeprecated(@NonNull String value) {
     String description = getValueDescription(value);
     return description != null && StringsKt.contains(description, "deprecated", true);
   }
 
-  void addFormats(@NotNull Collection<AttributeFormat> formats) {
+  void addFormats(@NonNull Collection<AttributeFormat> formats) {
     myFormats.addAll(formats);
   }
 
-  public void setValueMappings(@NotNull Map<String, Integer> valueMappings) {
+  public void setValueMappings(@NonNull Map<String, Integer> valueMappings) {
     if (!myValueMappings.isEmpty() && !myValueMappings.equals(valueMappings)) {
       getLog().warn("An attempt to redefine value mappings of " + myAttr.getQualifiedName());
     }
     myValueMappings = Collections.unmodifiableMap(valueMappings);
   }
 
-  void setValueDescriptions(@NotNull Map<String, String> valueDescriptions) {
+  void setValueDescriptions(@NonNull Map<String, String> valueDescriptions) {
     if (!myValueDescriptions.isEmpty() && !myValueDescriptions.equals(valueDescriptions)) {
       getLog().warn("An attempt to redefine value descriptions of " + myAttr.getQualifiedName());
     }
@@ -179,7 +175,7 @@ public final class AttributeDefinition implements Cloneable {
     myGroupName = groupName;
   }
 
-  void setDescription(@NotNull String description, @Nullable ResourceReference parentStyleable) {
+  void setDescription(@NonNull String description, @Nullable ResourceReference parentStyleable) {
     if (parentStyleable == null || myGlobalDescription == null) {
       myGlobalDescription = description;
     }

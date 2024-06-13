@@ -52,7 +52,13 @@ public interface LightResourceClassService {
   Collection<? extends PsiClass> getLightRClassesContainingModuleResources(@NotNull Module module);
 
   /**
-   * Returns the light package with the given name.
+   * Returns a light package with the given name if there are any R classes in it.
+   *
+   * <p>If this method provides a result for a certain name, it must also return non-null for all parents
+   * of that package. For example, if it returns a package for "a.b.c", then it should also return packages
+   * for "a.b" and "a". This is necessary for proper resolution of fully qualified references to R classes
+   * in packages that have no Java or Kotlin classes in them. (If they do contain class files, the default class
+   * file based PSI loader will provide the packages instead.)
    */
   @Nullable
   PsiPackage findRClassPackage(@NotNull String qualifiedName);

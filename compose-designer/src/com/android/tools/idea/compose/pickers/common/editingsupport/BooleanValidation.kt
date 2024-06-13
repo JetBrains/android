@@ -34,7 +34,7 @@ private fun createBooleanValidator(): EditingValidation = validator@{ editedValu
     else ->
       return@validator Pair(
         EditingErrorCategory.ERROR,
-        message("picker.preview.input.validation.boolean.nan")
+        message("picker.preview.input.validation.boolean.nan"),
       )
   }
 }

@@ -29,7 +29,7 @@ internal class OpenDeviceExplorerAction :
   DumbAwareAction(
     "Open in Device Explorer",
     DeviceManagerBundle.message("openDeviceExplorerButton.tooltip"),
-    AllIcons.Actions.MenuOpen
+    AllIcons.Actions.MenuOpen,
   ) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 

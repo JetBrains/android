@@ -30,7 +30,7 @@ data class LibraryCompatibilityInfo(
    * 1.0-20150201.131010-1
    */
   val version: String,
-  val errorMessage: String
+  val errorMessage: String,
 ) {
   enum class Status {
     /** The target library is compatible with the inspector. */
@@ -48,6 +48,6 @@ data class LibraryCompatibilityInfo(
     /** Application was proguarded. */
     APP_PROGUARDED,
     /** An error was encountered in finding and reading the version of the library. */
-    ERROR
+    ERROR,
   }
 }

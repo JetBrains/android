@@ -31,7 +31,7 @@ class DeviceSizeList {
     val device: Device,
     @AndroidCoordinate val x: Int,
     @AndroidCoordinate val y: Int,
-    var rotate: Boolean = false
+    var rotate: Boolean = false,
   ) : Comparable<DeviceSize> {
 
     override fun compareTo(other: DeviceSize): Int {
@@ -81,7 +81,7 @@ class DeviceSizeList {
   fun snapToDevice(
     @AndroidCoordinate px: Int,
     @AndroidCoordinate py: Int,
-    snapThreshold: Int
+    snapThreshold: Int,
   ): DeviceSize? {
     val reverse = px > py
     val x = if (reverse) py else px

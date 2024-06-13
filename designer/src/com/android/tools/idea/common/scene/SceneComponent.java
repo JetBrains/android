@@ -17,6 +17,7 @@ package com.android.tools.idea.common.scene;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.idea.common.annotations.InputEventMask;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
@@ -35,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,20 +48,19 @@ import org.jetbrains.annotations.Nullable;
  * <li>can mix NlComponent from different NlModel in the same tree</li>
  * </ul>
  */
-@SuppressWarnings("ForLoopReplaceableByForEach")
 public class SceneComponent {
   @VisibleForTesting public static final int ANIMATION_DURATION = 350; // ms -- the duration of the animation
   public HashMap<String, Object> myCache = new HashMap<>();
   public SceneDecorator myDecorator;
   private TargetProvider myTargetProvider;
   private ComponentProvider myComponentProvider;
-  private HitProvider myHitProvider;
+  private final HitProvider myHitProvider;
 
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED, DRAG}
 
   private final Scene myScene;
   private final NlComponent myNlComponent;
-  private CopyOnWriteArrayList<SceneComponent> myChildren = new CopyOnWriteArrayList<>();
+  private final CopyOnWriteArrayList<SceneComponent> myChildren = new CopyOnWriteArrayList<>();
   private SceneComponent myParent = null;
 
   private boolean myIsToolLocked = false;
@@ -70,15 +69,15 @@ public class SceneComponent {
   protected boolean myDragging = false;
 
   /**
-   * When true, then {@link DrawState.SELECTED} will be forced every time {@link myIsSelected} is true.
-   * When false, the value of {@link myIsSelected} won't have any influence over {@link myDrawState}.
+   * When true, then {@link DrawState#SELECTED} will be forced every time {@link #myIsSelected} is true.
+   * When false, the value of {@link #myIsSelected} won't have any influence over {@link #myDrawState}.
    */
   private boolean myPrioritizeSelectedDrawState = true;
 
-  private AnimatedValue myAnimatedDrawX = new AnimatedValue();
-  private AnimatedValue myAnimatedDrawY = new AnimatedValue();
-  private AnimatedValue myAnimatedDrawWidth = new AnimatedValue();
-  private AnimatedValue myAnimatedDrawHeight = new AnimatedValue();
+  private final AnimatedValue myAnimatedDrawX = new AnimatedValue();
+  private final AnimatedValue myAnimatedDrawY = new AnimatedValue();
+  private final AnimatedValue myAnimatedDrawWidth = new AnimatedValue();
+  private final AnimatedValue myAnimatedDrawHeight = new AnimatedValue();
 
   private DrawState myDrawState = DrawState.NORMAL;
 
@@ -258,40 +257,6 @@ public class SceneComponent {
   public boolean useRtlAttributes() {
     // TODO: add a check for a tool attribute on the component overwriting this
     return myScene.supportsRTL();
-  }
-
-  /**
-   * Returns the index of the first instance of the given class in the list of targets
-   *
-   * @param aClass
-   * @return
-   */
-  public int findTarget(Class aClass) {
-    ImmutableList<Target> targets = getTargets();
-    int count = targets.size();
-    for (int i = 0; i < count; i++) {
-      if (aClass.isInstance(targets.get(i))) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Returns true if the given candidate is an ancestor of this component
-   *
-   * @param candidate
-   * @return
-   */
-  boolean hasAncestor(SceneComponent candidate) {
-    SceneComponent parent = getParent();
-    while (parent != null) {
-      if (parent == candidate) {
-        return true;
-      }
-      parent = parent.getParent();
-    }
-    return false;
   }
 
   public boolean isSelected() {
@@ -612,8 +577,7 @@ public class SceneComponent {
     ImmutableList<Target> targets = getTargets();
     int count = targets.size();
     for (int i = 0; i < count; i++) {
-      if (targets.get(i) instanceof ResizeBaseTarget) {
-        ResizeBaseTarget target = (ResizeBaseTarget)targets.get(i);
+      if (targets.get(i) instanceof ResizeBaseTarget target) {
         if (target.getType() == type) {
           return target;
         }
@@ -664,8 +628,8 @@ public class SceneComponent {
 
   /**
    * Returns true if the component intersects with the given rect
-   * @param sceneTransform
-   * @param rectangle
+   * @param sceneTransform {@link SceneContext} to be used to the coordinate transformations
+   * @param rectangle {@link Rectangle} to intersect
    * @return true if intersecting with the rectangle
    */
   public boolean intersects(@NotNull SceneContext sceneTransform, @AndroidDpCoordinate Rectangle rectangle) {
@@ -761,7 +725,7 @@ public class SceneComponent {
     return rectangle;
   }
 
-  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker, @JdkConstants.InputEventMask int modifiersEx) {
+  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker, @InputEventMask int modifiersEx) {
     if (myIsToolLocked) {
       return; // skip this if hidden
     }

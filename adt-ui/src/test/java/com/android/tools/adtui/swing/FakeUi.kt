@@ -18,6 +18,7 @@
 package com.android.tools.adtui.swing
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
@@ -49,9 +50,11 @@ import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
 import java.awt.image.ImageObserver
 import java.awt.image.VolatileImage
+import java.util.concurrent.Future
 import javax.swing.JLabel
 import javax.swing.JRootPane
 import javax.swing.SwingUtilities
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * A utility class to interact with Swing components in unit tests.
@@ -97,11 +100,7 @@ class FakeUi @JvmOverloads constructor(
     if (!root.isPreferredSizeSet) {
       root.preferredSize = root.size
     }
-    layout()
-    if (SwingUtilities.isEventDispatchThread()) {
-      // Allow resizing events to propagate.
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    updateToolbars()
   }
 
   /**
@@ -136,7 +135,6 @@ class FakeUi @JvmOverloads constructor(
    * Renders the given component and returns the image reflecting its appearance.
    */
   fun render(component: Component): BufferedImage {
-    @Suppress("UndesirableClassUsage")
     val image =
         BufferedImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
@@ -276,21 +274,36 @@ class FakeUi @JvmOverloads constructor(
    */
   fun updateToolbars() {
     updateToolbars(root)
+    if (SwingUtilities.isEventDispatchThread()) {
+      UIUtil.dispatchAllInvocationEvents()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      layoutAndDispatchEvents()
+    }
+    else {
+      layout()
+    }
   }
 
   private fun updateToolbars(component: Component) {
-    if (component is ActionButton) {
-      component.updateUI()
-      component.updateIcon()
-    }
-    if (component is ActionToolbar) {
-      val toolbar = component as ActionToolbar
-      toolbar.updateActionsImmediately()
-    }
-    if (component is Container) {
-      for (child in component.components) {
-        updateToolbars(child)
+    val componentQueue = ArrayDeque<Component>()
+    val futures = mutableListOf<Future<*>>()
+    componentQueue.add(component)
+    while (componentQueue.isNotEmpty()) {
+      when (val c = componentQueue.removeFirst()) {
+        is ActionToolbar -> futures.add(c.updateActionsAsync())
+        is ActionButton -> {
+          c.updateUI()
+          c.updateIcon()
+        }
+        is Container -> {
+          for (child in c.components) {
+            componentQueue.add(child)
+          }
+        }
       }
+    }
+    for (future in futures) {
+      waitForCondition(1.seconds) { future.isDone }
     }
   }
 
@@ -323,7 +336,6 @@ class FakeUi @JvmOverloads constructor(
     private val capabilities: ImageCapabilities?,
   ) : VolatileImage() {
 
-    @Suppress("UndesirableClassUsage")
     private val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
 
     override fun getWidth(): Int = width

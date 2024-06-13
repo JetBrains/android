@@ -61,7 +61,7 @@ class StyleEnumSupportTest {
         "@style/Widget.AppCompat.Button.Borderless.Colored",
         "@style/Widget.AppCompat.Button.ButtonBar.AlertDialog",
         "@style/Widget.AppCompat.Button.Colored",
-        "@style/Widget.AppCompat.Button.Small"
+        "@style/Widget.AppCompat.Button.Small",
       )
     val expectedAppCompatDisplayValues =
       listOf(
@@ -70,14 +70,14 @@ class StyleEnumSupportTest {
         "Widget.AppCompat.Button.Borderless.Colored",
         "Widget.AppCompat.Button.ButtonBar.AlertDialog",
         "Widget.AppCompat.Button.Colored",
-        "Widget.AppCompat.Button.Small"
+        "Widget.AppCompat.Button.Small",
       )
     val expectedAndroidValues =
       listOf(
         "@android:style/Widget.Button",
         "@android:style/Widget.Button.Inset",
         "@android:style/Widget.Button.Small",
-        "@android:style/Widget.Button.Toggle"
+        "@android:style/Widget.Button.Toggle",
       )
     val expectedAndroidDisplayValues =
       listOf("Widget.Button", "Widget.Button.Inset", "Widget.Button.Small", "Widget.Button.Toggle")
@@ -89,7 +89,7 @@ class StyleEnumSupportTest {
         PROJECT_HEADER,
         3,
         expectedProjectValues,
-        expectedProjectDisplayValues
+        expectedProjectDisplayValues,
       )
     index =
       checkSection(
@@ -98,7 +98,7 @@ class StyleEnumSupportTest {
         APPCOMPAT_HEADER,
         7,
         expectedAppCompatValues,
-        expectedAppCompatDisplayValues
+        expectedAppCompatDisplayValues,
       )
     index =
       checkSection(
@@ -107,7 +107,7 @@ class StyleEnumSupportTest {
         ANDROID_HEADER,
         -40,
         expectedAndroidValues,
-        expectedAndroidDisplayValues
+        expectedAndroidDisplayValues,
       )
     assertThat(index).isEqualTo(-1)
   }

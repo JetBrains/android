@@ -5,18 +5,22 @@ iml_module(
     name = "intellij.lint",
     srcs = ["src"],
     iml_files = ["intellij.lint.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:org.intellij.groovy",
+        "@intellij//:org.jetbrains.plugins.gradle",
+        "@intellij//:com.intellij.properties",
+        "@intellij//:org.toml.lang",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative[module]",
     ],
 )
 
@@ -36,8 +40,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
@@ -47,5 +52,6 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "@intellij//:org.jetbrains.kotlin[test]",
     ],
 )

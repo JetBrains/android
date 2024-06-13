@@ -19,8 +19,8 @@ import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.ui.MaterialColors
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ui.UIUtil
 import java.awt.Color

@@ -16,19 +16,17 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneInteraction;
+import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.SceneView;
-import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Implements constraintlayout-specific behaviour on an interaction
  */
 public class ConstraintSceneInteraction extends SceneInteraction {
 
-  @Nullable final private NlComponent myPrimary;
+  @NotNull final private NlComponent myPrimary;
 
   /**
    * Base constructor
@@ -41,10 +39,8 @@ public class ConstraintSceneInteraction extends SceneInteraction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    super.end(x, y, modifiersEx);
-    if (myPrimary != null) {
-      ConstraintReferenceManagement.updateConstraints(myPrimary, mySceneView.getScene());
-    }
+  public void commit(@NotNull InteractionEvent event) {
+    super.commit(event);
+    ConstraintReferenceManagement.updateConstraints(myPrimary, mySceneView.getScene());
   }
 }

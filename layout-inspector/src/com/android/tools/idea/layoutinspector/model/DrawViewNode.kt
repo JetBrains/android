@@ -112,7 +112,7 @@ sealed class DrawViewNode(owner: ViewNode) {
     isHovered: Boolean,
     model: InspectorModel,
     viewSettings: RenderSettings,
-    treeSettings: TreeSettings
+    treeSettings: TreeSettings,
   )
 
   open fun children(access: ViewNode.ReadAccess): Sequence<DrawViewNode> = sequenceOf()
@@ -134,7 +134,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     isHovered: Boolean,
     model: InspectorModel,
     viewSettings: RenderSettings,
-    treeSettings: TreeSettings
+    treeSettings: TreeSettings,
   ) {
     val owner = findFilteredOwner(treeSettings) ?: return
     // Draw the outline of the border (the white border around the main view border) if necessary.
@@ -193,7 +193,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
           labelX,
           labelY - textHeight - 2f * borderWidth,
           textWidth + 2f * borderWidth,
-          textHeight + 2f * borderWidth
+          textHeight + 2f * borderWidth,
         )
       )
       if (showCount) {
@@ -202,7 +202,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
             countX,
             labelY - textHeight - 2f * borderWidth,
             countWidth + 2f * borderWidth,
-            textHeight + 2f * borderWidth
+            textHeight + 2f * borderWidth,
           )
         )
       }
@@ -214,7 +214,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
           labelX - emphasizedBorderThickness / 2f,
           labelY - textHeight - 2f * borderWidth - emphasizedBorderThickness / 2f,
           textWidth + 2f * borderWidth + emphasizedBorderThickness,
-          textHeight + 2f * borderWidth + emphasizedBorderThickness
+          textHeight + 2f * borderWidth + emphasizedBorderThickness,
         )
       )
       if (showCount) {
@@ -223,7 +223,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
             countX - emphasizedBorderThickness / 2f,
             labelY - textHeight - 2f * borderWidth - emphasizedBorderThickness / 2f,
             countWidth + 2f * borderWidth + emphasizedBorderThickness,
-            textHeight + 2f * borderWidth + emphasizedBorderThickness
+            textHeight + 2f * borderWidth + emphasizedBorderThickness,
           )
         )
       }
@@ -266,14 +266,14 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
       g2.drawString(
         owner.unqualifiedName,
         labelX + borderWidth,
-        labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f
+        labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f,
       )
 
       if (showCount) {
         g2.drawString(
           composeCount.toString(),
           countX + borderWidth,
-          labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f
+          labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f,
         )
       }
     }
@@ -288,7 +288,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
           heatmapColor(model, highlightCount, viewSettings),
           (rect.x + rect.width).toFloat(),
           (rect.y + rect.height).toFloat(),
-          heatmapColor(model, 0f, viewSettings)
+          heatmapColor(model, 0f, viewSettings),
         )
       g2.fill(bounds)
     }
@@ -297,7 +297,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
   private fun highlightColor(
     model: InspectorModel,
     highlightCount: Float,
-    viewSettings: RenderSettings
+    viewSettings: RenderSettings,
   ): Color {
     val baseColor = Color(viewSettings.highlightColor)
     val alpha = ((highlightCount * 255f) / model.maxHighlight).toInt().coerceIn(32, 255)
@@ -307,7 +307,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
   private fun heatmapColor(
     model: InspectorModel,
     highlightCount: Float,
-    viewSettings: RenderSettings
+    viewSettings: RenderSettings,
   ): Color {
     val baseColor = Color(viewSettings.highlightColor)
     val alpha = ((highlightCount * 192f) / model.maxHighlight).toInt().coerceIn(8, 192)
@@ -377,7 +377,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
 class DrawViewImage(
   @get:VisibleForTesting val image: Image,
   owner: ViewNode,
-  private val deviceClip: Shape? = null
+  private val deviceClip: Shape? = null,
 ) : DrawViewNode(owner) {
   override fun canCollapse(treeSettings: TreeSettings) = true
 
@@ -391,10 +391,10 @@ class DrawViewImage(
         max(bounds.x, 0),
         max(bounds.y, 0),
         bounds.width + min(bounds.x, 0),
-        bounds.height + min(bounds.y, 0)
+        bounds.height + min(bounds.y, 0),
       ),
       Rectangle(0, 0, image.getWidth(null), image.getHeight(null)),
-      null
+      null,
     )
   }
 
@@ -404,7 +404,7 @@ class DrawViewImage(
     isHovered: Boolean,
     model: InspectorModel,
     viewSettings: RenderSettings,
-    treeSettings: TreeSettings
+    treeSettings: TreeSettings,
   ) {
     if (isSelected || isHovered) {
       g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
@@ -451,7 +451,7 @@ class Dimmer(val root: ViewNode) : DrawViewNode(root) {
     isHovered: Boolean,
     model: InspectorModel,
     viewSettings: RenderSettings,
-    treeSettings: TreeSettings
+    treeSettings: TreeSettings,
   ) {
     if (root.layoutBounds.width > 0 && root.layoutBounds.height > 0) {
       g2.color = NORMAL_LINE_COLOR

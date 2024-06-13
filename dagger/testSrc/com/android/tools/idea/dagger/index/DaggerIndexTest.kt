@@ -59,13 +59,11 @@ class DaggerIndexTest {
         public Foo() {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertThat(DaggerIndex.getValues("com.example.Foo", myProject.projectScope()))
-      .containsExactly(
-        InjectedConstructorIndexValue(ClassId.fromString("com/example/Foo")),
-      )
+      .containsExactly(InjectedConstructorIndexValue(ClassId.fromString("com/example/Foo")))
   }
 
   @Test
@@ -79,13 +77,11 @@ class DaggerIndexTest {
 
       class Foo @Inject constructor()
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertThat(DaggerIndex.getValues("com.example.Foo", myProject.projectScope()))
-      .containsExactly(
-        InjectedConstructorIndexValue(ClassId.fromString("com/example/Foo")),
-      )
+      .containsExactly(InjectedConstructorIndexValue(ClassId.fromString("com/example/Foo")))
   }
 
   @Test
@@ -102,7 +98,7 @@ class DaggerIndexTest {
         public Foo(Bar bar) {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -117,7 +113,7 @@ class DaggerIndexTest {
         public Bar() {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -135,7 +131,7 @@ class DaggerIndexTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertThat(DaggerIndex.getValues("Bar", projectRule.project.projectScope()))

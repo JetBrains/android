@@ -19,6 +19,7 @@ import com.android.tools.adtui.stdui.GraphicsUtilKt;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -118,7 +119,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
 
   @Override
   protected void installDefaults() {
-    padding = JBUI.insets(0, UIUtil.isUnderDarcula() ? DARK_THEME_PADDING : LIGHT_THEME_PADDING, 0, 2);
+    padding = JBUI.insets(0, !JBColor.isBright() ? DARK_THEME_PADDING : LIGHT_THEME_PADDING, 0, 2);
     squareButton = false;
   }
 
@@ -210,9 +211,9 @@ class FlatComboBoxUI extends BasicComboBoxUI {
       Component c = myRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       BorderLayoutPanel panel = JBUI.Panels.simplePanel(c).withBorder(
         list.getComponentOrientation().isLeftToRight() ? JBUI.Borders.empty(0,
-                                                                            UIUtil.isUnderDarcula()
-                                                                            ? DARK_THEME_PADDING
-                                                                            : LIGHT_THEME_PADDING,
+                                                                            JBColor.isBright()
+                                                                            ? LIGHT_THEME_PADDING
+                                                                            : DARK_THEME_PADDING,
                                                                             0, 1)
                                                        : JBUI.Borders.empty(0, 1, 0, 5));
       panel.setBackground(c.getBackground());

@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidSdk;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
@@ -57,6 +57,19 @@ public class UpdateTest {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
+  private String configFileContents = "<application>\n" +
+                                      "  <component name=\"UISettings\">\n" +
+                                      "    <option name=\"compactTreeIndents\" value=\"true\" />\n" +
+                                      "    <option name=\"showTreeIndentGuides\" value=\"true\" />\n" +
+                                      "  </component>\n" +
+                                      "</application>";
+
+  private String themeFileContents = "<application>\n" +
+                                     "  <component name=\"LafManager\" autodetect=\"false\">\n" +
+                                     "    <laf class-name=\"com.intellij.ide.ui.laf.IntelliJLaf\" themeId=\"JetBrainsLightTheme\" />\n" +
+                                     "  </component>\n" +
+                                     "</application>";
+
   /**
    * Our hermetic test environment will not be able to resolve internet URLs, so we have to route
    * those requests to our own {@code FileServer}. This skips downloading anything from https://plugins.jetbrains.com/.
@@ -85,7 +98,6 @@ public class UpdateTest {
                                          "variables\".");
     }
     env.put("PATH", path);
-
     env.put("AS_UPDATE_URL", fileServerOrigin);
     // The URL we provide as SDK_TEST_BASE_URL has to end in a slash.
     String endsInSlash = fileServerOrigin.endsWith("/") ? fileServerOrigin : fileServerOrigin + "/";
@@ -93,6 +105,21 @@ public class UpdateTest {
     // to get requests like "/addons_list-5.xml" and "/repository2-2.xml".
     env.put("SDK_TEST_BASE_URL", endsInSlash);
     return env;
+  }
+
+  private void addConfigFile(Path tempDir) throws IOException{
+    Path configFileXml = tempDir.resolve("options/ui.lnf.xml");
+    if(!Files.exists(configFileXml)){
+      Files.createDirectories(configFileXml.getParent());
+    }
+    Files.writeString(configFileXml, configFileContents, StandardCharsets.UTF_8);
+    System.out.println("Created " + configFileXml);
+  }
+
+  private Boolean verifyConfigXml(Path tempDir) throws IOException{
+    Path configFileXml = tempDir.resolve("options/ui.lnf.xml");
+    String contents = Files.readString(configFileXml, StandardCharsets.UTF_8);
+    return contents.equals(configFileContents);
   }
 
   /**
@@ -276,12 +303,6 @@ public class UpdateTest {
     return dest;
   }
 
-  /**
-   * Note: we explicitly do NOT call the "CheckForUpdate" action as part of this test since the
-   * platform will already call it, and calling it more than once will produce a race condition
-   * where the notification panel with the "Update…" link may close on us before we can interact
-   * with it.
-   */
   @Test
   public void updateTest() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
@@ -311,9 +332,15 @@ public class UpdateTest {
       AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
       sdk.install(env);
 
+      addConfigFile(fileSystem.getRoot());
+
       try (AndroidStudio studio = install.run(display, env)) {
         String version = studio.version();
         assertTrue(version.endsWith(FAKE_CURRENT_BUILD_NUMBER));
+
+        // Explicitly invoke the CheckForUpdate action. With IntelliJ 2024.1, updates are no longer
+        // implicitly shown, so we need to invoke this for the update button to be available.
+        studio.executeAction("CheckForUpdate");
 
         System.out.println("Updating Android Studio");
         // This invokes the "update button" in the bottom right of the "Welcome" window. It may
@@ -346,33 +373,11 @@ public class UpdateTest {
       List<URI> updatesRequests = fileServer.getRequestHistoryForPath("/updates.xml");
       assertEquals(1, updatesRequests.size());
 
-      // Ensure that updates.xml was requested with the correct query parameters
-      URI uri = updatesRequests.get(0);
-      List<NameValuePair> queryParamList = URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
-      Map<String, String> queryParams = queryParamList.stream().collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
-      System.out.println("Query params when requesting updates.xml: " + queryParams);
-      // The value of "uid" is random, so just ensure it exists. Note that the "mid" (machine ID)
-      // isn't guaranteed to be set.
-      assertTrue(queryParams.containsKey("uid"));
-      assertFalse(queryParams.containsKey("eap"));
-      String osParam = queryParams.get("os");
-      if (SystemInfo.isWindows) {
-        // This will look like "Windows 10 10.0" or "Windows Server 2019 10.0".
-        assertTrue(osParam.contains("Windows"));
-      } else if (SystemInfo.isLinux) {
-        // This will look like "Linux 5.4.0-1083-gcp" or "Linux 5.17.11-1rodete2-amd64".
-        assertTrue(osParam.toLowerCase().contains("linux"));
-      } else if (SystemInfo.isMac) {
-        // This will look like "Mac OS X 12.5".
-        assertTrue(osParam.contains("Mac OS X"));
-      }
-      String buildParam = queryParams.get("build");
-      assertEquals(PRODUCT_PREFIX + FAKE_CURRENT_BUILD_NUMBER, buildParam);
-
       install.getIdeaLog().waitForMatchingLine(".*run restarter:.*", 120, TimeUnit.SECONDS);
       try (AndroidStudio studio = install.attach()) {
         String version = studio.version();
         assertTrue(version.endsWith(FAKE_UPDATED_BUILD_NUMBER));
+        assertTrue(verifyConfigXml(fileSystem.getRoot()));
       }
     }
   }

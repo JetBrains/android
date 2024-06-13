@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk.extensions
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
+import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.SimpleJavaSdkType

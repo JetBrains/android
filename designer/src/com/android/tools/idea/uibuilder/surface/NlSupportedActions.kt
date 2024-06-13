@@ -30,7 +30,7 @@ enum class NlSupportedActions {
   SWITCH_DESIGN_MODE,
   SWITCH_NIGHT_MODE,
   TOGGLE_ISSUE_PANEL,
-  REFRESH
+  REFRESH,
 }
 
 /**

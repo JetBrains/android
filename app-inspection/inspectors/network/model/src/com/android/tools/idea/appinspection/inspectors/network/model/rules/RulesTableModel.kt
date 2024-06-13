@@ -46,7 +46,7 @@ class RulesTableModel(items: MutableList<RuleData>) :
         override fun valueOf(item: RuleData): String {
           return item.criteria.url
         }
-      }
+      },
     ),
-    items
+    items,
   )

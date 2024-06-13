@@ -57,14 +57,14 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     // A custom ID is required for isEnabledByDefault to be called
     "com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider"
 
-  override fun getIcon(): Icon = StudioIcons.Misc.DEPENDENCY_CONSUMER
+  override fun getIcon(): Icon = StudioIcons.GutterIcons.DEPENDENCY_CONSUMER
 
   override fun isEnabledByDefault(): Boolean = true
 
   @WorkerThread
   override fun collectNavigationMarkers(
     element: PsiElement,
-    result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
+    result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
   ) {
     if (suppressAndroidPlugin()) return
 
@@ -108,7 +108,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   companion object {
     private fun getTooltip(
       fromElement: PsiElement,
-      gotoItems: List<GotoItemWithAnalytics>
+      gotoItems: List<GotoItemWithAnalytics>,
     ): String {
       val fromElementString = SymbolPresentationUtil.getSymbolPresentableText(fromElement)
 
@@ -121,7 +121,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
           return DaggerBundle.message(
             gotoItem.relationDescriptionKey,
             fromElementString,
-            toElementString
+            toElementString,
           )
         }
       }
@@ -141,7 +141,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
             relatedItem,
             relationName,
             relationDescriptionKey,
-            customDisplayName
+            customDisplayName,
           )
         }
         .sortedWith(
@@ -149,7 +149,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
           // first, then within the groups sort by the displayed text.
           compareBy(
             GotoItemWithAnalytics::getGroup,
-            { it.customName ?: it.element?.let(SymbolPresentationUtil::getSymbolPresentableText) }
+            { it.customName ?: it.element?.let(SymbolPresentationUtil::getSymbolPresentableText) },
           )
         )
 
@@ -174,8 +174,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     private fun DaggerElement.getIcon(): Icon =
       when (this) {
         is AssistedFactoryMethodDaggerElement,
-        is ConsumerDaggerElementBase -> StudioIcons.Misc.DEPENDENCY_PROVIDER
-        else -> StudioIcons.Misc.DEPENDENCY_CONSUMER
+        is ConsumerDaggerElementBase -> StudioIcons.GutterIcons.DEPENDENCY_PROVIDER
+        else -> StudioIcons.GutterIcons.DEPENDENCY_CONSUMER
       }
   }
 
@@ -186,7 +186,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
    */
   private class NavigationHandler(
     private val gotoItems: List<GotoRelatedItem>,
-    private val metricsType: DaggerEditorEvent.ElementType
+    private val metricsType: DaggerEditorEvent.ElementType,
   ) : GutterIconNavigationHandler<PsiElement> {
     override fun navigate(mouseEvent: MouseEvent, psiElement: PsiElement) {
       psiElement.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(metricsType)
@@ -205,7 +205,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     toElement: DaggerElement,
     group: String,
     @PropertyKey(resourceBundle = DaggerBundle.BUNDLE_NAME) val relationDescriptionKey: String,
-    private val customDisplayName: String?
+    private val customDisplayName: String?,
   ) : GotoRelatedItem(toElement.psiElement, group) {
     private val fromElementType = fromElement.metricsElementType
     private val toElementType = toElement.metricsElementType
@@ -217,7 +217,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         ?.trackNavigation(
           DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_GUTTER,
           fromElementType,
-          toElementType
+          toElementType,
         )
       super.navigate()
     }

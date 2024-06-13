@@ -19,7 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.AgpCompatibleJdkVersion
 
 /**
- * A [RuntimeJavaCompiledVersionIssueChecker] for NoMatchingConfigurationSelectionException with messages following this format:
+ * A [RuntimeJavaCompiledVersionIssueChecker] for NoMatchingGraphVariantsException with messages following this format:
  * "No matching variant of com.android.tools.build:<Project AGP version> was found. The consumer was
  * configured to find a library for use during runtime, compatible with Java <Version used by Gradle JDK>"
  */

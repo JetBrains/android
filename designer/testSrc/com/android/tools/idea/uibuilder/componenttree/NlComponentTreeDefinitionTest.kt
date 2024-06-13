@@ -43,7 +43,7 @@ import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.IssueProvider
-import com.android.tools.idea.common.error.IssueSource
+import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.common.error.TestIssue
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.DnDTransferComponent
@@ -62,7 +62,9 @@ import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.EdtRule
@@ -253,6 +255,7 @@ class NlComponentTreeDefinitionTest {
 
   @Test
   fun testGotoDeclarationFromKeyboard() {
+    HeadlessDataManager.fallbackToProductionDataManager(projectRule.testRootDisposable)
     runInEdtAndWait {
       val content = createToolContent()
       val model = createFlowModel()
@@ -331,7 +334,7 @@ class NlComponentTreeDefinitionTest {
       data,
       before = referenceB,
       isMove = true,
-      draggedFromTree = listOf(checkBox)
+      draggedFromTree = listOf(checkBox),
     )
     UIUtil.dispatchAllInvocationEvents()
 
@@ -377,7 +380,7 @@ class NlComponentTreeDefinitionTest {
       data,
       before = referenceC,
       isMove = true,
-      draggedFromTree = listOf(textView)
+      draggedFromTree = listOf(textView),
     )
     UIUtil.dispatchAllInvocationEvents()
 
@@ -517,7 +520,7 @@ class NlComponentTreeDefinitionTest {
     val provider =
       object : IssueProvider() {
         override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-          issueListBuilder.add(TestIssue("Problem", source = IssueSource.fromNlComponent(textView)))
+          issueListBuilder.add(TestIssue("Problem", source = NlComponentIssueSource(textView)))
         }
       }
     issues.addIssueProvider(provider)
@@ -543,6 +546,7 @@ class NlComponentTreeDefinitionTest {
     val textView = model.find("a")!!
     ui.mouse.click(rect.midX, rect.midY)
     val balloon = popupRule.fakePopupFactory.getBalloon(0)
+    Disposer.register(projectRule.testRootDisposable, balloon)
     val androidPanel = balloon.component.components.filterIsInstance<JPanel>().first()
     val toolsPanel = balloon.component.components.filterIsInstance<JPanel>().last()
     val androidButtons = androidPanel.components.filterIsInstance<JBLabel>()
@@ -597,7 +601,7 @@ class NlComponentTreeDefinitionTest {
         y,
         0,
         false,
-        MouseEvent.BUTTON1
+        MouseEvent.BUTTON1,
       )
     )
 
@@ -660,22 +664,22 @@ class NlComponentTreeDefinitionTest {
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.CONSTRAINT_REFERENCED_IDS,
-                "a,b,c,include,linear"
+                "a,b,c,include,linear",
               ),
             component(SdkConstants.VIEW_INCLUDE)
               .id("@+id/include")
@@ -688,26 +692,26 @@ class NlComponentTreeDefinitionTest {
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-                "parent"
+                "parent",
               )
               .withAttribute(
                 SdkConstants.AUTO_URI,
                 SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
-                "parent"
+                "parent",
               )
               .children(
                 component(SdkConstants.CHECK_BOX)
                   .withBounds(0, 500, 100, 100)
                   .id("@+id/d")
                   .width("100dp")
-                  .height("100dp"),
-              )
-          )
+                  .height("100dp")
+              ),
+          ),
       )
       .build()
       .also {
@@ -740,7 +744,7 @@ class NlComponentTreeDefinitionTest {
         Side.LEFT,
         Split.TOP,
         AutoHide.DOCKED,
-        isPassThroughQueue = true
+        isPassThroughQueue = true,
       )
     return definition.factory.apply(projectRule.testRootDisposable)
   }

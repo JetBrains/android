@@ -94,8 +94,6 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
         AlwaysRunTaskData(nonCritPathTask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
       )
 
-      override fun getNonCacheableTasks(): List<TaskData> = listOf(taskA)
-
       override fun getTasksSharingOutput(): List<TasksSharingOutputData> = listOf(
         TasksSharingOutputData("/tmp/tasks_sharing_output/test/path", listOf(taskA, nonCritPathTask))
       )
@@ -138,8 +136,6 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
         AlwaysRunTaskData(taskB, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
         AlwaysRunTaskData(nonCritPathTask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
       )
-
-      override fun getNonCacheableTasks(): List<TaskData> = listOf(taskA)
 
       override fun getTasksSharingOutput(): List<TasksSharingOutputData> = listOf(
         TasksSharingOutputData("/tmp/tasks_sharing_output/test/path", listOf(taskA, nonCritPathTask))

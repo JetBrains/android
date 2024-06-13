@@ -60,7 +60,7 @@ class VisualizationEditorChangeHandlerTest {
     handler.onFileEditorChange(
       FileEditorManager.getInstance(projectRule.project).selectedEditor,
       projectRule.project,
-      toolWindow
+      toolWindow,
     )
     assertTrue(toolWindow.isAvailable)
 
@@ -70,7 +70,7 @@ class VisualizationEditorChangeHandlerTest {
     handler.onFileEditorChange(
       FileEditorManager.getInstance(projectRule.project).selectedEditor,
       projectRule.project,
-      toolWindow
+      toolWindow,
     )
     assertFalse(toolWindow.isAvailable)
 
@@ -96,7 +96,7 @@ class VisualizationEditorChangeHandlerTest {
     handler.onFileEditorChange(
       FileEditorManager.getInstance(projectRule.project).selectedEditor,
       projectRule.project,
-      toolWindow
+      toolWindow,
     )
     assertTrue(toolWindow.isAvailable)
 
@@ -106,7 +106,7 @@ class VisualizationEditorChangeHandlerTest {
     handler.onFileClose(
       FileEditorManager.getInstance(projectRule.project),
       toolWindow,
-      layoutFile.virtualFile
+      layoutFile.virtualFile,
     )
     assertFalse(toolWindow.isAvailable)
   }
@@ -115,7 +115,7 @@ class VisualizationEditorChangeHandlerTest {
 object TestVisualizationContentProvider : VisualizationContentProvider {
   override fun createVisualizationForm(
     project: Project,
-    toolWindow: ToolWindow
+    toolWindow: ToolWindow,
   ): VisualizationContent {
     val panel = object : JComponent(), VisualizationContent by TestVisualizationContent() {}
     with(toolWindow.contentManager) {
@@ -154,7 +154,9 @@ class TestVisualizationContent : VisualizationContent {
   override fun dispose() = Unit
 }
 
-@Language("kotlin") private const val KT_FILE_TEXT = """
+@Language("kotlin")
+private const val KT_FILE_TEXT =
+  """
 package my_test_project
 object SomeFile
 """

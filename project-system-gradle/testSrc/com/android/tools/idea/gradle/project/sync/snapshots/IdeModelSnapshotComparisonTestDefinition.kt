@@ -97,6 +97,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
         TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS,
         isCompatibleWith = { it >= AGP_35 }
       ),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.WITH_GRADLE_METADATA),
       IdeModelSnapshotComparisonTestDefinition(TestProject.BASIC_CMAKE_APP),
       IdeModelSnapshotComparisonTestDefinition(TestProject.PSD_SAMPLE_GROOVY),
@@ -128,6 +129,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_WITHJS, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_IOS, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE, skipV1toV2Comparison = true),

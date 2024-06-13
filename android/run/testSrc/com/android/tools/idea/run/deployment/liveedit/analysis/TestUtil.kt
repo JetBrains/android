@@ -31,6 +31,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
+import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
@@ -39,6 +40,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.utils.editor.commitToPsi
 import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtFile
@@ -97,6 +99,14 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileIr(inputFiles: List<KtF
  */
 fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFile: KtFile) = directApiCompile(listOf(inputFile))
 
+fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileByteArray(inputFiles: List<KtFile>): HashMap<String, ByteArray> {
+  val result = HashMap<String, ByteArray>()
+  directApiCompile(inputFiles).forEach {
+    result[IrClass(it).name] = it
+  }
+  return result
+}
+
 /**
  * Compile the given files without calling into [LiveEditCompiler]. Should only be used to set up for tests.
  */
@@ -104,17 +114,24 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFil
   return ApplicationManager.getApplication().runReadAction(Computable<List<ByteArray>> {
     runWithCompileLock {
       val output = mutableListOf<ByteArray>()
-      val resolution = fetchResolution(project, inputFiles)
-      val analysisResult = analyze(inputFiles, resolution)
-      val generationState: GenerationState = backendCodeGen(project,
-                                                            analysisResult,
-                                                            inputFiles,
-                                                            inputFiles.first().module!!,
-                                                            emptySet())
-      generationState.factory.asList()
-        .filter { it.relativePath.endsWith(".class") }
-        .map { it.asByteArray() }
-        .forEach { output.add(it) }
+      if (KotlinPluginModeProvider.isK2Mode()) {
+        inputFiles.forEach { inputFile ->
+          val result = backendCodeGenForK2(inputFile, inputFile.module)
+          result.output.filter { it.path.endsWith(".class") } .forEach { output.add(it.content) }
+        }
+      } else {
+        val resolution = fetchResolution(project, inputFiles)
+        val analysisResult = analyze(inputFiles, resolution)
+        val generationState: GenerationState = backendCodeGen(project,
+                                                              analysisResult,
+                                                              inputFiles,
+                                                              inputFiles.first().module!!,
+                                                              emptySet())
+        generationState.factory.asList()
+          .filter { it.relativePath.endsWith(".class") }
+          .map { it.asByteArray() }
+          .forEach { output.add(it) }
+      }
       output
     }
   })

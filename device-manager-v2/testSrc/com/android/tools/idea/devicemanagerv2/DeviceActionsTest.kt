@@ -16,13 +16,16 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
+import com.android.tools.idea.deviceprovisioner.DEVICE_TEMPLATE_KEY
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.ApplicationRule
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -81,13 +84,17 @@ internal fun actionEvent(dataContext: DataContext) =
 
 internal fun dataContext(
   deviceManager: DeviceManagerPanel? = null,
-  device: DeviceHandle? = null,
   deviceRowData: DeviceRowData? = null,
+  device: DeviceHandle? = deviceRowData?.handle,
+  deviceTemplate: DeviceTemplate? = deviceRowData?.template,
+  coroutineScope: CoroutineScope? = deviceManager?.panelScope,
 ) = DataContext {
   when {
     DEVICE_HANDLE_KEY.`is`(it) -> device
+    DEVICE_TEMPLATE_KEY.`is`(it) -> deviceTemplate
     DEVICE_ROW_DATA_KEY.`is`(it) -> deviceRowData
     DEVICE_MANAGER_PANEL_KEY.`is`(it) -> deviceManager
+    DEVICE_MANAGER_COROUTINE_SCOPE_KEY.`is`(it) -> coroutineScope
     else -> null
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.common.model.Coordinates.getSwingRectDip
 import com.android.tools.idea.common.model.NlComponent
@@ -42,6 +43,7 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.naveditor.surface.NavDesignSurfaceZoomController
 import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.createChild
@@ -56,6 +58,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
+import java.awt.Dimension
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
@@ -780,7 +783,6 @@ class NavSceneTest {
 
     val scene = model.surface.scene!!
     val view = model.surface.focusedSceneView!!
-    whenever(view.scale).thenReturn(1.0)
     val transform = view.context
     val fragment1 = scene.getSceneComponent("fragment1")!!
     fragment1.setPosition(100, 100)
@@ -824,7 +826,7 @@ class NavSceneTest {
 
     val scene = model.surface.scene!!
     val view = model.surface.focusedSceneView!!
-    whenever(view.scale).thenReturn(1.0)
+
     val transform = view.context
     val action1 = scene.getSceneComponent("a1")!!
 
@@ -955,6 +957,7 @@ class NavSceneTest {
     }
 
     val surface = model.surface
+
     val scene = surface.scene!!
     val sceneView = scene.sceneManager.sceneViews.first()
     scene.layout(0, SceneContext.get())
@@ -962,7 +965,7 @@ class NavSceneTest {
     var component1 = scene.getSceneComponent("fragment1")!!
     assertDrawRectEquals(sceneView, component1, 400f, 400f, 76.5f, 128f)
 
-    whenever(surface.scale).thenReturn(newScale)
+    whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = newScale))
     scene.layout(0, SceneContext.get())
 
     component1 = scene.getSceneComponent("fragment1")!!

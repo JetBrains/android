@@ -38,6 +38,8 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBScrollPane
@@ -64,7 +66,9 @@ import org.mockito.Mockito
 
 class BackgroundTaskInspectorComponentInteractionTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory()
+  private val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
   private lateinit var scope: CoroutineScope
   private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
@@ -90,15 +94,15 @@ class BackgroundTaskInspectorComponentInteractionTest {
           backgroundTaskInspectorMessenger,
           WmiMessengerTarget.Resolved(workMessenger),
           scope,
-          StubBackgroundTaskInspectorTracker()
+          StubBackgroundTaskInspectorTracker(),
         )
       tab =
         BackgroundTaskInspectorTab(
           client,
           AppInspectionIdeServicesAdapter(),
-          IntellijUiComponentsProvider(projectRule.project),
+          IntellijUiComponentsProvider(projectRule.project, disposableRule.disposable),
           scope,
-          uiDispatcher
+          uiDispatcher,
         )
       tab.isDetailsViewVisible = true
       detailsView = tab.component.secondComponent as EntryDetailsView

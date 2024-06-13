@@ -667,6 +667,16 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   }
 
   public static final class Image {
+    // Required for instantiation by JAXB
+    public Image() {}
+
+    public Image(String source, String description, int height, int width) {
+      mySource = source;
+      myDescription = description;
+      myHeight = height;
+      myWidth = width;
+    }
+
     @XmlAttribute(name = "src")
     private String mySource;
 

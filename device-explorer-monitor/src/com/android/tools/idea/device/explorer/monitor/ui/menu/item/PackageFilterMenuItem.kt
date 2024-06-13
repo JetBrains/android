@@ -18,6 +18,7 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -38,6 +39,8 @@ class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuIte
   }
 
   override val action: AnAction = object : ToggleAction() {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun update(e: AnActionEvent) {
       val presentation = e.presentation
       presentation.text = text

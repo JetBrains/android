@@ -45,8 +45,8 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
           AppInspectorJar(
             "backgroundtask-inspection.jar",
             developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/backgroundtask",
-            releaseDirectory = "plugins/android/resources/app-inspection/"
-          ),
+            releaseDirectory = "plugins/android/resources/app-inspection/",
+          )
         ),
       ),
       AppInspectorLaunchConfig(
@@ -54,11 +54,11 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
         LibraryInspectorLaunchParams(
           AppInspectorJar(
             "workmanager-inspection.jar",
-            developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"
+            developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/",
           ),
-          MinimumArtifactCoordinate.WORK_RUNTIME
-        )
-      )
+          MinimumArtifactCoordinate.WORK_RUNTIME,
+        ),
+      ),
     )
 
   override val displayName = "Background Task Inspector"
@@ -74,7 +74,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
     messengerTargets: List<AppInspectorMessengerTarget>,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AppInspectorTab {
 
     val btiMessenger = (messengerTargets[0] as AppInspectorMessengerTarget.Resolved).messenger
@@ -89,7 +89,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
         btiMessenger,
         wmiMessengerTarget,
         scope,
-        IdeBackgroundTaskInspectorTracker(project)
+        IdeBackgroundTaskInspectorTracker(project),
       )
 
     return object : AppInspectorTab {
@@ -101,9 +101,9 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
         BackgroundTaskInspectorTab(
             client,
             ideServices,
-            IntellijUiComponentsProvider(project),
+            IntellijUiComponentsProvider(project, parentDisposable),
             scope,
-            AndroidDispatchers.uiThread
+            AndroidDispatchers.uiThread,
           )
           .component
     }

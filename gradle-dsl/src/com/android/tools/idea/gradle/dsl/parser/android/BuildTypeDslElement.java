@@ -15,29 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.CRUNCH_PNGS;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.DEBUGGABLE;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.DEFAULT;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.EMBED_MICRO_APP;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.INIT_WITH;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.JNI_DEBUGGABLE;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.MINIFY_ENABLED;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.PSEUDO_LOCALES_ENABLED;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.RENDERSCRIPT_DEBUGGABLE;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.RENDERSCRIPT_OPTIM_LEVEL;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.SHRINK_RESOURCES;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.TEST_COVERAGE_ENABLED;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.USE_PROGUARD;
-import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.ZIP_ALIGN_ENABLED;
-import static com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement.FIREBASE_CRASHLYTICS;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
 
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -77,7 +61,9 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     {"isUseProguard", property, USE_PROGUARD, VAR},
     {"setUseProguard", exactly(1), USE_PROGUARD, SET},
     {"isZipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
-    {"setZipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
+    {"setZipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET},
+    {"enableUnitTestCoverage", property, ENABLE_UNIT_TEST_COVERAGE, VAR},
+    {"enableAndroidTestCoverage", property, ENABLE_ANDROID_TEST_COVERAGE, VAR},
   }).collect(toModelMap(AbstractFlavorTypeDslElement.ktsToModelNameMap));
 
   private static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
@@ -107,7 +93,11 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     {"useProguard", property, USE_PROGUARD, VAR},
     {"useProguard", exactly(1), USE_PROGUARD, SET},
     {"zipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
-    {"zipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
+    {"zipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET},
+    {"enableUnitTestCoverage", property, ENABLE_UNIT_TEST_COVERAGE, VAR},
+    {"enableUnitTestCoverage", exactly(1), ENABLE_UNIT_TEST_COVERAGE, SET},
+    {"enableAndroidTestCoverage", property, ENABLE_ANDROID_TEST_COVERAGE, VAR},
+    {"enableAndroidTestCoverage", exactly(1), ENABLE_ANDROID_TEST_COVERAGE, SET},
   }).collect(toModelMap(AbstractFlavorTypeDslElement.groovyToModelNameMap));
 
   private static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
@@ -125,6 +115,8 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     {"testCoverageEnabled", property, TEST_COVERAGE_ENABLED, VAR},
     {"useProguard", property, USE_PROGUARD, VAR},
     {"zipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
+    {"enableUnitTestCoverage", property, ENABLE_UNIT_TEST_COVERAGE, VAR},
+    {"enableAndroidTestCoverage", property, ENABLE_ANDROID_TEST_COVERAGE, VAR},
   }).collect(toModelMap(AbstractFlavorTypeDslElement.groovyToModelNameMap));
 
   @Nullable
@@ -152,16 +144,6 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     super.addParsedElement(element);
   }
 
-  static private ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP = Stream.of(new Object[][]{
-    {"firebaseCrashlytics", FIREBASE_CRASHLYTICS}
-  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
-
-  @NotNull
-  @Override
-  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
-    return CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP;
-  }
-
   public BuildTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
@@ -184,10 +166,9 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   }
 
   public static final class BuildTypeDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
-      return CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP;
+    protected @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
+      return GradleBlockModelMap.getElementMap(BuildTypeDslElement.class, kind);
     }
 
     @NotNull

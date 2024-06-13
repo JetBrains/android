@@ -83,9 +83,8 @@ class LocaleAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
-        layoutFile
+        layoutFile,
       )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
@@ -153,9 +152,8 @@ class LocaleAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
-        layoutFile
+        layoutFile,
       )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
@@ -222,9 +220,8 @@ class LocaleAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
-        layoutFile
+        layoutFile,
       )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())

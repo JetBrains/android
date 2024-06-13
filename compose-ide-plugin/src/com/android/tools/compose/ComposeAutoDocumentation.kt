@@ -24,77 +24,93 @@ import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupEvent
 import com.intellij.codeInsight.lookup.LookupListener
 import com.intellij.codeInsight.lookup.LookupManager
+import com.intellij.codeInsight.lookup.LookupManagerListener
 import com.intellij.codeInsight.lookup.impl.LookupImpl
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
 import com.intellij.psi.PsiElement
 import com.intellij.util.Alarm
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import java.beans.PropertyChangeListener
+
+@VisibleForTesting
+internal fun PsiElement?.shouldShowDocumentation(): Boolean =
+  when {
+    this == null -> false
+    isComposableFunction() -> true
+    this is KtNamedFunction ->
+      receiverTypeReference?.text == "androidx.compose.ui.Modifier" ||
+        containingClass()?.fqName?.asString() == "androidx.compose.ui.Modifier"
+    else -> false
+  }
 
 /** Automatically shows quick documentation for Compose functions during code completion */
-class ComposeAutoDocumentation(private val project: Project) {
+@Service(Service.Level.PROJECT)
+class ComposeAutoDocumentation(
+  private val project: Project,
+  private val coroutineScope: CoroutineScope,
+) {
   private var documentationOpenedByCompose = false
 
-  private val lookupListener = PropertyChangeListener { evt ->
-    if (LookupManager.PROP_ACTIVE_LOOKUP == evt.propertyName && evt.newValue is Lookup) {
-      val lookup = evt.newValue as Lookup
+  class MyLookupManagerListener(private val project: Project) : LookupManagerListener {
 
-      val moduleSystem =
-        FileDocumentManager.getInstance()
-          .getFile(lookup.editor.document)
-          ?.let { ModuleUtilCore.findModuleForFile(it, lookup.project) }
-          ?.getModuleSystem()
+    override fun activeLookupChanged(oldLookup: Lookup?, newLookup: Lookup?) {
+      if (newLookup == null) return
+      val file = FileDocumentManager.getInstance().getFile(newLookup.editor.document) ?: return
+      // Register the listener on spec. If we wind up not needing it, we can unregister. If we
+      // do need it, it will already be registered, can capture any missed events, and we
+      // can re-trigger them after we activate below.
+      val listener =
+        object : LookupListener {
+          private var active = false
+          private var missedEvent: LookupEvent? = null
 
-      if (moduleSystem?.usesCompose == true) {
-        lookup.addLookupListener(
-          object : LookupListener {
-            override fun currentItemChanged(event: LookupEvent) {
-              showJavaDoc(lookup)
+          suspend fun activate() {
+            withContext(Dispatchers.EDT) {
+              // We're on the EDT, so we can't race with ourselves in
+              // currentItemChanged below.
+              if (active) return@withContext
+              active = true
+              missedEvent?.let(::currentItemChanged)
+              missedEvent = null
             }
           }
-        )
+
+          override fun currentItemChanged(event: LookupEvent) {
+            if (!active) missedEvent = event else getInstance(project).showJavaDoc(newLookup)
+          }
+        }
+      newLookup.addLookupListener(listener)
+
+      getInstance(project).coroutineScope.launch {
+        // This is a @Slow operation and must be kept off the EDT.
+        val module =
+          withContext(Dispatchers.Default) {
+            ModuleUtilCore.findModuleForFile(file, newLookup.project)
+          }
+
+        if (module?.getModuleSystem()?.usesCompose == true) listener.activate()
+        else newLookup.removeLookupListener(listener)
       }
     }
-  }
-
-  fun onProjectOpened() {
-    if (!ApplicationManager.getApplication().isUnitTestMode) {
-      LookupManager.getInstance(project).addPropertyChangeListener(lookupListener)
-    }
-  }
-
-  class MyStartupActivity : StartupActivity {
-    override fun runActivity(project: Project) = getInstance(project).onProjectOpened()
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): ComposeAutoDocumentation =
-      project.getService(ComposeAutoDocumentation::class.java)
-
-    @VisibleForTesting
-    internal fun PsiElement?.shouldShowDocumentation(): Boolean =
-      when {
-        this == null -> false
-        isComposableFunction() -> true
-        this is KtNamedFunction ->
-          receiverTypeReference?.text == "androidx.compose.ui.Modifier" ||
-            containingClass()?.fqName?.asString() == "androidx.compose.ui.Modifier"
-        else -> false
-      }
+    @JvmStatic fun getInstance(project: Project): ComposeAutoDocumentation = project.service()
   }
 
   private fun showJavaDoc(lookup: Lookup) {
-    if (LookupManager.getInstance(project).activeLookup !== lookup) {
-      return
-    }
+    if (LookupManager.getInstance(project).activeLookup !== lookup) return
 
     // Don't bother if we're already showing JavaDoc for everything.
     if (CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO) {
@@ -104,7 +120,7 @@ class ComposeAutoDocumentation(private val project: Project) {
 
     // If we open doc when lookup is not visible, doc will have wrong parent window (editor window
     // instead of lookup).
-    if ((lookup as? LookupImpl)?.isVisible != true) {
+    if (lookup !is LookupImpl || !lookup.isVisible) {
       Alarm()
         .addRequest({ showJavaDoc(lookup) }, CodeInsightSettings.getInstance().JAVADOC_INFO_DELAY)
       return
@@ -112,8 +128,8 @@ class ComposeAutoDocumentation(private val project: Project) {
 
     val docManager = DocumentationManager.getInstance(project)
     val psiElement =
-      lookup.currentItem?.let {
-        it.psiElement ?: (it.`object` as? DeclarationLookupObject)?.psiElement
+      lookup.currentItem?.run {
+        psiElement ?: (getObject() as? DeclarationLookupObject)?.psiElement
       }
     if (!psiElement.shouldShowDocumentation()) {
       // Close documentation for not composable function if it was opened by

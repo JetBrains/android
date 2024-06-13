@@ -5,12 +5,12 @@ iml_module(
     name = "intellij.android.room",
     srcs = ["src"],
     iml_files = ["intellij.android.room.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
@@ -34,9 +34,10 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/room:intellij.android.room[module]",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",

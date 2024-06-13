@@ -121,8 +121,8 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     toolbar.border = DEFAULT_BOTTOM_BORDER
     toolbar.preferredSize = Dimension(0, ProfilerLayout.TOOLBAR_HEIGHT)
 
+    stageNavigationToolbar = StageNavigationToolbar(studioProfilers)
     if (!studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-      stageNavigationToolbar = StageNavigationToolbar(studioProfilers)
       toolbar.add(stageNavigationToolbar, BorderLayout.WEST)
     }
 

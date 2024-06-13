@@ -44,6 +44,28 @@ class PropertiesTableImpl<P : PropertyItem>(private val table: Table<String, Str
     return table.row(namespace)
   }
 
+  override fun sameKeys(other: PropertiesTable<P>): Boolean {
+    if (other !is PropertiesTableImpl) {
+      return false
+    }
+    val namespaces = table.rowKeySet()
+    if (namespaces != other.table.rowKeySet()) {
+      return false
+    }
+    for (namespace in namespaces) {
+      if (getByNamespace(namespace).keys != other.getByNamespace(namespace).keys) {
+        return false
+      }
+    }
+    return true
+  }
+
+  override fun copyValues(other: PropertiesTable<P>) {
+    for (property in other.values) {
+      getOrNull(property.namespace, property.name)?.value = property.value
+    }
+  }
+
   override val isEmpty: Boolean
     get() = table.isEmpty
 

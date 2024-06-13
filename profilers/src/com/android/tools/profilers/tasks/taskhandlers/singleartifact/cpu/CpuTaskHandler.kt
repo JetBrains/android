@@ -19,13 +19,11 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
-import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils.findTaskArtifact
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtifactTaskHandler
-import com.intellij.util.asSafely
 
 abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : SingleArtifactTaskHandler<CpuProfilerStage>(sessionsManager) {
   override fun setupStage() {
@@ -44,32 +42,30 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
     stage.stopCpuRecording()
   }
 
-  override fun loadTask(args: TaskArgs?): Boolean {
+  override fun loadTask(args: TaskArgs): Boolean {
     if (args !is CpuTaskArgs) {
       handleError("The task arguments (TaskArgs) supplied are not of the expected type (CpuTaskArgs)")
       return false
     }
-    loadCapture(args.getCpuCaptureArtifact())
+
+    val cpuTaskArtifact = args.getCpuCaptureArtifact()
+    if (cpuTaskArtifact == null) {
+      handleError("The task arguments (CpuTaskArgs) supplied do not contains a valid artifact to load")
+      return false
+    }
+    loadCapture(cpuTaskArtifact)
     return true
   }
 
-  override fun createArgs(
-    sessionItems: Map<Long, SessionItem>,
-    selectedSession: Common.Session
-  ): CpuTaskArgs? {
-    val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
+  override fun createStartTaskArgs(isStartupTask: Boolean) = CpuTaskArgs(isStartupTask, null)
 
-    // Only if the underlying artifact is non-null should the TaskArgs be non-null
-    return if (supportsArtifact(artifact)) {
-      artifact.asSafely<CpuCaptureSessionArtifact>()?.let { CpuTaskArgs(it) }
-    }
-    else {
-      null
-    }
-  }
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = CpuTaskArgs(false, artifact as CpuCaptureSessionArtifact)
 
   override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
-    device.featureLevel >= getCpuRecordingConfig().requiredDeviceLevel
+    this.isDeviceSupported(device, getCpuRecordingConfig())
+
+  protected fun isDeviceSupported(device: Common.Device?, config: ProfilingConfiguration) =
+     device?.run { featureLevel >= config.requiredDeviceLevel } ?: false
 
   protected abstract fun getCpuRecordingConfig(): ProfilingConfiguration
 }

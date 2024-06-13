@@ -26,7 +26,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.ui.popup.Balloon
@@ -35,10 +35,8 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.util.application.executeOnPooledThread
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.launch
 
 /**
  * A [LinkPropertyItem] for a lambda parameter from Compose.
@@ -65,45 +63,34 @@ class LambdaParameterItem(
   val functionName: String,
   val startLineNumber: Int,
   val endLineNumber: Int,
-  lookup: ViewNodeAndResourceLookup
+  lookup: ViewNodeAndResourceLookup,
 ) :
-  ParameterItem(
-    name,
-    PropertyType.LAMBDA,
-    value = "λ",
-    section,
-    viewId,
-    lookup,
-    rootId,
-    index,
-  ),
+  ParameterItem(name, PropertyType.LAMBDA, value = "λ", section, viewId, lookup, rootId, index),
   LinkPropertyItem {
   override val link =
     object : AnAction("$fileName:$startLineNumber") {
       override fun actionPerformed(event: AnActionEvent) {
-        val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
-        executeOnPooledThread { gotoLambdaLocation(event, popupLocation) }
-          .also { futureCaptor?.invoke(it) }
+        lookup.scope.launch {
+          val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
+          gotoLambdaLocation(event, popupLocation)
+        }
       }
     }
 
-  /** Allow tests to control the execution of [gotoLambdaLocation]. */
-  @VisibleForTesting var futureCaptor: ((Future<*>) -> Unit)? = null
-
   @Slow
-  private fun gotoLambdaLocation(event: AnActionEvent, popupLocation: RelativePoint) {
-    val location = runReadAction {
+  private suspend fun gotoLambdaLocation(event: AnActionEvent, popupLocation: RelativePoint) {
+    val location =
       lookup.resourceLookup.findLambdaLocation(
         packageName,
         fileName,
         lambdaName,
         functionName,
         startLineNumber,
-        endLineNumber
+        endLineNumber,
       )
-    }
+
     location.navigatable?.let {
-      if (runReadAction { it.canNavigate() }) {
+      if (readAction { it.canNavigate() }) {
         invokeLater {
           // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when
           // focus is removed
@@ -151,6 +138,6 @@ class LambdaParameterItem(
       functionName,
       startLineNumber,
       endLineNumber,
-      lookup
+      lookup,
     )
 }

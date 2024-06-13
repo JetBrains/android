@@ -12,20 +12,9 @@ PROJECT                       : testImportNoSync
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testImportNoSync.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android-Gradle
-            TypeId                        : android-gradle
-            ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-            TEST_COMPILE_MODE             : Android tests
-            TEST_COMPILE_MODE             : Unit tests
-            TEST_COMPILE_MODE             : None
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None

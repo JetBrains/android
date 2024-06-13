@@ -51,13 +51,10 @@ import org.jetbrains.android.augment.AndroidLightClassBase
  *
  * See also: [LightArgsClass], which own this builder.
  */
-class LightArgsBuilderClass(
-  private val navInfo: NavInfo,
-  private val argsClass: LightArgsClass,
-) :
+class LightArgsBuilderClass(private val navInfo: NavInfo, private val argsClass: LightArgsClass) :
   AndroidLightClassBase(
     PsiManager.getInstance(navInfo.facet.module.project),
-    setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)
+    setOf(PsiModifier.PUBLIC, PsiModifier.STATIC),
   ) {
   companion object {
     const val BUILDER_NAME = "Builder"
@@ -120,7 +117,7 @@ class LightArgsBuilderClass(
             createMethod(
                 name = "set${arg.name.toUpperCamelCase()}",
                 navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
-                returnType = annotateNullability(thisType)
+                returnType = annotateNullability(thisType),
               )
               .addParameter(arg.name.toCamelCase(), argType)
 
@@ -128,7 +125,7 @@ class LightArgsBuilderClass(
             createMethod(
               name = "get${arg.name.toUpperCamelCase()}",
               navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
-              returnType = annotateNullability(argType, arg.isNonNull())
+              returnType = annotateNullability(argType, arg.isNonNull()),
             )
 
           listOf(setter, getter)
@@ -138,7 +135,7 @@ class LightArgsBuilderClass(
     val build =
       createMethod(
         name = "build",
-        returnType = annotateNullability(PsiTypesUtil.getClassType(argsClass))
+        returnType = annotateNullability(PsiTypesUtil.getClassType(argsClass)),
       )
     return argMethods + build
   }

@@ -37,7 +37,7 @@ class SelectionStatePersistenceTest {
     selectionState.dropdownSelection =
       DropdownSelectionXml(
         target = target1.toXml(),
-        timestamp = Instant.parse("2023-01-08T01:02:03Z")
+        timestamp = Instant.parse("2023-01-08T01:02:03Z"),
       )
     selectionState.dialogSelection = DialogSelectionXml(listOf(target2, target3).toXml())
 
@@ -71,8 +71,7 @@ class SelectionStatePersistenceTest {
         |    </targets>
         |  </DialogSelection>
         |</SelectionState>"""
-        .trimMargin(),
-      exactMatch = true
+        .trimMargin()
     )
   }
 
@@ -89,7 +88,7 @@ class SelectionStatePersistenceTest {
       TargetId(
         DeviceId("Test", false, "abcd"),
         null,
-        BootSnapshot(LocalEmulatorSnapshot("snap", Path.of("/tmp/foo/snap")))
+        BootSnapshot(LocalEmulatorSnapshot("snap", Path.of("/tmp/foo/snap"))),
       )
 
     val targetXml = target.toXml()
@@ -100,7 +99,7 @@ class SelectionStatePersistenceTest {
           |  </handle>
           |  <Snapshot name="snap" path="/tmp/foo/snap" type="LOCAL_EMULATOR" />
           |</Target>"""
-        .trimMargin(),
+        .trimMargin()
     )
 
     assertThat(targetXml.fromXml()).isEqualTo(target)
@@ -114,7 +113,7 @@ class SelectionStatePersistenceTest {
    */
   internal inline fun <reified T : Any> T.assertSerializes(
     expectedText: String,
-    exactMatch: Boolean = false
+    exactMatch: Boolean = false,
   ) {
     val element = XmlSerializer.serialize(this)
     if (exactMatch) {

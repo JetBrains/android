@@ -20,6 +20,7 @@ import com.android.tools.asdriver.proto.AndroidStudioGrpc;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
+import com.android.tools.perflogger.Benchmark;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.system.CpuArch;
@@ -45,6 +46,8 @@ public class AndroidStudio implements AutoCloseable {
   private final Instant creationTime;
 
   private VideoStitcher videoStitcher = null;
+
+  private Benchmark benchmark = null;
 
   static public AndroidStudio run(AndroidStudioInstallation installation,
                                   Display display,
@@ -173,6 +176,15 @@ public class AndroidStudio implements AutoCloseable {
     process.onExit().get();
   }
 
+  public void waitForEmulatorStart(LogFile log, Emulator emulator, String appRegex, long timeout, TimeUnit timeUnit)
+      throws IOException, InterruptedException {
+    log.waitForMatchingLine(
+      String.format(".*AndroidProcessHandler - Adding .*emulator-%s.* to monitor for launched app: %s", emulator.getPortString(), appRegex),
+      timeout,
+      timeUnit
+    );
+  }
+
   @Override
   public void close() throws Exception {
     createVideos();
@@ -195,6 +207,10 @@ public class AndroidStudio implements AutoCloseable {
     ASDriver.GetSystemPropertyRequest rq = ASDriver.GetSystemPropertyRequest.newBuilder().setSystemProperty(systemProperty).build();
     ASDriver.GetSystemPropertyResponse response = androidStudio.getSystemProperty(rq);
     return response.getValue();
+  }
+
+  public void addBenchmark(Benchmark benchmark){
+    this.benchmark = benchmark;
   }
 
   /**
@@ -309,7 +325,8 @@ public class AndroidStudio implements AutoCloseable {
     System.out.println("Waiting for a breakpoint to be hit by the debugger");
 
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
-    builder.addSvgIconMatch(new ArrayList<>(List.of("actions/resume.svg")));
+    builder.addSwingClassRegexMatch(".*JBRunnerTabs")
+      .addSvgIconMatch(new ArrayList<>(List.of("actions/resume.svg")));
     waitForComponent(builder, true);
   }
 
@@ -336,10 +353,14 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
-  public void waitForIndex() {
+  public void waitForIndex() throws IOException, InterruptedException {
+    benchmarkLog("calling_waitForIndex");
     System.out.println("Waiting for indexing to complete");
     ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
+    install.getIdeaLog().reset(); //Log position can be moved past if used after waitForBuild
+    install.getIdeaLog().waitForMatchingLine(".*Unindexed files update took.*", 300, TimeUnit.SECONDS);
+    benchmarkLog("after_waitForIndex");
   }
 
   public void waitForNativeBreakpointHit() throws IOException, InterruptedException {
@@ -442,10 +463,10 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
-  public void waitForProjectInit(){
+  public void waitForProjectInit() {
     // Need to wait for the device selector to be ready
     System.out.println("Wait for ActionToolBar");
-    this.waitForComponentByClass(true, "MyNavBarWrapperPanel", "ActionToolbarImpl", "DeviceAndSnapshotComboBoxAction");
+    this.waitForComponentByClass(true, "MainToolbar", "MyActionToolbarImpl", "DeviceAndSnapshotComboBoxAction");
   }
 
   public List<AnalysisResult> analyzeFile(String file) {
@@ -474,8 +495,10 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForSync() throws IOException, InterruptedException {
+    benchmarkLog("calling_waitForSync");
     // "Infinite" timeout
     waitForSync(1, TimeUnit.DAYS);
+    benchmarkLog("after_waitForSync");
   }
 
   public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
@@ -510,6 +533,12 @@ public class AndroidStudio implements AutoCloseable {
       return "Check the Android Studio stderr log for the cause. See go/e2e-find-log-files for more info.";
     }
     return "Error message: " + errorMessage;
+  }
+
+  private void benchmarkLog(String name){
+    if (benchmark != null){
+      benchmark.log(name, System.currentTimeMillis());
+    }
   }
 
   /**

@@ -204,6 +204,24 @@ class QualifierConfigurationViewModelTest {
   }
 
   @Test
+  fun defaultScreenDimensionFolderConfiguration_resultsValidConfiguration() {
+    // Start the viewModel with an empty/null FolderConfiguration
+    val viewModel = QualifierConfigurationViewModel(FolderConfiguration())
+
+    // Default configurations are used to initialize the user-selected qualifiers
+    val defaultFolderConfiguration = FolderConfiguration.createDefault()
+    val screenWidthConfiguration = viewModel.selectQualifier(defaultFolderConfiguration.screenWidthQualifier!!)!!
+    val screenHeightConfiguration = viewModel.selectQualifier(defaultFolderConfiguration.screenHeightQualifier!!)!!
+    val smallestScreenWidthConfiguration = viewModel.selectQualifier(defaultFolderConfiguration.smallestScreenWidthQualifier!!)!!
+
+    // Assert that the default folder configurations results in QualifierConfiguration(s) that can produce a valid ResourceQualifier without
+    // additional user input (changes to `QualifierConfiguration.parameters`)
+    assertTrue(screenWidthConfiguration.buildQualifier()!!.isValid)
+    assertTrue(screenHeightConfiguration.buildQualifier()!!.isValid)
+    assertTrue(smallestScreenWidthConfiguration.buildQualifier()!!.isValid)
+  }
+
+  @Test
   fun availableQualifiers() {
     val folderConfiguration = FolderConfiguration()
     folderConfiguration.addQualifier(DensityQualifier(Density.create(260)))

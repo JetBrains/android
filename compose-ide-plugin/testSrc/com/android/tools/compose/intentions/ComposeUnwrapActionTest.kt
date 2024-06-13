@@ -39,7 +39,7 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureAdtTestCase() {
     inline fun Column(content: @Composable () -> Unit) {}
     inline fun Box(content: @Composable () -> Unit) {}
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -62,7 +62,7 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureAdtTestCase() {
           }
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val action = myFixture.availableIntentions.find { it.text == "Remove wrapper" }

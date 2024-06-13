@@ -16,10 +16,8 @@
 
 package com.android.tools.sdk;
 
-import static com.intellij.openapi.util.io.FileUtil.pathHashCode;
-import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
@@ -28,14 +26,13 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.google.common.collect.Maps;
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidSdkData {
   private final DeviceManager myDeviceManager;
@@ -43,23 +40,33 @@ public class AndroidSdkData {
   private final AndroidSdkHandler mySdkHandler;
 
   @Nullable
-  public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
+  public static AndroidSdkData getSdkData(@NonNull File sdkLocation) {
     return getSdkData(sdkLocation, false);
   }
 
   @Nullable
-  public static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse) {
+  public static AndroidSdkData getSdkData(@NonNull File sdkLocation, boolean forceReparse) {
     return getSdkData(sdkLocation, forceReparse, true);
   }
 
-  @NotNull
-  public static AndroidSdkData getSdkDataWithoutValidityCheck(@NotNull File sdkLocation, boolean forceReparse) {
-    return Objects.requireNonNull(getSdkData(sdkLocation, forceReparse, false));
+  @NonNull
+  public static AndroidSdkData getSdkDataWithoutValidityCheck(@NonNull File sdkLocation) {
+    return Objects.requireNonNull(getSdkData(sdkLocation, false, false));
   }
 
   @Nullable
-  private static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse, boolean checkValidity) {
-    String canonicalPath = toCanonicalPath(sdkLocation.getPath());
+  private static AndroidSdkData getSdkData(@NonNull File sdkLocation, boolean forceReparse, boolean checkValidity) {
+    String canonicalPath;
+    try {
+      canonicalPath = sdkLocation.getCanonicalPath();
+    } catch (IOException ignore) {
+      if (checkValidity) {
+        return null;
+      } else {
+        // We do not care about whether sdk exists or not, we are using the path as a key
+        canonicalPath = sdkLocation.getPath();
+      }
+    }
 
     // Try to use cached data.
     if (!forceReparse) {
@@ -86,16 +93,16 @@ public class AndroidSdkData {
   }
 
   @Nullable
-  public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
+  public static AndroidSdkData getSdkData(@NonNull String sdkPath) {
     return getSdkData(new File(sdkPath));
   }
 
-  private AndroidSdkData(@NotNull File localSdk) {
+  private AndroidSdkData(@NonNull File localSdk) {
     mySdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, localSdk.toPath());
     myDeviceManager = DeviceManagers.getDeviceManager(mySdkHandler);
   }
 
-  @NotNull
+  @NonNull
   public Path getLocation() {
     Path location = mySdkHandler.getLocation();
     // We only construct AndroidSdkData when we have a local SDK, which means location must not be null.
@@ -103,13 +110,13 @@ public class AndroidSdkData {
     return location;
   }
 
-  @NotNull
+  @NonNull
   public File getLocationFile() {
     return mySdkHandler.getLocation().toFile();
   }
 
   @Deprecated
-  @NotNull
+  @NonNull
   public String getPath() {
     return getLocation().toString();
   }
@@ -119,19 +126,19 @@ public class AndroidSdkData {
     return mySdkHandler.getLatestBuildTool(new LoggerProgressIndicator(getClass()), allowPreview);
   }
 
-  @NotNull
+  @NonNull
   public IAndroidTarget[] getTargets() {
     Collection<IAndroidTarget> targets = getTargetCollection();
     return targets.toArray(new IAndroidTarget[0]);
   }
 
-  @NotNull
+  @NonNull
   private Collection<IAndroidTarget> getTargetCollection() {
     ProgressIndicator progress = new LoggerProgressIndicator(getClass());
     return mySdkHandler.getAndroidTargetManager(progress).getTargets(progress);
   }
 
-  @NotNull
+  @NonNull
   public IAndroidTarget[] getTargets(boolean includeAddOns) {
     Collection<IAndroidTarget> targets = getTargetCollection();
     Collection<IAndroidTarget> result = new ArrayList<>();
@@ -148,12 +155,12 @@ public class AndroidSdkData {
     return result.toArray(new IAndroidTarget[0]);
   }
 
-  private static boolean targetHasId(@NotNull IAndroidTarget target, @NotNull String id) {
+  private static boolean targetHasId(@NonNull IAndroidTarget target, @NonNull String id) {
     return id.equals(target.getVersion().getApiString()) || id.equals(target.getVersionName());
   }
 
   @Nullable
-  public IAndroidTarget findTargetByApiLevel(@NotNull String apiLevel) {
+  public IAndroidTarget findTargetByApiLevel(@NonNull String apiLevel) {
     for (IAndroidTarget target : getTargets()) {
       if (targetHasId(target, apiLevel)) {
         return target;
@@ -163,7 +170,7 @@ public class AndroidSdkData {
   }
 
   @Nullable
-  public IAndroidTarget findTargetByHashString(@NotNull String hashString) {
+  public IAndroidTarget findTargetByHashString(@NonNull String hashString) {
     ProgressIndicator progress = new LoggerProgressIndicator(getClass());
     return mySdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(hashString, progress);
   }
@@ -173,20 +180,20 @@ public class AndroidSdkData {
     if (obj == null) return false;
     if (obj.getClass() != getClass()) return false;
     AndroidSdkData sdkData = (AndroidSdkData)obj;
-    return pathsEqual(getLocation().toString(), sdkData.getLocation().toString());
+    return getLocation().normalize().toAbsolutePath().toString().equals(sdkData.getLocation().normalize().toAbsolutePath().toString());
   }
 
   @Override
   public int hashCode() {
-    return pathHashCode(getLocation().toString());
+    return getLocation().normalize().toAbsolutePath().toString().hashCode();
   }
 
-  @NotNull
+  @NonNull
   public DeviceManager getDeviceManager() {
     return myDeviceManager;
   }
 
-  @NotNull
+  @NonNull
   public AndroidSdkHandler getSdkHandler() {
     return mySdkHandler;
   }

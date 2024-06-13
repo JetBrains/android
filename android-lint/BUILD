@@ -13,9 +13,10 @@ iml_module(
     deps = [
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -23,18 +24,18 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+        "@intellij//:com.intellij.properties",
+        "@intellij//:org.jetbrains.plugins.gradle",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
+        "@intellij//:org.toml.lang",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/analytics[module]",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 
@@ -57,6 +58,9 @@ iml_module(
         },
         "AndroidLintGradleTest": {
             "test_filter": "com.android.tools.idea.lint.AndroidLintGradleTest",
+        },
+        "AndroidLintIdeProjectGradleIntegrationTest": {
+            "test_filter": "com.android.tools.idea.lint.AndroidLintIdeProjectGradleIntegrationTest",
         },
         "other": {},
     },
@@ -81,7 +85,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
@@ -103,10 +108,12 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
+        "@intellij//:org.jetbrains.kotlin[test]",
+        "@intellij//:com.intellij.gradle[test]",
         "//tools/base/lint/libs/lint-tests:studio.android.sdktools.lint.testinfrastructure[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
+        "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative[module, test]",
     ],
 )
 

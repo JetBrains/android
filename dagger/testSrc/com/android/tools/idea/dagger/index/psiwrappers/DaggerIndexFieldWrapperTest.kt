@@ -59,7 +59,7 @@ class DaggerIndexFieldWrapperTest {
         lateinit var bar: Baz
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtProperty = myFixture.findParentElement("b|ar")
@@ -84,7 +84,7 @@ class DaggerIndexFieldWrapperTest {
         val bar = resultOfSomeFunction()
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtProperty = myFixture.findParentElement("b|ar")
@@ -112,7 +112,7 @@ class DaggerIndexFieldWrapperTest {
         val bar: Baz
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtProperty = myFixture.findParentElement("b|ar")
@@ -139,7 +139,7 @@ class DaggerIndexFieldWrapperTest {
         private Baz bar;
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiField = myFixture.findParentElement("b|ar")
@@ -170,7 +170,7 @@ class DaggerIndexFieldWrapperTest {
         private Baz bar;
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiField = myFixture.findParentElement("b|ar")

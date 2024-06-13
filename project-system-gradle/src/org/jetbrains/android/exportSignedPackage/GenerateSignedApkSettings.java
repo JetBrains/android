@@ -18,7 +18,7 @@ public class GenerateSignedApkSettings implements PersistentStateComponent<Gener
   public String KEY_STORE_PATH = "";
   public String KEY_ALIAS = "";
   public boolean REMEMBER_PASSWORDS = false;
-  public String BUILD_TARGET_KEY = ExportSignedPackageWizard.BUNDLE;
+  public String BUILD_TARGET_KEY = ExportSignedPackageWizard.BUNDLE.toString();
 
   @Override
   public GenerateSignedApkSettings getState() {

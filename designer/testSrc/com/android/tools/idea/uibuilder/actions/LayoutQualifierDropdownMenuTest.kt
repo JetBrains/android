@@ -120,7 +120,7 @@ class LayoutQualifierDropdownMenuTest {
         ActionPlaces.UNKNOWN,
         presentation,
         ActionManager.getInstance(),
-        0
+        0,
       )
 
     val action1 = LayoutQualifierDropdownMenu(file)

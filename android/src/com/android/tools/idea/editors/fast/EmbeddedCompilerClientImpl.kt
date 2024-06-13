@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.editors.fast
 
+import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
+import com.android.tools.idea.run.deployment.liveedit.k2.OutputFileForKtCompiledFile
+import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
@@ -39,31 +42,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.backend.common.output.OutputFile
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.createFile
 
-private fun Throwable?.isCompilationError(): Boolean =
-  this is LiveEditUpdateException
-  && when (error) {
-    LiveEditUpdateException.Error.ANALYSIS_ERROR -> message?.startsWith("Analyze Error.") ?: false
-    LiveEditUpdateException.Error.COMPILATION_ERROR -> true
-    LiveEditUpdateException.Error.UNABLE_TO_INLINE,
-    LiveEditUpdateException.Error.NON_KOTLIN,
-    LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION,
-    LiveEditUpdateException.Error.INTERNAL_ERROR,
-    LiveEditUpdateException.Error.INTERNAL_ERROR_NO_BINDING_CONTEXT,
-    LiveEditUpdateException.Error.UNABLE_TO_LOCATE_COMPOSE_GROUP,
-    LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_RECOVERABLE,
-    LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-    LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE,
-    LiveEditUpdateException.Error.UNSUPPORTED_TEST_SRC_CHANGE,
-    LiveEditUpdateException.Error.UNABLE_TO_DESUGAR,
-    LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR,
-    LiveEditUpdateException.Error.BAD_MIN_API,
-    LiveEditUpdateException.Error.KNOWN_ISSUE -> false
-  }
+private fun Throwable?.isCompilationError(): Boolean = this is LiveEditUpdateException && this.isCompilationError()
 
 /**
  * [Throwable] used by the [EmbeddedCompilerClientImpl] during a compilation when the embedded plugin is not being used. This signals
@@ -111,11 +98,21 @@ class EmbeddedCompilerClientImpl private constructor(
   private val inlineCandidateCache = LiveEditService.getInstance(project).inlineCandidateCache()
 
   /**
-   * Compiles the given list of inputs using [module] as context. The output will be generated in the given [outputDirectory] and progress
-   * will be updated in the given [ProgressIndicator].
+   * Compiles the given list of inputs. All inputs must belong to the same module.
+   * The output will be generated in the given [outputDirectory] and progress will be updated in the given [ProgressIndicator].
    */
-  private suspend fun compileKtFiles(inputs: List<KtFile>, module: Module, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
-    log.debug("compileKtFile($inputs, $outputDirectory)")
+  private suspend fun compileModuleKtFiles(inputs: List<KtFile>, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
+    log.debug("compileModuleKtFiles($inputs, $outputDirectory)")
+
+    val moduleForAllInputs = readAction {
+      val modules = inputs.map { it.module }.toSet()
+      modules.singleOrNull() ?: throw LiveEditUpdateException.internalErrorMultiModule(modules)
+    }
+
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      compileKtFilesForK2(inputs, outputDirectory)
+      return@withContext
+    }
 
     val generationState =
       readAction {
@@ -133,7 +130,7 @@ class EmbeddedCompilerClientImpl private constructor(
           ProgressManager.checkCanceled()
           log.debug("backCodeGen")
           try {
-            backendCodeGen(project, analysisResult, inputs, module, inlineCandidates)
+            backendCodeGen(project, analysisResult, inputs, moduleForAllInputs, inlineCandidates)
           }
           catch (e: LiveEditUpdateException) {
             if (e.isCompilationError() || e.cause.isCompilationError()) {
@@ -159,18 +156,36 @@ class EmbeddedCompilerClientImpl private constructor(
 
             // We will need to start using the new analysis for code gen.
             log.debug("backCodeGen retry")
-            backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, module, inlineCandidates)
+            backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, moduleForAllInputs, inlineCandidates)
           }
         }
       }
     log.debug("backCodeGen completed")
 
-    generationState.factory.asList().forEach {
-      log.debug("output: ${it.relativePath}")
-      val path = outputDirectory.resolve(it.relativePath)
-      path.createParentDirectories().createFile()
-      Files.write(path, it.asByteArray())
+    generationState.factory.asList().forEach { it.writeTo(outputDirectory) }
+  }
+
+  private suspend fun compileKtFilesForK2(inputs: List<KtFile>, outputDirectory: Path) {
+    readAction {
+      runWithCompileLock {
+        beforeCompilationStarts()
+        log.debug("backCodeGen")
+        inputs.forEach { inputFile ->
+          val result = backendCodeGenForK2(inputFile, inputFile.module)
+          log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
+          result.output.map { OutputFileForKtCompiledFile(it) }.forEach {
+            it.writeTo(outputDirectory)
+          }
+        }
+      }
     }
+  }
+
+  private fun OutputFile.writeTo(outputDirectory: Path) {
+    log.debug("output: $relativePath")
+    val path = outputDirectory.resolve(relativePath)
+    path.createParentDirectories().createFile()
+    Files.write(path, asByteArray())
   }
 
   override suspend fun compileRequest(
@@ -179,7 +194,7 @@ class EmbeddedCompilerClientImpl private constructor(
     outputDirectory: Path,
     indicator: ProgressIndicator): CompilationResult = coroutineScope {
     daemonLock.withLock(this) {
-      val inputs = files.filterIsInstance<KtFile>().toList()
+      val allKtInputs = files.filterIsInstance<KtFile>().toList()
       val result = CompletableDeferred<CompilationResult>()
       val compilationIndicator = ProgressWrapper.wrap(indicator)
 
@@ -199,7 +214,11 @@ class EmbeddedCompilerClientImpl private constructor(
       }
 
       try {
-        compileKtFiles(inputs, module, outputDirectory = outputDirectory)
+        allKtInputs
+          .groupBy { readAction { it.module } }
+          .forEach { (module, inputs) ->
+            compileModuleKtFiles(inputs, outputDirectory = outputDirectory)
+          }
         result.complete(CompilationResult.Success)
       }
       catch (t: CancellationException) {

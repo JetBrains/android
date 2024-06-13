@@ -29,7 +29,7 @@ import java.awt.RenderingHints
 private val defaultBorderColor =
   JBColor.namedColor(
     "ScreenView.defaultBorderColor",
-    JBColor(Color(0, 0, 0, 40), Color(0, 0, 0, 80))
+    JBColor(Color(0, 0, 0, 40), Color(0, 0, 0, 80)),
   )
 private val selectedBorderColor =
   JBColor.namedColor("ScreenView.selectedBorderColor", JBColor(0x3573f0, 0x548af7))
@@ -39,12 +39,12 @@ private val hoveredBorderColor =
 enum class BorderColor(
   internal val colorInside: Color,
   internal val colorOutside: Color,
-  internal val size: Int
+  internal val size: Int,
 ) {
   DEFAULT_WITH_SHADOW(defaultBorderColor, UIUtil.TRANSPARENT_COLOR, 4),
   DEFAULT_WITHOUT_SHADOW(defaultBorderColor, defaultBorderColor, 1),
   SELECTED(selectedBorderColor, selectedBorderColor, 1),
-  HOVERED(hoveredBorderColor, hoveredBorderColor, 2)
+  HOVERED(hoveredBorderColor, hoveredBorderColor, 2),
 }
 
 class BorderLayer
@@ -53,7 +53,7 @@ constructor(
   private val myScreenView: SceneView,
   private val myMustPaintBorder: Boolean = false,
   private val isRotating: () -> Boolean,
-  private val colorProvider: (SceneView) -> BorderColor = { BorderColor.DEFAULT_WITH_SHADOW }
+  private val colorProvider: (SceneView) -> BorderColor = { BorderColor.DEFAULT_WITH_SHADOW },
 ) : Layer() {
   override fun paint(g2d: Graphics2D) {
     val screenShape = myScreenView.screenShape
@@ -72,7 +72,7 @@ constructor(
         JBUI.scale(borderColor.size),
         borderColor.colorInside,
         borderColor.colorOutside,
-        useHighQuality = true
+        useHighQuality = true,
       )
       .paint(g2d, myScreenView)
   }
@@ -82,7 +82,7 @@ class BorderPainter(
   private val borderThickness: Int,
   colorInside: Color,
   colorOutside: Color,
-  val useHighQuality: Boolean
+  val useHighQuality: Boolean,
 ) {
   private val gradLeft =
     GradientPaint(0f, 0f, colorOutside, borderThickness.toFloat(), 0f, colorInside)
@@ -98,7 +98,7 @@ class BorderPainter(
       borderThickness.toFloat(),
       borderThickness.toFloat(),
       floatArrayOf(0f, 1f),
-      arrayOf(colorInside, colorOutside)
+      arrayOf(colorInside, colorOutside),
     )
 
   fun paint(g2d: Graphics2D, screenView: SceneView) {
@@ -144,7 +144,7 @@ class BorderPainter(
       // Smoothen the corner shadows
       g2d.setRenderingHint(
         RenderingHints.KEY_INTERPOLATION,
-        RenderingHints.VALUE_INTERPOLATION_BILINEAR
+        RenderingHints.VALUE_INTERPOLATION_BILINEAR,
       )
       g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     }

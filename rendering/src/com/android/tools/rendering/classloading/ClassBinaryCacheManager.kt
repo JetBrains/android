@@ -28,6 +28,7 @@ import kotlin.concurrent.withLock
 private const val MAX_WEIGHT_BYTES =
   100_000_000L // We will store no more than 100Mb of cached classes
 private const val EXPIRE_MINUTES = 30L // We will store cached classes for no longer than 30 minutes
+
 /** A class binary representation cache. */
 class ClassBinaryCacheManager
 private constructor(ticker: Ticker, maxWeight: Long, expireMinutes: Long) {

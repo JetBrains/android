@@ -17,8 +17,9 @@ package com.android.tools.idea.templates.diff
 
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.RenderTemplateModel
+import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
@@ -68,9 +69,9 @@ class TemplateDiffTest(private val testMode: TestMode) {
      * fast.
      *
      * When we need to validate and generate the golden files however, we run the first part,
-     * VALIDATING, with Gradle sync, which calls into BaselineValidator that also builds and Lints.
-     * Then, after the template is validated, we generate the golden files WITHOUT Gradle sync, to
-     * have them be diff-able without syncing.
+     * VALIDATING, with Gradle sync, which calls into [GoldenFileValidator] that also builds and
+     * Lints. Then, after the template is validated, we generate the golden files WITHOUT Gradle
+     * sync, to have them be diff-able without syncing.
      */
     @JvmStatic
     @Parameters(name = "{0}")
@@ -85,11 +86,20 @@ class TemplateDiffTest(private val testMode: TestMode) {
     /**
      * Gets the system property for whether to generate and overwrite the golden files. This can be
      * run from Bazel with the option: --test_env=GENERATE_GOLDEN=true
-     *
-     * Or from IDEA by setting the environment variable: GENERATE_GOLDEN=true
      */
     private fun shouldGenerateGolden(): Boolean {
       return System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
+    }
+
+    /**
+     * Gets the system property for whether to fail the test suite on first error with "previous
+     * validation failed" or to run all of the validation tests. The former is enabled by default
+     * and could be more useful for people not expecting errors, since te full suite takes a long
+     * time (~45+ minutes) to run. The latter is more useful for people making large-scale changes
+     * who want to fix more errors at once.
+     */
+    private fun shouldFailEarly(): Boolean {
+      return !(System.getenv("RUN_FULL_VALIDATION")?.equals("true") ?: false)
     }
   }
 
@@ -101,7 +111,12 @@ class TemplateDiffTest(private val testMode: TestMode) {
       System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
     )
 
-    assertFalse("Previous validation failed", validationFailed)
+    // By default, this makes the suite fail early if there is a validation error. If
+    // RUN_FULL_VALIDATION is set, then all validation is run, but golden generation is still
+    // cancelled
+    if (shouldFailEarly() || testMode == TestMode.GENERATING) {
+      assertFalse("Previous validation failed", validationFailed)
+    }
 
     println("Current test mode: $testMode")
     if (testMode != TestMode.DIFFING) {
@@ -160,13 +175,17 @@ class TemplateDiffTest(private val testMode: TestMode) {
         when (testMode) {
           TestMode.DIFFING -> ProjectDiffer(template, goldenDirName)
           TestMode.VALIDATING ->
-            BaselineValidator(template, goldenDirName, projectRule as AndroidGradleProjectRule)
-          TestMode.GENERATING -> BaselineGenerator(template, goldenDirName)
+            GoldenFileValidator(template, goldenDirName, projectRule as AndroidGradleProjectRule)
+          TestMode.GENERATING -> GoldenFileGenerator(template, goldenDirName)
         }
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
       projectRenderer.renderProject(project, *customizers)
+
+      if (testMode == TestMode.GENERATING) {
+        printUnzipInstructions()
+      }
     }
     println("Checked $name ($goldenDirName) successfully in ${msToCheck}ms\n")
     validationFailed = false
@@ -204,7 +223,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   private fun withKotlin(
-    kotlinVersion: String = TestUtils.KOTLIN_VERSION_FOR_TESTS
+    kotlinVersion: String = DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
   ): ProjectStateCustomizer =
     { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
@@ -230,6 +249,24 @@ class TemplateDiffTest(private val testMode: TestMode) {
           .paths
       moduleData.setModuleRoots(paths, projectData.topOut!!.path, moduleData.name!!, packageName)
     }
+
+  private fun printUnzipInstructions() {
+    println("\n----------------------------------------")
+    println(
+      "Outputting generated golden and Lint baseline files to undeclared outputs\n\n" +
+        "To update these files, unzip golden/ and lintBaseline/ from outputs.zip to the android-templates/testData/golden directory.\n" +
+        "For a remote invocation, download and unzip golden/ and lintBaseline/ from outputs.zip:\n" +
+        "    unzip outputs.zip \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
+        "    unzip outputs.zip \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
+        "\n" +
+        "For a local invocation, outputs.zip will be in bazel-testlogs:\n" +
+        "    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
+        "    \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
+        "    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
+        "    \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\""
+    )
+    println("----------------------------------------\n")
+  }
 
   /*
    * Tests for individual activity templates go below here. Each test method should only test one
@@ -271,12 +308,8 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
-  fun testNewBasicActivityMaterial3() {
-    val withMaterial3: ProjectStateCustomizer =
-      { moduleData: ModuleTemplateDataBuilder, _: ProjectTemplateDataBuilder ->
-        moduleData.isMaterial3 = true
-      }
-    checkCreateTemplate("Basic Views Activity", withKotlin(), withMaterial3)
+  fun testNewBasicViewsActivityWithKotlin() {
+    checkCreateTemplate("Basic Views Activity", withKotlin())
   }
 
   @Test
@@ -706,6 +739,15 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @Test
   fun testAutomotiveMediaServiceWithKotlin() {
     checkCreateTemplate("Media Service", withKotlin())
+  }
+
+  @Test
+  fun testGeminiStarter() {
+    checkCreateTemplate(
+      "Gemini API Starter",
+      withSpecificKotlin,
+      templateStateCustomizer = mapOf("API Key" to "abcd")
+    )
   }
 }
 

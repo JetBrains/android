@@ -81,7 +81,6 @@ class TaskProfilersViewTest(private val isTestingProfileable: Boolean) {
   @Before
   fun setUp() {
     ideProfilerServices.enableTaskBasedUx(true)
-    ideProfilerServices.enableEnergyProfiler(true)
     studioProfilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     studioProfilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     view = TaskProfilersView(studioProfilers, FakeIdeProfilerComponents(), disposableRule.disposable)

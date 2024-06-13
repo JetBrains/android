@@ -46,7 +46,7 @@ class ComposePreviewRepresentationProviderTest {
   val rule =
     RuleChain(
       projectRule,
-      ApplicationServiceRule(AndroidEditorSettings::class.java, androidEditorSettings)
+      ApplicationServiceRule(AndroidEditorSettings::class.java, androidEditorSettings),
     )
 
   private val project
@@ -81,7 +81,7 @@ class ComposePreviewRepresentationProviderTest {
         fun Preview2() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertTrue(previewProvider.accept(project, file))
@@ -117,7 +117,7 @@ class ComposePreviewRepresentationProviderTest {
         fun Composable2() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertTrue(previewProvider.accept(project, file))
@@ -144,7 +144,7 @@ class ComposePreviewRepresentationProviderTest {
         fun helloMethod() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertTrue(previewProvider.accept(project, file))
@@ -171,7 +171,7 @@ class ComposePreviewRepresentationProviderTest {
         class Java {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertFalse(previewProvider.accept(project, file))

@@ -102,7 +102,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
         presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
         presentation.isEnabled = false
       }
-      !hasComposeMinAgpVersion(module.project, category) -> {
+      templateConstraints.contains(TemplateConstraint.Compose) && !hasComposeMinAgpVersion(module.project) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.new.agp", templateName, COMPOSE_MIN_AGP_VERSION)
         presentation.isEnabled = false
       }

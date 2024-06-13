@@ -78,7 +78,7 @@ class AppInsightsSettingsTest {
           failureTypes = listOf(FailureType.FATAL.name),
           versions = listOf(version.value.toSetting()),
           devices = listOf(device.value.toSetting()),
-          operatingSystems = listOf(operatingSystem.value.toSetting())
+          operatingSystems = listOf(operatingSystem.value.toSetting()),
         )
 
       // Check settings are correctly applied to the state
@@ -114,7 +114,7 @@ class AppInsightsSettingsTest {
           listOf(DEFAULT_FETCHED_VERSIONS, version),
           listOf(DEFAULT_FETCHED_DEVICES, device),
           listOf(DEFAULT_FETCHED_OSES, operatingSystem),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       controllerRule.consumeInitialState(LoadingState.Ready(issueResponse))
       controllerRule.selectVersions(setOf(version.value))
@@ -144,7 +144,7 @@ class AppInsightsSettingsTest {
         assertThat(timeIntervalDays).isEqualTo(TimeIntervalFilter.NINETY_DAYS.name)
         assertThat(visibilityType).isEqualTo(VisibilityType.USER_PERCEIVED.name)
         assertThat(signal).isEqualTo(SignalType.SIGNAL_REGRESSED.name)
-        assertThat(failureTypes).containsExactly(FailureType.NON_FATAL.name)
+        assertThat(failureTypes).containsExactly(FailureType.NON_FATAL.name, FailureType.ANR.name)
         assertThat(versions).containsExactly(version.value.toSetting())
         assertThat(devices).containsExactly(device.value.toSetting())
         assertThat(operatingSystems).containsExactly(operatingSystem.value.toSetting())
@@ -165,7 +165,7 @@ class AppInsightsSettingsTest {
           failureTypes = listOf(FailureType.FATAL.name),
           versions = listOf(version.value.toSetting()),
           devices = listOf(device.value.toSetting()),
-          operatingSystems = listOf(operatingSystem.value.toSetting())
+          operatingSystems = listOf(operatingSystem.value.toSetting()),
         )
 
       controllerRule.updateConnections(listOf(CONNECTION1))
@@ -196,7 +196,7 @@ class AppInsightsSettingsTest {
         failureTypes = listOf(FailureType.FATAL.name),
         versions = listOf(version.value.toSetting()),
         devices = listOf(device.value.toSetting()),
-        operatingSystems = listOf(operatingSystem.value.toSetting())
+        operatingSystems = listOf(operatingSystem.value.toSetting()),
       )
 
     // Update connections
@@ -215,7 +215,7 @@ class AppInsightsSettingsTest {
         listOf(DEFAULT_FETCHED_VERSIONS),
         listOf(DEFAULT_FETCHED_DEVICES),
         listOf(DEFAULT_FETCHED_OSES),
-        DEFAULT_FETCHED_PERMISSIONS
+        DEFAULT_FETCHED_PERMISSIONS,
       )
   ): AppInsightsState {
     controllerRule.client.completeIssuesCallWith(LoadingState.Ready(issueResponse))

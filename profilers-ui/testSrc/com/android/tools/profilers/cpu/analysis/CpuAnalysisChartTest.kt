@@ -63,7 +63,7 @@ class CpuAnalysisChartTest {
 
   @Test
   fun filterIsApplied() {
-    val capture = CpuProfilerUITestUtils.validCapture()
+    val capture = CpuProfilerUITestUtils.validCapture(profilersView.studioProfilers)
     val model = CpuAnalysisChartModel<CpuCapture>(CpuAnalysisTabModel.Type.TOP_DOWN, Range(capture.range), capture,
                                                   { capture.captureNodes },
                                                   Utils::runOnUi)

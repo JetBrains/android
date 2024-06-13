@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.USER_SETTINGS_INI_PREFERRED_ABI;
 import static com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection;
 
 import com.android.annotations.NonNull;
@@ -33,14 +34,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.Function;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class LaunchableAndroidDevice implements AndroidDevice {
   private static final Map<Abi, List<Abi>> ABI_MAPPINGS = ImmutableMap.of(
@@ -108,24 +109,26 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
     return Collections.singletonList(abi);
   }
 
+  @Nullable
+  @Override
+  public String getAppPreferredAbi() {
+    return myAvdInfo.getUserSettings().get(USER_SETTINGS_INI_PREFERRED_ABI);
+  }
+
   @NotNull
   @Override
   public String getSerial() {
-    return myAvdInfo.getId();
+    return "AVD: " +  myAvdInfo.getId();
   }
 
   @Override
   public boolean supportsFeature(@NotNull IDevice.HardwareFeature feature) {
-    switch (feature) {
-      case WATCH:
-        return SystemImageTags.WEAR_TAG.equals(myAvdInfo.getTag());
-      case TV:
-        return SystemImageTags.ANDROID_TV_TAG.equals(myAvdInfo.getTag()) || SystemImageTags.GOOGLE_TV_TAG.equals(myAvdInfo.getTag());
-      case AUTOMOTIVE:
-        return SystemImageTags.AUTOMOTIVE_TAG.equals(myAvdInfo.getTag());
-      default:
-        return true;
-    }
+    return switch (feature) {
+      case WATCH -> SystemImageTags.isWearImage(myAvdInfo.getTags());
+      case TV -> SystemImageTags.isTvImage(myAvdInfo.getTags());
+      case AUTOMOTIVE -> SystemImageTags.isAutomotiveImage(myAvdInfo.getTags());
+      default -> true;
+    };
   }
 
   @Override
@@ -190,8 +193,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   public LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                                     @NotNull IAndroidTarget projectTarget,
-                                    @NotNull AndroidFacet facet,
-                                    Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
+                                    @NotNull Supplier<EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
                                     @NonNull Set<Abi> supportedAbis) {
     LaunchCompatibility compatibility = LaunchCompatibility.YES;
 
@@ -206,7 +208,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
       }
     }
     return compatibility
-      .combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, facet, getRequiredHardwareFeatures, supportedAbis, this));
+      .combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, getRequiredHardwareFeatures, supportedAbis, this));
   }
 
   @NotNull

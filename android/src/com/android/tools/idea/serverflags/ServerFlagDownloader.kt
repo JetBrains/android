@@ -19,7 +19,7 @@ import com.google.common.io.ByteStreams
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import java.io.File
 import java.io.IOException
 import java.net.URL
@@ -99,8 +99,8 @@ class ServerFlagDownloader {
     }
   }
 
-  private class Initializer : StartupActivity.Background {
-    override fun runActivity(project: Project) {
+  private class Initializer : ProjectActivity {
+    override suspend fun execute(project: Project) {
       // Trigger initialization of ServerFlagDownloader
       getInstance();
     }

@@ -143,7 +143,7 @@ public class TransportServiceProxyTest {
   public void profileableClientsAlsoCached() throws Exception {
     Client client1 = createMockClient(1, "test1", "name1");
     ProfileableClient client2 = createMockProfileableClient(2, "name2");
-    IDevice device = createMockDevice(AndroidVersion.VersionCodes.S, new Client[]{client1}, new ProfileableClient[] { client2 });
+    IDevice device = createMockDevice(AndroidVersion.VersionCodes.S, new Client[]{client1}, new ProfileableClient[]{client2});
     Common.Device transportDevice = TransportServiceProxy.transportDeviceFromIDevice(device);
     TransportServiceProxy proxy =
       new TransportServiceProxy(device, transportDevice,
@@ -303,7 +303,7 @@ public class TransportServiceProxyTest {
       }
 
       @Override
-      public void onCompleted() {}
+      public void onCompleted() { }
     });
     Common.Event eventToPreprocess = Common.Event.newBuilder().setPid(1).setKind(Common.Event.Kind.ECHO).setIsEnded(true).build();
     Common.Event eventToIgnore = Common.Event.newBuilder().setPid(1).setIsEnded(true).build();
@@ -354,10 +354,10 @@ public class TransportServiceProxyTest {
       }
 
       @Override
-      public void onError(Throwable throwable) { assert false;}
+      public void onError(Throwable throwable) { assert false; }
 
       @Override
-      public void onCompleted() {}
+      public void onCompleted() { }
     };
 
     // Run test.
@@ -377,7 +377,7 @@ public class TransportServiceProxyTest {
   public void bootIdIsSetCorrectly() throws Exception {
     Client client1 = createMockClient(1, "test1", "name1");
     ProfileableClient client2 = createMockProfileableClient(2, "name2");
-    IDevice device = createMockDevice(AndroidVersion.VersionCodes.S, new Client[]{client1}, new ProfileableClient[] { client2 });
+    IDevice device = createMockDevice(AndroidVersion.VersionCodes.S, new Client[]{client1}, new ProfileableClient[]{client2});
     Common.Device transportDevice = TransportServiceProxy.transportDeviceFromIDevice(device);
     assertThat(transportDevice.getBootId()).isEqualTo("boot-id");
   }
@@ -398,7 +398,8 @@ public class TransportServiceProxyTest {
   private IDevice createMockDevice(int version, @NotNull Client[] clients, @NotNull ProfileableClient[] profileables) throws Exception {
     ProfileableClient[] allProfileables =
       version >= AndroidVersion.VersionCodes.S
-      ? Stream.concat(Arrays.stream(clients).map(this::createMockProfileableClient), Arrays.stream(profileables)).toList().toArray(ProfileableClient[]::new)
+      ? Stream.concat(Arrays.stream(clients).map(this::createMockProfileableClient), Arrays.stream(profileables)).toList()
+        .toArray(ProfileableClient[]::new)
       : new ProfileableClient[0];
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getSerialNumber()).thenReturn("Serial");

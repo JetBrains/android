@@ -1,14 +1,14 @@
 Root 1:
-     600KB/1 objects          (root): java.util.LinkedList
-     600KB/1 objects          +-last: java.util.LinkedList$Node
-     600KB/1 objects   (rep)  | +-prev: java.util.LinkedList$Node
-     600KB/2 objects          | | item: java.lang.String
-     600KB/2 objects          | | value: [B
-       48B/1 objects          | \-item: java.lang.String
-       24B/1 objects          |   value: [B
-      144B/1 objects          \-first: java.util.LinkedList$Node
-       72B/1 objects            +-next: java.util.LinkedList$Node
-       48B/1 objects            | item: java.lang.String
-       24B/1 objects            | value: [B
-       48B/1 objects            \-item: java.lang.String
-       24B/1 objects              value: [B
+ 600KB          1          (root): java.util.LinkedList
+ 600KB          1          +-last: java.util.LinkedList$Node
+ 600KB          1   (rep)  | +-prev: java.util.LinkedList$Node
+ 600KB          2          | | item: java.lang.String
+ 600KB          2          | | value: [B
+   48B          1          | \-item: java.lang.String
+   24B          1          |   value: [B
+  144B          1          \-first: java.util.LinkedList$Node
+   72B          1            +-next: java.util.LinkedList$Node
+   48B          1            | item: java.lang.String
+   24B          1            | value: [B
+   48B          1            \-item: java.lang.String
+   24B          1              value: [B

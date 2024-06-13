@@ -22,12 +22,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.gradle.project.build.quickFixes.DescribedOpenGradleJdkSettingsQuickfix;
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenJavaLanguageSpecQuickFix;
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenSourceCompatibilityLinkQuickFix;
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenTargetCompatibilityLinkQuickFix;
 import com.android.tools.idea.gradle.project.build.quickFixes.PickLanguageLevelInPSDQuickFix;
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix;
-import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix;
+import com.android.tools.idea.gradle.project.sync.quickFixes.AbstractSetJavaLanguageLevelQuickFix;
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.BuildIssueEvent;
 import com.intellij.build.events.MessageEvent;
@@ -35,6 +37,7 @@ import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.issue.BuildIssue;
 import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.build.output.BuildOutputInstantReader;
+import com.intellij.pom.java.LanguageLevel;
 import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -115,9 +118,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "warning: [options] source value 7 is obsolete and will be removed in a future release";
     String expectedMessage = "[options] source value 7 is obsolete and will be removed in a future release";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class,
-              OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING, LanguageLevel.JDK_1_8);
   }
 
   @Test
@@ -125,8 +128,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "warning: [options] source value 8 is obsolete and will be removed in a future release";
     String expectedMessage = "[options] source value 8 is obsolete and will be removed in a future release";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING);
+      List.of(DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class,
+              OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING, null);
   }
 
   @Test
@@ -134,9 +138,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "error: Source option 6 is no longer supported. Use 7 or later.";
     String expectedMessage = "Source option 6 is no longer supported. Use 7 or later.";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class,
-              OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR, LanguageLevel.JDK_1_8);
   }
 
   @Test
@@ -144,9 +148,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "error: Source option 7 is no longer supported. Use 8 or later.";
     String expectedMessage = "Source option 7 is no longer supported. Use 8 or later.";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class,
-              OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR, LanguageLevel.JDK_1_8);
   }
 
   @Test
@@ -154,8 +158,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "error: Source option 7 is no longer supported. Use 9 or later.";
     String expectedMessage = "Source option 7 is no longer supported. Use 9 or later.";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR, LanguageLevel.JDK_1_9);
   }
 
   @Test
@@ -163,8 +168,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "error: Source option 8 is no longer supported. Use 9 or later.";
     String expectedMessage = "Source option 8 is no longer supported. Use 9 or later.";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR, LanguageLevel.JDK_1_9);
   }
 
   @Test
@@ -172,9 +178,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "warning: [options] target value 7 is obsolete and will be removed in a future release";
     String expectedMessage = "[options] target value 7 is obsolete and will be removed in a future release";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class,
-              OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING, LanguageLevel.JDK_1_8);
   }
 
   @Test
@@ -182,8 +188,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "warning: [options] target value 8 is obsolete and will be removed in a future release";
     String expectedMessage = "[options] target value 8 is obsolete and will be removed in a future release";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING);
+      List.of(DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class,
+              OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING, null);
   }
 
   @Test
@@ -191,9 +198,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "error: Target option 6 is no longer supported. Use 7 or later.";
     String expectedMessage = "Target option 6 is no longer supported. Use 7 or later.";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class,
-              OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR, LanguageLevel.JDK_1_8);
   }
 
   @Test
@@ -201,9 +208,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "error: Target option 7 is no longer supported. Use 8 or later.";
     String expectedMessage = "Target option 7 is no longer supported. Use 8 or later.";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class,
-              OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR, LanguageLevel.JDK_1_8);
   }
 
   @Test
@@ -211,8 +218,9 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "error: Target option 7 is no longer supported. Use 9 or later.";
     String expectedMessage = "Target option 7 is no longer supported. Use 9 or later.";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR, LanguageLevel.JDK_1_9);
   }
 
   @Test
@@ -220,14 +228,16 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "error: Target option 8 is no longer supported. Use 9 or later.";
     String expectedMessage = "Target option 8 is no longer supported. Use 9 or later.";
     List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
-      List.of(PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
-    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+      List.of(SetJavaLanguageLevelAllQuickFix.class, DescribedOpenGradleJdkSettingsQuickfix.class, PickLanguageLevelInPSDQuickFix.class,
+              OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR, LanguageLevel.JDK_1_9);
   }
 
   private void verifyJavaLanguageLevel(@NotNull String line,
                                        @NotNull String expectedMessage,
                                        @NotNull List<Class<? extends DescribedBuildIssueQuickFix>> expectedQuickFixes,
-                                       MessageEvent.Kind kind) {
+                                       @NotNull MessageEvent.Kind kind,
+                                       @Nullable LanguageLevel quickFixLevel) {
     ArgumentCaptor<BuildEvent> messageCaptor = ArgumentCaptor.forClass(BuildEvent.class);
     when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
     assertTrue(myParser.parse(line, myReader, myConsumer));
@@ -242,5 +252,10 @@ public class AndroidGradlePluginOutputParserTest {
     assertThat(issue.getDescription()).startsWith(expectedMessage);
     List<BuildIssueQuickFix> fixes = issue.getQuickFixes();
     assertThat(fixes.stream().map(BuildIssueQuickFix::getClass).toList()).isEqualTo(expectedQuickFixes);
+    for (BuildIssueQuickFix fix : fixes) {
+      if (fix instanceof AbstractSetJavaLanguageLevelQuickFix) {
+        assertThat(((AbstractSetJavaLanguageLevelQuickFix)fix).getLevel()).isEqualTo(quickFixLevel);
+      }
+    }
   }
 }

@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
@@ -31,9 +32,9 @@ import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensi
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TOP_BAR_END_PADDING_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TOP_BAR_HEIGHT_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TOP_BAR_START_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.TOP_BAR_TITLE
+import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
@@ -66,9 +67,8 @@ fun TopBar(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerCompone
         ideProfilerComponents.openTaskConfigurationsDialog(model, ideServices)
       }) {
       Icon(
-        resource = TaskBasedUxIcons.TASK_CONFIG_ICON.path,
+        painter = StudioIconsCompose.Common.Settings().getPainter().value,
         contentDescription = TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC,
-        iconClass = TaskBasedUxIcons.TASK_CONFIG_ICON.iconClass,
         modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP)
       )
     }

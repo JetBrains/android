@@ -58,7 +58,7 @@ class AddComposableAnnotationQuickFixTest {
          content()
        }
        """
-          .trimIndent()
+          .trimIndent(),
       )
       .also {
         invokeAndWaitIfNeeded {
@@ -79,7 +79,7 @@ class AddComposableAnnotationQuickFixTest {
          }
        }
        """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("Composable|Function()  // invocation")
@@ -98,7 +98,7 @@ class AddComposableAnnotationQuickFixTest {
           ComposableFunction()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("NonComposable|Function")
@@ -131,7 +131,7 @@ class AddComposableAnnotationQuickFixTest {
           ComposableFunction()  // invocation
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("Composable|Function()  // invocation")
@@ -161,7 +161,7 @@ class AddComposableAnnotationQuickFixTest {
       @Composable
       fun ComposableFunction() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.loadNewFile(
@@ -172,7 +172,7 @@ class AddComposableAnnotationQuickFixTest {
           ComposableFunction()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("NonComposable|Function")
@@ -209,7 +209,7 @@ class AddComposableAnnotationQuickFixTest {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("NonComposable|Function", "NonComposableFunction")
@@ -252,7 +252,7 @@ class AddComposableAnnotationQuickFixTest {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("Composable|Function()  // invocation")
@@ -293,12 +293,12 @@ class AddComposableAnnotationQuickFixTest {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Currently only showing a fix on the invocation.
-    // TODO(b/309364913) compose compiler shouldn't mark NonComposableFunction with COMPOSABLE_EXPECTED
-    //assertQuickFixNotAvailable("fun NonComposable|Function() {")
+    // TODO(b/309364913) compiler shouldn't mark NonComposableFunction with COMPOSABLE_EXPECTED
+    // assertQuickFixNotAvailable("fun NonComposable|Function() {")
     assertQuickFixNotAvailable("functionThatTake|sALambda {")
     assertQuickFixNotAvailable("cont|ent")
     assertQuickFixNotAvailable("() -|> Unit")
@@ -338,12 +338,12 @@ class AddComposableAnnotationQuickFixTest {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Currently only showing a fix on the invocation.
-    // TODO(b/309364913) compose compiler shouldn't mark NonComposableFunction with COMPOSABLE_EXPECTED
-    //assertQuickFixNotAvailable("fun NonComposable|Function() {")
+    // TODO(b/309364913) compiler shouldn't mark NonComposableFunction with COMPOSABLE_EXPECTED
+    // assertQuickFixNotAvailable("fun NonComposable|Function() {")
     assertQuickFixNotAvailable("functionTypedValThatTake|sALambda {")
     assertQuickFixNotAvailable("cont|ent")
     assertQuickFixNotAvailable("() -|> Unit")
@@ -389,7 +389,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
@@ -422,7 +422,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     invokeQuickFix("prop|erty", "property.get()")
@@ -480,7 +480,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // The compiler reports this error on the property, even though it's the getter function that
@@ -545,7 +545,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // @Composable is not allowed on setters, so we shouldn't suggest adding it.
@@ -573,7 +573,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
@@ -620,11 +620,10 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
-    assertQuickFixNotAvailable("val prop|erty")
 
     invokeQuickFix("Composable|Function()  // invocation")
 
@@ -664,13 +663,54 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
-    assertQuickFixNotAvailable("val prop|erty")
 
     invokeQuickFix("fun|()")
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable fun ComposableFunction() {}
+      fun getMyClass(): Any {
+          class MyClass {
+              val property = @Composable
+              fun() {
+                  ComposableFunction()  // invocation
+              }
+          }
+          return MyClass()
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
+  fun errorInPropertyInitializerWithAnonymousFunction_invokeOnProperty() {
+    myFixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable fun ComposableFunction() {}
+      fun getMyClass(): Any {
+          class MyClass {
+              val property = fun() {
+                  ComposableFunction()  // invocation
+              }
+          }
+          return MyClass()
+      }
+      """
+        .trimIndent(),
+    )
+
+    assertQuickFixNotAvailable("fun getMy|Class(): Any")
+    invokeQuickFix("prop|erty")
 
     myFixture.checkResult(
       // language=kotlin
@@ -709,7 +749,7 @@ class AddComposableAnnotationQuickFixTest {
           return MyClass()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")

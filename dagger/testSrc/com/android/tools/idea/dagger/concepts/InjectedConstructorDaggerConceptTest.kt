@@ -76,7 +76,7 @@ class InjectedConstructorDaggerConceptTest {
       class Foo constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("construct|or")
@@ -98,7 +98,7 @@ class InjectedConstructorDaggerConceptTest {
       class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("construct|or")
@@ -113,7 +113,7 @@ class InjectedConstructorDaggerConceptTest {
         "Baz",
         setOf(
           InjectedConstructorParameterIndexValue(FOO_ID, "arg2"),
-          InjectedConstructorParameterIndexValue(FOO_ID, "arg3")
+          InjectedConstructorParameterIndexValue(FOO_ID, "arg3"),
         ),
       )
   }
@@ -131,7 +131,7 @@ class InjectedConstructorDaggerConceptTest {
       class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("construct|or")
@@ -155,7 +155,7 @@ class InjectedConstructorDaggerConceptTest {
         fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("someFunc|tion")
@@ -177,7 +177,7 @@ class InjectedConstructorDaggerConceptTest {
       @Inject
       fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtFunction = myFixture.findParentElement("someFunc|tion")
@@ -210,7 +210,7 @@ class InjectedConstructorDaggerConceptTest {
       }
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val constructor1Element: KtConstructor<*> =
@@ -222,7 +222,8 @@ class InjectedConstructorDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(constructor1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   @Test
@@ -246,7 +247,7 @@ class InjectedConstructorDaggerConceptTest {
       }
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val constructor1Element: PsiMethod =
@@ -257,7 +258,8 @@ class InjectedConstructorDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(constructor1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   @Test
@@ -286,7 +288,7 @@ class InjectedConstructorDaggerConceptTest {
       }
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val parameter1Element: KtParameter =
@@ -299,7 +301,8 @@ class InjectedConstructorDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(parameter1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   @Test
@@ -325,7 +328,7 @@ class InjectedConstructorDaggerConceptTest {
       }
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val parameter1Element: PsiParameter =
@@ -339,7 +342,8 @@ class InjectedConstructorDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(parameter1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   companion object {

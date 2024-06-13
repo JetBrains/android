@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
@@ -28,6 +29,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -46,7 +48,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD),
       )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     assertThat(property.children).hasSize(3)
@@ -66,7 +68,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD),
       )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     val italic = property.flag(TextStyle.VALUE_ITALIC)
@@ -84,7 +86,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD),
       )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     val bold = property.flag(TextStyle.VALUE_BOLD)
@@ -106,7 +108,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER),
       )
     val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
     val center = property.flag(GRAVITY_VALUE_CENTER)
@@ -128,7 +130,7 @@ class NlFlagsPropertyItemTest {
     val components =
       createComponents(
         projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER)
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER),
       )
     val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
     assertThat(property.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
@@ -154,7 +156,7 @@ class NlFlagsPropertyItemTest {
   private fun createFlagsPropertyItem(
     attrName: String,
     type: NlPropertyType,
-    components: List<NlComponent>
+    components: List<NlComponent>,
   ): NlFlagsPropertyItem {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
@@ -165,6 +167,13 @@ class NlFlagsPropertyItemTest {
         ?.attributeDefinitions
         ?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
     return NlFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", "", model, components)
+      .also {
+        runBlocking {
+          // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
+          // asynchronously.
+          delayUntilCondition(10) { it.resolver != null }
+        }
+      }
   }
 
   @Language("XML")

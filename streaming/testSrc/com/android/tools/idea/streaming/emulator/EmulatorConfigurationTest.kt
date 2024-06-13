@@ -18,12 +18,14 @@ package com.android.tools.idea.streaming.emulator
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.google.common.jimfs.Jimfs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
 import org.junit.Test
+import java.awt.Dimension
 
 /**
  * Tests for [EmulatorConfiguration].
@@ -50,10 +52,11 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(1440)
     assertThat(config?.displayHeight).isEqualTo(2960)
     assertThat(config?.density).isEqualTo(480)
+    assertThat(config?.additionalDisplays).isEmpty()
     assertThat(config?.skinFolder?.toString()?.replace('\\', '/'))
         .endsWith("tools/adt/idea/artwork/resources/device-art-resources/pixel_3_xl")
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
@@ -76,14 +79,41 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(1600)
     assertThat(config?.displayHeight).isEqualTo(2560)
     assertThat(config?.density).isEqualTo(320)
+    assertThat(config?.additionalDisplays).isEmpty()
     assertThat(config?.skinFolder?.toString()?.replace('\\', '/')).isEqualTo("${baseDir}/Android/Sdk/skins/nexus_10")
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.LANDSCAPE)
     assertThat(config?.displayModes).isEmpty()
     assertThat(config?.postures).isEmpty()
     assertThat(config?.api).isEqualTo(29)
+  }
+
+  @Test
+  fun testAutomotive() {
+    // Prepare.
+    val avdFolder = FakeEmulator.createAutomotiveAvd(avdParentFolder, sdkFolder, api = 32)
+
+    // Act.
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+
+    // Assert.
+    assertThat(config).isNotNull()
+    assertThat(config?.avdFolder).isEqualTo(avdFolder)
+    assertThat(config?.avdName).isEqualTo("Automotive 1024p landscape API 32")
+    assertThat(config?.displayWidth).isEqualTo(1024)
+    assertThat(config?.displayHeight).isEqualTo(768)
+    assertThat(config?.density).isEqualTo(160)
+    assertThat(config?.additionalDisplays).containsExactly(6, Dimension(400, 600), 7, Dimension(3000, 600))
+    assertThat(config?.skinFolder).isNull()
+    assertThat(config?.hasAudioOutput).isTrue()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.AUTOMOTIVE)
+    assertThat(config?.hasOrientationSensors).isFalse()
+    assertThat(config?.initialOrientation).isEqualTo(SkinRotation.LANDSCAPE)
+    assertThat(config?.displayModes).isEmpty()
+    assertThat(config?.postures).isEmpty()
+    assertThat(config?.api).isEqualTo(32)
   }
 
   @Test
@@ -101,9 +131,10 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(320)
     assertThat(config?.displayHeight).isEqualTo(320)
     assertThat(config?.density).isEqualTo(240)
+    assertThat(config?.additionalDisplays).isEmpty()
     assertThat(config?.skinFolder?.toString()).isEqualTo(FakeEmulator.getSkinFolder("wearos_small_round").toString())
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isTrue()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.WEAR)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
@@ -126,9 +157,10 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(2208)
     assertThat(config?.displayHeight).isEqualTo(1840)
     assertThat(config?.density).isEqualTo(420)
+    assertThat(config?.additionalDisplays).isEmpty()
     assertThat(config?.skinFolder?.toString()).isEqualTo(FakeEmulator.getSkinFolder("pixel_fold").toString())
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
@@ -154,9 +186,10 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(1600)
     assertThat(config?.displayHeight).isEqualTo(2428)
     assertThat(config?.density).isEqualTo(420)
+    assertThat(config?.additionalDisplays).isEmpty()
     assertThat(config?.skinFolder).isNull()
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
@@ -182,9 +215,10 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(1080)
     assertThat(config?.displayHeight).isEqualTo(2340)
     assertThat(config?.density).isEqualTo(420)
+    assertThat(config?.additionalDisplays).isEmpty()
     assertThat(config?.skinFolder).isNull()
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isWearOs).isFalse()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).containsExactly(

@@ -17,22 +17,23 @@ package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.animation.AnimationCard
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.NoopAnimationTracker
-import com.android.tools.idea.compose.preview.animation.TestUtils
+import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
-import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.AnimationCard
+import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
+import com.android.tools.idea.preview.animation.TestUtils.findToolbar
+import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
+import java.awt.Color
+import java.awt.Dimension
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Color
-import java.awt.Dimension
 
 class ColorPickerStateTest {
 
@@ -43,7 +44,7 @@ class ColorPickerStateTest {
   @Test
   fun statesAreCorrect() {
     val state =
-      ColorPickerState(NoopAnimationTracker) {}
+      ColorPickerState(NoopComposeAnimationTracker) {}
         .apply {
           setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
         }
@@ -55,18 +56,19 @@ class ColorPickerStateTest {
   fun createCard() {
     var callbacks = 0
     val state =
-      ColorPickerState(NoopAnimationTracker) { callbacks++ }
+      ColorPickerState(NoopComposeAnimationTracker) { callbacks++ }
         .apply {
           setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
           callbackEnabled = true
         }
     val card =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          createTestSlider(),
           Mockito.mock(DesignSurface::class.java),
-          ElementState("Title"),
+          MutableStateFlow(ElementState()),
+          "Title",
           state.extraActions,
-          NoopAnimationTracker
+          NoopComposeAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }
 

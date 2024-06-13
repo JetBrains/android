@@ -3,7 +3,7 @@
     "name": "KitKat",
     "version": "4.4",
     "apiLevel": 19,
-    "distributionPercentage": 0.004,
+    "distributionPercentage": 0.003,
     "url": "https://developer.android.com/about/versions/android-4.4.html",
     "descriptionBlocks": [
       {
@@ -40,7 +40,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -48,7 +48,7 @@
     "name": "Lollipop",
     "version": "5",
     "apiLevel": 21,
-    "distributionPercentage": 0.002,
+    "distributionPercentage": 0.001,
     "url": "https://developer.android.com/about/versions/android-5.0.html",
     "descriptionBlocks": [
       {
@@ -105,7 +105,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -113,7 +113,7 @@
     "name": "Lollipop",
     "version": "5.1",
     "apiLevel": 22,
-    "distributionPercentage": 0.013,
+    "distributionPercentage": 0.008,
     "url": "https://developer.android.com/about/versions/android-5.1.html",
     "descriptionBlocks": [
       {
@@ -126,7 +126,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -134,7 +134,7 @@
     "name": "Marshmallow",
     "version": "6",
     "apiLevel": 23,
-    "distributionPercentage": 0.02,
+    "distributionPercentage": 0.014,
     "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
     "descriptionBlocks": [
       {
@@ -167,7 +167,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -175,7 +175,7 @@
     "name": "Nougat",
     "version": "7",
     "apiLevel": 24,
-    "distributionPercentage": 0.013,
+    "distributionPercentage": 0.01,
     "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
     "descriptionBlocks": [
       {
@@ -224,7 +224,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -232,7 +232,7 @@
     "name": "Nougat",
     "version": "7.1",
     "apiLevel": 25,
-    "distributionPercentage": 0.014,
+    "distributionPercentage": 0.01,
     "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
     "descriptionBlocks": [
       {
@@ -261,7 +261,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -269,7 +269,7 @@
     "name": "Oreo",
     "version": "8",
     "apiLevel": 26,
-    "distributionPercentage": 0.02,
+    "distributionPercentage": 0.015,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
     "descriptionBlocks": [
       {
@@ -298,7 +298,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -306,7 +306,7 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.055,
+    "distributionPercentage": 0.044,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
     "descriptionBlocks": [
       {
@@ -327,7 +327,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -335,7 +335,7 @@
     "name": "Pie",
     "version": "9",
     "apiLevel": 28,
-    "distributionPercentage": 0.108,
+    "distributionPercentage": 0.085,
     "url": "https://developer.android.com/about/versions/pie/android-9.0",
     "descriptionBlocks": [
       {
@@ -360,7 +360,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -368,7 +368,7 @@
     "name": "Q",
     "version": "10",
     "apiLevel": 29,
-    "distributionPercentage": 0.166,
+    "distributionPercentage": 0.138,
     "url": "https://developer.android.com/about/versions/10",
     "descriptionBlocks": [
       {
@@ -389,7 +389,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -397,7 +397,7 @@
     "name": "R",
     "version": "11",
     "apiLevel": 30,
-    "distributionPercentage": 0.22,
+    "distributionPercentage": 0.192,
     "url": "https://developer.android.com/about/versions/11",
     "descriptionBlocks": [
       {
@@ -414,7 +414,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -422,7 +422,7 @@
     "name": "S",
     "version": "12",
     "apiLevel": 31,
-    "distributionPercentage": 0.159,
+    "distributionPercentage": 0.148,
     "url": "https://developer.android.com/about/versions/12",
     "descriptionBlocks": [
       {
@@ -443,7 +443,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
       }
     ]
   },
@@ -451,7 +451,7 @@
     "name": "T",
     "version": "13",
     "apiLevel": 33,
-    "distributionPercentage": 0.204,
+    "distributionPercentage": 0.211,
     "url": "https://developer.android.com/about/versions/13",
     "descriptionBlocks": [
       {
@@ -468,7 +468,32 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: April 17, 2024"
+      }
+    ]
+  },
+  {
+    "name": "U",
+    "version": "14",
+    "apiLevel": 34,
+    "distributionPercentage": 0.12,
+    "url": "https://developer.android.com/about/versions/14",
+    "descriptionBlocks": [
+      {
+        "title": "New features",
+        "body": "Ultra HDR for images<br>Zoom, Focus, Postview, and more in camera extensions<br>Lossless USB audio<br>Health Connect<br>Add custom actions<br>Custom meshes with vertex and fragment shaders"
+      },
+      {
+        "title": "Behavior changes",
+        "body": "Foreground service types are required<br>Enforcement of BLUETOOTH_CONNECT permission<br>JobScheduler reinforces callback and network behavior<br>Apps can kill only their own background processes<br>Schedule exact alarms are denied by default<br>Data safety information is more visible<br>Minimum installable target API level"
+      },
+      {
+        "title": "Security and privacy",
+        "body": "Credential Manager<br>Improvements for app stores<br>Detect when users take device screenshots<br>Secure full-screen Intent notifications<br>Restrictions to implicit and pending intents<br>Safer dynamic code loading<br>restrictions on starting activities from the background<br>User consent required for each MediaProjection"
+      },
+      {
+        "title": "",
+        "body": "Last updated: April 17, 2024"
       }
     ]
   }

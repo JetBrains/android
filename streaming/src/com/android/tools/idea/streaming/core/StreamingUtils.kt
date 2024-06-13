@@ -85,7 +85,7 @@ fun ByteBuffer.putUInt(value: UInt): ByteBuffer =
  * Otherwise, returns the first found component associated with the given action belonging to
  * the Running Devices tool window.
  */
-internal fun AnActionEvent.findComponentForAction(action: AnAction): Component? =
+fun AnActionEvent.findComponentForAction(action: AnAction): Component? =
     findComponentForAction(action, RUNNING_DEVICES_TOOL_WINDOW_ID)
 
 /**
@@ -144,10 +144,10 @@ internal inline fun <reified T : Component> Component.findContainingComponent():
 // TODO(b/289230363): use DeviceHandle.state.properties.icon, since it is the source of truth for device icons.
 internal val AvdInfo.icon: Icon
   get() {
-    return when (tag) {
-      SystemImageTags.ANDROID_TV_TAG, SystemImageTags.GOOGLE_TV_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
-      SystemImageTags.AUTOMOTIVE_TAG, SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
-      SystemImageTags.WEAR_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
+    return when {
+      SystemImageTags.isTvImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
+      SystemImageTags.isAutomotiveImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+      SystemImageTags.isWearImage(tags) -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
       else -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
     }
   }

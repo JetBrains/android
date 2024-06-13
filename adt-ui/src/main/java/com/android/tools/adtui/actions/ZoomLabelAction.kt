@@ -17,6 +17,7 @@ package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -24,6 +25,7 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.beans.PropertyChangeListener
+import java.util.Locale
 import javax.swing.JComponent
 
 /**
@@ -37,6 +39,8 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
     updatePresentation(presentation, null)
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     event.getData(ZOOMABLE_KEY)?.let { updatePresentation(event.presentation, it) }
   }
@@ -48,7 +52,7 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
   private fun updatePresentation(presentation: Presentation, zoomable: Zoomable?) {
     val scale = if (zoomable != null) zoomable.scale * zoomable.screenScalingFactor else 1.0
 
-    val label = String.format("%d%% ", (100 * scale).toInt())
+    val label = String.format(Locale.ROOT, "%d%% ", (100 * scale).toInt())
     presentation.text = label
   }
 
@@ -76,6 +80,7 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
       }
     }
     label.font = UIUtil.getToolTipFont()
+    label.name = "Current Zoom Level"
     return label
   }
 }

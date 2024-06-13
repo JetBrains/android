@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file should not be edited manually! See go/template-diff-tests -->
+<issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Hello&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Hello&quot; />"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_blank.xml"
+            line="11"
+            column="9"/>
+    </issue>
+
+</issues>

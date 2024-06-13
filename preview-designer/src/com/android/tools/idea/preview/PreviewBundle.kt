@@ -25,7 +25,4 @@ internal object PreviewBundle {
 
   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) =
     bundleRef.message(key, *params)
-
-  fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) =
-    bundleRef.lazyMessage(key, *params)
 }

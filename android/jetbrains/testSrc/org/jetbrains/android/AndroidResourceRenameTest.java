@@ -23,11 +23,12 @@ import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.actions.RenameElementAction;
 import com.intellij.refactoring.rename.RenameHandler;
-import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
@@ -43,15 +44,15 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
                  .filter(RenameHandler.EP_NAME.getExtensionList(), it -> it.isRenaming(createDataContext()))).hasSize(1);
   }
 
-  private MapDataContext createDataContext() {
-    MapDataContext context = new MapDataContext();
-    context.put(CommonDataKeys.EDITOR, myFixture.getEditor());
-    context.put(CommonDataKeys.PSI_FILE, myFixture.getFile());
-    context.put(CommonDataKeys.PSI_ELEMENT, TargetElementUtil.findTargetElement(myFixture.getEditor(),
-                                                                                TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED
-                                                                                | TargetElementUtil.ELEMENT_NAME_ACCEPTED));
-    context.put(CommonDataKeys.CARET, myFixture.getEditor().getCaretModel().getCurrentCaret());
-    return context;
+  private DataContext createDataContext() {
+    return SimpleDataContext.builder()
+      .add(CommonDataKeys.EDITOR, myFixture.getEditor())
+      .add(CommonDataKeys.PSI_FILE, myFixture.getFile())
+      .add(CommonDataKeys.PSI_ELEMENT, TargetElementUtil.findTargetElement(myFixture.getEditor(),
+                                                                           TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED
+                                                                           | TargetElementUtil.ELEMENT_NAME_ACCEPTED))
+      .add(CommonDataKeys.CARET, myFixture.getEditor().getCaretModel().getCurrentCaret())
+      .build();
   }
 
   /**

@@ -53,7 +53,7 @@ class InteractivePreviewUsageTrackerImplTest {
 
     assertEquals(
       interactiveEvent.type,
-      InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS
+      InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS,
     )
     assertEquals(interactiveEvent.fps, 30)
     assertEquals(interactiveEvent.durationMs, 15000)
@@ -74,7 +74,7 @@ class InteractivePreviewUsageTrackerImplTest {
 
     assertEquals(
       interactiveEvent.type,
-      InteractivePreviewEvent.InteractivePreviewEventType.REPORT_STARTUP_TIME
+      InteractivePreviewEvent.InteractivePreviewEventType.REPORT_STARTUP_TIME,
     )
     assertEquals(interactiveEvent.startupTimeMs, 500)
     assertEquals(interactiveEvent.peerPreviews, 3)

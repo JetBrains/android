@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -46,14 +47,16 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariantCore? = nul
     val artifact = when(knownSourceSet) {
       IdeModuleWellKnownSourceSet.MAIN -> selectedVariant.mainArtifact
       IdeModuleWellKnownSourceSet.TEST_FIXTURES -> selectedVariant.testFixturesArtifact
-      IdeModuleWellKnownSourceSet.UNIT_TEST -> selectedVariant.unitTestArtifact
-      IdeModuleWellKnownSourceSet.ANDROID_TEST -> selectedVariant.androidTestArtifact
+      IdeModuleWellKnownSourceSet.UNIT_TEST -> selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }
+      IdeModuleWellKnownSourceSet.ANDROID_TEST -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
+      IdeModuleWellKnownSourceSet.SCREENSHOT_TEST -> selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
     }
     val isTestScope = when(knownSourceSet) {
       IdeModuleWellKnownSourceSet.MAIN -> false
       IdeModuleWellKnownSourceSet.TEST_FIXTURES -> true
       IdeModuleWellKnownSourceSet.UNIT_TEST -> true
       IdeModuleWellKnownSourceSet.ANDROID_TEST -> true
+      IdeModuleWellKnownSourceSet.SCREENSHOT_TEST -> true
     }
 
     // TODO(b/232780259): Look for the compilation output folder. We can have both java and kotlin compilation outputs in classesFolder(IDEA-235250).

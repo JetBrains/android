@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.SdkConstants.ANDROID_URI
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.FLAG_IS_INLINED
@@ -56,6 +57,7 @@ import com.android.tools.property.ptable.PTableColumn
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import org.junit.ClassRule
@@ -73,11 +75,15 @@ class InspectorPropertiesViewTest {
 
   @get:Rule val disposableRule = DisposableRule()
 
+  private val disposable: Disposable
+    get() = disposableRule.disposable
+
   @Test
   fun testResolutionElementEditorFromRendererCache() {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
+        override val scope = AndroidCoroutineScope(disposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? = null
@@ -96,7 +102,7 @@ class InspectorPropertiesViewTest {
         null,
         id,
         context,
-        listOf()
+        listOf(),
       )
     val inspector = createInspector(listOf(text, prop))
     assertThat(inspector.lines).hasSize(5)
@@ -115,6 +121,7 @@ class InspectorPropertiesViewTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
+        override val scope = AndroidCoroutineScope(disposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? = null
@@ -139,7 +146,7 @@ class InspectorPropertiesViewTest {
         RECOMPOSITIONS,
         null,
         id,
-        context
+        context,
       )
     val skips =
       InspectorPropertyItem(
@@ -150,7 +157,7 @@ class InspectorPropertiesViewTest {
         RECOMPOSITIONS,
         null,
         id,
-        context
+        context,
       )
     val inspector =
       createInspector(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips))
@@ -163,6 +170,7 @@ class InspectorPropertiesViewTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
+        override val scope = AndroidCoroutineScope(disposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? = null
@@ -187,7 +195,7 @@ class InspectorPropertiesViewTest {
         RECOMPOSITIONS,
         null,
         id,
-        context
+        context,
       )
     val skips =
       InspectorPropertyItem(
@@ -198,12 +206,12 @@ class InspectorPropertiesViewTest {
         RECOMPOSITIONS,
         null,
         id,
-        context
+        context,
       )
     val propertiesView =
       createView(
         listOf(text, width, alpha, param, semantic1, semantic2, counts, skips),
-        ::showRecompositions
+        ::showRecompositions,
       )
     val propertiesModel = propertiesView.model as InspectorPropertiesModel
     var inspector = FakeInspectorPanel()
@@ -236,15 +244,16 @@ class InspectorPropertiesViewTest {
 
   @Test
   fun testInlinedComposable() {
-    val model = model {
-      view(ROOT) {
-        compose(VIEW1, "MyApplicationTheme") {
-          compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
-            compose(VIEW3, "Text", composePackageHash = EXAMPLE)
+    val model =
+      model(disposable) {
+        view(ROOT) {
+          compose(VIEW1, "MyApplicationTheme") {
+            compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
+              compose(VIEW3, "Text", composePackageHash = EXAMPLE)
+            }
           }
         }
       }
-    }
     model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
     val x =
       InspectorPropertyItem(
@@ -255,7 +264,7 @@ class InspectorPropertiesViewTest {
         PropertySection.DIMENSION,
         null,
         VIEW2,
-        model
+        model,
       )
     val y =
       InspectorPropertyItem(
@@ -266,7 +275,7 @@ class InspectorPropertiesViewTest {
         PropertySection.DIMENSION,
         null,
         VIEW2,
-        model
+        model,
       )
     val propertiesView = createView(listOf(x, y), model = model)
     val inspector = FakeInspectorPanel()
@@ -290,7 +299,7 @@ class InspectorPropertiesViewTest {
     alpha: InspectorPropertyItem,
     param: ParameterItem,
     semantic1: ParameterItem,
-    semantic2: ParameterItem
+    semantic2: ParameterItem,
   ) {
     assertThat(inspector.lines[1].title).isEqualTo("Declared Attributes")
     assertTable(inspector.lines[2], text)
@@ -309,19 +318,26 @@ class InspectorPropertiesViewTest {
   private fun createView(
     properties: List<InspectorPropertyItem>,
     customize: (InspectorPropertiesModel) -> Unit = {},
-    model: InspectorModel = model {},
-    notificationModel: NotificationModel = NotificationModel(mock())
+    model: InspectorModel = model(disposable) {},
+    notificationModel: NotificationModel = NotificationModel(mock()),
   ): InspectorPropertiesView {
     val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
     properties.forEach { table.addProperty(it) }
-    val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
+    val propertiesModel = InspectorPropertiesModel(disposable)
     val propertiesView = InspectorPropertiesView(propertiesModel)
     propertiesModel.properties = PropertiesTable.create(table)
     val settings = FakeTreeSettings()
     val client: InspectorClient = mock()
     whenever(client.stats).thenReturn(mock())
     val layoutInspector =
-      LayoutInspector(mock(), mock(), client, model, notificationModel, settings)
+      LayoutInspector(
+        AndroidCoroutineScope(disposable),
+        mock(),
+        client,
+        model,
+        notificationModel,
+        settings,
+      )
     propertiesModel.layoutInspector = layoutInspector
     customize(propertiesModel)
     return propertiesView
@@ -329,7 +345,7 @@ class InspectorPropertiesViewTest {
 
   private fun createInspector(
     properties: List<InspectorPropertyItem>,
-    customize: (InspectorPropertiesModel) -> Unit = {}
+    customize: (InspectorPropertiesModel) -> Unit = {},
   ): FakeInspectorPanel {
     val propertiesView = createView(properties, customize)
     val inspector = FakeInspectorPanel()

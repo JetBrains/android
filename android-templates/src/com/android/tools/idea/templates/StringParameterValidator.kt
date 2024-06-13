@@ -146,7 +146,7 @@ fun StringParameter.validateStringType(
       project ?: return false
       if (KotlinPluginModeProvider.isK2Mode()) {
         val packageFqName = if (packageName != null) FqName(packageName) else FqName.ROOT
-        val declarationProvider = project.createDeclarationProvider(searchScope,  null)
+        val declarationProvider = project.createDeclarationProvider(searchScope, contextualModule = null)
         val topLevelCallableNames = declarationProvider.getTopLevelCallableNamesInPackage(packageFqName)
         topLevelCallableNames.any { it.identifierOrNullIfSpecial == value }
       } else {

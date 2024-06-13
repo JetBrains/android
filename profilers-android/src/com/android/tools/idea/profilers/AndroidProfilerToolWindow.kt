@@ -17,7 +17,11 @@ package com.android.tools.idea.profilers
 
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.model.AspectObserver
+import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.TransportServiceProxy.Companion.getDeviceManufacturer
 import com.android.tools.idea.transport.TransportServiceProxy.Companion.getDeviceModel
@@ -30,12 +34,14 @@ import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
+import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskTabs
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
+import com.intellij.execution.RunManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -81,7 +87,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
     val client = ProfilerClient(TransportService.channelName)
     profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
-                                { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) })
+                                { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) },
+                                { getToolbarDeviceSelections(project) }, { getPreferredProcessName(project) })
 
     val navigator = ideProfilerServices.codeNavigator
     // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
@@ -97,11 +104,11 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
                                     processInfo.processName) { p: Common.Process? -> processInfo.processFilter.invoke(p!!) }
       project.putUserData(LAST_RUN_APP_INFO, null)
     }
-    else {
+    else if (!IdeInfo.getInstance().isGameTools){
       StartupManager.getInstance(project).runWhenProjectIsInitialized { profilers.preferredProcessName = getPreferredProcessName(project) }
     }
 
-    ideProfilerComponents = IntellijProfilerComponents(project, ideProfilerServices.featureTracker)
+    ideProfilerComponents = IntellijProfilerComponents(project, this, ideProfilerServices.featureTracker)
 
     // Create and store the task handlers in a map.
     initializeTaskHandlers()
@@ -126,6 +133,20 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     // not a possible flow in the Task-Based UX, the initialization of the Profiler tab logic is used for both the Sessions-based Profiler
     // tab and the Task-Based UX Profiler tab, so it must be called in a place that accommodates both tabs.
     initializeProfilerTab()
+  }
+
+  private fun getToolbarDeviceSelections(project: Project): List<ToolbarDeviceSelection> {
+    val devices = DeviceAndSnapshotComboBoxTargetProvider.getInstance().getDeployTarget(project).getAndroidDevices(project)
+    try {
+      val selections = devices.map {
+        ToolbarDeviceSelection(it.name, it.version.featureLevel, it.isRunning,
+                               if (it.isRunning) it.launchedDevice.get().serialNumber else "", it.icon)
+      }
+      return selections
+    }
+    catch (e: Exception) {
+      return listOf()
+    }
   }
 
   private fun initializeTaskHandlers() {
@@ -203,10 +224,10 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   /**
    * Creates and opens a Profiler task tab for a specified task type. If a task tab has been opened beforehand, the existing tab is reused.
    */
-  fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs?) {
+  fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs) {
     val taskTab = findTaskTab()
     val taskName = taskHandlers[taskType]?.getTaskName() ?: "Task Not Supported Yet"
-    val taskIcon = TaskBasedUxIcons.getTaskIcon(taskType).swingIcon
+    val taskIcon = TaskIconUtils.getTaskIcon(taskType)
     if (taskTab != null) {
       taskTab.displayName = taskName
       window.getContentManager().setSelectedContent(taskTab)
@@ -317,13 +338,22 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     }
 
     private fun getPreferredProcessName(project: Project): String? {
-      for (module in ModuleManager.getInstance(project).modules) {
-        val moduleName = getModuleName(module)
-        if (moduleName != null) {
-          return moduleName
-        }
+      if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+        // There can only be up to one Android app module per selected configuration as the call to getModules can only return up to one
+        // module per AndroidRunConfiguration.
+        return (RunManager.getInstance(project).selectedConfiguration?.configuration as? AndroidRunConfiguration)?.modules?.map {
+          StudioAndroidModuleInfo.getInstance(it)
+        }?.map { it?.packageName }?.firstOrNull()
       }
-      return null
+      else {
+        for (module in ModuleManager.getInstance(project).modules) {
+          val moduleName = getModuleName(module)
+          if (moduleName != null) {
+            return moduleName
+          }
+        }
+        return null
+      }
     }
 
     private fun getModuleName(module: Module): String? {

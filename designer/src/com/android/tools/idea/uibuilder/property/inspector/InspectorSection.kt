@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.tools.idea.uibuilder.property.getPropertiesToolContent
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -29,7 +30,7 @@ val neleDesignPropertySections =
     InspectorSection.COMMON,
     InspectorSection.TRANSFORMS,
     InspectorSection.REFERENCES,
-    InspectorSection.ALL
+    InspectorSection.ALL,
   )
 
 enum class InspectorSection(val title: String) {
@@ -57,6 +58,9 @@ enum class InspectorSection(val title: String) {
   val action =
     object : ToggleAction(title) {
       override fun isSelected(event: AnActionEvent) = visible
+
+      // Running on edt because of the tool content access
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
       override fun setSelected(event: AnActionEvent, state: Boolean) {
         visible = !visible

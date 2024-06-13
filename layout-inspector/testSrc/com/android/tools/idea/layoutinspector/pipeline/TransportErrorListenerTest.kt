@@ -57,7 +57,7 @@ class TransportErrorListenerTest {
         projectRule.project,
         notificationModel,
         mockMetrics,
-        disposableRule.disposable
+        disposableRule.disposable,
       )
 
     transportErrorListener.onStartTransportDaemonServerFail(device1, mock())
@@ -69,7 +69,7 @@ class TransportErrorListenerTest {
     verify(mockMetrics)
       .logTransportError(
         DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON,
-        device1.toDeviceDescriptor()
+        device1.toDeviceDescriptor(),
       )
 
     transportErrorListener.onPreTransportDaemonStart(mock())

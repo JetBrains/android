@@ -58,7 +58,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
   private val secondaryGroupSupplier: (ValueT) -> Set<ValueGroupT> = { emptySet() },
   private val onSelected: (Set<ValueT>) -> Unit,
   private val secondaryTitleSupplier: () -> JComponent? = { null },
-  @TestOnly private val getLocationOnScreen: Component.() -> Point = Component::getLocationOnScreen
+  @TestOnly private val getLocationOnScreen: Component.() -> Point = Component::getLocationOnScreen,
 ) : DropDownAction(null, null, null) {
   @VisibleForTesting
   val selectionState = flow.stateIn(scope, SharingStarted.Eagerly, MultiSelection.emptySelection())
@@ -84,7 +84,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
   private fun generateTitle(
     selection: MultiSelection<WithCount<ValueT>>,
     groupedSelection: Map<String, List<WithCount<ValueT>>>,
-    groupedValues: Map<String, List<WithCount<ValueT>>>
+    groupedValues: Map<String, List<WithCount<ValueT>>>,
   ) =
     if (selection.allSelected()) {
       allSelected(name)
@@ -147,7 +147,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
         groupNameSupplier,
         nameSupplier,
         secondaryGroupSupplier,
-        secondaryTitleSupplier
+        secondaryTitleSupplier,
       )
     val popup = dropdown.asPopup()
 

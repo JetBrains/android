@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.editors;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -80,26 +83,27 @@ public class SurroundWithShortcutTest {
   @RunIn(TestGroup.FAT_BAZEL)
   public void surroundWithShortcut() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(180));
 
     EditorFixture editorFixture = ideFrame.getEditor().open("/app/src/main/java/google/simpleapplication/MyActivity.java");
+    editorFixture.waitForFileToActivate();
     editorFixture.moveBetween(STATEMENT_BEFORE, "")
-      .enterText("\n" + HELLO_STR)
+      .moveBetween(STATEMENT_BEFORE, "") //To reduce flakiness
+      .typeText("\n" + HELLO_STR)
       .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    clickCodeSurroundWith(ideFrame);
-    guiTest.robot().enterText("6"); // Shortcut: "4" for try / catch
-    Wait.seconds(5).expecting("Try/Catch block to be added.")
-      .until(() -> editorFixture.getCurrentFileContents().contains(TRY_CATCH_BLOCK));
+    clickCodeSurroundWith(ideFrame, "6"); // Shortcut: "6" for try / catch
+
+    assertThat(editorFixture.getCurrentFileContents()).contains(TRY_CATCH_BLOCK);
 
     removeTryCatchAndVerify(ideFrame, editorFixture);
 
-    clickCodeSurroundWith(ideFrame);
-    guiTest.robot().enterText("4"); // Shortcut: "4" for do/while
-    Wait.seconds(5).expecting("Do/While block to be added.")
-      .until(() -> editorFixture.getCurrentFileContents().contains(DO_WHILE_BLOCK));
+    clickCodeSurroundWith(ideFrame, "4"); // Shortcut: "4" for do/while
+
+    assertThat(editorFixture.getCurrentFileContents()).contains(DO_WHILE_BLOCK);
   }
 
-  private JListFixture clickCodeSurroundWith(@NotNull IdeFrameFixture ideFrame) {
+  private void clickCodeSurroundWith(@NotNull IdeFrameFixture ideFrame, @NotNull String shortcutForSurroundWith) {
     ideFrame.invokeMenuPath("Code", "Surround With...");
 
     Ref<JBList> popList = new Ref<>();
@@ -120,8 +124,8 @@ public class SurroundWithShortcutTest {
       popList.set(methodsList);
       return true;
     });
-    JListFixture listFixture= new JListFixture(guiTest.robot(), popList.get());
-    return listFixture;
+    guiTest.robot().enterText(shortcutForSurroundWith);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   private void removeTryCatchAndVerify(@NotNull IdeFrameFixture ideFrame,

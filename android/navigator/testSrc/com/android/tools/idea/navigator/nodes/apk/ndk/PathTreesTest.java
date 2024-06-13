@@ -15,14 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
-import static com.android.tools.idea.testing.ProjectFiles.createFolder;
-import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static java.io.File.separatorChar;
-import static org.mockito.Mockito.mock;
-
 import com.android.tools.idea.apk.paths.PathTree;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
@@ -30,10 +22,18 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.testing.ProjectFiles.createFolder;
+import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static java.io.File.separatorChar;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link PathTrees}.

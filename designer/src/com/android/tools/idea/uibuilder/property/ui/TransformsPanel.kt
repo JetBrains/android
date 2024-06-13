@@ -43,7 +43,7 @@ import org.jetbrains.annotations.VisibleForTesting
 /** Custom panel to support direct editing of transforms (rotation, etc.) */
 class TransformsPanel(
   private val model: NlPropertiesModel,
-  properties: PropertiesTable<NlPropertyItem>
+  properties: PropertiesTable<NlPropertyItem>,
 ) : JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
@@ -247,11 +247,11 @@ class TransformsPanel(
       Runnable {
         NlWriteCommandActionUtil.run(
           property.components,
-          "Set $component.${property.name} to $propertyValue"
+          "Set $component.${property.name} to $propertyValue",
         ) {
           property.value = propertyValue
         }
-      }
+      },
     )
   }
 

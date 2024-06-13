@@ -1,12 +1,13 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
     <option name="add" path="ActionManager" hit="Add C++ to Module" />
-    <option name="c" path="ActionManager" hit="Add C++ to Module" />
+    <option name="c++" path="ActionManager" hit="Add C++ to Module" />
     <option name="module" path="ActionManager" hit="Add C++ to Module" />
     <option name="to" path="ActionManager" hit="Add C++ to Module" />
     <option name="add" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="built" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="c" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
+    <option name="c++" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="cmake" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="code" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="module" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
@@ -15,13 +16,14 @@
     <option name="this" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="to" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="with" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="c" path="ActionManager" hit="Link C++ Project with Gradle" />
+    <option name="c++" path="ActionManager" hit="Link C++ Project with Gradle" />
     <option name="gradle" path="ActionManager" hit="Link C++ Project with Gradle" />
     <option name="link" path="ActionManager" hit="Link C++ Project with Gradle" />
     <option name="project" path="ActionManager" hit="Link C++ Project with Gradle" />
     <option name="with" path="ActionManager" hit="Link C++ Project with Gradle" />
     <option name="an" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="c" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
+    <option name="c++" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="cmake" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="external" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="gradle" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />

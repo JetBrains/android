@@ -15,34 +15,30 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import static com.android.tools.idea.gradle.dsl.model.repositories.FlatDirRepositoryModel.FLAT_DIR_ATTRIBUTE_NAME;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_METHOD_NAME;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.URL;
-import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel.MAVEN_CENTRAL_METHOD_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.GOOGLE;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN_CENTRAL;
-
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.intellij.psi.PsiElement;
 import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static com.android.tools.idea.gradle.dsl.model.repositories.FlatDirRepositoryModel.FLAT_DIR_ATTRIBUTE_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel.MAVEN_CENTRAL_METHOD_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.GOOGLE;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN_CENTRAL;
 
 public class RepositoriesModelImpl extends GradleDslBlockModel implements RepositoriesModel {
 
@@ -88,17 +84,21 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
    * Adds a repository by method name if it is not already in the list of repositories.
    *
    * @param methodName Name of method to call.
+   * @return true if model was updated
    */
   @Override
-  public void addRepositoryByMethodName(@NotNull String methodName) {
+  public boolean addRepositoryByMethodName(@NotNull String methodName) {
     // Check if it is already there
     if (containsMethodCall(methodName)) {
-      return;
+      return false;
     }
-    PropertiesElementDescription description = myDslElement.getChildPropertiesElementDescription(methodName);
+    GradleDslNameConverter converter = myDslElement.getDslFile().getParser();
+    PropertiesElementDescription description = myDslElement.getChildPropertiesElementDescription(converter, methodName);
     if (description != null) {
       myDslElement.setNewElement(description.constructor.construct(myDslElement, GradleNameElement.fake(methodName)));
+      return true;
     }
+    return false;
   }
 
   /**
@@ -145,7 +145,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
    * @param url address to use.
    */
   @Override
-  public void addMavenRepositoryByUrl(@NotNull String url, @Nullable String name) {
+  public void addMavenRepositoryByUrl(@NotNull String url, @NotNull String name) {
     // Check if it is already there
     if (containsMavenRepositoryByUrl(url)) {
       return;

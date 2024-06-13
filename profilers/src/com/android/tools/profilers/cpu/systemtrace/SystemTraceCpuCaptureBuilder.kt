@@ -122,11 +122,22 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
       // We use a (state, timestamp) tuple and assume the state is valid until the next state.
       // But Perfetto uses a (state, timestamp, duration) triplet to timebox each state.
       var (lastState, lastEndTimestampUs) = Pair(ThreadState.NO_ACTIVITY, 0L)
-      for (sched in thread.schedulingEvents) {
-        if (sched.state !== lastState) {
-          states.add(SeriesData(sched.startTimestampUs, sched.state))
-          lastState = sched.state
-          lastEndTimestampUs = sched.endTimestampUs
+      if (thread.threadStateEvents.isEmpty()) {
+        // This thread doesn't have thread state events, which is possible for an atrace file.
+        // As a best effort, infer thread states from scheduling events, with a caveat that state transitions from
+        // non-running state to another non-running state will be missed. (b/249618556)
+        for (sched in thread.schedulingEvents) {
+          if (sched.state !== lastState) {
+            states.add(SeriesData(sched.startTimestampUs, sched.state))
+            lastState = sched.state
+            lastEndTimestampUs = sched.endTimestampUs
+          }
+        }
+      } else {
+        for (event in thread.threadStateEvents) {
+          states.add(SeriesData(event.startTimestampUs, event.state))
+          lastState = event.state
+          lastEndTimestampUs = event.endTimestampUs
         }
       }
 

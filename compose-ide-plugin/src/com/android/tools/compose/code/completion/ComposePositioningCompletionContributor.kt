@@ -94,7 +94,7 @@ private data class ClassWithDeclarationsToSuggest(
   fun getLookupElements(
     elementToComplete: PsiElement,
     typeToSuggest: String,
-    typeText: String
+    typeText: String,
   ): List<LookupElement> {
     val project = elementToComplete.project
 
@@ -110,7 +110,7 @@ private data class ClassWithDeclarationsToSuggest(
   private fun createLookupElement(
     elementToSuggest: KtDeclaration,
     elementToComplete: PsiElement,
-    typeText: String
+    typeText: String,
   ): LookupElement? {
     val lookupStringWithClass = "${propertyCompletionPrefix}.${elementToSuggest.name}"
     val presentableTailText = " ($packageName)"
@@ -353,51 +353,27 @@ private data class PositioningInterface(
             interfaceName = "Alignment",
             ALIGNMENT_CLASSES_FOR_SUGGESTIONS,
             weightsByType =
-              mapOf(
-                "Alignment" to 10,
-                "Alignment.Horizontal" to -10,
-                "Alignment.Vertical" to -10,
-              ),
+              mapOf("Alignment" to 10, "Alignment.Horizontal" to -10, "Alignment.Vertical" to -10),
             weightsByParentClass =
-              mapOf(
-                "Alignment.Companion" to 2,
-                "Alignment" to 2,
-                "AbsoluteAlignment" to 1,
-              ),
+              mapOf("Alignment.Companion" to 2, "Alignment" to 2, "AbsoluteAlignment" to 1),
           ),
           PositioningInterface(
             packageName = ALIGNMENT_PACKAGE,
             interfaceName = "Alignment.Horizontal",
             ALIGNMENT_CLASSES_FOR_SUGGESTIONS,
             weightsByType =
-              mapOf(
-                "Alignment.Horizontal" to 10,
-                "Alignment" to -10,
-                "Alignment.Vertical" to -10,
-              ),
+              mapOf("Alignment.Horizontal" to 10, "Alignment" to -10, "Alignment.Vertical" to -10),
             weightsByParentClass =
-              mapOf(
-                "Alignment.Companion" to 2,
-                "Alignment" to 2,
-                "AbsoluteAlignment" to 1,
-              ),
+              mapOf("Alignment.Companion" to 2, "Alignment" to 2, "AbsoluteAlignment" to 1),
           ),
           PositioningInterface(
             packageName = ALIGNMENT_PACKAGE,
             interfaceName = "Alignment.Vertical",
             ALIGNMENT_CLASSES_FOR_SUGGESTIONS,
             weightsByType =
-              mapOf(
-                "Alignment.Vertical" to 10,
-                "Alignment" to -10,
-                "Alignment.Horizontal" to -10,
-              ),
+              mapOf("Alignment.Vertical" to 10, "Alignment" to -10, "Alignment.Horizontal" to -10),
             weightsByParentClass =
-              mapOf(
-                "Alignment.Companion" to 2,
-                "Alignment" to 2,
-                "AbsoluteAlignment" to 1,
-              ),
+              mapOf("Alignment.Companion" to 2, "Alignment" to 2, "AbsoluteAlignment" to 1),
           ),
           PositioningInterface(
             packageName = ARRANGEMENT_PACKAGE,
@@ -410,11 +386,7 @@ private data class PositioningInterface(
                 "Arrangement.HorizontalOrVertical" to 10,
                 "Arrangement.Vertical" to -10,
               ),
-            weightsByParentClass =
-              mapOf(
-                "Arrangement" to 2,
-                "Arrangement.Absolute" to 1,
-              ),
+            weightsByParentClass = mapOf("Arrangement" to 2, "Arrangement.Absolute" to 1),
           ),
           PositioningInterface(
             packageName = ARRANGEMENT_PACKAGE,
@@ -427,11 +399,7 @@ private data class PositioningInterface(
                 "Arrangement.HorizontalOrVertical" to 10,
                 "Arrangement.Horizontal" to -10,
               ),
-            weightsByParentClass =
-              mapOf(
-                "Arrangement" to 2,
-                "Arrangement.Absolute" to 1,
-              ),
+            weightsByParentClass = mapOf("Arrangement" to 2, "Arrangement.Absolute" to 1),
           ),
           PositioningInterface(
             packageName = ARRANGEMENT_PACKAGE,
@@ -443,11 +411,7 @@ private data class PositioningInterface(
                 "Arrangement.Vertical" to -10,
                 "Arrangement.Horizontal" to -10,
               ),
-            weightsByParentClass =
-              mapOf(
-                "Arrangement" to 2,
-                "Arrangement.Absolute" to 1,
-              ),
+            weightsByParentClass = mapOf("Arrangement" to 2, "Arrangement.Absolute" to 1),
           ),
         )
         .associateBy { it.interfaceFqName }
@@ -462,7 +426,7 @@ private data class PositioningInterface(
 class ComposePositioningCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(
     parameters: CompletionParameters,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val elementToComplete = parameters.position
 

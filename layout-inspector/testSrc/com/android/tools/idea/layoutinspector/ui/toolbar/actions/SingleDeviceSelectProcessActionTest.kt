@@ -74,7 +74,7 @@ class SingleDeviceSelectProcessActionTest {
       SingleDeviceSelectProcessAction(
         deviceModel,
         targetDeviceSerialNumber = "serial",
-        onProcessSelected = {}
+        onProcessSelected = {},
       )
 
     latch.await()
@@ -101,7 +101,7 @@ class SingleDeviceSelectProcessActionTest {
       SingleDeviceSelectProcessAction(
         deviceModel,
         targetDeviceSerialNumber = "wrong serial number",
-        onProcessSelected = {}
+        onProcessSelected = {},
       )
 
     processPicker.updateActions(DataContext.EMPTY_CONTEXT)
@@ -134,7 +134,7 @@ class SingleDeviceSelectProcessActionTest {
       SingleDeviceSelectProcessAction(
         deviceModel,
         targetDeviceSerialNumber = fakeStream.device.serial,
-        onProcessSelected = {}
+        onProcessSelected = {},
       )
 
     processPicker.updateActions(DataContext.EMPTY_CONTEXT)
@@ -168,7 +168,7 @@ class SingleDeviceSelectProcessActionTest {
         onProcessSelected = {
           processSelected = true
           latch.countDown()
-        }
+        },
       )
 
     processPicker.updateActions(DataContext.EMPTY_CONTEXT)
@@ -210,7 +210,7 @@ class SingleDeviceSelectProcessActionTest {
       SingleDeviceSelectProcessAction(
         deviceModel,
         targetDeviceSerialNumber = fakeStream.device.serial,
-        onProcessSelected = {}
+        onProcessSelected = {},
       )
 
     processPicker.updateActions(DataContext.EMPTY_CONTEXT)
@@ -227,7 +227,7 @@ class SingleDeviceSelectProcessActionTest {
       SingleDeviceSelectProcessAction(
         mock(),
         targetDeviceSerialNumber = "serial",
-        onProcessSelected = {}
+        onProcessSelected = {},
       )
 
     val fakeEvent = createFakeEvent()
@@ -256,7 +256,7 @@ private fun createFakeDevice(name: String = FakeTransportService.FAKE_DEVICE_NAM
 private fun createFakeStream(
   deviceName: String = FakeTransportService.FAKE_DEVICE_NAME,
   serial: String = UUID.randomUUID().toString(),
-  isEmulator: Boolean = true
+  isEmulator: Boolean = true,
 ): Common.Stream {
   val device =
     createFakeDevice(deviceName).toBuilder().setSerial(serial).setIsEmulator(isEmulator).build()
@@ -270,7 +270,7 @@ private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0):
     FakeTransportService.FAKE_PROCESS.toBuilder()
       .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
       .setPid(pid)
-      .build()
+      .build(),
   )
 }
 

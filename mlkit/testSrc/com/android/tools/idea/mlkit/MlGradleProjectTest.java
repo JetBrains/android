@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
@@ -30,8 +29,6 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -41,16 +38,6 @@ public class MlGradleProjectTest {
   public final AndroidProjectRule.Typed<JavaCodeInsightTestFixture, AndroidProjectRule.TestProjectTestHelpers> myProjectRule =
     AndroidProjectRule.testProject(
       testProjectTemplateFromPath(TestDataPaths.PROJECT_WITH_TWO_LIB_MODULES_BUT_ONLY_ONE_ENABLED, TestDataPaths.TEST_DATA_ROOT));
-
-  @Before
-  public void setUp() {
-    StudioFlags.ML_MODEL_BINDING.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.ML_MODEL_BINDING.clearOverride();
-  }
 
   @Test
   @RunsInEdt

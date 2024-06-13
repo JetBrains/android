@@ -18,6 +18,7 @@ package com.android.tools.idea.run
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
@@ -60,6 +61,7 @@ private class FakeSigningConfigModel(val name: String) : SigningConfigModel {
     return name
   }
 
+  override fun <T : GradleDslModel> getModel(klass: Class<T>) = throw NotImplementedError()
   override fun getPsiElement() = throw NotImplementedError()
   override fun delete() = throw NotImplementedError()
   override fun getHolder() = throw NotImplementedError()

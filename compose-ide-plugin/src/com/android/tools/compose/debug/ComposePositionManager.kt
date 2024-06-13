@@ -49,7 +49,7 @@ import org.jetbrains.kotlin.psi.KtFile
  */
 class ComposePositionManager(
   private val debugProcess: DebugProcess,
-  private val kotlinPositionManager: KotlinPositionManager
+  private val kotlinPositionManager: KotlinPositionManager,
 ) : MultiRequestPositionManager by kotlinPositionManager, PositionManagerWithMultipleStackFrames {
   override fun getAcceptedFileTypes(): Set<FileType> = KOTLIN_FILE_TYPES
 
@@ -60,7 +60,7 @@ class ComposePositionManager(
     context: EvaluationContext,
     frame: StackFrameProxyImpl,
     location: Location,
-    expression: String
+    expression: String,
   ): ThreeState = kotlinPositionManager.evaluateCondition(context, frame, location, expression)
 
   /**
@@ -115,7 +115,7 @@ class ComposePositionManager(
    */
   override fun createPrepareRequests(
     requestor: ClassPrepareRequestor,
-    position: SourcePosition
+    position: SourcePosition,
   ): List<ClassPrepareRequest> {
     val file = position.file
     if (file !is KtFile) {
@@ -130,7 +130,7 @@ class ComposePositionManager(
     val singletonRequest =
       debugProcess.requestsManager.createClassPrepareRequest(
         requestor,
-        "${computeComposableSingletonsClassName(file)}\$*"
+        "${computeComposableSingletonsClassName(file)}\$*",
       )
 
     return if (singletonRequest == null) kotlinRequests else kotlinRequests + singletonRequest
@@ -143,7 +143,7 @@ class ComposePositionManager(
    */
   override fun createPrepareRequest(
     requestor: ClassPrepareRequestor,
-    position: SourcePosition
+    position: SourcePosition,
   ): ClassPrepareRequest? {
     return createPrepareRequests(requestor, position).firstOrNull()
   }

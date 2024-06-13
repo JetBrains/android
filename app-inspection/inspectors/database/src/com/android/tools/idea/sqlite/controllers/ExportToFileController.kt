@@ -112,7 +112,7 @@ class ExportToFileController(
   edtExecutor: Executor,
   private val notifyExportInProgress: (Job) -> Unit,
   private val notifyExportComplete: (ExportRequest) -> Unit,
-  private val notifyExportError: (ExportRequest, Throwable?) -> Unit
+  private val notifyExportError: (ExportRequest, Throwable?) -> Unit,
 ) : Disposable {
   private val edtDispatcher = edtExecutor.asCoroutineDispatcher()
   private val taskDispatcher = taskExecutor.asCoroutineDispatcher()
@@ -176,7 +176,7 @@ class ExportToFileController(
   private fun trackExportCompleted(
     params: ExportRequest,
     exportDurationMs: Long,
-    outcome: Outcome
+    outcome: Outcome,
   ) {
     val source: Source =
       when (params) {
@@ -206,7 +206,7 @@ class ExportToFileController(
       destination,
       exportDurationMs.toInt(),
       outcome,
-      connectivityState
+      connectivityState,
     )
   }
 
@@ -230,7 +230,7 @@ class ExportToFileController(
                 params.srcDatabase,
                 params.srcTable,
                 params.format as CSV,
-                params.dstPath
+                params.dstPath,
               )
             is SQL -> exportTableToSql(params.srcDatabase, params.srcTable, params.dstPath)
             else -> throwNotSupportedParams(params)
@@ -245,7 +245,7 @@ class ExportToFileController(
                 params.srcDatabase,
                 params.srcQuery,
                 params.format as CSV,
-                params.dstPath
+                params.dstPath,
               )
             else -> throwNotSupportedParams(params)
           }
@@ -279,7 +279,7 @@ class ExportToFileController(
 
             createZipFile(
               dstPath,
-              tmpFileToEntryName
+              tmpFileToEntryName,
             ) // TODO(161081452): write directly to zip file or move outside of database lock
           }
       }
@@ -325,7 +325,7 @@ class ExportToFileController(
    */
   private suspend fun executeTaskOnLocalDatabaseCopy(
     database: SqliteDatabaseId,
-    task: suspend (srcPath: Path) -> Unit
+    task: suspend (srcPath: Path) -> Unit,
   ) =
     withContext(taskDispatcher) {
       // TODO(161081452): [P1] verify behaviour when switching modes (online->offline or
@@ -379,7 +379,7 @@ class ExportToFileController(
           downloadDatabase(database) { message, throwable ->
             throw IllegalStateException(
               "Issue while downloading database (${database.name}): $message",
-              throwable
+              throwable,
             )
           }
 
@@ -422,7 +422,7 @@ class ExportToFileController(
     database: SqliteDatabaseId,
     srcTable: String,
     format: CSV,
-    dstPath: Path
+    dstPath: Path,
   ) =
     withContext(taskDispatcher) {
       val query = createSqliteStatement(SqliteQueries.selectTableContents(srcTable))
@@ -432,7 +432,7 @@ class ExportToFileController(
   private suspend fun exportTableToSql(
     database: SqliteDatabaseId,
     srcTable: String,
-    dstPath: Path
+    dstPath: Path,
   ) =
     withContext(taskDispatcher) {
       executeTaskOnLocalDatabaseCopy(database) { srcPath ->
@@ -467,13 +467,13 @@ class ExportToFileController(
     database: SqliteDatabaseId,
     query: SqliteStatement,
     format: CSV,
-    dstPath: Path
+    dstPath: Path,
   ) =
     withContext(taskDispatcher) {
       writeRowsToCsvFile(
         executeQuery(database, query), // TODO(161081452): lock and download in chunks
         format.delimiter,
-        dstPath
+        dstPath,
       )
     }
 
@@ -482,7 +482,7 @@ class ExportToFileController(
 
   private suspend fun executeQuery(
     srcDatabase: SqliteDatabaseId,
-    srcQuery: SqliteStatement
+    srcQuery: SqliteStatement,
   ): Flow<SqliteRow> = flow {
     withDatabaseLock(srcDatabase) {
       val resultSet = databaseRepository.runQuery(srcDatabase, srcQuery).await()
@@ -492,14 +492,16 @@ class ExportToFileController(
       while (rowOffset < totalRowCount) {
         val batch =
           when (resultSet) {
-            is LiveSqliteResultSet ->
-              resultSet.getRowBatch(
-                rowOffset,
-                rowBatchSize = Integer.MAX_VALUE,
-                responseSizeByteLimitHint
-              )
-            else -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE)
-          }.await()
+              is LiveSqliteResultSet ->
+                resultSet.getRowBatch(
+                  rowOffset,
+                  rowBatchSize = Integer.MAX_VALUE,
+                  responseSizeByteLimitHint,
+                )
+              else -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE)
+            }
+            .await()
+            .rows
         batch.forEach { emit(it) }
         rowOffset += batch.size
       }
@@ -511,7 +513,7 @@ class ExportToFileController(
   private suspend fun writeRowsToCsvFile(
     rows: Flow<SqliteRow>,
     delimiter: Delimiter,
-    dstPath: Path
+    dstPath: Path,
   ) =
     withContext(taskDispatcher) {
       val delimiterString = delimiter.delimiter.toString()

@@ -27,16 +27,20 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
+import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP
+import com.android.tools.idea.streaming.device.FakeScreenSharingAgent.ControlMessageFilter
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
+import com.android.tools.idea.testing.override
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
@@ -48,6 +52,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
@@ -55,8 +60,11 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
+import it.unimi.dsi.fastutil.bytes.ByteArrayList
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -70,10 +78,19 @@ import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_P
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.file.Path
-import java.util.EnumSet
-import java.util.concurrent.TimeUnit.SECONDS
+import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.Control
+import javax.sound.sampled.Line
+import javax.sound.sampled.LineListener
+import javax.sound.sampled.SourceDataLine
 import javax.swing.JViewport
+import kotlin.math.PI
+import kotlin.math.sin
+import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for [DeviceToolWindowPanel], [DeviceDisplayPanel] and toolbar actions that produce Android key events.
@@ -84,6 +101,8 @@ class DeviceToolWindowPanelTest {
     @JvmField
     @ClassRule
     val iconRule = IconLoaderRule() // Enable icon loading in a headless test environment.
+
+    private val controlMessageFilter = ControlMessageFilter(DisplayConfigurationRequest.TYPE, SetMaxVideoResolutionMessage.TYPE)
   }
 
   private val agentRule = FakeScreenSharingAgentRule()
@@ -93,7 +112,8 @@ class DeviceToolWindowPanelTest {
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
-  private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true) } // Fake window is necessary for the toolbars to be rendered.
+  // Fake window is necessary for the toolbars to be rendered.
+  private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable) }
   private val project get() = agentRule.project
   private val testRootDisposable get() = agentRule.disposable
   private val agent: FakeScreenSharingAgent get() = device.agent
@@ -117,10 +137,9 @@ class DeviceToolWindowPanelTest {
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(5.seconds) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
-    fakeUi.updateToolbars()
     waitForFrame()
     assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
@@ -165,7 +184,7 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
-    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2.seconds) { !agent.videoStreamActive }
   }
 
   @Test
@@ -176,19 +195,17 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.primaryDisplayView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(5.seconds) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
-    fakeUi.updateToolbars()
-    fakeUi.layoutAndDispatchEvents()
     waitForFrame()
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)
 
     // Check push button actions.
     val pushButtonCases = listOf(
-      Pair("Button 1", AKEYCODE_POWER),
-      Pair("Button 2", AKEYCODE_STEM_PRIMARY),
+      Pair("Button 1", AKEYCODE_STEM_PRIMARY),
+      Pair("Button 2", AKEYCODE_POWER),
       Pair("Back", AKEYCODE_BACK),
     )
     for (case in pushButtonCases) {
@@ -229,7 +246,7 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
-    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2.seconds) { !agent.videoStreamActive }
   }
 
   @Test
@@ -240,32 +257,32 @@ class DeviceToolWindowPanelTest {
     val deviceView = panel.primaryDisplayView!!
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(5.seconds) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
-    fakeUi.updateToolbars()
     waitForFrame()
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(deviceView, project, ActionPlaces.TOOLBAR)
-    waitForCondition(2, SECONDS) { deviceView.deviceController?.currentFoldingState != null }
-    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.isVisible }
+    waitForCondition(2.seconds) { deviceView.deviceController?.currentFoldingState != null }
+    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.isVisible }
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
     assertThat(foldingActions).asList().containsExactly(
-      DeviceFoldingAction(FoldingState(0, "Closed", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(1, "Tent", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(2, "Half-Open", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(3, "Open", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(4, "Rear Display Mode", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(5, "Dual Display Mode",
-                                       EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE, FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
-      DeviceFoldingAction(FoldingState(6, "Flipped", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))))
+      DeviceFoldingAction(FoldingState(0, "Closed")),
+      DeviceFoldingAction(FoldingState(1, "Tent")),
+      DeviceFoldingAction(FoldingState(2, "Half-Open")),
+      DeviceFoldingAction(FoldingState(3, "Open")),
+      DeviceFoldingAction(FoldingState(4, "Rear Display Mode")),
+      DeviceFoldingAction(FoldingState(5, "Dual Display Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+      DeviceFoldingAction(FoldingState(6, "Rear Dual Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+      DeviceFoldingAction(FoldingState(7, "Flipped")))
+    val disabledModes = setOf("Dual Display Mode", "Rear Dual Mode")
     for (action in foldingActions) {
       action.update(event)
       assertWithMessage("Unexpected enablement state of the ${action.templateText} action")
-          .that(event.presentation.isEnabled).isEqualTo(action.templateText != "Dual Display Mode")
+          .that(event.presentation.isEnabled).isEqualTo(action.templateText !in disabledModes)
       assertWithMessage("Unexpected visibility of the ${action.templateText} action").that(event.presentation.isVisible).isTrue()
     }
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
@@ -273,7 +290,7 @@ class DeviceToolWindowPanelTest {
     val nextFrameNumber = panel.primaryDisplayView!!.frameNumber + 1u
     val closingAction = foldingActions[0]
     closingAction.actionPerformed(event)
-    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)" }
+    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)" }
     waitForFrame(minFrameNumber = nextFrameNumber)
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
   }
@@ -287,15 +304,13 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.primaryDisplayView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
 
-    fakeUi.updateToolbars()
-    fakeUi.layoutAndDispatchEvents()
     waitForFrame()
 
     val externalDisplayId = 1
     agent.addDisplay(externalDisplayId, 1080, 1920, DisplayType.EXTERNAL)
-    waitForCondition(2, SECONDS) { fakeUi.findAllComponents<DeviceView>().size == 2 }
+    waitForCondition(2.seconds) { fakeUi.findAllComponents<DeviceView>().size == 2 }
     waitForFrame(PRIMARY_DISPLAY_ID)
     waitForFrame(externalDisplayId)
     assertAppearance("MultipleDisplays1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
@@ -308,7 +323,7 @@ class DeviceToolWindowPanelTest {
     assertAppearance("MultipleDisplays2", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
 
     agent.removeDisplay(externalDisplayId)
-    waitForCondition(2, SECONDS) { fakeUi.findAllComponents<DeviceView>().size == 1 }
+    waitForCondition(2.seconds) { fakeUi.findAllComponents<DeviceView>().size == 1 }
   }
 
   @Test
@@ -320,10 +335,8 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.primaryDisplayView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
 
-    fakeUi.updateToolbars()
-    fakeUi.layoutAndDispatchEvents()
     waitForFrame()
 
     var deviceView = panel.primaryDisplayView!!
@@ -341,12 +354,12 @@ class DeviceToolWindowPanelTest {
     // Recreate panel content.
     val uiState = panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
-    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2.seconds) { !agent.videoStreamActive }
     panel.createContent(false, uiState)
     assertThat(panel.primaryDisplayView).isNotNull()
     deviceView = panel.primaryDisplayView!!
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, SECONDS) { agent.videoStreamActive && panel.isConnected }
+    waitForCondition(5.seconds) { agent.videoStreamActive && panel.isConnected }
     waitForFrame()
 
     // Check that zoom level and scroll position are restored.
@@ -356,7 +369,89 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
-    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2.seconds) { !agent.videoStreamActive }
+  }
+
+
+  @Test
+  fun testAudio() {
+    DeviceMirroringSettings.getInstance()::redirectAudio.override(true, testRootDisposable)
+    val testDataLine = TestDataLine()
+    val testAudioSystemService = object : AudioSystemService() {
+      override fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = testDataLine
+    }
+    ApplicationManager.getApplication().replaceService(AudioSystemService::class.java, testAudioSystemService, testRootDisposable)
+
+    device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(false)
+    assertThat(panel.primaryDisplayView).isNotNull()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
+    waitForFrame()
+
+    val frequencyHz = 440.0
+    val durationMillis = 500
+    runBlocking { agent.beep(frequencyHz, durationMillis) }
+    waitForCondition(2.seconds) {
+      testDataLine.dataSize >= AUDIO_SAMPLE_RATE * AUDIO_CHANNEL_COUNT * AUDIO_BYTES_PER_SAMPLE_FMT_S16 * durationMillis / 1000
+    }
+    val buf = testDataLine.dataAsByteBuffer()
+    var volumeReached = false
+    var previousValue = 0.0
+    var start = Double.NaN
+    for (i in 0 until buf.limit() / (AUDIO_CHANNEL_COUNT * AUDIO_BYTES_PER_SAMPLE_FMT_S16)) {
+      for (channel in 1..AUDIO_CHANNEL_COUNT) {
+        val v = buf.getShort().toDouble()
+        when {
+          start.isFinite() && i * 1000 / AUDIO_SAMPLE_RATE < durationMillis -> {
+            val expected = sin((i - start) * 2 * PI * frequencyHz / AUDIO_SAMPLE_RATE) * Short.MAX_VALUE
+            assertEquals(expected, v, Short.MAX_VALUE * 0.03,
+                         "Unexpected signal value in channel $channel at ${i * 1000.0 / AUDIO_SAMPLE_RATE} ms")
+          }
+          volumeReached -> {
+            if (channel == 1 && v >= 0 && previousValue < 0) {
+              start = i - v / (v - previousValue)
+            }
+            previousValue = v
+          }
+          else -> {
+            if (channel == 1 && v <= Short.MIN_VALUE * 0.99) {
+              volumeReached = true
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  fun testAudioEnablementDisablement() {
+    val testDataLine = TestDataLine()
+    val testAudioSystemService = object : AudioSystemService() {
+      override fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = testDataLine
+    }
+    ApplicationManager.getApplication().replaceService(AudioSystemService::class.java, testAudioSystemService, testRootDisposable)
+
+    device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(false)
+    assertThat(panel.primaryDisplayView).isNotNull()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
+    waitForFrame()
+
+    DeviceMirroringSettings.getInstance()::redirectAudio.override(true, testRootDisposable)
+    assertThat(agent.getNextControlMessage(1.seconds)).isEqualTo(StartAudioStreamMessage())
+    waitForCondition(1.seconds) { agent.audioStreamActive }
+
+    DeviceMirroringSettings.getInstance().redirectAudio = false
+    assertThat(agent.getNextControlMessage(1.seconds)).isEqualTo(StopAudioStreamMessage())
+    waitForCondition(1.seconds) { !agent.audioStreamActive }
   }
 
   private fun FakeUi.mousePressOn(component: Component) {
@@ -386,14 +481,14 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun getNextControlMessageAndWaitForFrame(displayId: Int = PRIMARY_DISPLAY_ID): ControlMessage {
-    val message = agent.getNextControlMessage(2, SECONDS)
+    val message = agent.getNextControlMessage(2.seconds, filter = controlMessageFilter)
     waitForFrame(displayId)
     return message
   }
 
   /** Waits for all video frames to be received after the given one. */
   private fun waitForFrame(displayId: Int = PRIMARY_DISPLAY_ID, minFrameNumber: UInt = 1u) {
-    waitForCondition(2, SECONDS) {
+    waitForCondition(2.seconds) {
       panel.isConnected &&
       agent.getFrameNumber(displayId) >= minFrameNumber &&
       renderAndGetFrameNumber(displayId) == agent.getFrameNumber(displayId)
@@ -410,7 +505,6 @@ class DeviceToolWindowPanelTest {
                                maxPercentDifferentLinux: Double = 0.0003,
                                maxPercentDifferentMac: Double = 0.0003,
                                maxPercentDifferentWindows: Double = 0.0003) {
-    fakeUi.layoutAndDispatchEvents()
     fakeUi.updateToolbars()
     val image = fakeUi.render()
     val maxPercentDifferent = when {
@@ -430,6 +524,116 @@ class DeviceToolWindowPanelTest {
 
   private fun DeviceToolWindowPanel.findDisplayView(displayId: Int): DeviceView? =
     if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }
+}
+
+
+private class TestDataLine : SourceDataLine {
+
+  private val data = ByteArrayList()
+  private var open = false
+
+  val dataSize: Int
+    get() = synchronized(data) { data.size }
+
+  fun dataAsByteBuffer(): ByteBuffer =
+    synchronized(data) { ByteBuffer.allocate(data.size).order(ByteOrder.LITTLE_ENDIAN).put(data.elements(), 0, data.size).flip() }
+
+  override fun close() {
+    open = false
+  }
+
+  override fun getLineInfo(): Line.Info {
+    TODO("Not yet implemented")
+  }
+
+  override fun open(format: AudioFormat, bufferSize: Int) {
+    open()
+  }
+
+  override fun open(format: AudioFormat) {
+    open()
+  }
+
+  override fun open() {
+    data.clear()
+    open = true
+  }
+
+  override fun isOpen(): Boolean  = open
+
+  override fun getControls(): Array<Control> {
+    TODO("Not yet implemented")
+  }
+
+  override fun isControlSupported(control: Control.Type): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun getControl(control: Control.Type): Control {
+    TODO("Not yet implemented")
+  }
+
+  override fun addLineListener(listener: LineListener) {
+    TODO("Not yet implemented")
+  }
+
+  override fun removeLineListener(listener: LineListener) {
+    TODO("Not yet implemented")
+  }
+
+  override fun drain() {
+    TODO("Not yet implemented")
+  }
+
+  override fun flush() {
+  }
+
+  override fun start() {
+  }
+
+  override fun stop() {
+  }
+
+  override fun isRunning(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun isActive(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun getFormat(): AudioFormat {
+    TODO("Not yet implemented")
+  }
+
+  override fun getBufferSize(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun available(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun getFramePosition(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun getLongFramePosition(): Long {
+    TODO("Not yet implemented")
+  }
+
+  override fun getMicrosecondPosition(): Long {
+    TODO("Not yet implemented")
+  }
+
+  override fun getLevel(): Float {
+    TODO("Not yet implemented")
+  }
+
+  override fun write(bytes: ByteArray, offset: Int, len: Int): Int {
+    synchronized(data) { data.addElements(data.size, bytes, offset, len) }
+    return len
+  }
 }
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/DeviceToolWindowPanelTest/golden"

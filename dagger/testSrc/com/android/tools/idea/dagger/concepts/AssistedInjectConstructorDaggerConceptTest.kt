@@ -69,7 +69,7 @@ class AssistedInjectConstructorDaggerConceptTest {
           dep3: Dep3,
         )
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val indexResults = AssistedInjectConstructorDaggerConcept.indexers.runIndexerOn(psiFile)
@@ -82,21 +82,21 @@ class AssistedInjectConstructorDaggerConceptTest {
         setOf(
           AssistedInjectConstructorUnassistedParameterIndexValue(
             MY_ASSISTED_INJECT_CLASS_ID,
-            "dep1"
+            "dep1",
           )
         ),
         "Dep2",
         setOf(
           AssistedInjectConstructorUnassistedParameterIndexValue(
             MY_ASSISTED_INJECT_CLASS_ID,
-            "dep2"
+            "dep2",
           )
         ),
         "Dep3",
         setOf(
           AssistedInjectConstructorUnassistedParameterIndexValue(
             MY_ASSISTED_INJECT_CLASS_ID,
-            "dep3"
+            "dep3",
           )
         ),
       )
@@ -137,7 +137,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       class Dep2
       class Dep3
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val assistedInjectConstructorDaggerElement =
@@ -150,12 +150,14 @@ class AssistedInjectConstructorDaggerConceptTest {
     assertThat(
         AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(assistedInjectConstructorDaggerElement)
 
     assertThat(
         AssistedInjectConstructorIndexValue(MY_NOT_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -193,7 +195,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       class Dep2 {}
       class Dep3 {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val assistedInjectConstructorDaggerElement =
@@ -204,12 +206,14 @@ class AssistedInjectConstructorDaggerConceptTest {
     assertThat(
         AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(assistedInjectConstructorDaggerElement)
 
     assertThat(
         AssistedInjectConstructorIndexValue(MY_NOT_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -250,7 +254,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       class Dep2
       class Dep3
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val parameterDaggerElement =
@@ -260,6 +264,7 @@ class AssistedInjectConstructorDaggerConceptTest {
     assertThat(
         AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "dep3")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(parameterDaggerElement)
 
@@ -277,6 +282,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       assertThat(
           AssistedInjectConstructorUnassistedParameterIndexValue(classId, parameterName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -315,7 +321,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       class Dep2 {}
       class Dep3 {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val parameterDaggerElement =
@@ -325,6 +331,7 @@ class AssistedInjectConstructorDaggerConceptTest {
     assertThat(
         AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "dep3")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(parameterDaggerElement)
 
@@ -342,6 +349,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       assertThat(
           AssistedInjectConstructorUnassistedParameterIndexValue(classId, parameterName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -373,7 +381,7 @@ class AssistedInjectConstructorDaggerConceptTest {
 
       class CreatedObject @AssistedInject constructor(@Assisted dep1: Dep1, @Assisted  dep2: Dep2, dep3: Dep3)
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val assistedInjectConstructorDaggerElement =
@@ -390,7 +398,7 @@ class AssistedInjectConstructorDaggerConceptTest {
           assistedFactoryMethodDaggerElement,
           "AssistedFactory methods",
           "navigate.to.assisted.factory",
-          "create"
+          "create",
         )
       )
   }

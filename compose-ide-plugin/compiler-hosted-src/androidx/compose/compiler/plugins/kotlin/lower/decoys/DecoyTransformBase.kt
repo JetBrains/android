@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package androidx.compose.compiler.plugins.kotlin.lower.decoys
 
+import androidx.compose.compiler.plugins.kotlin.lower.DeepCopyPreservingMetadata
 import androidx.compose.compiler.plugins.kotlin.lower.hasAnnotationSafe
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
@@ -36,20 +39,24 @@ import org.jetbrains.kotlin.ir.linkage.IrDeserializer.TopLevelSymbolKind.FUNCTIO
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeArgument
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
-import org.jetbrains.kotlin.ir.util.DeepCopyIrTreeWithSymbols
+import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.jetbrains.kotlin.ir.util.DeepCopyTypeRemapper
 import org.jetbrains.kotlin.ir.util.IdSignature
+import org.jetbrains.kotlin.ir.util.SymbolRenamer
 import org.jetbrains.kotlin.ir.util.TypeRemapper
-import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.getAnnotation
 import org.jetbrains.kotlin.ir.util.isTopLevel
 import org.jetbrains.kotlin.ir.util.module
+import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.ir.util.remapTypeParameters
 import org.jetbrains.kotlin.ir.util.toIrConst
+import org.jetbrains.kotlin.ir.visitors.acceptVoid
 
+@JvmDefaultWithCompatibility
 internal interface DecoyTransformBase {
     val context: IrPluginContext
     val signatureBuilder: IdSignatureFactory
@@ -87,7 +94,9 @@ internal interface DecoyTransformBase {
             UNDEFINED_OFFSET,
             type = stringArrayType,
             varargElementType = context.irBuiltIns.stringType,
-            elements = valueArguments.map { it.toIrConst(context.irBuiltIns.stringType) }
+            elements = valueArguments.map {
+                it.toIrConst(context.irBuiltIns.stringType)
+            }
         )
     }
 
@@ -116,7 +125,7 @@ internal interface DecoyTransformBase {
             declarationFqName = signature[1],
             id = signature[2].toLongOrNull(),
             mask = signature[3].toLong(),
-            description = null,
+            description = "Composable decoy signature"
         )
 
         val linker = (context as IrPluginContextImpl).linker
@@ -177,11 +186,9 @@ internal interface DecoyTransformBase {
     ): IrSymbol = resolveBySignatureInModule(idSignature, FUNCTION_SYMBOL, moduleDescriptor.name)
 }
 
-@OptIn(ObsoleteDescriptorBasedAPI::class)
 fun IrDeclaration.isDecoy(): Boolean =
     hasAnnotationSafe(DecoyFqNames.Decoy)
 
-@OptIn(ObsoleteDescriptorBasedAPI::class)
 fun IrDeclaration.isDecoyImplementation(): Boolean =
     hasAnnotationSafe(DecoyFqNames.DecoyImplementation)
 
@@ -200,19 +207,32 @@ fun IrFunction.didDecoyHaveDefaultForValueParameter(paramIndex: Int): Boolean {
     } ?: false
 }
 
-inline fun <reified T : IrElement> T.copyWithNewTypeParams(
+internal inline fun <reified T : IrElement> T.copyWithNewTypeParams(
     source: IrFunction,
     target: IrFunction
 ): T {
-    return deepCopyWithSymbols(target) { symbolRemapper, typeRemapper ->
-        val typeParamRemapper = object : TypeRemapper by typeRemapper {
-            override fun remapType(type: IrType): IrType {
-                return typeRemapper.remapType(type.remapTypeParameters(source, target))
+    val typeParamsAwareSymbolRemapper = object : DeepCopySymbolRemapper() {
+        init {
+            for ((orig, new) in source.typeParameters.zip(target.typeParameters)) {
+                typeParameters[orig.symbol] = new.symbol
             }
         }
-
-        val deepCopy = DeepCopyIrTreeWithSymbols(symbolRemapper, typeParamRemapper)
-        (typeRemapper as? DeepCopyTypeRemapper)?.deepCopy = deepCopy
-        deepCopy
     }
+    val typeRemapper = DeepCopyTypeRemapper(typeParamsAwareSymbolRemapper)
+    val typeParamRemapper = object : TypeRemapper by typeRemapper {
+        override fun remapType(type: IrType): IrType {
+            return typeRemapper.remapType(type.remapTypeParameters(source, target))
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    val deepCopy = DeepCopyPreservingMetadata(
+        typeParamsAwareSymbolRemapper,
+        typeParamRemapper,
+        SymbolRenamer.DEFAULT
+    )
+    typeRemapper.deepCopy = deepCopy
+
+    acceptVoid(typeParamsAwareSymbolRemapper)
+    return transform(deepCopy, null).patchDeclarationParents(target) as T
 }

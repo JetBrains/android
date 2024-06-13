@@ -21,6 +21,8 @@ import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Truth
+import com.intellij.openapi.application.ReadAction
+import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
@@ -33,21 +35,30 @@ class LaunchUtilsTest {
   @Test
   fun testActivity() {
     projectRule.prepareTestProject(AndroidCoreTestProject.RUN_CONFIG_ACTIVITY).open {
-      Truth.assertThat(LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!)).isFalse()
+      val watchFeatureRequired = ReadAction.nonBlocking<Boolean> {
+        LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!)
+      }.submit(AppExecutorUtil.getAppExecutorService()).get();
+      Truth.assertThat(watchFeatureRequired).isFalse()
     }
   }
 
   @Test
   fun testActivityAlias() {
     projectRule.prepareTestProject(AndroidCoreTestProject.RUN_CONFIG_ALIAS).open {
-      Truth.assertThat(LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!)).isFalse()
+      val watchFeatureRequired = ReadAction.nonBlocking<Boolean> {
+        LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!)
+      }.submit(AppExecutorUtil.getAppExecutorService()).get();
+      Truth.assertThat(watchFeatureRequired).isFalse()
     }
   }
 
   @Test
   fun testWatchFaceService() {
     projectRule.prepareTestProject(AndroidCoreTestProject.RUN_CONFIG_WATCHFACE).open {
-      Truth.assertThat(LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!)).isTrue()
+      val watchFeatureRequired = ReadAction.nonBlocking<Boolean> {
+        LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!)
+      }.submit(AppExecutorUtil.getAppExecutorService()).get();
+      Truth.assertThat(watchFeatureRequired).isTrue()
     }
   }
 }

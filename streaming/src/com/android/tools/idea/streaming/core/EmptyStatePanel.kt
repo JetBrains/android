@@ -53,11 +53,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
-private const val MIN_REQUIRED_EMULATOR_VERSION = "31.3.10"
+private const val MIN_REQUIRED_EMULATOR_VERSION = "35.1.3"
 
 // As recommended at https://jetbrains.github.io/ui/principles/empty_state/#21.
 private const val TOP_MARGIN = 0.45
@@ -86,6 +88,12 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
     isFocusable = true
 
     emulatorVersionIsInsufficient = false
+
+    addMouseListener(object : MouseAdapter() {
+      override fun mousePressed(event: MouseEvent) {
+        requestFocusInWindow()
+      }
+    })
 
     hyperlinkListener = HyperlinkListener { event ->
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
@@ -168,7 +176,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
       else ->
         "To launch a&nbsp;virtual device, click $plusSign and select a virtual device, or select " +
-        "the&nbsp;<i>Launch in the&nbsp;Running&nbsp;Devices tool window</i> option in&nbsp;the&nbsp;" +
+        "the&nbsp;<b>Launch in the&nbsp;Running&nbsp;Devices tool window</b> option in&nbsp;the&nbsp;" +
         "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font> " +
         "and use the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>."
     }
@@ -178,9 +186,8 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
       else ->
         "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi, click $plusSign and select the&nbsp;device from " +
-        "the&nbsp;list. You may also select the&nbsp;<i>Activate mirroring when a&nbsp;new physical device is connected</i> " +
-        "option in&nbsp;the&nbsp;" +
-        "<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>."
+        "the&nbsp;list. You may also select the&nbsp;<b>Activate mirroring when a&nbsp;new physical device is connected</b> option " +
+        "in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>."
     }
     val html =
       """

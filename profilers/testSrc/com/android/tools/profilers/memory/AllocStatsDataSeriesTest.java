@@ -45,6 +45,8 @@ public final class AllocStatsDataSeriesTest {
 
   @Test
   public void testGetDataForXRange() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     StudioProfilers studioProfilers =
       new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);

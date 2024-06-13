@@ -60,6 +60,11 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.event.HierarchyEvent.SHOWING_CHANGED
+import javax.swing.JPanel
+import javax.swing.JSeparator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -70,11 +75,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.awt.event.HierarchyEvent.SHOWING_CHANGED
-import javax.swing.JPanel
-import javax.swing.JSeparator
 
 @VisibleForTesting val TAB_KEY = Key.create<AppInspectorTab>("app.inspector.shell.tab")
 
@@ -99,7 +99,7 @@ constructor(
   private val scope: CoroutineScope,
   private val uiDispatcher: CoroutineDispatcher,
   private val artifactService: InspectorArtifactService,
-  isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
+  isPreferredProcess: (ProcessDescriptor) -> Boolean = { false },
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
 
@@ -161,7 +161,7 @@ constructor(
   private val noInspectorsMessage =
     EmptyStatePanel(
       AppInspectionBundle.message("select.process"),
-      "https://d.android.com/r/studio-ui/app-inspector-help"
+      "https://d.android.com/r/studio-ui/app-inspector-help",
     )
 
   /**
@@ -177,7 +177,7 @@ constructor(
     ideServices: AppInspectionIdeServices,
     scope: CoroutineScope,
     uiDispatcher: CoroutineDispatcher,
-    isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
+    isPreferredProcess: (ProcessDescriptor) -> Boolean = { false },
   ) : this(
     project,
     apiServices,
@@ -186,17 +186,17 @@ constructor(
     scope,
     uiDispatcher,
     InspectorArtifactService.instance,
-    isPreferredProcess
+    isPreferredProcess,
   )
 
   private fun showCrashNotification(
     inspectorName: String,
     process: ProcessDescriptor,
-    tabShell: AppInspectorTabShell
+    tabShell: AppInspectorTabShell,
   ) {
     ideServices.showNotification(
       AppInspectionBundle.message("notification.crash", inspectorName),
-      severity = AppInspectionIdeServices.Severity.ERROR
+      severity = AppInspectionIdeServices.Severity.ERROR,
     ) {
       AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
       if (currentProcess == process) {
@@ -212,7 +212,7 @@ constructor(
         edtExecutor,
         apiServices.processDiscovery,
         { it.isInspectable() },
-        isPreferredProcess
+        isPreferredProcess,
       )
     Disposer.register(this, processesModel)
     selectProcessAction = SelectProcessAction(processesModel, onStopAction = { stopInspectors() })
@@ -226,7 +226,7 @@ constructor(
         minimumSize = Dimension(Int.MAX_VALUE, JBUI.scale(2))
         preferredSize = minimumSize
       },
-      TabularLayout.Constraint(1, 0)
+      TabularLayout.Constraint(1, 0),
     )
     component.add(inspectorPanel, TabularLayout.Constraint(2, 0))
 
@@ -298,7 +298,7 @@ constructor(
   private fun CoroutineScope.launchInspectorForTab(
     process: ProcessDescriptor,
     tabShell: AppInspectorTabShell,
-    force: Boolean
+    force: Boolean,
   ) = launch {
     val tabTargets = tabShell.tabJarTargets
     val provider = tabTargets.provider
@@ -316,7 +316,7 @@ constructor(
                       jarTarget.jar,
                       project.name,
                       jarTarget.artifactCoordinate?.let { LibraryCompatibility(it) },
-                      force
+                      force,
                     )
                   )
                 AppInspectorMessengerTarget.Resolved(messenger)
@@ -344,7 +344,7 @@ constructor(
             waitAndHandleSingleInspectorTermination(
               messengers.single() as AppInspectorMessengerTarget.Resolved,
               provider,
-              tabShell
+              tabShell,
             )
           }
         } else {
@@ -364,7 +364,7 @@ constructor(
         tabShell.setComponent(
           EmptyStatePanel(
             AppInspectionBundle.message("process.does.not.exist", process.name),
-            provider.learnMoreUrl
+            provider.learnMoreUrl,
           )
         )
       }
@@ -379,14 +379,14 @@ constructor(
             null,
             ActionData(
               AppInspectionBundle.message("inspector.launch.restart"),
-              hyperlinkClicked(process, tabShell)
-            )
+              hyperlinkClicked(process, tabShell),
+            ),
           )
         )
         ideServices.showNotification(
           AppInspectionBundle.message("notification.failed.launch", e.message!!),
           severity = AppInspectionIdeServices.Severity.ERROR,
-          hyperlinkClicked = hyperlinkClicked(process, tabShell)
+          hyperlinkClicked = hyperlinkClicked(process, tabShell),
         )
       }
     } catch (e: AppInspectionAppProguardedException) {
@@ -400,7 +400,7 @@ constructor(
 
   private fun launchInspectorTabsForCurrentProcess(
     process: ProcessDescriptor,
-    force: Boolean = false
+    force: Boolean = false,
   ) {
     tabsLaunchScope.launch {
       val launchSupport =
@@ -477,7 +477,7 @@ constructor(
   private suspend fun waitAndHandleSingleInspectorTermination(
     target: AppInspectorMessengerTarget.Resolved,
     provider: AppInspectorTabProvider,
-    tabShell: AppInspectorTabShell
+    tabShell: AppInspectorTabShell,
   ) {
     val process = currentProcess!!
     when (target.messenger.awaitForDisposal()) {
@@ -486,7 +486,7 @@ constructor(
           tabShell.setComponent(
             EmptyStatePanel(
               AppInspectionBundle.message("inspector.forcefully.stopped", provider.displayName),
-              provider.learnMoreUrl
+              provider.learnMoreUrl,
             )
           )
         }
@@ -505,7 +505,7 @@ constructor(
           tabShell.setComponent(
             EmptyStatePanel(
               AppInspectionBundle.message("inspector.stopped", provider.displayName),
-              provider.learnMoreUrl
+              provider.learnMoreUrl,
             )
           )
         }
@@ -516,7 +516,7 @@ constructor(
   private suspend fun waitAndHandleInspectorTermination(
     messengers: List<AppInspectorMessengerTarget>,
     provider: AppInspectorTabProvider,
-    tabShell: AppInspectorTabShell
+    tabShell: AppInspectorTabShell,
   ) {
     messengers.filterIsInstance(AppInspectorMessengerTarget.Resolved::class.java).forEach { target
       ->
@@ -527,7 +527,7 @@ constructor(
       tabShell.setComponent(
         EmptyStatePanel(
           AppInspectionBundle.message("inspector.stopped", provider.displayName),
-          provider.learnMoreUrl
+          provider.learnMoreUrl,
         )
       )
     }

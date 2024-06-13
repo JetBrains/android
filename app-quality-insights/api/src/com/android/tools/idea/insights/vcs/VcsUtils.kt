@@ -64,7 +64,7 @@ fun createVcsDocument(
   vcsKey: VCS_CATEGORY,
   virtualFile: VirtualFile,
   revision: String,
-  project: Project
+  project: Project,
 ): Document? {
   // There's underlying cache layer: `ContentRevisionCache`.
   val vcsContentText =

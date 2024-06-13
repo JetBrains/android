@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="libadb-server-proto">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/adblib/libadb-server-proto.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

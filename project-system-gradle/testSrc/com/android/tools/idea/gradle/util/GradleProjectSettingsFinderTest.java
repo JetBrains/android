@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
-
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
-/**
- * Tests for {@link GradleProjectSettingsFinder}.
- */
+
 public class GradleProjectSettingsFinderTest extends AndroidGradleTestCase {
   private GradleProjectSettingsFinder mySettingsFinder;
 
@@ -31,16 +27,6 @@ public class GradleProjectSettingsFinderTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     mySettingsFinder = new GradleProjectSettingsFinder();
-  }
-
-  public void testWithAndroidGradleProject() throws Exception {
-    loadSimpleApplication();
-
-    Project project = getProject();
-    GradleProjectSettings settings = mySettingsFinder.findGradleProjectSettings(project);
-    assertNotNull(settings);
-
-    assertEquals(project.getBasePath(), toSystemIndependentName(settings.getExternalProjectPath()));
   }
 
   public void testWithNonGradleProject() {

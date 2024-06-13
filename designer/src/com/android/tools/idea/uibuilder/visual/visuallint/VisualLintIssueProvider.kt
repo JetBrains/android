@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.lint.getTextRange
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
+import com.intellij.designer.model.EmptyXmlTag
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -30,6 +31,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.pom.Navigatable
 import java.lang.ref.WeakReference
 import java.util.Objects
 import java.util.stream.Stream
@@ -96,9 +98,9 @@ abstract class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProv
 }
 
 /** Lint issues that is generated from visual sources (e.g. Layout Validation) */
-class VisualLintRenderIssue private constructor(private val builder: Builder) :
+class VisualLintRenderIssue private constructor(builder: Builder) :
   Issue(), VisualLintHighlightingIssue {
-  val models = builder.model?.let { mutableSetOf(it) } ?: mutableSetOf()
+  private val _models = builder.model?.let { mutableSetOf(it) } ?: mutableSetOf()
   private var isComponentSuppressed: (NlComponent) -> Boolean = { false }
   private val _components = builder.components!!
   private val allComponents
@@ -107,6 +109,9 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
   /** List of [NlComponent]s that have not been suppressed */
   val components
     get() = synchronized(_components) { _components.filterNot(isComponentSuppressed).toList() }
+
+  val models
+    get() = synchronized(_models) { _models.toSet() }
 
   val type: VisualLintErrorType = builder.type!!
   override val source = VisualLintIssueProvider.VisualLintIssueSource(models, components)
@@ -119,9 +124,9 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
     return components.map { it.model }.contains(model)
   }
 
+  private val contentDescriptionProvider = builder.contentDescriptionProvider!!
   override val description: String
-    get() =
-      builder.contentDescriptionProvider!!.invoke(unsuppressedModelCount).stringBuilder.toString()
+    get() = contentDescriptionProvider.invoke(unsuppressedModelCount).stringBuilder.toString()
 
   /** Returns the text range of the issue. */
   private var range: TextRange? = null
@@ -129,7 +134,33 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
   private val suppressList: MutableList<Suppress> = mutableListOf()
 
   override val suppresses: Stream<Suppress>
-    get() = suppressList.stream()
+    get() =
+      suppressList.filter { it.action !is VisualLintSuppressTask || it.action.isValid() }.stream()
+
+  private val fixList: MutableList<Fix> = mutableListOf()
+
+  override val fixes: Stream<Fix>
+    get() = fixList.stream()
+
+  private var frozenNavigatable: Navigatable? = null
+
+  val navigatable: Navigatable?
+    get() =
+      frozenNavigatable ?: components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
+
+  private var frozenAffectedFiles: List<VirtualFile> = emptyList()
+
+  val affectedFiles: List<VirtualFile>
+    get() =
+      frozenAffectedFiles.ifEmpty {
+        models
+          .filter { model -> this.shouldHighlight(model) }
+          .map {
+            @kotlin.Suppress("UnstableApiUsage")
+            BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
+          }
+          .distinct()
+      }
 
   init {
     runReadAction { updateRange() }
@@ -153,16 +184,27 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
 
   override fun hashCode() = Objects.hash(severity, summary, category)
 
+  private var frozenUnsuppressedModelCount = -1
+
   /** Get the number of [NlModel] which is not suppressed. */
   private val unsuppressedModelCount: Int
-    get() = components.map { it.model }.distinct().count()
+    get() =
+      if (frozenUnsuppressedModelCount >= 0) {
+        frozenUnsuppressedModelCount
+      } else {
+        components.map { it.model }.distinct().count()
+      }
 
   fun isSuppressed(): Boolean {
-    return components.isEmpty()
+    return unsuppressedModelCount == 0
   }
 
   fun addSuppress(suppress: Suppress) {
     suppressList.add(suppress)
+  }
+
+  fun addFix(fix: Fix) {
+    fixList.add(fix)
   }
 
   fun customizeIsSuppressed(isComponentSuppressedMethod: (NlComponent) -> Boolean) {
@@ -171,9 +213,35 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
 
   fun combineWithIssue(issue: VisualLintRenderIssue) {
     synchronized(_components) { _components.addAll(issue.allComponents) }
-    models.addAll(issue.models)
+    synchronized(_models) { _models.addAll(issue.models) }
     issue.allComponents.forEach { source.addComponent(it) }
     issue.models.forEach { source.addModel(it) }
+  }
+
+  /**
+   * This should be called when the previews that are at the origin of this issue have been
+   * discarded, so that the issue won't be updated anymore.
+   */
+  fun freeze() {
+    frozenNavigatable = navigatable
+    frozenUnsuppressedModelCount = unsuppressedModelCount
+    frozenAffectedFiles =
+      models
+        .filter { model -> this.shouldHighlight(model) }
+        .map {
+          @kotlin.Suppress("UnstableApiUsage")
+          BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
+        }
+        .distinct()
+    synchronized(_components) { _components.clear() }
+    synchronized(_models) { _models.clear() }
+  }
+
+  /** This should be called when the issue is going to be reused for a new preview. */
+  fun unfreeze() {
+    frozenNavigatable = null
+    frozenUnsuppressedModelCount = -1
+    frozenAffectedFiles = emptyList()
   }
 
   /** Builder for [VisualLintRenderIssue] */
@@ -184,7 +252,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
     var model: NlModel? = null,
     var components: MutableList<NlComponent>? = null,
     var hyperlinkListener: HyperlinkListener? = null,
-    var type: VisualLintErrorType? = null
+    var type: VisualLintErrorType? = null,
   ) {
 
     fun summary(summary: String) = apply { this.summary = summary }
@@ -233,4 +301,8 @@ interface VisualLintHighlightingIssue {
    * @param model Currently displaying model.
    */
   fun shouldHighlight(model: NlModel): Boolean
+}
+
+interface VisualLintSuppressTask : Runnable {
+  fun isValid(): Boolean
 }

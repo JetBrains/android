@@ -33,6 +33,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
+import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -62,6 +63,7 @@ class ViewContextMenuFactoryTest {
 
   private var inspectorModel: InspectorModel? = null
   private val event: AnActionEvent = mock()
+  private lateinit var mockLayoutInspector: LayoutInspector
 
   @Before
   fun setUp() {
@@ -74,24 +76,25 @@ class ViewContextMenuFactoryTest {
       mockPopupMenu
     }
     whenever(mockPopupMenu.component).thenReturn(popupMenuComponent)
-    inspectorModel = model {
-      view(
-        ROOT,
-        viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")
-      ) {
-        view(VIEW1)
-        view(VIEW2, qualifiedName = "viewName") {
-          view(VIEW3, textValue = "myText") { image() }
-          image()
+    inspectorModel =
+      model(disposableRule.disposable) {
+        view(
+          ROOT,
+          viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId"),
+        ) {
+          view(VIEW1)
+          view(VIEW2, qualifiedName = "viewName") {
+            view(VIEW3, textValue = "myText") { image() }
+            image()
+          }
         }
       }
-    }
 
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
-    val layoutInspector: LayoutInspector = mock()
-    whenever(layoutInspector.currentClient).thenReturn(client)
-    whenever(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(layoutInspector)
+    mockLayoutInspector = mock()
+    whenever(mockLayoutInspector.currentClient).thenReturn(client)
+    whenever(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(mockLayoutInspector)
     whenever(event.actionManager).thenReturn(mockActionManager)
   }
 
@@ -105,7 +108,7 @@ class ViewContextMenuFactoryTest {
 
   @Test
   fun testEmptyModel() {
-    showViewContextMenu(listOf(), model {}, source!!, 0, 0)
+    showViewContextMenu(listOf(), model(disposableRule.disposable) {}, source!!, 0, 0)
     assertThat(createdGroup).isNull()
   }
 
@@ -135,7 +138,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
-        "Go To Declaration"
+        "Go To Declaration",
       )
       .inOrder()
 
@@ -190,6 +193,25 @@ class ViewContextMenuFactoryTest {
         else -> assertThat(event.presentation.isVisible).isTrue()
       }
     }
+
+    val fileEditorClient = FileEditorInspectorClient(model, mock(), mock())
+    whenever(mockLayoutInspector.currentClient).thenReturn(fileEditorClient)
+
+    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
+    val newActions = createdGroup?.getChildren(event)?.toList()
+
+    newActions?.forEach {
+      val event = createFakeEvent()
+      it.update(event)
+
+      when (it.templateText) {
+        "Show All" -> assertThat(event.presentation.isVisible).isTrue()
+        "Hide Subtree" -> assertThat(event.presentation.isVisible).isTrue()
+        "Show Only Subtree" -> assertThat(event.presentation.isVisible).isTrue()
+        "Show Only Parents" -> assertThat(event.presentation.isVisible).isTrue()
+        else -> assertThat(event.presentation.isVisible).isTrue()
+      }
+    }
   }
 
   @Test
@@ -200,7 +222,7 @@ class ViewContextMenuFactoryTest {
       model,
       source!!,
       0,
-      0
+      0,
     )
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly(
@@ -209,7 +231,7 @@ class ViewContextMenuFactoryTest {
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
-        "Go To Declaration"
+        "Go To Declaration",
       )
       .inOrder()
 
@@ -236,12 +258,16 @@ class ViewContextMenuFactoryLegacyTest {
   private var source: JComponent? = mock()
   private var popupMenuComponent: JPopupMenu? = mock()
   private var createdGroup: ActionGroup? = null
-  private var inspectorModel: InspectorModel? = model {
-    view(ROOT, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")) {
-      view(VIEW1)
-      view(VIEW2, qualifiedName = "viewName") { view(VIEW3, textValue = "myText") }
+  private var inspectorModel: InspectorModel? =
+    model(disposableRule.disposable) {
+      view(
+        ROOT,
+        viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId"),
+      ) {
+        view(VIEW1)
+        view(VIEW2, qualifiedName = "viewName") { view(VIEW3, textValue = "myText") }
+      }
     }
-  }
 
   private val event: AnActionEvent = mock()
 
@@ -292,7 +318,7 @@ class ViewContextMenuFactoryLegacyTest {
       model,
       source!!,
       0,
-      0
+      0,
     )
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly("Select View", "Go To Declaration")

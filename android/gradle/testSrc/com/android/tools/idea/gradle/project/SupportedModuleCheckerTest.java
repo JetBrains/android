@@ -97,7 +97,10 @@ public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
     }
 
     @Override
-    public void showBalloon(@NotNull String title, @NotNull String text, @NotNull NotificationType type, @NotNull NotificationHyperlink... hyperlinks) {
+    public void showBalloon(@NotNull String title,
+                            @NotNull String text,
+                            @NotNull NotificationType type,
+                            @NotNull NotificationHyperlink... hyperlinks) {
       displayedTitle = title;
       displayedText = text;
       displayedType = type;

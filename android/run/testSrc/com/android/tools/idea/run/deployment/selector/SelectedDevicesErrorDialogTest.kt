@@ -25,12 +25,12 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.RunsInEdt
+import javax.swing.JButton
+import javax.swing.JCheckBox
+import javax.swing.JEditorPane
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JButton
-import javax.swing.JCheckBox
-import javax.swing.JLabel
 
 /** Test for [SelectedDevicesErrorDialog]. */
 internal class SelectedDevicesErrorDialogTest {
@@ -47,18 +47,17 @@ internal class SelectedDevicesErrorDialogTest {
     val device =
       createDevice(
         "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.ERROR, "error message")
+        launchCompatibility = LaunchCompatibility(State.ERROR, "error message"),
       )
 
     val dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(device))
 
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
-      val title = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "Error" }
-      assertThat(title).isNotNull()
+      assertThat(dialogWrapper.title).isEqualTo("Error")
       val message =
-        treeWalker.descendants().filterIsInstance<JLabel>().find {
-          it.text?.contains("error message") == true
+        treeWalker.descendants().filterIsInstance<JEditorPane>().find {
+          it.text.contains("error message")
         }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
@@ -76,18 +75,17 @@ internal class SelectedDevicesErrorDialogTest {
     val device =
       createDevice(
         "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message")
+        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"),
       )
 
     val dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(device))
 
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
-      val title = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "Warning" }
-      assertThat(title).isNotNull()
+      assertThat(dialogWrapper.title).isEqualTo("Warning")
       val message =
-        treeWalker.descendants().filterIsInstance<JLabel>().find {
-          it.text == "<html><div>warning message on device Pixel 3 API 29</div></html>"
+        treeWalker.descendants().filterIsInstance<JEditorPane>().find {
+          it.text.contains("warning message on device Pixel 3 API 29")
         }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
@@ -105,13 +103,13 @@ internal class SelectedDevicesErrorDialogTest {
     val deviceWithWarning =
       createDevice(
         "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message")
+        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"),
       )
 
     val deviceWithError =
       createDevice(
         "Pixel 3 API 30",
-        launchCompatibility = LaunchCompatibility(State.ERROR, "error message")
+        launchCompatibility = LaunchCompatibility(State.ERROR, "error message"),
       )
 
     val dialog =
@@ -119,16 +117,15 @@ internal class SelectedDevicesErrorDialogTest {
 
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
-      val title = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "Error" }
-      assertThat(title).isNotNull()
+      assertThat(dialogWrapper.title).isEqualTo("Error")
       val warning =
-        treeWalker.descendants().filterIsInstance<JLabel>().find {
-          it.text == "<html><div>warning message on device Pixel 3 API 29</div></html>"
+        treeWalker.descendants().filterIsInstance<JEditorPane>().find {
+          it.text.contains("warning message on device Pixel 3 API 29")
         }
       assertThat(warning).isNotNull()
       val error =
-        treeWalker.descendants().filterIsInstance<JLabel>().find {
-          it.text == "<html><div>error message on device Pixel 3 API 30</div></html>"
+        treeWalker.descendants().filterIsInstance<JEditorPane>().find {
+          it.text.contains("error message on device Pixel 3 API 30")
         }
       assertThat(error).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
@@ -146,7 +143,7 @@ internal class SelectedDevicesErrorDialogTest {
     val deviceWithWarning =
       createDevice(
         "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message")
+        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"),
       )
 
     var dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(deviceWithWarning))

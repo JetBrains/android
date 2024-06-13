@@ -15,14 +15,14 @@
   ~ limitations under the License.
   -->
 <tutorialBundle
-    name="Design Tools Help"
+    name="UI Tools Help"
     resourceRoot="/"
     stepByStep="true">
   <welcome>
-    <![CDATA[ - The following guides cover features of the Design Tools]]>
+    <![CDATA[ - The following guides cover features of the UI Tools]]>
   </welcome>
   <feature
-    name="Design Tools Keyboard Shortcuts">
+    name="UI Tools Keyboard Shortcuts">
     <description></description>
     <tutorial
         key="analytics-layouteditor-shortcuts"

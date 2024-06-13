@@ -51,21 +51,21 @@ class MySliceProvider : SliceProvider() {
             // Note: ANR and StrictMode are enforced here so don"t do any heavy operations. 
             // Only bind data that is currently available in memory.
             ListBuilder(context, sliceUri, ListBuilder.INFINITY)
-                    .addRow(
-                            ListBuilder.RowBuilder()
-                                    .setTitle("URI found.")
-                                    .setPrimaryAction(activityAction)
-                    )
-                    .build()
+                .addRow(
+                    ListBuilder.RowBuilder()
+                        .setTitle("URI found.")
+                        .setPrimaryAction(activityAction)
+                )
+                .build()
         } else {
             // Error: Path not found.
             ListBuilder(context, sliceUri, ListBuilder.INFINITY)
-                    .addRow(
-                            ListBuilder.RowBuilder()
-                                    .setTitle("URI not found.")
-                                    .setPrimaryAction(activityAction)
-                    )
-                    .build()
+                .addRow(
+                    ListBuilder.RowBuilder()
+                        .setTitle("URI not found.")
+                        .setPrimaryAction(activityAction)
+                )
+                .build()
         }
     }
 

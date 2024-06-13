@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.state
 
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.actions.PickerButtonAction
 import com.android.tools.idea.compose.preview.animation.actions.SwapAction
 import com.intellij.openapi.actionSystem.AnAction
@@ -23,7 +23,8 @@ import com.intellij.openapi.actionSystem.AnAction
 /**
  * [AnimationState] for animations where initial and target states should be selected with a picker.
  */
-class PickerState(tracker: AnimationTracker, callback: () -> Unit) : AnimationState(callback) {
+class PickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
+  AnimationState(callback) {
 
   private val buttonAction = PickerButtonAction(tracker, stateCallback)
 
@@ -49,6 +50,6 @@ class PickerState(tracker: AnimationTracker, callback: () -> Unit) : AnimationSt
         buttonAction.swapStates()
         stateCallback()
       },
-      buttonAction
+      buttonAction,
     )
 }

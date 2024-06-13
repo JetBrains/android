@@ -71,7 +71,7 @@ internal open class PsiCallParameterPropertyItem(
   private val parameterTypeNameIfStandard: Name?,
   protected var argumentExpression: KtExpression?,
   override val defaultValue: String?,
-  validation: EditingValidation = { EDITOR_NO_ERROR }
+  validation: EditingValidation = { EDITOR_NO_ERROR },
 ) : PsiPropertyItem {
 
   override var name: String

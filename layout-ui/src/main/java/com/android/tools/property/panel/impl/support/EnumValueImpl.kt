@@ -59,7 +59,7 @@ data class EmptyDisplayEnumValue(override val display: String) : EnumValueImpl()
 
 data class IndentedItemWithDisplayEnumValue(
   override val value: String,
-  override val display: String
+  override val display: String,
 ) : EnumValueImpl() {
   override val indented
     get() = true
@@ -70,7 +70,7 @@ data class IndentedItemWithDisplayEnumValue(
 internal data class GenericEnumValue(
   override val value: String?,
   override val display: String,
-  override val indented: Boolean
+  override val indented: Boolean,
 ) : EnumValueImpl() {
   override fun toString() = value ?: ""
 }
@@ -105,7 +105,7 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
           "",
           action.templatePresentation.clone(),
           ActionManager.getInstance(),
-          0
+          0,
         )
       action.actionPerformed(event)
     }

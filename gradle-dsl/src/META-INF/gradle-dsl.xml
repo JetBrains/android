@@ -1,0 +1,24 @@
+<idea-plugin>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
+                    interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.gradle.dsl.transformerFactory"
+                    interface="com.android.tools.idea.gradle.dsl.parser.GradleDslTransformerFactory"
+                    dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.gradle.dsl.blockModelProvider"
+                    interface="com.android.tools.idea.gradle.dsl.model.BlockModelProvider"
+                    dynamic="true" />
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
+    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslTransformerFactory"/>
+    <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.GradleDefaultBlockModels"/>
+    <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsBlockModelProvider"/>
+    <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.crashlytics.FirebaseCrashlyticsBlockModelProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap"/>
+  </extensions>
+</idea-plugin>

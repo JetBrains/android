@@ -17,11 +17,12 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.annotations.concurrency.Slow
+import com.intellij.openapi.Disposable
 
 /**
  * Used in conjunction with [ScreenshotViewer].
  */
-interface ScreenshotSupplier {
+interface ScreenshotSupplier : Disposable {
   /**
    * Captures and returns a new screenshot. Throws a [RuntimeException] in case of an error.
    */

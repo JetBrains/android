@@ -84,6 +84,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST),
       ProjectStructureSnapshotTestDef(TestProject.PURE_JAVA_PROJECT),
       ProjectStructureSnapshotTestDef(TestProject.MAIN_IN_ROOT),
       ProjectStructureSnapshotTestDef(TestProject.NESTED_MODULE),
@@ -105,6 +106,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_WITHJS),
+      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_IOS),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE),
@@ -152,7 +154,8 @@ private object LightGradleSyncReferenceTestProject: LightGradleSyncTestProject {
             )
           )
         },
-        namespace = { "com.example.skeleton" }
+        namespace = { "com.example.skeleton" },
+        includeShadersSources = { true }
       ).build(),
     ),
     AndroidModuleModelBuilder(
@@ -163,7 +166,8 @@ private object LightGradleSyncReferenceTestProject: LightGradleSyncTestProject {
       projectBuilder = AndroidProjectBuilder(
         projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
         androidModuleDependencyList = { listOf(AndroidModuleDependency(":javalib", null)) },
-        namespace = { "com.example.androidlibrary" }
+        namespace = { "com.example.androidlibrary" },
+        includeShadersSources = { true }
       ).build()
     ),
     JavaModuleModelBuilder(
@@ -220,9 +224,9 @@ private fun String.filterOutProperties(): String =
 private fun Sequence<String>.nameProperties() = com.android.tools.idea.testing.nameProperties(this)
 
 private val PROPERTIES_TO_SKIP_BY_PREFIXES = setOf(
-  "PROJECT/BUILD_TASKS/TEST_COMPILE_MODE",
+  "PROJECT/BUILD_TASKS",
   "PROJECT/LIBRARY_TABLE",
-  "PROJECT/MODULE/BUILD_TASKS/TEST_COMPILE_MODE",
+  "PROJECT/MODULE/BUILD_TASKS",
   "PROJECT/MODULE/Classes",
   "PROJECT/MODULE/COMPILER_MODULE_EXTENSION",
   "PROJECT/MODULE/LIBRARY",

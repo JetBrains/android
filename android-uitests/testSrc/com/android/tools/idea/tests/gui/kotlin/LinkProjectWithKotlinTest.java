@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.kotlin;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -38,6 +39,7 @@ import kotlin.KotlinVersion;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,6 +76,7 @@ public class LinkProjectWithKotlinTest {
    *   </pre>
    * <p>
    */
+  @Ignore("b/316416680")
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void addKotlinClass() throws Exception {
@@ -152,10 +155,9 @@ public class LinkProjectWithKotlinTest {
       .open("build.gradle")
       .getCurrentFileContents();
 
-    KotlinVersion kotlinVersion = KotlinPluginLayout.getInstance().getStandaloneCompilerVersion().getKotlinVersion();
     String newBuildGradleContents = buildGradleContents.replaceAll(
         "kotlin_version.*=.*",
-        "kotlin_version = '" + kotlinVersion + '\'')
+        "kotlin_version = '" + TestUtils.KOTLIN_VERSION_FOR_TESTS + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""

@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.vitals.client
 
+import com.android.flags.junit.FlagRule
 import com.android.testutils.time.FakeClock
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
-import com.android.tools.idea.vitals.client.grpc.CRASH
 import com.android.tools.idea.vitals.client.grpc.DISTINCT_USERS
 import com.android.tools.idea.vitals.client.grpc.ERROR_REPORT_COUNT
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
@@ -50,6 +51,8 @@ class VitalsClientRequestProtoTest {
 
   @get:Rule val grpcRule = VitalsGrpcConnectionRule(TEST_CONNECTION_1)
 
+  @get:Rule val flagRule = FlagRule(StudioFlags.CRASHLYTICS_J_UI, true)
+
   private val clock = FakeClock()
 
   init {
@@ -63,7 +66,8 @@ class VitalsClientRequestProtoTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
-          VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor)
+          ForwardingInterceptor,
+          VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor),
         )
 
       val request = createIssueRequest(TEST_CONNECTION_1, clock)
@@ -77,7 +81,8 @@ class VitalsClientRequestProtoTest {
       assertThat(errorIssueRequest.parent).isEqualTo(TEST_CONNECTION_1.clientId)
       assertThat(errorIssueRequest.interval)
         .isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
-      assertThat(errorIssueRequest.filter).isEqualTo("(errorIssueType = CRASH)")
+      assertThat(errorIssueRequest.filter)
+        .isEqualTo("(errorIssueType = ANR OR errorIssueType = CRASH)")
 
       val errorReportRequest = events.filterIsInstance<SearchErrorReportsRequest>().single()
       assertThat(errorReportRequest.interval)
@@ -105,21 +110,21 @@ class VitalsClientRequestProtoTest {
           it.dimensionsList.contains(DimensionType.API_LEVEL.value)
         },
         request.filters.interval,
-        ERROR_REPORT_COUNT
+        ERROR_REPORT_COUNT,
       )
       assertQueryErrorCountMetricSetRequest(
         queryErrorCountMetricSetRequests.first {
           it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value)
         },
         request.filters.interval,
-        ERROR_REPORT_COUNT
+        ERROR_REPORT_COUNT,
       )
       assertQueryErrorCountMetricSetRequest(
         queryErrorCountMetricSetRequests.first {
           it.dimensionsList.contains(DimensionType.VERSION_CODE.value)
         },
         request.filters.interval,
-        ERROR_REPORT_COUNT
+        ERROR_REPORT_COUNT,
       )
     }
 
@@ -130,7 +135,8 @@ class VitalsClientRequestProtoTest {
         VitalsClient(
           disposableRule.disposable,
           AppInsightsCacheImpl(),
-          VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor)
+          ForwardingInterceptor,
+          VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor),
         )
 
       val request = createIssueRequest(TEST_CONNECTION_1, clock)
@@ -155,13 +161,13 @@ class VitalsClientRequestProtoTest {
         queryRequests.first { it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value) },
         request.filters.interval,
         DISTINCT_USERS,
-        TEST_ISSUE1.id.value
+        TEST_ISSUE1.id.value,
       )
       assertQueryErrorCountMetricSetRequest(
         queryRequests.first { it.dimensionsList.contains(DimensionType.API_LEVEL.value) },
         request.filters.interval,
         DISTINCT_USERS,
-        TEST_ISSUE1.id.value
+        TEST_ISSUE1.id.value,
       )
     }
 
@@ -169,7 +175,7 @@ class VitalsClientRequestProtoTest {
     request: QueryErrorCountMetricSetRequest,
     interval: Interval,
     expectedMetric: String,
-    issueId: String? = null
+    issueId: String? = null,
   ) {
     assertThat(request.name).isEqualTo("apps/${TEST_CONNECTION_1.appId}/errorCountMetricSet")
     assertThat(request.timelineSpec)
@@ -191,7 +197,7 @@ class VitalsClientRequestProtoTest {
           DimensionType.REPORT_TYPE.value,
           DimensionType.DEVICE_BRAND.value,
           DimensionType.DEVICE_MODEL.value,
-          DimensionType.DEVICE_TYPE.value
+          DimensionType.DEVICE_TYPE.value,
         )
     } else if (request.dimensionsList.contains(DimensionType.VERSION_CODE.value)) {
       assertThat(request.dimensionsList)
@@ -201,6 +207,8 @@ class VitalsClientRequestProtoTest {
     }
     assertThat(request.metricsList).containsExactly(expectedMetric)
     assertThat(request.filter)
-      .isEqualTo("${issueId?.let { "(issueId = ${issueId}) AND " } ?: "" }(reportType = $CRASH)")
+      .isEqualTo(
+        "${issueId?.let { "(issueId = ${issueId}) AND " } ?: "" }(reportType = ANR OR reportType = CRASH)"
+      )
   }
 }

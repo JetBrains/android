@@ -58,7 +58,7 @@ class PsiEnumProviderTest {
     checkDefaultEnumValue(
       "id:Nexus 7 2013",
       "Nexus 7 (2013)",
-      getDeviceDefaultEnumValue("id:Nexus 7 2013")
+      getDeviceDefaultEnumValue("id:Nexus 7 2013"),
     )
     checkDefaultEnumValue("name:Nexus 10", "Nexus 10", getDeviceDefaultEnumValue("name:Nexus 10"))
     checkDefaultEnumValue("id:pixel_4_xl", "Pixel 4 XL", getDeviceDefaultEnumValue("id:pixel_4_xl"))
@@ -69,14 +69,14 @@ class PsiEnumProviderTest {
     checkDefaultEnumValue(
       "name:Pixel Fake",
       "Pixel Fake",
-      getDeviceDefaultEnumValue("name:Pixel Fake")
+      getDeviceDefaultEnumValue("name:Pixel Fake"),
     )
 
     // Device spec
     checkDefaultEnumValue(
       "spec:Normal;100;200;px;140dpi",
       "Custom",
-      getDeviceDefaultEnumValue("spec:Normal;100;200;px;140dpi")
+      getDeviceDefaultEnumValue("spec:Normal;100;200;px;140dpi"),
     )
 
     // Density should return a density on a specific bucket
@@ -101,14 +101,12 @@ class PsiEnumProviderTest {
 private fun checkDefaultEnumValue(
   expectedValue: String,
   expectedDisplay: String,
-  enumValue: EnumValue
+  enumValue: EnumValue,
 ) {
   assertEquals(expectedValue, enumValue.value)
   assertEquals(expectedDisplay, enumValue.display)
 }
 
-private class FakePsiProperty(
-  override var name: String,
-) : PsiPropertyItem {
+private class FakePsiProperty(override var name: String) : PsiPropertyItem {
   override var value: String? = null
 }

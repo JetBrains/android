@@ -26,7 +26,7 @@ import java.awt.LayoutManager2
 enum class Placement {
   LEFT,
   RIGHT,
-  LINE
+  LINE,
 }
 
 private const val MIN_WIDTH = 120
@@ -209,7 +209,7 @@ class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = Co
       maxOf(
           leftMaxWidth / nameColumnFraction.value,
           rightMaxWidth / rightFraction,
-          lineMaxWidth.toFloat()
+          lineMaxWidth.toFloat(),
         )
         .toInt()
     leftWidth = (width * nameColumnFraction.value).toInt()

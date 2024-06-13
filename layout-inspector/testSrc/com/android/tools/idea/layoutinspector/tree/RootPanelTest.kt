@@ -43,7 +43,7 @@ class RootPanelTest {
   private val layoutInspectorRule =
     LayoutInspectorRule(
       listOf(appInspectorRule.createInspectorClientProvider()),
-      androidProjectRule
+      androidProjectRule,
     )
 
   @get:Rule
@@ -69,23 +69,29 @@ class RootPanelTest {
     val fakeTreePanel = JPanel()
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
 
-    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
+    waitForCondition(1000, TimeUnit.MILLISECONDS) {
+      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
+    }
 
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      false
+      false,
     )
-    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.PROCESS_NOT_DEBUGGABLE)
+    waitForCondition(1000, TimeUnit.MILLISECONDS) {
+      rootPanel.uiState == RootPanel.UiState.PROCESS_NOT_DEBUGGABLE
+    }
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      true
+      true,
     )
-    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
+    waitForCondition(1000, TimeUnit.MILLISECONDS) {
+      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
+    }
 
     // disable embedded Layout Inspector, showProcessNotDebuggableText should always be false
     enableEmbeddedLayoutInspector = false
@@ -94,9 +100,11 @@ class RootPanelTest {
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      false
+      false,
     )
-    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
+    waitForCondition(1000, TimeUnit.MILLISECONDS) {
+      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
+    }
   }
 
   @Test
@@ -105,7 +113,9 @@ class RootPanelTest {
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
-    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
+    waitForCondition(1000, TimeUnit.MILLISECONDS) {
+      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
+    }
 
     // Start connecting, loading should show
     layoutInspectorRule.launchSynchronously = false
@@ -129,7 +139,9 @@ class RootPanelTest {
     layoutInspectorRule.disconnect()
 
     // Check that ui state is restored to default after disconnecting.
-    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
+    waitForCondition(1000, TimeUnit.MILLISECONDS) {
+      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
+    }
   }
 
   @Test
@@ -141,9 +153,11 @@ class RootPanelTest {
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      false
+      false,
     )
-    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.PROCESS_NOT_DEBUGGABLE)
+    waitForCondition(1000, TimeUnit.MILLISECONDS) {
+      rootPanel.uiState == RootPanel.UiState.PROCESS_NOT_DEBUGGABLE
+    }
 
     // Start connecting, loading should show
     layoutInspectorRule.launchSynchronously = false
@@ -187,7 +201,9 @@ class RootPanelTest {
     val fakeTreePanel = JPanel()
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
 
-    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
+    waitForCondition(1000, TimeUnit.MILLISECONDS) {
+      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
+    }
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
     // Start connecting, loading should show
@@ -202,9 +218,11 @@ class RootPanelTest {
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
-      false
+      false,
     )
 
-    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.SHOW_TREE)
+    waitForCondition(1000, TimeUnit.MILLISECONDS) {
+      rootPanel.uiState == RootPanel.UiState.SHOW_TREE
+    }
   }
 }

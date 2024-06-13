@@ -33,6 +33,8 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.testFramework.PlatformTestUtil;
+import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
 
@@ -101,16 +103,15 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(30, sceneTextView.getDrawHeight());
   }
 
-  public void testSceneDisposal() {
+  public void testSceneDisposal() throws ExecutionException, InterruptedException {
     SelectionModel selectionModel = spy(new DefaultSelectionModel());
     DesignSurface<?> surface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).setSelectionModel(selectionModel).build();
 
     // Create a sample model
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
-    SyncNlModel model = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE,
-                                           null, myFacet, xmlFile.getVirtualFile());
+    SyncNlModel model = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myFacet, xmlFile.getVirtualFile());
 
-    SceneManager manager = surface.addModelWithoutRender(model);
+    SceneManager manager = PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model));
     Scene scene = manager.getScene();
     InOrder inOrder = inOrder(selectionModel);
     inOrder.verify(selectionModel).addListener(scene);

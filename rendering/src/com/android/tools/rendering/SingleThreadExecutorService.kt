@@ -43,14 +43,14 @@ data class ThreadProfileSettings(
   /** An [ScheduledExecutorService] used to execute the profiling actions. */
   val scheduledExecutorService: ScheduledExecutorService,
   /** Callback called with every profiled sample. */
-  val onSlowThread: (Throwable) -> Unit
+  val onSlowThread: (Throwable) -> Unit,
 ) {
   companion object {
     val disabled =
       ThreadProfileSettings(
         maxSamples = 0,
         scheduledExecutorService = ScheduledThreadPoolExecutor(0),
-        onSlowThread = {}
+        onSlowThread = {},
       )
   }
 }
@@ -82,7 +82,7 @@ interface SingleThreadExecutorService : ExecutorService {
      */
     fun create(
       threadName: String,
-      threadProfileSettings: ThreadProfileSettings
+      threadProfileSettings: ThreadProfileSettings,
     ): SingleThreadExecutorService =
       ProfilingSingleThreadExecutorImpl(threadName, threadProfileSettings)
   }
@@ -90,7 +90,7 @@ interface SingleThreadExecutorService : ExecutorService {
 
 private class ProfilingSingleThreadExecutorImpl(
   threadName: String,
-  private val threadProfileSettings: ThreadProfileSettings
+  private val threadProfileSettings: ThreadProfileSettings,
 ) : SingleThreadExecutorService, AbstractExecutorService() {
   private val theThread = AtomicReference<Thread?>()
   private val _isBusy = AtomicBoolean(false)
@@ -125,7 +125,7 @@ private class ProfilingSingleThreadExecutorImpl(
       .schedule(
         { profileThread(remainingSamples - 1, profileThreadFuture) },
         threadProfileSettings.profileIntervalMs,
-        TimeUnit.MILLISECONDS
+        TimeUnit.MILLISECONDS,
       )
       .also { scheduledFuture ->
         profileThreadFuture.whenComplete { _, _ -> scheduledFuture.cancel(true) }
@@ -143,7 +143,7 @@ private class ProfilingSingleThreadExecutorImpl(
           .schedule(
             { profileThread(threadProfileSettings.maxSamples, profileThreadFuture!!) },
             threadProfileSettings.profileSlowTasksTimeoutMs,
-            TimeUnit.MILLISECONDS
+            TimeUnit.MILLISECONDS,
           )
           .also { scheduledFuture ->
             profileThreadFuture!!.whenComplete { _, _ -> scheduledFuture.cancel(true) }

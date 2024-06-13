@@ -55,7 +55,7 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
           Task.Backgroundable(
             project,
             "Finding interprocedural thread annotation violations",
-            true
+            true,
           ) {
 
           override fun run(indicator: ProgressIndicator) {

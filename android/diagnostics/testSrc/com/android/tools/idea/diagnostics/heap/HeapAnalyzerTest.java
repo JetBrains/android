@@ -230,6 +230,19 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     checkObjectsUntagged(new Object[]{a, b, d, a.myB, a.myInt, d.myArray});
   }
 
+  /**
+   * Current JVM version: 8,11,17
+   */
+  private static int javaVersion() {
+    String version = System.getProperty("java.specification.version");
+    int dot = version.indexOf('.');
+    if (dot >= 0) {
+      return Integer.parseInt(version.substring(dot+1));
+    } else {
+      return Integer.parseInt(version);
+    }
+  }
+
   @Test
   public void testWeakSoftReferencesIgnored() {
     ComponentsSet componentsSet = new ComponentsSet();
@@ -250,9 +263,10 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                         componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
     Assert.assertEquals("F", componentStats.get(1).getCluster().getLabel());
-    // F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
-    Assert.assertEquals(4, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(96, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    // JDK17 : F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
+    // JDK21 : F, WeakReference, ReferenceQueue$Null
+    Assert.assertEquals(javaVersion() > 17 ? 3 : 4, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(javaVersion() > 17 ? 80 : 96, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
     checkObjectsUntagged(new Object[]{f, f.myWeakString});
   }
 
@@ -593,7 +607,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   }
 
   @Test
-  public void testExtendedReportRepeatedNodes()  throws IOException {
+  public void testExtendedReportRepeatedNodes() throws IOException {
     ComponentsSet componentsSet = new ComponentsSet();
 
     ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
@@ -783,7 +797,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Disposer.dispose(b);
 
     MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots,
-                                                             200);
+                                                             50);
     assertSize(1, crushReporter.crashReports);
     CrashReport report = crushReporter.crashReports.get(0);
     MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -796,12 +810,12 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
   @Test
   public void testCustomClassLoaderInNonExceedingComponent() throws
-                                                      IOException,
-                                                      ClassNotFoundException,
-                                                      NoSuchMethodException,
-                                                      InvocationTargetException,
-                                                      InstantiationException,
-                                                      IllegalAccessException {
+                                                             IOException,
+                                                             ClassNotFoundException,
+                                                             NoSuchMethodException,
+                                                             InvocationTargetException,
+                                                             InstantiationException,
+                                                             IllegalAccessException {
     ComponentsSet componentsSet = new ComponentsSet();
 
     ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
@@ -884,6 +898,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     serializedExtendedReport = replaceNewlines(serializedExtendedReport);
     assertRequestContainsField(serializedExtendedReport, "Target exceeded cluster", "B");
     assertRequestContainsField(serializedExtendedReport, "Total used memory", "472B/23 objects");
+    assertRequestContainsField(serializedExtendedReport, "Number of duplicated class loaders", "20");
+    assertRequestContainsField(serializedExtendedReport, "Number of nominated class loaders", "0");
 
     assertExtendedMemoryReport("testExtendedReportCustomClassLoaders", serializedExtendedReport);
     assertExtendedMemoryReportSummary("testExtendedReportCustomClassLoaders", serializedExtendedReport);
@@ -936,6 +952,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
       pattern + "\r?\n.*"
     ));
   }
+
   private static void assertRequestContainsFieldWithPattern(final String requestBody, final String name, final String pattern) {
     assertThat(requestBody, new RegexMatcher(
       "(?s).*\r?\nContent-Disposition: form-data; name=\"" + Pattern.quote(name) + "\"\r?\n" +
@@ -1053,14 +1070,14 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Assert.assertEquals(1, statistics.totalStats.getPlatformObjectsSelfStats().getObjectsCount());
     Assert.assertEquals(32, statistics.totalStats.getPlatformObjectsSelfStats().getTotalSizeInBytes());
 
-    Assert.assertEquals(5, statistics.totalStats.getPlatformRetainedObjectsStats().getObjectsCount());
-    Assert.assertEquals(120, statistics.totalStats.getPlatformRetainedObjectsStats().getTotalSizeInBytes());
+    Assert.assertEquals(javaVersion() >= 21 ? 7 : 5, statistics.totalStats.getPlatformRetainedObjectsStats().getObjectsCount());
+    Assert.assertEquals(javaVersion() >= 21 ? 176 : 120, statistics.totalStats.getPlatformRetainedObjectsStats().getTotalSizeInBytes());
 
     Assert.assertEquals(1, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats().getObjectsCount());
     Assert.assertEquals(32, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
       .getTotalSizeInBytes());
-    Assert.assertEquals(5, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats().getObjectsCount());
-    Assert.assertEquals(120, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
+    Assert.assertEquals(javaVersion() >= 21 ? 7 : 5, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats().getObjectsCount());
+    Assert.assertEquals(javaVersion() >= 21 ? 176 : 120, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
 
     Assert.assertEquals(0, statistics.getComponentStats().get(2).getOwnedClusterStat().getPlatformObjectsSelfStats().getObjectsCount());
@@ -1074,9 +1091,9 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
       .getObjectsCount());
     Assert.assertEquals(32, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
       .getTotalSizeInBytes());
-    Assert.assertEquals(5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
+    Assert.assertEquals(javaVersion() >= 21 ? 7 : 5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getObjectsCount());
-    Assert.assertEquals(120, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
+    Assert.assertEquals(javaVersion() >= 21 ? 176 : 120, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
   }
 

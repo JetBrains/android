@@ -66,7 +66,7 @@ import javax.swing.table.TableRowSorter
 class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) {
   private enum class Column(val displayName: String) {
     NAME("Initiating thread"),
-    TIMELINE("Timeline")
+    TIMELINE("Timeline"),
   }
 
   private val threadsTable: JTable
@@ -105,7 +105,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     sorter.setComparator(Column.NAME.ordinal, Comparator.comparing { obj: String -> obj })
     sorter.setComparator(
       Column.TIMELINE.ordinal,
-      Comparator.comparing { data: List<ConnectionData> -> data[0].requestStartTimeUs }
+      Comparator.comparing { data: List<ConnectionData> -> data[0].requestStartTimeUs },
     )
     threadsTable.setRowSorter(sorter)
     threadsTable.addMouseListener(
@@ -173,7 +173,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
   private class TimelineRenderer(
     private val table: JTable,
-    private val model: NetworkInspectorModel
+    private val model: NetworkInspectorModel,
   ) : TimelineTable.CellRenderer(model.timeline, true), TableModelListener {
     private val connectionsInfo = mutableListOf<JComponent>()
 
@@ -208,7 +208,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     private val table: JTable,
     private val dataList: List<ConnectionData>,
     private val model: NetworkInspectorModel,
-    private val range: Range
+    private val range: Range,
   ) : JComponent() {
 
     init {
@@ -223,7 +223,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
       g2d.setRenderingHint(
         RenderingHints.KEY_TEXT_ANTIALIASING,
-        RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+        RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
       )
       for (i in dataList.indices) {
         val data = dataList[i]
@@ -251,7 +251,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
             prev,
             (height - STATE_HEIGHT) / 2.0,
             download - prev,
-            STATE_HEIGHT.toDouble()
+            STATE_HEIGHT.toDouble(),
           )
         )
         g2d.color = NETWORK_RECEIVING_COLOR
@@ -279,7 +279,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       g2d.drawString(
         text,
         (start + availableSpace / 2.0).toFloat(),
-        ((height - metrics.height) * 0.5 + metrics.ascent).toFloat()
+        ((height - metrics.height) * 0.5 + metrics.ascent).toFloat(),
       )
     }
 
@@ -295,7 +295,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
           start - SELECTION_OUTLINE_PADDING,
           (height - STATE_HEIGHT) / 2.0 - SELECTION_OUTLINE_PADDING,
           end - start + 2 * SELECTION_OUTLINE_PADDING,
-          STATE_HEIGHT + 2 * SELECTION_OUTLINE_PADDING.toDouble()
+          STATE_HEIGHT + 2 * SELECTION_OUTLINE_PADDING.toDouble(),
         )
       g2d.draw(rect)
     }
@@ -312,7 +312,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
   private class TooltipView(
     private val table: JTable,
     parentPane: TooltipLayeredPane,
-    private val range: Range
+    private val range: Range,
   ) : MouseAdapter() {
     private val content =
       JPanel(TabularLayout("*", "*")).apply {
@@ -386,7 +386,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     private fun findHttpDataUnderCursor(
       table: JTable,
       range: Range,
-      e: MouseEvent
+      e: MouseEvent,
     ): ConnectionData? {
       val p = SwingUtilities.convertPoint(e.component, e.point, table)
       val row = table.rowAtPoint(p)

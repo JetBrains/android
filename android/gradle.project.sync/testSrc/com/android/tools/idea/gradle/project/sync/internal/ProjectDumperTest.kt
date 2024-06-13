@@ -15,17 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
-import org.junit.Assert.assertEquals
+import org.junit.Assert.*
 import org.junit.Test
 import java.io.File
 
 class ProjectDumperTest {
-  private val SAMPLES: Map<String, String> = mutableMapOf(
-    Pair(
-      "<GRADLE>/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/kotlin-stdlib-common-<KOTLIN_VERSION>.jar",
-      "<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar"
-    )
-  )
 
   @Test
   fun testJavaVersionMask() {
@@ -54,13 +48,6 @@ class ProjectDumperTest {
     }
     for (sample in samples) {
       assertEquals("<JDK_VERSION>", dumper.test(sample))
-    }
-  }
-  @Test
-  fun testConvertToMavenPath() {
-    val dumper = ProjectDumper(offlineRepos = emptyList(), androidSdk = File("/nowhere"))
-    for (entry in SAMPLES) {
-      assertEquals(dumper.convertToMaskedMavenPath(entry.key), entry.value)
     }
   }
 }

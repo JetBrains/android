@@ -4,16 +4,55 @@ package org.jetbrains.android.uipreview;
 import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
 import com.android.ide.common.resources.LocaleManager;
-import com.android.ide.common.resources.configuration.*;
-import com.android.resources.*;
+import com.android.ide.common.resources.configuration.CountryCodeQualifier;
+import com.android.ide.common.resources.configuration.DensityQualifier;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.KeyboardStateQualifier;
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.ide.common.resources.configuration.NavigationMethodQualifier;
+import com.android.ide.common.resources.configuration.NavigationStateQualifier;
+import com.android.ide.common.resources.configuration.NetworkCodeQualifier;
+import com.android.ide.common.resources.configuration.NightModeQualifier;
+import com.android.ide.common.resources.configuration.ResourceQualifier;
+import com.android.ide.common.resources.configuration.ScreenDimensionQualifier;
+import com.android.ide.common.resources.configuration.ScreenHeightQualifier;
+import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
+import com.android.ide.common.resources.configuration.ScreenRatioQualifier;
+import com.android.ide.common.resources.configuration.ScreenRoundQualifier;
+import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
+import com.android.ide.common.resources.configuration.ScreenWidthQualifier;
+import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifier;
+import com.android.ide.common.resources.configuration.TextInputMethodQualifier;
+import com.android.ide.common.resources.configuration.TouchScreenQualifier;
+import com.android.ide.common.resources.configuration.UiModeQualifier;
+import com.android.ide.common.resources.configuration.VersionQualifier;
+import com.android.resources.Density;
+import com.android.resources.Keyboard;
+import com.android.resources.KeyboardState;
+import com.android.resources.LayoutDirection;
+import com.android.resources.Navigation;
+import com.android.resources.NavigationState;
+import com.android.resources.NightMode;
+import com.android.resources.ResourceEnum;
+import com.android.resources.ScreenOrientation;
+import com.android.resources.ScreenRatio;
+import com.android.resources.ScreenRound;
+import com.android.resources.ScreenSize;
+import com.android.resources.TouchScreen;
+import com.android.resources.UiMode;
 import com.android.tools.idea.rendering.FlagManager;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.math.IntMath;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.openapi.util.Ref;
-import com.intellij.ui.*;
+import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -22,16 +61,33 @@ import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.AbstractListModel;
+import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionListener;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,12 +113,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       applyEditors();
     }
   };
-  public final ListSelectionListener myUpdatingListListener = new ListSelectionListener() {
-    @Override
-    public void valueChanged(ListSelectionEvent listSelectionEvent) {
-      applyEditors();
-    }
-  };
+  public final ListSelectionListener myUpdatingListListener = listSelectionEvent -> applyEditors();
 
   @SuppressWarnings("unchecked")
   public DeviceConfiguratorPanel() {
@@ -142,8 +193,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
 
     for (String name : myEditors.keySet()) {
-      final MyQualifierEditor<? extends ResourceQualifier> editor = myEditors.get(name);
-      myQualifierOptionsPanel.add(editor.getComponent(), name);
+      myQualifierOptionsPanel.add(myEditors.get(name).getComponent(), name);
     }
 
     myAvailableQualifiersList.setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
@@ -161,92 +211,78 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       label.setIcon(getResourceIcon(qualifier));
     }));
 
-    myAddQualifierButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        final ResourceQualifier selectedQualifier = myAvailableQualifiersList.getSelectedValue();
-        if (selectedQualifier != null) {
-          final int index = myAvailableQualifiersList.getSelectedIndex();
+    myAddQualifierButton.addActionListener(e -> {
+      final ResourceQualifier selectedQualifier = myAvailableQualifiersList.getSelectedValue();
+      if (selectedQualifier == null) {
+        return;
+      }
+      final int index = myAvailableQualifiersList.getSelectedIndex();
 
-          myAvailableQualifiersConfig.removeQualifier(selectedQualifier);
-          myChosenQualifiersConfig.addQualifier(selectedQualifier);
+      myAvailableQualifiersConfig.removeQualifier(selectedQualifier);
+      myChosenQualifiersConfig.addQualifier(selectedQualifier);
 
-          updateLists();
-          applyEditors();
+      updateLists();
+      applyEditors();
 
-          if (index >= 0) {
-            myAvailableQualifiersList.setSelectedIndex(Math.min(index, myAvailableQualifiersList.getItemsCount() - 1));
-          }
-          myChosenQualifiersList.setSelectedValue(selectedQualifier, true);
-        }
+      if (index >= 0) {
+        myAvailableQualifiersList.setSelectedIndex(Math.min(index, myAvailableQualifiersList.getItemsCount() - 1));
+      }
+      myChosenQualifiersList.setSelectedValue(selectedQualifier, true);
+    });
+
+    myRemoveQualifierButton.addActionListener(e -> {
+      final ResourceQualifier selectedQualifier = myChosenQualifiersList.getSelectedValue();
+      if (selectedQualifier == null) {
+        return;
+      }
+      final int index = myChosenQualifiersList.getSelectedIndex();
+
+      myChosenQualifiersConfig.removeQualifier(selectedQualifier);
+      myAvailableQualifiersConfig.addQualifier(selectedQualifier);
+      updateLists();
+      applyEditors();
+
+      if (index >= 0) {
+        myChosenQualifiersList.setSelectedIndex(Math.min(index, myChosenQualifiersList.getItemsCount() - 1));
       }
     });
 
-    myRemoveQualifierButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        final ResourceQualifier selectedQualifier = myChosenQualifiersList.getSelectedValue();
-        if (selectedQualifier != null) {
-          final int index = myChosenQualifiersList.getSelectedIndex();
+    myAvailableQualifiersList.addListSelectionListener(e -> updateButtons());
 
-          myChosenQualifiersConfig.removeQualifier(selectedQualifier);
-          myAvailableQualifiersConfig.addQualifier(selectedQualifier);
-          updateLists();
-          applyEditors();
-
-          if (index >= 0) {
-            myChosenQualifiersList.setSelectedIndex(Math.min(index, myChosenQualifiersList.getItemsCount() - 1));
-          }
-        }
-      }
-    });
-
-    myAvailableQualifiersList.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        updateButtons();
-      }
-    });
-
-    myChosenQualifiersList.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        updateButtons();
-        updateQualifierEditor();
-      }
+    myChosenQualifiersList.addListSelectionListener(e -> {
+      updateButtons();
+      updateQualifierEditor();
     });
   }
 
-  private static final Map<String, Icon> ourIcons = Maps.newHashMapWithExpectedSize(25);
-  static {
-    ourIcons.put(UiModeQualifier.NAME, StudioIcons.DeviceConfiguration.UI_MODE);
-    ourIcons.put(NightModeQualifier.NAME, StudioIcons.DeviceConfiguration.NIGHT_MODE);
-    ourIcons.put(ScreenDimensionQualifier.NAME, StudioIcons.DeviceConfiguration.DIMENSION);
-    ourIcons.put(DensityQualifier.NAME, StudioIcons.DeviceConfiguration.DENSITY);
-    ourIcons.put(ScreenHeightQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_HEIGHT);
-    ourIcons.put(KeyboardStateQualifier.NAME, StudioIcons.DeviceConfiguration.KEYBOARD);
-    ourIcons.put(LocaleQualifier.NAME, StudioIcons.DeviceConfiguration.LOCALE);
-    ourIcons.put(CountryCodeQualifier.NAME, StudioIcons.DeviceConfiguration.COUNTRY_CODE);
-    ourIcons.put(NetworkCodeQualifier.NAME, StudioIcons.DeviceConfiguration.NETWORK_CODE);
-    ourIcons.put(NavigationStateQualifier.NAME, StudioIcons.DeviceConfiguration.NAVIGATION_STATE);
-    ourIcons.put(NavigationMethodQualifier.NAME, StudioIcons.DeviceConfiguration.NAVIGATION_METHOD);
-    ourIcons.put(ScreenOrientationQualifier.NAME, StudioIcons.DeviceConfiguration.ORIENTATION);
-    ourIcons.put(ScreenRatioQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_RATIO);
-    ourIcons.put(ScreenSizeQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_SIZE);
-    ourIcons.put(SmallestScreenWidthQualifier.NAME, StudioIcons.DeviceConfiguration.SMALLEST_SCREEN_SIZE);
-    ourIcons.put(ScreenWidthQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_WIDTH);
-    ourIcons.put(TextInputMethodQualifier.NAME, StudioIcons.DeviceConfiguration.TEXT_INPUT);
-    ourIcons.put(TouchScreenQualifier.NAME, StudioIcons.DeviceConfiguration.TOUCH_SCREEN);
-    ourIcons.put(LayoutDirectionQualifier.NAME, StudioIcons.DeviceConfiguration.LAYOUT_DIRECTION);
-    ourIcons.put(ScreenRoundQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_ROUNDNESS);
-
+  private static final ImmutableMap<String, Icon> OUR_ICONS = ImmutableMap.<String, Icon>builder()
+    .put(UiModeQualifier.NAME, StudioIcons.DeviceConfiguration.UI_MODE)
+    .put(NightModeQualifier.NAME, StudioIcons.DeviceConfiguration.NIGHT_MODE)
+    .put(ScreenDimensionQualifier.NAME, StudioIcons.DeviceConfiguration.DIMENSION)
+    .put(DensityQualifier.NAME, StudioIcons.DeviceConfiguration.DENSITY)
+    .put(ScreenHeightQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_HEIGHT)
+    .put(KeyboardStateQualifier.NAME, StudioIcons.DeviceConfiguration.KEYBOARD)
+    .put(LocaleQualifier.NAME, StudioIcons.DeviceConfiguration.LOCALE)
+    .put(CountryCodeQualifier.NAME, StudioIcons.DeviceConfiguration.COUNTRY_CODE)
+    .put(NetworkCodeQualifier.NAME, StudioIcons.DeviceConfiguration.NETWORK_CODE)
+    .put(NavigationStateQualifier.NAME, StudioIcons.DeviceConfiguration.NAVIGATION_STATE)
+    .put(NavigationMethodQualifier.NAME, StudioIcons.DeviceConfiguration.NAVIGATION_METHOD)
+    .put(ScreenOrientationQualifier.NAME, StudioIcons.DeviceConfiguration.ORIENTATION)
+    .put(ScreenRatioQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_RATIO)
+    .put(ScreenSizeQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_SIZE)
+    .put(SmallestScreenWidthQualifier.NAME, StudioIcons.DeviceConfiguration.SMALLEST_SCREEN_SIZE)
+    .put(ScreenWidthQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_WIDTH)
+    .put(TextInputMethodQualifier.NAME, StudioIcons.DeviceConfiguration.TEXT_INPUT)
+    .put(TouchScreenQualifier.NAME, StudioIcons.DeviceConfiguration.TOUCH_SCREEN)
+    .put(LayoutDirectionQualifier.NAME, StudioIcons.DeviceConfiguration.LAYOUT_DIRECTION)
+    .put(ScreenRoundQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_ROUNDNESS)
     // TODO: Get dedicated icon for the API version
-    ourIcons.put(VersionQualifier.NAME, StudioIcons.DeviceConfiguration.VERSION);
-  }
+    .put(VersionQualifier.NAME, StudioIcons.DeviceConfiguration.VERSION)
+    .build();
 
   @Nullable
   private static Icon getResourceIcon(ResourceQualifier qualifier) {
-    return ourIcons.get(qualifier.getName());
+    return OUR_ICONS.get(qualifier.getName());
   }
 
   public void init(@NotNull FolderConfiguration config) {
@@ -335,13 +371,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private ResourceQualifier[] filterUnsupportedQualifiers(ResourceQualifier[] qualifiers) {
-    final List<ResourceQualifier> result = new ArrayList<>();
-    for (ResourceQualifier qualifier : qualifiers) {
-      if (myEditors.containsKey(qualifier.getShortName())) {
-        result.add(qualifier);
-      }
-    }
-    return result.toArray(new ResourceQualifier[0]);
+    return Arrays.stream(qualifiers)
+      .filter(q -> myEditors.containsKey(q.getShortName()))
+      .toArray(ResourceQualifier[]::new);
   }
 
   public FolderConfiguration getConfiguration() {
@@ -369,7 +401,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     final JPanel rightPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
     myChosenQualifiersList = new JBList<>();
     myChosenQualifiersList.setMinimumSize(JBUI.size(10, 10));
-    label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.choosen.qualifiers.label"));
+    label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.chosen.qualifiers.label"));
     label.setLabelFor(myChosenQualifiersList);
     rightPanel.add(label, BorderLayout.NORTH);
     rightPanel.add(new JBScrollPane(myChosenQualifiersList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -381,6 +413,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     myRemoveQualifierButton = new JButton("<<");
     buttonsPanel.add(myRemoveQualifierButton);
 
+    add(getListsPanel(buttonsPanel, leftPanel, rightPanel), BorderLayout.CENTER);
+    add(myQualifierOptionsPanel, BorderLayout.EAST);
+  }
+
+  @NotNull
+  private static JPanel getListsPanel(JPanel buttonsPanel, JPanel leftPanel, JPanel rightPanel) {
     final int gap = 5;
 
     final JPanel listsPanel = new JPanel(new AbstractLayoutManager() {
@@ -414,12 +452,10 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         }
       }
     });
-
     listsPanel.add(leftPanel);
     listsPanel.add(buttonsPanel);
     listsPanel.add(rightPanel);
-    add(listsPanel, BorderLayout.CENTER);
-    add(myQualifierOptionsPanel, BorderLayout.EAST);
+    return listsPanel;
   }
 
   private abstract static class MyQualifierEditor<T extends ResourceQualifier> {
@@ -432,14 +468,17 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private class MyCountryCodeEditor extends MyQualifierEditor<CountryCodeQualifier> {
-    private final JTextField myTextField = new JTextField(3);
+    private static final int NUM_DIGITS = 3;
+    private static final int MIN_VALUE = IntMath.pow(10, NUM_DIGITS - 1);
+    private static final int MAX_VALUE = IntMath.pow(10, NUM_DIGITS) - 1;
+    private final JTextField myTextField = new JTextField(NUM_DIGITS);
 
     @Override
     JComponent getComponent() {
       final JPanel panel = new JPanel(new VerticalFlowLayout());
-      final JBLabel label = new JBLabel("<html><body>Mobile country code<br>(3 digits):</body></html>");
+      final JBLabel label = new JBLabel("<html><body>Mobile country code<br>(" + NUM_DIGITS + " digits):</body></html>");
       label.setLabelFor(myTextField);
-      myTextField.setColumns(3);
+      myTextField.setColumns(NUM_DIGITS);
       myTextField.getDocument().addDocumentListener(myUpdatingDocumentListener);
       panel.add(label);
       panel.add(myTextField);
@@ -454,12 +493,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @NotNull
     @Override
     CountryCodeQualifier apply() throws InvalidOptionValueException {
-      if (myTextField.getText().length() != 3) {
-        throw new InvalidOptionValueException("Country code must contain 3 digits");
+      if (myTextField.getText().length() != NUM_DIGITS) {
+        throw new InvalidOptionValueException("Country code must contain " + NUM_DIGITS + " digits");
       }
       try {
         final int code = Integer.parseInt(myTextField.getText());
-        if (code < 100 || code > 999) {
+        if (code < MIN_VALUE || code > MAX_VALUE) {
           throw new InvalidOptionValueException("Incorrect country code");
         }
         return new CountryCodeQualifier(code);
@@ -471,12 +510,14 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private class MyNetworkCodeEditor extends MyQualifierEditor<NetworkCodeQualifier> {
-    private final JTextField myTextField = new JTextField(3);
+    private static final int MAX_DIGITS = 3;
+    private static final int MAX_VALUE = IntMath.pow(10, MAX_DIGITS) - 1;
+    private final JTextField myTextField = new JTextField(MAX_DIGITS);
 
     @Override
     JComponent getComponent() {
       final JPanel panel = new JPanel(new VerticalFlowLayout());
-      final JBLabel label = new JBLabel("<html><body>Mobile network code<br>(1-3 digits):</body></html>");
+      final JBLabel label = new JBLabel("<html><body>Mobile network code<br>(1-" + MAX_DIGITS + " digits):</body></html>");
       panel.add(label);
       label.setLabelFor(myTextField);
       myTextField.getDocument().addDocumentListener(myUpdatingDocumentListener);
@@ -494,7 +535,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     NetworkCodeQualifier apply() throws InvalidOptionValueException {
       try {
         final int code = Integer.parseInt(myTextField.getText());
-        if (code <= 0 || code >= 1000) {
+        if (code <= 0 || code > MAX_VALUE) {
           throw new InvalidOptionValueException("Incorrect network code");
         }
         return new NetworkCodeQualifier(code);
@@ -1073,6 +1114,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     private JBCheckBox myShowAllRegions;
     private JBLabel myWarningsLabel;
 
+    // Special language comparator: We want to prefer 2-letter language codes.
+    private static final Comparator<String> LOCALE_COMPARATOR =
+      Comparator.comparingInt(String::length).thenComparing(String.CASE_INSENSITIVE_ORDER);
 
     @Override
     JComponent getComponent() {
@@ -1088,11 +1132,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       JBLabel languageTip = new JBLabel("Tip: Type in list to filter");
       JBLabel regionLabel = new JBLabel("Specific Region Only:");
 
-      SortedListModel<String> languageModel = new SortedListModel<>((s1, s2) -> {
-        // Special language comparator: We want to prefer 2-letter language codes.
-        int delta = s1.length() - s2.length();
-        return delta == 0 ? String.CASE_INSENSITIVE_ORDER.compare(s1, s2) : delta;
-      });
+      SortedListModel<String> languageModel = new SortedListModel<>(LOCALE_COMPARATOR);
       languageModel.addAll(LocaleManager.getLanguageCodes(true));
       myLanguageList.setModel(languageModel);
       myLanguageList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -1145,54 +1185,23 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
       myLanguageList.addListSelectionListener(myUpdatingListListener);
       myRegionList.addListSelectionListener(myUpdatingListListener);
-      myLanguageList.addListSelectionListener(new ListSelectionListener() {
-        @Override
-        public void valueChanged(ListSelectionEvent listSelectionEvent) {
-          // If selecting languages, attempt to pick relevant regions, if applicable
-          updateRegionList(myLanguageList.getSelectedValue());
-        }
-      });
-      myShowAllRegions.addChangeListener(new ChangeListener() {
-        @Override
-        public void stateChanged(ChangeEvent changeEvent) {
-          updateRegionList(myLanguageList.getSelectedValue());
-        }
-      });
-
+      // If selecting languages, attempt to pick relevant regions, if applicable
+      myLanguageList.addListSelectionListener(listSelectionEvent -> updateRegionList(myLanguageList.getSelectedValue()));
+      myShowAllRegions.addItemListener(e -> updateRegionList(myLanguageList.getSelectedValue()));
       return pane;
     }
 
     /** Populate the region list based on an optional language selection */
     private void updateRegionList(@Nullable String languageCode) {
-      final Ref<String> preferred = new Ref<>(null);
-      SortedListModel<String> regionModel = new SortedListModel<>((s1, s2) -> {
-        // Sort "Any Region" to the top
-        if (s1.equals(FAKE_VALUE)) {
-          return -1;
-        }
-        if (s2.equals(FAKE_VALUE)) {
-          return 1;
-        }
-        if (s1.equals(preferred.get())) {
-          return -1;
-        }
-        if (s2.equals(preferred.get())) {
-          return 1;
-        }
-        // Special language comparator: We want to prefer 2-letter language codes.
-        int delta = s1.length() - s2.length();
-        return delta == 0 ? String.CASE_INSENSITIVE_ORDER.compare(s1, s2) : delta;
-      });
+      SortedListModel<String> regionModel = new SortedListModel<>(
+        // First FAKE_VALUE, but for boolean-valued comparators, false is first.
+        Comparator.<String, Boolean>comparing(FAKE_VALUE::equals).reversed()
+          .thenComparing(LOCALE_COMPARATOR));
       regionModel.add(FAKE_VALUE);
       if (!myShowAllRegions.isSelected() && languageCode != null) {
-        final List<String> relevant = LocaleManager.getRelevantRegions(languageCode);
-        for (String code : relevant) {
-          regionModel.add(code);
-        }
+        regionModel.addAll(LocaleManager.getRelevantRegions(languageCode));
       } else {
-        for (String code : LocaleManager.getRegionCodes(true)) {
-          regionModel.add(code);
-        }
+        regionModel.addAll(LocaleManager.getRegionCodes(true));
       }
       myRegionList.setModel(regionModel);
       if (languageCode != null && regionModel.getSize() > 0) {

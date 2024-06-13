@@ -41,7 +41,7 @@ import java.awt.geom.Area
 
 open class WarningLayer(
   protected val screenView: ScreenView,
-  private val shouldDisplay: () -> Boolean
+  private val shouldDisplay: () -> Boolean,
 ) : Layer() {
 
   protected var componentsToHighlight: List<NlComponent> = emptyList()
@@ -80,7 +80,7 @@ open class WarningLayer(
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
         Coordinates.getSwingDimension(screenView, it.w),
-        Coordinates.getSwingDimension(screenView, it.h)
+        Coordinates.getSwingDimension(screenView, it.h),
       )
     }
     gc.stroke = NlConstants.SOLID_STROKE
@@ -89,7 +89,7 @@ open class WarningLayer(
       gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
       gc.setRenderingHint(
         RenderingHints.KEY_INTERPOLATION,
-        RenderingHints.VALUE_INTERPOLATION_BICUBIC
+        RenderingHints.VALUE_INTERPOLATION_BICUBIC,
       )
       gc.draw(screenShape)
       val screenShapeClip = Area(screenShape).apply { intersect(Area(clip)) }
@@ -104,7 +104,7 @@ open class WarningLayer(
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
         Coordinates.getSwingDimension(screenView, it.w),
-        Coordinates.getSwingDimension(screenView, it.h)
+        Coordinates.getSwingDimension(screenView, it.h),
       )
     }
     gc.clip = clip

@@ -19,7 +19,7 @@ import static com.android.testutils.AsyncTestUtils.waitForCondition;
 
 import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.res.ResourcesTestsUtil;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.res.LocalResourceRepository;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,7 +44,7 @@ final class Utils {
       .map(path -> system.findFileByIoFile(path.toFile()))
       .collect(Collectors.toList());
 
-    LocalResourceRepository<VirtualFile> repository = ResourcesTestsUtil.createTestModuleRepository(facet, resVirtualFiles);
+    LocalResourceRepository<VirtualFile> repository = ModuleResourceRepository.createForTest(facet, resVirtualFiles);
     StringResourceRepository stringRepository = createStringRepository(repository);
     panel.getTable().setModel(new StringResourceTableModel(stringRepository, facet.getModule().getProject()));
   }

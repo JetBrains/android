@@ -29,7 +29,7 @@ class PreviewSurfaceActionHandler(surface: DesignSurface<*>) : DesignSurfaceActi
 
   override fun canHandleChildren(
     component: NlComponent,
-    pasted: MutableList<NlComponent>
+    pasted: MutableList<NlComponent>,
   ): Boolean = false
 
   override fun getFlavor(): DataFlavor = DESIGNER_FLAVOR

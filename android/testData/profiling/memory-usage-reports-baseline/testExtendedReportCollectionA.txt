@@ -54,8 +54,8 @@ Nominated classes:
 
 CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A (1 objects)
 Root 1:
-[    1/100%/   24B]       56B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+[    1/100%/   24B]   56B          1 *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
 CLASS: java.lang.Integer (1 objects)
 Root 1:
-[    1/100%/   16B]       56B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
-[    1/100%/   16B]       16B/1 objects *        myInt: java.lang.Integer
+[    1/100%/   16B]   56B          1          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+[    1/100%/   16B]   16B          1 *        myInt: java.lang.Integer

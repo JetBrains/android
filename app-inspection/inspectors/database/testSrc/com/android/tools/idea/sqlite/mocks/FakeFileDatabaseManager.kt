@@ -34,7 +34,7 @@ open class FakeFileDatabaseManager(
   override suspend fun loadDatabaseFileData(
     packageName: String,
     processDescriptor: ProcessDescriptor,
-    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
+    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId,
   ): DatabaseFileData {
     delay(downloadTime)
     return databaseFileData

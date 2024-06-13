@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI;
-import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY;
-import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE;
-
 import com.android.tools.idea.gradle.dsl.api.android.SplitsModel;
 import com.android.tools.idea.gradle.dsl.api.android.splits.AbiModel;
 import com.android.tools.idea.gradle.dsl.api.android.splits.DensityModel;
@@ -32,6 +28,10 @@ import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE;
 
 public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel {
 

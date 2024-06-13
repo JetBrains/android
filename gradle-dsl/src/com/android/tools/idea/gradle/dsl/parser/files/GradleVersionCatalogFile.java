@@ -103,7 +103,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     }
 
     private boolean ref;
-    final private boolean initialRef;
+    private boolean initialRef;
 
     @Override
     public boolean isReference() {
@@ -144,6 +144,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     @Override
     public @Nullable PsiElement create() {
       GradleNameElement name = getNameElement();
+      if(getPsiElement() == null) initialRef = ref;
       if (ref && getPsiElement() == null) {
         // TODO need to fix this as in fact dot notation means a map with property - b/300075092
         setNameElement(GradleNameElement.create("version.ref"));

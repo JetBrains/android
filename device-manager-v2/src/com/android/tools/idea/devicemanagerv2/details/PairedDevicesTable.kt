@@ -30,8 +30,8 @@ import com.android.tools.idea.devicemanagerv2.toLabelText
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineDispatcher
 import javax.swing.Icon
+import kotlinx.coroutines.CoroutineDispatcher
 
 /** Immutable data class for the PairingTable. */
 internal data class PairedDeviceData(
@@ -39,13 +39,13 @@ internal data class PairedDeviceData(
   val displayName: String,
   val icon: Icon?,
   val androidVersion: AndroidVersion?,
-  val state: WearPairingManager.PairingState
+  val state: WearPairingManager.PairingState,
 ) {
   companion object {
     fun create(
       handle: DeviceHandle,
       state: DeviceState,
-      pairingState: WearPairingManager.PairingState
+      pairingState: WearPairingManager.PairingState,
     ) =
       PairedDeviceData(
         handle,
@@ -101,6 +101,6 @@ internal object PairedDevicesTable {
     LabelColumn<PairedDeviceData>(
       "Status",
       Column.SizeConstraint(min = 20, max = 80),
-      Attribute.stringAttribute(isGroupable = false) { it.state.toString().titlecase() }
+      Attribute.stringAttribute(isGroupable = false) { it.state.toString().titlecase() },
     )
 }

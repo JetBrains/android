@@ -34,6 +34,7 @@ import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -64,7 +65,7 @@ class RecordingListModelTest {
     myManager = myProfilers.sessionsManager
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
     taskHandlers.forEach {  myProfilers.addTaskHandler(it.key, it.value)  }
-    recordingListModel = RecordingListModel(myProfilers, taskHandlers) {}
+    recordingListModel = RecordingListModel(myProfilers, taskHandlers, {}) {}
     ideProfilerServices.enableTaskBasedUx(true)
   }
 
@@ -81,7 +82,7 @@ class RecordingListModelTest {
     val session1Timestamp = 1L
     val session2Timestamp = 2L
     myTimer.currentTimeNs = session1Timestamp
-    startAndStopSession(device, process1, Common.ProfilerTaskType.SYSTEM_TRACE)
+    startAndStopSession(device, process1, Common.ProfilerTaskType.SYSTEM_TRACE, myManager)
     val session1 = myManager.selectedSession
     val heapDumpTimestamp = 10L
     val heapDumpInfo = Memory.HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
@@ -96,7 +97,7 @@ class RecordingListModelTest {
     assertThat(recordingList[0].getChildArtifacts()[0]).isInstanceOf(HprofSessionArtifact::class.java)
 
     myTimer.currentTimeNs = session2Timestamp
-    startAndStopSession(device, process2, Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
+    startAndStopSession(device, process2, Common.ProfilerTaskType.NATIVE_ALLOCATIONS, myManager)
     val session2 = myManager.selectedSession
     val cpuTraceTimestamp = 20L
     val cpuTraceInfo = Trace.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(
@@ -134,8 +135,8 @@ class RecordingListModelTest {
       myProfilers, session, sessionId, traceId,
       Trace.TraceConfiguration.newBuilder().setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance()).build())
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(systemTraceArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("System Trace")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
   }
 
   @Test
@@ -147,12 +148,12 @@ class RecordingListModelTest {
       myProfilers, session, sessionId, traceId,
       Trace.TraceConfiguration.newBuilder().setSimpleperfOptions(Trace.SimpleperfOptions.getDefaultInstance()).build())
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(callstackSampleArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Callstack Sample")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.CALLSTACK_SAMPLE)
   }
 
   @Test
-  fun `java kotlin method trace and sample task recording shows correct supported tasks`() {
+  fun `java kotlin method recording shows correct supported tasks`() {
     val sessionId = 1L
     val traceId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
@@ -160,8 +161,8 @@ class RecordingListModelTest {
       myProfilers, session, sessionId, traceId,
       Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build())
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(javaKotlinMethodArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Java/Kotlin Method Trace, Java/Kotlin Method Sample (legacy)")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING)
   }
 
   @Test
@@ -170,8 +171,8 @@ class RecordingListModelTest {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers, session, 0L, 1L)
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(heapDumpArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Heap Dump")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.HEAP_DUMP)
   }
 
   @Test
@@ -180,8 +181,8 @@ class RecordingListModelTest {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val nativeAllocationsArtifact = SessionArtifactUtils.createHeapProfdSessionArtifact(myProfilers, session, 0L, 1L)
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(nativeAllocationsArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Native Allocations")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.NATIVE_ALLOCATIONS)
   }
 
   @Test
@@ -190,8 +191,8 @@ class RecordingListModelTest {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val javaKotlinAllocationsArtifact = SessionArtifactUtils.createAllocationSessionArtifact(myProfilers, session, 0L, 1L)
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(javaKotlinAllocationsArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Java/Kotlin Allocations")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
   }
 
   @Test
@@ -200,8 +201,8 @@ class RecordingListModelTest {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val legacyJavaKotlinAllocationsArtifact = SessionArtifactUtils.createLegacyAllocationsSessionArtifact(myProfilers, session, 0L, 1L)
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(legacyJavaKotlinAllocationsArtifact))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Java/Kotlin Allocations")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
   }
 
   @Test
@@ -209,16 +210,16 @@ class RecordingListModelTest {
     val sessionId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf())
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("Live View")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.LIVE_VIEW)
   }
 
   @Test
   fun `recording with invalid artifacts no task available`() {
     val sessionItem = MockitoKt.mock<SessionItem>()
     MockitoKt.whenever(sessionItem.getChildArtifacts()).thenReturn(listOf(MockitoKt.mock <SessionArtifact<Memory.AllocationsInfo>>()))
-    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
-    assertThat(supportedTasksString).isEqualTo("No tasks available")
+    val supportedTask = recordingListModel.getSupportedTask(sessionItem)
+    assertThat(supportedTask).isEqualTo(ProfilerTaskType.UNSPECIFIED)
   }
 
   @Test
@@ -283,7 +284,7 @@ class RecordingListModelTest {
     val sessionTimestamp = 1L
     myTimer.currentTimeNs = sessionTimestamp
     // Start a session but do not end it, simulating an ongoing task.
-    startSession(device, process, Common.ProfilerTaskType.SYSTEM_TRACE)
+    startSession(device, process, Common.ProfilerTaskType.SYSTEM_TRACE, myManager)
     val session1 = myManager.selectedSession
     val heapDumpInfo = Memory.HeapDumpInfo.newBuilder().setStartTime(10L).setEndTime(Long.MAX_VALUE).build()
     val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(sessionTimestamp, sessionTimestamp, heapDumpInfo)
@@ -295,14 +296,68 @@ class RecordingListModelTest {
     assertThat(recordingList.size).isEqualTo(0)
   }
 
-  private fun startAndStopSession(device: Common.Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
-    startSession(device, process, taskType)
-    myManager.endCurrentSession()
-    myManager.update()
+  @Test
+  fun `session item with no child artifacts is deletable`() {
+    val sessionId = 1L
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf())
+    recordingListModel.onRecordingSelection(sessionItem)
+    assertThat(recordingListModel.isRecordingSelected()).isTrue()
   }
 
-  private fun startSession(device: Common.Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
-    myManager.beginSession(1, device, process, taskType)
-    myManager.update()
+  @Test
+  fun `session item with a child artifact is deletable`() {
+    val sessionId = 1L
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    val javaKotlinAllocationsArtifact = SessionArtifactUtils.createAllocationSessionArtifact(myProfilers, session, 0L, 1L)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(javaKotlinAllocationsArtifact))
+    recordingListModel.onRecordingSelection(sessionItem)
+    assertThat(recordingListModel.isRecordingSelected()).isTrue()
+  }
+
+  @Test
+  fun `deleting past recording updates recording list`() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+
+    // Check the recording list to make sure the recordings/SessionItems are empty.
+    var recordingList = recordingListModel.recordingList.value.toList()
+    assertThat(recordingList.isEmpty()).isTrue()
+
+    val sessionTimestamp = 1L
+    myTimer.currentTimeNs = sessionTimestamp
+    // Start and end a session, simulating a finished task recording.
+    startAndStopSession(device, process, Common.ProfilerTaskType.SYSTEM_TRACE, myManager)
+
+    // Because the session/task is still ongoing, it should be filtered out of the recording list.
+    recordingList = recordingListModel.recordingList.value.toList()
+    assertThat(recordingList.size).isEqualTo(1)
+
+    // Select and delete the recording.
+    recordingListModel.onRecordingSelection(recordingList.first())
+    recordingListModel.doDeleteSelectedRecording()
+
+    // Make sure the recording list has updated.
+    recordingList = recordingListModel.recordingList.value.toList()
+    assertThat(recordingList).isEmpty()
+  }
+
+  companion object {
+    fun startAndStopSession(device: Common.Device,
+                            process: Common.Process,
+                            taskType: Common.ProfilerTaskType,
+                            sessionsManager: SessionsManager) {
+      startSession(device, process, taskType, sessionsManager)
+      sessionsManager.endCurrentSession()
+      sessionsManager.update()
+    }
+
+    private fun startSession(device: Common.Device,
+                             process: Common.Process,
+                             taskType: Common.ProfilerTaskType,
+                             sessionsManager: SessionsManager) {
+      sessionsManager.beginSession(1, device, process, taskType, false)
+      sessionsManager.update()
+    }
   }
 }

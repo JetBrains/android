@@ -16,11 +16,64 @@
 package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.tools.idea.streaming.uisettings.binding.DefaultTwoWayProperty
+import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
+import com.android.tools.idea.streaming.uisettings.data.AppLanguage
+import java.awt.Dimension
+import kotlin.math.abs
+
+/**
+ * Give 7 choices for font sizes. A [percent] of 100 is the normal font size.
+ */
+internal enum class FontSize(val percent: Int) {
+  SMALL(85),
+  NORMAL(100),
+  LARGE_115(115),
+  LARGE_130(130),
+  LARGE_150(150),  // Added in API 34
+  LARGE_180(180),  // Added in API 34
+  LARGE_200(200);  // Added in API 34
+}
 
 /**
  * A model for the [UiSettingsPanel] with bindable properties for getting and setting various Android settings.
  */
-internal class UiSettingsModel {
+internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api: Int) {
+  private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
+
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val gestureOverlayInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
+  val gestureNavigation: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val appLanguage = UiComboBoxModel<AppLanguage>()
+  val talkBackInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
+  val talkBackOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val selectToSpeakOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val fontSizeInPercent: TwoWayProperty<Int> = DefaultTwoWayProperty(100)
+  val fontSizeSettable: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(true)
+  val fontSizeIndex: TwoWayProperty<Int> = fontSizeInPercent.createMappedProperty(::toFontSizeIndex, ::toFontSizeInPercent)
+  val fontSizeMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(numberOfFontSizes(api) - 1)
+  val screenDensity: TwoWayProperty<Int> = DefaultTwoWayProperty(physicalDensity)
+  val screenDensitySettable: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(true)
+  val screenDensityIndex: TwoWayProperty<Int> = screenDensity.createMappedProperty(::toDensityIndex, ::toDensityFromIndex)
+  val screenDensityMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(densities.size - 1)
+  var resetAction: () -> Unit = {}
+
+  /**
+   * The font size settings for API 33 has 4 possible values, and for API 34+ there are 7 possible values.
+   * See [FontSize]
+   */
+  private fun numberOfFontSizes(api: Int): Int =
+    if (api > 33) FontSize.values().size else 4
+
+  private fun toFontSizeInPercent(fontIndex: Int): Int =
+    FontSize.values()[fontIndex.coerceIn(0, fontSizeMaxIndex.value)].percent
+
+  private fun toFontSizeIndex(percent: Int): Int =
+    FontSize.values().minBy { abs(it.percent - percent) }.ordinal
+
+  private fun toDensityFromIndex(densityIndex: Int): Int =
+    densities[densityIndex.coerceIn(0, screenDensityMaxIndex.value)]
+
+  private fun toDensityIndex(density: Int): Int =
+    densities.indexOf(densities.minBy { abs(it - density) })
 }

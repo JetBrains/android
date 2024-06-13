@@ -49,7 +49,7 @@ data class DetailsPanelHeaderModel(
   val className: String,
   val methodName: String,
   val eventCount: Long,
-  val userCount: Long
+  val userCount: Long,
 ) {
   companion object {
     fun fromIssueVariant(issue: IssueDetails, variant: IssueVariant?): DetailsPanelHeaderModel {
@@ -60,7 +60,7 @@ data class DetailsPanelHeaderModel(
           className,
           methodName,
           it.eventsCount,
-          it.impactedDevicesCount
+          it.impactedDevicesCount,
         )
       }
         ?: DetailsPanelHeaderModel(
@@ -68,7 +68,7 @@ data class DetailsPanelHeaderModel(
           className,
           methodName,
           issue.eventsCount,
-          issue.impactedDevicesCount
+          issue.impactedDevicesCount,
         )
     }
   }
@@ -76,7 +76,7 @@ data class DetailsPanelHeaderModel(
 
 class DetailsPanelHeader(
   private val variantComboBox: VariantComboBox? = null,
-  onVariantSelected: (IssueVariant?) -> Unit = {}
+  onVariantSelected: (IssueVariant?) -> Unit = {},
 ) : JPanel(BorderLayout()) {
   @VisibleForTesting val titleLabel = JBLabel()
 
@@ -169,7 +169,7 @@ class DetailsPanelHeader(
     className: String,
     methodName: String,
     contentWidth: Int,
-    displayFont: Font
+    displayFont: Font,
   ): String {
     var remainingWidth = contentWidth
     if (remainingWidth <= 0) return "<html></html>"
@@ -180,7 +180,7 @@ class DetailsPanelHeader(
             methodName,
             methodFontMetrics,
             remainingWidth.toFloat(),
-            AdtUiUtils.ShrinkDirection.TRUNCATE_START
+            AdtUiUtils.ShrinkDirection.TRUNCATE_START,
           )
           .also { remainingWidth -= methodFontMetrics.stringWidth(it) }
       } else {
@@ -194,7 +194,7 @@ class DetailsPanelHeader(
             "$className.",
             classFontMetrics,
             remainingWidth.toFloat(),
-            AdtUiUtils.ShrinkDirection.TRUNCATE_START
+            AdtUiUtils.ShrinkDirection.TRUNCATE_START,
           )
           .also { remainingWidth -= classFontMetrics.stringWidth(it) }
       } else ""

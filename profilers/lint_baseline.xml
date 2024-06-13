@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
+<issues format="6" by="lint 8.5.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.5.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -19,7 +19,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="146"
+            line="156"
             column="21"/>
     </issue>
 
@@ -32,17 +32,6 @@
             file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
             line="207"
             column="46"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="          return String.format(&quot;%d:%s&quot;, job.getJobId(), job.getServiceName());"
-        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/profilers/energy/EnergyDuration.java"
-            line="167"
-            column="18"/>
     </issue>
 
     <issue
@@ -230,28 +219,6 @@
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfTraceParser.java"
             line="388"
             column="21"/>
-    </issue>
-
-    <issue
-        id="SimpleDateFormat"
-        message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates."
-        errorLine1="    DateFormat timeFormat = new SimpleDateFormat(&quot;hh:mm a&quot;);"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoModel.java"
-            line="100"
-            column="29"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope"
-        errorLine1="    super(profilers.getIdeServices().getPoolExecutor());"
-        errorLine2="    ~~~~~">
-        <location
-            file="src/com/android/tools/profilers/energy/EnergyUsage.java"
-            line="34"
-            column="5"/>
     </issue>
 
 </issues>

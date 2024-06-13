@@ -96,6 +96,15 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testNoVersionInLiteral() {
+    writeToBuildFile(TestFileName("AgpVersion/NoVersionInLiteral"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
+    assertTrue(processor.isBlocked)
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/NoVersionInLiteral"))
+  }
+  
+  @Test
   fun testVersionInInterpolatedVariable() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInInterpolatedVariable"))
     val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))

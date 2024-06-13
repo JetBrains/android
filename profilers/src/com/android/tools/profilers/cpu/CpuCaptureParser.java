@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.google.wireless.android.sdk.stats.CpuCaptureMetadata.CaptureStatus.*;
 import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE;
 import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS;
 
@@ -22,6 +23,7 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.compose.ComposeTracingConstants;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -31,6 +33,9 @@ import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser;
 import com.android.tools.profilers.perfetto.PerfettoParser;
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
+import com.android.tools.profilers.tasks.TaskFinishedState;
+import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -48,6 +53,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -78,6 +84,9 @@ public class CpuCaptureParser {
   @NotNull
   private final IdeProfilerServices myServices;
 
+  @NotNull
+  private final StudioProfilers myProfilers;
+
   private final AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
 
   /**
@@ -105,8 +114,9 @@ public class CpuCaptureParser {
 
   private static final Logger LOGGER = Logger.getInstance(CpuCaptureParser.class);
 
-  public CpuCaptureParser(@NotNull IdeProfilerServices services) {
-    myServices = services;
+  public CpuCaptureParser(@NotNull StudioProfilers profilers) {
+    myProfilers = profilers;
+    myServices = profilers.getIdeServices();
     myCaptures = new HashMap<>();
   }
 
@@ -187,7 +197,12 @@ public class CpuCaptureParser {
   @NotNull
   public CompletableFuture<CpuCapture> parse(
     // Consider passing a CompletableFuture<File> instead of a File here, so we can chain all of them properly.
-    @NotNull File traceFile, long traceId, @NotNull TraceType preferredProfilerType, int processIdHint, String processNameHint) {
+    @NotNull File traceFile,
+    long traceId,
+    @NotNull TraceType preferredProfilerType,
+    int processIdHint,
+    String processNameHint,
+    @NotNull Consumer<TaskFinishedState> trackTaskFinished) {
     if (myCaptures.containsKey(traceId)) {
       return myCaptures.get(traceId);
     }
@@ -201,9 +216,30 @@ public class CpuCaptureParser {
         .thenApplyAsync(
           new ProcessTraceAction(traceFile, traceId, preferredProfilerType, processIdHint, processNameHint, myServices),
           myServices.getPoolExecutor())
-        .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace), myServices.getMainExecutor());
+        .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace, trackTaskFinished), myServices.getMainExecutor());
     myCaptures.put(traceId, cpuCapture);
     return cpuCapture;
+  }
+
+  // Added this method in this class (outside TraceResultHandler) to also be accessible in CpuProfilerStage
+  @NotNull
+  public static com.google.wireless.android.sdk.stats.CpuCaptureMetadata getCpuCaptureMetadata(@NotNull CpuCaptureMetadata metadata) {
+    com.google.wireless.android.sdk.stats.CpuCaptureMetadata.Builder result =
+      com.google.wireless.android.sdk.stats.CpuCaptureMetadata.newBuilder()
+        .setCaptureStatus(metadata.getStatus() != null ? valueOf(metadata.getStatus().name()): UNKNOWN_STATUS)
+        .setCaptureDurationMs(metadata.getCaptureDurationMs())
+        .setParsingTimeMs(metadata.getParsingTimeMs())
+        .setRecordDurationMs(metadata.getRecordDurationMs())
+        .setStoppingTimeMs(metadata.getStoppingTimeMs())
+        .setHasComposeTracingNodes(Boolean.TRUE.equals(metadata.getHasComposeTracingNodes()))
+        .setTraceFileSizeBytes(metadata.getTraceFileSizeBytes())
+        .setArtStopTimeoutSec(metadata.getArtStopTimeoutSec());
+
+    if (metadata.getCpuProfilerEntryPoint() != null) {
+      result.setCpuProfilerEntryPoint(
+        com.google.wireless.android.sdk.stats.CpuCaptureMetadata.CpuProfilerEntryPoint.valueOf(metadata.getCpuProfilerEntryPoint().name()));
+    }
+    return result.build();
   }
 
   /**
@@ -453,11 +489,16 @@ public class CpuCaptureParser {
     private final File traceFile;
     private final long traceId;
     private final boolean isImportedTrace;
+    private final Consumer<TaskFinishedState> trackTaskFinished;
 
-    private TraceResultHandler(@NotNull File traceFile, long traceId, boolean isImportedTrace) {
+    private TraceResultHandler(@NotNull File traceFile,
+                               long traceId,
+                               boolean isImportedTrace,
+                               @NotNull Consumer<TaskFinishedState> trackTaskFinished) {
       this.traceFile = traceFile;
       this.traceId = traceId;
       this.isImportedTrace = isImportedTrace;
+      this.trackTaskFinished = trackTaskFinished;
     }
 
     @Override
@@ -468,6 +509,10 @@ public class CpuCaptureParser {
         myCaptureMetadataMap.computeIfAbsent(traceId, (id) -> new CpuCaptureMetadata(
           new UnspecifiedConfiguration(ProfilingConfiguration.DEFAULT_CONFIGURATION_NAME)));
       metadata.setTraceFileSizeBytes((int)traceFile.length());
+
+      if (metadata.getProfilingConfiguration().getTraceType() == TraceType.ART) {
+        metadata.setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC);
+      }
 
       if (capture != null) {
         metadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
@@ -482,11 +527,16 @@ public class CpuCaptureParser {
         if (throwable.getCause() instanceof CancellationException) {
           metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
           myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
+          // Track that the task has finished with user cancellation.
+          trackTaskFinished.accept(TaskFinishedState.USER_CANCELLED);
         }
         else if (throwable.getCause() instanceof PreProcessorFailureException) {
           myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
           // More granular preprocess failures are logged by preprocessors. Skip logging here.
-          return;
+          if (!myServices.getFeatureConfig().isTaskBasedUxEnabled()) {
+            return;
+          }
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
         }
         else if (throwable.getCause() instanceof InvalidPathParsingFailureException) {
           metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID);
@@ -529,8 +579,13 @@ public class CpuCaptureParser {
                      ? capture.getType() // get info from capture
                      : metadata.getProfilingConfiguration().getTraceType(); // best effort to get info
           var isSuccess = capture != null;
-          myServices.getFeatureTracker()
-            .trackImportTrace(createCpuImportTraceMetadata(type, isSuccess, metadata.getHasComposeTracingNodes()));
+          if (myServices.getFeatureConfig().isTaskBasedUxEnabled()) {
+            TaskEventTrackerUtils.trackProcessingTaskFailed(myProfilers, myProfilers.getSessionsManager().isSessionAlive(),
+                                                            new TaskProcessingFailedMetadata(metadata));
+          } else {
+            myServices.getFeatureTracker()
+              .trackImportTrace(createCpuImportTraceMetadata(type, isSuccess, metadata.getHasComposeTracingNodes()));
+          }
         }
         myCaptureMetadataMap.remove(traceId);
       }

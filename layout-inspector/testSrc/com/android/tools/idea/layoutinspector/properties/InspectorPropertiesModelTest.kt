@@ -80,7 +80,7 @@ class InspectorPropertiesModelTest {
     val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
     val mockClientSettings = mock<InspectorClientSettings>()
     val mockLauncher = mock<InspectorClientLauncher>()
-    val inspectorModel = model { view(ROOT, qualifiedName = "root") }
+    val inspectorModel = model(disposableRule.disposable) { view(ROOT, qualifiedName = "root") }
     val mockRenderModel = mock<RenderModel>()
 
     val mockTreeSettings = mock<TreeSettings>()
@@ -94,7 +94,7 @@ class InspectorPropertiesModelTest {
       inspectorModel,
       NotificationModel(projectRule.project),
       mockTreeSettings,
-      renderModel = mockRenderModel
+      renderModel = mockRenderModel,
     )
   }
 

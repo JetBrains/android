@@ -17,10 +17,14 @@ package com.android.tools.idea.run;
 
 import static com.android.ddmlib.IDevice.PROP_DEVICE_BOOT_QEMU_DISPLAY_NAME;
 
+import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.DeviceNameRendererEx;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.run.util.LaunchUtils;
@@ -30,11 +34,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.Function;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,17 +96,44 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     return builder.build();
   }
 
+  @Nullable
+  @Override
+  public String getAppPreferredAbi() {
+    if (!isVirtual()) {
+      return null;
+    }
+
+    try {
+      AvdData avdData = myDevice.getAvdData().get();
+      if (avdData == null) {
+        return null;
+      }
+      String avdName = avdData.getName();
+      if (avdName == null) {
+        return null;
+      }
+      AvdInfo info = AvdManagerConnection.getDefaultAvdManagerConnection().findAvd(avdName);
+      if (info == null) {
+        return null;
+      }
+      return info.getUserSettings().get(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI);
+    }
+    catch (ExecutionException | InterruptedException e) {
+      return null;
+    }
+  }
+
   @NotNull
   @Override
   public String getSerial() {
     if (myDevice.isEmulator()) {
       String avdName = myDevice.getAvdName();
       if (avdName != null) {
-        return avdName;
+        return "AVD: " + avdName;
       }
     }
 
-    return myDevice.getSerialNumber();
+    return "Connected Device: " +  myDevice.getSerialNumber();
   }
 
   @Override
@@ -123,7 +154,14 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     }
 
     if (isVirtual()) {
-      return getDeviceName() + " [" + getSerial() + "]";
+      String virtualIdentifier = null;
+      if (myDevice.isEmulator()) {
+        virtualIdentifier = myDevice.getAvdName();
+      }
+      if (virtualIdentifier == null) {
+        virtualIdentifier = myDevice.getSerialNumber();
+      }
+      return getDeviceName() + " [" + virtualIdentifier + "]";
     }
     return getDeviceName();
   }
@@ -187,10 +225,9 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
   @NotNull
   public LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                                     @NotNull IAndroidTarget projectTarget,
-                                    @NotNull AndroidFacet facet,
-                                    Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
+                                    @NotNull Supplier<EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
                                     @NotNull Set<Abi> supportedAbis) {
-    return LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, facet, getRequiredHardwareFeatures, supportedAbis, this);
+    return LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, getRequiredHardwareFeatures, supportedAbis, this);
   }
 
   private boolean isNotDispatchThread() {

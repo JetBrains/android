@@ -18,6 +18,7 @@ package com.android.tools.idea.templates.diff
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import java.nio.file.Path
+import java.nio.file.Paths
 
 object TemplateDiffTestUtils {
   /** Gets the path where golden files are stored */
@@ -42,5 +43,20 @@ object TemplateDiffTestUtils {
    */
   internal fun smartDiffAgpVersion(): Boolean {
     return getPinnedAgpVersion() == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  }
+
+  /**
+   * Gets the output directory where we should put generated files. Bazel places files in
+   * TEST_UNDECLARED_OUTPUTS_DIR which produces outputs.zip as a test artifact, so we can put any
+   * files there. We use a "golden" subdirectory in the zip for the template-generated golden files
+   * and a "lintBaseline" subdirectory for the Lint baseline XMLs.
+   */
+  internal fun getOutputDir(subDirName: String): Path {
+    val undeclaredOutputs = System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
+    checkNotNull(undeclaredOutputs) {
+      "The 'TEST_UNDECLARED_OUTPUTS_DIR' env. variable should already be set, because TemplateDiffTest#setUp checks for it"
+    }
+
+    return Paths.get(undeclaredOutputs).resolve(subDirName)
   }
 }

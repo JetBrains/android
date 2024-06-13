@@ -24,11 +24,9 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestPro
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.JavaLibraryDependency
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.ModuleModelBuilder
 import com.android.tools.idea.testing.caret
-import com.android.tools.tests.AdtTestKotlinArtifacts
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.EdtRule
@@ -54,14 +52,9 @@ class ViewBindingCompletionKotlinTest {
             AndroidProjectBuilder(
                 namespace = { "google.simpleapplication" },
                 viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) },
-                // TODO(b/300170256): Remove this once 2023.3 merges and we no longer need
-                // kotlin-stdlib for every Kotlin test.
-                javaLibraryDependencyList = {
-                  listOf(JavaLibraryDependency.forJar(AdtTestKotlinArtifacts.kotlinStdlib))
-                },
               )
               .build(),
-        )
+        ),
       )
   }
 
@@ -89,7 +82,7 @@ class ViewBindingCompletionKotlinTest {
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -110,7 +103,7 @@ class ViewBindingCompletionKotlinTest {
             binding.test${caret}
           }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(testUtilFile.virtualFile)

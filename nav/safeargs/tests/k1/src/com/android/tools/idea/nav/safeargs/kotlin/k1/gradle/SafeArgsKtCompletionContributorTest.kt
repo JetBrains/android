@@ -95,7 +95,7 @@ class SafeArgsKtCompletionContributorTest {
         }
       """
           .trimIndent(),
-        fixture.project
+        fixture.project,
       )
     }
 
@@ -118,7 +118,7 @@ class SafeArgsKtCompletionContributorTest {
       .containsAllOf(
         "FirstFragmentArgs  (com.example.mylibrary)",
         "SecondFragmentArgs  (com.example.myapplication)",
-        "SecondFragmentArgs  (com.example.mylibrary)"
+        "SecondFragmentArgs  (com.example.mylibrary)",
       )
 
     // check directions classes
@@ -138,7 +138,7 @@ class SafeArgsKtCompletionContributorTest {
       .containsAllOf(
         "SecondFragmentDirections  (com.example.myapplication)",
         "FirstFragmentDirections  (com.example.mylibrary)",
-        "SecondFragmentDirections  (com.example.mylibrary)"
+        "SecondFragmentDirections  (com.example.mylibrary)",
       )
 
     // check all safe args classes
@@ -161,7 +161,7 @@ class SafeArgsKtCompletionContributorTest {
         "SecondFragmentArgs  (com.example.mylibrary)",
         "SecondFragmentDirections  (com.example.myapplication)",
         "FirstFragmentDirections  (com.example.mylibrary)",
-        "SecondFragmentDirections  (com.example.mylibrary)"
+        "SecondFragmentDirections  (com.example.mylibrary)",
       )
   }
 
@@ -183,7 +183,7 @@ class SafeArgsKtCompletionContributorTest {
         class FooClass
       """
           .trimIndent(),
-        fixture.project
+        fixture.project,
       )
     }
 
@@ -220,7 +220,7 @@ class SafeArgsKtCompletionContributorTest {
         "FirstFragmentArgs  (com.example.mylibrary)",
         "FirstFragmentDirections  (com.example.mylibrary)",
         "SecondFragmentArgs  (com.example.mylibrary)",
-        "SecondFragmentDirections  (com.example.mylibrary)"
+        "SecondFragmentDirections  (com.example.mylibrary)",
       )
   }
 
@@ -243,7 +243,7 @@ class SafeArgsKtCompletionContributorTest {
         }
       """
           .trimIndent(),
-        fixture.project
+        fixture.project,
       )
     }
 
@@ -280,7 +280,7 @@ class SafeArgsKtCompletionContributorTest {
         "FirstFragmentArgs  (com.example.mylibrary)",
         "FirstFragmentDirections  (com.example.mylibrary)",
         "SecondFragmentArgs  (com.example.mylibrary)",
-        "SecondFragmentDirections  (com.example.mylibrary)"
+        "SecondFragmentDirections  (com.example.mylibrary)",
       )
   }
 }

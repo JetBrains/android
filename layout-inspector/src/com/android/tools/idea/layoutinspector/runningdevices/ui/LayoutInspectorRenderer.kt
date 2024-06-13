@@ -67,7 +67,7 @@ class LayoutInspectorRenderer(
   private val displayRectangleProvider: () -> Rectangle?,
   private val screenScaleProvider: () -> Double,
   private val orientationQuadrantProvider: () -> Int,
-  private val currentSessionStatistics: () -> SessionStatistics
+  private val currentSessionStatistics: () -> SessionStatistics,
 ) : JPanel(), Disposable {
 
   var interceptClicks = false
@@ -115,6 +115,10 @@ class LayoutInspectorRenderer(
 
   override fun dispose() {
     renderModel.modificationListeners.remove(repaintDisplayView)
+  }
+
+  fun clearSelection() {
+    renderModel.clearSelection()
   }
 
   fun refresh() {
@@ -189,7 +193,7 @@ class LayoutInspectorRenderer(
    */
   private fun calculateScaleDifference(
     displayRectangle: Rectangle,
-    layoutInspectorDisplayRectangle: Rectangle
+    layoutInspectorDisplayRectangle: Rectangle,
   ): Double {
     // Get the biggest side of both rectangles and use them to calculate the difference in scale.
     // Using the biggest side makes sure that if the rotation of the two rectangles is not the same,
@@ -214,7 +218,7 @@ class LayoutInspectorRenderer(
           id = notificationId,
           text = LayoutInspectorBundle.message(notificationId),
           status = EditorNotificationPanel.Status.Warning,
-          actions = emptyList()
+          actions = emptyList(),
         )
       }
       // Do no render view bounds, because they would be on the wrong display.
@@ -277,7 +281,7 @@ class LayoutInspectorRenderer(
       GotoDeclarationAction.navigateToSelectedView(
         coroutineScope,
         renderModel.model,
-        renderModel.notificationModel
+        renderModel.notificationModel,
       )
       currentSessionStatistics().gotoSourceFromRenderDoubleClick()
       return true
@@ -316,7 +320,7 @@ class LayoutInspectorRenderer(
  */
 private class ForwardingMouseListener(
   private val componentProvider: () -> Component,
-  private val shouldForward: () -> Boolean
+  private val shouldForward: () -> Boolean,
 ) : MouseListener, MouseWheelListener, MouseMotionListener {
   override fun mouseClicked(e: MouseEvent) = forwardEvent(e)
 
@@ -346,7 +350,7 @@ private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {
     (x * physicalToLogicalScale).toInt(),
     (y * physicalToLogicalScale).toInt(),
     (width * physicalToLogicalScale).toInt(),
-    (height * physicalToLogicalScale).toInt()
+    (height * physicalToLogicalScale).toInt(),
   )
 }
 

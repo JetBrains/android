@@ -84,7 +84,7 @@ class WakeLockEntryTest {
       assertThat(callstacks)
         .containsExactly(
           BackgroundTaskCallStack(1, acquiredStacktrace),
-          BackgroundTaskCallStack(2, "RELEASED")
+          BackgroundTaskCallStack(2, "RELEASED"),
         )
       assertThat(retries).isEqualTo(0)
     }

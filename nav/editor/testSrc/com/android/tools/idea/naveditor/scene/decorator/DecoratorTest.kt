@@ -39,6 +39,7 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.scale.ScaleContext
 import org.mockito.InOrder
 import org.mockito.Mockito
@@ -58,7 +59,7 @@ private const val NESTED_ID = "nested1"
 private const val ACTIVITY_PADDING = 8f
 private const val ACTIVITY_TEXT_HEIGHT = 26f
 
-private val ACTION_COLOR = Color(-0x4d585859, true)
+private val ACTION_COLOR = Color(0xdfe1e5)
 
 class DecoratorTest : NavTestCase() {
   private lateinit var surface: DesignSurface<*>
@@ -135,7 +136,7 @@ class DecoratorTest : NavTestCase() {
 
   private fun testFragmentDecorator(model: NlModel, drawState: SceneComponent.DrawState, isStart: Boolean = false,
                                     hasDeepLink: Boolean = false, previewType: PreviewType = PreviewType.PLACEHOLDER) {
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val sceneComponent = makeSceneComponent(FRAGMENT_ID, drawState)
@@ -149,8 +150,8 @@ class DecoratorTest : NavTestCase() {
     }
 
     verifyDecorator(FragmentDecorator, sceneComponent, sceneView.context) { inOrder, g ->
-      verifyDrawHeader(inOrder, g, headerRect, surface.scale, FRAGMENT_ID, isStart, hasDeepLink)
-      verifyDrawFragment(inOrder, g, drawRect, surface.scale, color, previewType)
+      verifyDrawHeader(inOrder, g, headerRect, surface.zoomController.scale, FRAGMENT_ID, isStart, hasDeepLink)
+      verifyDrawFragment(inOrder, g, drawRect, surface.zoomController.scale, color, previewType)
     }
   }
 
@@ -164,7 +165,7 @@ class DecoratorTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val refinableImage = RefinableImage(BUFFERED_IMAGE)
@@ -184,8 +185,8 @@ class DecoratorTest : NavTestCase() {
     try {
       ThumbnailManager.setInstance(myFacet, thumbnailManager)
       verifyDecorator(FragmentDecorator, sceneComponent, sceneView.context) { inOrder, g ->
-        verifyDrawHeader(inOrder, g, headerRect, surface.scale, FRAGMENT_ID, false, false)
-        verifyDrawFragment(inOrder, g, drawRect, surface.scale, null, PreviewType.IMAGE)
+        verifyDrawHeader(inOrder, g, headerRect, surface.zoomController.scale, FRAGMENT_ID, false, false)
+        verifyDrawFragment(inOrder, g, drawRect, surface.zoomController.scale, null, PreviewType.IMAGE)
       }
     }
     finally {
@@ -235,7 +236,7 @@ class DecoratorTest : NavTestCase() {
 
   private fun testActivityDecorator(model: NlModel, drawState: SceneComponent.DrawState,
                                     isStart: Boolean = false, hasDeepLink: Boolean = false) {
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val sceneComponent = makeSceneComponent(ACTIVITY_ID, drawState)
@@ -243,8 +244,8 @@ class DecoratorTest : NavTestCase() {
     val drawRect = sceneComponent.inlineDrawRect(sceneView).value
     val headerRect = makeHeaderRectangle(drawRect)
 
-    val padding = ACTIVITY_PADDING * surface.scale.toFloat()
-    val textHeight = ACTIVITY_TEXT_HEIGHT * surface.scale.toFloat()
+    val padding = ACTIVITY_PADDING * surface.zoomController.scale.toFloat()
+    val textHeight = ACTIVITY_TEXT_HEIGHT * surface.zoomController.scale.toFloat()
 
     val x = drawRect.x + padding
     val y = drawRect.y + padding
@@ -253,8 +254,8 @@ class DecoratorTest : NavTestCase() {
     val imageRect = Rectangle2D.Float(x, y, width, height)
 
     verifyDecorator(ActivityDecorator, sceneComponent, sceneView.context) { inOrder, g ->
-      verifyDrawHeader(inOrder, g, headerRect, surface.scale, ACTIVITY_ID, isStart, hasDeepLink)
-      verifyDrawActivity(inOrder, g, drawRect, imageRect, surface.scale, frameColor(drawState), frameThickness(drawState), TEXT_COLOR)
+      verifyDrawHeader(inOrder, g, headerRect, surface.zoomController.scale, ACTIVITY_ID, isStart, hasDeepLink)
+      verifyDrawActivity(inOrder, g, drawRect, imageRect, surface.zoomController.scale, frameColor(drawState), frameThickness(drawState), TEXT_COLOR)
     }
   }
 
@@ -298,7 +299,7 @@ class DecoratorTest : NavTestCase() {
 
   private fun testNavigationDecorator(model: NlModel, drawState: SceneComponent.DrawState,
                                       isStart: Boolean = false, hasDeepLink: Boolean = false) {
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val sceneComponent = makeSceneComponent(NESTED_ID, drawState)
@@ -307,8 +308,8 @@ class DecoratorTest : NavTestCase() {
     val headerRect = makeHeaderRectangle(drawRect)
 
     verifyDecorator(NavigationDecorator, sceneComponent, sceneView.context) { inOrder, g ->
-      verifyDrawHeader(inOrder, g, headerRect, surface.scale, NESTED_ID, isStart, hasDeepLink)
-      verifyDrawNestedGraph(inOrder, g, drawRect, surface.scale, frameColor(drawState), frameThickness(drawState), "Nested Graph",
+      verifyDrawHeader(inOrder, g, headerRect, surface.zoomController.scale, NESTED_ID, isStart, hasDeepLink)
+      verifyDrawNestedGraph(inOrder, g, drawRect, surface.zoomController.scale, frameColor(drawState), frameThickness(drawState), "Nested Graph",
                             TEXT_COLOR)
     }
   }
@@ -368,7 +369,7 @@ class DecoratorTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
     val sceneComponent = makeSceneComponent("root_to_f1", SceneComponent.DrawState.NORMAL)
 
@@ -379,7 +380,7 @@ class DecoratorTest : NavTestCase() {
   }
 
   private fun testActionDecorator(model: NlModel, id: String, drawState: SceneComponent.DrawState, isPop: Boolean = false) {
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().find(id)!!, Mockito.mock(HitProvider::class.java))
@@ -425,7 +426,7 @@ class DecoratorTest : NavTestCase() {
   }
 
   private fun makeHeaderRectangle(drawRect: Rectangle2D.Float): Rectangle2D.Float {
-    val headerHeight = HEADER_HEIGHT * surface.scale.toFloat()
+    val headerHeight = HEADER_HEIGHT * surface.zoomController.scale.toFloat()
     return Rectangle2D.Float(drawRect.x, drawRect.y - headerHeight, drawRect.width, headerHeight)
   }
 

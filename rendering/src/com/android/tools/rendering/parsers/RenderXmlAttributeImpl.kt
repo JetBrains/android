@@ -20,7 +20,7 @@ internal class RenderXmlAttributeImpl(
   override val value: String?,
   override val localName: String,
   override val namespace: String,
-  override val namespacePrefix: String
+  override val namespacePrefix: String,
 ) : RenderXmlAttribute {
   override val isNamespaceDeclaration: Boolean
     get() = name.startsWith("xmlns") && (name.length == 5 || name[5] == ':')

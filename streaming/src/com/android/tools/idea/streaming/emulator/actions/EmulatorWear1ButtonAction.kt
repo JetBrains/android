@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+
 /**
  * Simulates pressing the first button on an Android Wear virtual device.
  */
-internal class EmulatorWear1ButtonAction : EmulatorPushButtonAction("GoHome", configFilter = { it.isWearOs && it.api >= 28 })
+internal class EmulatorWear1ButtonAction :
+    EmulatorPushButtonAction("GoHome", configFilter = { it.deviceType == DeviceType.WEAR && it.api >= 28 })

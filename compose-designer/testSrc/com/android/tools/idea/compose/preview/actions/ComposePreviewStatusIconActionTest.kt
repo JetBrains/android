@@ -18,18 +18,18 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.ide.common.rendering.api.Result
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.ManualDisabledReason
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.testFramework.MapDataContext
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
 import org.junit.After
@@ -43,22 +43,23 @@ class ComposePreviewStatusIconActionTest {
 
   private val composePreviewManager = TestComposePreviewManager()
 
-  // DataContext is lazy, so we give projectRule time to initialize itself.
-  private val context by lazy {
-    MapDataContext().also {
-      it.put(COMPOSE_PREVIEW_MANAGER, composePreviewManager)
-      it.put(CommonDataKeys.PROJECT, projectRule.project)
-      it.put(SCENE_VIEW, sceneViewMock)
+  private val context = DataContext {
+    when (it) {
+      CommonDataKeys.PROJECT.name -> projectRule.project
+      SCENE_VIEW.name -> sceneViewMock
+      PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.currentStatus
+      else -> null
     }
   }
 
   private val originStatus =
     ComposePreviewManager.Status(
-      hasRuntimeErrors = false,
+      hasErrorsAndNeedsBuild = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
+      previewedFile = null,
     )
 
   private val tf = listOf(true, false)
@@ -115,10 +116,10 @@ class ComposePreviewStatusIconActionTest {
                 this.renderError = renderError
                 val status =
                   originStatus.copy(
-                    hasRuntimeErrors = runtimeError,
+                    hasErrorsAndNeedsBuild = runtimeError,
                     hasSyntaxErrors = syntaxError,
                     isOutOfDate = outOfDate,
-                    isRefreshing = refreshing
+                    isRefreshing = refreshing,
                   )
                 composePreviewManager.currentStatus = status
                 action.update(event)
@@ -130,7 +131,7 @@ class ComposePreviewStatusIconActionTest {
                   """
                     .trimIndent(),
                   expectedToShowIcon,
-                  event.presentation.isEnabled
+                  event.presentation.isEnabled,
                 )
                 assertEquals(
                   """
@@ -139,7 +140,7 @@ class ComposePreviewStatusIconActionTest {
                   """
                     .trimIndent(),
                   expectedToShowIcon,
-                  event.presentation.isVisible
+                  event.presentation.isVisible,
                 )
                 if (expectedToShowIcon) {
                   assertEquals(StudioIcons.Common.WARNING, event.presentation.icon)

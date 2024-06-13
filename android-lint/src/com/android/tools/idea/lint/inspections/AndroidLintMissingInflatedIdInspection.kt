@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.MissingInflatedIdDetector
 class AndroidLintMissingInflatedIdInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.missing.inflated.id"),
-    MissingInflatedIdDetector.ISSUE
+    MissingInflatedIdDetector.ISSUE,
   )

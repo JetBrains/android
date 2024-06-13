@@ -41,7 +41,7 @@ class PTableCellRendererWrapper : TableCellRenderer {
     isSelected: Boolean,
     withFocus: Boolean,
     row: Int,
-    column: Int
+    column: Int,
   ): Component? {
     // PTable shows focus for the entire row. Not per cell.
     val rowIsLead = table.selectionModel.leadSelectionIndex == row
@@ -58,7 +58,7 @@ class PTableCellRendererWrapper : TableCellRenderer {
         model.depth(item),
         isSelected,
         hasFocus,
-        isExpanded
+        isExpanded,
       )
     if (isSelected && !hasFocus) {
       // The JBTable.prepareRenderer overrides the background color to indicate when the mouse is

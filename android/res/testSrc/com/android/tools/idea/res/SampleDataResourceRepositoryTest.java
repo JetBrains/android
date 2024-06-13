@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
 import static com.intellij.testFramework.UsefulTestCase.assertSize;
@@ -59,6 +60,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -123,7 +125,7 @@ public class SampleDataResourceRepositoryTest {
   }
 
   @Test
-  public void testDataLoad() {
+  public void testDataLoad() throws InterruptedException, TimeoutException {
     myProjectRule.getFixture().addFileToProject("sampledata/strings",
                                                 "string1\n" +
                                                 "string2\n" +
@@ -136,7 +138,8 @@ public class SampleDataResourceRepositoryTest {
                                                 "Insert image here 3\n");
     myProjectRule.getFixture().addFileToProject("sampledata/root_image.png",
                                                 "Insert image here 3\n");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
+    waitForUpdates(repo);
 
     assertEquals(3, getResources(repo).size());
     assertEquals(1, getResources(repo, "strings").size());
@@ -145,7 +148,7 @@ public class SampleDataResourceRepositoryTest {
   }
 
   @Test
-  public void testResolver() {
+  public void testResolver() throws InterruptedException, TimeoutException {
     @Language("XML")
     String stringsText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                          "<resources>\n" +
@@ -190,6 +193,7 @@ public class SampleDataResourceRepositoryTest {
     PsiFile layout = addLayoutFile();
     Configuration configuration =
       ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
+    waitForUpdates(StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources());
     ResourceResolver resolver = configuration.getResourceResolver();
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
@@ -233,36 +237,41 @@ public class SampleDataResourceRepositoryTest {
   }
 
   @Test
-  public void testSampleDataFileInvalidation_addAndDeleteFile() throws IOException {
-    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
+  public void testSampleDataFileInvalidation_addAndDeleteFile() throws IOException, InterruptedException, TimeoutException {
+    LocalResourceRepository<VirtualFile> repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
+    waitForUpdates(repo);
     assertTrue(getResources(repo).isEmpty());
 
     PsiFile strings = myProjectRule.getFixture().addFileToProject("sampledata/strings",
                                                                   "string1\n" +
                                                                   "string2\n" +
                                                                   "string3\n");
+    waitForUpdates(repo);
     assertEquals(1, getResources(repo).size());
     assertEquals(1, getResources(repo, "strings").size());
 
     WriteAction.runAndWait(() -> strings.getVirtualFile().delete(null));
+    waitForUpdates(repo);
     assertTrue(getResources(repo).isEmpty());
   }
 
   @Test
-  public void testSampleDataFileInvalidation_deleteSampleDataDirectory() throws IOException {
-    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
+  public void testSampleDataFileInvalidation_deleteSampleDataDirectory() throws IOException, InterruptedException, TimeoutException {
+    LocalResourceRepository<VirtualFile> repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
 
     myProjectRule.getFixture().addFileToProject("sampledata/strings", "string1\n");
-    VirtualFile sampleDir = toVirtualFile(myAppModuleSystem.getSampleDataDirectory());
+    waitForUpdates(repo);
     assertEquals(1, getResources(repo).size());
 
+    VirtualFile sampleDir = toVirtualFile(myAppModuleSystem.getSampleDataDirectory());
     WriteAction.runAndWait(() -> sampleDir.delete(null));
+    waitForUpdates(repo);
     assertTrue(getResources(repo).isEmpty());
   }
 
   @Test
-  public void testSampleDataFileInvalidation_moveFiles() throws IOException {
-    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
+  public void testSampleDataFileInvalidation_moveFiles() throws IOException, InterruptedException, TimeoutException {
+    LocalResourceRepository<VirtualFile> repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
 
     VirtualFile sampleDir = toVirtualFile(
       WriteAction.computeAndWait(() -> myAppModuleSystem.getOrCreateSampleDataDirectory())
@@ -271,33 +280,37 @@ public class SampleDataResourceRepositoryTest {
 
     // move strings into sample data directory
     WriteAction.runAndWait(() -> stringsOutside.getVirtualFile().move(null, sampleDir));
+    waitForUpdates(repo);
     assertEquals(1, getResources(repo).size());
 
     // move strings out of sample data directory
     VirtualFile stringsInside = sampleDir.findChild(stringsOutside.getName());
     WriteAction.runAndWait(() -> stringsInside.move(null, sampleDir.getParent()));
+    waitForUpdates(repo);
     assertTrue(getResources(repo).isEmpty());
   }
 
   @Test
-  public void testSampleDataFileInvalidation_moveSampleDataDirectory() throws IOException {
-    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
+  public void testSampleDataFileInvalidation_moveSampleDataDirectory() throws IOException, InterruptedException, TimeoutException {
+    LocalResourceRepository<VirtualFile> repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
 
     VirtualFile sampleDir = toVirtualFile(
       WriteAction.computeAndWait(() -> myAppModuleSystem.getOrCreateSampleDataDirectory())
     );
     myProjectRule.getFixture().addFileToProject("sampledata/strings", "string1\n");
+    waitForUpdates(repo);
     assertEquals(1, getResources(repo).size());
 
     WriteAction.runAndWait(() -> {
       VirtualFile newParent = sampleDir.getParent().createChildDirectory(null, "somewhere_else");
       sampleDir.move(null, newParent);
     });
+    waitForUpdates(repo);
     assertTrue(getResources(repo).isEmpty());
   }
 
   @Test
-  public void testJsonSampleData() {
+  public void testJsonSampleData() throws InterruptedException, TimeoutException {
     myProjectRule.getFixture().addFileToProject("sampledata/users.json",
                                                 "{\n" +
                                                 "  \"users\": [\n" +
@@ -323,7 +336,8 @@ public class SampleDataResourceRepositoryTest {
                                                 "      \"name\": \"Name1\",\n" +
                                                 "      \"surname\": \"Surname1\"\n" +
                                                 "    },\n");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
+    waitForUpdates(repo);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(3, getResources(repo).size());
@@ -331,13 +345,14 @@ public class SampleDataResourceRepositoryTest {
   }
 
   @Test
-  public void testCsvSampleData() {
+  public void testCsvSampleData() throws InterruptedException, TimeoutException {
     myProjectRule.getFixture().addFileToProject("sampledata/users.csv",
                                                 "name,surname,phone\n" +
                                                 "Name1,Surname1\n" +
                                                 "Name2,Surname2\n" +
                                                 "Name3,Surname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
+    waitForUpdates(repo);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(3, getResources(repo).size());
@@ -375,7 +390,7 @@ public class SampleDataResourceRepositoryTest {
   }
 
   @Test
-  public void testImageResources() {
+  public void testImageResources() throws InterruptedException, TimeoutException {
     myProjectRule.getFixture().addFileToProject("sampledata/images/image1.png", "\n");
     myProjectRule.getFixture().addFileToProject("sampledata/images/image2.png", "\n");
     myProjectRule.getFixture().addFileToProject("sampledata/images/image3.png", "\n");
@@ -383,6 +398,7 @@ public class SampleDataResourceRepositoryTest {
 
 
     LocalResourceRepository<VirtualFile> repository = StudioResourceRepositoryManager.getAppResources(myFacet);
+    waitForUpdates(repository);
     Collection<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
     assertSize(2, items);
     SampleDataResourceItem item =
@@ -421,7 +437,7 @@ public class SampleDataResourceRepositoryTest {
   }
 
   @Test
-  public void testSampleDataInLibrary() {
+  public void testSampleDataInLibrary() throws InterruptedException, TimeoutException {
     myProjectRule.getFixture().addFileToProject("lib/sampledata/lib.csv",
                                                 "name,surname,phone\n" +
                                                 "LibName1,LibSurname1\n" +
@@ -432,7 +448,8 @@ public class SampleDataResourceRepositoryTest {
                                                 "TransitiveName1,TransitiveSurname1\n" +
                                                 "TransitiveName2,TransitiveSurname2\n" +
                                                 "TransitiveName3,TransitiveSurname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
+    waitForUpdates(repo);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(6, getResources(repo).size());
@@ -448,7 +465,7 @@ public class SampleDataResourceRepositoryTest {
   }
 
   @Test
-  public void testMultiModuleAppOverrides() {
+  public void testMultiModuleAppOverrides() throws InterruptedException, TimeoutException {
     myProjectRule.getFixture().addFileToProject("sampledata/users.csv",
                                                 "name,surname,phone\n" +
                                                 "AppName1,AppSurname1\n" +
@@ -464,7 +481,8 @@ public class SampleDataResourceRepositoryTest {
                                                 "TransitiveName1,TransitiveSurname1\n" +
                                                 "TransitiveName2,TransitiveSurname2\n" +
                                                 "TransitiveName3,TransitiveSurname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
+    waitForUpdates(repo);
 
     PsiFile layout = addLayoutFile();
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone

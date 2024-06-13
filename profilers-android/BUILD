@@ -7,10 +7,17 @@ iml_module(
     name = "intellij.android.profilersAndroid",
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = ["no_test_windows"],
+    split_test_targets = {
+        "WindowsNameDemanglerTest": {
+            "test_filter": "com.android.tools.idea.profilers.perfetto.traceprocessor.WindowsNameDemanglerTest",
+        },
+        "other": {
+            "tags": ["no_test_windows"],
+        },
+    },
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
+        "//prebuilts/tools:lldb",
         "//prebuilts/tools/common/trace-processor-daemon",
         "//tools/adt/idea/profilers:test_data",
     ],
@@ -18,7 +25,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/profilers-ui:intellij.android.profilers.ui[module]",
         "//tools/adt/idea/profilers:intellij.android.profilers[module]",
@@ -84,7 +92,6 @@ kotlin_test(
     test_class = "com.android.tools.idea.profilers.PerformanceTestSuite",
     deps = [
         ":intellij.android.profilersAndroid_testlib",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
@@ -94,6 +101,7 @@ kotlin_test(
         "//tools/adt/idea/profilers-ui:intellij.android.profilers.ui",
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/base/testutils:studio.android.sdktools.testutils",
+        "@intellij//:intellij-sdk",
     ],
 )
 
@@ -116,7 +124,6 @@ kotlin_test(
     test_class = "com.android.tools.idea.profilers.PerformanceTestSuite",
     deps = [
         ":intellij.android.profilersAndroid_testlib",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
@@ -126,6 +133,7 @@ kotlin_test(
         "//tools/adt/idea/profilers-ui:intellij.android.profilers.ui",
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/base/testutils:studio.android.sdktools.testutils",
+        "@intellij//:intellij-sdk",
     ],
 )
 

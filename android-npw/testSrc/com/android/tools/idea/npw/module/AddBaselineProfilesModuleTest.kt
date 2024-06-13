@@ -48,47 +48,53 @@ import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
 class AddBaselineProfilesModuleTest(
-  private val useGradleKtsParam: Boolean,
   private val useGmdParam: Boolean,
 ) {
 
   companion object {
     @JvmStatic
-    @Parameterized.Parameters(name = "useGradleKts={0}, useGmdParam={1}")
+    @Parameterized.Parameters(name = "useGmdParam={0}")
     fun data(): List<Array<Any>> = listOf(
-      arrayOf(true, true),
-      arrayOf(true, false),
-      arrayOf(false, true),
-      arrayOf(false, false),
+      arrayOf(true),
+      arrayOf(false),
     )
+
+    fun addNewBaselineProfilesModule(projectRule: AndroidGradleProjectRule, useGmdParam: Boolean, useGradleKtsParam: Boolean) {
+      projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+
+      val project = projectRule.project
+      val model = NewBaselineProfilesModuleModel(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = emptyProjectSyncInvoker,
+      ).apply {
+        androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API)
+        targetModule.value = project.findAppModule()
+        useGradleKts.set(useGradleKtsParam)
+        useGmd.set(useGmdParam)
+        agpVersion.set(GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)!!)
+      }
+
+      model.handleFinished() // Generate module files
+
+      projectRule.invokeTasks("assembleDebug").apply {
+        buildError?.printStackTrace()
+        Assert.assertTrue("Project didn't compile correctly", isBuildSuccessful)
+      }
+    }
+
+    // Ignore project sync (to speed up test), if later we are going to perform a gradle build anyway.
+    val emptyProjectSyncInvoker = object : ProjectSyncInvoker {
+      override fun syncProject(project: Project) {}
+    }
   }
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
 
   @Test
-  fun addNewBaselineProfilesModule() {
-    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
-
-    val project = projectRule.project
-    val model = NewBaselineProfilesModuleModel(
-      project = project,
-      moduleParent = ":",
-      projectSyncInvoker = emptyProjectSyncInvoker,
-    ).apply {
-      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API)
-      targetModule.value = project.findAppModule()
-      useGradleKts.set(useGradleKtsParam)
-      useGmd.set(useGmdParam)
-      agpVersion.set(GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)!!)
-    }
-
-    model.handleFinished() // Generate module files
-
-    projectRule.invokeTasks("assembleDebug").apply {
-      buildError?.printStackTrace()
-      Assert.assertTrue("Project didn't compile correctly", isBuildSuccessful)
-    }
+  fun addNewBaselineProfilesModuleTest() {
+    addNewBaselineProfilesModule(projectRule, useGmdParam, false)
   }
 }
 
@@ -116,7 +122,7 @@ class ConfigureBaselineProfilesModuleStepTest {
       val model = NewBaselineProfilesModuleModel(
         project = projectRule.project,
         moduleParent = ":",
-        projectSyncInvoker = emptyProjectSyncInvoker
+        projectSyncInvoker = AddBaselineProfilesModuleTest.emptyProjectSyncInvoker
       )
       projectRule.loadProject(targetProjectPath)
       ConfigureBaselineProfilesModuleStep(
@@ -189,9 +195,4 @@ class ConfigureBaselineProfilesModuleStepTest {
     assertFalse(step.useGmdCheck.isSelected)
     assertFalse(model.useGmd.get())
   }
-}
-
-// Ignore project sync (to speed up test), if later we are going to perform a gradle build anyway.
-private val emptyProjectSyncInvoker = object : ProjectSyncInvoker {
-  override fun syncProject(project: Project) {}
 }

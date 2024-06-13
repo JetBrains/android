@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfAnalysis
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
@@ -37,27 +38,33 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   /** Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint. */
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel
+    model: NlModel,
   ): List<VisualLintIssueContent> {
     val atfAnalyzer = VisualLintAtfAnalysis(model)
     val atfIssues = atfAnalyzer.validateAndUpdateLint(renderResult)
     return atfIssues.map { createVisualLintIssueContent(it) }.toList()
   }
 
-  private fun createVisualLintIssueContent(issue: VisualLintAtfIssue) =
-    if (issue.appliedColorBlindFilter() != ColorBlindMode.NONE && issue.isLowContrast()) {
+  private fun createVisualLintIssueContent(issue: VisualLintAtfIssue): VisualLintIssueContent {
+    val viewInfo =
+      (issue.source as VisualLintIssueProvider.VisualLintIssueSource)
+        .components
+        .firstOrNull()
+        ?.viewInfo
+    return if (issue.appliedColorBlindFilter() != ColorBlindMode.NONE && issue.isLowContrast()) {
       VisualLintIssueContent(
-        issue.component.viewInfo,
+        viewInfo,
         COLOR_BLIND_ISSUE_SUMMARY,
-        VisualLintErrorType.ATF_COLORBLIND
+        VisualLintErrorType.ATF_COLORBLIND,
       ) { count: Int ->
         colorBLindModeDescriptionProvider(issue, count)
       }
     } else {
-      VisualLintIssueContent(issue.component.viewInfo, issue.summary) { _: Int ->
+      VisualLintIssueContent(viewInfo, issue.summary) { _: Int ->
         HtmlBuilder().addHtml(issue.description)
       }
     }
+  }
 }
 
 class AtfAnalyzerInspection : VisualLintInspection(VisualLintErrorType.ATF, "atfBackground") {
@@ -81,7 +88,7 @@ private val colorBLindModeDescriptionProvider: (VisualLintAtfIssue, Int) -> Html
             1 -> "colorblind configuration"
             2 -> "and 1 other colorblind configuration"
             else -> "and ${count - 1} other colorblind configurations"
-          },
+          }
         )
         .append(".<br>")
         .append(description)

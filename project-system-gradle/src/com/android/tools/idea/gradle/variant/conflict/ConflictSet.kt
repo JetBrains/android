@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.conflict
 
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
@@ -119,9 +120,9 @@ class ConflictSet private constructor(
     private fun GradleAndroidModel.getModuleLibraries(): Sequence<IdeModuleLibrary> {
       val variant = selectedVariant
       val allModuleLibraries = variant.mainArtifact.compileClasspath.libraries.asSequence() +
-                               variant.androidTestArtifact?.compileClasspath?.libraries?.asSequence().orEmpty() +
+                               variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath?.libraries?.asSequence().orEmpty() +
                                variant.testFixturesArtifact?.compileClasspath?.libraries?.asSequence().orEmpty() +
-                               variant.unitTestArtifact?.compileClasspath?.libraries?.asSequence().orEmpty()
+                               variant.hostTestArtifacts.map { it.compileClasspath.libraries }.flatten().asSequence()
       return allModuleLibraries.filterIsInstance<IdeModuleLibrary>().distinct()
     }
   }

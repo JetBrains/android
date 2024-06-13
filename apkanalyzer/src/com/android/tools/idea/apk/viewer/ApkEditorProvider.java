@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.apk.viewer;
 
-import com.intellij.facet.ProjectFacetManager;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 final class ApkEditorProvider implements FileEditorProvider, DumbAware {
@@ -30,7 +29,7 @@ final class ApkEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(project)) {
       // b/182906226
       return false;
     }
@@ -40,21 +39,24 @@ final class ApkEditorProvider implements FileEditorProvider, DumbAware {
   }
 
   @Override
-  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+  public boolean acceptRequiresReadAction() {
+    return true;
+  }
+
+  @Override
+  public @NotNull FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     VirtualFile root = ApkFileSystem.getInstance().getRootByLocal(file);
     assert root != null; // see accept above
     return new ApkEditor(project, file, root);
   }
 
-  @NotNull
   @Override
-  public String getEditorTypeId() {
+  public @NotNull String getEditorTypeId() {
     return ID;
   }
 
-  @NotNull
   @Override
-  public FileEditorPolicy getPolicy() {
+  public @NotNull FileEditorPolicy getPolicy() {
     return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
   }
 }

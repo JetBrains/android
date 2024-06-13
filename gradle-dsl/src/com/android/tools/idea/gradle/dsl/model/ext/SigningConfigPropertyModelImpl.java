@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
-
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl;
@@ -24,6 +22,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
 
 public class SigningConfigPropertyModelImpl extends ResolvedPropertyModelImpl implements SigningConfigPropertyModel {
 

@@ -23,7 +23,7 @@ import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
 import static com.android.builder.model.InjectedProperties.PROPERTY_INVOKED_FROM_IDE;
 import static com.android.builder.model.InjectedProperties.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
+import static com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;

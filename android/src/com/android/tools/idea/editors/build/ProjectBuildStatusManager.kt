@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.editors.build
 
+import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
-import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.hasExistingClassFile
@@ -36,6 +36,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -116,6 +117,7 @@ interface ProjectBuildStatusManager {
      * @param psiFile the file in the editor to track changes and the build status. If the project
      *   has not been built since it was open, this file is used to find if there are any existing
      *   .class files that indicate that has been built before.
+     * @param dispatcher default [CoroutineDispatcher] to process the events of the [ProjectBuildStatusManager].
      * @param scope [CoroutineScope] to run the execution of the initialization of this
      *   ProjectBuildStatusManager.
      * @param onReady called once the [ProjectBuildStatus] transitions from [ProjectStatus.NotReady]
@@ -125,10 +127,11 @@ interface ProjectBuildStatusManager {
     fun create(
       parentDisposable: Disposable,
       psiFile: PsiFile,
-      scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, workerThread),
-      onReady: (ProjectStatus) -> Unit = {}
+      dispatcher: CoroutineDispatcher = workerThread,
+      scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, dispatcher),
+      onReady: (ProjectStatus) -> Unit = {},
     ): ProjectBuildStatusManager =
-      ProjectBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady)
+      ProjectBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady, dispatcher)
   }
 }
 
@@ -144,7 +147,8 @@ private class ProjectBuildStatusManagerImpl(
   parentDisposable: Disposable,
   psiFile: PsiFile,
   scope: CoroutineScope,
-  private val onReady: (ProjectStatus) -> Unit
+  private val onReady: (ProjectStatus) -> Unit,
+  private val dispatcher: CoroutineDispatcher,
 ) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
@@ -226,7 +230,7 @@ private class ProjectBuildStatusManagerImpl(
   }
 
   init {
-    scope.launch {
+    scope.launch(dispatcher) {
       combine(
         PsiCodeFileChangeDetectorService.getInstance(project).fileUpdatesFlow,
         projectBuildStatusFlow,

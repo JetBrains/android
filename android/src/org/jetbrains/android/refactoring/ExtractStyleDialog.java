@@ -22,6 +22,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -160,6 +161,11 @@ class ExtractStyleDialog extends DialogWrapper {
 
     AnAction selectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.select.all"), Presentation.NULL_STRING, PlatformIcons.SELECT_ALL_ICON) {
       @Override
+      public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
+
+      @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         setChecked(true);
       }
@@ -167,6 +173,10 @@ class ExtractStyleDialog extends DialogWrapper {
     decorator.addExtraAction(selectAll);
 
     AnAction unselectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.deselect.all"), Presentation.NULL_STRING, PlatformIcons.UNSELECT_ALL_ICON) {
+      @Override
+      public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+      }
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         setChecked(false);

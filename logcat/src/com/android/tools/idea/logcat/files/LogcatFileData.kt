@@ -50,7 +50,7 @@ internal fun LogcatFileData?.safeGetFilter(): String {
         MY_PACKAGE,
         metadata.projectApplicationIds.joinToString(" | ", prefix = "(", postfix = ")") {
           "package:$it"
-        }
+        },
       )
   }
 }

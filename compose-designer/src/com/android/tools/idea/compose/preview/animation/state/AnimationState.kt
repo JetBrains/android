@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.preview.animation.state
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.openapi.actionSystem.AnAction
 
 /** Animation state. */
@@ -29,40 +29,22 @@ abstract class AnimationState(callback: () -> Unit = {}) {
 
     /** Create an [AnimationState] based on [ComposeAnimationType] and type of state. */
     fun ComposeAnimation.createState(
-      tracker: AnimationTracker,
-      callback: () -> Unit
+      tracker: ComposeAnimationTracker,
+      callback: () -> Unit,
     ): AnimationState {
       val unit = ComposeUnit.parseStateUnit(this.states.firstOrNull())
       return when (this.type) {
-        ComposeAnimationType.TRANSITION_ANIMATION ->
+        ComposeAnimationType.ANIMATED_VISIBILITY -> SingleState(tracker, callback)
+        ComposeAnimationType.TRANSITION_ANIMATION,
+        ComposeAnimationType.ANIMATE_X_AS_STATE,
+        ComposeAnimationType.ANIMATED_CONTENT ->
           when {
             unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-            unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
+            unit !is AnimationUnit.UnitUnknown -> PickerState(tracker, callback)
             states.firstOrNull() is Boolean -> FromToState(tracker, callback)
             states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
             else -> FromToState(tracker, callback)
           }
-        ComposeAnimationType.ANIMATED_VISIBILITY -> SingleState(tracker, callback)
-        ComposeAnimationType.ANIMATE_X_AS_STATE ->
-          if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.get()) {
-            when {
-              unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-              unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
-              states.firstOrNull() is Boolean -> FromToState(tracker, callback)
-              states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
-              else -> FromToState(tracker, callback)
-            }
-          } else EmptyState()
-        ComposeAnimationType.ANIMATED_CONTENT ->
-          if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.get()) {
-            when {
-              unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-              unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
-              states.firstOrNull() is Boolean -> FromToState(tracker, callback)
-              states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
-              else -> FromToState(tracker, callback)
-            }
-          } else EmptyState()
         ComposeAnimationType.ANIMATED_VALUE,
         ComposeAnimationType.ANIMATABLE,
         ComposeAnimationType.ANIMATE_CONTENT_SIZE,

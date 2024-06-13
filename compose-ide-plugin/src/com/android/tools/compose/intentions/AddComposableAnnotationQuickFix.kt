@@ -16,7 +16,7 @@
 package com.android.tools.compose.intentions
 
 import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
-import androidx.compose.compiler.plugins.kotlin.ComposeErrors
+import androidx.compose.compiler.plugins.kotlin.k1.ComposeErrors
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.expectedComposableAnnotationHolder
 import com.intellij.codeInsight.intention.IntentionAction
@@ -164,12 +164,12 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
           return ComposeBundle.message(
             "add.composable.to.lambda.parameter",
             functionName,
-            paramName
+            paramName,
           )
         }
         return ComposeBundle.message(
           "add.composable.to.lambda.parameter.of.anonymous.function",
-          paramName
+          paramName,
         )
       }
       // Second case - this is a type of a property (with a functional type).

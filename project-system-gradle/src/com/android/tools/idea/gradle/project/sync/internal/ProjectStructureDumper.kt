@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.BuildMode
@@ -106,6 +105,8 @@ fun ProjectDumper.dumpProject(project: Project) {
         BuildMode.APK_FROM_BUNDLE -> appModules
         BuildMode.BUNDLE -> appModules
         BuildMode.SOURCE_GEN -> allModules
+        BuildMode.BASELINE_PROFILE_GEN -> appModules
+        BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> appModules
       }
     }
   }
@@ -173,37 +174,34 @@ fun ProjectDumper.dumpTasks(modulesProvider: (buildMode: BuildMode) -> Array<Mod
   val taskFinder = GradleTaskFinder.getInstance()
   head("BUILD_TASKS")
   nest {
-    TestCompileType.values().forEach { testCompileMode ->
-      head("TEST_COMPILE_MODE") { testCompileMode.displayName }
-      nest {
-        BuildMode.values().forEach { buildMode ->
-          val modules = modulesProvider(buildMode).takeUnless { it.isEmpty()  } ?: return@forEach
-          val expectedRoot = modules.mapNotNull {it.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath()}.singleOrNull()
+    nest {
+      BuildMode.values().forEach { buildMode ->
+        val modules = modulesProvider(buildMode).takeUnless { it.isEmpty()  } ?: return@forEach
+        val expectedRoot = modules.mapNotNull {it.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath()}.singleOrNull()
 
-          fun Map<Path, MutableCollection<String>>.asFirstEntry(): Set<String> {
-            if (expectedRoot != null && keys.size > 1) {
-              prop("ERROR") {
-                "Multiple project roots for a single module: " +
-                  keys.sortedBy { it.pathString.replaceKnownPaths() }.joinToString(",") { it.absolutePathString().replaceKnownPaths() }
-              }
+        fun Map<Path, MutableCollection<String>>.asFirstEntry(): Set<String> {
+          if (expectedRoot != null && keys.size > 1) {
+            prop("ERROR") {
+              "Multiple project roots for a single module: " +
+                keys.sortedBy { it.pathString.replaceKnownPaths() }.joinToString(",") { it.absolutePathString().replaceKnownPaths() }
             }
-            return entries
-              .sortedBy { it.key.pathString.replaceKnownPaths() }
-              .flatMap { (path, tasks) ->
-                if (path == expectedRoot) tasks
-                else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" }
-              }
-              .toSet()
           }
-
-          fun getTasks(): Set<String> = taskFinder.findTasksToExecute(modules, buildMode, testCompileMode).asMap().asFirstEntry()
-
-          fun Set<String>.dumpAs(name: String) {
-            prop(name) { this.takeUnless { it.isEmpty() }?.sorted()?.joinToString(", ") }
-          }
-
-          getTasks().dumpAs(buildMode.toString())
+          return entries
+            .sortedBy { it.key.pathString.replaceKnownPaths() }
+            .flatMap { (path, tasks) ->
+              if (path == expectedRoot) tasks
+              else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" }
+            }
+            .toSet()
         }
+
+        fun getTasks(): Set<String> = taskFinder.findTasksToExecute(modules, buildMode).asMap().asFirstEntry()
+
+        fun Set<String>.dumpAs(name: String) {
+          prop(name) { this.takeUnless { it.isEmpty() }?.sorted()?.joinToString(", ") }
+        }
+
+        getTasks().dumpAs(buildMode.toString())
       }
     }
   }
@@ -225,7 +223,6 @@ private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
   prop("Module") { runConfiguration.configurationModule.module?.name }
   prop("ClearLogcat") { runConfiguration.CLEAR_LOGCAT.takeUnless { it == false }?.toString() }
   prop("ShowLogcatAutomatically") { runConfiguration.SHOW_LOGCAT_AUTOMATICALLY.takeUnless { it == false }?.toString() }
-  prop("EnableInspectionWithoutActivityRestart") { runConfiguration.INSPECTION_WITHOUT_ACTIVITY_RESTART.takeUnless { !it }?.toString() }
   if (runConfiguration is AndroidTestRunConfiguration) {
     prop("TestingType") { runConfiguration.TESTING_TYPE.takeUnless { it == AndroidTestRunConfiguration.TEST_ALL_IN_MODULE }?.toString() }
     prop("MethodName") { runConfiguration.METHOD_NAME }
@@ -299,7 +296,7 @@ private fun ProjectDumper.dump(library: Library) {
         .getUrls(type)
         .filterNot { file ->
           // Do not allow sources and java docs coming from cache sources as their content may change.
-          (file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
+          (file.toPrintablePath().contains("<KONAN>") || file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
           (type == OrderRootType.DOCUMENTATION ||
            type == OrderRootType.SOURCES ||
            type == JavadocOrderRootType.getInstance())
@@ -510,6 +507,7 @@ private fun ProjectDumper.dump(linkedAndroidModuleGroup: LinkedAndroidModuleGrou
     prop("unitTest") { linkedAndroidModuleGroup.unitTest?.name }
     prop("androidTest") { linkedAndroidModuleGroup.androidTest?.name }
     prop("testFixtures") { linkedAndroidModuleGroup.testFixtures?.name }
+    prop("screenshotTest") { linkedAndroidModuleGroup.screenshotTest?.name }
   }
 }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static com.android.tools.idea.res.SampleDataHelperKt.loadSampleDataItemsAsync;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -23,27 +23,26 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.MultiResourceRepository;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
+import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFileSystemItem;
-import com.intellij.psi.PsiManager;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,16 +66,19 @@ final class SampleDataResourceRepository extends LocalResourceRepository<Virtual
   @NotNull private final AndroidFacet myAndroidFacet;
   @NotNull private final ResourceNamespace myNamespace;
   @NotNull private final Map<ResourceType, ListMultimap<String, ResourceItem>> myResourceTable = new EnumMap<>(ResourceType.class);
+  private final AtomicReference<CompletableFuture<List<SampleDataResourceItem>>> myUpdateTaskReference = Atomics.newReference(CompletableFuture.completedFuture(ImmutableList.of()));
+  private final Executor myUpdateExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("SampleDataResourceRepositoryUpdate", 1);
 
-  public SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
+  public SampleDataResourceRepository(@NotNull AndroidFacet androidFacet, @NotNull Disposable parentDisposable) {
     super("Sample Data");
+    Disposer.register(parentDisposable, this);
     myAndroidFacet = androidFacet;
 
     StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(androidFacet);
     myNamespace = repositoryManager.getNamespace();
     loadItems();
 
-    SampleDataListener.ensureSubscribed(androidFacet.getModule().getProject());
+    SampleDataListener.getInstance(androidFacet.getModule().getProject());
   }
 
   @Override
@@ -140,6 +142,11 @@ final class SampleDataResourceRepository extends LocalResourceRepository<Virtual
   public void dispose() {
   }
 
+  @Override
+  public void invokeAfterPendingUpdatesFinish(@NotNull Executor executor, @NotNull Runnable callback) {
+    myUpdateTaskReference.get().whenComplete((items, exception) -> executor.execute(callback));
+  }
+
   /**
    * Invalidates the current sample data of this repository. Call this method after the sample data has been updated
    * to reload the contents.
@@ -149,48 +156,30 @@ final class SampleDataResourceRepository extends LocalResourceRepository<Virtual
       return;
     }
 
-    PsiManager psiManager = PsiManager.getInstance(myAndroidFacet.getMainModule().getProject());
-    // This collects all modules and dependencies and finds the sampledata directory in all of them. The order is relevant since the
-    // modules will override sampledata from parents (for example the app module from a library module).
-    List<SampleDataResourceItem> items = Stream.concat(
-        Stream.of(myAndroidFacet.getMainModule()),
-        ProjectSystemUtil.getModuleSystem(myAndroidFacet.getMainModule()).getResourceModuleDependencies().stream())
-      // Collect all the sample directories, in order
-      .map((module) -> toVirtualFile(ProjectSystemUtil.getModuleSystem(module).getSampleDataDirectory()))
-      .filter(Objects::nonNull)
-      .flatMap((sampleDataDir) -> Arrays.stream(sampleDataDir.getChildren()))
-      // Find the PsiFile or PsiDirectory for the element
-      .map((sampleDataDir) -> sampleDataDir.isDirectory() ? psiManager.findDirectory(sampleDataDir) : psiManager.findFile(sampleDataDir))
-      .filter(Objects::nonNull)
-      .flatMap((psiElement) -> loadItemsFromFile(psiElement).stream())
-      .toList();
-
-    synchronized (ITEM_MAP_LOCK) {
-      myResourceTable.clear();
-      if (!items.isEmpty()) {
-        HashSet<String> alreadyParsedItems = new HashSet<>();
-        ImmutableListMultimap.Builder<String, ResourceItem> mapBuilder = ImmutableListMultimap.builder();
-        for (ResourceItem item : items) {
-          assert item.getNamespace().equals(myNamespace);
-          // Only add to the result if we have not parsed a sample data source with the same name. If there are collisions, we use the
-          // dependency order so in, app -> lib, app sample data sources would override the lib ones.
-          if (alreadyParsedItems.add(item.getName())) mapBuilder.put(item.getName(), item);
+    CompletableFuture<List<SampleDataResourceItem>> newUpdate = loadSampleDataItemsAsync(myAndroidFacet, this, myUpdateExecutor)
+      .whenComplete((items, exception) -> {
+        synchronized (ITEM_MAP_LOCK) {
+          if (exception != null) {
+            LOG.warn(exception);
+          }
+          if (items == null || exception != null) return;
+          myResourceTable.clear();
+          if (!items.isEmpty()) {
+            HashSet<String> alreadyParsedItems = new HashSet<>();
+            ImmutableListMultimap.Builder<String, ResourceItem> mapBuilder = ImmutableListMultimap.builder();
+            for (ResourceItem item : items) {
+              assert item.getNamespace().equals(myNamespace);
+              // Only add to the result if we have not parsed a sample data source with the same name. If there are collisions, we use the
+              // dependency order so in, app -> lib, app sample data sources would override the lib ones.
+              if (alreadyParsedItems.add(item.getName())) mapBuilder.put(item.getName(), item);
+            }
+            myResourceTable.put(ResourceType.SAMPLE_DATA, mapBuilder.build());
+          }
+          setModificationCount(ourModificationCounter.incrementAndGet());
+          invalidateParentCaches(this, ResourceType.SAMPLE_DATA);
         }
-        myResourceTable.put(ResourceType.SAMPLE_DATA, mapBuilder.build());
-      }
-      setModificationCount(ourModificationCounter.incrementAndGet());
-      invalidateParentCaches(this, ResourceType.SAMPLE_DATA);
-    }
-  }
-
-  @NotNull
-  private List<SampleDataResourceItem> loadItemsFromFile(@NotNull PsiFileSystemItem sampleDataFile) {
-    try {
-      return SampleDataResourceItem.getFromPsiFileSystemItem(this, sampleDataFile);
-    }
-    catch (IOException e) {
-      LOG.warn("Error loading sample data file " + sampleDataFile.getName(), e);
-      return Collections.emptyList();
-    }
+      });
+    // Cancel the previous running task and schedule a new update
+    myUpdateTaskReference.getAndSet(newUpdate).cancel(true);
   }
 }

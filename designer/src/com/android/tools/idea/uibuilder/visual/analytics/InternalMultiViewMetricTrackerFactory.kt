@@ -47,7 +47,7 @@ internal class InternalMultiViewMetricTrackerFactory {
         { executor, surface, eventLogger ->
           MultiViewMetricTrackerImpl(executor, surface, eventLogger)
         },
-        MultiViewNopTracker
+        MultiViewNopTracker,
       )
 
     /**
@@ -71,7 +71,7 @@ private class MultiViewMetricTrackerImpl
 internal constructor(
   private val myExecutor: Executor,
   private val surface: DesignSurface<*>?,
-  private val myConsumer: Consumer<AndroidStudioEvent.Builder>
+  private val myConsumer: Consumer<AndroidStudioEvent.Builder>,
 ) : InternalMultiViewMetricTracker {
 
   /**

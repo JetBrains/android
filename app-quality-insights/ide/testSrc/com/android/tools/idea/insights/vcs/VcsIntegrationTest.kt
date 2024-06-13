@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.vcs
 
 import com.android.flags.junit.FlagRule
-import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.flags.StudioFlags
@@ -30,31 +29,26 @@ import com.android.tools.idea.insights.ui.cleanUpListenersFromEditorMouseHoverPo
 import com.android.tools.idea.insights.ui.initConsoleWithFilters
 import com.android.tools.idea.insights.ui.printAndHighlight
 import com.android.tools.idea.insights.ui.vcs.ContextDataForDiff
-import com.android.tools.idea.insights.ui.vcs.InsightsDiffRequestChain
+import com.android.tools.idea.insights.ui.vcs.InsightsDiffVirtualFile
 import com.android.tools.idea.insights.ui.vcs.VCS_INFO_OF_SELECTED_CRASH
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.withoutKtsRelatedIndexing
 import com.google.common.truth.Truth.assertThat
-import com.intellij.diff.DiffDialogHints
-import com.intellij.diff.DiffManager
 import com.intellij.openapi.GitRepositoryInitializer
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import git4idea.GitUtil
 import git4idea.commands.GitCommand
 import git4idea.repo.GitRepository
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito
 
 class VcsIntegrationTest {
   private val projectRule: IntegrationTestEnvironmentRule =
@@ -63,15 +57,6 @@ class VcsIntegrationTest {
   private val flagRule = FlagRule(StudioFlags.APP_INSIGHTS_VCS_SUPPORT, true)
 
   @get:Rule val rules = RuleChain.outerRule(projectRule).around(flagRule)
-
-  private lateinit var mockDiffManager: DiffManager
-
-  @Before
-  fun setUp() {
-    mockDiffManager = mock()
-    ApplicationManager.getApplication()
-      .replaceService(DiffManager::class.java, mockDiffManager, projectRule.testRootDisposable)
-  }
 
   @Test
   fun `test git single repo project`() {
@@ -118,17 +103,14 @@ class VcsIntegrationTest {
           // released.
           mouse.moveTo(0, 0)
 
-          // Assert: a diff view is requested on the inlay click.
-          val chainCaptor = MockitoKt.argumentCaptor<InsightsDiffRequestChain>()
-          Mockito.verify(mockDiffManager, Mockito.times(1))
-            .showDiff(
-              MockitoKt.eq(project),
-              MockitoKt.capture(chainCaptor),
-              MockitoKt.eq(DiffDialogHints.DEFAULT)
-            )
-
-          val context = buildContextDataForDiff(targetFile, lineNumber = 14, gitRepository)
-          assertThat(chainCaptor.value.context).isEqualTo(context)
+          // Assert: a diff view is brought up on the inlay click.
+          val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+          val openedFile = fileEditorManager.openFiles.first()
+          with(openedFile as InsightsDiffVirtualFile) {
+            val expectedContext =
+              buildContextDataForDiff(targetFile, lineNumber = 14, gitRepository)
+            assertThat(provider.insightsContext).isEqualTo(expectedContext)
+          }
         } finally {
           Disposer.dispose(console)
           cleanUpListenersFromEditorMouseHoverPopupManager()
@@ -156,7 +138,7 @@ class VcsIntegrationTest {
         RepoInfo(
           vcsKey = VCS_CATEGORY.GIT,
           rootPath = PROJECT_ROOT_PREFIX,
-          revision = repo.currentRevision.toString()
+          revision = repo.currentRevision.toString(),
         )
       )
     )
@@ -165,14 +147,14 @@ class VcsIntegrationTest {
   private fun buildContextDataForDiff(
     targetFile: VirtualFile,
     lineNumber: Int,
-    repo: GitRepository
+    repo: GitRepository,
   ): ContextDataForDiff {
     return ContextDataForDiff(
       vcsKey = VCS_CATEGORY.GIT,
       revision = repo.currentRevision.toString(),
       filePath = targetFile.toVcsFilePath(),
       lineNumber = lineNumber,
-      origin = null
+      origin = null,
     )
   }
 }

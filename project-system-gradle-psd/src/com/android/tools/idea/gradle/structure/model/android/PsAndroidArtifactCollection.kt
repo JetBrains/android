@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
 
-class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCollectionBase<PsAndroidArtifact, IdeArtifactName, PsVariant>(parent) {
+class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCollectionBase<PsAndroidArtifact, IdeArtifactName, PsVariant>(
+  parent) {
   init {
     refresh()
   }
@@ -26,8 +27,9 @@ class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCo
     val variant = from.resolvedModel
     return listOfNotNull(
       variant?.mainArtifact?.name,
-      variant?.androidTestArtifact?.name,
-      variant?.unitTestArtifact?.name,
+      variant?.deviceTestArtifacts?.find { it.name == IdeArtifactName.ANDROID_TEST }?.name,
+      variant?.hostTestArtifacts?.find { it.name == IdeArtifactName.UNIT_TEST }?.name,
+      // TODO(karimai): Add support for ScreenshotTest once available for PSD
       variant?.testFixturesArtifact?.name
     ).toSet()
   }
@@ -37,9 +39,10 @@ class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCo
   override fun update(key: IdeArtifactName, model: PsAndroidArtifact) {
     val resolved = parent.resolvedModel?.let { variant ->
       variant.mainArtifact.takeIf { it.name == key }
-      ?: variant.androidTestArtifact?.takeIf { it.name == key }
+      ?: variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.takeIf { it.name == key }
       ?: variant.testFixturesArtifact?.takeIf { it.name == key }
-      ?: variant.unitTestArtifact?.takeIf { it.name == key }
+      ?: variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.takeIf { it.name == key }
+      // TODO(karimai): add support for ScreenshotTest.
     }
     model.init(resolved ?: throw IllegalStateException("Cannot find a resolved artifact named '$key' in variant '${parent.name}'"))
   }

@@ -72,12 +72,10 @@ class AddNewPreviewTest {
             Text(text = "A second preview")
       """.trimIndent())
 
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     // Check the new preview has been added
     editor.getSplitEditorFixture()
       .waitForRenderToFinish()
       .waitForSceneViewsCount(2)
-
-    editor.close()
-
   }
 }

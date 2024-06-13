@@ -17,8 +17,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
@@ -28,10 +29,10 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "@intellij//:com.intellij.properties",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
         "//tools/adt/idea/analytics[module]",
@@ -47,7 +48,7 @@ iml_module(
             "shard_count": 2,
             "test_filter": "com.android.build.attribution.analyzers",
             "data": [
-                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_latest_prebuilts",
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
@@ -58,7 +59,7 @@ iml_module(
         },
         "other": {
             "data": [
-                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_latest_prebuilts",
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
@@ -67,7 +68,7 @@ iml_module(
     test_class = "com.android.build.attribution.AndroidBuildAttributionTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
@@ -79,8 +80,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -100,8 +102,8 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:com.intellij.properties",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
@@ -111,16 +113,13 @@ iml_module(
 
 generate_old_agp_tests_from_list(
     name = "ConfigurationCachingCompatibilityAnalyzerTest",
-    ignore_locations = [
-        "com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityAnalyzerTest#testOldKotlinDetectedAppliedInPluginDsl",
-    ],
     iml_module = ":intellij.android.build-attribution.tests",
     tests_list = [
         dict(
             timeout = "long",
             agp_version = AGP_7_1,
             data = [
-                "//prebuilts/studio/jdk/jdk11",
+                "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
                 "//prebuilts/studio/sdk:build-tools/34.0.0",
                 "//prebuilts/studio/sdk:platforms/latest",
                 "//tools/adt/idea/android/testData",

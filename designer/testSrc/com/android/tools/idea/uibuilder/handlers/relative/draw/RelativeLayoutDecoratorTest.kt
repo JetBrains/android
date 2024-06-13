@@ -51,7 +51,7 @@ class RelativeLayoutDecoratorTest : SceneTest() {
             .withBounds(450, 450, 100, 100)
             .width("100dp")
             .height("100dp")
-        )
+        ),
     )
   }
 
@@ -85,7 +85,7 @@ UNClip
           .withBounds(0, 0, 1000, 1000)
           .width("1000dp")
           .height("1000dp")
-          .withAttribute("android:padding", "20dp")
+          .withAttribute("android:padding", "20dp"),
       )
 
     val expectedDrawCommand =
@@ -121,8 +121,8 @@ UNClip
               .height("20dp")
               .text("this is a test")
               .withAttribute("android:layout_centerHorizontal", "true")
-              .withAttribute("android:layout_centerVertical", "true")
-          )
+              .withAttribute("android:layout_centerVertical", "true"),
+          ),
       )
 
     val expectedDrawCommand =
@@ -176,8 +176,8 @@ UNClip
               .withAttribute("android:layout_alignParentEnd", "true")
               .withAttribute("android:layout_alignParentBottom", "true")
               .withAttribute("android:layout_marginEnd", "10dp")
-              .withAttribute("android:layout_marginTop", "10dp")
-          )
+              .withAttribute("android:layout_marginTop", "10dp"),
+          ),
       )
 
     val expectedDrawCommand =
@@ -248,8 +248,8 @@ UNClip
               .width("100dp")
               .height("20dp")
               .withAttribute("android:layout_toStartOf", "@+id/a")
-              .withAttribute("android:layout_below", "@+id/a")
-          )
+              .withAttribute("android:layout_below", "@+id/a"),
+          ),
       )
 
     val expectedDrawCommand =
@@ -345,8 +345,8 @@ UNClip
               .width("100dp")
               .height("20dp")
               .withAttribute("android:layout_toStartOf", "@+id/a")
-              .withAttribute("android:layout_below", "@+id/a")
-          )
+              .withAttribute("android:layout_below", "@+id/a"),
+          ),
       )
 
     val expectedDrawCommand =

@@ -27,9 +27,11 @@ import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -98,7 +100,7 @@ class BasicAndroidMonitorTest {
     LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
     LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 
-    monitor.notifyAppDeploy(appId, device, LiveEditApp(emptySet(), 24)) { true }
+    monitor.notifyAppDeploy(appId, device, LiveEditApp(emptySet(), 24), emptyList()) { true }
   }
 
   @Test
@@ -113,10 +115,11 @@ class BasicAndroidMonitorTest {
   fun syncNeededTest() {
     connection.clientChanged(client, Client.CHANGE_NAME)
 
-    val editEvent = MockitoKt.mock<EditEvent>()
+    val file = projectRule.createKtFile("Test.kt", "")
     `when`(mySyncState.isSyncNeeded()).thenReturn(ThreeState.YES)
 
-    monitor.onPsiChanged(editEvent)
+    monitor.fileChanged(file.virtualFile)
+    monitor.waitForThreadInTest(5000)
 
     val status = service.editStatus(device)
 

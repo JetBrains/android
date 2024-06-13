@@ -18,29 +18,28 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedRecoverableSourceModification
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedUnrecoverableSourceModification
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.virtualFileNotExist
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.idea.util.projectStructure.module
+import org.jetbrains.kotlin.psi.KtFile
 
 private const val kotlinPluginId = "org.jetbrains.kotlin"
 
-internal fun PrebuildChecks(project: Project, changes: List<EditEvent>) {
+internal fun prebuildChecks(project: Project, changedFiles: List<PsiFile>) {
   // Technically, we don't NEED IWI until we support persisting changes.
   checkIwiAvailable()
 
   // Filter out individual files or changes that are not supported.
-  for (change in changes) {
-    checkSupportedFiles(change.file)
-    checkUnsupportedPsiEvents(change)
+  for (file in changedFiles) {
+    checkSupportedFiles(file)
   }
 
   // Check that Jetpack Compose plugin is enabled otherwise inline linking will fail with
@@ -59,8 +58,18 @@ internal fun checkIwiAvailable() {
 
 internal fun checkSupportedFiles(file: PsiFile) {
   val virtualFile = file.virtualFile ?: return // Extremely unlikely, but possible.
+
+  // Filter out non-kotlin file first so we don't end up with a lot of metrics related to non-kolin files.
+  if (file !is KtFile) {
+    throw nonKotlin(file)
+  }
+
   if (virtualFile.path.contains("buildSrc")) {
     throw unsupportedBuildSrcChange(file.virtualFile.path)
+  }
+
+  if (!virtualFile.exists()) {
+    throw virtualFileNotExist(virtualFile, file)
   }
 }
 
@@ -80,31 +89,7 @@ internal fun checkJetpackCompose(project: Project) {
 
 internal fun checkKotlinPluginBundled() {
   if (!isKotlinPluginBundled()) {
-    throw compilationError(
-      "Live Edit does not support running with this Kotlin Plugin version and will only work with the bundled Kotlin Plugin.", null, null)
-  }
-}
-
-internal fun checkUnsupportedPsiEvents(change: EditEvent) {
-  if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.CONSTRUCTORS)) {
-    throw unsupportedUnrecoverableSourceModification("Constructor changes", change.file)
-  }
-
-  if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.IMPORT_DIRECTIVES)) {
-    throw unsupportedRecoverableSourceModification("Import statement has been edited, and Live Edit is temporarily paused." +
-                                                   " Live Edit will continue on the next supported edit.", change.file)
-  }
-
-  if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.FIELD_CHANGES)) {
-    throw unsupportedUnrecoverableSourceModification("Field changes", change.file)
-  }
-
-  if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.NON_KOTLIN)) {
-    throw nonKotlin(change.file)
-  }
-
-  if (!change.unsupportedPsiEvents.isEmpty()) {
-    throw internalError("Unrecognized UnsupportedPsiEvents: " + change.unsupportedPsiEvents.joinToString(", "))
+    throw kotlinEap()
   }
 }
 
@@ -113,11 +98,11 @@ fun isKotlinPluginBundled() =
 
 internal fun ReadActionPrebuildChecks(file: PsiFile) {
   ApplicationManager.getApplication().assertReadAccessAllowed()
-  if (file.module != null) {
-    if (TestArtifactSearchScopes.getInstance(file.module!!)?.isUnitTestSource(file.virtualFile) == true) {
-      throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
-    }
-    if (TestArtifactSearchScopes.getInstance(file.module!!)?.isAndroidTestSource(file.virtualFile) == true) {
+  file.module?.let {
+    // Module.getModuleTestSourceScope() doesn't work as intended and tracked on IJPL-482 for this reason ModuleScope(false) is used
+    val isTestSource = !it.getModuleScope(false).accept(file.virtualFile)
+    val isAndroidSpecificTestSource = TestArtifactSearchScopes.getInstance(it)?.isTestSource(file.virtualFile) == true
+    if (isAndroidSpecificTestSource || isTestSource) {
       throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
     }
   }

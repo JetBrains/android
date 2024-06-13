@@ -34,7 +34,7 @@ open class FrameLayoutHandler : ViewGroupHandler() {
     editor: ViewEditor,
     layout: SceneComponent,
     components: List<NlComponent>,
-    type: DragType
+    type: DragType,
   ): DragHandler = CommonDragHandler(editor, this, layout, components, type)
 
   override fun handlesPainting() = true
@@ -44,7 +44,7 @@ open class FrameLayoutHandler : ViewGroupHandler() {
 
   override fun createChildTargets(
     parentComponent: SceneComponent,
-    childComponent: SceneComponent
+    childComponent: SceneComponent,
   ): List<Target> {
     val list = mutableListOf<Target>()
     ResizeBaseTarget.Type.values().forEach { list.add(FrameResizeTarget(it)) }

@@ -124,33 +124,31 @@ public class CreateCppKotlinProjectTest {
   }
 
   private void validateNativLibFile() {
-    String buildGradleContents = guiTest.getProjectFileText(NativeLibFilePath);
-    assertThat((buildGradleContents).contains("#include <jni.h>\n" +
-                                              "#include <string>\n" +
-                                              "\n" +
-                                              "extern \"C\" JNIEXPORT jstring\n" +
-                                              "\n" +
-                                              "JNICALL\n" +
-                                              "Java_com_example_myapplication_MainActivity_stringFromJNI(\n" +
-                                              "        JNIEnv *env,\n" +
-                                              "        jobject /* this */) {\n" +
-                                              "    std::string hello = \"Hello from C++\";\n" +
-                                              "    return env->NewStringUTF(hello.c_str());\n" +
-                                              "}")).isTrue();
+    String nativeLibFile = guiTest.getProjectFileText(NativeLibFilePath);
+    assertThat((nativeLibFile).contains("#include <jni.h>\n" +
+                                             "#include <string>\n" +
+                                             "\n" +
+                                             "extern \"C\" JNIEXPORT jstring JNICALL\n" +
+                                             "Java_com_example_myapplication_MainActivity_stringFromJNI(\n" +
+                                             "        JNIEnv* env,\n" +
+                                             "        jobject /* this */) {\n" +
+                                             "    std::string hello = \"Hello from C++\";\n" +
+                                             "    return env->NewStringUTF(hello.c_str());\n" +
+                                             "}")).isTrue();
   }
 
   private void validateCMakeFileInNativeCPP() {
-    String buildGradleContents = guiTest.getProjectFileText(CMakeListsFilePath);
-    assertThat((buildGradleContents).contains("cmake_minimum_required(VERSION "+DEFAULT_CMAKE_VERSION+")")).isTrue();
-    assertThat((buildGradleContents).contains("add_library(${CMAKE_PROJECT_NAME} SHARED\n" +
+    String cMakeListsFile = guiTest.getProjectFileText(CMakeListsFilePath);
+    assertThat((cMakeListsFile).contains("cmake_minimum_required(VERSION "+DEFAULT_CMAKE_VERSION+")")).isTrue();
+    assertThat((cMakeListsFile).contains("add_library(${CMAKE_PROJECT_NAME} SHARED\n" +
                                               "        # List C/C++ source files with relative paths to this CMakeLists.txt.\n" +
                                               "        native-lib.cpp)")).isTrue();
   }
 
   private void validateCMakeFileInGameCPP() {
-    String buildGradleContents = guiTest.getProjectFileText(CMakeListsFilePath);
-    assertThat((buildGradleContents).contains("cmake_minimum_required(VERSION "+DEFAULT_CMAKE_VERSION+")")).isTrue();
-    assertThat((buildGradleContents).contains("add_library(myapplication SHARED\n" +
+    String cMakeFileFile = guiTest.getProjectFileText(CMakeListsFilePath);
+    assertThat((cMakeFileFile).contains("cmake_minimum_required(VERSION "+DEFAULT_CMAKE_VERSION+")")).isTrue();
+    assertThat((cMakeFileFile).contains("add_library(myapplication SHARED\n" +
                                               "        main.cpp\n" +
                                               "        AndroidOut.cpp\n" +
                                               "        Renderer.cpp\n" +
@@ -158,5 +156,4 @@ public class CreateCppKotlinProjectTest {
                                               "        TextureAsset.cpp\n" +
                                               "        Utility.cpp)")).isTrue();
   }
-
 }

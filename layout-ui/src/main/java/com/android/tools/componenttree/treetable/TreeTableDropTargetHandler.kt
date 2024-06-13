@@ -37,7 +37,7 @@ import javax.swing.tree.TreePath
 class TreeTableDropTargetHandler(
   private val table: TreeTableImpl,
   private val deleteOriginOfInternalMove: Boolean,
-  private val draggedItems: MutableList<Any>
+  private val draggedItems: MutableList<Any>,
 ) : DnDDropHandler.WithResult, DnDTargetChecker {
   private var lineColor = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(true), 10)
   private var dashedStroke = createDashStroke()
@@ -103,7 +103,7 @@ class TreeTableDropTargetHandler(
       BasicStroke.JOIN_MITER,
       JBUIScale.scale(10.0f),
       floatArrayOf(JBUIScale.scale(4f), JBUIScale.scale(4f)),
-      0.0f
+      0.0f,
     )
 
   private fun paintReceiverRectangle(g: Graphics2D) {
@@ -157,7 +157,7 @@ class TreeTableDropTargetHandler(
         event.action == DnDAction.MOVE,
         event.transferable,
         newInsertionRow,
-        newInsertionDepth
+        newInsertionDepth,
       ) -> dropPossible(event, false)
       else -> {
         insertionRow = newInsertionRow
@@ -198,7 +198,7 @@ class TreeTableDropTargetHandler(
     isMove: Boolean,
     data: Transferable,
     insertionRow: Int,
-    insertionDepth: Int
+    insertionDepth: Int,
   ): Boolean {
     receiverRow = -1
     receiverBounds = null

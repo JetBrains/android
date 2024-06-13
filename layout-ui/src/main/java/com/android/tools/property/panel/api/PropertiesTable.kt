@@ -61,6 +61,12 @@ interface PropertiesTable<P : PropertyItem> {
   /** Return all namespaces in the table */
   val namespaces: Collection<String>
 
+  /** Return true if the [other] [PropertiesTable] contains the exact same properties */
+  fun sameKeys(other: PropertiesTable<P>): Boolean
+
+  /** Copy all the properties from [other] */
+  fun copyValues(other: PropertiesTable<P>)
+
   /**
    * Default implementation of a [PropertiesTable].
    *

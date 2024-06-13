@@ -20,19 +20,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MAX_RATIO_FLOAT
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MIN_RATIO_FLOAT
+import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.tabs.TaskTabComponent
 import com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist.RecordingList
-import com.android.tools.profilers.taskbased.tabs.taskgridandbars.TaskGridAndBars
-import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
+import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TaskActionBar
 
 @Composable
 fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerComponents: IdeProfilerComponents) {
@@ -41,22 +36,10 @@ fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, idePro
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    val taskGridModel = pastRecordingsTabModel.taskGridModel
-    val taskHandlers = pastRecordingsTabModel.taskHandlers
     val recordingListModel = pastRecordingsTabModel.recordingListModel
-    val selectedRecording by recordingListModel.selectedRecording.collectAsState()
-
-    HorizontalSplitLayout(
-      minRatio = SELECTION_PANEL_MIN_RATIO_FLOAT,
-      maxRatio = SELECTION_PANEL_MAX_RATIO_FLOAT,
-      dividerThickness = TaskBasedUxDimensions.PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP,
-      first = {
-        RecordingList(recordingListModel, ideProfilerComponents, it)
-      },
-      second = {
-        TaskGridAndBars(taskGridModel, selectedRecording, taskHandlers, pastRecordingsTabModel::onEnterTaskButtonClick, it)
-      }
-    )
+    RecordingList(recordingListModel, Modifier.weight(1f))
+    ToolWindowHorizontalDivider()
+    TaskActionBar(pastRecordingsTabModel, ideProfilerComponents)
   }
 }
 

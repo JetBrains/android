@@ -41,7 +41,7 @@ internal class SelectMultipleDevicesDialogTable : JBTable() {
     val modelRowIndex = convertRowIndexToModel(viewRowIndex)
     return dataModel.getValueAt(
       modelRowIndex,
-      SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX
+      SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX,
     ) as Boolean
   }
 
@@ -50,7 +50,7 @@ internal class SelectMultipleDevicesDialogTable : JBTable() {
     dataModel.setValueAt(
       selected,
       convertRowIndexToModel(viewRowIndex),
-      SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX
+      SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX,
     )
   }
 
@@ -106,7 +106,7 @@ internal class SelectMultipleDevicesDialogTable : JBTable() {
         prepareRenderer(
           getCellRenderer(viewRowIndex, viewColumnIndex),
           viewRowIndex,
-          viewColumnIndex
+          viewColumnIndex,
         )
       }
     return component.preferredSize.width + JBUI.scale(8)

@@ -31,7 +31,7 @@ val ANIMATION_TYPES =
     AnimatedStateListFileType,
     AnimatedStateListTempFileType,
     AnimatedVectorFileType,
-    AnimationListFileType
+    AnimationListFileType,
   )
 
 class PreviewEditorActionManagerProviderTest {

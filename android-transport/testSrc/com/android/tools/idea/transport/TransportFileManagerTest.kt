@@ -19,7 +19,14 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.profiler.proto.Agent
+import com.android.tools.profiler.proto.Transport
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.registerExtension
 import com.intellij.util.messages.MessageBus
 import org.junit.Before
 import org.junit.Rule
@@ -45,12 +52,26 @@ class TransportFileManagerTest {
   @Rule
   val temporaryFolder = TemporaryFolder()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val projectRule = ProjectRule()
+
   private lateinit var mockDevice: IDevice
   private lateinit var messageBus: MessageBus
   private lateinit var fileManager: TransportFileManager
 
   @Before
   fun setUp() {
+    val fakeExtension = object : TransportConfigContributor {
+      override fun customizeProxyService(proxy: TransportProxy) { }
+      override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) { }
+      override fun customizeAgentConfig(configBuilder: Agent.AgentConfig.Builder, runConfig: AndroidRunConfigurationBase?) { }
+    }
+
+    ApplicationManager.getApplication().registerExtension(TransportConfigContributor.EP_NAME, fakeExtension, disposableRule.disposable)
+
     mockDevice = mock(IDevice::class.java)
     messageBus = mock(MessageBus::class.java)
     fileManager = TransportFileManager(mockDevice, messageBus)
@@ -262,21 +283,21 @@ class TransportFileManagerTest {
     // Files expected to be copied for device M include TRANSPORT
     testNumberOfFilesToCopy(false, 23, 1)
 
-    // Files expected to be copied for device O include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
-    testNumberOfFilesToCopy(true, 26, 6)
-    // Files expected to be copied include for device O TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
-    testNumberOfFilesToCopy(false, 26, 5)
+    // Files expected to be copied for device O include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
+    testNumberOfFilesToCopy(true, 26, 5)
+    // Files expected to be copied include for device O TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(false, 26, 4)
 
-    // Files expected to be copied for device P include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
-    testNumberOfFilesToCopy(true, 28, 6)
-    // Files expected to be copied for device P include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, PERFETTO, PERFETTO_SO,
+    // Files expected to be copied for device P include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
+    testNumberOfFilesToCopy(true, 28, 5)
+    // Files expected to be copied for device P include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF, PERFETTO, PERFETTO_SO,
     // TRACED, TRACED_PROBE
-    testNumberOfFilesToCopy(false, 28, 9)
+    testNumberOfFilesToCopy(false, 28, 8)
 
-    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
-    testNumberOfFilesToCopy(true, 29, 5)
-    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
-    testNumberOfFilesToCopy(false, 29, 5)
+    // Files expected to be copied for device Q include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(true, 29, 4)
+    // Files expected to be copied for device Q include TRANSPORT, PERFA, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(false, 29, 4)
   }
 
   private fun testNumberOfFilesToCopy(traceboxFlag: Boolean, apiLevel: Int, expectedNumberOfFiles: Int) {

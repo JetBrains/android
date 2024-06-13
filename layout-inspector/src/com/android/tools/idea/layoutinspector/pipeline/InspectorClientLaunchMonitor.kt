@@ -56,7 +56,7 @@ class InspectorClientLaunchMonitor(
   private val stats: SessionStatistics,
   coroutineScope: CoroutineScope,
   private val timeoutScope: CoroutineScope = coroutineScope,
-  private val debuggerCheckScope: CoroutineScope = coroutineScope
+  private val debuggerCheckScope: CoroutineScope = coroutineScope,
 ) {
   private var lastUpdate: Long = 0L
   private var timeoutJob: Job? = null
@@ -115,7 +115,7 @@ class InspectorClientLaunchMonitor(
           DEBUGGER_CHECK_MESSAGE_KEY,
           LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY),
           Status.Error,
-          listOf(resumeDebuggerAction, disconnectAction)
+          listOf(resumeDebuggerAction, disconnectAction),
         )
         notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
       }
@@ -145,7 +145,7 @@ class InspectorClientLaunchMonitor(
       CONNECT_TIMEOUT_MESSAGE_KEY,
       LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY),
       Status.Warning,
-      listOf(continueWaiting, disconnect)
+      listOf(continueWaiting, disconnect),
     )
   }
 
@@ -195,7 +195,7 @@ class InspectorClientLaunchMonitor(
         DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR,
         stats,
         currentProgress,
-        errorCode
+        errorCode,
       )
   }
 

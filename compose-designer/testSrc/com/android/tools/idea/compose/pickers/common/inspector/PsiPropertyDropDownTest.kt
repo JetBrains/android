@@ -234,7 +234,7 @@ internal class PsiPropertyDropDownTest {
 
   private fun createDropDown(
     property: PsiPropertyItem,
-    enumSupport: EnumSupport
+    enumSupport: EnumSupport,
   ): PsiPropertyDropDown {
     val model = PsiDropDownModel(property, enumSupport)
     return createDropDown(model)
@@ -255,7 +255,7 @@ internal class PsiPropertyDropDownTest {
         { _keyCount++ },
         KeyStrokes.ESCAPE,
         "escape",
-        condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+        condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
       )
     }
   }

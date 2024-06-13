@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public interface DeployTarget {
@@ -30,9 +32,19 @@ public interface DeployTarget {
     throws ExecutionException;
 
   /**
-   * @return the target to use, or null if the user cancelled (or there was an error). Null return values will end the launch quietly -
-   * if an error needs to be displayed, the target chooser should surface it.
+   * Launches the selected deployment target devices if necessary, and returns a DeviceFutures,
+   * which holds the AndroidDevices and futures of the IDevices that will arrive when the devices
+   * are booted.
    */
   @NotNull
   DeviceFutures getDevices(@NotNull Project project);
+
+  /**
+   * Returns the selected deployment targets as AndroidDevices. They may or may not be running;
+   * this will not launch any devices that are not already running.
+   */
+  default @NotNull List<AndroidDevice> getAndroidDevices(@NotNull Project project) {
+    // TODO(b/323568263): Remove this default definition when no longer needed for ASwB.
+    throw new UnsupportedOperationException();
+  }
 }

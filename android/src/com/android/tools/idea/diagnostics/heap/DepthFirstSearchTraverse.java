@@ -201,6 +201,11 @@ abstract class DepthFirstSearchTraverse {
     @NotNull
     private final Stack<RootPathTree.RootPathElement> pathToRoot = new Stack<>();
     private boolean trackNominatedClassLoaders = true;
+    boolean disposedObjectInPathToRoot = false;
+    int disposedObjectInPathToRootPosition;
+    boolean objectLoadedWithNominatedLoaderInPathToRoot = false;
+    int objectLoadedWithNominatedLoaderInPathToRootPosition;
+    boolean currentObjectIsLoadedWithNominatedLoader;
 
     public ExtendedReportCollectionTraverse(@NotNull final FieldCache fieldCache,
                                             @NotNull final MemoryReportCollector collector,
@@ -209,10 +214,20 @@ abstract class DepthFirstSearchTraverse {
       this.extendedReportStatistics = extendedReportStatistics;
     }
 
+    private RootPathTree.RootPathElement pathToRootPop() {
+      if (disposedObjectInPathToRoot && disposedObjectInPathToRootPosition == pathToRoot.size() - 1) {
+        disposedObjectInPathToRoot = false;
+      }
+      if (objectLoadedWithNominatedLoaderInPathToRoot && objectLoadedWithNominatedLoaderInPathToRootPosition == pathToRoot.size() - 1) {
+        objectLoadedWithNominatedLoaderInPathToRoot = false;
+      }
+      return pathToRoot.pop();
+    }
+
     @Override
     protected void handleProcessedNode(@NotNull StackNode stackNode, @NotNull Object root) {
       if (stackNode.getObject() == null) {
-        pathToRoot.pop();
+        pathToRootPop();
         return;
       }
       if (ObjectTagUtil.isOwnedByExceededComponent(stackNode.tag)) {
@@ -224,12 +239,12 @@ abstract class DepthFirstSearchTraverse {
                                                                         exceededClusterStatistics.nominatedClassesEnumeration.getInt(
                                                                           currentObjectClassName));
         }
-        if (pathToRoot.peek().isDisposedButReferenced()) {
+        if (pathToRoot.peek().isDisposedButReferenced() && disposedObjectInPathToRootPosition == pathToRoot.size() - 1) {
           extendedReportStatistics.rootPathTree.addDisposedReferencedObjectWithPathToRoot(pathToRoot, exceededClusterStatistics);
         }
       }
 
-      RootPathTree.RootPathElement element = pathToRoot.pop();
+      RootPathTree.RootPathElement element = pathToRootPop();
       if (!pathToRoot.empty() && !element.extendedStackNode.equals(pathToRoot.peek().extendedStackNode)) {
         element.update();
         pathToRoot.peek().addSubtreeSize(element.getSubtreeSize());
@@ -246,7 +261,8 @@ abstract class DepthFirstSearchTraverse {
     protected void pushElementToDepthFirstSearchStack(@NotNull Object obj, int depth, long tag, @NotNull String label) {
       super.pushElementToDepthFirstSearchStack(obj, depth, tag, label);
 
-      extendedNodesStack.push(new ExtendedStackNode(getObjectClassNameLabel(obj), label, isDisposedButReferenced(obj)));
+      extendedNodesStack.push(
+        new ExtendedStackNode(getObjectClassNameLabel(obj), label, isDisposedButReferenced(obj), currentObjectIsLoadedWithNominatedLoader));
     }
 
     public void disableClassLoaderTracking() {
@@ -266,41 +282,58 @@ abstract class DepthFirstSearchTraverse {
       return obj.getClass().getName();
     }
 
+    private void pathToRootAdd(@NotNull ExtendedStackNode extendedStackNode,
+                               long size,
+                               boolean isArray) {
+      if (!disposedObjectInPathToRoot && extendedStackNode.isDisposedButReferenced()) {
+        disposedObjectInPathToRoot = true;
+        disposedObjectInPathToRootPosition = pathToRoot.size();
+      }
+      if (!objectLoadedWithNominatedLoaderInPathToRoot && extendedStackNode.isLoadedWithNominatedLoader()) {
+        objectLoadedWithNominatedLoaderInPathToRoot = true;
+        objectLoadedWithNominatedLoaderInPathToRootPosition = pathToRoot.size();
+      }
+      pathToRoot.add(new RootPathTree.RootPathElement(extendedStackNode, size, extendedReportStatistics, isArray));
+    }
+
     @Override
     protected void handleNode(@NotNull final StackNode stackNode) {
       super.handleNode(stackNode);
 
       ExtendedStackNode extendedStackNode = extendedNodesStack.pop();
-      pathToRoot.add(new RootPathTree.RootPathElement(extendedStackNode, stackNode.getObject() == null
-                                                                         ? 0
-                                                                         : MemoryReportJniHelper.getObjectSize(stackNode.getObject()),
-                                                      extendedReportStatistics,
-                                                      stackNode.getObject() != null &&
-                                                      stackNode.getObject().getClass().isArray()));
+      pathToRootAdd(extendedStackNode, stackNode.getObject() == null
+                                       ? 0
+                                       : MemoryReportJniHelper.getObjectSize(stackNode.getObject()),
+                    stackNode.getObject() != null &&
+                    stackNode.getObject().getClass().isArray());
     }
 
-    private void checkReferenceIsHoldingNominatedClassLoader(@NotNull final Object childObject,
-                                                             @NotNull final String label) {
-      if (childObject.getClass() == null || !trackNominatedClassLoaders) {
-        return;
+    private boolean checkReferenceIsHoldingNominatedClassLoader(@NotNull final Object childObject,
+                                                                @NotNull final String label) {
+      if (childObject.getClass() == null ||
+          !trackNominatedClassLoaders ||
+          disposedObjectInPathToRoot ||
+          objectLoadedWithNominatedLoaderInPathToRoot) {
+        return false;
       }
       ClassLoader childObjectClassLoader = childObject.getClass().getClassLoader();
       if (childObjectClassLoader == null) {
-        return;
+        return false;
       }
 
       List<ExceededClusterStatistics> statistics = extendedReportStatistics.componentToExceededClustersStatistics.values().stream().filter(
         c -> c.isClassLoaderNominated(childObjectClassLoader) ||
              extendedReportStatistics.globalNominatedClassLoaders.contains(childObjectClassLoader)).toList();
       if (statistics.isEmpty()) {
-        return;
+        return false;
       }
       pathToRoot.add(new RootPathTree.RootPathElement(
-        new ExtendedStackNode(getObjectClassNameLabel(childObject), label, isDisposedButReferenced(childObject)),
+        new ExtendedStackNode(getObjectClassNameLabel(childObject), label, isDisposedButReferenced(childObject), true),
         MemoryReportJniHelper.getObjectSize(childObject),
         extendedReportStatistics, childObject.getClass().isArray()));
       statistics.forEach(c -> extendedReportStatistics.rootPathTree.addClassLoaderPath(pathToRoot, c));
-      pathToRoot.pop();
+      pathToRootPop();
+      return true;
     }
 
     @Override
@@ -308,7 +341,7 @@ abstract class DepthFirstSearchTraverse {
                                              long childTag,
                                              @NotNull final Object childObject,
                                              @NotNull final String label) {
-      checkReferenceIsHoldingNominatedClassLoader(childObject, label);
+      currentObjectIsLoadedWithNominatedLoader = checkReferenceIsHoldingNominatedClassLoader(childObject, label);
 
       int childObjectDepth = ObjectTagUtil.getDepth(childTag, iterationId);
       HeapTraverseNode.MinDepthKind childMinDepthKind = ObjectTagUtil.getDepthKind(childTag, iterationId);

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.mlkit.importmodel;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.templates.AdditionalTemplateActionsProvider;
 import com.android.tools.idea.wizard.template.Category;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -28,7 +27,7 @@ public class ImportMlModelActionsProvider implements AdditionalTemplateActionsPr
   @Override
   public List<AnAction> getAdditionalActions(@NotNull Category category) {
     List<AnAction> additionalActions = new ArrayList<>();
-    if (StudioFlags.ML_MODEL_BINDING.get() && category == Category.Other) {
+    if (category == Category.Other) {
       additionalActions.add(new ImportMlModelAction());
     }
     return additionalActions;

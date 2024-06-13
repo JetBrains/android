@@ -36,13 +36,12 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
-import java.util.concurrent.Executor
-import javax.swing.JComponent
 import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -50,8 +49,11 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
+import java.util.concurrent.Executor
+import javax.swing.JComponent
 
 /** Intellij Project Service that holds the reference to the [DatabaseInspectorControllerImpl]. */
 interface DatabaseInspectorProjectService {
@@ -66,7 +68,7 @@ interface DatabaseInspectorProjectService {
   val sqliteInspectorComponent: JComponent
 
   /** The base coroutine scope for this [DatabaseInspectorProjectService]. */
-  val projectScope: CoroutineScope
+  val scope: CoroutineScope
 
   /**
    * Opens a connection to the database contained in the file passed as argument. The database is
@@ -78,7 +80,7 @@ interface DatabaseInspectorProjectService {
   @AnyThread
   fun openSqliteDatabase(
     databaseId: SqliteDatabaseId,
-    databaseConnection: LiveDatabaseConnection
+    databaseConnection: LiveDatabaseConnection,
   ): ListenableFuture<Unit>
 
   /** Runs the query passed as argument in the Sqlite Inspector. */
@@ -118,7 +120,7 @@ interface DatabaseInspectorProjectService {
   suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices,
-    processDescriptor: ProcessDescriptor
+    processDescriptor: ProcessDescriptor,
   )
 
   /**
@@ -135,6 +137,7 @@ class DatabaseInspectorProjectServiceImpl
 @TestOnly
 constructor(
   private val project: Project,
+  private val parentDisposable: Disposable = project.getService(ProjectDisposableScope::class.java),
   private val edtExecutor: Executor = EdtExecutorService.getInstance(),
   private val taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
   private val databaseRepository: DatabaseRepository =
@@ -147,7 +150,7 @@ constructor(
   private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
   private val createController:
     (
-      DatabaseInspectorModel, DatabaseRepository, FileDatabaseManager, OfflineModeManager
+      DatabaseInspectorModel, DatabaseRepository, FileDatabaseManager, OfflineModeManager,
     ) -> DatabaseInspectorController =
     { myModel, myRepository, myFileDatabaseManager, myOfflineModeManager ->
       DatabaseInspectorControllerImpl(
@@ -158,32 +161,30 @@ constructor(
           myFileDatabaseManager,
           myOfflineModeManager,
           edtExecutor,
-          taskExecutor
+          taskExecutor,
         )
         .also {
           it.setUp()
-          Disposer.register(project, it)
+          Disposer.register(parentDisposable, it)
         }
-    }
+    },
 ) : DatabaseInspectorProjectService {
 
+  @Suppress("unused") // Used by plugin XML
   constructor(
     project: Project
   ) : this(
     project = project,
     edtExecutor = EdtExecutorService.getInstance(),
     taskExecutor = PooledThreadExecutor.INSTANCE,
-    viewFactory = DatabaseInspectorViewsFactoryImpl()
+    viewFactory = DatabaseInspectorViewsFactoryImpl(),
   )
 
   private val uiDispatcher = edtExecutor.asCoroutineDispatcher()
   private val workerDispatcher = taskExecutor.asCoroutineDispatcher()
-  override val projectScope = AndroidCoroutineScope(project, uiDispatcher)
+  override val scope = AndroidCoroutineScope(parentDisposable, uiDispatcher)
 
   private var appPackageName: String? = null
-
-  private val databaseInspectorAnalyticsTracker =
-    DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   private val controller: DatabaseInspectorController by
     lazy @UiThread {
@@ -198,15 +199,15 @@ constructor(
 
   @AnyThread
   override fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<Unit> =
-    projectScope.future {
+    scope.future {
       val databaseId =
         try {
           val databaseConnection =
             openJdbcDatabaseConnection(
-              project,
+              parentDisposable,
               databaseFileData.mainFile,
               taskExecutor,
-              workerDispatcher
+              workerDispatcher,
             )
           SqliteDatabaseId.fromFileDatabase(databaseFileData).also {
             databaseRepository.addDatabaseConnection(it, databaseConnection)
@@ -222,9 +223,9 @@ constructor(
   @AnyThread
   override fun openSqliteDatabase(
     databaseId: SqliteDatabaseId,
-    databaseConnection: LiveDatabaseConnection
+    databaseConnection: LiveDatabaseConnection,
   ): ListenableFuture<Unit> =
-    projectScope.future {
+    scope.future {
       databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
       controller.addSqliteDatabase(databaseId)
     }
@@ -233,7 +234,7 @@ constructor(
   override suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices,
-    processDescriptor: ProcessDescriptor
+    processDescriptor: ProcessDescriptor,
   ) =
     withContext(uiDispatcher) {
       appPackageName =
@@ -241,7 +242,7 @@ constructor(
           PackageNameProvider.getPackageName(
               project,
               processDescriptor.device.serial,
-              processDescriptor.name
+              processDescriptor.name,
             )
             .await()
         }
@@ -250,7 +251,7 @@ constructor(
         databaseInspectorClientCommandsChannel,
         appInspectionIdeServices,
         processDescriptor,
-        appPackageName
+        appPackageName,
       )
 
       // close all databases when a new session starts
@@ -274,12 +275,12 @@ constructor(
 
   @UiThread
   override fun handleDatabaseClosed(databaseId: SqliteDatabaseId) {
-    projectScope.launch { controller.closeDatabase(databaseId) }
+    scope.launch { controller.closeDatabase(databaseId) }
   }
 
   @UiThread
   override fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) {
-    projectScope.launch { controller.runSqlStatement(databaseId, sqliteStatement) }
+    scope.launch { controller.runSqlStatement(databaseId, sqliteStatement) }
   }
 
   @UiThread override fun hasOpenDatabase() = model.getOpenDatabaseIds().isNotEmpty()
@@ -288,12 +289,12 @@ constructor(
 
   @AnyThread
   override fun handleError(message: String, throwable: Throwable?) {
-    invokeAndWaitIfNeeded { controller.showError(message, throwable) }
+    @Suppress("UnstableApiUsage") invokeAndWaitIfNeeded { controller.showError(message, throwable) }
   }
 
   @AnyThread
   override fun databasePossiblyChanged() {
-    projectScope.launch { controller.databasePossiblyChanged() }
+    scope.launch { controller.databasePossiblyChanged() }
   }
 
   override fun getIdeServices(): AppInspectionIdeServices? {

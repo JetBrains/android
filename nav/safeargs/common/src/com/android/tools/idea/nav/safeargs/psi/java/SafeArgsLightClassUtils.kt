@@ -48,7 +48,7 @@ private val NAV_TO_JAVA_TYPE_MAP =
     "integer" to PsiTypes.intType().name,
     "integer[]" to INT_ARRAY,
     "reference" to PsiTypes.intType().name,
-    "reference[]" to INT_ARRAY
+    "reference[]" to INT_ARRAY,
   )
 
 /**
@@ -71,7 +71,7 @@ fun parsePsiType(
   modulePackage: String,
   typeStr: String?,
   defaultValue: String?,
-  context: PsiElement
+  context: PsiElement,
 ): PsiType {
   val psiTypeStr = getPsiTypeStr(modulePackage, typeStr, defaultValue)
   return try {
@@ -168,7 +168,7 @@ private fun String.parseBoolean(): String? {
 
 internal fun PsiClass.createConstructor(
   navigationElement: PsiElement? = null,
-  modifiers: Array<String> = MODIFIERS_PUBLIC_CONSTRUCTOR
+  modifiers: Array<String> = MODIFIERS_PUBLIC_CONSTRUCTOR,
 ): LightMethodBuilder {
   val fallback = this.navigationElement
   return LightMethodBuilder(this, JavaLanguage.INSTANCE)
@@ -180,7 +180,7 @@ internal fun PsiClass.createConstructor(
 internal fun PsiClass.createField(
   arg: NavArgumentData,
   modulePackage: String,
-  xmlTag: XmlTag?
+  xmlTag: XmlTag?,
 ): LightFieldBuilder {
   val psiType = arg.parsePsiType(modulePackage, this)
   val nonNull = psiType is PsiPrimitiveType || arg.isNonNull()
@@ -190,7 +190,7 @@ internal fun PsiClass.createField(
       psiType,
       nonNull,
       PsiModifier.PUBLIC,
-      PsiModifier.FINAL
+      PsiModifier.FINAL,
     )
     .apply { this.navigationElement = xmlTag ?: this.navigationElement }
 }
@@ -208,7 +208,7 @@ internal fun PsiClass.createMethod(
   name: String,
   navigationElement: PsiElement? = null,
   modifiers: Array<String> = MODIFIERS_PUBLIC_METHOD,
-  returnType: PsiType = PsiTypes.voidType()
+  returnType: PsiType = PsiTypes.voidType(),
 ): LightMethodBuilder {
   return LightMethodBuilder(manager, JavaLanguage.INSTANCE, name)
     .setContainingClass(this)

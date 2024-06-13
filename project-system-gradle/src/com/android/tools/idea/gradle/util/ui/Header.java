@@ -151,7 +151,7 @@ public class Header extends JPanel {
     super.paintChildren(graphics);
 
     Rectangle r = getBounds();
-    if (!isActive() && !isUnderDarcula()) {
+    if (!isActive() && JBColor.isBright()) {
       //noinspection UseJBColor
       graphics.setColor(new Color(255, 255, 255, 30));
       graphics.fill(r);

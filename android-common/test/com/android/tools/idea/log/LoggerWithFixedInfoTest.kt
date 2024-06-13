@@ -40,10 +40,6 @@ private class StringLogger : DefaultLogger("") {
     log(message, t)
   }
 
-  override fun warn(message: String) {
-    log(message, null)
-  }
-
   override fun warn(message: String, t: Throwable?) {
     log(message, t)
   }

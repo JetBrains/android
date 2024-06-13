@@ -18,7 +18,6 @@ package com.android.tools.idea.lang.rs;
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.Language;
 import com.intellij.lang.ParserDefinition;
 import com.intellij.lang.PsiParser;
 import com.intellij.lexer.Lexer;
@@ -38,8 +37,7 @@ public class RenderscriptParserDefinition implements ParserDefinition {
     static final TokenSet STRING_TOKENS = TokenSet.create(RenderscriptTokenType.STRING);
   }
 
-  public static final IFileElementType FILE =
-    new IFileElementType(Language.findInstance(RenderscriptLanguage.class));
+  public static final IFileElementType FILE = new IFileElementType(RenderscriptLanguage.INSTANCE);
 
   @NotNull
   @Override

@@ -44,7 +44,7 @@ fun interface IssueProviderListener {
       Topic(
         IssueProviderListener::class.java.name,
         IssueProviderListener::class.java,
-        Topic.BroadcastDirection.NONE
+        Topic.BroadcastDirection.NONE,
       )
 
     @Topic.ProjectLevel

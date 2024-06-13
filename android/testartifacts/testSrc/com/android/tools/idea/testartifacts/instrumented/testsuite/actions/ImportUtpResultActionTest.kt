@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.google.common.truth.Truth.assertThat
@@ -52,7 +51,6 @@ class ImportUtpResultActionTest {
     .around(EdtRule())
     .around(disposableRule)
     .around(temporaryFolder)
-    .around(FlagRule(StudioFlags.UTP_TEST_RESULT_SUPPORT))
 
   @Test
   fun importUtpResults() {
@@ -84,7 +82,6 @@ class ImportUtpResultActionTest {
 
   @Test
   fun enableUtpResultSupport() {
-    StudioFlags.UTP_TEST_RESULT_SUPPORT.override(true)
     val anActionEvent = AnActionEvent(null, { projectRule.project },
                                       ActionPlaces.UNKNOWN, Presentation(),
                                       ActionManager.getInstance(), 0)

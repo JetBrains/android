@@ -110,6 +110,9 @@ abstract class SyncedProjectTest(
   fun testSimpleApplication_withUnnamedDimension() = testProject(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION)
 
   @Test
+  fun testSimpleApplication_withTransitiveDependencies() = testProject(TestProject.SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES)
+
+  @Test
   fun testSimpleApplication_withAndroidCar() = testProject(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR)
 
   @Test
@@ -156,6 +159,9 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testKotlinMultiplatform_withJs() = testProject(TestProject.KOTLIN_MULTIPLATFORM_WITHJS)
+
+  @Test
+  fun testKotlinMultiplatform_ios() = testProject(TestProject.KOTLIN_MULTIPLATFORM_IOS)
 
   @Test
   fun testKotlinMultiplatform_jvm() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM)
@@ -228,6 +234,9 @@ abstract class SyncedProjectTest(
   fun testSimpleApplicationVersionCatalog() = testProject(TestProject.SIMPLE_APPLICATION_VERSION_CATALOG)
 
   @Test
+  fun testSimpleApplicationWithScreenshotTest() = testProject(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST)
+
+  @Test
   fun testCustomSourceType() = testProject(TestProject.CUSTOM_SOURCE_TYPE)
 
   @Test
@@ -263,6 +272,9 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testBuildConfigAsBytecodeEnabled() = testProject(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED)
+
+  @Test
+  fun testGradleDeclarative() = testProject(TestProject.GRADLE_DECLARATIVE)
 
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()

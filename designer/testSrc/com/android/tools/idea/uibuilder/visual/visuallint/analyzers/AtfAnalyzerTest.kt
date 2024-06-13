@@ -87,10 +87,9 @@ class AtfAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         file,
-        configuration
+        configuration,
       )
 
     RenderTestUtil.withRenderTask(facet, file, configuration, true) { task: RenderTask ->
@@ -107,7 +106,7 @@ class AtfAnalyzerTest {
               "properties. Conflicting element(s): View app:id/button_in_clickable_parent.<br><br>Learn more at " +
               "<a href=\"https://support.google.com/accessibility/android/answer/6378943\">https://support.google.com/" +
               "accessibility/android/answer/6378943</a>",
-            it.descriptionProvider.invoke(1).html
+            it.descriptionProvider.invoke(1).html,
           )
         }
       } catch (ex: java.lang.Exception) {

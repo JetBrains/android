@@ -44,11 +44,7 @@ class ParamStateTest {
   fun multipleValuea() {
     val states =
       ParamState.decode(
-        listOf(
-          0b1111101011000110100010000010101,
-          0b1111101011000110100010000010100,
-          0b0010,
-        )
+        listOf(0b1111101011000110100010000010101, 0b1111101011000110100010000010100, 0b0010)
       )
 
     assertThat(states.map { it.getDisplayName() })

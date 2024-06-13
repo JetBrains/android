@@ -26,16 +26,19 @@ import com.android.tools.analytics.UsageTracker.version
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor
 import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.res.StudioCodeVersionAdapter
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
-import com.android.tools.idea.stats.AndroidStudioUsageTracker.setup
-import com.android.tools.idea.stats.ConsentDialog.Companion.showConsentDialogIfNeeded
 import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.android.sdk.AndroidSdkUtils
 
 //import com.intellij.analytics.AndroidStudioAnalytics;
 /**
@@ -45,8 +48,12 @@ import kotlinx.coroutines.launch
  * **Note:** Do not add any additional tasks unless it is proven that the tasks are common to all IDEs. Use
  * [GradleSpecificInitializer] instead.
  *
+ * GradleSpecificInitializer instead.
  */
 class AndroidStudioInitializer : ApplicationInitializedListener {
+
+  // Note: this code runs quite early during IDE startup and directly impacts startup time. If possible,
+  // prefer to initialize later (e.g. during first project open) or lazily (upon first access to your service).
   override suspend fun execute(asyncScope: CoroutineScope) {
     configureUpdateUrls()
     setupAnalytics()
@@ -71,6 +78,10 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
       // the reason why emulator is never run, and that's exactly the data
       // SystemInfoStatsMonitor collects
       SystemInfoStatsMonitor().start()
+
+      StudioCodeVersionAdapter.initialize()
+
+      setupAndroidSdkForTests()
     }
   }
 
@@ -98,6 +109,18 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
       // Set the Java system properties expected by UpdateChecker.
       System.setProperty("idea.updates.url", updateUrl + "updates.xml")
       System.setProperty("idea.patches.url", updateUrl)
+    }
+  }
+
+  private fun setupAndroidSdkForTests() {
+    val androidPlatformToCreate = StudioFlags.ANDROID_PLATFORM_TO_AUTOCREATE.get()
+    if (androidPlatformToCreate == 0) return
+
+    val androidSdkPath = IdeSdks.getInstance().androidSdkPath ?: return
+
+    thisLogger().info("Automatically creating an Android platform using SDK path $androidSdkPath and SDK version $androidPlatformToCreate")
+    invokeLater {
+      AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.toString())
     }
   }
 }

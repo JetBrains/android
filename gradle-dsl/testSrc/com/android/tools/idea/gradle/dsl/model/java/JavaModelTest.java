@@ -135,6 +135,22 @@ public class JavaModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testSetSourceCompatibilityAtTopLevel() throws IOException {
+    isIrrelevantForKotlinScript("No application statements in KotlinScript");
+    writeToBuildFile(TestFile.SET_SOURCE_COMPATIBILITY_AT_TOPLEVEL);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    JavaModel java = buildModel.java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    java.sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_7);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_SOURCE_COMPATIBILITY_AT_TOPLEVEL_EXPECTED);
+
+    java = buildModel.java();
+    assertEquals(LanguageLevel.JDK_1_7, java.sourceCompatibility().toLanguageLevel());
+  }
+
+  @Test
   public void testResetTargetCompatibility() throws IOException {
     writeToBuildFile(TestFile.RESET_TARGET_COMPATIBILITY);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -212,6 +228,23 @@ public class JavaModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testDeleteLanguageLevelAtTopLevel() throws Exception {
+    isIrrelevantForKotlinScript("No application statements in KotlinScript");
+    writeToBuildFile(TestFile.DELETE_LANGUAGE_LEVEL);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    JavaModel java = buildModel.java();
+    java.sourceCompatibility().delete();
+    java.targetCompatibility().delete();
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
+    java = buildModel.java();
+    assertMissingProperty(java.sourceCompatibility());
+    assertMissingProperty(java.targetCompatibility());
+  }
+
+  @Test
   public void testAddAfterPlugins() throws IOException {
     writeToBuildFile(TestFile.ADD_AFTER_PLUGINS);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -235,12 +268,15 @@ public class JavaModelTest extends GradleFileModelTestCase {
     READ_JAVA_VERSION_REFERENCE_FROM_EXT_PROPERTY("readJavaVersionReferenceFromExtProperty"),
     SET_SOURCE_COMPATIBILITY("setSourceCompatibility"),
     SET_SOURCE_COMPATIBILITY_EXPECTED("setSourceCompatibilityExpected"),
+    SET_SOURCE_COMPATIBILITY_AT_TOPLEVEL("setSourceCompatibilityAtTopLevel"),
+    SET_SOURCE_COMPATIBILITY_AT_TOPLEVEL_EXPECTED("setSourceCompatibilityAtTopLevelExpected"),
     RESET_TARGET_COMPATIBILITY("resetTargetCompatibility"),
     ADD_NON_EXISTED_TARGET_COMPATIBILITY("addNonExistedTargetCompatibility"),
     ADD_NON_EXISTED_TARGET_COMPATIBILITY_EXPECTED("addNonExistedTargetCompatibilityExpected"),
     ADD_NON_EXISTED_LANGUAGE_LEVEL("addNonExistedLanguageLevel"),
     ADD_NON_EXISTED_LANGUAGE_LEVEL_EXPECTED("addNonExistedLanguageLevelExpected"),
     DELETE_LANGUAGE_LEVEL("deleteLanguageLevel"),
+    DELETE_LANGUAGE_LEVEL_AT_TOPLEVEL("deleteLanguageLevelAtTopLevel"),
     ADD_AFTER_PLUGINS("addAfterPlugins"),
     ADD_AFTER_PLUGINS_EXPECTED("addAfterPluginsExpected"),
     ;

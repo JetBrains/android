@@ -20,25 +20,27 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /** Interface to be implemented by classes providing a list of [PreviewElement] */
-interface PreviewElementProvider<P : PreviewElement> {
+interface PreviewElementProvider<P : PreviewElement<*>> {
   /** Returns a [Sequence] of [PreviewElement]s. */
   suspend fun previewElements(): Sequence<P>
 }
 
-class StaticPreviewProvider<P : PreviewElement>(private val collection: Collection<P>) :
+class StaticPreviewProvider<P : PreviewElement<*>>(private val collection: Collection<P>) :
   PreviewElementProvider<P> {
   override suspend fun previewElements(): Sequence<P> = collection.asSequence()
 }
 
 /** A [PreviewElementProvider] that applies a filter to the result. */
-class FilteredPreviewElementProvider<P : PreviewElement>(
+class FilteredPreviewElementProvider<P : PreviewElement<*>>(
   private val delegate: PreviewElementProvider<P>,
-  private val filter: (P) -> Boolean
+  private val filter: (P) -> Boolean,
 ) : PreviewElementProvider<P> {
   override suspend fun previewElements(): Sequence<P> = delegate.previewElements().filter(filter)
 }
@@ -48,9 +50,9 @@ class FilteredPreviewElementProvider<P : PreviewElement>(
  * [PreviewElementProvider] contents will only be updated when the given [modificationTracker]
  * updates.
  */
-class MemoizedPreviewElementProvider<P : PreviewElement>(
+class MemoizedPreviewElementProvider<P : PreviewElement<*>>(
   private val delegate: PreviewElementProvider<P>,
-  private val modificationTracker: ModificationTracker
+  private val modificationTracker: ModificationTracker,
 ) : PreviewElementProvider<P> {
   private var savedModificationStamp = -1L
   private val cachedPreviewElementLock = ReentrantReadWriteLock()
@@ -88,4 +90,18 @@ class MemoizedPreviewElementProvider<P : PreviewElement>(
       return cachedPreviewElements.asSequence()
     }
   }
+}
+
+/**
+ * A [PreviewElementProvider] that provides a list of [PreviewElement] found within a given
+ * [PsiFile] thanks to a given [FilePreviewElementFinder].
+ */
+class FilePreviewElementProvider<P : PreviewElement<*>>(
+  private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
+  private val filePreviewElementFinder: FilePreviewElementFinder<P>,
+) : PreviewElementProvider<P> {
+  override suspend fun previewElements() =
+    filePreviewElementFinder
+      .findPreviewElements(psiFilePointer.project, psiFilePointer.virtualFile)
+      .asSequence()
 }

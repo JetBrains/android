@@ -30,12 +30,11 @@ class GradleTaskFinder {
     }
   }
 
-  fun findTasksToExecute(
-    modules: Array<Module>, buildMode: BuildMode, testCompileType: TestCompileType
-  ): ListMultimap<Path, String> {
-    val result = findTasksToExecuteCore(modules, buildMode, testCompileType)
+  @JvmOverloads
+  fun findTasksToExecute(modules: Array<Module>, buildMode: BuildMode, expandModules: Boolean = false): ListMultimap<Path, String> {
+    val result = findTasksToExecuteCore(modules, buildMode, expandModules)
     if (result.isEmpty) {
-      GradleTaskFinderNotifier.notifyNoTaskFound(modules, buildMode, testCompileType)
+      GradleTaskFinderNotifier.notifyNoTaskFound(modules, buildMode)
     }
     return result
   }
@@ -43,10 +42,10 @@ class GradleTaskFinder {
   private fun findTasksToExecuteCore(
     modules: Array<Module>,
     buildMode: BuildMode,
-    testCompileType: TestCompileType
+    expandModules: Boolean = false
   ): ArrayListMultimap<Path, String> {
     val project = modules.firstOrNull()?.project ?: return ArrayListMultimap.create()
-    val worker = GradleTaskFinderWorker(project, buildMode, testCompileType, modules.asList())
+    val worker = GradleTaskFinderWorker(project, buildMode, modules.asList(), expandModules)
 
     val resultAsMap = worker.find()
 

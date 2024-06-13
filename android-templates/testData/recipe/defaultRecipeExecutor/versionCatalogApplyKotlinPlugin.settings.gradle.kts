@@ -1,5 +1,5 @@
 pluginManagement {
   plugins {
-    alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.jetbrains.kotlin.android)
   }
 }

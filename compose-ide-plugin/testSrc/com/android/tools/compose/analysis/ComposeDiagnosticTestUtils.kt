@@ -16,7 +16,8 @@
 package com.android.tools.compose.analysis
 
 import androidx.compose.compiler.plugins.kotlin.ComposeCommandLineProcessor
-import com.android.test.testutils.TestUtils
+import androidx.compose.compiler.plugins.kotlin.ComposePluginRegistrar
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder
@@ -30,15 +31,15 @@ internal val suppressAnnotation: String
   get() = SUPPRESSION.joinToString(prefix = "@file:Suppress(", postfix = ")") { "\"$it\"" }
 
 private val composeCompilerPluginPath by lazy {
-  TestUtils.resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/lib/compiler-hosted.jar")
+  PathManager.getJarForClass(ComposePluginRegistrar::class.java)
 }
 
 private val suppressKotlinVersionCheckOption =
   "plugin:${
-  ComposeCommandLineProcessor.PLUGIN_ID
-}:${
-  ComposeCommandLineProcessor.SUPPRESS_KOTLIN_VERSION_CHECK_ENABLED_OPTION.optionName
-}=true"
+    ComposeCommandLineProcessor.PLUGIN_ID
+  }:${
+    ComposeCommandLineProcessor.SUPPRESS_KOTLIN_VERSION_CHECK_ENABLED_OPTION.optionName
+  }=true"
 
 internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
   if (KotlinPluginModeProvider.isK2Mode()) {
@@ -48,3 +49,13 @@ internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
     }
   }
 }
+
+internal fun wrongAnnotationTargetError(target: String) =
+  "[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target '$target'${
+  if (KotlinPluginModeProvider.isK2Mode()) "." else ""
+}"
+
+internal val nothingToInline =
+  "[NOTHING_TO_INLINE] Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of ${
+    if (!KotlinPluginModeProvider.isK2Mode()) "functional types" else "function types."
+  }"

@@ -104,7 +104,7 @@ class NlScannerLayoutParser {
   fun findComponent(
     result: ValidatorData.Issue,
     map: BiMap<Long, View>,
-    nodeInfoMap: ImmutableBiMap<Long, AccessibilityNodeInfo>
+    nodeInfoMap: ImmutableBiMap<Long, AccessibilityNodeInfo>,
   ): NlComponent? {
     val view = map[result.mSrcId]
     if (view != null) {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -25,7 +24,6 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newSingleThreadExecutor
@@ -33,6 +31,8 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 import kotlin.properties.Delegates
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.VisibleForTesting
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY =
   "android.ddms.notification.layoutinspector.reboot.live.inspector"
@@ -45,13 +45,14 @@ const val DECREASE_BREAK_OFF = 0.75f
 
 enum class SelectionOrigin {
   INTERNAL,
-  COMPONENT_TREE
+  COMPONENT_TREE,
 }
 
 class InspectorModel(
   val project: Project,
+  override val scope: CoroutineScope,
   val scheduler: ScheduledExecutorService? = null,
-  processesModel: ProcessesModel? = null
+  processesModel: ProcessesModel? = null,
 ) : ViewNodeAndResourceLookup {
 
   fun interface SelectionListener {
@@ -66,7 +67,7 @@ class InspectorModel(
     fun onModification(
       oldWindow: AndroidWindow?,
       newWindow: AndroidWindow?,
-      isStructuralChange: Boolean
+      isStructuralChange: Boolean,
     )
   }
 
@@ -131,12 +132,12 @@ class InspectorModel(
 
   enum class Posture {
     HALF_OPEN,
-    FLAT
+    FLAT,
   }
 
   enum class FoldOrientation {
     VERTICAL,
-    HORIZONTAL
+    HORIZONTAL,
   }
 
   class FoldInfo(var angle: Int?, var posture: Posture?, var orientation: FoldOrientation) {
@@ -307,7 +308,7 @@ class InspectorModel(
     newWindow: AndroidWindow?,
     allIds: List<*>,
     generation: Int,
-    notifyUpdateCompleted: () -> Unit = {}
+    notifyUpdateCompleted: () -> Unit = {},
   ) {
     if (windows.isEmpty()) {
       // Reset the recomposition counters if this is a new connection:
@@ -357,11 +358,7 @@ class InspectorModel(
         hiddenNodes.removeIf { !allNodes.contains(it) }
         maxRecomposition.reset()
         root.flatten().forEach { maxRecomposition.maxOf(it) }
-        if (
-          StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
-            scheduler != null &&
-            maxHighlight < maxRecomposition.highlightCount
-        ) {
+        if (scheduler != null && maxHighlight < maxRecomposition.highlightCount) {
           if (maxHighlight == 0f) {
             scheduler.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
           }
@@ -504,7 +501,7 @@ class InspectorModel(
   private class Updater(
     private val oldRoot: ViewNode,
     private val newRoot: ViewNode,
-    private val access: ViewNode.WriteAccess
+    private val access: ViewNode.WriteAccess,
   ) {
     private val oldNodes =
       access.run {
@@ -526,7 +523,7 @@ class InspectorModel(
     private fun ViewNode.WriteAccess.update(
       oldNode: ViewNode,
       parent: ViewNode?,
-      newNode: ViewNode
+      newNode: ViewNode,
     ): Boolean {
       var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
       // TODO: should changes below cause modified to be set to true?

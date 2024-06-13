@@ -1,0 +1,33 @@
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <fileType name="Gradle Declarative Configuration Language"
+              implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeFileType"
+              fieldName="INSTANCE"
+              language="Declarative"
+              extensions="dcl"/>
+    <lang.parserDefinition language="Declarative"
+                           implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeParserDefinition"/>
+    <lang.syntaxHighlighter language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeHighlighter"/>
+    <lang.quoteHandler language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeQuoteHandler"/>
+    <lang.braceMatcher language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativePairedBraceMatcher"/>
+    <lang.formatter
+        language="Declarative"
+        implementationClass="com.android.tools.idea.gradle.declarative.formatting.DeclarativeFormattingModelBuilder"/>
+    <langCodeStyleSettingsProvider
+        implementation="com.android.tools.idea.gradle.declarative.formatting.settings.DeclarativeLanguageCodeStyleSettingsProvider"/>
+    <completion.contributor language="Declarative"
+                            implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeCompletionContributor" />
+    <completion.confidence language="Declarative"
+                           id="EnableAutoPopupInDeclarativeCompletion"
+                           implementationClass="com.android.tools.idea.gradle.declarative.EnableAutoPopupInDeclarativeCompletion" />
+    <annotator language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeAnnotator"/>
+
+    <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.declarative.DeclarativeVersionCatalogReferenceContributor"/>
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.uast">
+    <uastLanguagePlugin implementation="com.android.tools.idea.gradle.declarative.DeclarativeUastLanguagePlugin"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
+    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.declarative.DeclarativeDslTransformerFactory"/>
+  </extensions>
+</idea-plugin>

@@ -170,7 +170,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     mySplitter.addDividerResizeListener(createWidthUpdater());
     myToolDefinitions.addAll(definitions);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
-    mySplitter.setLastSize(getInitialSideWidth(Side.RIGHT));
+    if (mySplitter.getInnerComponent() != null) {
+      mySplitter.setLastSize(getInitialSideWidth(Side.RIGHT));
+    }
     myModel.setContext(context);
     addToolsToModel(minimizedWindows);
     if (!isDisposed) {
@@ -478,7 +480,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
     JComponent content = mySplitter.getInnerComponent();
     int actualCenterWidth = mySplitter.getWidth() - (mySplitter.getFirstSize() + mySplitter.getLastSize());
-    int minCenterWidth = Math.max((content != null ? content.getMinimumSize().width : 0), ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
+    int minCenterWidth = content != null ? Math.max(content.getMinimumSize().width, ToolWindowDefinition.DEFAULT_SIDE_WIDTH) : 0;
     int minLeftWidth = myModel.getVisibleTools(Side.LEFT).isEmpty() ? 0 : getMinimumWidth(Side.LEFT);
     int minRightWidth = myModel.getVisibleTools(Side.RIGHT).isEmpty() ? 0 : getMinimumWidth(Side.RIGHT);
     if (mySplitter.getFirstSize() >= minLeftWidth && mySplitter.getLastSize() >= minRightWidth && actualCenterWidth >= minCenterWidth) {
@@ -716,6 +718,12 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   @Nullable
   public List<JComponent> getBottomComponents(Side side) {
     return myModel.getBottomTools(side).stream().map(AttachedToolWindow::getComponent).toList();
+  }
+
+  @TestOnly
+  public void minimizeAllAttachedToolWindows() {
+    myModel.getAllTools().forEach((window) -> window.setMinimized(true));
+    updateModel();
   }
 
   private class MyButtonDragListener implements ButtonDragListener<T> {

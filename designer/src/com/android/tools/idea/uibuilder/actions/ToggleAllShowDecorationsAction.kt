@@ -31,7 +31,7 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
     editor: ViewEditor,
     handler: ViewHandler,
     parent: NlComponent,
-    selectedChildren: MutableList<NlComponent>
+    selectedChildren: MutableList<NlComponent>,
   ): Boolean {
     val surface = editor.scene.designSurface
     val isSelected =
@@ -53,7 +53,7 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
     handler: ViewHandler,
     parent: NlComponent,
     selectedChildren: MutableList<NlComponent>,
-    selected: Boolean
+    selected: Boolean,
   ) {
     setSelected(editor, selected)
   }
@@ -78,7 +78,7 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
     component: NlComponent,
     selectedChildren: MutableList<NlComponent>,
     modifiers: Int,
-    selected: Boolean
+    selected: Boolean,
   ) {
     super.updatePresentation(
       presentation,
@@ -87,7 +87,7 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
       component,
       selectedChildren,
       modifiers,
-      selected
+      selected,
     )
     presentation.setEnabled(!editor.configuration.device.isWear())
   }

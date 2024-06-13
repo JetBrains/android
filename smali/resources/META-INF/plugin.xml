@@ -22,7 +22,7 @@
   <description><![CDATA[Adds support for <em>smali</em> files produced by Android disassembler]]></description>
 
   <depends>com.intellij.modules.lang</depends>
-  <depends>com.intellij.modules.java-capable</depends>
+  <depends>com.intellij.java</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <fileType name="Smali" implementationClass="com.android.tools.idea.smali.SmaliFileType" fieldName="INSTANCE"

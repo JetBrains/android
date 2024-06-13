@@ -67,7 +67,7 @@ private constructor(
   listener: AnimationListener,
   tickStepMs: Long,
   minTimeMs: Long,
-  initialMaxTimeMs: Long
+  initialMaxTimeMs: Long,
 ) :
   AnimationToolbar(
     parentDisposable,
@@ -75,7 +75,7 @@ private constructor(
     tickStepMs,
     minTimeMs,
     initialMaxTimeMs,
-    AnimationToolbarType.ANIMATED_SELECTOR
+    AnimationToolbarType.ANIMATED_SELECTOR,
   ),
   Disposable {
 
@@ -164,7 +164,7 @@ private constructor(
       animatedSelectorModel: AnimatedSelectorModel,
       listener: AnimationListener,
       tickStepMs: Long,
-      minTimeMs: Long
+      minTimeMs: Long,
     ): AnimatedSelectorToolbar {
       return AnimatedSelectorToolbar(
         parentDisposable,
@@ -172,7 +172,7 @@ private constructor(
         listener,
         tickStepMs,
         minTimeMs,
-        0
+        0,
       )
     }
   }
@@ -203,7 +203,7 @@ private object EmptyModelUpdater : NlModel.NlModelUpdaterInterface {
   override fun updateFromTagSnapshot(
     model: NlModel,
     newRoot: XmlTag?,
-    roots: MutableList<NlModel.TagSnapshotTreeNode>
+    roots: MutableList<NlModel.TagSnapshotTreeNode>,
   ) = Unit
 
   override fun updateFromViewInfo(model: NlModel, viewInfos: MutableList<ViewInfo>) = Unit
@@ -223,7 +223,7 @@ class AnimatedSelectorModel(
   project: Project,
   facet: AndroidFacet,
   componentRegistrar: Consumer<NlComponent>,
-  config: Configuration
+  config: Configuration,
 ) {
 
   private var animationTags: Map<String, XmlTag>
@@ -242,7 +242,7 @@ class AnimatedSelectorModel(
         facet,
         componentRegistrar,
         config,
-        tempModelFile
+        tempModelFile,
       )
 
     animationTags = createIdAnimationMap(xmlFile)
@@ -297,7 +297,7 @@ class AnimatedSelectorModel(
     facet: AndroidFacet,
     componentRegistrar: Consumer<NlComponent>,
     config: Configuration,
-    file: VirtualFile
+    file: VirtualFile,
   ): NlModel {
     val psiXmlFile = file.toPsiFile(project) as XmlFile
     psiXmlFile.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)

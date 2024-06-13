@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.google.common.base.Stopwatch
 import com.intellij.navigation.ItemPresentation
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -48,6 +49,9 @@ class FindSelectedLibVersionDeclarationAction(
   private val analytics: BuildAttributionUiAnalytics,
 ) : AnAction(
   "Find Version Declarations") {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   override fun update(e: AnActionEvent) {
     if (selectionSupplier.get() == null) {
       e.presentation.isEnabledAndVisible = false

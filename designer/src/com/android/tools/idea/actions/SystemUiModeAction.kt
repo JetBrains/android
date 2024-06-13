@@ -271,7 +271,7 @@ private class SetWallpaperAction(val wallpaper: Wallpaper?) : ConfigurationActio
               this@SetWallpaperAction,
               null,
               ActionPlaces.POPUP,
-              dataContext
+              dataContext,
             )
           this@SetWallpaperAction.actionPerformed(actionEvent)
         }
@@ -315,10 +315,8 @@ private fun getNullWallpaperIcon(scaledIconSize: Int) =
     setIcon(icon, 1, (scaledIconSize - icon.iconWidth) / 2, (scaledIconSize - icon.iconHeight) / 2)
   }
 
-private class SetNightModeAction(
-  title: String,
-  val nightMode: NightMode,
-) : ConfigurationAction(title) {
+private class SetNightModeAction(title: String, val nightMode: NightMode) :
+  ConfigurationAction(title) {
 
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     configuration.nightMode = nightMode

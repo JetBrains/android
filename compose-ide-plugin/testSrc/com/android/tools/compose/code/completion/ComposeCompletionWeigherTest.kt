@@ -34,7 +34,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ComposeCompletionWeigherTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -71,7 +71,7 @@ class ComposeCompletionWeigherTest {
 
       // This simulates the MaterialTheme object that should be promoted instead of the MaterialTheme
       object MaterialTheme
-      """
+      """,
     )
 
     // Add a MaterialTheme that is not part of androidx to ensure is not affected by the
@@ -83,7 +83,7 @@ class ComposeCompletionWeigherTest {
       package com.example
 
       object MaterialTheme
-      """
+      """,
     )
 
     // Given:
@@ -100,7 +100,7 @@ class ComposeCompletionWeigherTest {
         Material$caret
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -143,7 +143,7 @@ class ComposeCompletionWeigherTest {
 
       // This simulates the MaterialTheme object that should be promoted instead of the MaterialTheme
       object MaterialTheme
-      """
+      """,
     )
 
     // Add a MaterialTheme that is not part of androidx to ensure is not affected by the
@@ -155,7 +155,7 @@ class ComposeCompletionWeigherTest {
       package com.example
 
       object MaterialTheme
-      """
+      """,
     )
 
     // Add Color so it can be referenced without causing a missing reference.
@@ -166,7 +166,7 @@ class ComposeCompletionWeigherTest {
       package androidx.compose.ui.graphics
 
       class Color
-      """
+      """,
     )
 
     // Given:
@@ -187,7 +187,7 @@ class ComposeCompletionWeigherTest {
       @Composable
       fun HomeScreenElement(color: Color) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -223,7 +223,7 @@ class ComposeCompletionWeigherTest {
         object Sharp
         object TwoTone
       }
-      """
+      """,
     )
 
     // Given:
@@ -244,7 +244,7 @@ class ComposeCompletionWeigherTest {
       @Composable
       fun HomeScreenElement(icon: Any) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:
@@ -264,7 +264,7 @@ class ComposeCompletionWeigherTest {
         "Outlined (androidx.compose.material.icons.Icons)",
         "Rounded (androidx.compose.material.icons.Icons)",
         "Sharp (androidx.compose.material.icons.Icons)",
-        "TwoTone (androidx.compose.material.icons.Icons)"
+        "TwoTone (androidx.compose.material.icons.Icons)",
       )
       .inOrder()
   }
@@ -288,7 +288,7 @@ class ComposeCompletionWeigherTest {
       @Composable
       fun WrappingFunction(foobarArg: Int) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Given:
@@ -305,7 +305,7 @@ class ComposeCompletionWeigherTest {
         WrappingFunction(foobar<caret>)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // When:

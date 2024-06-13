@@ -18,16 +18,13 @@ package com.android.tools.idea.insights
 import java.time.Instant
 
 /** The title & subtitle of each thread. */
-data class Caption(
-  val title: String = "",
-  val subtitle: String = "",
-)
+data class Caption(val title: String = "", val subtitle: String = "")
 
 /** Used to indicate that the analysis blames this Stacktrace and/or Frame. */
 enum class Blames {
   UNKNOWN_BLAMED,
   BLAMED,
-  NOT_BLAMED
+  NOT_BLAMED,
 }
 
 /** Represents a Frame of the stack, as well as metadata & analysis results. */
@@ -55,7 +52,7 @@ data class Frame(
 
   // Indicates whether analysis blames this frame as the cause of the crash
   // or error
-  val blame: Blames = Blames.UNKNOWN_BLAMED
+  val blame: Blames = Blames.UNKNOWN_BLAMED,
 ) {
   fun matches(qualifiedClassName: String, methodName: String): Boolean {
     return symbol.startsWith(qualifiedClassName) && symbol.contains(methodName)
@@ -75,7 +72,7 @@ data class Stacktrace(
   val blames: Blames = Blames.UNKNOWN_BLAMED,
 
   // The frames of the Stacktrace
-  val frames: List<Frame> = listOf()
+  val frames: List<Frame> = listOf(),
 )
 
 /** A representation of a single Exception and its stacktrace. */
@@ -90,7 +87,7 @@ data class ExceptionStack(
   val exceptionMessage: String = "",
 
   // The raw exception message
-  val rawExceptionMessage: String = ""
+  val rawExceptionMessage: String = "",
 )
 
 /**
@@ -118,7 +115,7 @@ data class Device(
   val manufacturer: String,
   val model: String,
   val displayName: String = "$manufacturer $model",
-  val deviceType: DeviceType = DeviceType.UNKNOWN
+  val deviceType: DeviceType = DeviceType.UNKNOWN,
 ) : Comparable<Device> {
   companion object {
     val ALL = Device(manufacturer = "", model = "")
@@ -129,10 +126,7 @@ data class Device(
 }
 
 /** Describes a mobile device's OS. */
-data class OperatingSystemInfo(
-  val displayVersion: String,
-  val displayName: String,
-) {
+data class OperatingSystemInfo(val displayVersion: String, val displayName: String) {
   companion object {
     val ALL = OperatingSystemInfo(displayVersion = "", displayName = "")
   }
@@ -157,7 +151,7 @@ data class Version(
   val buildVersion: String = "",
   val displayVersion: String = "",
   val displayName: String = "",
-  val tracks: Set<PlayTrack> = emptySet()
+  val tracks: Set<PlayTrack> = emptySet(),
 ) {
   companion object {
     val ALL = Version(buildVersion = "", displayVersion = "ALL", displayName = "ALL")
@@ -204,7 +198,7 @@ data class Event(
   val stacktraceGroup: StacktraceGroup = StacktraceGroup(),
   val appVcsInfo: AppVcsInfo = AppVcsInfo.NONE,
   val customKeys: List<CustomKey> = emptyList(),
-  val logs: List<Log> = emptyList()
+  val logs: List<Log> = emptyList(),
 ) {
   companion object {
     val EMPTY = Event()

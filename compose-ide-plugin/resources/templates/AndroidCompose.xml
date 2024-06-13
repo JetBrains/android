@@ -28,7 +28,7 @@
     </context>
   </template>
   <template name="comp"
-            value="@androidx.compose.runtime.Composable&#10;fun $NAME$() {&#10;$END$&#10;}"
+            value="@androidx.compose.runtime.Composable&#10;fun $NAME$(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier) {&#10;$END$&#10;}"
             description="Create @Composable function"
             toReformat="true"
             toShortenFQNames="true">

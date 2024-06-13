@@ -15,69 +15,69 @@
  */
 package com.android.tools.idea.wearwhs.action
 
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
+import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.EmulatorId
+import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.testFramework.MapDataContext
-import com.intellij.testFramework.registerServiceInstance
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Paths
 
 class OpenWearHealthServicesPanelActionTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
-
-  private lateinit var fakeToolWindowManager: ToolWindowManager
-  private lateinit var fakeWhsToolWindow: ToolWindow
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val fakePopupRule = JBPopupRule()
+  private lateinit var emulatorView: EmulatorView
 
   @Before
   fun setUp() {
-    StudioFlags.SYNTHETIC_HAL_PANEL.override(true)
-
-    fakeWhsToolWindow = object : ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project) {
-      var visible = false
-
-      override fun show() {
-        visible = true
-      }
-
-      override fun isVisible(): Boolean {
-        return visible
-      }
-    }
-
-    fakeToolWindowManager =
-      object : ToolWindowHeadlessManagerImpl(projectRule.project) {
-        override fun getToolWindow(id: String?): ToolWindow {
-          if (id == "Wear Health Services") {
-            return fakeWhsToolWindow
-          }
-          return MockToolWindow(projectRule.project)
-        }
-      }
-
-    projectRule.project.registerServiceInstance(ToolWindowManager::class.java, fakeToolWindowManager)
+    StudioFlags.WEAR_HEALTH_SERVICES_PANEL.override(true)
+    emulatorView =
+      EmulatorView(
+        projectRule.testRootDisposable,
+        EmulatorController(
+          EmulatorId(
+            0,
+            null,
+            null,
+            "avdId",
+            "avdFolder",
+            Paths.get("avdPath"),
+            0,
+            0,
+            emptyList(),
+            "",
+          ),
+          projectRule.testRootDisposable,
+        ),
+        0,
+        null,
+        false,
+      )
   }
 
   @Test
-  fun `OpenWearHealthServicesPanelAction results in WearHealthServicesToolWindow being visible`() {
+  fun `OpenWearHealthServicesPanelAction opens popup`() {
     val action = OpenWearHealthServicesPanelAction()
-    val dataContext = MapDataContext(mapOf(CommonDataKeys.PROJECT to projectRule.project))
-    val actionEvent = AnActionEvent(
-      null, dataContext, "", Presentation(), ActionManager.getInstance(), 0
-    )
 
-    assert(!fakeWhsToolWindow.isVisible)
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(EMULATOR_VIEW_KEY, emulatorView)
+        .build()
+    val actionEvent =
+      AnActionEvent(null, dataContext, "", Presentation(), ActionManager.getInstance(), 0)
 
     action.actionPerformed(actionEvent)
-
-    assert(fakeWhsToolWindow.isVisible)
+    assertThat(fakePopupRule.fakePopupFactory.balloonCount).isEqualTo(1)
   }
 }

@@ -34,9 +34,11 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
       from.parsedModel?.android()
         ?.productFlavors()
         ?.map { PsProductFlavorKey(it.dimension().asString() ?: silentDimension, it.name()) }.orEmpty())
+    val parsedNames = result.map { it.name }.toSet()
     result.addAll(
       from.resolvedModel?.androidProject?.multiVariantData
         ?.productFlavors
+        ?.filter { !parsedNames.contains(it.productFlavor.name) }
         ?.map {
           PsProductFlavorKey(it.productFlavor.dimension?.takeIf { it != FAKE_DIMENSION }.orEmpty(), it.productFlavor.name)
         }.orEmpty())

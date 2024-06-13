@@ -22,7 +22,7 @@ class StubBackgroundTaskInspectorTracker : BackgroundTaskInspectorTracker {
 
   override fun trackGraphModeSelected(
     context: BackgroundTaskInspectorEvent.Context,
-    chainInfo: BackgroundTaskInspectorEvent.ChainInfo
+    chainInfo: BackgroundTaskInspectorEvent.ChainInfo,
   ) = Unit
 
   override fun trackJumpedToSource() = Unit

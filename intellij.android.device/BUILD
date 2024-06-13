@@ -6,16 +6,19 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.device.iml"],
     kotlin_use_compose = True,
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
+        "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose[module]",
     ],
 )

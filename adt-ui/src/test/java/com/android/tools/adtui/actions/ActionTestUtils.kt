@@ -24,6 +24,8 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.openapi.application.readAction
+import com.intellij.testFramework.TestActionEvent
 import java.awt.event.InputEvent
 
 const val SEPARATOR_TEXT = "------------------------------------------------------"
@@ -96,3 +98,25 @@ fun createTestActionEvent(
   val presentation = presentationFactory?.getPresentation(action) ?: action.templatePresentation.clone()
   return AnActionEvent(inputEvent, dataContext, "", presentation, ActionManager.getInstance(), 0)
 }
+
+/**
+ * Returns all the [AnAction] contains in the [DefaultActionGroup] and any sub-groups.
+ */
+private fun DefaultActionGroup.allChildActionsOrStubs(): Collection<AnAction> =
+  childActionsOrStubs
+    .flatMap {
+      if (it is DefaultActionGroup)
+        it.allChildActionsOrStubs().asSequence()
+      else sequenceOf(it)
+    }
+
+/**
+ * Finds an action within the [DefaultActionGroup] that uses [text] as display text.
+ */
+suspend fun DefaultActionGroup.findActionByText(text: String): AnAction? =
+  allChildActionsOrStubs()
+    .find {
+      val testEvent = TestActionEvent.createTestEvent()
+      readAction { it.update(testEvent) }
+      (testEvent.presentation.text ?: it.templateText) == text
+    }

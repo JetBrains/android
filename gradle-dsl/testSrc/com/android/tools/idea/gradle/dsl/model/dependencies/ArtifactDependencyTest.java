@@ -103,21 +103,18 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_parens() throws IOException {
-    isIrrelevantForDeclarative("Do not support this notation for declarative yet");
     doTestParsingConfigurationVersion(TestFile.CONFIGURE_CLOSURE_PARENS);
   }
 
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
     isIrrelevantForKotlinScript("No paren-less dependency configuration form in KotlinScript");
-    isIrrelevantForDeclarative("Do not support this notation for declarative yet");
     doTestParsingConfigurationVersion(TestFile.CONFIGURE_CLOSURE_NO_PARENS);
   }
 
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
     assumeTrue("KotlinScript handling of closure as internal argument" , !isKotlinScript()); // TODO(b/155168291)
-    isIrrelevantForDeclarative("Do not support this notation for declarative yet");
     doTestParsingConfigurationVersion(TestFile.CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
@@ -161,21 +158,18 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_parens() throws IOException {
-    isIrrelevantForDeclarative("No closures for declarative");
     doTestSetVersionWithConfigurationClosure(TestFile.CONFIGURE_CLOSURE_PARENS);
   }
 
   @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
     isIrrelevantForKotlinScript("No paren-less dependency configuration form in KotlinScript");
-    isIrrelevantForDeclarative("No closures for declarative");
     doTestSetVersionWithConfigurationClosure(TestFile.CONFIGURE_CLOSURE_NO_PARENS);
   }
 
   @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
     assumeTrue("KotlinScript handling of closure as internal argument" , !isKotlinScript()); // TODO(b/155168291)
-    isIrrelevantForDeclarative("No closures for declarative");
     doTestSetVersionWithConfigurationClosure(TestFile.CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
@@ -350,7 +344,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDependencyWithConfigurationClosure() throws IOException {
-    isIrrelevantForDeclarative("Declarative does not have closures");
     writeToBuildFile(TestFile.ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -458,7 +451,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetDependencyWithCompactNotation() throws IOException {
-    isIrrelevantForDeclarative("No varaibles in declarative");
     writeToBuildFile(TestFile.SET_DEPENDENCY_WITH_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -513,7 +505,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testParseDependenciesWithCompactNotationInSingleLineWithComments() throws IOException {
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
-    isIrrelevantForDeclarative("No inline comments for declarative");
     writeToBuildFile(TestFile.PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE_WITH_COMMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -549,7 +540,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseDependenciesWithMapNotationUsingSingleConfigNoParentheses() throws IOException {
-    isIrrelevantForDeclarative("No such syntax in declarative");
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME_NO_PARENTHESES);
 
@@ -760,7 +750,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationWithVariables() throws IOException {
-    isIrrelevantForDeclarative("No variables in declarative");
     writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -793,8 +782,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationWithQuotedIdentifierVariables() throws IOException {
-    isIrrelevantForDeclarative("No variables for declarative");
-
     writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_WITH_QUOTED_IDENTIFIER_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -819,7 +806,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMapNotationWithVariables() throws IOException {
-    isIrrelevantForDeclarative("No variables for declarative");
     writeToBuildFile(TestFile.PARSE_MAP_NOTATION_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -852,8 +838,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationClosureWithVariables() throws IOException {
-    isIrrelevantForDeclarative("No closure for declarative");
-
     writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_CLOSURE_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -887,8 +871,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMapNotationClosureWithVariables() throws IOException {
-    isIrrelevantForDeclarative("No closure for declarative");
-
     writeToBuildFile(TestFile.PARSE_MAP_NOTATION_CLOSURE_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -925,8 +907,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testNonDependencyCodeInDependenciesSection() throws IOException {
-    isIrrelevantForDeclarative("Not relevant for declarative");
-
     writeToBuildFile(TestFile.NON_DEPENDENCY_CODE_IN_DEPENDENCIES_SECTION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1145,7 +1125,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceMethodDependencyWithClosure() throws IOException {
-    isIrrelevantForDeclarative("No closures for declarative");
     writeToBuildFile(TestFile.REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1251,7 +1230,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testDeleteInMethodCallWithProperties() throws IOException {
-    isIrrelevantForDeclarative("No method calls in declarative");
     writeToBuildFile(TestFile.DELETE_IN_METHOD_CALL_WITH_PROPERTIES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1292,13 +1270,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyPropertyModel(artifact.name(), STRING_TYPE, "appcompat-v7", STRING, FAKE, 0, "name");
     verifyPropertyModel(artifact.group(), STRING_TYPE, "com.android.support", STRING, FAKE, 0, "group");
     verifyPropertyModel(artifact.version(), STRING_TYPE, "22.1.1", STRING, FAKE, 0, "version");
-
-    if (isDeclarative()) {
-      verifyPropertyModel(artifact.completeModel(), STRING_TYPE, "com.android.support:appcompat-v7:22.1.1", STRING, DERIVED, 0, "notation");
-    }
-    else {
-      verifyPropertyModel(artifact.completeModel(), STRING_TYPE, "com.android.support:appcompat-v7:22.1.1", STRING, REGULAR, 0, "compile");
-    }
+    verifyPropertyModel(artifact.completeModel(), STRING_TYPE, "com.android.support:appcompat-v7:22.1.1", STRING, REGULAR, 0, "compile");
   }
 
   @Test
@@ -1316,13 +1288,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertMissingProperty(artifact.version());
     assertMissingProperty(artifact.extension());
     verifyPropertyModel(artifact.name(), STRING_TYPE, "name", STRING, DERIVED, 0, "name");
-
-    if (isDeclarative()) {
-      verifyMapProperty(artifact.completeModel(), ImmutableMap.of("name", "name"), "0", "dependencies.compile[0]");
-    }
-    else {
-      verifyMapProperty(artifact.completeModel(), ImmutableMap.of("name", "name"), "compile", "dependencies.compile");
-    }
+    verifyMapProperty(artifact.completeModel(), ImmutableMap.of("name", "name"), "compile", "dependencies.compile");
   }
 
   @Test
@@ -1379,7 +1345,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testMethodCallCompactPsiElement() throws IOException {
-    isIrrelevantForDeclarative("No method call in declarative");
     writeToBuildFile(TestFile.METHOD_CALL_COMPACT_PSI_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1403,7 +1368,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testMethodCallMultipleCompactPsiElement() throws IOException {
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
-    isIrrelevantForDeclarative("No method call in declarative");
 
     writeToBuildFile(TestFile.METHOD_CALL_MULTIPLE_COMPACT_PSI_ELEMENT);
 
@@ -1458,7 +1422,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompactNotationSetToReference() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
     writeToBuildFile(TestFile.COMPACT_NOTATION_SET_TO_REFERENCE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1496,8 +1459,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   // as the result it changes literal quotation mark to double quote.
   @Test
   public void CompactNotationSetToInterpolation() throws IOException {
-    isIrrelevantForDeclarative("No interpolation in declarative");
-
     writeToBuildFile(TestFile.COMPACT_NOTATION_SET_TO_INTERPOLATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1529,8 +1490,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompactNotationSetToReferenceFromRootProjectFile() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToSubModuleBuildFile(TestFile.COMPACT_NOTATION_SET_TO_ROOT_PROJECT_REFERENCE);
     writeToBuildFile(TestFile.ROOT_BUILD_WITH_SIMPLE_VARIABLE);
     writeToSettingsFile(getSubModuleSettingsText());
@@ -1582,8 +1541,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompactNotationEditValueViaReferenceToRootProjectFile() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToSubModuleBuildFile(TestFile.COMPACT_NOTATION_EDIT_REFERENCED_DEPENDENCY);
     writeToBuildFile(TestFile.ROOT_BUILD_WITH_SIMPLE_VARIABLE);
     writeToSettingsFile(getSubModuleSettingsText());
@@ -1628,8 +1585,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   // testing case for "compile group: 'com.google.guava', name: 'guava', version: guavaVersion"
   @Test
   public void testMapNotationEditValueViaReferenceToRootProjectFile() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToSubModuleBuildFile(TestFile.MAP_NOTATION_EDIT_REFERENCE_VALUE);
     writeToBuildFile(TestFile.MAP_NOTATION_EDIT_REFERENCE_VALUE_ROOT);
     writeToSettingsFile(getSubModuleSettingsText());
@@ -1664,8 +1619,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditViaReferenceToRootMapVariable() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToSubModuleBuildFile(TestFile.EDIT_REFERENCE_DEPENDENCY);
     writeToBuildFile(TestFile.ROOT_BUILD_WITH_MAP_VARIABLE);
     writeToSettingsFile(getSubModuleSettingsText());
@@ -1697,8 +1650,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   }
   @Test
   public void testSetPropertyWithDottedName() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(TestFile.SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1716,8 +1667,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompactNotationSetToRawText() throws IOException {
-    isIrrelevantForDeclarative("No interpolation in declarative");
-
     writeToBuildFile(TestFile.COMPACT_NOTATION_SET_TO_RAW_TEXT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1756,7 +1705,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetIStrInCompactNotation() throws IOException {
-    isIrrelevantForDeclarative("No functions call in declarative");
     writeToBuildFile(TestFile.SET_I_STR_IN_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1779,8 +1727,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFullReferencesCompactApplication() throws IOException {
-    isIrrelevantForDeclarative("No references for declarative");
-
     writeToBuildFile(TestFile.PARSE_FULL_REFERENCES_COMPACT_APPLICATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1804,8 +1750,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   }
 
   private void runSetFullReferencesTest(@NotNull TestFileName testFileName, @NotNull TestFileName expected) throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1841,8 +1785,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   private void runSetFullSingleReferenceTest(@NotNull TestFileName testFileName, @NotNull PropertyType type, @NotNull String name)
     throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1867,14 +1809,11 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSingleReferenceCompactApplication() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     runSetFullSingleReferenceTest(TestFile.SET_SINGLE_REFERENCE_COMPACT_APPLICATION, REGULAR, "testCompile");
   }
 
   @Test
   public void testSetSingleReferenceCompactMethod() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
     isIrrelevantForKotlinScript("no distinct method form of dependency configuation in KotlinScript");
     // Properties from within method calls are derived.
     runSetFullSingleReferenceTest(TestFile.SET_SINGLE_REFERENCE_COMPACT_METHOD, DERIVED, "0");
@@ -1882,20 +1821,17 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetFullReferencesCompactApplication() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
     runSetFullReferencesTest(TestFile.SET_FULL_REFERENCES_COMPACT_APPLICATION, TestFile.SET_FULL_REFERENCES_COMPACT_APPLICATION_EXPECTED);
   }
 
   @Test
   public void testSetFullReferenceCompactMethod() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
     isIrrelevantForKotlinScript("no distinction between method and application form");
     runSetFullReferencesTest(TestFile.SET_FULL_REFERENCE_COMPACT_METHOD, TestFile.SET_FULL_REFERENCE_COMPACT_METHOD_EXPECTED);
   }
 
   @Test
   public void testParseFullReferenceMap() throws IOException {
-    isIrrelevantForDeclarative("No references for declarative");
     writeToBuildFile(TestFile.PARSE_FULL_REFERENCE_MAP);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1919,7 +1855,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetFullReferenceMap() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
     assumeTrue("KotlinScript writer emits stray punctuation for map references", !isKotlinScript()); // TODO(b/155168920)
     writeToBuildFile(TestFile.SET_FULL_REFERENCE_MAP);
 
@@ -1960,8 +1895,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCorrectObtainResultModel() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(TestFile.CORRECT_OBTAIN_RESULT_MODEL);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1974,8 +1907,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetVersionReference() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(TestFile.SET_VERSION_REFERENCE);
 
     GradleBuildModel model = getGradleBuildModel();
@@ -1998,8 +1929,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetExcludesBlockToReferences() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(TestFile.SET_EXCLUDES_BLOCK_TO_REFERENCES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2022,8 +1951,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetThroughMapReference() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(TestFile.SET_THROUGH_MAP_REFERENCE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2053,8 +1980,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompactSetThroughReferences() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(TestFile.COMPACT_SET_THROUGH_REFERENCES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2089,8 +2014,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testFollowMultipleReferences() throws IOException {
-    isIrrelevantForDeclarative("No reference in declarative");
-
     writeToBuildFile(TestFile.FOLLOW_MULTIPLE_REFERENCES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2128,8 +2051,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetConfigurationWhenSingle() throws Exception {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(TestFile.SET_CONFIGURATION_WHEN_SINGLE);
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -2203,7 +2124,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testSetConfigurationWhenMultiple() throws Exception {
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
-    isIrrelevantForDeclarative("No references in declarative");
 
     writeToBuildFile(TestFile.SET_CONFIGURATION_WHEN_MULTIPLE);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2368,7 +2288,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testInsertionOrderWithExcludes() throws IOException {
-    isIrrelevantForDeclarative("No closures for declarative");
     writeToBuildFile(TestFile.INSERTION_ORDER_WITH_EXCLUDES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2394,8 +2313,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDependencyReference() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2414,7 +2331,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDependencyReferenceWithExclusions() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
     writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE_WITH_EXCLUDES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2442,8 +2358,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddPlatformDependencyReference() throws IOException {
-    isIrrelevantForDeclarative("No references in declarative");
-
     writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2513,7 +2427,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsePlatformDependencies() throws IOException {
-    isIrrelevantForDeclarative("So far there is no platform in declarative");
     writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
@@ -2538,8 +2451,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetPlatformDependencyVersions() throws IOException {
-    isIrrelevantForDeclarative("No platform dependencies in declarative so far");
-
     writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
@@ -2559,8 +2470,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testDeletePlatformDependencies() throws IOException {
-    isIrrelevantForDeclarative("No platform dependencies in declarative so far");
-
     writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     // TODO(b/199871443): there is currently no way to delete an artifact dependency with a map reference argument.
@@ -2574,8 +2483,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddPlatformDependencies() throws IOException {
-    isIrrelevantForDeclarative("No platform dependencies in declarative so far");
-
     writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.dependencies().addPlatformArtifact("implementation", "androidx.compose:compose-bom:2022.10.0", false);

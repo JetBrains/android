@@ -26,50 +26,6 @@
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  private static final int FIGURE_PADDING = JBUI.scale(3);"
-        errorLine2="                                                 ~~~~~">
-        <location
-            file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="62"
-            column="50"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  public static final int DIMENSION_LINE_WIDTH = JBUI.scale(1); // px"
-        errorLine2="                                                      ~~~~~">
-        <location
-            file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="64"
-            column="55"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  public static final int OUTLINE_LINE_WIDTH = JBUI.scale(5);   // px"
-        errorLine2="                                                    ~~~~~">
-        <location
-            file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="65"
-            column="53"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  private static final int PADDING = JBUI.scale(20);"
-        errorLine2="                                          ~~~~~">
-        <location
-            file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="69"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
         errorLine1="  private final int INTER_SECTION_SPACING = JBUIScale.scale(1);"
         errorLine2="                                                      ~~~~~">
         <location
@@ -373,17 +329,6 @@
             file="src/com/android/tools/idea/testartifacts/instrumented/AndroidTestConfigurationProducer.kt"
             line="204"
             column="94"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This class should only be accessed from tests or within package private scope"
-        errorLine1="    fun fromClass(loadClass: Class&lt;*>, classLocator: PseudoClassLocatorForLoader) ="
-        errorLine2="                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/rendering/classloading/ClassWriterWithPseudoClassLocator.kt"
-            line="164"
-            column="54"/>
     </issue>
 
     <issue

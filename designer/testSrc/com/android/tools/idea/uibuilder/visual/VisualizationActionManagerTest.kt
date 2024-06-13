@@ -29,7 +29,7 @@ internal object EmptyModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): List<NlModel> = emptyList()
 }
 

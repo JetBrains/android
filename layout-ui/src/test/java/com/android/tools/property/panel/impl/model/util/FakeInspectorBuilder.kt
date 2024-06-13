@@ -26,7 +26,7 @@ class FakeInspectorBuilder : InspectorBuilder<FakePropertyItem> {
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<FakePropertyItem>
+    properties: PropertiesTable<FakePropertyItem>,
   ) {
     attachToInspectorCalled += 1
     if (applicable) {

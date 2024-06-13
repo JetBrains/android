@@ -38,6 +38,11 @@ public class EditMultipleSourcesAction extends AnAction {
     this(null);
   }
 
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   public EditMultipleSourcesAction(@Nullable Runnable navigationCallback) {
     myNavigationCallback = navigationCallback;
     Presentation presentation = getTemplatePresentation();

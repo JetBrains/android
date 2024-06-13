@@ -119,7 +119,7 @@ class NlVisibilityButton : JButton() {
           rect.width.toFloat(),
           rect.height.toFloat(),
           arc,
-          arc
+          arc,
         )
       )
     } finally {

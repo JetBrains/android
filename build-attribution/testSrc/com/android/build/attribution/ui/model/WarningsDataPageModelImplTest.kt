@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.analyzers.AnalyzerNotRun
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
@@ -25,6 +26,7 @@ import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.buildanalyzer.common.TaskCategory
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
@@ -278,6 +280,35 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |=>JETIFIER_USAGE
     """.trimMargin())
+  }
+
+  @Test
+  fun testIsEmpty() {
+    val model = WarningsDataPageModelImpl(MockUiData().apply {
+      issues = emptyList()
+      annotationProcessors = object : AnnotationProcessorsReport {
+        override val nonIncrementalProcessors = emptyList<AnnotationProcessorUiData>()
+      }
+      confCachingData = ConfigurationCachingTurnedOn
+      jetifierData = JetifierUsageAnalyzerResult(JetifierNotUsed)
+    })
+
+    assertThat(model.isEmpty).isTrue()
+  }
+
+  @Test
+  fun testNotEmptyWithWindowsDefenderWarningOnly() {
+    val model = WarningsDataPageModelImpl(MockUiData().apply {
+      issues = emptyList()
+      annotationProcessors = object : AnnotationProcessorsReport {
+        override val nonIncrementalProcessors = emptyList<AnnotationProcessorUiData>()
+      }
+      confCachingData = ConfigurationCachingTurnedOn
+      jetifierData = JetifierUsageAnalyzerResult(JetifierNotUsed)
+      windowsDefenderWarningData = WindowsDefenderCheckService.WindowsDefenderWarningData(true, emptyList())
+    })
+
+    assertThat(model.isEmpty).isFalse()
   }
 
   @Test

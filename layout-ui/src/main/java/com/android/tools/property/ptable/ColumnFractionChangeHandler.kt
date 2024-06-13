@@ -40,7 +40,7 @@ class ColumnFractionChangeHandler(
   private val xOffset: () -> Int,
   private val currentWidth: () -> Int,
   private val minFirstColumnSize: () -> Int,
-  onResizeModeChange: (Boolean) -> Unit
+  onResizeModeChange: (Boolean) -> Unit,
 ) : MouseAdapter() {
   var resizeMode by
     Delegates.observable(false) { _, old, new -> if (old != new) onResizeModeChange(new) }

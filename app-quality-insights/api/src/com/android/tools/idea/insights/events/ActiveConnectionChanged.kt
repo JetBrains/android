@@ -30,7 +30,7 @@ data class ActiveConnectionChanged(val connection: Connection) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     val newState = state.selectConnection(connection)
     if (newState == state) {
@@ -48,13 +48,13 @@ data class ActiveConnectionChanged(val connection: Connection) : ChangeEvent {
           state.filters.copy(
             versions = MultiSelection.emptySelection(),
             devices = MultiSelection.emptySelection(),
-            operatingSystems = MultiSelection.emptySelection()
-          )
+            operatingSystems = MultiSelection.emptySelection(),
+          ),
       ),
       action =
         Action.Fetch(
           AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.PROJECT_SELECTION
-        )
+        ),
     )
   }
 }

@@ -28,6 +28,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -41,6 +42,12 @@ class TaskHandlerUtilsTest {
 
   private val myIdeServices = FakeIdeProfilerServices()
   private val myProfilers by lazy { StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer) }
+
+  @Before
+  fun setup() {
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myProfilers.sessionsManager)
+    taskHandlers.forEach{ (type, handler)  -> myProfilers.addTaskHandler(type, handler) }
+  }
 
   @Test
   fun `test executeTaskAction with non-null arg`() {
@@ -58,11 +65,11 @@ class TaskHandlerUtilsTest {
   }
 
   @Test
-  fun `test executeTaskAction with null arg`() {
+  fun `test executeTaskAction with null arg artifact`() {
     var actionExecuted = false
     val action = {
-      val args: CpuTaskArgs? = null
-      args!!.getCpuCaptureArtifact()
+      val args = CpuTaskArgs(false, null)
+      args.getCpuCaptureArtifact()!!.doSelect()
       actionExecuted = true
     }
     var errorMessage = ""
@@ -93,7 +100,7 @@ class TaskHandlerUtilsTest {
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf() ))
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Utils.debuggableProcess { pid = 10 }
-    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.LIVE_VIEW)
+    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.LIVE_VIEW, false)
     myProfilers.sessionsManager.update()
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { false }
     assertThat(artifact).isEqualTo(sessionIdToSessionItems[selectedSession.sessionId])
@@ -108,7 +115,7 @@ class TaskHandlerUtilsTest {
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf() ))
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Utils.debuggableProcess { pid = 10 }
-    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.HEAP_DUMP)
+    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.HEAP_DUMP, false)
     myProfilers.sessionsManager.update()
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { false }
     assertThat(artifact).isNull()

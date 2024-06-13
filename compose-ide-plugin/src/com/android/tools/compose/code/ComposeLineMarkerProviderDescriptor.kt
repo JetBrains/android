@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.code
 
-import androidx.compose.compiler.plugins.kotlin.isComposableInvocation
+import androidx.compose.compiler.plugins.kotlin.k1.isComposableInvocation
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isComposableInvocation
 import com.android.tools.compose.isComposeEnabled
@@ -34,7 +34,6 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.idea.base.codeInsight.handlers.fixers.range
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -52,7 +51,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
 
   override fun getId() = "ComposeLineMarkerProviderDescriptor"
 
-  override fun getIcon() = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
+  override fun getIcon() = StudioIcons.GutterIcons.COMPOSABLE_FUNCTION
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
     if (
@@ -67,12 +66,12 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
 
     return LineMarkerInfo<PsiElement>(
       element,
-      element.range,
-      StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION,
+      element.textRange,
+      StudioIcons.GutterIcons.COMPOSABLE_FUNCTION,
       { ComposeBundle.message("composable.line.marker.tooltip") },
       /* navHandler = */ null,
       GutterIconRenderer.Alignment.RIGHT,
-      { ComposeBundle.message("composable.line.marker.tooltip") }
+      { ComposeBundle.message("composable.line.marker.tooltip") },
     )
   }
 
@@ -99,7 +98,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
             containingFile,
             ANALYSIS_RESULT_KEY,
             getCachedValueProvider(containingFile),
-            /* trackValue = */ false
+            /* trackValue = */ false,
           )
 
       return parentFunction.getResolvedCall(analysisResult.bindingContext)?.isComposableInvocation()
@@ -110,7 +109,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
       CachedValueProvider.Result.create(
         ktFile.analyzeWithAllCompilerChecks(),
         ktFile,
-        PsiModificationTracker.MODIFICATION_COUNT
+        PsiModificationTracker.MODIFICATION_COUNT,
       )
     }
   }

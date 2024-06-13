@@ -37,7 +37,7 @@ import java.util.WeakHashMap
 open class DefaultNavigationHandler(
   private val componentNavigationDelegate:
     (
-      sceneView: SceneView, hitX: Int, hitY: Int, requestFocus: Boolean, fileName: String
+      sceneView: SceneView, hitX: Int, hitY: Int, requestFocus: Boolean, fileName: String,
     ) -> Navigatable?
 ) : PreviewNavigationHandler {
   private val LOG = Logger.getInstance(DefaultNavigationHandler::class.java)
@@ -64,7 +64,7 @@ open class DefaultNavigationHandler(
     sceneView: SceneView,
     @SwingCoordinate hitX: Int,
     @SwingCoordinate hitY: Int,
-    requestFocus: Boolean
+    requestFocus: Boolean,
   ): Boolean {
     val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
     componentNavigationDelegate(sceneView, hitX, hitY, requestFocus, fileName)?.let {

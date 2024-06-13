@@ -18,24 +18,25 @@ package com.android.tools.idea.compose.gradle.preview
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.gradle.getPsiFile
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
-import com.android.tools.idea.compose.preview.ComposePreviewRenderQualityPolicy
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
-import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.testing.deleteLine
 import com.android.tools.idea.testing.executeAndSave
@@ -81,7 +82,7 @@ class ComposePreviewRepresentationGradleTest {
   val projectRule =
     ComposePreviewFakeUiGradleRule(
       SIMPLE_COMPOSE_PROJECT_PATH,
-      SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
+      SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
     )
   private val project: Project
     get() = projectRule.project
@@ -121,24 +122,26 @@ class ComposePreviewRepresentationGradleTest {
 
           override fun onCompilationComplete(
             result: CompilationResult,
-            files: Collection<PsiFile>
+            files: Collection<PsiFile>,
           ) {
             logger.info("runAndWaitForFastRefresh: onCompilationComplete $result")
-            compileDeferred.complete(result)
+            // We expect a successful compilation, but some cancelled results can be received here
+            // if for some reason a compilation is started while another one was already happening
+            if (result.isSuccess) compileDeferred.complete(result)
           }
         }
-      fastPreviewManager.addListener(fixture.testRootDisposable, fastPreviewManagerListener)
       waitForSmartMode(project, logger)
       logger.info("runAndWaitForFastRefresh: Waiting for any previous compilations to complete")
       delayUntilCondition(delayPerIterationMs = 500, timeout = 30.seconds) {
         !FastPreviewManager.getInstance(project).isCompiling
       }
+      fastPreviewManager.addListener(fixture.testRootDisposable, fastPreviewManagerListener)
       logger.info("runAndWaitForFastRefresh: Executing runnable")
       runnable()
       logger.info("runAndWaitForFastRefresh: Runnable executed")
       val result = compileDeferred.await()
       logger.info("runAndWaitForFastRefresh: Compilation finished $result")
-      (result as? CompilationResult.WithThrowable)?.let { logger.error(it.e) }
+      assertTrue(result.isSuccess)
     }
   }
 
@@ -156,7 +159,7 @@ class ComposePreviewRepresentationGradleTest {
       fakeUi
         .findAllComponents<SceneViewPeerPanel>()
         .filter { it.isShowing }
-        .joinToString("\n") { it.displayName }
+        .joinToString("\n") { it.displayName },
     )
 
     val output = fakeUi.render()
@@ -168,15 +171,16 @@ class ComposePreviewRepresentationGradleTest {
         defaultPreviewSceneViewPeerPanel.x,
         defaultPreviewSceneViewPeerPanel.y,
         defaultPreviewSceneViewPeerPanel.width,
-        defaultPreviewSceneViewPeerPanel.height
+        defaultPreviewSceneViewPeerPanel.height,
       )
     ImageDiffUtil.assertImageSimilar(
       Paths.get(
         "${fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withPanel.png"
       ),
       defaultPreviewRender,
-      10.0,
-      20
+      // TODO(b/329653376): Update golden image and reduce threshold after IntelliJ 2024.1 merge
+      15.0,
+      20,
     )
   }
 
@@ -201,7 +205,7 @@ class ComposePreviewRepresentationGradleTest {
     val secondRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
     assertTrue(
       "Second image expected at least 10% higher but were second=${secondRender.height} first=${firstRender.height}",
-      secondRender.height > (firstRender.height * 1.10)
+      secondRender.height > (firstRender.height * 1.10),
     )
     try {
       ImageDiffUtil.assertImageSimilar("testImage", firstRender, secondRender, 10.0, 20)
@@ -246,7 +250,7 @@ class ComposePreviewRepresentationGradleTest {
         .findAllComponents<SceneViewPeerPanel>()
         .filter { it.isShowing }
         .map { it.displayName }
-        .sorted()
+        .sorted(),
     )
   }
 
@@ -278,10 +282,9 @@ class ComposePreviewRepresentationGradleTest {
           FileDocumentManager.getInstance().saveAllDocuments()
         }
       }
-      withContext(uiThread) {
-        fakeUi.layoutAndDispatchEvents()
-        projectRule.validate()
-      }
+
+      projectRule.validate()
+
       assertEquals(
         """
         DefaultPreview - MyAnnotation 1
@@ -296,7 +299,7 @@ class ComposePreviewRepresentationGradleTest {
           .findAllComponents<SceneViewPeerPanel>()
           .filter { it.isShowing }
           .map { it.displayName }
-          .joinToString("\n")
+          .joinToString("\n"),
       )
 
       projectRule.runAndWaitForRefresh {
@@ -310,10 +313,7 @@ class ComposePreviewRepresentationGradleTest {
         }
       }
 
-      withContext(uiThread) {
-        fakeUi.layoutAndDispatchEvents()
-        projectRule.validate()
-      }
+      projectRule.validate()
 
       assertEquals(
         """
@@ -329,7 +329,7 @@ class ComposePreviewRepresentationGradleTest {
           .findAllComponents<SceneViewPeerPanel>()
           .filter { it.isShowing }
           .map { it.displayName }
-          .joinToString("\n")
+          .joinToString("\n"),
       )
     }
 
@@ -345,7 +345,7 @@ class ComposePreviewRepresentationGradleTest {
       val completableDeferred = CompletableDeferred<Unit>()
       composePreviewRepresentation.requestRefreshForTest(
         ComposePreviewRefreshType.QUICK,
-        completableDeferred = completableDeferred
+        completableDeferred = completableDeferred,
       )
       completableDeferred
     }
@@ -356,11 +356,11 @@ class ComposePreviewRepresentationGradleTest {
       val completableDeferred = CompletableDeferred<Unit>()
       composePreviewRepresentation.requestRefreshForTest(
         ComposePreviewRefreshType.QUICK,
-        completableDeferred = completableDeferred
+        completableDeferred = completableDeferred,
       )
       completableDeferred
     }
-    // Verify that is completed exceptionally
+    // Verify that it is completed exceptionally
     assertTrue(refreshDeferred.isCompleted)
     assertNotNull(refreshDeferred.getCompletionExceptionOrNull())
   }
@@ -373,7 +373,7 @@ class ComposePreviewRepresentationGradleTest {
     project.replaceService(
       FastPreviewTrackerManager::class.java,
       testTracker,
-      fixture.testRootDisposable
+      fixture.testRootDisposable,
     )
 
     runAndWaitForFastRefresh {
@@ -397,13 +397,13 @@ class ComposePreviewRepresentationGradleTest {
 
     assertEquals(
       "compilationSucceeded (compilationDurationMs=>0, compiledFiles=1, refreshTime=>0)",
-      testTracker.logOutput()
+      testTracker.logOutput(),
     )
   }
 
   @Test
   fun `refresh cancellation`() = runBlocking {
-    // Wait for an "infinte" refresh to start
+    // Wait for an "infinite" refresh to start
     projectRule.waitForAnyRefreshToStart(30.seconds, ComposePreviewRefreshType.NORMAL) {
       runWriteActionAndWait {
         projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
@@ -414,7 +414,7 @@ class ComposePreviewRepresentationGradleTest {
       }
     }
 
-    assertFails { projectRule.waitForAllRefreshesToFinish(10.seconds) }
+    assertFails { waitForAllRefreshesToFinish(10.seconds) }
 
     // Delete the infinite loop, triggering a new refresh
     runWriteActionAndWait {
@@ -425,14 +425,14 @@ class ComposePreviewRepresentationGradleTest {
     }
 
     // First refresh should get cancelled and then second one should complete
-    projectRule.waitForAllRefreshesToFinish(30.seconds)
+    waitForAllRefreshesToFinish(30.seconds)
   }
 
   @Test
   fun `fast preview fixing syntax error triggers compilation`() = runBlocking {
     runAndWaitForFastRefresh {
       // Mark the file as invalid so the fast preview triggers a compilation when the problems
-      // dissapear
+      // disappear
       PsiCodeFileChangeDetectorService.getInstance(project).markFileAsOutOfDate(psiMainFile)
       project.messageBus
         .syncPublisher(ProblemListener.TOPIC)
@@ -510,132 +510,153 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  fun testPreviewRenderQuality_zoom() = runWithRenderQualityEnabled {
-    var firstPreview: SceneViewPeerPanel? = null
-    // zoom and center to one preview (quality change refresh should happen)
-    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
-      firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
-      firstPreview!!.sceneView.let {
-        previewView.mainSurface.zoomAndCenter(
-          it,
-          Rectangle(Point(it.x, it.y), it.scaledContentSize)
-        )
-      }
+  fun `background indicator is not created if project is disposed`() {
+    var backgroundIndicatorsCreated = 0
+    composePreviewRepresentation.updateRefreshIndicatorCallbackForTests {
+      backgroundIndicatorsCreated++
     }
-    withContext(uiThread) { fakeUi.root.validate() }
-    // Default quality should have been used
-    assertEquals(
-      getDefaultPreviewQuality(),
-      (fakeUi
-          .findAllComponents<SceneViewPeerPanel>()
-          .first { it.displayName == firstPreview!!.displayName }
-          .sceneView
-          .sceneManager as LayoutlibSceneManager)
-        .lastRenderQuality
-    )
-
-    // Now zoom out a lot to go below the threshold (quality change refresh should happen)
-    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
-      previewView.mainSurface.setScale(
-        ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold / 2.0
+    var refreshDeferred = runBlocking {
+      val completableDeferred = CompletableDeferred<Unit>()
+      composePreviewRepresentation.requestRefreshForTest(
+        ComposePreviewRefreshType.QUICK,
+        completableDeferred = completableDeferred,
       )
+      completableDeferred
     }
-    withContext(uiThread) { fakeUi.root.validate() }
-    assertEquals(
-      ComposePreviewRenderQualityPolicy.lowestQuality,
-      (fakeUi
-          .findAllComponents<SceneViewPeerPanel>()
-          .first { it.displayName == firstPreview!!.displayName }
-          .sceneView
-          .sceneManager as LayoutlibSceneManager)
-        .lastRenderQuality
-    )
+    assertNotNull(refreshDeferred)
+    runInEdtAndWait { Disposer.dispose(composePreviewRepresentation, false) }
+    assertEquals(1, backgroundIndicatorsCreated)
 
-    // Now zoom in a little bit to go above the threshold (quality change refresh should happen)
-    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
-      previewView.mainSurface.setScale(
-        ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold * 2.0
+    refreshDeferred = runBlocking {
+      val completableDeferred = CompletableDeferred<Unit>()
+      composePreviewRepresentation.requestRefreshForTest(
+        ComposePreviewRefreshType.QUICK,
+        completableDeferred = completableDeferred,
       )
+      completableDeferred
     }
-    withContext(uiThread) { fakeUi.root.validate() }
-    assertEquals(
-      ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold * 2,
-      (fakeUi
-          .findAllComponents<SceneViewPeerPanel>()
-          .first { it.displayName == firstPreview!!.displayName }
-          .sceneView
-          .sceneManager as LayoutlibSceneManager)
-        .lastRenderQuality
-    )
+    // Verify that it is completed exceptionally
+    assertTrue(refreshDeferred.isCompleted)
+    assertNotNull(refreshDeferred.getCompletionExceptionOrNull())
+    // Verify that no additional background indicator is created
+    assertEquals(1, backgroundIndicatorsCreated)
   }
 
   @Test
-  fun testPreviewRenderQuality_lifecycle() = runWithRenderQualityEnabled {
-    var firstPreview: SceneViewPeerPanel? = null
-    // zoom and center to one preview (quality change refresh should happen)
-    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
-      firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
-      firstPreview!!.sceneView.let {
-        previewView.mainSurface.zoomAndCenter(
-          it,
-          Rectangle(Point(it.x, it.y), it.scaledContentSize)
+  fun testPreviewRenderQuality_zoom() =
+    projectRule.runWithRenderQualityEnabled {
+      var firstPreview: SceneViewPeerPanel? = null
+      // zoom and center to one preview (quality change refresh should happen)
+      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+        firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
+        firstPreview!!.sceneView.let {
+          previewView.mainSurface.zoomAndCenter(
+            it,
+            Rectangle(Point(it.x, it.y), it.scaledContentSize),
+          )
+        }
+      }
+      withContext(uiThread) { fakeUi.root.validate() }
+      // Default quality should have been used
+      assertEquals(
+        getDefaultPreviewQuality(),
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview!!.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality,
+      )
+
+      // Now zoom out a lot to go below the threshold (quality change refresh should happen)
+      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+        previewView.mainSurface.zoomController.setScale(
+          DefaultRenderQualityPolicy.scaleVisibilityThreshold / 2.0
         )
       }
-    }
-    withContext(uiThread) { fakeUi.root.validate() }
-    // Default quality should have been used
-    assertEquals(
-      getDefaultPreviewQuality(),
-      (fakeUi
-          .findAllComponents<SceneViewPeerPanel>()
-          .first { it.displayName == firstPreview!!.displayName }
-          .sceneView
-          .sceneManager as LayoutlibSceneManager)
-        .lastRenderQuality
-    )
+      withContext(uiThread) { fakeUi.root.validate() }
+      assertEquals(
+        DefaultRenderQualityPolicy.lowestQuality,
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview!!.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality,
+      )
 
-    // Now deactivate the preview representation (quality change refresh should happen)
-    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
-      composePreviewRepresentation.onDeactivate()
-    }
-    withContext(uiThread) { fakeUi.root.validate() }
-    assertEquals(
-      ComposePreviewRenderQualityPolicy.lowestQuality,
-      (fakeUi
-          .findAllComponents<SceneViewPeerPanel>()
-          .first { it.displayName == firstPreview!!.displayName }
-          .sceneView
-          .sceneManager as LayoutlibSceneManager)
-        .lastRenderQuality
-    )
-
-    // Now reactivate the preview representation (quality change refresh should happen)
-    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
-      composePreviewRepresentation.onActivate()
-    }
-    withContext(uiThread) { fakeUi.root.validate() }
-    assertEquals(
-      getDefaultPreviewQuality(),
-      (fakeUi
-          .findAllComponents<SceneViewPeerPanel>()
-          .first { it.displayName == firstPreview!!.displayName }
-          .sceneView
-          .sceneManager as LayoutlibSceneManager)
-        .lastRenderQuality
-    )
-  }
-
-  private fun runWithRenderQualityEnabled(runnable: suspend () -> Unit) = runBlocking {
-    try {
-      if (!StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get()) {
-        StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.override(true)
-        // We need to set up things again to make sure that the flag change takes effect
-        projectRule.resetInitialConfiguration()
-        withContext(uiThread) { fakeUi.root.validate() }
+      // Now zoom in a little bit to go above the threshold (quality change refresh should happen)
+      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+        previewView.mainSurface.zoomController.setScale(
+          DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2.0
+        )
       }
-      runnable()
-    } finally {
-      StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.clearOverride()
+      withContext(uiThread) { fakeUi.root.validate() }
+      assertEquals(
+        DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2,
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview!!.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality,
+      )
     }
-  }
+
+  @Test
+  fun testPreviewRenderQuality_lifecycle() =
+    projectRule.runWithRenderQualityEnabled {
+      var firstPreview: SceneViewPeerPanel? = null
+      // zoom and center to one preview (quality change refresh should happen)
+      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+        firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
+        firstPreview!!.sceneView.let {
+          previewView.mainSurface.zoomAndCenter(
+            it,
+            Rectangle(Point(it.x, it.y), it.scaledContentSize),
+          )
+        }
+      }
+      withContext(uiThread) { fakeUi.root.validate() }
+      // Default quality should have been used
+      assertEquals(
+        getDefaultPreviewQuality(),
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview!!.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality,
+      )
+
+      // Now deactivate the preview representation (quality change refresh should happen)
+      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+        composePreviewRepresentation.onDeactivate()
+      }
+      withContext(uiThread) { fakeUi.root.validate() }
+      assertEquals(
+        DefaultRenderQualityPolicy.lowestQuality,
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview!!.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality,
+      )
+
+      // Now reactivate the preview representation (quality change refresh should happen)
+      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+        composePreviewRepresentation.onActivate()
+      }
+      withContext(uiThread) { fakeUi.root.validate() }
+      assertEquals(
+        getDefaultPreviewQuality(),
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview!!.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality,
+      )
+    }
 }

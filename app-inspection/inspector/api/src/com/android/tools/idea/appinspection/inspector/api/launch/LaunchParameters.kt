@@ -37,5 +37,5 @@ data class LaunchParameters(
    */
   val library: LibraryCompatibility? = null,
   /** If true, launch the inspector even if one is already running. */
-  val force: Boolean = false
+  val force: Boolean = false,
 )

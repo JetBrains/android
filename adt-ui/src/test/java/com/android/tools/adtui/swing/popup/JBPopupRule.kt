@@ -26,8 +26,8 @@ import org.junit.rules.ExternalResource
  */
 class JBPopupRule : ExternalResource() {
 
-  val fakePopupFactory = FakeJBPopupFactory()
   val disposable = Disposer.newDisposable()
+  val fakePopupFactory = FakeJBPopupFactory(disposable)
 
   override fun before() {
     ApplicationManager.getApplication().replaceService(JBPopupFactory::class.java, fakePopupFactory, disposable)

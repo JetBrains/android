@@ -41,8 +41,10 @@ import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.SwingUtilities
 
 class CaptureDetailsTest {
   @get:Rule
@@ -51,11 +53,8 @@ class CaptureDetailsTest {
   @get:Rule
   val disposableRule = DisposableRule()
 
-  private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer, false)
-
   @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureDetailsTest", transportService)
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureDetailsTest", FakeTransportService(FakeTimer(), false))
 
   private fun benchmarkInit(prefix: String) =
     benchmarkMemoryAndTime("$prefix Initialization", "Load-Capture", memUnit = MemoryUnit.KB)
@@ -63,15 +62,28 @@ class CaptureDetailsTest {
     benchmarkMemoryAndTime("$prefix Range Change", "Range-Change", memUnit = MemoryUnit.KB)
   private fun benchmarkFilterChange(prefix: String) =
     benchmarkMemoryAndTime("$prefix Filter Change", "Filter-Change", memUnit = MemoryUnit.KB)
-  private val benchmarkTopDownInit = benchmarkInit("Top-Down")
-  private val benchmarkBottomUpInit = benchmarkInit("Bottom-Up")
-  private val benchmarkFlameChartInit = benchmarkInit("Flame-Chart")
-  private val benchmarkTopDownRangeChange = benchmarkRangeChange("Top-Down")
-  private val benchmarkBottomUpRangeChange = benchmarkRangeChange("Bottom-Up")
-  private val benchmarkFlameChartRangeChange = benchmarkRangeChange("Flame-Chart")
-  private val benchmarkTopDownFilterChange = benchmarkFilterChange("Top-Down")
-  private val benchmarkBottomUpFilterChange = benchmarkFilterChange("Bottom-Up")
-  private val benchmarkFlameChartFilterChange = benchmarkFilterChange("Flame-Chart")
+  private lateinit var benchmarkTopDownInit: BenchmarkRunner
+  private lateinit var benchmarkBottomUpInit: BenchmarkRunner
+  private lateinit var benchmarkFlameChartInit: BenchmarkRunner
+  private lateinit var benchmarkTopDownRangeChange: BenchmarkRunner
+  private lateinit var benchmarkBottomUpRangeChange: BenchmarkRunner
+  private lateinit var benchmarkFlameChartRangeChange: BenchmarkRunner
+  private lateinit var benchmarkTopDownFilterChange: BenchmarkRunner
+  private lateinit var benchmarkBottomUpFilterChange: BenchmarkRunner
+  private lateinit var benchmarkFlameChartFilterChange: BenchmarkRunner
+
+  @Before
+  fun setUp() {
+    benchmarkTopDownInit = benchmarkInit("Top-Down")
+    benchmarkBottomUpInit = benchmarkInit("Bottom-Up")
+    benchmarkFlameChartInit = benchmarkInit("Flame-Chart")
+    benchmarkTopDownRangeChange = benchmarkRangeChange("Top-Down")
+    benchmarkBottomUpRangeChange = benchmarkRangeChange("Bottom-Up")
+    benchmarkFlameChartRangeChange = benchmarkRangeChange("Flame-Chart")
+    benchmarkTopDownFilterChange = benchmarkFilterChange("Top-Down")
+    benchmarkBottomUpFilterChange = benchmarkFilterChange("Bottom-Up")
+    benchmarkFlameChartFilterChange = benchmarkFilterChange("Flame-Chart")
+  }
 
   @Test
   fun benchmarkTopDown() = benchmarkInitAndUpdate(benchmarkTopDownInit,
@@ -104,8 +116,8 @@ class CaptureDetailsTest {
       val profilersView = fakeProfilersView()
 
       val treeView = benchmarkInit("synthetic") {
-        initTree(profilersView, initModel(ClockType.GLOBAL, range, captureNodes, cpuCapture,
-                                          ApplicationManager.getApplication()::executeOnPooledThread) as T)
+        SwingUtilities.invokeAndWait { initTree(profilersView, initModel(ClockType.GLOBAL, range, captureNodes, cpuCapture,
+                                                                         ApplicationManager.getApplication()::executeOnPooledThread) as T) }
       }
 
       benchmarkRangeUpdate("synthetic") {
@@ -169,19 +181,27 @@ class CaptureDetailsTest {
     val numIds = 512
     var nextId = 0
 
-    fun captureTree(branching: Int, depth: Int, lo: Long, hi: Long): CaptureNode =
-      CaptureNode(model("${nextId++ % numIds}")).apply {
-        startGlobal = lo
-        endGlobal = hi
-        startThread = lo
-        endThread = hi
-        if (depth > 0) {
-          val l = (hi - lo) / branching
-          (0 until branching).forEach { i ->
-            addChild(captureTree(branching, depth - 1, lo + i * l, lo + (i + 1) * l))
+    fun captureTree(branching: Int, depth: Int, lo: Long, hi: Long): CaptureNode {
+      val rootNode = CaptureNode(model("${nextId++ % numIds}")).apply {
+        SwingUtilities.invokeAndWait {
+          startGlobal = lo
+          endGlobal = hi
+          startThread = lo
+          endThread = hi
+        }
+      }
+      if (depth > 0) {
+        val l = (hi - lo) / branching
+        (0 until branching).forEach { i ->
+          val childNode = captureTree(branching, depth - 1, lo + i * l, lo + (i + 1) * l)
+          SwingUtilities.invokeAndWait {
+            rootNode.addChild(childNode)
           }
         }
       }
+
+      return rootNode
+    }
 
     val l = (hi - lo) / 4
     return listOf(captureTree(4, 8, lo, lo + l),

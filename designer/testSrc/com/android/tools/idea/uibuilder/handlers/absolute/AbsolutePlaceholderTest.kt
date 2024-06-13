@@ -118,11 +118,11 @@ class AbsolutePlaceholderTest : SceneTest() {
     val nlComponent = textView.authoritativeNlComponent
     assertEquals(
       "50dp",
-      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_X)
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_X),
     )
     assertEquals(
       "60dp",
-      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_Y)
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_Y),
     )
   }
 
@@ -140,7 +140,7 @@ class AbsolutePlaceholderTest : SceneTest() {
             .id("@id/textView")
             .width("100dp")
             .height("100dp")
-        )
+        ),
     )
   }
 }

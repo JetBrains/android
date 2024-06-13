@@ -50,7 +50,7 @@ inline fun <reified T> createIconColumn(
   noinline tooltip: (item: T) -> String? = { _ -> null },
   leftDivider: Boolean = false,
   emptyIcon: Icon = EmptyIcon.ICON_16,
-  headerRenderer: TableCellRenderer? = null
+  headerRenderer: TableCellRenderer? = null,
 ): BadgeItem =
   SingleTypeIconColumn(
     name,
@@ -62,7 +62,7 @@ inline fun <reified T> createIconColumn(
     tooltip,
     leftDivider,
     emptyIcon,
-    headerRenderer
+    headerRenderer,
   )
 
 /**
@@ -80,7 +80,7 @@ class SingleTypeIconColumn<T>(
   private val tooltip: (item: T) -> String?,
   override val leftDivider: Boolean,
   emptyIcon: Icon,
-  override val headerRenderer: TableCellRenderer?
+  override val headerRenderer: TableCellRenderer?,
 ) : IconColumn(name, emptyIcon) {
 
   override fun getIcon(item: Any): Icon? = cast(item)?.let { getter(it) }
@@ -108,7 +108,7 @@ class SingleTypeIconColumn<T>(
  */
 abstract class IconColumn(
   override val name: String,
-  private val emptyIcon: Icon = EmptyIcon.ICON_16
+  private val emptyIcon: Icon = EmptyIcon.ICON_16,
 ) : BadgeItem {
 
   override var renderer: BadgeRenderer? = null

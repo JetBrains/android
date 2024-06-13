@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.importAndroidTestMatrixResultXmlFile
 import com.intellij.execution.testframework.sm.SmRunnerBundle
 import com.intellij.execution.testframework.sm.runner.history.actions.AbstractImportTestsAction
@@ -40,7 +39,7 @@ class ImportTestsFromFileAction: AnAction(SmRunnerBundle.message("sm.test.runner
     FileChooser.chooseFile(
       FileChooserDescriptor(true, false, false, false, false, false)
         .withFileFilter {
-          (it.name == "test-result.pb" && StudioFlags.UTP_TEST_RESULT_SUPPORT.get())
+          it.name == "test-result.pb"
           || FileTypeRegistry.getInstance().isFileOfType(it, XmlFileType.INSTANCE)
         },
       e.project, null) { file ->

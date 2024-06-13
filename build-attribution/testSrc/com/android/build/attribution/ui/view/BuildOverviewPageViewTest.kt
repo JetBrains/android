@@ -212,5 +212,8 @@ class BuildOverviewPageViewTest {
   private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html)
     .trimIndent()
     .replace("\n","")
+    // java21 uses NNBSP prefix to AM/PM in time formats
+    // https://bugs.openjdk.org/browse/JDK-8284840
+    .replace("&#8239;", "\u202F")
     .replace("<br>","\n")
 }

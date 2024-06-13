@@ -29,7 +29,7 @@ sealed class ViewPropertiesCache(model: InspectorModel) : ViewNodeCache<ViewProp
       setDataFor(
         event.rootId,
         propertyGroup.viewId,
-        ViewPropertiesDataGenerator(stringTable, propertyGroup, model).generate()
+        ViewPropertiesDataGenerator(stringTable, propertyGroup, model).generate(),
       )
     }
   }
@@ -42,7 +42,7 @@ class DisconnectedViewPropertiesCache(model: InspectorModel) : ViewPropertiesCac
 
 class LiveViewPropertiesCache(
   private val client: ViewLayoutInspectorClient,
-  model: InspectorModel
+  model: InspectorModel,
 ) : ViewPropertiesCache(model) {
   override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ViewPropertiesData? {
     val response = client.getProperties(root.drawId, node.drawId)
@@ -50,7 +50,7 @@ class LiveViewPropertiesCache(
       ViewPropertiesDataGenerator(
           StringTableImpl(response.stringsList),
           response.propertyGroup,
-          model
+          model,
         )
         .generate()
     } else {

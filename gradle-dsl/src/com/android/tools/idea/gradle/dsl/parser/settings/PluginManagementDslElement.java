@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.settings;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -31,13 +32,15 @@ public class PluginManagementDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<PluginManagementDslElement> PLUGIN_MANAGEMENT_DSL_ELEMENT =
     new PropertiesElementDescription<>("pluginManagement", PluginManagementDslElement.class, PluginManagementDslElement::new);
 
-  public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(new Object[][] {
+  public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(new Object[][] {
     {"plugins", PluginsDslElement.PLUGINS},
     {"repositories", RepositoriesDslElement.REPOSITORIES},
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override
-  protected @NotNull ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENT_MAP;
   }
 

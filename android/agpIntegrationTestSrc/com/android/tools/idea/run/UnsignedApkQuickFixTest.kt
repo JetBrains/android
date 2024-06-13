@@ -22,7 +22,9 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.Module
-import junit.framework.TestCase.assertEquals
+import com.intellij.openapi.util.Disposer
+import junit.framework.TestCase.*
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,6 +33,12 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class UnsignedApkQuickFixTest {
   @get:Rule val projectRule = AndroidGradleProjectRule()
+  private var quickFix: UnsignedApkQuickFix? = null
+
+  @After
+  fun dispose() {
+    quickFix?.let { Disposer.dispose(it) }
+  }
 
   @Test
   fun updatesBuildWithSelectedConfig() {
@@ -47,6 +55,7 @@ class UnsignedApkQuickFixTest {
     val fakeSelector =
       object : SigningConfigSelector {
         override fun showAndGet() = true
+
         override fun selectedConfig() = signingConfigs[0]
       }
 
@@ -67,23 +76,28 @@ class UnsignedApkQuickFixTest {
 
   @Test
   fun differentModuleReCaches() {
-    val module = MockitoKt.mock<Module>()
-    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", null)
+    val module1 = MockitoKt.mock<Module>()
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", null)
 
     val module2 = MockitoKt.mock<Module>()
-    val quickFix = UnsignedApkQuickFix.create(module2, "release", null)
+    quickFix = UnsignedApkQuickFix.create(module2, "release", null)
 
     assertEquals(module2, quickFix!!.module)
+
+    Disposer.dispose(module1)
+    Disposer.dispose(module2)
   }
 
   @Test
   fun differentBuildTypeReCaches() {
-    val module = MockitoKt.mock<Module>()
-    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", null)
+    val module1 = MockitoKt.mock<Module>()
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", null)
 
-    val quickFix = UnsignedApkQuickFix.create(module, "debug", null)
+    quickFix = UnsignedApkQuickFix.create(module1, "debug", null)
 
     assertEquals("debug", quickFix!!.selectedBuildTypeName)
+
+    Disposer.dispose(module1)
   }
 
   /**
@@ -93,13 +107,15 @@ class UnsignedApkQuickFixTest {
    */
   @Test
   fun nonNullCallbackReCachesIfCurrentlyNull() {
-    val module = MockitoKt.mock<Module>()
-    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", null)
+    val module1 = MockitoKt.mock<Module>()
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", null)
 
     val callback = MockitoKt.mock<Runnable>()
-    val quickFix = UnsignedApkQuickFix.create(module, "release", callback)
+    quickFix = UnsignedApkQuickFix.create(module1, "release", callback)
 
     assertEquals(callback, quickFix!!.callback)
+
+    Disposer.dispose(module1)
   }
 
   /**
@@ -109,13 +125,15 @@ class UnsignedApkQuickFixTest {
    */
   @Test
   fun nullCallbackDoesNotReCache() {
-    val module = MockitoKt.mock<Module>()
+    val module1 = MockitoKt.mock<Module>()
     val callback = MockitoKt.mock<Runnable>()
-    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", callback)
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", callback)
 
-    val quickFix = UnsignedApkQuickFix.create(module, "release", null)
+    quickFix = UnsignedApkQuickFix.create(module1, "release", null)
 
     assertEquals(callback, quickFix!!.callback)
+
+    Disposer.dispose(module1)
   }
 
   /**
@@ -125,13 +143,15 @@ class UnsignedApkQuickFixTest {
    */
   @Test
   fun differentCallbackReCaches() {
-    val module = MockitoKt.mock<Module>()
+    val module1 = MockitoKt.mock<Module>()
     val callback = MockitoKt.mock<Runnable>()
-    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", callback)
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", callback)
 
     val callback2 = MockitoKt.mock<Runnable>()
-    val quickFix = UnsignedApkQuickFix.create(module, "release", callback2)
+    quickFix = UnsignedApkQuickFix.create(module1, "release", callback2)
 
     assertEquals(callback2, quickFix!!.callback)
+
+    Disposer.dispose(module1)
   }
 }

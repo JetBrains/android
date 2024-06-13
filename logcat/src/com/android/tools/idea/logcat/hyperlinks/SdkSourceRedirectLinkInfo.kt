@@ -56,7 +56,7 @@ internal class SdkSourceRedirectLinkInfo(
   private fun openFileChooser(
     psiFiles: List<PsiFile>,
     descriptor: OpenFileDescriptor,
-    hyperlinkLocationPoint: RelativePoint?
+    hyperlinkLocationPoint: RelativePoint?,
   ) {
     // `JBPopupFactory.createPopupChooserBuilder()` doesn't want to accept PsiFiles and suggests we
     // use `PsiTargetNavigator` but that service doesn't seem to support specifying a navigation

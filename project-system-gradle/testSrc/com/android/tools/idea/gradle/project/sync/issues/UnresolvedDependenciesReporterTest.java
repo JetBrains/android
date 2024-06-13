@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
+import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -28,10 +29,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.junit.Test;
 import org.mockito.Mock;
 
 /**
@@ -48,6 +49,10 @@ public class UnresolvedDependenciesReporterTest extends HeavyPlatformTestCase {
     initMocks(this);
     new IdeComponents(getProject()).replaceProjectService(GradleSettings.class, myGradleSettings);
     myReporter = new UnresolvedDependenciesReporter();
+  }
+
+  public void testGetSupportedIssueType() {
+    assertEquals(TYPE_UNRESOLVED_DEPENDENCY, myReporter.getSupportedIssueType());
   }
 
   public void testReportWithoutDependencyAndExtraInfo() {

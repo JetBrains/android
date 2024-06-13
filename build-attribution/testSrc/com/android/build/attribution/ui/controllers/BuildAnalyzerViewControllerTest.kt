@@ -37,6 +37,7 @@ import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -73,12 +74,14 @@ class BuildAnalyzerViewControllerTest {
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)
   lateinit var showSettingsUtilMock: ShowSettingsUtil
+  lateinit var browserLauncherMock: BrowserLauncher
   lateinit var analytics: BuildAttributionUiAnalytics
 
   @Before
   fun setUp() {
     val ideComponents = IdeComponents(projectRule.project, disposableRule.disposable)
     showSettingsUtilMock = ideComponents.mockApplicationService(ShowSettingsUtil::class.java)
+    browserLauncherMock = ideComponents.mockApplicationService(BrowserLauncher::class.java)
     ideComponents.replaceProjectService(BuildAttributionWarningsFilter::class.java, warningSuppressions)
     UsageTracker.setWriterForTest(tracker)
     analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
@@ -442,7 +445,8 @@ class BuildAnalyzerViewControllerTest {
     // Act
     controller.helpLinkClicked(BuildAnalyzerBrowserLinks.CRITICAL_PATH)
 
-    // Verify metrics sent
+    // Verify
+    Mockito.verify(browserLauncherMock).browse(eq(BuildAnalyzerBrowserLinks.CRITICAL_PATH.urlTarget), Mockito.any(), Mockito.any())
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED)

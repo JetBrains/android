@@ -33,61 +33,33 @@ class GlancePreviewElementFinderTest {
   private val fixture
     get() = projectRule.fixture
 
-  private lateinit var sourceFileBoth: PsiFile
-  private lateinit var sourceFileTiles: PsiFile
   private lateinit var sourceFileAppWidgets: PsiFile
+  private lateinit var sourceFileAppWidgetsWithSize: PsiFile
   private lateinit var sourceFileNone: PsiFile
 
   @Before
   fun setUp() {
     fixture.addFileToProjectAndInvalidate(
-      "androidx/glance/preview/GlancePreview.kt",
+      "androidx/glance/preview/Preview.kt",
       // language=kotlin
       """
         package androidx.glance.preview
 
-        annotation class GlancePreview(surface: String)
+        annotation class Preview(surface: String)
         """
-        .trimIndent()
+        .trimIndent(),
     )
-    sourceFileBoth =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFileBoth.kt",
-        // language=kotlin
+
+    fixture.addFileToProjectAndInvalidate(
+      "androidx/compose/runtime/Composable.kt",
+      // language=kotlin
+      """
+        package androidx.compose.runtime
+
+        annotation class Composable
         """
-        package com.android.test
-
-        import androidx.glance.preview.GlancePreview
-
-        @GlancePreview("AppWidget")
-        fun Foo1() { }
-
-        @GlancePreview("Tile")
-        fun Foo2() { }
-
-        @GlancePreview("AppWidget")
-        @GlancePreview("Tile")
-        fun Foo3() { }
-
-        fun Foo4() { }
-        """
-          .trimIndent()
-      )
-
-    sourceFileTiles =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFileTile.kt",
-        // language=kotlin
-        """
-        package com.android.test
-
-        import androidx.glance.preview.GlancePreview
-
-        @GlancePreview("Tile")
-        fun Foo21() { }
-        """
-          .trimIndent()
-      )
+        .trimIndent(),
+    )
 
     sourceFileAppWidgets =
       fixture.addFileToProjectAndInvalidate(
@@ -96,12 +68,31 @@ class GlancePreviewElementFinderTest {
         """
         package com.android.test
 
-        import androidx.glance.preview.GlancePreview
+        import androidx.glance.preview.Preview
+        import androidx.compose.runtime.Composable
 
-        @GlancePreview("AppWidget")
+        @Preview
+        @Composable
         fun Foo31() { }
         """
-          .trimIndent()
+          .trimIndent(),
+      )
+
+    sourceFileAppWidgetsWithSize =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/SourceFileWidgetWithSize.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import androidx.glance.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Preview(widthDp = 1234, heightDp = 5678)
+        @Composable
+        fun Foo41() { }
+        """
+          .trimIndent(),
       )
 
     sourceFileNone =
@@ -111,24 +102,26 @@ class GlancePreviewElementFinderTest {
         """
         package com.android.test
 
-        import androidx.glance.preview.GlancePreview
+        import androidx.glance.preview.Preview
+        import androidx.compose.runtime.Composable
 
-        fun Foo41() { }
+        @Composable
+        fun Foo51() { }
         """
-          .trimIndent()
+          .trimIndent(),
       )
   }
 
   @Test
   fun testAppWidgetElementsFinder() = runBlocking {
     Assert.assertTrue(
-      AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileBoth.virtualFile)
-    )
-    Assert.assertFalse(
-      AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileTiles.virtualFile)
+      AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileAppWidgets.virtualFile)
     )
     Assert.assertTrue(
-      AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileAppWidgets.virtualFile)
+      AppWidgetPreviewElementFinder.hasPreviewElements(
+        project,
+        sourceFileAppWidgetsWithSize.virtualFile,
+      )
     )
     Assert.assertFalse(
       AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileNone.virtualFile)
@@ -136,47 +129,75 @@ class GlancePreviewElementFinderTest {
 
     runBlocking {
       Assert.assertEquals(
-        listOf("com.android.test.SourceFileBothKt.Foo1", "com.android.test.SourceFileBothKt.Foo3"),
-        AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileBoth.virtualFile).map {
-          it.methodFqn
-        }
-      )
-      Assert.assertEquals(
         listOf("com.android.test.SourceFileWidgetKt.Foo31"),
         AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileAppWidgets.virtualFile)
-          .map { it.methodFqn }
+          .map { it.methodFqn },
+      )
+      Assert.assertEquals(
+        listOf("com.android.test.SourceFileWidgetWithSizeKt.Foo41"),
+        AppWidgetPreviewElementFinder.findPreviewElements(
+            project,
+            sourceFileAppWidgetsWithSize.virtualFile,
+          )
+          .map { it.methodFqn },
       )
     }
   }
 
   @Test
-  fun testWearTileElementsFinder() = runBlocking {
-    Assert.assertTrue(
-      TilePreviewElementFinder.hasPreviewElements(project, sourceFileBoth.virtualFile)
-    )
-    Assert.assertTrue(
-      TilePreviewElementFinder.hasPreviewElements(project, sourceFileTiles.virtualFile)
-    )
-    Assert.assertFalse(
-      TilePreviewElementFinder.hasPreviewElements(project, sourceFileAppWidgets.virtualFile)
-    )
-    Assert.assertFalse(
-      TilePreviewElementFinder.hasPreviewElements(project, sourceFileNone.virtualFile)
+  fun testFindsMultiPreviews() = runBlocking {
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/test/SomeGlancePreviews.kt",
+      // language=kotlin
+      """
+        package com.android.test
+
+        import androidx.glance.preview.Preview
+
+        @Preview(widthDp = 1234, heightDp = 5678)
+        @Preview
+        annotation class MultiPreviewFromOtherFile
+        """
+        .trimIndent(),
     )
 
-    runBlocking {
-      Assert.assertEquals(
-        listOf("com.android.test.SourceFileBothKt.Foo2", "com.android.test.SourceFileBothKt.Foo3"),
-        TilePreviewElementFinder.findPreviewElements(project, sourceFileBoth.virtualFile).map {
-          it.methodFqn
-        }
+    val multipreviewTest =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/MultiPreviewTest.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import androidx.glance.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Preview(widthDp = 2, heightDp = 2)
+        annotation class MultiPreviewLevel2
+
+        @Preview(widthDp = 1, heightDp = 1)
+        @MultiPreviewLevel2
+        annotation class MultiPreviewLevel1
+
+        @MultiPreviewFromOtherFile
+        @Preview(widthDp = 0, heightDp = 0)
+        @MultiPreviewLevel1
+        @Composable
+        fun GlancePreviewFun() { }
+        """
+          .trimIndent(),
       )
-      Assert.assertEquals(
-        listOf("com.android.test.SourceFileTileKt.Foo21"),
-        TilePreviewElementFinder.findPreviewElements(project, sourceFileTiles.virtualFile).map {
-          it.methodFqn
-        }
-      )
-    }
+
+    Assert.assertTrue(
+      AppWidgetPreviewElementFinder.hasPreviewElements(project, multipreviewTest.virtualFile)
+    )
+
+    val previewElements =
+      AppWidgetPreviewElementFinder.findPreviewElements(project, multipreviewTest.virtualFile)
+
+    Assert.assertEquals(5, previewElements.size)
+    Assert.assertEquals(
+      listOf("com.android.test.MultiPreviewTestKt.GlancePreviewFun"),
+      previewElements.map { it.methodFqn }.distinct(),
+    )
   }
 }

@@ -21,5 +21,5 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 /** A style item with a reference to the style it was found in. */
 class StyleItemResourceValueWithStyleReference(
   val style: StyleResourceValue,
-  private val item: StyleItemResourceValue
+  private val item: StyleItemResourceValue,
 ) : StyleItemResourceValue by item

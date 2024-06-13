@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.util.CheckUtil.ANY_DRAW_ID
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
 import com.intellij.testFramework.ProjectRule
+import java.nio.file.Files
+import javax.imageio.ImageIO
+import kotlinx.coroutines.runBlocking
 import layoutinspector.snapshots.Metadata
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
-import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -40,7 +43,7 @@ class LegacySnapshotLoaderTest {
 
   @Test
   fun loadV1Snapshot() {
-    val model = InspectorModel(projectRule.project)
+    val model = InspectorModel(projectRule.project, AndroidCoroutineScope(projectRule.disposable))
     val notificationModel = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     val snapshotMetadata =
@@ -54,7 +57,7 @@ class LegacySnapshotLoaderTest {
 
   @Test
   fun loadV3Snapshot() {
-    val model = InspectorModel(projectRule.project)
+    val model = InspectorModel(projectRule.project, AndroidCoroutineScope(projectRule.disposable))
     val notificationModel = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     val snapshotMetadata =
@@ -73,31 +76,32 @@ class LegacySnapshotLoaderTest {
 
   private fun validateModel(model: InspectorModel) {
     val window = model.windows.values.single()
-    window.refreshImages(1.0)
-    val expected = model {
-      view(ANY_DRAW_ID) {
-        Files.newInputStream(testDataPath.resolve("legacy-snapshot.png")).use { imageInput ->
-          image(ImageIO.read(imageInput))
-        }
+    runBlocking { window.refreshImages(1.0) }
+    val expected =
+      model(projectRule.disposable) {
         view(ANY_DRAW_ID) {
-          view(ANY_DRAW_ID)
+          Files.newInputStream(testDataPath.resolve("legacy-snapshot.png")).use { imageInput ->
+            image(ImageIO.read(imageInput))
+          }
           view(ANY_DRAW_ID) {
+            view(ANY_DRAW_ID)
             view(ANY_DRAW_ID) {
-              view(ANY_DRAW_ID) { view(ANY_DRAW_ID) { view(ANY_DRAW_ID) } }
               view(ANY_DRAW_ID) {
+                view(ANY_DRAW_ID) { view(ANY_DRAW_ID) { view(ANY_DRAW_ID) } }
                 view(ANY_DRAW_ID) {
-                  view(ANY_DRAW_ID)
+                  view(ANY_DRAW_ID) {
+                    view(ANY_DRAW_ID)
+                    view(ANY_DRAW_ID)
+                  }
                   view(ANY_DRAW_ID)
                 }
-                view(ANY_DRAW_ID)
               }
             }
           }
+          view(ANY_DRAW_ID)
+          view(ANY_DRAW_ID)
         }
-        view(ANY_DRAW_ID)
-        view(ANY_DRAW_ID)
       }
-    }
 
     assertDrawTreesEqual(expected.root, model.root)
   }

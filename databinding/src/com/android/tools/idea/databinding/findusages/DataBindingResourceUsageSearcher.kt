@@ -42,23 +42,22 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
   override fun processElementUsages(
     element: PsiElement,
     processor: Processor<in Usage>,
-    options: FindUsagesOptions
+    options: FindUsagesOptions,
   ) {
     runReadAction {
       if (element !is ResourceReferencePsiElement) return@runReadAction
       val androidFacet =
         element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)?.androidFacet ?: return@runReadAction
       val bindingModuleCache = LayoutBindingModuleCache.getInstance(androidFacet)
-      val groups = bindingModuleCache.bindingLayoutGroups
 
       when (element.resourceReference.resourceType) {
         ResourceType.LAYOUT -> {
           // When searching for usages of a layout resource, we want to add any uses of the
           // generated DataBinding class.
-          val layoutGroup =
-            groups.firstOrNull { it.mainLayout.resource.name == element.resourceReference.name }
-              ?: return@runReadAction
-          val lightBindingClasses = bindingModuleCache.getLightBindingClasses(layoutGroup)
+          val lightBindingClasses =
+            bindingModuleCache.getLightBindingClasses { layoutGroup ->
+              layoutGroup.mainLayout.resource.name == element.resourceReference.name
+            }
           lightBindingClasses.forEach {
             ReferencesSearch.search(it, options.searchScope).all { reference ->
               processor.process(UsageInfo2UsageAdapter(UsageInfo(reference)))
@@ -69,12 +68,11 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
           // When searching for usages of an ID resource, we want to add any uses of the generated
           // fields, in every accessible DataBinding
           // class.
-          val lightClasses =
-            groups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
           val javaFieldName = convertAndroidIdToJavaFieldName(element.resourceReference.name)
           val definingXmlTag = element.parentOfType<XmlTag>()
           val relevantFields =
-            lightClasses
+            bindingModuleCache
+              .getLightBindingClasses()
               .mapNotNull { bindingClass ->
                 bindingClass.allFields.find { it.name == javaFieldName }
               }

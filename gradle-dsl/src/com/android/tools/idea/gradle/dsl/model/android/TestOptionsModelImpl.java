@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.EmulatorSnapshotsDslElement.EMULATOR_SNAPSHOTS;
-import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureRetentionDslElement.FAILURE_RETENTION;
-import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS;
-
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.EmulatorSnapshotsModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.FailureRetentionModel;
@@ -34,6 +30,10 @@ import com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureReten
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.EmulatorSnapshotsDslElement.EMULATOR_SNAPSHOTS;
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureRetentionDslElement.FAILURE_RETENTION;
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS;
 
 public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOptionsModel {
   // TODO(xof): support animationsDisabled?

@@ -25,13 +25,13 @@ import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationSettings;
 import com.android.tools.configurations.Configurations;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
+import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
@@ -66,11 +66,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
-import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CanvasResizeInteraction extends Interaction {
+public class CanvasResizeInteraction implements Interaction {
   private static final double SQRT_2 = Math.sqrt(2.0);
   /**
    * Cut-off size (in dp) for resizing, it should be bigger than any Android device. Resizing size needs to be capped
@@ -116,6 +115,7 @@ public class CanvasResizeInteraction extends Interaction {
   private int myCurrentX;
   private int myCurrentY;
   @Nullable private DeviceSizeList.DeviceSize myLastSnappedDevice;
+  private InteractionInformation myStartInfo;
 
   /**
    * Threshold used to force a resize of the surface when getting close to the border. If the mouse gets closer than
@@ -181,17 +181,14 @@ public class CanvasResizeInteraction extends Interaction {
   public void begin(@NotNull InteractionEvent event) {
     if (event instanceof MousePressedEvent) {
       MouseEvent mouseEvent = ((MousePressedEvent)event).getEventObject();
-      begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+      myStartInfo = event.getInfo();
+      int x = mouseEvent.getX();
+      int y = mouseEvent.getY();
+      myCurrentX = x;
+      myCurrentY = y;
+
+      myDesignSurface.setResizeMode(true);
     }
-  }
-
-  @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    super.begin(x, y, modifiersEx);
-    myCurrentX = x;
-    myCurrentY = y;
-
-    myDesignSurface.setResizeMode(true);
   }
 
   private static void constructPolygon(@NotNull Polygon polygon, @Nullable ScreenRatio ratio, int dim, boolean isPortrait) {
@@ -223,14 +220,16 @@ public class CanvasResizeInteraction extends Interaction {
       int x = mouseEvent.getX();
       int y = mouseEvent.getY();
       if (myOriginalDevice.isScreenRound()) {
+        int startX = myStartInfo.getX();
+        int startY = myStartInfo.getY();
         // Force aspect preservation
-        int deltaX = x - myStartX;
-        int deltaY = y - myStartY;
+        int deltaX = x - startX;
+        int deltaY = y - startY;
         if (deltaX > deltaY) {
-          y = myStartY + deltaX;
+          y = startY + deltaX;
         }
         else {
-          x = myStartX + deltaY;
+          x = startX + deltaY;
         }
       }
 

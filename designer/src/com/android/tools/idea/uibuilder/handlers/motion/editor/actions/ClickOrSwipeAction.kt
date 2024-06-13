@@ -19,13 +19,13 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnClick
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 
 /** Click or Swipe Handler action. */
-open class ClickOrSwipeAction(val motionEditor: MotionEditor) :
-  OpenPopUpAction(
-    "Create Click or Swipe Handler",
-    MEIcons.CREATE_ON_STAR,
-  ) {
+open class ClickOrSwipeAction(motionEditor: MotionEditor) :
+  OpenPopUpAction("Create Click or Swipe Handler", MEIcons.CREATE_ON_STAR) {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override val actions =
     listOf(PanelAction(CreateOnClick(), motionEditor), PanelAction(CreateOnSwipe(), motionEditor))

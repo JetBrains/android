@@ -942,7 +942,7 @@ public final class ConstraintComponentUtilities {
     GoogleMavenArtifactId artifact = GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT;
     Version v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
     if (v == null) return true;
-    return v.compareTo(Version.Companion.parse(version)) > 0;
+    return v.compareTo(Version.parse(version)) > 0;
   }
 
   /////////////////////////////////////////////////////////////////////////////

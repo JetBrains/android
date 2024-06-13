@@ -42,6 +42,7 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
@@ -54,10 +55,12 @@ import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
+import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.scopeTypeByName
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -73,6 +76,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -105,6 +109,10 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       AndroidManifestClassPsiElementFinder.getInstance(project),
       AndroidResourceClassPsiElementFinder(getLightResourceClassService())
     )
+  }
+
+  override fun isAndroidProject(): Boolean {
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
   override fun getBootClasspath(module: Module): Collection<String> {
@@ -260,10 +268,6 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
     val applicationIdToModule: Map<String, Set<Module>>
   )
 
-  private class LazyComparator<T>(private val delegateProvider: Lazy<Comparator<T>>): Comparator<T> {
-    override fun compare(o1: T, o2: T): Int = delegateProvider.value.compare(o1, o2)
-  }
-
   private fun getGradleProjectCensus(project: Project): GradleProjectCensus {
     return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
       val packageToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
@@ -360,22 +364,21 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
 
 }
 
-private val IdeAndroidArtifact.scopeType: ScopeType
-  get() = when (this.name) {
-    IdeArtifactName.ANDROID_TEST -> ScopeType.ANDROID_TEST
-    IdeArtifactName.MAIN -> ScopeType.MAIN
-    IdeArtifactName.TEST_FIXTURES -> ScopeType.TEST_FIXTURES
-    IdeArtifactName.UNIT_TEST -> ScopeType.UNIT_TEST
-  }
-
 fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   val all =
-    (
-      model.allSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.MAIN) } +
-      model.allUnitTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.UNIT_TEST) } +
-      model.allAndroidTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.ANDROID_TEST) } +
-      model.allTestFixturesSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_FIXTURES) }
-    )
+    mutableMapOf<IdeSourceProvider, NamedIdeaSourceProvider>().apply {
+      putAll(model.allSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.MAIN) })
+      model.allHostTestSourceProviders.forEach { (k, v) ->
+        putAll(v.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, k.scopeTypeByName()) })
+      }
+      model.allDeviceTestSourceProviders.map { (k, v) ->
+        putAll(v.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, k.scopeTypeByName()) })
+      }
+      putAll(model.allTestFixturesSourceProviders.associateWith {
+        createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_FIXTURES)
+      })
+      }
+
 
   fun IdeSourceProvider.toIdeaSourceProvider(): NamedIdeaSourceProvider {
     if (!all.containsKey(this)) {
@@ -384,7 +387,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     return all.getValue(this)
   }
 
-  fun IdeAndroidArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
+  fun IdeAndroidArtifact.toGeneratedIdeaSourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
       scopeType,
@@ -409,10 +412,10 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     )
   }
 
-  fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
+  fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
-      ScopeType.UNIT_TEST,
+      scopeType,
       object : IdeaSourceProviderImpl.Core {
         override val manifestFileUrls: Sequence<String> = emptySequence()
         override val manifestDirectoryUrls: Sequence<String> = emptySequence()
@@ -436,8 +439,8 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   return SourceProvidersImpl(
     mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
     currentSourceProviders = model.activeSourceProviders.map { it.toIdeaSourceProvider() },
-    currentUnitTestSourceProviders = model.unitTestSourceProviders.map { it.toIdeaSourceProvider() },
-    currentAndroidTestSourceProviders = model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
+    currentHostTestSourceProviders = model.hostTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
+    currentDeviceTestSourceProviders = model.deviceTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
     currentTestFixturesSourceProviders = model.testFixturesSourceProviders.map { it.toIdeaSourceProvider() },
     currentAndSomeFrequentlyUsedInactiveSourceProviders = model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
@@ -446,13 +449,17 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
       multiVariantData.productFlavors.filter { it.productFlavor.name in flavorNames }
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
     }.orEmpty(),
-    generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(),
-    generatedUnitTestSources = model.selectedVariant.unitTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
-      ScopeType.UNIT_TEST),
-    generatedAndroidTestSources = model.selectedVariant.androidTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
-      ScopeType.ANDROID_TEST),
-    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
-      ScopeType.TEST_FIXTURES)
+    generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(ScopeType.MAIN),
+    generatedHostTestSources =
+    model.selectedVariant.hostTestArtifacts.associate {
+      it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
+                                                      },
+    generatedDeviceTestSources =
+    model.selectedVariant.deviceTestArtifacts.associate {
+      it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
+                                                        },
+    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider(ScopeType.TEST_FIXTURES)
+      ?: emptySourceProvider(ScopeType.TEST_FIXTURES)
   )
 }
 
@@ -490,12 +497,30 @@ fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: Androi
   return projectSystem.getBuiltApksForSelectedVariant(androidFacet, this, forTests)
 }
 
+private fun IdeArtifactName.toSourceProviderNames(): TestComponentType {
+  return when (this) {
+    IdeArtifactName.UNIT_TEST -> CommonTestType.UNIT_TEST
+    IdeArtifactName.ANDROID_TEST -> CommonTestType.ANDROID_TEST
+    IdeArtifactName.SCREENSHOT_TEST -> CommonTestType.SCREENSHOT_TEST
+    else -> error("Unknown testArtifact name $this")
+  }
+}
+
+private fun IdeArtifactName.toKnownScopeType() =
+  when (this) {
+    IdeArtifactName.MAIN -> ScopeType.MAIN
+    IdeArtifactName.UNIT_TEST -> ScopeType.UNIT_TEST
+    IdeArtifactName.SCREENSHOT_TEST -> ScopeType.SCREENSHOT_TEST
+    IdeArtifactName.ANDROID_TEST -> ScopeType.ANDROID_TEST
+    IdeArtifactName.TEST_FIXTURES -> ScopeType.TEST_FIXTURES
+  }
+
 /**
  * An [ApplicationProjectContextProvider] for the Gradle project system.
  */
 class GradleApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, GradleToken {
-  override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
-    val result = FacetFinder.findFacetForProcess(project, client.clientData)
+  override fun getApplicationProjectContext(client: Client): ApplicationProjectContext? {
+    val result = FacetFinder.tryFindFacetForProcess(project, client.clientData) ?: return null
     return FacetBasedApplicationProjectContext(
       result.applicationId,
       result.facet

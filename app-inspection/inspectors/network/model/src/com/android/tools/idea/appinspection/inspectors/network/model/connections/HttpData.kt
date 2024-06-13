@@ -30,7 +30,6 @@ import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Ht
 
 const val APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded"
 private const val CONTENT_ENCODING = "content-encoding"
-private const val CONTENT_LENGTH = "content-length"
 private const val CONTENT_TYPE = "content-type"
 
 /**
@@ -155,10 +154,7 @@ data class HttpData(
 
   internal fun withRequestCompleted(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
-    return copy(
-      updateTimeUs = timestamp,
-      requestCompleteTimeUs = timestamp,
-    )
+    return copy(updateTimeUs = timestamp, requestCompleteTimeUs = timestamp)
   }
 
   internal fun withResponseStarted(event: NetworkInspectorProtocol.Event): HttpData {
@@ -180,18 +176,12 @@ data class HttpData(
 
   internal fun withResponseCompleted(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
-    return copy(
-      updateTimeUs = timestamp,
-      responseCompleteTimeUs = timestamp,
-    )
+    return copy(updateTimeUs = timestamp, responseCompleteTimeUs = timestamp)
   }
 
   internal fun withHttpClosed(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
-    return copy(
-      updateTimeUs = timestamp,
-      connectionEndTimeUs = timestamp,
-    )
+    return copy(updateTimeUs = timestamp, connectionEndTimeUs = timestamp)
   }
 
   internal fun intersectsRange(range: Range): Boolean {
@@ -205,9 +195,6 @@ data class HttpData(
   fun getRequestContentType() = ContentType(requestHeaders[CONTENT_TYPE]?.firstOrNull() ?: "")
 
   fun getResponseContentType() = ContentType(responseHeaders[CONTENT_TYPE]?.firstOrNull() ?: "")
-
-  fun getResponseContentLength() =
-    responseHeaders[CONTENT_LENGTH]?.firstOrNull()?.toIntOrNull() ?: -1
 
   class ContentType(private val contentType: String) {
     val isEmpty = contentType.isEmpty()

@@ -27,6 +27,7 @@ import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.concurrency.AndroidIoManager;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.res.CacheableResourceRepository;
@@ -44,6 +45,8 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -51,24 +54,32 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public final class StudioResourceRepositoryManager implements Disposable, ResourceRepositoryManager {
   private static final Key<StudioResourceRepositoryManager> KEY = Key.create(StudioResourceRepositoryManager.class.getName());
@@ -128,12 +139,13 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     }
 
     if (instance == null) {
-      StudioResourceRepositoryManager manager = new StudioResourceRepositoryManager(facet, namespacing);
+      StudioResourceRepositoryManager manager = new StudioResourceRepositoryManager(facet, namespacing, facet);
       instance = facet.putUserDataIfAbsent(KEY, manager);
       if (instance == manager) {
         // Our object ended up stored in the facet.
-        Disposer.register(facet, instance);
         AndroidProjectRootListener.ensureSubscribed(manager.getProject());
+      } else {
+        Disposer.dispose(manager);
       }
     }
 
@@ -258,7 +270,10 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     };
   }
 
-  private StudioResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull ResourceNamespacing namespacing) {
+  private StudioResourceRepositoryManager(@NotNull AndroidFacet facet,
+                                          @NotNull ResourceNamespacing namespacing,
+                                          @NotNull Disposable parentDisposable) {
+    Disposer.register(parentDisposable, this);
     myFacet = facet;
     myNamespacing = namespacing;
   }
@@ -309,8 +324,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getNamespace());
           }
-          myAppResources = AppResourceRepository.create(myFacet, getLibraryResources(), getSampleDataResources());
-          Disposer.register(this, myAppResources);
+          myAppResources = AppResourceRepository.create(myFacet, this);
         }
         return myAppResources;
       }
@@ -358,8 +372,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getNamespace());
           }
-          myProjectResources = ProjectResourceRepository.create(myFacet);
-          Disposer.register(this, myProjectResources);
+          myProjectResources = ProjectResourceRepository.create(myFacet, this);
         }
         return myProjectResources;
       }
@@ -405,8 +418,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<VirtualFile>(getNamespace());
           }
-          myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
-          registerIfDisposable(this, myModuleResources);
+          myModuleResources = ModuleResourceRepository.forMainResources(myFacet, this, getNamespace());
         }
         return myModuleResources;
       }
@@ -438,8 +450,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getTestNamespace());
           }
-          myTestAppResources = computeTestAppResources();
-          registerIfDisposable(this, myTestAppResources);
+          myTestAppResources = TestAppResourceRepository.create(myFacet, this);
         }
         return myTestAppResources;
       }
@@ -464,18 +475,11 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getTestNamespace());
           }
-          myTestModuleResources = ModuleResourceRepository.forTestResources(myFacet, getTestNamespace());
-          registerIfDisposable(this, myTestModuleResources);
+          myTestModuleResources = ModuleResourceRepository.forTestResources(myFacet, this, getTestNamespace());
         }
         return myTestModuleResources;
       }
     });
-  }
-
-  @NotNull
-  private LocalResourceRepository<VirtualFile> computeTestAppResources() {
-    LocalResourceRepository<VirtualFile> moduleTestResources = getTestModuleResources();
-    return TestAppResourceRepository.create(myFacet, moduleTestResources);
   }
 
   @Slow
@@ -492,8 +496,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getNamespace());
           }
-          mySampleDataResources = new SampleDataResourceRepository(myFacet);
-          Disposer.register(this, mySampleDataResources);
+          mySampleDataResources = new SampleDataResourceRepository(myFacet, this);
         }
         return mySampleDataResources;
       }
@@ -547,18 +550,22 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.
   public void resetResources() {
-    resetLibraries();
+    List<LocalResourceRepository<VirtualFile>> removedRepositories = new ArrayList<>(6);
+
+    synchronized (myLibraryLock) {
+      myLibraryResourceMap = null;
+    }
 
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources != null) {
-        disposeIfDisposable(myModuleResources);
+        removedRepositories.add(myModuleResources);
         myModuleResources = null;
       }
     }
 
     synchronized (PROJECT_RESOURCES_LOCK) {
       if (myProjectResources != null) {
-        Disposer.dispose(myProjectResources);
+        removedRepositories.add(myProjectResources);
         myProjectResources = null;
         myLocalesAndLanguages = null;
       }
@@ -567,38 +574,48 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     synchronized (APP_RESOURCES_LOCK) {
       synchronized (mySampleDataLock) {
         if (mySampleDataResources != null) {
-          Disposer.dispose(mySampleDataResources);
+          removedRepositories.add(mySampleDataResources);
           mySampleDataResources = null;
         }
       }
 
       if (myAppResources != null) {
-        Disposer.dispose(myAppResources);
+        removedRepositories.add(myAppResources);
         myAppResources = null;
       }
     }
 
     synchronized (TEST_RESOURCES_LOCK) {
       if (myTestAppResources != null) {
-        disposeIfDisposable(myTestAppResources);
+        removedRepositories.add(myTestAppResources);
         myTestAppResources = null;
       }
       if (myTestModuleResources != null) {
-        disposeIfDisposable(myTestModuleResources);
+        removedRepositories.add(myTestModuleResources);
         myTestModuleResources = null;
       }
     }
-  }
 
-  private static void disposeIfDisposable(@NotNull Object object) {
-    if (object instanceof Disposable) {
-      Disposer.dispose((Disposable)object);
-    }
-  }
-
-  private static void registerIfDisposable(@NotNull Disposable parent, @NotNull Object object) {
-    if (object instanceof Disposable) {
-      Disposer.register(parent, (Disposable)object);
+    // Reset is done separately from disposal, since reset isn't needed in all disposal scenarios. Specifically,
+    // there are ways these repositories can be disposed:
+    //  1. This reset method.
+    //  2. When the owning facet is disposed.
+    // In the second case, a "roots updated" notification will be sent to any dependent modules, which will cause
+    // them to recalculate their children and remove any outdated references. So only the first case (this reset
+    // method) requires explicitly notifying those same parent repositories that their children are out of date and
+    // need to be refreshed.
+    if (StudioFlags.RESOURCE_REPOSITORY_NOTIFY_PARENT_ON_DISPOSE.get()) {
+      // Notifying parents is flagged in case this new change has any unexpected side effects.
+      DisposeAndRefreshService disposeAndRefreshService = DisposeAndRefreshService.getInstance();
+      for (LocalResourceRepository<VirtualFile> repository : removedRepositories) {
+        disposeAndRefreshService.disposeAndNotifyParents(repository);
+      }
+    } else {
+      for (LocalResourceRepository<VirtualFile> repository : removedRepositories) {
+        if (repository instanceof Disposable disposable) {
+          Disposer.dispose(disposable);
+        }
+      }
     }
   }
 
@@ -624,18 +641,12 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     return myFacet.getModule().getProject();
   }
 
-  private void resetLibraries() {
-    synchronized (myLibraryLock) {
-      myLibraryResourceMap = null;
-    }
-  }
-
   void updateRootsAndLibraries() {
     try {
       ProjectResourceRepository projectResources = (ProjectResourceRepository)getCachedProjectResources();
       AppResourceRepository appResources = (AppResourceRepository)getCachedAppResources();
       if (projectResources != null) {
-        projectResources.updateRoots();
+        projectResources.refreshChildren();
       }
 
       Map<ExternalAndroidLibrary, AarResourceRepository> oldLibraryResourceMap;
@@ -645,7 +656,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
         myLibraryResourceMap = null;
       }
       if (appResources != null) {
-        appResources.updateRoots(getLibraryResources(), getSampleDataResources());
+        appResources.refreshChildren();
       }
 
       // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
@@ -656,7 +667,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       }
 
       if (getCachedTestAppResources() instanceof TestAppResourceRepository testAppResources) {
-        testAppResources.updateRoots(myFacet, getTestModuleResources());
+        testAppResources.refreshChildren();
       }
     }
     catch (IllegalStateException e) {
@@ -675,8 +686,6 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
   /**
    * Returns the {@link ResourceNamespace} used by the current module.
-   *
-   * <p>This is read from the manifest, so needs to be run inside a read action.
    */
   @Override
   @NotNull
@@ -685,7 +694,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       return ResourceNamespace.RES_AUTO;
     }
 
-    String packageName = ProjectSystemUtil.getModuleSystem(myFacet).getPackageName();
+    String packageName = ReadAction.compute(() -> ProjectSystemUtil.getModuleSystem(myFacet).getPackageName());
     if (packageName == null) {
       return ResourceNamespace.RES_AUTO;
     }
@@ -832,6 +841,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           () -> {
             // Get locales from modules, but not libraries.
             CacheableResourceRepository projectResources = getProjectResources(myFacet);
+            ModificationTracker tracker = projectResources::getModificationCount;
             SortedSet<LocaleQualifier> localeQualifiers = ResourceRepositoryUtil.getLocales(projectResources);
             ImmutableList.Builder<Locale> localesBuilder = ImmutableList.builderWithExpectedSize(localeQualifiers.size());
             ImmutableSortedSet.Builder<String> languagesBuilder = ImmutableSortedSet.naturalOrder();
@@ -842,8 +852,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
                 languagesBuilder.add(language);
               }
             }
-            return CachedValueProvider.Result.create(new LocalesAndLanguages(localesBuilder.build(), languagesBuilder.build()),
-                                                     projectResources);
+            return CachedValueProvider.Result.create(new LocalesAndLanguages(localesBuilder.build(), languagesBuilder.build()), tracker);
           });
       }
       return myLocalesAndLanguages.getValue();
@@ -851,5 +860,55 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   }
 
   private record LocalesAndLanguages(@NotNull ImmutableList<Locale> locales, @NotNull ImmutableSortedSet<String> languages) {
+  }
+
+  /**
+   * Service responsible for disposing repositories that have been reset and notifying their parents, so that the
+   * parents can refresh themselves.
+   * <p>
+   * Disposal and notification is done on a single background thread to ensure that various repositories aren't
+   * resetting concurrently, which may lead to deadlock. The service is APP-level rather than SERVICE-level since many
+   * of the locks involved are static objects, and thus application-wide.
+   */
+  @Service
+  @VisibleForTesting
+  final static class DisposeAndRefreshService implements Disposable {
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    @Override
+    public void dispose() {
+      executor.shutdown();
+    }
+
+    public void disposeAndNotifyParents(LocalResourceRepository<VirtualFile> repository) {
+      if (repository instanceof Disposable disposable) {
+        // Take over ownership of the disposable.
+        Disposer.register(this, disposable);
+      }
+
+      // Store the repository and schedule cleanup.
+      executor.submit(() -> doDisposeAndNotify(repository));
+    }
+
+    private void doDisposeAndNotify(LocalResourceRepository<VirtualFile> repository) {
+      if (repository instanceof Disposable disposable) {
+        Disposer.dispose(disposable);
+      }
+
+      repository.notifyParentsOfReset();
+    }
+
+    @TestOnly
+    public boolean waitForRunningTasks(long timeout, TimeUnit unit) throws InterruptedException {
+      Semaphore semaphore = new Semaphore(0);
+      executor.submit((Runnable)semaphore::release);
+
+      return semaphore.tryAcquire(timeout, unit);
+    }
+
+    public static DisposeAndRefreshService getInstance() {
+      return ApplicationManager.getApplication().getService(DisposeAndRefreshService.class);
+    }
   }
 }

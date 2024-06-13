@@ -34,7 +34,7 @@ internal fun DialogWrapper.getButton(text: String): JButton = getTextComponent(t
 
 private inline fun <reified T> DialogWrapper.getTextComponent(
   text: String,
-  getText: (T) -> String
+  getText: (T) -> String,
 ): T =
   TreeWalker(rootPane).descendants().filterIsInstance<T>().firstOrNull { getText(it) == text }
     ?: fail("${T::class.simpleName} '$text' not found")

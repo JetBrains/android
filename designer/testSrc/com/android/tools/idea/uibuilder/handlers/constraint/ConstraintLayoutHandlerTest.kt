@@ -48,7 +48,7 @@ class ConstraintLayoutHandlerTest : SceneTest() {
             .id("@+id/root")
             .withBounds(0, 0, 2000, 2000)
             .width("1000dp")
-            .height("1000dp")
+            .height("1000dp"),
         )
         .build()
 
@@ -178,8 +178,8 @@ class ConstraintLayoutHandlerTest : SceneTest() {
             .withAttribute("android:visibility", "visible")
             .withAttribute("app:constraint_referenced_ids", "button1,text1")
             .withAttribute("tools:layout_editor_absoluteX", "99dp")
-            .withAttribute("tools:layout_editor_absoluteY", "109dp")
-        )
+            .withAttribute("tools:layout_editor_absoluteY", "109dp"),
+        ),
     )
   }
 
@@ -268,7 +268,7 @@ class ConstraintLayoutHandlerTest : SceneTest() {
     }
     assertEquals(
       "text2,button",
-      flow.getAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS)
+      flow.getAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS),
     )
   }
 
@@ -296,25 +296,25 @@ class ConstraintLayoutHandlerTest : SceneTest() {
                   .withAttribute(
                     SdkConstants.AUTO_URI,
                     SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-                    "parent"
+                    "parent",
                   )
                   .withAttribute(
                     SdkConstants.AUTO_URI,
                     SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-                    "parent"
+                    "parent",
                   )
                   .withAttribute(
                     SdkConstants.AUTO_URI,
                     SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-                    "parent"
+                    "parent",
                   )
                   .withAttribute(
                     SdkConstants.AUTO_URI,
                     SdkConstants.CONSTRAINT_REFERENCED_IDS,
-                    "text1,text2,button"
-                  )
+                    "text1,text2,button",
+                  ),
               )
-          )
+          ),
       )
       .build()
   }
@@ -329,9 +329,9 @@ class ConstraintLayoutHandlerTest : SceneTest() {
               .children(
                 component(CLASS_VIEW).id("@id/view1"),
                 component(CLASS_VIEW).id("@id/view2"),
-                component("Non-view-component").id("@id/non_view1")
+                component("Non-view-component").id("@id/non_view1"),
               )
-          )
+          ),
       )
       .build()
   }
@@ -365,9 +365,9 @@ class ConstraintLayoutHandlerTest : SceneTest() {
                 .height("20dp")
                 .withAttribute("app:layout_constraintLeft_toLeftOf", "@+id/button")
                 .withAttribute("app:layout_constraintTop_toBottomOf", "@+id/button")
-                .withAttribute("android:layout_marginTop", "16dp")
+                .withAttribute("android:layout_marginTop", "16dp"),
             )
-        )
+        ),
     )
   }
 }

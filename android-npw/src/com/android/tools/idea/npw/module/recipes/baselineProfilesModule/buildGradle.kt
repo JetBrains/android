@@ -49,9 +49,10 @@ fun baselineProfilesBuildGradle(
 
       androidComponents {
           onVariants${if (useGradleKts) "" else "(selector().all())"} {  v ->
+              ${if (useGradleKts) "val" else "def"} artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
               v.instrumentationRunnerArguments.put(
                   "targetAppId",
-                  v.testedApks.map { v.artifacts.getBuiltArtifactsLoader().load(it)?.applicationId }
+                  v.testedApks.map { artifactsLoader.load(it)?.applicationId }
               )
           }
       }
@@ -77,15 +78,18 @@ fun baselineProfilesBuildGradle(
       "${useGmd.identifier}(ManagedVirtualDevice)"
     }
 
-    """
-    testOptions.managedDevices.devices {
-        $createGMD {
-            device = "${useGmd.deviceName}"
-            apiLevel = ${useGmd.apiLevel}
-            systemImageSource = "${useGmd.systemImageSource}"
-        }
+    buildString {
+      appendLine("    // This code creates the gradle managed device used to generate baseline profiles.")
+      appendLine("    // To use GMD please invoke generation through the command line:")
+      appendLine("    // ./gradlew $targetModuleGradlePath:generateBaselineProfile")
+      appendLine("    testOptions.managedDevices.devices {")
+      appendLine("        $createGMD {")
+      appendLine("            device = \"${useGmd.deviceName}\"")
+      appendLine("            apiLevel = ${useGmd.apiLevel}")
+      appendLine("            systemImageSource = \"${useGmd.systemImageSource}\"")
+      appendLine("        }")
+      appendLine("    }")
     }
-    """.trimIndent()
   }
 
   val pluginConfiguration = buildString {

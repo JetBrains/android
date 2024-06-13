@@ -20,7 +20,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.troubleshooting.TroubleInfoCollector
 
 /**
- * Collects diagnostics from Design Tools to be displayed when the user uses `Help/Collect
+ * Collects diagnostics from UI Tools to be displayed when the user uses `Help/Collect
  * Troubleshooting Information...`
  */
 class DesignToolsTroubleInfoCollector(
@@ -32,7 +32,7 @@ class DesignToolsTroubleInfoCollector(
       PsiCodeFileChangeDetectorServiceTroubleInfoCollector(),
     )
 ) : TroubleInfoCollector {
-  override fun toString(): String = "Design Tools"
+  override fun toString(): String = "UI Tools"
 
   override fun collectInfo(project: Project): String =
     StringBuilder()
@@ -47,7 +47,7 @@ class DesignToolsTroubleInfoCollector(
   companion object {
     /**
      * Extension point for [TroubleInfoCollector] specific for Design Tools. All the extensions will
-     * be shown in the "Design Tools" tab in `Help/Collect Troubleshooting Information...`.
+     * be shown in the "UI Tools" tab in `Help/Collect Troubleshooting Information...`.
      */
     val providersExtensionPoint: ExtensionPointName<TroubleInfoCollector> =
       ExtensionPointName.create("com.android.tools.idea.uibuilder.troubleshooting.infoCollector")

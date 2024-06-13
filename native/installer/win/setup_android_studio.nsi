@@ -95,8 +95,8 @@ RequestExecutionLevel admin # The uninstaller always runs in admin mode
 !define ANDROID_USER_SETTINGS "$PROFILE\.android"
 !define BAD_CHARS '?%*:|"<>!;'
 
-!define VERSION_MAJOR 2023
-!define VERSION_MINOR 2
+!define VERSION_MAJOR 2024
+!define VERSION_MINOR 1
 !define VERSION ${VERSION_MAJOR}.${VERSION_MINOR}
 !define VENDOR Android
 !define COMPANY "Google LLC"

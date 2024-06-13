@@ -592,7 +592,7 @@ class TreeTableImplTest {
         cell.centerX.toInt(),
         cell.centerY.toInt(),
         0,
-        false
+        false,
       )
     return table.getToolTipText(event)
   }
@@ -745,7 +745,7 @@ class TreeTableImplTest {
             assertThat(table.tree.rowHeight).isEqualTo(table.rowHeight)
           }
         },
-        mock()
+        mock(),
       )
       .evaluate()
   }
@@ -757,7 +757,7 @@ class TreeTableImplTest {
     setScrollPaneSize(
       table,
       table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1),
-      800
+      800,
     )
     table.tree.size = Dimension(table.width - otherColumnsWidth, table.height)
     val cellRenderer = table.tree.cellRenderer
@@ -770,7 +770,7 @@ class TreeTableImplTest {
     setScrollPaneSize(
       table,
       table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1) - 1,
-      800
+      800,
     )
     table.tree.size = Dimension(table.width - otherColumnsWidth, table.height)
     val renderer2 =
@@ -784,7 +784,7 @@ class TreeTableImplTest {
     table: JTable,
     column: Int,
     isSelected: Boolean,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ): Color {
     val renderer = table.getCellRenderer(0, column)
     val component =
@@ -794,7 +794,7 @@ class TreeTableImplTest {
         isSelected,
         hasFocus,
         0,
-        column
+        column,
       )
     return component.foreground
   }
@@ -807,7 +807,7 @@ class TreeTableImplTest {
       0,
       0,
       width + scrollPane.verticalScrollBar.preferredSize.width,
-      height + scrollPane.horizontalScrollBar.preferredSize.height
+      height + scrollPane.horizontalScrollBar.preferredSize.height,
     )
 
     // This disables the "Show scroll bars when scrolling" option on Mac (for this test).
@@ -852,7 +852,7 @@ class TreeTableImplTest {
           foreground = JBColor.lightGray,
           action = column2::performAction,
           popup = column2::showPopup,
-          tooltip = column2::tooltip
+          tooltip = column2::tooltip,
         )
       )
       .withBadgeSupport(badgeItem)
@@ -884,7 +884,7 @@ class TreeTableImplTest {
       false,
       true,
       row,
-      column
+      column,
     )
     return badgeItem.renderer!!.icon
   }

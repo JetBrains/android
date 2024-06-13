@@ -25,10 +25,20 @@ iml_module(
             "tags": ["perfgate"],
             "test_filter": "com.android.tools.idea.rendering.PerfgateJarManagerTest",
         },
-        "perfgateComposeGradle": {
+        "perfgateComposeStandardGradle": {
             "tags": ["perfgate"],
-            "shard_count": 5,
-            "test_filter": "com.android.tools.idea.rendering.PerfgateComposeGradleTest",
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeStandardGradleTest",
+        },
+        "perfgateComposeEssentialsGradle": {
+            "tags": ["perfgate"],
+            "shard_count": 3,
+            "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeEssentialsGradleTest",
+        },
+        "perfgateComposeRenderQualityGradle": {
+            "tags": ["perfgate"],
+            "shard_count": 3,
+            "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeRenderQualityGradleTest",
         },
         "perfgateUiCheck": {
             "tags": ["perfgate"],
@@ -71,8 +81,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -96,6 +107,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer.tests[module, test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
+        "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
     ],
 )
 

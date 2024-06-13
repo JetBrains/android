@@ -17,17 +17,21 @@ package com.android.tools.idea.lint.common
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FQCN_SUPPRESS_LINT
+import com.android.tools.idea.gradle.declarative.DeclarativeLanguage
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
+import com.android.tools.lint.detector.api.ClassContext
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
-import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.codeInspection.SuppressionUtilCore
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.xml.XMLLanguage
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.ModCommandQuickFix
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
@@ -40,12 +44,14 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiImportStatementBase
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiPackageStatement
+import com.intellij.psi.SyntheticElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.idea.util.addAnnotation
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -60,7 +66,9 @@ import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.plugins.groovy.GroovyLanguage
 import org.toml.lang.TomlLanguage
 
-class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) : SuppressQuickFix {
+@Suppress("UnstableApiUsage")
+class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) :
+  ModCommandQuickFix(), SuppressQuickFix {
   private val label = displayName(element, id)
 
   override fun isAvailable(project: Project, context: PsiElement): Boolean = true
@@ -75,22 +83,30 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     return "Suppress"
   }
 
-  override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-    val element = descriptor.psiElement ?: return
-    applyFix(element)
+  override fun perform(project: Project, descriptor: ProblemDescriptor): ModCommand {
+    return applyFix(descriptor.startElement, ActionContext.from(descriptor))
   }
 
-  fun applyFix(element: PsiElement) {
-    when (element.language) {
-      JavaLanguage.INSTANCE -> handleJava(element)
-      XMLLanguage.INSTANCE -> handleXml(element)
-      GroovyLanguage -> handleGroovy(element)
-      KotlinLanguage.INSTANCE -> handleKotlin(element)
-      TomlLanguage -> handleToml(element)
+  fun applyFix(element: PsiElement, context: ActionContext): ModCommand {
+    // In the simple case, quick fixes don't venture outside the containing file of the PsiElement.
+    // ModCommand.psiUpdate takes care of snapshotting the file by calling getWritable().
+    fun simplePsiUpdater(applyFixFun: (PsiElement) -> Unit) =
+      ModCommand.psiUpdate(element) { e, _ -> applyFixFun(e) }
+
+    return when (element.language) {
+      JavaLanguage.INSTANCE -> simplePsiUpdater(::handleJava)
+      XMLLanguage.INSTANCE -> simplePsiUpdater(::handleXml)
+      GroovyLanguage -> simplePsiUpdater(::handleGroovy)
+      KotlinLanguage.INSTANCE -> simplePsiUpdater(::handleKotlin)
+      TomlLanguage -> simplePsiUpdater(::handleToml)
+      DeclarativeLanguage.INSTANCE -> simplePsiUpdater(::handleDeclarative)
       else -> {
-        // Suppressing lint checks tagged on things like icons
-        val file = if (element is PsiFile) element else element.containingFile ?: return
-        handleFile(file)
+        // Suppressing lint checks tagged on things like icons, where we edit a different file.
+        if (element is PsiFile) {
+          // TODO: replace handleFile with a PSI-based implementation
+          handleFile(element)
+        }
+        ModCommand.nop() // write is done outside PSI
       }
     }
   }
@@ -98,9 +114,6 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleXml(element: PsiElement) {
     val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false) ?: return
-    if (!IntentionPreviewUtils.prepareElementForWrite(tag)) {
-      return
-    }
     val file = if (tag is XmlFile) tag else tag.containingFile as? XmlFile ?: return
     val lintId = getLintId(id)
     addSuppressAttribute(file, tag, lintId)
@@ -109,9 +122,6 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleJava(element: PsiElement) {
     val container = findJavaSuppressElement(element) ?: return
-    if (!IntentionPreviewUtils.prepareElementForWrite(container)) {
-      return
-    }
     val project = element.project
     if (container is PsiImportStatementBase) {
       // Cannot annotate import statements; use //noinspection comment instead
@@ -126,9 +136,6 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleGroovy(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
-    if (!IntentionPreviewUtils.prepareElementForWrite(file)) {
-      return
-    }
     val project = file.project
     val offset = element.textOffset
     addNoInspectionComment(project, file, offset)
@@ -137,12 +144,17 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleToml(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
-    if (!IntentionPreviewUtils.prepareElementForWrite(file)) {
-      return
-    }
     val project = file.project
     val offset = element.textOffset
     addNoInspectionComment(project, file, offset, "#")
+  }
+
+  @Throws(IncorrectOperationException::class)
+  private fun handleDeclarative(element: PsiElement) {
+    val file = if (element is PsiFile) element else element.containingFile ?: return
+    val project = file.project
+    val offset = element.textOffset
+    addNoInspectionComment(project, file, offset)
   }
 
   /**
@@ -153,7 +165,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     project: Project,
     file: PsiFile,
     offset: Int,
-    commentPrefix: String = "//"
+    commentPrefix: String = "//",
   ) {
     val documentManager = PsiDocumentManager.getInstance(project)
     val document = file.viewProvider.document ?: return
@@ -167,7 +179,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       if (index != -1) {
         document.insertString(
           prevLineStart + index + NO_INSPECTION_PREFIX.length,
-          getLintId(id) + ","
+          getLintId(id) + ",",
         )
         return
       }
@@ -186,7 +198,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
         NO_INSPECTION_PREFIX +
         getLintId(id) +
         "\n" +
-        linePrefix.substring(0, nonSpace)
+        linePrefix.substring(0, nonSpace),
     )
     documentManager.commitDocument(document)
   }
@@ -218,18 +230,14 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     if (element.isKotlinScript()) return handleKotlinScript(element)
     val target = findKotlinSuppressElement(element) ?: return
 
-    if (!IntentionPreviewUtils.prepareElementForWrite(target)) {
-      return
-    }
-
     when (target) {
       is KtModifierListOwner -> {
         val argument = "\"${getLintId(id)}\""
         target.addAnnotation(
-          FqName(getAnnotationClass(element)),
+          ClassId.fromString(ClassContext.getInternalName(getAnnotationClass(element))),
           argument,
           whiteSpaceText = if (target.isNewLineNeededForAnnotation()) "\n" else " ",
-          addToExistingAnnotation = { entry -> addArgumentToAnnotation(entry, argument) }
+          addToExistingAnnotation = { entry -> addArgumentToAnnotation(entry, argument) },
         )
       }
       else -> {
@@ -244,16 +252,9 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleKotlinScript(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
-    if (!IntentionPreviewUtils.prepareElementForWrite(file)) {
-      return
-    }
     val project = file.project
     val offset = element.textOffset
     addNoInspectionComment(project, file, offset)
-  }
-
-  override fun startInWriteAction(): Boolean {
-    return true
   }
 
   companion object {
@@ -306,13 +307,13 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       project: Project,
       container: PsiElement,
       modifierOwner: PsiModifierListOwner,
-      id: String
+      id: String,
     ) {
       val annotationName = getAnnotationClass(container)
       val annotation = AnnotationUtil.findAnnotation(modifierOwner, annotationName)
       val newAnnotation = createNewAnnotation(project, container, annotation, id)
       if (newAnnotation != null) {
-        if (annotation != null && annotation.isPhysical) {
+        if (annotation != null && annotation !is SyntheticElement) {
           annotation.replace(newAnnotation)
         } else {
           val attributes = newAnnotation.parameterList.attributes
@@ -326,7 +327,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       project: Project,
       container: PsiElement,
       annotation: PsiAnnotation?,
-      id: String
+      id: String,
     ): PsiAnnotation? {
       if (annotation != null) {
         val currentSuppressedId = "\"" + id + "\""
@@ -341,7 +342,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
                 .elementFactory
                 .createAnnotationFromText(
                   "@${getAnnotationClass(container)}({$suppressedWarnings, $currentSuppressedId})",
-                  container
+                  container,
                 )
           }
         } else {
@@ -429,6 +430,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
           else LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         }
         GroovyLanguage -> LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
+        DeclarativeLanguage.INSTANCE ->
+          LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         else -> "Suppress $id"
       }
     }

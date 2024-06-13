@@ -26,30 +26,24 @@ import com.intellij.updater.ValidationResult
 /** A delegating Updater UI that reports events to Android Studio analytics for opted-in users. */
 class StudioUpdaterAnalyticsReportingUI(private val myDelegate: UpdaterUI) : UpdaterUI {
 
-  override fun setDescription(oldBuildDesc: String, newBuildDesc: String) {
-    UsageTracker.version = newBuildDesc
-
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-        productDetails = ProductDetails.newBuilder().apply {
-          product = ProductDetails.ProductKind.STUDIO_PATCH_UPDATER
-          version = newBuildDesc
-        }.build()
-
-        studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-          kind = StudioPatchUpdaterEvent.Kind.PATCH_DETAILS_SHOW
-          patch = StudioPatchUpdaterEvent.Patch.newBuilder().apply {
-            studioVersionFrom = oldBuildDesc
-            studioVersionTo = newBuildDesc
-          }.build()
-        }.build()
-      }
-    )
-    myDelegate.setDescription(oldBuildDesc, newBuildDesc)
-  }
-
   override fun setDescription(text: String) {
+    val match = Regex("Updating (.*) to (.*)").matchEntire(text)
+    if (match != null) {
+      val (_, fromBuild, toBuild) = match.groupValues
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder().apply {
+          kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
+          productDetails = ProductDetails.newBuilder()
+            .setProduct(ProductDetails.ProductKind.STUDIO_PATCH_UPDATER)
+            .setVersion(toBuild)
+            .build()
+          studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder()
+            .setKind(StudioPatchUpdaterEvent.Kind.PATCH_DETAILS_SHOW)
+            .setPatch(StudioPatchUpdaterEvent.Patch.newBuilder().setStudioVersionFrom(fromBuild).setStudioVersionTo(toBuild).build())
+            .build()
+        }
+      )
+    }
     myDelegate.setDescription(text)
   }
 
@@ -86,18 +80,6 @@ class StudioUpdaterAnalyticsReportingUI(private val myDelegate: UpdaterUI) : Upd
         }.build()
       })
     myDelegate.showError(message)
-  }
-
-  @Throws(OperationCancelledException::class)
-  override fun askUser(message: String) {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.STUDIO_PATCH_UPDATER
-        studioPatchUpdaterEvent = StudioPatchUpdaterEvent.newBuilder().apply {
-          kind = StudioPatchUpdaterEvent.Kind.RETRYABLE_ERROR_DIALOG_SHOW
-        }.build()
-      })
-    myDelegate.askUser(message)
   }
 
   @Throws(OperationCancelledException::class)

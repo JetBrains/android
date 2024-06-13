@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.device-explorer-files",
     srcs = ["src"],
     iml_files = ["intellij.android.device-explorer-files.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -13,7 +12,8 @@ iml_module(
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -45,7 +45,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files[module, test]",
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",

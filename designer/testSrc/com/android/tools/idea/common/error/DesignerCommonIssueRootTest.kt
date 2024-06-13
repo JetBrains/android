@@ -87,7 +87,7 @@ class DesignerCommonIssueRootTest {
       listOf(
         IssuedFileNode(file1, root),
         IssuedFileNode(file2, root),
-        LayoutValidationNoFileNode(root)
+        LayoutValidationNoFileNode(root),
       )
     assertEquals(expected, root.getChildren())
   }

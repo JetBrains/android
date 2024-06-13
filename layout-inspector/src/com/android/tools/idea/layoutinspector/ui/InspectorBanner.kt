@@ -29,7 +29,7 @@ import javax.swing.JPanel
 /** A banner for showing notifications in the Layout Inspector. */
 class InspectorBanner(
   parentDisposable: Disposable,
-  private val notificationModel: NotificationModel
+  private val notificationModel: NotificationModel,
 ) : JPanel(), Disposable {
   private var notifications: List<StatusNotification> = emptyList()
 

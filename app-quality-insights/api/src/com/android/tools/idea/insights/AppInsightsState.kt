@@ -13,17 +13,12 @@ data class Filters(
   val versions: MultiSelection<WithCount<Version>>,
   /** Selection of [TimeIntervalFilter]s. */
   val timeInterval: Selection<TimeIntervalFilter>,
-  /**
-   * A list of [Fatality] toggles.
-   *
-   * TODO(b/228076042): add ANR back in the toggle list
-   */
   val failureTypeToggles: MultiSelection<FailureType>,
   val devices: MultiSelection<WithCount<Device>> = MultiSelection.emptySelection(),
   val operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> =
     MultiSelection.emptySelection(),
   val signal: Selection<SignalType> = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
-  val visibilityType: Selection<VisibilityType> = selectionOf(VisibilityType.ALL)
+  val visibilityType: Selection<VisibilityType> = selectionOf(VisibilityType.ALL),
 ) {
   fun withVersions(value: Set<Version>) =
     copy(versions = versions.selectMatching { it.value in value })
@@ -81,7 +76,7 @@ data class AppInsightsState(
 
   /** Access level of the currently logged-in user has on the insights API */
   val permission: Permission = Permission.NONE,
-  val mode: ConnectionMode = ConnectionMode.ONLINE
+  val mode: ConnectionMode = ConnectionMode.ONLINE,
 ) {
   val selectedIssue: AppInsightsIssue?
     get() = if (issues is LoadingState.Ready) issues.value.value.selected else null
@@ -133,7 +128,7 @@ fun AppInsightsState.toIssueRequest(clock: Clock): IssueRequest? {
           clock.instant().let {
             Interval(
               startTime = it.minus(Duration.ofDays(filters.timeInterval.selected.numDays)),
-              endTime = it
+              endTime = it,
             )
           },
         versions =
@@ -147,7 +142,7 @@ fun AppInsightsState.toIssueRequest(clock: Clock): IssueRequest? {
           else filters.operatingSystems.selected.asSequence().map { it.value }.toSet(),
         eventTypes = filters.failureTypeToggles.selected.toList(),
         signal = filters.signal.selected ?: SignalType.SIGNAL_UNSPECIFIED,
-        visibilityType = filters.visibilityType.selected ?: VisibilityType.ALL
-      )
+        visibilityType = filters.visibilityType.selected ?: VisibilityType.ALL,
+      ),
   )
 }

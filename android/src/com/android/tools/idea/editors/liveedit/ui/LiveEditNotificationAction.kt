@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
+import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.compose.ComposeStatus
@@ -32,6 +34,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -46,10 +49,10 @@ import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
 import java.awt.Insets
@@ -59,10 +62,10 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): LiveEdit
   val liveEditService = LiveEditService.getInstance(project)
   val editor: Editor? = dataContext.getData(CommonDataKeys.EDITOR)
   if (editor != null) {
-    val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+    val file = FileDocumentManager.getInstance().getFile(editor.document)
     if (!project.isInitialized ||
-        psiFile == null ||
-        !psiFile.virtualFile.isKotlinFileType() ||
+        file == null ||
+        !file.isKotlinFileType() ||
         !editor.document.isWritable) {
       return LiveEditStatus.Disabled
     }
@@ -186,15 +189,28 @@ class LiveEditIssueNotificationAction(
     return JBUI.insets(2)
   }
 
+  @UiThread
   override fun shouldHide(status: ComposeStatus, dataContext: DataContext): Boolean {
     return shouldHideImpl(status, dataContext)
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.BGT
+  @UiThread
+  override fun shouldSimplify(status: ComposeStatus, dataContext: DataContext): Boolean {
+    val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
+
+    if (toolWindowId != null && toolWindowId.id == RUNNING_DEVICES_TOOL_WINDOW_ID) {
+      return status.shouldSimplify
+    } else {
+      return false
+    }
+  }
+
+  override fun getDisposableParentForPopup(e: AnActionEvent): Disposable? {
+    return e.project?.let { LiveEditService.getInstance(it) }
   }
 }
 
+@UiThread
 private fun shouldHideImpl(status: ComposeStatus, dataContext: DataContext): Boolean {
   if (status != LiveEditStatus.Disabled) {
     // Always show when it's an active status, even if error.

@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.fixupWaiting;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.psi.impl.DebugUtil.sleep;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -29,9 +27,9 @@ import java.awt.Container;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.stream.Collectors;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -115,7 +113,13 @@ class MenuFixture {
       for (int i = 0; i < segmentCount; i++) {
         String segment = path[i];
         System.out.printf("Opening segment: %s%n", segment);
-        Collection<JMenuItem> menuItems = robot.finder().findAll(root, Matchers.byText(JMenuItem.class, segment));
+        Collection<JMenuItem> menuItems = robot.finder().findAll(root, Matchers.byText(JMenuItem.class, segment).and(
+          new GenericTypeMatcher<>(JMenuItem.class) {
+            @Override
+            protected boolean isMatching(@NotNull JMenuItem component) {
+              return component.getHeight() > 0;
+            }
+          }));
         if (menuItems.isEmpty()) {
           System.out.println("No menu items found");
           continue tryAgain;

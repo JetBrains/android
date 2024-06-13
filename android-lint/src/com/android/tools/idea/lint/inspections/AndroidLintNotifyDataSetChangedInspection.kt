@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.RecyclerViewDetector
 class AndroidLintNotifyDataSetChangedInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.notify.data.set.changed"),
-    RecyclerViewDetector.CLEAR_ALL_DATA
+    RecyclerViewDetector.CLEAR_ALL_DATA,
   )

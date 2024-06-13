@@ -17,6 +17,7 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
@@ -35,11 +36,14 @@ import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
+import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.gct.login.LoginState
 import com.google.gct.login.LoginStatus
+import com.google.gct.login2.GoogleLoginService
+import com.google.gct.login2.LoginFeature
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -48,6 +52,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.IncorrectOperationException
 import java.time.Clock
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.BufferOverflow
@@ -78,9 +83,12 @@ class VitalsConfigurationService(project: Project) : Disposable {
 class VitalsConfigurationManager(
   override val project: Project,
   @VisibleForTesting val cache: AppInsightsCache,
-  loginState: Flow<LoginStatus> = service<LoginState>().loginStatus,
+  loginState: Flow<Boolean> =
+    if (StudioFlags.ENABLE_SETTINGS_ACCOUNT_UI.get())
+      GoogleLoginService.instance.activeUserFlow.map { it != null }
+    else service<LoginState>().loginStatus.map { it is LoginStatus.LoggedIn },
   parentDisposable: Disposable,
-  @TestOnly private val testClient: AppInsightsClient? = null
+  @TestOnly private val testClient: AppInsightsClient? = null,
 ) : AppInsightsConfigurationManager, Disposable {
 
   private val logger = Logger.getInstance(VitalsConfigurationManager::class.java)
@@ -95,15 +103,23 @@ class VitalsConfigurationManager(
         loader.getController()
         refreshConfigurationFlow
           .combine(loginState) { _, loginStatus -> loginStatus }
-          .collect { loginStatus ->
-            if (loginStatus is LoginStatus.LoggedIn) {
+          .collect { isLoggedIn ->
+            if (
+              (StudioFlags.ENABLE_SETTINGS_ACCOUNT_UI.get() &&
+                !LoginFeature.feature<VitalsLoginFeature>().isLoggedIn()) ||
+                (!StudioFlags.ENABLE_SETTINGS_ACCOUNT_UI.get() && !isLoggedIn)
+            ) {
+              emit(
+                LoadingState.Unauthorized(
+                  "Android Vitals is not an allowed feature for current user"
+                )
+              )
+            } else {
               val connections = loader.getClient().listConnections()
               if (connections is LoadingState.Ready) {
                 logger.info("Accessible Android Vitals connections: ${connections.value}")
               }
               emit(connections)
-            } else {
-              emit(LoadingState.Unauthorized(null))
             }
           }
       }
@@ -117,14 +133,18 @@ class VitalsConfigurationManager(
       .stateIn(scope, SharingStarted.Eagerly, AppInsightsModel.Uninitialized)
 
   init {
-    Disposer.register(parentDisposable, this)
-    loader.start()
-    scope.launch {
-      loader
-        .getController()
-        .eventFlow
-        .filter { it is ExplicitRefresh }
-        .collect { refreshConfiguration() }
+    if (project.isDisposed) {
+      Disposer.dispose(this)
+    } else {
+      Disposer.register(parentDisposable, this)
+      loader.start()
+      scope.launch {
+        loader
+          .getController()
+          .eventFlow
+          .filter { it is ExplicitRefresh }
+          .collect { refreshConfiguration() }
+      }
     }
   }
 
@@ -181,14 +201,29 @@ class VitalsConfigurationManager(
     fun start() {
       scope.launch {
         if (testClient == null) {
-          clientDeferred.complete(VitalsClient(this@VitalsConfigurationManager, cache))
+          clientDeferred.complete(
+            VitalsClient(
+              this@VitalsConfigurationManager,
+              cache,
+              GoogleLoginService.instance.getActiveUserAuthInterceptor(
+                LoginFeature.feature<VitalsLoginFeature>()
+              ),
+            )
+          )
         } else {
           clientDeferred.complete(testClient)
         }
+        val uiScope =
+          try {
+            AndroidCoroutineScope(this@VitalsConfigurationManager, AndroidDispatchers.uiThread)
+          } catch (e: IncorrectOperationException) {
+            // Project is disposed.
+            return@launch
+          }
         val vitalsController =
           AppInsightsProjectLevelControllerImpl(
             key = VITALS_KEY,
-            AndroidCoroutineScope(this@VitalsConfigurationManager, AndroidDispatchers.uiThread),
+            uiScope,
             AndroidDispatchers.workerThread,
             clientDeferred.await(),
             queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
@@ -202,11 +237,11 @@ class VitalsConfigurationManager(
                 project,
                 MessageType.ERROR,
                 msg,
-                hyperlinkListener
+                hyperlinkListener,
               )
             },
             defaultFilters = createVitalsFilters(),
-            cache = cache
+            cache = cache,
           )
         controllerDeferred.complete(vitalsController)
       }

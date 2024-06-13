@@ -31,7 +31,7 @@ class VitalsConnectionSelectorAction(
   private val flow: StateFlow<Selection<VitalsConnection>>,
   private val scope: CoroutineScope,
   private val onSelected: (VitalsConnection) -> Unit,
-  @TestOnly private val getLocationOnScreen: Component.() -> Point = Component::getLocationOnScreen
+  @TestOnly private val getLocationOnScreen: Component.() -> Point = Component::getLocationOnScreen,
 ) : DropDownAction(null, null, null) {
   private lateinit var popup: JBPopup
 
@@ -42,7 +42,7 @@ class VitalsConnectionSelectorAction(
   override fun update(e: AnActionEvent) {
     e.presentation.setText(
       flow.value.selected?.let { "${it.displayName} [${it.appId}]" } ?: "No apps available",
-      false
+      false,
     )
   }
 

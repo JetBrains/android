@@ -17,9 +17,10 @@ package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.idea.compose.pickers.PsiPickerManager
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.picker.AnimatedPropertiesModel
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -38,7 +39,7 @@ import javax.swing.JComponent
  *
  * @see [AnimatedPropertiesModel] for more details about the picker.
  */
-class PickerButtonAction(val tracker: AnimationTracker, private val onClick: () -> Unit) :
+class PickerButtonAction(val tracker: ComposeAnimationTracker, private val onClick: () -> Unit) :
   CustomComponentAction, AnAction() {
 
   private val stateListeners: MutableList<() -> Unit> = mutableListOf()
@@ -53,7 +54,7 @@ class PickerButtonAction(val tracker: AnimationTracker, private val onClick: () 
               this@PickerButtonAction,
               null,
               ActionPlaces.TOOLBAR,
-              ctx
+              ctx,
             )
           ActionUtil.performDumbAwareWithCallbacks(this@PickerButtonAction, event) {
             this@PickerButtonAction.actionPerformed(event)
@@ -73,13 +74,13 @@ class PickerButtonAction(val tracker: AnimationTracker, private val onClick: () 
         AnimatedPropertiesModel(initialState, targetState) { initial, target ->
           setUnitStates(initial, target)
           onClick()
-        }
+        },
     )
     tracker.openPicker()
   }
 
-  private lateinit var initialState: ComposeUnit.Unit<*>
-  private lateinit var targetState: ComposeUnit.Unit<*>
+  private lateinit var initialState: AnimationUnit.Unit<*>
+  private lateinit var targetState: AnimationUnit.Unit<*>
   private val stateText: String
     get() = "$initialState to $targetState"
 
@@ -99,7 +100,7 @@ class PickerButtonAction(val tracker: AnimationTracker, private val onClick: () 
     setUnitStates(ComposeUnit.parseStateUnit(initial), ComposeUnit.parseStateUnit(target))
   }
 
-  private fun setUnitStates(initial: ComposeUnit.Unit<*>?, target: ComposeUnit.Unit<*>?) {
+  private fun setUnitStates(initial: AnimationUnit.Unit<*>?, target: AnimationUnit.Unit<*>?) {
     if (initial == null || target == null) return
     initialState = initial
     targetState = target

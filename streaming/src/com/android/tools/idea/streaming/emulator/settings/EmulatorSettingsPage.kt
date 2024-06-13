@@ -80,7 +80,7 @@ class EmulatorSettingsPage : SearchableConfigurable, Configurable.NoScroll {
     }
     row {
       synchronizeClipboardCheckBox =
-        checkBox("Enable clipboard sharing")
+        checkBox("Synchronize clipboard")
           .component
     }.topGap(TopGap.SMALL)
     row {

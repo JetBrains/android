@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
+import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap

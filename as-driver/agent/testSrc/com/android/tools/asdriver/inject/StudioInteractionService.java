@@ -33,12 +33,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.icons.CachedImageIcon;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.components.labels.ActionLink;
 import com.intellij.ui.components.labels.LinkLabel;
-import com.intellij.ui.icons.CachedImageIcon;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
@@ -73,6 +74,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import javax.swing.event.HyperlinkEvent;
+
 
 /**
  * Service responsible for interacting with the interface.
@@ -325,7 +327,10 @@ public class StudioInteractionService {
       List<String> iconNames = getIconNamesFromIcon(icon);
       for (String iconName : iconNames) {
         if (iconsToMatchAgainst.contains(iconName)) {
-          matchingLinks.add(c);
+          // For some reason, new UI can have duplicate buttons in tool window toolbars.
+          if (c.getLocation().x < Integer.MAX_VALUE) {
+            matchingLinks.add(c);
+          }
         }
       }
     }
@@ -377,11 +382,14 @@ public class StudioInteractionService {
    * feel free to modify the implementation to accommodate your needs).
    */
   private String getTextFromComponent(Component c) {
-    if (c instanceof JLabel) {
-      return ((JLabel)c).getText();
+    if (c instanceof JLabel jl) {
+      return jl.getText();
     }
-    if (c instanceof AbstractButton) {
-      return ((AbstractButton)c).getText();
+    if (c instanceof AbstractButton ab) {
+      return ab.getText();
+    }
+    if (c instanceof SimpleColoredComponent scc) {
+      return scc.toString();
     }
 
     return null;

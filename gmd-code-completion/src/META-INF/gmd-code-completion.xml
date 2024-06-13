@@ -17,6 +17,12 @@
   <depends>org.intellij.groovy</depends>
   <depends>org.jetbrains.kotlin</depends>
 
+  <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <!--suppress PluginXmlValidity -->
+    <supportsKotlinK2Mode/>
+  </extensions>
+
   <extensions defaultExtensionNs="com.intellij">
     <completion.contributor language="any"
                             id="GmdCodeCompletionContributor"

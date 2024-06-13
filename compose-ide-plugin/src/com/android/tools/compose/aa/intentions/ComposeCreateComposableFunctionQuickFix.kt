@@ -137,7 +137,7 @@ class ComposeCreateComposableFunctionQuickFix(
                   paramName,
                   "${if (isLastLambdaArgument) "@$COMPOSABLE_ANNOTATION_NAME " else ""}${
                   type.render(KtTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT)
-                }"
+                }",
                 )
               }
               noReturnType()

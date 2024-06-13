@@ -64,7 +64,7 @@ class DeviceSizeListTest : AndroidTestBase() {
     device: DeviceSizeList.DeviceSize,
     x: Int,
     y: Int,
-    snap: Int
+    snap: Int,
   ) {
     val size = list.snapToDevice(x, y, snap)
     assertEquals(device.x, size!!.x)

@@ -103,7 +103,7 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
 
   override fun registerKeyboardAction(
     keyStroke: KeyStroke?,
-    actionListener: ActionListener?
+    actionListener: ActionListener?,
   ): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setAutoSelectIfEmpty(autoselect: Boolean): IPopupChooserBuilder<SqliteDatabaseId> =
@@ -138,7 +138,7 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
 
   override fun setSelectedValue(
     preselection: SqliteDatabaseId?,
-    shouldScroll: Boolean
+    shouldScroll: Boolean,
   ): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setAccessibleName(title: String?): IPopupChooserBuilder<SqliteDatabaseId> = this

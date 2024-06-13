@@ -60,6 +60,8 @@ open class GradleFileModelTestCase {
   var languageName: String? = null
   protected lateinit var buildFile: VirtualFile
   protected lateinit var settingsFile: VirtualFile
+  protected lateinit var catalogFile: VirtualFile
+  protected lateinit var gradleWrapperPropertiesFile: VirtualFile
   protected lateinit var testDataPath: String
   protected val isGroovy: Boolean get() = languageName == GROOVY_LANGUAGE
   protected val isKotlinScript: Boolean get() = languageName == KOTLIN_LANGUAGE
@@ -86,8 +88,10 @@ open class GradleFileModelTestCase {
     runWriteAction {
       buildFile = projectRule.fixture.tempDirFixture.createFile(buildFileName)
       settingsFile = projectRule.fixture.tempDirFixture.createFile(settingsFileName)
+      gradleWrapperPropertiesFile = projectRule.fixture.tempDirFixture.createFile("gradle/wrapper/gradle-wrapper.properties")
       assertTrue(buildFile.isWritable)
       assertTrue(settingsFile.isWritable)
+      assertTrue(gradleWrapperPropertiesFile.isWritable)
     }
   }
 
@@ -101,6 +105,20 @@ open class GradleFileModelTestCase {
   protected fun writeToBuildFile(fileName: TestFileName) = writeToGradleFile(fileName, buildFile)
 
   protected fun writeToSettingsFile(fileName: TestFileName) = writeToGradleFile(fileName, settingsFile)
+
+  protected fun writeToCatalogFile(fileName: TestFileName) = writeToGradleFile(fileName, settingsFile)
+  protected fun createCatalogFile(path: String) {
+    runWriteAction {
+      catalogFile = projectRule.fixture.tempDirFixture.createFile(path)
+    }
+  }
+
+  protected fun writeToGradleWrapperPropertiesFile(fileName: TestFileName) {
+    val testFile = fileName.toFile(testDataPath, "")
+    assertTrue(testFile.exists())
+    val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
+    runWriteAction { VfsUtil.saveText(gradleWrapperPropertiesFile, VfsUtilCore.loadText(virtualTestFile!!)) }
+  }
 
   protected fun applyChanges(buildModel: GradleBuildModel) {
     WriteCommandAction.runWriteCommandAction(projectRule.project) { buildModel.applyChanges() }

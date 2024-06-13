@@ -23,9 +23,13 @@ import com.android.tools.idea.mlkit.MlProjectTestUtil;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.RunsInEdt;
+import com.intellij.ui.EditorNotificationPanel;
+import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,7 +59,7 @@ public class LowAgpVersionNotificationProviderTest {
   }
 
   private void setupProject(String version) {
-    MlProjectTestUtil.setupTestMlProject(projectRule.getProject(), version, 28);
+    MlProjectTestUtil.setupTestMlProject(projectRule.getProject(), version, 28, ImmutableList.of());
     myProject = projectRule.getProject();
   }
 

@@ -34,6 +34,7 @@ import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
@@ -47,6 +48,8 @@ import java.util.function.Supplier;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -189,6 +192,17 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
   @Override
   public ToolWindowAnchor getMoreButtonSide() {
     return ToolWindowAnchor.LEFT;
+  }
+
+  public static void split(@NotNull Content content, int dropSide) {
+    ContentManager contentManager = content.getManager();
+    if (contentManager != null) {
+      ((MockContentManager) contentManager).splitWithContent(content, dropSide, -1);
+    }
+  }
+
+  public static void unsplit(@NotNull ContentManager contentManager, @Nullable Content toSelect) {
+    ((MockContentManager) contentManager).unsplit(toSelect);
   }
 
   public static class MockToolWindow implements ToolWindowEx {
@@ -424,7 +438,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public void setTabActions(@NotNull AnAction... actions) {
+    public void setTabActions(@NotNull AnAction @NotNull ... actions) {
     }
 
     @Override
@@ -436,7 +450,10 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
   private static class MockContentManager implements ContentManager {
     private final EventDispatcher<ContentManagerListener> myDispatcher = EventDispatcher.create(ContentManagerListener.class);
     private final List<Content> myContents = new ArrayList<>();
-    private Content mySelected;
+    private final List<MockContentManager> myNestedManagers = new SmartList<>();
+    private @Nullable MockContentManager myParent;
+    private @Nullable Content mySelected;
+    private boolean mySplitUnsplitInProgress;
 
     @Override
     public @NotNull ActionCallback getReady(@NotNull Object requestor) {
@@ -498,7 +515,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public @NotNull List<AnAction> getAdditionalPopupActions(final @NotNull Content content) {
+    public @NotNull List<AnAction> getAdditionalPopupActions(@NotNull Content content) {
       return Collections.emptyList();
     }
 
@@ -549,7 +566,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public Content[] getContents() {
+    public Content @NotNull [] getContents() {
       return myContents.toArray(new Content[0]);
     }
 
@@ -564,7 +581,7 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
-    public Content[] getSelectedContents() {
+    public Content @NotNull [] getSelectedContents() {
       return mySelected != null ? new Content[]{mySelected} : new Content[0];
     }
 
@@ -708,6 +725,102 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     @Override
     public @NotNull ContentFactory getFactory() {
       return ApplicationManager.getApplication().getService(ContentFactory.class);
+    }
+
+    public void splitWithContent(@NotNull Content content, int dropSide, int dropIndex) {
+      if (dropSide == -1 || dropSide == SwingConstants.CENTER || dropIndex >= 0) {
+        addContent(content, dropIndex);
+        return;
+      }
+      MockContentManager firstChild = new MockContentManager();
+      Disposer.register(this, firstChild);
+      MockContentManager secondChild = new MockContentManager();
+      Disposer.register(this, secondChild);
+      addNestedManager(firstChild);
+      addNestedManager(secondChild);
+      ArrayList<Content> contents = new ArrayList<>(myContents);
+      if (!contents.contains(content)) {
+        contents.add(content);
+      }
+      for (Content c : contents) {
+        moveContent(c, (c != content) ^ (dropSide == SwingConstants.LEFT || dropSide == SwingConstants.TOP) ? firstChild : secondChild);
+      }
+    }
+
+    void unsplit(@Nullable Content toSelect) {
+      if (myNestedManagers.isEmpty()) {
+        if (myParent != null) {
+          myParent.unsplit(toSelect);
+        }
+        return;
+      }
+      if (mySplitUnsplitInProgress) {
+        return;
+      }
+
+      mySplitUnsplitInProgress = true;
+      try {
+        for (MockContentManager child : myNestedManagers) {
+          if (child.isSplit()) {
+            raise(child);
+            return;
+          }
+        }
+        for (MockContentManager child : myNestedManagers) {
+          for (Content c : child.getContents()) {
+            child.moveContent(c, this);
+          }
+        }
+        if (toSelect != null) {
+          ContentManager manager = toSelect.getManager();
+          if (manager != null) {
+            manager.setSelectedContent(toSelect);
+          }
+        }
+        for (MockContentManager child : myNestedManagers) {
+          Disposer.dispose(child);
+        }
+        myNestedManagers.clear();
+      }
+      finally {
+        mySplitUnsplitInProgress = false;
+      }
+    }
+
+    private void raise(@NotNull MockContentManager child) {
+      throw new NotImplementedError();
+    }
+
+    private boolean isSplit() {
+      return !myNestedManagers.isEmpty();
+    }
+
+    private void moveContent(Content content, MockContentManager target) {
+      Boolean initialState = content.getUserData(Content.TEMPORARY_REMOVED_KEY);
+      try {
+        mySplitUnsplitInProgress = true;
+        content.putUserData(Content.TEMPORARY_REMOVED_KEY, java.lang.Boolean.TRUE);
+        ContentManager owner = content.getManager();
+        if (owner != null) {
+          owner.removeContent(content, false);
+        }
+        ((ContentImpl)content).setManager(target);
+        target.addContent(content);
+      }
+      finally {
+        content.putUserData(Content.TEMPORARY_REMOVED_KEY, initialState);
+        mySplitUnsplitInProgress = false;
+      }
+    }
+
+    private void addNestedManager(@NotNull MockContentManager manager) {
+      manager.myParent = this;
+      myNestedManagers.add(manager);
+      Disposer.register(manager, () -> removeNestedManager(manager));
+    }
+
+    private void removeNestedManager(@NotNull MockContentManager manager) {
+      myNestedManagers.remove(manager);
     }
   }
 }

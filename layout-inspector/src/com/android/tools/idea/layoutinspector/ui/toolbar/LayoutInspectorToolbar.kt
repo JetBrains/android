@@ -60,7 +60,7 @@ fun createEmbeddedLayoutInspectorToolbar(
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
-  extraActions: List<AnAction> = emptyList()
+  extraActions: List<AnAction> = emptyList(),
 ): JPanel {
   val actionToolbar =
     createStandaloneLayoutInspectorToolbar(
@@ -68,7 +68,7 @@ fun createEmbeddedLayoutInspectorToolbar(
       targetComponent,
       layoutInspector,
       selectProcessAction,
-      extraActions
+      extraActions,
     )
   actionToolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
   actionToolbar.setReservePlaceAutoPopupIcon(false)
@@ -102,7 +102,7 @@ fun createStandaloneLayoutInspectorToolbar(
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
-  extraActions: List<AnAction> = emptyList()
+  extraActions: List<AnAction> = emptyList(),
 ): ActionToolbar {
   val actionGroup = LayoutInspectorActionGroup(layoutInspector, selectProcessAction, extraActions)
   val actionToolbar =
@@ -133,7 +133,7 @@ fun createStandaloneLayoutInspectorToolbar(
 private class LayoutInspectorActionGroup(
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
-  extraActions: List<AnAction>
+  extraActions: List<AnAction>,
 ) : DefaultActionGroup() {
   init {
     if (selectProcessAction != null) {
@@ -143,7 +143,7 @@ private class LayoutInspectorActionGroup(
     add(
       RenderSettingsAction(
         renderModelProvider = { layoutInspector.renderModel },
-        renderSettingsProvider = { layoutInspector.renderLogic.renderSettings }
+        renderSettingsProvider = { layoutInspector.renderLogic.renderSettings },
       )
     )
     add(ToggleOverlayAction { layoutInspector.renderModel })

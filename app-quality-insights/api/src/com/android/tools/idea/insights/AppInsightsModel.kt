@@ -30,6 +30,9 @@ sealed class AppInsightsModel {
   /** The user is not signed in, App Insights will not work until they do. */
   object Unauthenticated : AppInsightsModel()
 
+  /** Studio failed the gradle sync at startup and AQI could not determine app names. */
+  object InitialSyncFailed : AppInsightsModel()
+
   /**
    * When the user is signed in, we pass in [AppInsightsProjectLevelController] which manages App
    * Insights state data.

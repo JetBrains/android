@@ -24,7 +24,7 @@ interface BackgroundTaskInspectorTracker {
 
   fun trackGraphModeSelected(
     context: BackgroundTaskInspectorEvent.Context,
-    chainInfo: BackgroundTaskInspectorEvent.ChainInfo
+    chainInfo: BackgroundTaskInspectorEvent.ChainInfo,
   )
 
   fun trackJumpedToSource()

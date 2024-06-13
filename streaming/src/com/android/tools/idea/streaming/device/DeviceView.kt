@@ -34,11 +34,15 @@ import com.android.tools.idea.streaming.core.scaled
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
-import com.google.common.annotations.VisibleForTesting
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_BACKSPACE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_ENTER
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_ESCAPE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT
@@ -59,6 +63,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TAB
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START
@@ -76,6 +81,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
@@ -99,18 +105,13 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.KEY_RELEASED
-import java.awt.event.KeyEvent.VK_BACK_SPACE
-import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
-import java.awt.event.KeyEvent.VK_ENTER
-import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_KP_DOWN
 import java.awt.event.KeyEvent.VK_KP_LEFT
 import java.awt.event.KeyEvent.VK_KP_RIGHT
 import java.awt.event.KeyEvent.VK_KP_UP
 import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_RIGHT
-import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -198,14 +199,17 @@ internal class DeviceView(
   private var lastTouchCoordinates: Point? = null
   /** Whether the last observed mouse event was in display. */
   private var wasInsideDisplay = false
+  private var mouseHovering = false // Last mouse event was move without pressed buttons.
   private val repaintAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
 
   init {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId} created" }
     Disposer.register(disposableParent, this)
 
     addComponentListener(object : ComponentAdapter() {
       override fun componentShown(event: ComponentEvent) {
+        B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.componentShown" }
         if (physicalWidth > 0 && physicalHeight > 0 && connectionState == ConnectionState.INITIAL) {
           connectToAgentAsync(initialDisplayOrientation)
         }
@@ -224,6 +228,8 @@ internal class DeviceView(
   }
 
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    B330395367Logger.log { "${deviceClient.deviceName}:" +
+                           " ${this@DeviceView.simpleId}.setBounds($x, $y, $width, $height) connectionState=$connectionState" }
     val resized = width != this.width || height != this.height
     super.setBounds(x, y, width, height)
     if (resized && physicalWidth > 0 && physicalHeight > 0) {
@@ -238,6 +244,7 @@ internal class DeviceView(
 
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.connectToAgentAsync($initialDisplayOrientation)" }
     frameNumber = 0u
     connectionState = ConnectionState.CONNECTING
     maxVideoSize = physicalSize
@@ -247,6 +254,7 @@ internal class DeviceView(
   }
 
   private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.connectToAgent" }
     try {
       deviceClient.addAgentTerminationListener(agentTerminationListener)
       if (displayId == PRIMARY_DISPLAY_ID) {
@@ -273,6 +281,7 @@ internal class DeviceView(
       }
     }
     catch (_: CancellationException) {
+      B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.connectToAgent CancellationException" }
       // The view has been closed.
     }
     catch (e: Throwable) {
@@ -289,8 +298,9 @@ internal class DeviceView(
   }
 
   private fun connected() {
-    hideLongRunningOperationIndicatorInstantly()
     if (connectionState == ConnectionState.CONNECTING) {
+      B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.connected" }
+      hideLongRunningOperationIndicatorInstantly()
       hideDisconnectedStateMessage()
       connectionState = ConnectionState.CONNECTED
       if (displayId == PRIMARY_DISPLAY_ID) {
@@ -302,6 +312,7 @@ internal class DeviceView(
   }
 
   private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.disconnected" }
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     if (displayId != PRIMARY_DISPLAY_ID) {
       return
@@ -355,6 +366,7 @@ internal class DeviceView(
   }
 
   override fun dispose() {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.dispose" }
     deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
     deviceClient.stopVideoStream(project, displayId)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
@@ -476,7 +488,7 @@ internal class DeviceView(
     }
   }
 
-  private fun sendMotionEvent(p: Point, action: Int, modifiers: Int, button: Int=0, axisValues: Int2FloatOpenHashMap? = null) {
+  private fun sendMotionEvent(p: Point, action: Int, modifiers: Int, button: Int = 0, axisValues: Int2FloatOpenHashMap? = null) {
     val displayCoordinates = toDeviceDisplayCoordinates(p) ?: return
 
     if (displayCoordinates in deviceDisplaySize) {
@@ -498,9 +510,9 @@ internal class DeviceView(
       return
     }
     val buttonState =
-      (if (modifiers and BUTTON1_DOWN_MASK != 0) MotionEventMessage.BUTTON_PRIMARY else 0) or
-      (if (modifiers and BUTTON2_DOWN_MASK != 0) MotionEventMessage.BUTTON_TERTIARY else 0) or
-      (if (modifiers and BUTTON3_DOWN_MASK != 0) MotionEventMessage.BUTTON_SECONDARY else 0)
+        (if (modifiers and BUTTON1_DOWN_MASK != 0) MotionEventMessage.BUTTON_PRIMARY else 0) or
+        (if (modifiers and BUTTON2_DOWN_MASK != 0) MotionEventMessage.BUTTON_TERTIARY else 0) or
+        (if (modifiers and BUTTON3_DOWN_MASK != 0) MotionEventMessage.BUTTON_SECONDARY else 0)
     val androidActionButton = when (button) {
       MouseEvent.BUTTON1 -> MotionEventMessage.BUTTON_PRIMARY
       MouseEvent.BUTTON2 -> MotionEventMessage.BUTTON_TERTIARY
@@ -614,11 +626,11 @@ internal class DeviceView(
       if (isHardwareInputEnabled()) {
         return
       }
-      if (event.isAltDown || event.isControlDown || event.isMetaDown) {
+      if (event.isControlDown || event.isMetaDown || (!SystemInfo.isMac && event.isAltDown)) {
         return
       }
       val c = event.keyChar
-      if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
+      if (c == CHAR_UNDEFINED || c.isISOControl()) {
         return
       }
       val message = TextInputMessage(c.toString())
@@ -646,22 +658,12 @@ internal class DeviceView(
         return
       }
 
-      val keyCode = event.keyCode
-      val modifiers = event.modifiersEx
-      val androidKeyStroke = hostKeyStrokeToAndroidKeyStroke(keyCode, modifiers)
-      if (androidKeyStroke == null) {
-        if (modifiers == 0) {
-          val androidKeyCode = hostKeyCodeToDeviceKeyCode(keyCode)
-          if (androidKeyCode != AKEYCODE_UNKNOWN) {
-            val action = if (event.id == KEY_PRESSED) ACTION_DOWN else ACTION_UP
-            deviceController?.sendControlMessage(KeyEventMessage(action, androidKeyCode, modifiersToMetaState(modifiers)))
-            event.consume()
-          }
+      if (event.id == KEY_PRESSED) {
+        val androidKeyStroke = hostKeyStrokeToAndroidKeyStroke(event.keyCode, event.modifiersEx)
+        if (androidKeyStroke != null) {
+          deviceController?.sendKeyStroke(androidKeyStroke)
+          event.consume()
         }
-      }
-      else if (event.id == KEY_PRESSED) {
-        deviceController?.sendKeyStroke(androidKeyStroke)
-        event.consume()
       }
     }
 
@@ -677,23 +679,16 @@ internal class DeviceView(
       return keyStrokeMap[KeyStroke.getKeyStroke(canonicalKeyCode, modifiers)]
     }
 
-    private fun hostKeyCodeToDeviceKeyCode(hostKeyCode: Int): Int {
-      return when (hostKeyCode) {
-        VK_BACK_SPACE -> AKEYCODE_DEL
-        VK_DELETE -> if (SystemInfo.isMac) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL
-        VK_ENTER -> AKEYCODE_ENTER
-        VK_ESCAPE -> AKEYCODE_ESCAPE
-        VK_TAB -> AKEYCODE_TAB
-        else -> AKEYCODE_UNKNOWN
-      }
-    }
-
     private fun buildKeyStrokeMap(): Map<KeyStroke, AndroidKeyStroke> {
       return mutableMapOf<KeyStroke, AndroidKeyStroke>().apply {
-        addKeyStrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
         addKeyStrokesForAction(ACTION_COPY, AndroidKeyStroke(AKEYCODE_COPY))
+        addKeyStrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
+        addKeyStrokesForAction(ACTION_DELETE, AndroidKeyStroke(AKEYCODE_FORWARD_DEL))
         addKeyStrokesForAction(ACTION_PASTE, AndroidKeyStroke(AKEYCODE_PASTE))
         addKeyStrokesForAction(ACTION_SELECT_ALL, AndroidKeyStroke(AKEYCODE_A, AMETA_CTRL_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_ENTER, AndroidKeyStroke(AKEYCODE_ENTER))
+        addKeyStrokesForAction(ACTION_EDITOR_ESCAPE, AndroidKeyStroke(AKEYCODE_ESCAPE))
+        addKeyStrokesForAction(ACTION_EDITOR_BACKSPACE, AndroidKeyStroke(AKEYCODE_DEL))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT, AndroidKeyStroke(AKEYCODE_DPAD_LEFT))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_SHIFT_ON))
@@ -714,6 +709,7 @@ internal class DeviceView(
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN, AndroidKeyStroke(AKEYCODE_PAGE_DOWN))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_UP, AMETA_SHIFT_ON))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_DOWN, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_TAB, AndroidKeyStroke(AKEYCODE_TAB))
         addKeyStrokesForAction(ACTION_EDITOR_TEXT_START, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_ON))
         addKeyStrokesForAction(ACTION_EDITOR_TEXT_END, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_ON))
         addKeyStrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_SHIFT_ON))
@@ -734,6 +730,7 @@ internal class DeviceView(
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       if (!isInsideDisplay(event)) return
+      terminateHovering(event)
       if (event.button != MouseEvent.BUTTON1 && !isHardwareInputEnabled()) return
       lastTouchCoordinates = event.location
       updateMultiTouchMode(event)
@@ -771,6 +768,7 @@ internal class DeviceView(
       updateMultiTouchMode(event)
       if (!multiTouchMode) {
         sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.modifiersEx)
+        mouseHovering = true
       }
     }
 
@@ -778,6 +776,7 @@ internal class DeviceView(
       if (!isInsideDisplay(event)) {
         return
       }
+      terminateHovering(event)
       // AWT fakes shift being held down for horizontal scrolling.
       val axis = if (event.isShiftDown) MotionEventMessage.AXIS_HSCROLL else MotionEventMessage.AXIS_VSCROLL
       // Android vertical scroll direction is reversed.
@@ -795,6 +794,16 @@ internal class DeviceView(
         axisValues.put(axis, scrollAmount.toFloat())
         sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, event.modifiersEx, axisValues = axisValues)
         remainingRotation -= 1
+      }
+    }
+
+    private fun terminateHovering(event: MouseEvent) {
+      if (mouseHovering) {
+        val savedMultiTouchMode = multiTouchMode
+        multiTouchMode = false
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_EXIT, 0)
+        multiTouchMode = savedMultiTouchMode
+        mouseHovering = false
       }
     }
 

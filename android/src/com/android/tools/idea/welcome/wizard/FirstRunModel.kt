@@ -107,7 +107,10 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
       components.add(Aehd(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL))
     }
     if (createAvd) {
-      components.add(AndroidVirtualDevice(remotePackages, installUpdates))
+      val avdCreator = AndroidVirtualDevice(remotePackages, installUpdates)
+      if (avdCreator.isAvdCreationNeeded(localHandler)) {
+        components.add(avdCreator)
+      }
     }
     return ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components)
   }

@@ -17,11 +17,11 @@
 #pragma once
 
 #include "control_messages.h"
+#include "ui_settings_state.h"
 
 namespace screensharing {
 
 // Handles requests and commands related to the UI for the settings shortcut dialog in Studio.
-// TODO: This class should keep the initial state of each setting, such that we can revert the settings when the agent is disconnected.
 class UiSettings {
 public:
   UiSettings() = default;
@@ -30,7 +30,28 @@ public:
 
   void SetDarkMode(bool dark_mode);
 
+  void SetGestureNavigation(bool gesture_navigation);
+
+  void SetAppLanguage(const std::string& application_id, const std::string& locale);
+
+  void SetTalkBack(bool on);
+
+  void SetSelectToSpeak(bool on);
+
+  void SetFontSize(int32_t font_size);
+
+  void SetScreenDensity(int32_t density);
+
+  void Reset();
+
 private:
+  bool initial_settings_recorded_ = false;
+  UiSettingsState initial_settings_;
+  UiSettingsState last_settings_;
+
+  void Get(UiSettingsState* state);
+  void StoreInitialSettings(const UiSettingsState& state);
+
   DISALLOW_COPY_AND_ASSIGN(UiSettings);
 };
 

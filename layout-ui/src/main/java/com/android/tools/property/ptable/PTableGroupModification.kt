@@ -23,5 +23,5 @@ package com.android.tools.property.ptable
  */
 class PTableGroupModification(
   val added: List<PTableItem>,
-  val removed: List<PTableItem> = emptyList()
+  val removed: List<PTableItem> = emptyList(),
 )

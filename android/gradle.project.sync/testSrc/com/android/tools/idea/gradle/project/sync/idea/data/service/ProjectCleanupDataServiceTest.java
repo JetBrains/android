@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.mockito.Mock;
+
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ProjectCleanupDataService}.

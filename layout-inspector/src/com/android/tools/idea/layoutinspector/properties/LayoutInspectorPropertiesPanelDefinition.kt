@@ -28,7 +28,7 @@ class LayoutInspectorPropertiesPanelDefinition(
   overrideSide: Boolean = false,
   overrideSplit: Boolean = false,
   showGearAction: Boolean = true,
-  showHideAction: Boolean = true
+  showHideAction: Boolean = true,
 ) :
   ToolWindowDefinition<LayoutInspector>(
     "Attributes",
@@ -44,5 +44,5 @@ class LayoutInspectorPropertiesPanelDefinition(
     showHideAction,
     overrideSide,
     overrideSplit,
-    { LayoutInspectorProperties(it) }
+    { LayoutInspectorProperties(it) },
   )

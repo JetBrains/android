@@ -24,6 +24,7 @@ import com.android.sdklib.devices.State
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.createDesignSurfaceZoomControllerFake
 import com.android.tools.idea.rendering.createRenderTaskErrorResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -99,12 +100,12 @@ class ScreenViewTest {
     assertEquals(
       "measure should not modify the dimensions where there is no device available",
       123,
-      outDimension.width
+      outDimension.width,
     )
     assertEquals(
       "measure should not modify the dimensions where there is no device available",
       123,
-      outDimension.height
+      outDimension.height,
     )
 
     whenever(configuration.cachedDevice).thenReturn(buildDevice("Pixel5"))
@@ -113,12 +114,12 @@ class ScreenViewTest {
     assertEquals(
       "measure should not modify the dimensions where there is no state available",
       123,
-      outDimension.width
+      outDimension.width,
     )
     assertEquals(
       "measure should not modify the dimensions where there is no state available",
       123,
-      outDimension.height
+      outDimension.height,
     )
   }
 
@@ -192,6 +193,10 @@ class ScreenViewTest {
     val layoutlibSceneManagerMock = mock(LayoutlibSceneManager::class.java)
     val screenViewProviderMock = mock(ScreenViewProvider::class.java)
     val designSurfaceMock = mock(NlDesignSurface::class.java)
+    whenever(designSurfaceMock.zoomController)
+      .thenReturn(
+        createDesignSurfaceZoomControllerFake(projectRule.project, projectRule.testRootDisposable)
+      )
     var colorBlindModeFilter = ColorBlindMode.NONE
 
     Disposer.register(projectRule.testRootDisposable, layoutlibSceneManagerMock)

@@ -53,7 +53,7 @@ fun showPopup(
   x: Int,
   y: Int,
   group: ActionGroup,
-  place: String
+  place: String,
 ) {
   if (group.getChildren(null).isEmpty()) {
     return

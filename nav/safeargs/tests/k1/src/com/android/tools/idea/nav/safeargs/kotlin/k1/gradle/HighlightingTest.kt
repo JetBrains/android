@@ -84,7 +84,7 @@ class HighlightingTest {
           }
         """
           .trimIndent(),
-        fixture.project
+        fixture.project,
       )
     }
     fixture.configureFromExistingVirtualFile(file!!)

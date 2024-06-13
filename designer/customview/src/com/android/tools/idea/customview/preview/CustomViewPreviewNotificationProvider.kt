@@ -19,15 +19,11 @@ import com.android.tools.adtui.compose.REFRESH_BUTTON
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
-import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.AnimatedIcon
@@ -39,17 +35,12 @@ import java.util.function.Function
 private const val PREVIEW_OUT_OF_DATE = "The preview is out of date"
 private const val BUILD_AND_REFRESH = "Build & Refresh"
 
-private fun requestBuild(project: Project, module: Module) =
-  GradleBuildInvoker.getInstance(project)
-    .compileJava(setOf(module).toTypedArray(), TestCompileType.NONE)
-
 internal class CustomViewPreviewNotificationProvider : EditorNotificationProvider {
 
   override fun collectNotificationData(
     project: Project,
-    file: VirtualFile
+    file: VirtualFile,
   ): Function<FileEditor, EditorNotificationPanel?>? {
-    val module = ModuleUtil.findModuleForFile(file, project) ?: return null
     return Function { fileEditor ->
       val previewManager = fileEditor.getCustomViewPreviewManager() ?: return@Function null
       when (previewManager.notificationsState) {
@@ -57,7 +48,7 @@ internal class CustomViewPreviewNotificationProvider : EditorNotificationProvide
           EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
             setText(PREVIEW_OUT_OF_DATE)
             createActionLabel("$BUILD_AND_REFRESH${getBuildAndRefreshShortcut().asString()}") {
-              requestBuild(project, module)
+              project.getProjectSystem().getBuildManager().compileFilesAndDependencies(listOf(file))
             }
           }
         CustomViewPreviewManager.NotificationsState.BUILDING ->
@@ -76,7 +67,8 @@ internal class CustomViewPreviewNotificationProvider : EditorNotificationProvide
 }
 
 internal fun requestBuildForSurface(surface: DesignSurface<*>) {
-  surface.models.map { it.module }.distinct().forEach { requestBuild(surface.project, it) }
+  val buildManager = surface.project.getProjectSystem().getBuildManager()
+  buildManager.compileFilesAndDependencies(surface.models.map { it.virtualFile })
 }
 
 /**
@@ -92,6 +84,6 @@ internal class ForceCompileAndRefreshAction(private val surface: DesignSurface<*
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return
     val presentation = e.presentation
-    presentation.isEnabled = !GradleBuildState.getInstance(project).isBuildInProgress
+    presentation.isEnabled = !project.getProjectSystem().getBuildManager().isBuilding
   }
 }

@@ -44,7 +44,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTA
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT
+import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
@@ -91,7 +91,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     val dslParent = element.parent as? GradlePropertiesDslElement ?: return null
 
     while (!(e.parent is KtFile ||
-             (e.parent is KtCallExpression && (e.parent as KtCallExpression).isBlockElement(dslParent)) ||
+             (e.parent is KtCallExpression && (e.parent as KtCallExpression).isBlockElement(this, dslParent)) ||
              (e.parent is KtBlockExpression && dslParent is ExtDslElement))) {
       if (e.parent == null) {
         e = element.psiElement as PsiElement
@@ -210,10 +210,6 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         statementText = "val ${quotedName} = \"abc\""
         isVarOrProperty = true
       }
-      else if (element.elementType == PropertyType.DERIVED) {
-        statementText = "val ${quotedName} by \"abc\""
-        isVarOrProperty = true
-      }
     }
     else if (element is GradleDslExpressionList) {
       val parentDsl = element.parent
@@ -264,18 +260,13 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       }
       is KtProperty -> {
         // If we created a local variable, we need to delete the right value to allow adding the right one.
-        when (element.elementType) {
-          PropertyType.VARIABLE -> {
-            statement.initializer?.delete()
-          }
-          PropertyType.DERIVED -> {
-            statement.delegateExpression?.delete()
-          }
-          else -> {
-            // This is the case os an extra property, and we will need to delete the value from the extra() callExpression.
-            val delegateExpression = statement.delegateExpression as? KtCallExpression ?: return null
-            delegateExpression.valueArgumentList?.removeArgument(0)
-          }
+        if (element.elementType == PropertyType.VARIABLE) {
+          statement.initializer?.delete()
+        }
+        else {
+          // This is the case os an extra property, and we will need to delete the value from the extra() callExpression.
+          val delegateExpression = statement.delegateExpression as? KtCallExpression ?: return null
+          delegateExpression.valueArgumentList?.removeArgument(0)
         }
       }
     }
@@ -338,18 +329,6 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         val argumentList = parentPsiElement.valueArgumentList ?: return null
         val argumentValue = psiFactory.createArgument(statement)
         addedElement = argumentList.addArgumentAfter(argumentValue, anchor as? KtValueArgument)?.getArgumentExpression() ?: return null
-      }
-      is KtProperty -> {
-        // If possible, add statement as delegate
-        val delegate = parentPsiElement.delegate
-        if (delegate != null) {
-          addedElement = delegate.add(statement)
-          delegate.addBefore(psiFactory.createWhiteSpace(), addedElement)
-        }
-        else {
-          addedElement = parentPsiElement.addAfter(statement, anchor)
-          parentPsiElement.addBefore(lineTerminator, addedElement)
-        }
       }
       else -> {
         addedElement = parentPsiElement.addAfter(statement, anchor)

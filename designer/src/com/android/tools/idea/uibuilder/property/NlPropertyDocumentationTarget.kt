@@ -32,7 +32,7 @@ import org.jetbrains.concurrency.Promise
 /** DocumentationTarget for Nele properties. */
 class NlPropertyDocumentationTarget(
   private val componentModel: NlPropertiesModel,
-  private val currentPropertyItem: () -> Promise<PTableItem?>
+  private val currentPropertyItem: () -> Promise<PTableItem?>,
 ) : DocumentationTarget, Pointer<NlPropertyDocumentationTarget> {
 
   override fun computePresentation(): TargetPresentation {

@@ -41,8 +41,6 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
 
   private static final double SLOPE = 20.0;
   private final NlDesignSurface mySurface;
-  private int startX;
-  private int startY;
   private NlComponent mySelectedComponent;
   public static final String MOTION_DRAG_KEYFRAME  = "MotionDragKeyFrame";
   public static final String MOTION_KEY_POS_TYPE  = "MotionDragKeyPosType";
@@ -95,9 +93,6 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y,
                     @JdkConstants.InputEventMask int modifiersEx) {
-    startX = x;
-    startY = y;
-
     MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(mySelectedComponent);
     float fx = Coordinates.getAndroidX(mySceneView, x);
     float fy = Coordinates.getAndroidY(mySceneView, y);

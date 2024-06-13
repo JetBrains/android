@@ -32,7 +32,6 @@ public class EmulatorAfterStudioTest {
   @Test
   public void recognizeNewEmulatorTest() throws Exception {
     AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/minapp");
-    project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip");
 
     try (Adb adb = system.runAdb();
          AndroidStudio studio = system.runStudio(project);

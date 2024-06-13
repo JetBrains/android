@@ -35,14 +35,15 @@ import java.util.function.Function
 const val SECONDS_BETWEEN_LOGGING_WAIT_STATUS: Long = 1
 
 /**
- * Returns client with appId in [appIds] and [ClientData.DebuggerStatus.WAITING], otherwise throws [ExecutionException].
+ * Returns client with appId in [appIds] with [waitingProcessState], otherwise throws [ExecutionException].
  */
 @WorkerThread
 @Throws(ExecutionException::class)
 internal fun waitForClientReadyForDebug(device: IDevice,
                                         appIds: Collection<String>,
                                         pollTimeoutSeconds: Long = 15,
-                                        indicator: ProgressIndicator): Client {
+                                        indicator: ProgressIndicator,
+                                        waitingProcessState: ClientData.DebuggerStatus = ClientData.DebuggerStatus.WAITING): Client {
   indicator.text = "Waiting for processes ${appIds.joinToString()}"
   val lastLogTimes: MutableMap<String, Long> = mutableMapOf()
   val logger = Logger.getInstance("waitForClientReadyForDebug")
@@ -57,7 +58,7 @@ internal fun waitForClientReadyForDebug(device: IDevice,
     // Multiple ids can be in the case of instrumented test with orchestrator.
     // [TODO] pass only one appId.
     for (appId in appIds) {
-      val client = getClientWithAppId(device, appId, lastLogTimes)
+      val client = getClientWithAppId(device, appId, lastLogTimes, waitingProcessState)
       if (client != null) {
         logger.info("$appId is now debuggable.")
         return client
@@ -68,7 +69,10 @@ internal fun waitForClientReadyForDebug(device: IDevice,
   throw ExecutionException("Processes ${appIds.joinToString()} are not found. Aborting session.")
 }
 
-private fun getClientWithAppId(device: IDevice, appId: String, lastLogTimes: MutableMap<String, Long>): Client? {
+private fun getClientWithAppId(device: IDevice,
+                               appId: String,
+                               lastLogTimes: MutableMap<String, Long>,
+                               waitingProcessState: ClientData.DebuggerStatus): Client? {
   val clients = DeploymentApplicationService.instance.findClient(device, appId)
   if (clients.isNotEmpty()) {
     val logger = Logger.getInstance("waitForClientReadyForDebug")
@@ -90,7 +94,7 @@ private fun getClientWithAppId(device: IDevice, appId: String, lastLogTimes: Mut
     // This requires this task to wait for potentially multiple Clients before returning.
     val client = clients[0]
     when (client.clientData.debuggerConnectionStatus) {
-      ClientData.DebuggerStatus.WAITING -> {
+      waitingProcessState -> {
         return client
       }
 
@@ -105,7 +109,7 @@ private fun getClientWithAppId(device: IDevice, appId: String, lastLogTimes: Mut
         throw ExecutionException("A debugger is already attached")
       }
 
-      ClientData.DebuggerStatus.DEFAULT, null -> {
+      else -> {
         return null
       }
     }

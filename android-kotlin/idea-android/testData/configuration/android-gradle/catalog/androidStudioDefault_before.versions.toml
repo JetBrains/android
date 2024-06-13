@@ -1,0 +1,4 @@
+[libraries]
+android-support = "com.android.support:support-v4:13.0.0"
+[plugins]
+android-application ={ id = "com.android.application", version = "+" }

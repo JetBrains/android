@@ -61,7 +61,7 @@ class NoFileNodeTest {
     val root =
       DesignerCommonIssueRoot(
         null,
-        DesignerCommonIssueTestProvider(listOf(TestIssue("a"), TestIssue("b")))
+        DesignerCommonIssueTestProvider(listOf(TestIssue("a"), TestIssue("b"))),
       ) {
         LayoutValidationNodeFactory
       }

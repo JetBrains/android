@@ -135,7 +135,7 @@ class NavXmlIndexTest {
 
       </navigation>
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -284,7 +284,7 @@ class NavXmlIndexTest {
         "activity2",
         "fragment3",
         "double_nested_nav",
-        "dialog1"
+        "dialog1",
       )
 
     verifySerializationLogic(navXmlIndex.valueExternalizer, data)
@@ -308,7 +308,7 @@ class NavXmlIndexTest {
                     tools:layout="@layout/fragment1" />
       </navigation>
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -349,7 +349,7 @@ class NavXmlIndexTest {
           
       </navigation>
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -389,7 +389,7 @@ class NavXmlIndexTest {
 
       </navigation>
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -420,7 +420,7 @@ class NavXmlIndexTest {
             <application android:label="Safe Args Test" />
         </manifest>
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -453,7 +453,7 @@ class NavXmlIndexTest {
                     tools:layout="@layout/fragment1" />
       </navigation>
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -490,7 +490,7 @@ class NavXmlIndexTest {
                     tools:layout="@layout/fragment1" />
       </navigation>
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -513,7 +513,7 @@ class NavXmlIndexTest {
                     tools:layout="@layout/fragment1" />
       </navigation>
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -525,7 +525,7 @@ class NavXmlIndexTest {
 
   private fun verifySerializationLogic(
     valueExternalizer: DataExternalizer<NavXmlData>,
-    data: NavXmlData
+    data: NavXmlData,
   ) {
     val bytesOut = ByteArrayOutputStream()
     DataOutputStream(bytesOut).use { valueExternalizer.save(it, data) }

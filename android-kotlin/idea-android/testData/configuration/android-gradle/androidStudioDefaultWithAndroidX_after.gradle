@@ -31,6 +31,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:+'
+    implementation 'androidx.core:core-ktx:$CORE_KTX_VERSION$'
     compile 'com.android.support:support-v4:13.0.0'
 }

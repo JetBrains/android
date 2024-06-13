@@ -29,7 +29,7 @@ val HQ_RENDERING_HINTS: Map<RenderingHints.Key, Any> =
     RenderingHints.KEY_INTERPOLATION,
     RenderingHints.VALUE_INTERPOLATION_BILINEAR,
     RenderingHints.KEY_STROKE_CONTROL,
-    RenderingHints.VALUE_STROKE_PURE
+    RenderingHints.VALUE_STROKE_PURE,
   )
 
 abstract class DrawCommandBase(private val level: Int = 0) : DrawCommand {

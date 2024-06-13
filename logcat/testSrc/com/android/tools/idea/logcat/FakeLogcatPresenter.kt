@@ -71,7 +71,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     messageBatches.add(messages)
   }
 
-  override suspend fun appendMessages(textAccumulator: TextAccumulator) {
+  override suspend fun appendMessages(textAccumulator: TextAccumulator, context: Any?) {
     val list: List<String> = textAccumulator.text.trim().split("\n")
     lineBatches.add(list)
   }

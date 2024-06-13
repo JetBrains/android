@@ -22,14 +22,14 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.UserDataHolderBase
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 /**
  * All relevant data needed to add a tab into a tabbed pane including a placeholder panel that can

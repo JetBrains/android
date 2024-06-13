@@ -37,13 +37,13 @@ class LiveEditDesugarResponse(val compilerOutput: LiveEditCompilerOutput) {
 
   private fun getClasses(classNames : Set<String>, apiLevel: MinApiLevel): MutableMap<String, ByteArray> {
     if (!apiToClasses.containsKey(apiLevel)) {
-      desugarFailure("No desugared classes for api=$apiLevel")
+      throw desugarFailure("No desugared classes for api=$apiLevel")
     }
 
     val classes: MutableMap<String, ByteArray> = java.util.HashMap()
     for (className in classNames) {
       if (!apiToClasses[apiLevel]!!.containsKey(className)) {
-        desugarFailure("Desugared classes api $apiLevel does not contain $className")
+        throw desugarFailure("Desugared classes api $apiLevel does not contain $className")
       }
       classes[className] = apiToClasses[apiLevel]!![className]!!
     }

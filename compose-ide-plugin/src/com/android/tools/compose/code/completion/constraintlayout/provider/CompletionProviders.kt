@@ -15,6 +15,8 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout.provider
 
+import com.android.tools.completion.addLookupElement
+import com.android.tools.completion.inserthandler.InsertionFormat
 import com.android.tools.compose.code.completion.constraintlayout.ClearAllTemplate
 import com.android.tools.compose.code.completion.constraintlayout.ClearOption
 import com.android.tools.compose.code.completion.constraintlayout.ConstrainAnchorTemplate
@@ -40,8 +42,6 @@ import com.android.tools.compose.code.completion.constraintlayout.getJsonPropert
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetsPropertyModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.JsonPropertyModel
-import com.android.tools.compose.completion.addLookupElement
-import com.android.tools.compose.completion.inserthandler.InsertionFormat
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
@@ -66,7 +66,7 @@ internal abstract class BaseConstraintSetsCompletionProvider :
   final override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val constraintSetsModel = createConstraintSetsModel(initialElement = parameters.position)
     if (constraintSetsModel != null) {
@@ -82,7 +82,7 @@ internal abstract class BaseConstraintSetsCompletionProvider :
   abstract fun addCompletions(
     constraintSetsPropertyModel: ConstraintSetsPropertyModel,
     parameters: CompletionParameters,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   )
 
   /**
@@ -125,7 +125,7 @@ internal object ConstraintSetFieldsProvider : BaseConstraintSetsCompletionProvid
   override fun addCompletions(
     constraintSetsPropertyModel: ConstraintSetsPropertyModel,
     parameters: CompletionParameters,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val currentConstraintSet =
       ConstraintSetModel.getModelForCompletionOnConstraintSetProperty(parameters) ?: return
@@ -147,7 +147,7 @@ internal object ConstraintSetNamesProvider : BaseConstraintSetsCompletionProvide
   override fun addCompletions(
     constraintSetsPropertyModel: ConstraintSetsPropertyModel,
     parameters: CompletionParameters,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val currentConstraintSet =
       ConstraintSetModel.getModelForCompletionOnConstraintSetProperty(parameters)
@@ -168,7 +168,7 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
   override fun addCompletions(
     constraintSetsPropertyModel: ConstraintSetsPropertyModel,
     parameters: CompletionParameters,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val parentPropertyModel =
       JsonPropertyModel.getModelForCompletionOnInnerJsonProperty(parameters) ?: return
@@ -178,7 +178,7 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
         result.addLookupElement(
           lookupString = it.keyWord,
           tailText = " [...]",
-          format = ConstrainAnchorTemplate
+          format = ConstrainAnchorTemplate,
         )
       }
     }
@@ -198,7 +198,7 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
       result.addLookupElement(
         lookupString = KeyWords.Clear,
         format = ClearAllTemplate,
-        tailText = " [<all>]"
+        tailText = " [<all>]",
       )
     }
   }
@@ -214,7 +214,7 @@ internal object ConstraintIdsProvider : BaseConstraintSetsCompletionProvider() {
   override fun addCompletions(
     constraintSetsPropertyModel: ConstraintSetsPropertyModel,
     parameters: CompletionParameters,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val possibleIds =
       constraintSetsPropertyModel.constraintSets.flatMap { it.declaredIds }.toCollection(HashSet())
@@ -237,7 +237,7 @@ internal object AnchorablesProvider : BaseConstraintSetsCompletionProvider() {
   override fun addCompletions(
     constraintSetsPropertyModel: ConstraintSetsPropertyModel,
     parameters: CompletionParameters,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val currentAnchorKeyWord =
       parameters.position.parentOfType<JsonProperty>(withSelf = true)?.name ?: return
@@ -261,7 +261,7 @@ internal object ClearOptionsProvider : BaseConstraintSetsCompletionProvider() {
   override fun addCompletions(
     constraintSetsPropertyModel: ConstraintSetsPropertyModel,
     parameters: CompletionParameters,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val existing =
       parameters.position
@@ -283,7 +283,7 @@ internal object TransitionFieldsProvider : CompletionProvider<CompletionParamete
   override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val parentPropertyModel =
       JsonPropertyModel.getModelForCompletionOnInnerJsonProperty(parameters) ?: return
@@ -314,7 +314,7 @@ internal object OnSwipeFieldsProvider : CompletionProvider<CompletionParameters>
   override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val parentPropertyModel =
       JsonPropertyModel.getModelForCompletionOnInnerJsonProperty(parameters) ?: return
@@ -333,14 +333,14 @@ internal object KeyFramesFieldsProvider : CompletionProvider<CompletionParameter
   override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     val parentPropertyModel =
       JsonPropertyModel.getModelForCompletionOnInnerJsonProperty(parameters) ?: return
     addEnumKeywords<KeyFrameField>(
       result = result,
       format = JsonObjectArrayTemplate,
-      existing = parentPropertyModel.declaredFieldNamesSet
+      existing = parentPropertyModel.declaredFieldNamesSet,
     )
   }
 }
@@ -353,7 +353,7 @@ internal object KeyFrameChildFieldsCompletionProvider : CompletionProvider<Compl
   override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     // TODO(b/207030860): For consistency, make it so that JsonPropertyModel may be used here. It
     // currently won't work because the model
@@ -405,7 +405,7 @@ internal object KeyFrameChildFieldsCompletionProvider : CompletionProvider<Compl
         addEnumKeywords<RenderTransform>(
           result = result,
           format = jsonNumberArrayTemplate,
-          existing = existingFieldsSet
+          existing = existingFieldsSet,
         )
       }
       KeyFrameField.Cycles.keyWord -> {
@@ -413,12 +413,12 @@ internal object KeyFrameChildFieldsCompletionProvider : CompletionProvider<Compl
         addEnumKeywords<RenderTransform>(
           result = result,
           format = jsonNumberArrayTemplate,
-          existing = existingFieldsSet
+          existing = existingFieldsSet,
         )
         addEnumKeywords<KeyCycleField>(
           result = result,
           format = jsonNumberArrayTemplate,
-          existing = existingFieldsSet
+          existing = existingFieldsSet,
         )
       }
       else -> {
@@ -434,7 +434,7 @@ internal object KeyFrameChildFieldsCompletionProvider : CompletionProvider<Compl
   private fun addKeyPositionFields(
     result: CompletionResultSet,
     existing: Set<String>,
-    templateProvider: (KeyPositionField) -> InsertionFormat
+    templateProvider: (KeyPositionField) -> InsertionFormat,
   ) {
     KeyPositionField.values().forEach { keyPositionField ->
       if (existing.contains(keyPositionField.keyWord)) {
@@ -443,7 +443,7 @@ internal object KeyFrameChildFieldsCompletionProvider : CompletionProvider<Compl
       }
       result.addLookupElement(
         lookupString = keyPositionField.keyWord,
-        format = templateProvider(keyPositionField)
+        format = templateProvider(keyPositionField),
       )
     }
   }
@@ -469,7 +469,7 @@ internal class EnumValuesCompletionProvider<E>(private val enumClass: KClass<E>)
   override fun addCompletions(
     parameters: CompletionParameters,
     context: ProcessingContext,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     enumClass.java.enumConstants.forEach { result.addLookupElement(lookupString = it.keyWord) }
   }
@@ -499,7 +499,7 @@ private inline fun <reified E> CompletionResultSet.addEnumKeyWordsWithNumericVal
 private inline fun <reified E> addEnumKeywords(
   result: CompletionResultSet,
   existing: Set<String> = emptySet(),
-  format: InsertionFormat? = null
+  format: InsertionFormat? = null,
 ) where E : Enum<E>, E : ConstraintLayoutKeyWord {
   E::class.java.enumConstants.forEach { constant ->
     if (!existing.contains(constant.keyWord)) {

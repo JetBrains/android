@@ -147,7 +147,7 @@ internal class TutorialCardTest {
         projectRule.project,
         true,
         false,
-        TutorialStep::class.java
+        TutorialStep::class.java,
       )
     // only y bounds matter for scroll wheel setting
     step.setBounds(0, yIndex, 0, 0)
@@ -181,7 +181,7 @@ internal class TutorialCardTest {
         testTutorialData,
         TestFeatureData(),
         true,
-        testTutorialBundleData
+        testTutorialBundleData,
       )
     // normally called by swing internals during setup
     card.addNotify()
@@ -207,7 +207,7 @@ internal class TutorialCardTest {
         testTutorialData,
         TestFeatureData(),
         true,
-        testTutorialBundleData
+        testTutorialBundleData,
       )
     assertThat(testTutorialData.myGetStepCounter).isEqualTo(1)
     // called on close by swing internals
@@ -233,7 +233,7 @@ internal class TutorialCardTest {
         testTutorialData,
         TestFeatureData(),
         true,
-        testTutorialBundleData
+        testTutorialBundleData,
       )
 
     card.addNotify()
@@ -267,7 +267,7 @@ internal class TutorialCardTest {
       testTutorialData,
       TestFeatureData(),
       true,
-      testTutorialBundleData
+      testTutorialBundleData,
     )
   }
 

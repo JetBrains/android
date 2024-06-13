@@ -38,7 +38,7 @@ interface SourceLocation {
 internal data class SourceLocationImpl(
   override val fileName: String,
   override val lineNumber: Int,
-  override val packageHash: Int
+  override val packageHash: Int,
 ) : SourceLocation
 
 /**
@@ -103,7 +103,7 @@ private fun getBound(viewInfo: Any): PxBounds {
     left = getInt(leftPx),
     top = getInt(topPx),
     right = getInt(rightPx),
-    bottom = getInt(bottomPx)
+    bottom = getInt(bottomPx),
   )
 }
 

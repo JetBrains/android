@@ -1,7 +1,7 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
@@ -29,6 +29,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
+import java.util.ArrayList
+import java.util.HashSet
 
 /**
  * Tests of [AndroidGotoRelatedLineMarkerProvider] for Android.

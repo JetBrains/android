@@ -67,11 +67,12 @@ internal fun PsiElementPattern<*, *>.inArrayWithinConstraintBlockProperty(
           // The first expression in a JsonProperty corresponds to the name of the property
           psiElement<JsonReferenceExpression>()
             .withText(StandardPatterns.string().matchPropertyName())
-        )
+        ),
     )
     .withConstraintSetsParentAtLevel(
       CONSTRAINT_BLOCK_PROPERTY_DEPTH + 1
     ) // JsonArray adds one level
+
 // endregion
 
 // region Kotlin Syntax Helpers
@@ -94,14 +95,14 @@ internal fun PsiElementPattern<*, *>.withPropertyParentAtLevel(level: Int, name:
  */
 internal fun PsiElementPattern<*, *>.withPropertyParentAtLevel(
   level: Int,
-  names: Collection<String>
+  names: Collection<String>,
 ) =
   this.withSuperParent(
     level,
     psiElement<JsonProperty>()
       .withChild(
         psiElement<JsonReferenceExpression>().withText(StandardPatterns.string().oneOf(names))
-      )
+      ),
   )
 
 /**

@@ -31,14 +31,13 @@ import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 
-class PanInteraction(private val pannable: Pannable) : Interaction() {
+class PanInteraction(private val pannable: Pannable) : Interaction {
 
   private var isGrabbing = false
   private var pannableOriginalPosition: Point? = Point()
   private val startPoint = Point()
 
   override fun begin(event: InteractionEvent) {
-    begin(event.info.x, event.info.y, event.info.modifiersEx)
     if (event is MousePressedEvent) {
       setupOriginalPoint(event)
       isGrabbing =

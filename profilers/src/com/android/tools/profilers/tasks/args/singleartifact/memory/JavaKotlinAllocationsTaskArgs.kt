@@ -20,6 +20,7 @@ import com.android.tools.profilers.memory.AllocationSessionArtifact
 /**
  * The following class serves as a wrapper for all arguments/data passed to the java/kotlin allocations task handler.
  */
-class JavaKotlinAllocationsTaskArgs(private val artifact: AllocationSessionArtifact) : AllocationsTaskArgs<AllocationSessionArtifact>() {
+class JavaKotlinAllocationsTaskArgs(override val isFromStartup: Boolean = false,
+                                    private val artifact: AllocationSessionArtifact?) : AllocationsTaskArgs<AllocationSessionArtifact>() {
   override fun getAllocationSessionArtifact() = artifact
 }

@@ -63,7 +63,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
-import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 /**
@@ -86,7 +86,7 @@ class NavActionManagerTest : NavTestCase() {
     }
     surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
   }
 
   fun testAddElement() {
@@ -146,7 +146,7 @@ class NavActionManagerTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val fragment1 = model.find("fragment1")!!
     val actionManager = NavActionManager(surface)
     surface.selectionModel.setSelection(listOf(fragment1))
@@ -207,7 +207,7 @@ class NavActionManagerTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val activity = model.find("activity")!!
     // Select the activity to enable Cut and Copy
     surface.selectionModel.setSelection(listOf(activity))
@@ -246,7 +246,7 @@ class NavActionManagerTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val subflow = model.find("subflow")!!
     val actionManager = NavActionManager(surface)
     val menuGroup = actionManager.getPopupMenuActions(subflow)
@@ -291,7 +291,7 @@ class NavActionManagerTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val nav = model.find("nav")!!
     val actionManager = NavActionManager(surface)
     val menuGroup = actionManager.getPopupMenuActions(nav)
@@ -330,7 +330,7 @@ class NavActionManagerTest : NavTestCase() {
         }
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val subnav = model.find("subnav")!!
     surface.currentNavigation = subnav
     val actionManager = NavActionManager(surface)
@@ -346,8 +346,8 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[3], AutoArrangeAction::class.java, "Auto Arrange", true)
     validateItem(items[4], Separator::class.java, null, true)
     validateItem(items[5], ZoomInAction::class.java, "Zoom In", true)
-    validateItem(items[6], ZoomOutAction::class.java, "Zoom Out", false)
-    validateItem(items[7], ZoomToFitAction::class.java, "Zoom to Fit Screen", true)
+    validateItem(items[6], ZoomOutAction::class.java, "Zoom Out", true)
+    validateItem(items[7], ZoomToFitAction::class.java, "Zoom to Fit Screen", false)
     validateItem(items[8], Separator::class.java, null, true)
     validateItem(items[9], GotoComponentAction::class.java, "Go to XML", true)
   }
@@ -359,7 +359,7 @@ class NavActionManagerTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val actionManager = NavActionManager(surface)
     val fragment1 = model.find("fragment1")!!
     surface.selectionModel.setSelection(listOf(fragment1, model.find("fragment2")!!))
@@ -389,7 +389,7 @@ class NavActionManagerTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val actionManager = NavActionManager(surface)
     val action1 = model.find("action1")!!
     val menuGroup = actionManager.getPopupMenuActions(action1)
@@ -413,7 +413,7 @@ class NavActionManagerTest : NavTestCase() {
     val dataContext = SimpleDataContext.builder()
       .add(CommonDataKeys.PROJECT, project)
       .add(DESIGN_SURFACE, surface)
-      .add(ZOOMABLE_KEY, surface)
+      .add(ZOOMABLE_KEY, surface.zoomController)
       .add(COPY_PROVIDER, surfaceActionProvider)
       .add(CUT_PROVIDER, surfaceActionProvider)
       .add(PASTE_PROVIDER, surfaceActionProvider)

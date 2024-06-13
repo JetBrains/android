@@ -16,63 +16,125 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.concurrency.ConcurrentCollectionFactory
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.BuildProgressListener
+import com.intellij.build.SyncViewManager
+import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.FailureResult
+import com.intellij.build.events.FinishBuildEvent
+import com.intellij.build.output.BuildOutputParser
+import com.intellij.concurrency.ConcurrentCollectionFactory.createConcurrentMap
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.util.GradleBundle
 
 private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
 
 /**
  * This service is responsible for collecting sync failure information to be reported to metrics.
  * Failure means that an exception was thrown from Gradle during sync and if this exception is recognised during exception handling
- * process the corresponding value will be collected in this service. In the end, in `onSyncFailure` listener call, collected value is
+ * process the corresponding value will be collected in this service.
+ * In the end, in `onSyncFailure` listener call, collected value is
  * reported to the metrics.
+ * This service waits for [FinishBuildEvent] to be sent to [SyncViewManager], it subscribes to the [SyncViewManager] at sync start
+ * for this. Waiting for this event guarantees that both IssueChecker error handling flow and [BuildOutputParser] flow finished processing,
+ * so we have all error-related data to report.
  */
 @Service(Service.Level.APP)
 class SyncFailureUsageReporter {
-  private val collectedFailures = ConcurrentCollectionFactory.createConcurrentMap<String, AndroidStudioEvent.GradleSyncFailure>()
+  private val collectedFailuresByProjectPath = createConcurrentMap<String, GradleSyncFailure>()
+  private val collectedFailureDetailsByBuildId = createConcurrentMap<Any, AndroidStudioEvent.Builder>()
 
   companion object {
     @JvmStatic
     fun getInstance(): SyncFailureUsageReporter = ApplicationManager.getApplication().getService(SyncFailureUsageReporter::class.java)
   }
 
-  fun onSyncStart(rootProjectPath: @SystemIndependent String) {
-    collectedFailures.remove(rootProjectPath)
+  fun onSyncStart(externalSystemTaskId: ExternalSystemTaskId?, project: Project, rootProjectPath: @SystemIndependent String) {
+    if (externalSystemTaskId == null) return
+    collectedFailuresByProjectPath.remove(rootProjectPath)
+
+    val disposable = Disposer.newDisposable("syncViewListenerDisposable")
+    Disposer.register(project, disposable)
+    project.getService(SyncViewManager::class.java).addListener(SyncViewListener(externalSystemTaskId, disposable, project), disposable)
+
   }
 
-  fun collectFailure(rootProjectPath: @SystemIndependent String, failure: AndroidStudioEvent.GradleSyncFailure) {
-    val previousValue = collectedFailures.put(rootProjectPath, failure)
+  fun collectFailure(rootProjectPath: @SystemIndependent String, failure: GradleSyncFailure) {
+    val previousValue = collectedFailuresByProjectPath.put(rootProjectPath, failure)
     if (previousValue != null) {
       LOG.warn("Multiple sync failures reported. Discarding: $previousValue")
     }
   }
 
-  fun reportFailure(syncStateHolder: GradleSyncStateHolder, rootProjectPath: @SystemIndependent String, processedError: Throwable?) {
+  fun collectProcessedError(externalSystemTaskId: ExternalSystemTaskId?, project: Project, rootProjectPath: @SystemIndependent String, processedError: Throwable?) {
+    if (externalSystemTaskId == null) return
     // If nothing was collected by the issue checkers try to derive a bit more details from the processed error.
     // e.g. if it has a BuildIssue attached then something just did not report the recognized failure.
-    val failureType = collectedFailures.remove(rootProjectPath) ?: deriveSyncFailureFromProcessedError(processedError)
-    UsageTracker.log(
-      syncStateHolder
-        .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS, rootProjectPath)
-        .setGradleSyncFailure(failureType)
-    )
+    val failureType = collectedFailuresByProjectPath.remove(rootProjectPath) ?: deriveSyncFailureFromProcessedError(processedError)
+    // At this point we start waiting for finish event in the listener and loosing guarantee that no other sync starts before that.
+    // Create half-prepared event from what we have now and put it to the map by build id.
+    val syncStateHolder = GradleSyncStateHolder.getInstance(project)
+    collectedFailureDetailsByBuildId[externalSystemTaskId] = syncStateHolder
+      .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS, rootProjectPath)
+      .setGradleSyncFailure(failureType)
   }
 
   private fun deriveSyncFailureFromProcessedError(error: Throwable?) = if (error is BuildIssueException) {
-    if (error.buildIssue.javaClass.packageName.startsWith("com.android.tools.")) {
-      AndroidStudioEvent.GradleSyncFailure.ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
-    }
-    else {
-      AndroidStudioEvent.GradleSyncFailure.BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
+    when {
+      error.buildIssue.javaClass.packageName.startsWith("com.android.tools.") -> GradleSyncFailure.ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
+      error.buildIssue.title == GradleBundle.message("gradle.build.issue.gradle.unsupported.title") -> GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION
+      else -> GradleSyncFailure.BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
     }
   }
   else {
-    AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
+    when {
+      error?.message?.startsWith("Could not find method ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+      error?.message?.startsWith("Could not get unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+      error?.message?.startsWith("Could not set unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+      error?.message?.startsWith("Script compilation error:") == true -> GradleSyncFailure.KTS_COMPILATION_ERROR
+      error?.message?.startsWith("Compilation failed; see the compiler error output for details.") == true -> GradleSyncFailure.JAVA_COMPILATION_ERROR
+      error?.message?.startsWith("Invalid TOML catalog definition:") == true -> GradleSyncFailure.INVALID_TOML_DEFINITION
+      error?.cause?.toString()?.startsWith("org.codehaus.groovy.control.MultipleCompilationErrorsException:") == true ->
+        GradleSyncFailure.GROOVY_COMPILATION_ERROR
+      else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
+    }
+  }
+
+  private inner class SyncViewListener(
+    val externalSystemTaskId: ExternalSystemTaskId,
+    val listenerDisposable: Disposable,
+    val project: Project,
+  ) : BuildProgressListener {
+    override fun onEvent(buildId: Any, event: BuildEvent) {
+      // TODO(b/326938231): in following refactorings we should use this listener for checking and reporting BOW content instead of BOPWrapper infra.
+
+      if (buildId == externalSystemTaskId && event is FinishBuildEvent) {
+        try{
+          if (event.result is FailureResult) {
+            collectedFailureDetailsByBuildId[externalSystemTaskId]?.let {
+              // Attach stats generated by BuildOutputParsers
+              val buildOutputWindowStats = project.getService(BuildOutputParserManager::class.java).createBuildOutputWindowStats()
+              UsageTracker.log(it.setBuildOutputWindowStats(buildOutputWindowStats))
+            }
+          }
+        }
+        finally {
+          collectedFailureDetailsByBuildId.remove(externalSystemTaskId)
+          project.getService(BuildOutputParserManager::class.java).clearParsersState()
+          Disposer.dispose(listenerDisposable)
+        }
+      }
+    }
   }
 }

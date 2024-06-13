@@ -17,6 +17,7 @@ package com.android.tools.idea.execution.common.deploy
 
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.InstallStatus
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -63,6 +64,24 @@ class DeployAndHandleErrorKtTest {
     }
     catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
+    }
+  }
+
+  @Test
+  fun deployWithException_message_details() {
+    val env = createFakeExecutionEnvironment(projectRule.project, "test")
+    val detailedReason = "very lengthy detailed reason"
+
+    val exception = DeployerException.installFailed(InstallStatus.UNKNOWN_ERROR, detailedReason)
+    assumeThat(exception.error.resolution, equalTo(DeployerException.ResolutionAction.RETRY))
+
+    try {
+      deployAndHandleError(env, { throw exception })
+      fail()
+    }
+    catch (e: AndroidExecutionException) {
+      assertThat(e.errorId).isEqualTo(exception.id)
+      assertThat(e.message!!.contains(detailedReason))
     }
   }
 

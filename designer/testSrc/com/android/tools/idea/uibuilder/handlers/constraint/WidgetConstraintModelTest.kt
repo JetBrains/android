@@ -66,28 +66,28 @@ class WidgetConstraintModelTest : SceneTest() {
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-              "parent"
+              "parent",
             )
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-              "linear"
+              "linear",
             )
             .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, "0.632")
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-              "parent"
+              "parent",
             )
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-              "parent"
+              "parent",
             )
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
-              "0.411"
+              "0.411",
             ),
           component(SdkConstants.LINEAR_LAYOUT)
             .withBounds(200, 200, 800, 800)
@@ -97,12 +97,12 @@ class WidgetConstraintModelTest : SceneTest() {
             .withAttribute(
               SdkConstants.TOOLS_URI,
               SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-              "100dp"
+              "100dp",
             )
             .withAttribute(
               SdkConstants.TOOLS_URI,
               SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-              "100dp"
+              "100dp",
             ),
           component(AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.newName())
             .id("@id/guideline")
@@ -112,14 +112,14 @@ class WidgetConstraintModelTest : SceneTest() {
             .withAttribute(
               SdkConstants.ANDROID_URI,
               SdkConstants.ATTR_ORIENTATION,
-              SdkConstants.VALUE_HORIZONTAL
+              SdkConstants.VALUE_HORIZONTAL,
             )
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
-              "200dp"
-            )
-        )
+              "200dp",
+            ),
+        ),
     )
   }
 
@@ -167,7 +167,7 @@ class WidgetConstraintModelTest : SceneTest() {
 
     widgetModel.removeAttributes(
       SdkConstants.SHERPA_URI,
-      SdkConstants.ATTR_LAYOUT_START_TO_START_OF
+      SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
     )
     assertNull(
       textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF)
@@ -205,12 +205,12 @@ class WidgetConstraintModelTest : SceneTest() {
       linear.setAttribute(
         SdkConstants.SHERPA_URI,
         SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-        SdkConstants.ATTR_PARENT
+        SdkConstants.ATTR_PARENT,
       )
       linear.setAttribute(
         SdkConstants.SHERPA_URI,
         SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-        SdkConstants.ATTR_PARENT
+        SdkConstants.ATTR_PARENT,
       )
     }
 
@@ -222,7 +222,7 @@ class WidgetConstraintModelTest : SceneTest() {
       linear.setAttribute(
         SdkConstants.SHERPA_URI,
         SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
-        SdkConstants.ATTR_PARENT
+        SdkConstants.ATTR_PARENT,
       )
     }
     assertTrue(widgetModel.isOverConstrained)
@@ -286,6 +286,21 @@ class WidgetConstraintModelTest : SceneTest() {
       .isEqualTo("16dp")
     assertThat(
         component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START)
+      )
+      .isEqualTo("16dp")
+  }
+
+  fun testSetLeftMarginMinApi16TargetApi1() {
+    val widgetModel = WidgetConstraintModel {}
+    val component = myModel.find("textView2")!!
+    widgetModel.component = component
+    widgetModel.setMargin(WidgetConstraintModel.CONNECTION_LEFT, "16dp")
+    widgetModel.timer.stop()
+    widgetModel.timer.actionListeners.forEach { it.actionPerformed(ActionEvent(component, 0, "")) }
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    assertThat(
+        component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)
       )
       .isEqualTo("16dp")
   }

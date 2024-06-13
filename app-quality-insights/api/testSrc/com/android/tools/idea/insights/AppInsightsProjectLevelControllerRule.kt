@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.testutils.MockitoKt
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -31,14 +30,11 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat
-import com.google.gct.login.GoogleLogin
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.event.HyperlinkListener
@@ -52,25 +48,24 @@ import kotlinx.coroutines.withTimeout
 import org.junit.runner.Description
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(5000) { receive() }
 
 class AppInsightsProjectLevelControllerRule(
   private val projectProvider: () -> Project,
   private val key: InsightsProviderKey,
-  private val onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
+  private val onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
 ) : NamedExternalResource() {
   constructor(
     projectRule: ProjectRule,
     key: InsightsProviderKey = TEST_KEY,
-    onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
+    onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
   ) : this({ projectRule.project }, key, onErrorAction)
 
   constructor(
     androidProjectRule: AndroidProjectRule,
     key: InsightsProviderKey = TEST_KEY,
-    onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
+    onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
   ) : this({ androidProjectRule.project }, key, onErrorAction)
 
   private val disposableRule = DisposableRule()
@@ -95,14 +90,6 @@ class AppInsightsProjectLevelControllerRule(
     client = Mockito.spy(TestAppInsightsClient(cache))
     connections = MutableSharedFlow(replay = 1)
     tracker = mock(AppInsightsTracker::class.java)
-    ApplicationManager.getApplication()
-      .registerOrReplaceServiceInstance(
-        GoogleLogin::class.java,
-        MockitoKt.mock<GoogleLogin>().apply {
-          `when`(this.getEmail()).thenReturn("testuser@gmail.com")
-        },
-        disposable
-      )
     controller =
       AppInsightsProjectLevelControllerImpl(
         key,
@@ -117,7 +104,7 @@ class AppInsightsProjectLevelControllerRule(
         project = projectProvider(),
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
-        cache = cache
+        cache = cache,
       )
     internalState = Channel(capacity = 3)
     scope.launch { controller.state.collect { internalState.send(it) } }
@@ -137,14 +124,14 @@ class AppInsightsProjectLevelControllerRule(
           listOf(DEFAULT_FETCHED_VERSIONS),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       ),
     issueVariantsState: LoadingState.Done<List<IssueVariant>> = LoadingState.Ready(emptyList()),
     eventsState: LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
-    isTransitionToOnlineMode: Boolean = false
+    isTransitionToOnlineMode: Boolean = false,
   ): AppInsightsState {
     client.completeIssuesCallWith(state)
     if (isTransitionToOnlineMode) {
@@ -178,14 +165,14 @@ class AppInsightsProjectLevelControllerRule(
           listOf(DEFAULT_FETCHED_VERSIONS),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       ),
     issueVariantsState: LoadingState.Done<List<IssueVariant>> = LoadingState.Ready(emptyList()),
     eventsState: LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
-    connectionsState: List<Connection> = listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)
+    connectionsState: List<Connection> = listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION),
   ): AppInsightsState {
     connections.emit(connectionsState)
     val loadingState = consumeNext()
@@ -279,7 +266,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
     request: IssueRequest,
     fetchSource: FetchSource?,
     mode: ConnectionMode,
-    permission: Permission
+    permission: Permission,
   ): LoadingState.Done<IssueResponse> =
     topIssuesCall.initiateCall().also {
       if (it is LoadingState.Ready) {
@@ -301,14 +288,15 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   override suspend fun getIssueDetails(
     issueId: IssueId,
     request: IssueRequest,
-    variantId: String?
+    variantId: String?,
   ): LoadingState.Done<DetailedIssueStats?> = detailsCall.initiateCall()
 
   override suspend fun listEvents(
     issueId: IssueId,
     variantId: String?,
     request: IssueRequest,
-    token: String?
+    failureType: FailureType,
+    token: String?,
   ): LoadingState.Done<EventPage> = listEventsCall.initiateCall()
 
   suspend fun completeListEvents(value: LoadingState.Done<EventPage>) =
@@ -321,7 +309,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   override suspend fun updateIssueState(
     connection: Connection,
     issueId: IssueId,
-    state: IssueState
+    state: IssueState,
   ): LoadingState.Done<Unit> = setIssueStateCall.initiateCall()
 
   suspend fun completeUpdateIssueStateCallWith(value: LoadingState.Done<Unit>) {
@@ -331,7 +319,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   override suspend fun listNotes(
     connection: Connection,
     issueId: IssueId,
-    mode: ConnectionMode
+    mode: ConnectionMode,
   ): LoadingState.Done<List<Note>> =
     listNotesCall.initiateCall().also {
       if (it is LoadingState.Ready) {
@@ -346,7 +334,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   override suspend fun createNote(
     connection: Connection,
     issueId: IssueId,
-    message: String
+    message: String,
   ): LoadingState.Done<Note> =
     createNoteCall.initiateCall().also {
       if (it is LoadingState.Ready) {

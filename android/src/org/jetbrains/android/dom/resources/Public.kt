@@ -63,7 +63,7 @@ class PublicResourceNameConverter : StringConverter() {
     val resourceType = ResourceType.fromXmlValue(attributeValue) ?: return null
     return ResourceReferencePsiElement(
       element,
-      ResourceReference(resourceNamespace, resourceType, resourceName)
+      ResourceReference(resourceNamespace, resourceType, resourceName),
     )
   }
 

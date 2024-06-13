@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.rendering.classloading.ClassConverter
+import com.android.utils.JavaVersionUtil
 
 /**
  * A [RuntimeJavaCompiledVersionIssueChecker] for [UnsupportedClassVersionError] with messages following this format:
@@ -34,8 +34,8 @@ class UnsupportedClassVersionIssueChecker : RuntimeJavaCompiledVersionIssueCheck
     val maxJdkSupported = matchResult.groups[2]?.value?.toInt()
     if (agpJdk == null || maxJdkSupported == null) return null
 
-    val agpMinCompatibleJdkVersion = ClassConverter.classVersionToJdk(agpJdk)
-    val gradleJdkVersion = ClassConverter.classVersionToJdk(maxJdkSupported)
+    val agpMinCompatibleJdkVersion = JavaVersionUtil.classVersionToJdk(agpJdk)
+    val gradleJdkVersion = JavaVersionUtil.classVersionToJdk(maxJdkSupported)
     return Pair(agpMinCompatibleJdkVersion, gradleJdkVersion)
   }
 }

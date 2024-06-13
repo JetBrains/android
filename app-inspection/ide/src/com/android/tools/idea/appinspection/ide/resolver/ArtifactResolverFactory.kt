@@ -43,7 +43,7 @@ interface ArtifactResolverFactoryToken<P : AndroidProjectSystem> : Token {
   fun getArtifactResolver(
     projectSystem: P,
     fileService: FileService,
-    httpArtifactResolver: HttpArtifactResolver
+    httpArtifactResolver: HttpArtifactResolver,
   ): ArtifactResolver
 
   companion object {

@@ -45,7 +45,7 @@ class TwoLineLabelTest {
     val panel = TwoLineLabel()
     panel.updateTablePresentation(
       TablePresentationManager(),
-      TablePresentation(foreground = JBColor.BLACK, background = JBColor.WHITE, false)
+      TablePresentation(foreground = JBColor.BLACK, background = JBColor.WHITE, false),
     )
 
     assertThat(panel.line1Label.foreground).isEqualTo(JBColor.BLACK)

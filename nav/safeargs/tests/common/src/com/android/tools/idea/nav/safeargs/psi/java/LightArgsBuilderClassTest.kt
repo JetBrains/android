@@ -56,7 +56,7 @@ class LightArgsBuilderClassTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work

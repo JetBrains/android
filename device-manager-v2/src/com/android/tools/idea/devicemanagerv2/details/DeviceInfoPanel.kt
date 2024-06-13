@@ -40,15 +40,6 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.awt.Cursor
 import java.awt.Font
 import java.awt.Toolkit
@@ -66,6 +57,15 @@ import javax.swing.JPanel
 import javax.swing.LayoutStyle
 import javax.swing.plaf.basic.BasicGraphicsUtils
 import kotlin.reflect.KProperty
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** A panel within the [DeviceDetailsPanel] that shows a table of information about the device. */
 internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
@@ -80,6 +80,9 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
 
   val resolutionDpLabel = LabeledValue("Resolution (dp)")
   var resolutionDp by resolutionDpLabel
+
+  val densityLabel = LabeledValue("Density")
+  var density by densityLabel
 
   val abiListLabel = LabeledValue("ABI list")
   var abiList by abiListLabel
@@ -98,10 +101,11 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
         powerLabel,
         resolutionLabel,
         resolutionDpLabel,
+        densityLabel,
         abiListLabel,
         availableStorageLabel,
         sizeOnDiskLabel,
-      )
+      ),
     )
 
   var copyPropertiesButton: JComponent = JPanel()
@@ -232,6 +236,7 @@ internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
   resolution = properties.resolution?.toString() ?: "Unknown"
   val resolutionDp = properties.resolutionDp
   this.resolutionDp = resolutionDp?.toString() ?: "Unknown"
+  density = properties.density?.let { "$it dpi" } ?: "Unknown"
   screenDiagram.setDimensions(resolutionDp?.width ?: 0, resolutionDp?.height ?: 0)
 
   if (properties is LocalEmulatorProperties) {

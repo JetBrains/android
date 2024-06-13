@@ -22,33 +22,18 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="kxml2" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-jps-common" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
-    <orderEntry type="module" module-name="android.sdktools.analyzer" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.builder-model" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module" module-name="android.sdktools.lint-api" />
-    <orderEntry type="module" module-name="android.sdktools.lint-checks" />
-    <orderEntry type="module" module-name="android.sdktools.lint-model" />
-    <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
-    <orderEntry type="module" module-name="android.sdktools.repository" />
-    <orderEntry type="module" module-name="android.sdktools.resource-repository" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common.gradle.rt" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.analytics" />
     <orderEntry type="module" module-name="intellij.android.assistant" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -102,5 +87,6 @@
     <orderEntry type="module" module-name="kotlin.base.facet" />
     <orderEntry type="module" module-name="kotlin.code-insight.impl-base" />
     <orderEntry type="module" module-name="kotlin.code-insight.utils" />
+    <orderEntry type="module" module-name="intellij.jvm.analysis.impl" />
   </component>
 </module>

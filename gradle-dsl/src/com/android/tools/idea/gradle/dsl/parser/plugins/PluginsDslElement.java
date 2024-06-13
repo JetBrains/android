@@ -48,9 +48,8 @@ public class PluginsDslElement extends GradleDslElementList {
   }
 
   public static final class AndroidPluginsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    public ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    public ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return ImmutableMap.of();
     }
 

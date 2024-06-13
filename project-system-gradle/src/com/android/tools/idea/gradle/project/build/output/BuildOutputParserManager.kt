@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.build.output
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.google.wireless.android.sdk.stats.BuildOutputWindowStats
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.build.output.JavacOutputParser
@@ -41,32 +40,38 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       DataBindingOutputParser(),
                                                       JavacOutputParser(),
                                                       KotlincWithQuickFixesParser(),
-                                                      InstantExecutionReportParser(),
                                                       ConfigurationCacheErrorParser(),
                                                       TomlErrorParser(),
                                                       GradleBuildScriptErrorParser()).map { BuildOutputParserWrapper(it) })
 
   fun sendBuildFailureMetrics() {
     try {
-      val buildErrorMessages = mutableListOf<BuildErrorMessage>()
-      buildOutputParsers.forEach {
-        buildErrorMessages.addAll((it as BuildOutputParserWrapper).buildErrorMessages)
-      }
-
       // It is possible that buildErrorMessages is empty when build failed, which means the error message is not handled
       // by any of the parsers. Log failure event with empty error message in this case.
       UsageTracker.log(
-        AndroidStudioEvent.newBuilder().withProjectId(project).setKind(
-          AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS).setBuildOutputWindowStats(
-          BuildOutputWindowStats.newBuilder().addAllBuildErrorMessages(buildErrorMessages).build()))
+        AndroidStudioEvent.newBuilder().withProjectId(project)
+          .setKind(AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS)
+          .setBuildOutputWindowStats(createBuildOutputWindowStats())
+      )
     }
     catch (e: Exception) {
       Logger.getInstance("BuildFailureMetricsReporting").error("Failed to send metrics", e)
     }
     finally {
-      buildOutputParsers.forEach {
-        (it as BuildOutputParserWrapper).reset()
-      }
+      clearParsersState()
+    }
+  }
+
+  fun createBuildOutputWindowStats(): BuildOutputWindowStats {
+    val buildErrorMessages =  buildOutputParsers.flatMap {
+      (it as BuildOutputParserWrapper).buildErrorMessages
+    }
+    return BuildOutputWindowStats.newBuilder().addAllBuildErrorMessages(buildErrorMessages).build()
+  }
+
+  fun clearParsersState() {
+    buildOutputParsers.forEach {
+      (it as BuildOutputParserWrapper).reset()
     }
   }
 }

@@ -17,17 +17,20 @@ package com.android.tools.idea.uibuilder.surface;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticKey;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueProvider;
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
+import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -47,10 +50,10 @@ import com.android.tools.idea.common.surface.Interactable;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.LayoutScannerControl;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
+import com.android.tools.idea.common.surface.ScaleChange;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.SurfaceScale;
-import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewportScroller;
 import com.android.tools.idea.common.surface.layout.ReferencePointScroller;
@@ -70,11 +73,12 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction;
+import com.android.tools.idea.uibuilder.surface.layout.GridLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.ListLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
@@ -134,12 +138,18 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    */
   @Nullable private final DataProvider myDelegateDataProvider;
 
+  @NotNull
+  @Override
+  public ZoomController getZoomController() {
+    return myZoomController;
+  }
+
   public static class Builder {
     private final Project myProject;
     private final Disposable myParentDisposable;
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
-    @SuppressWarnings("deprecation") private SurfaceLayoutManager myLayoutManager;
+    @SuppressWarnings("deprecation") private SurfaceLayoutOption myLayoutOption;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
     @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
     /**
@@ -174,7 +184,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     @Nullable private ScreenViewProvider myScreenViewProvider = null;
     private boolean mySetDefaultScreenViewProvider = false;
 
-    private double myMaxFitIntoZoomLevel = Double.MAX_VALUE;
+    private double myMaxZoomToFitLevel = Double.MAX_VALUE;
 
     private Function<DesignSurface<LayoutlibSceneManager>, VisualLintIssueProvider> myVisualLintIssueProviderFactory =
       NlDesignSurface::viewVisualLintIssueProviderFactory;
@@ -197,13 +207,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     }
 
     /**
-     * Allows customizing the {@link SurfaceLayoutManager}. Use this method if you need to apply additional settings to it or if you
-     * need to completely replace it, for example for tests.
+     * Allows customizing the {@link SurfaceLayoutOption}.
      */
     @SuppressWarnings("deprecation")
     @NotNull
-    public Builder setLayoutManager(@NotNull SurfaceLayoutManager layoutManager) {
-      myLayoutManager = layoutManager;
+    public Builder setLayoutOption(@NotNull SurfaceLayoutOption layoutOption) {
+      myLayoutOption = layoutOption;
       return this;
     }
 
@@ -351,8 +360,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     }
 
     @NotNull
-    public Builder setMaxFitIntoZoomLevel(double maxFitIntoZoomLevel) {
-      myMaxFitIntoZoomLevel = maxFitIntoZoomLevel;
+    public Builder setMaxZoomToFitLevel(double maxZoomToFitLevel) {
+      myMaxZoomToFitLevel = maxZoomToFitLevel;
       return this;
     }
 
@@ -364,8 +373,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
     @NotNull
     public NlDesignSurface build() {
-      @SuppressWarnings("deprecation")
-      SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
+      SurfaceLayoutOption layoutOption = myLayoutOption != null
+                                                ? myLayoutOption
+                                                : SurfaceLayoutOption.Companion.getDEFAULT_OPTION();
       if (myMinScale > myMaxScale) {
         throw new IllegalStateException("The max scale (" + myMaxScale + ") is lower than min scale (" + myMinScale +")");
       }
@@ -373,7 +383,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         myProject,
         myParentDisposable,
         mySceneManagerProvider,
-        layoutManager,
+        layoutOption,
         myActionManagerProvider,
         myInteractableProvider,
         myInteractionHandlerProvider,
@@ -385,7 +395,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         myZoomControlsPolicy,
         mySupportedActionsProvider,
         myShouldRenderErrorsPanel,
-        myMaxFitIntoZoomLevel,
+        myMaxZoomToFitLevel,
         myVisualLintIssueProviderFactory);
 
       if (myScreenViewProvider != null) {
@@ -407,9 +417,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    */
   private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
 
-  @SurfaceScale private final double myMinScale;
-  @SurfaceScale private final double myMaxScale;
-
   // To scroll to correct viewport position when its size is changed.
   @Nullable private DesignSurfaceViewportScroller myViewportScroller = null;
 
@@ -426,10 +433,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   private final VisualLintIssueProvider myVisualLintIssueProvider;
 
+  private final NlDesignSurfaceZoomController myZoomController;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
-                          @SuppressWarnings("deprecation") @NotNull SurfaceLayoutManager defaultLayoutManager,
+                          @SuppressWarnings("deprecation") @NotNull SurfaceLayoutOption defaultLayoutOption,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider,
@@ -441,22 +450,20 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                           ZoomControlsPolicy zoomControlsPolicy,
                           @NotNull Supplier<ImmutableSet<NlSupportedActions>> supportedActionsProvider,
                           boolean shouldRenderErrorsPanel,
-                          double maxFitIntoZoomLevel,
+                          double maxZoomToFitLevel,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, VisualLintIssueProvider> issueProviderFactory) {
     super(project, parentDisposable, actionManagerProvider, interactableProvider, interactionHandlerProvider,
-          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
+          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, parentDisposable, defaultLayoutOption),
           actionHandlerProvider,
           selectionModel,
-          zoomControlsPolicy,
-          maxFitIntoZoomLevel);
+          zoomControlsPolicy
+    );
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     mySceneManagerProvider = sceneManagerProvider;
     mySupportedActionsProvider = supportedActionsProvider;
     myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
     myVisualLintIssueProvider = issueProviderFactory.apply(this);
-    myMinScale = minScale;
-    myMaxScale = maxScale;
 
     getViewport().addChangeListener(e -> {
       DesignSurfaceViewportScroller scroller = myViewportScroller;
@@ -468,6 +475,17 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
     myScannerControl = new NlLayoutScanner(this);
     myDelegateDataProvider = delegateDataProvider;
+    myZoomController = new NlDesignSurfaceZoomController(
+      () -> getSceneViewLayoutManager().getFitIntoScale(getPositionableContent(), getViewport().getExtentSize()),
+      getAnalyticsManager(),
+      getSelectionModel(),
+      this,
+      maxZoomToFitLevel
+    );
+    myZoomController.setOnScaleListener(this);
+    myZoomController.setMaxScale(maxScale);
+    myZoomController.setMinScale(minScale);
+    myZoomController.setScreenScalingFactor(JBUIScale.sysScale(this));
   }
 
   /**
@@ -483,11 +501,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return sceneManager;
   }
 
-  @SuppressWarnings("deprecation")
   @NotNull
-  public static SurfaceLayoutManager createDefaultSurfaceLayoutManager() {
-    return new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA,
-                                            SingleDirectionLayoutManager.Alignment.CENTER);
+  final NlDesignSurfacePositionableContentLayoutManager getSceneViewLayoutManager() {
+    return (NlDesignSurfacePositionableContentLayoutManager)mySceneViewPanel.getLayout();
   }
 
   /**
@@ -495,7 +511,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    */
   @NotNull
   public static ActionManager<? extends NlDesignSurface> defaultActionManagerProvider(@NotNull DesignSurface<LayoutlibSceneManager> surface) {
-    return new NlActionManager((NlDesignSurface) surface);
+    return new NlActionManager((NlDesignSurface)surface);
   }
 
   /**
@@ -534,6 +550,15 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     manager.addRenderListener(myRenderListener);
 
     return manager;
+  }
+
+  @UiThread
+  public void onLayoutUpdated(SurfaceLayoutOption layoutOption) {
+    if (mySceneViewPanel != null) {
+      setSceneViewAlignment(layoutOption.getSceneViewAlignment());
+      setScrollPosition(0, 0);
+      revalidateScrollArea();
+    }
   }
 
   @NotNull
@@ -621,6 +646,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    * Builds a new {@link NlDesignSurface} with the default settings
    */
   @NotNull
+  @TestOnly
   public static NlDesignSurface build(@NotNull Project project, @NotNull Disposable parentDisposable) {
     return new Builder(project, parentDisposable).build();
   }
@@ -653,12 +679,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public void show(@NotNull AccessoryPanel.Type type, boolean show) {
     showInspectorAccessoryPanel(show);
-  }
-
-  @Override
-  @SurfaceScreenScalingFactor
-  public double getScreenScalingFactor() {
-    return JBUIScale.sysScale(this);
   }
 
   @NotNull
@@ -718,7 +738,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component, () -> {});
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component, () -> { });
 
     if (handler != null) {
       handler.onActivateInDesignSurface(component, x, y);
@@ -880,88 +900,81 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return Iterables.any(getSceneManagers(), (sceneManager) -> sceneManager.getRenderResult() != null);
   }
 
-  @Override
-  @SurfaceScale
-  protected double getMinScale() {
-    return myMinScale;
+  /**
+   * Returns all the {@link PositionableContent} in this surface.
+   */
+  @NotNull
+  protected Collection<PositionableContent> getPositionableContent() {
+    return mySceneViewPanel.getPositionableContent();
+  }
+
+  public Map<SceneView, Rectangle> findSceneViewRectangles() {
+    return mySceneViewPanel.findSceneViewRectangles();
   }
 
   @Override
-  @SurfaceScale
-  protected double getMaxScale() {
-    return myMaxScale;
+  public @Nullable LayoutManagerSwitcher getLayoutManagerSwitcher() {
+    return (LayoutManagerSwitcher) mySceneViewPanel.getLayout();
   }
 
   @Override
-  public boolean canZoomToFit() {
-    @SurfaceScale double currentScale = getScale();
-    @SurfaceScale double zoomToFitScale = getFitScale();
-    return (currentScale > zoomToFitScale && canZoomOut()) || (currentScale < zoomToFitScale && canZoomIn());
-  }
+  public void onScaleChange(@NotNull ScaleChange update) {
+    super.onScaleChange(update);
 
-  @Override
-  public boolean canZoomToActual() {
-    @SurfaceScale double currentScale = getScale();
-    @SurfaceScale double scaleOfActual = 1d / getScreenScalingFactor();
-    return (currentScale > scaleOfActual && canZoomOut()) || (currentScale < scaleOfActual && canZoomIn());
-  }
+    DesignSurfaceViewport port = getViewport();
+    Point scrollPosition = getScrollPosition();
+    Point focusPoint = update.getFocusPoint();
 
-  @Override
-  public double getFitScale() {
-    Dimension extent = getExtentSize();
-    Collection<PositionableContent> positionableContents = getPositionableContent();
-    // If there is no content, use 100% as zoom-to-fit level.
-    double scale = positionableContents.isEmpty() ? 1.0 :
-                   ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
-                     .getLayoutManager()
-                     .getFitIntoScale(getPositionableContent(), extent.width, extent.height);
+    @SuppressWarnings("deprecation")
+    SurfaceLayoutManager layoutManager = getSceneViewLayoutManager().getCurrentLayout().getValue().getLayoutManager();
 
-    return Math.min(scale, myMaxFitIntoScale);
-  }
+    // If layout is a vertical list layout
+    boolean isGroupedListLayout = layoutManager instanceof GroupedListSurfaceLayoutManager || layoutManager instanceof ListLayoutManager;
+    // If layout is grouped grid layout.
+    boolean isGroupedGridLayout = layoutManager instanceof GroupedGridSurfaceLayoutManager || layoutManager instanceof GridLayoutManager;
 
-  @Override
-  public boolean setScale(double scale, int x, int y) {
-    double previousScale = getScale();
-    boolean changed = super.setScale(scale, x, y);
-    if (changed) {
-      DesignSurfaceViewport port = getViewport();
-      Point scrollPosition = getScrollPosition();
-      @SuppressWarnings("deprecation")
-      SurfaceLayoutManager layoutManager = ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
-        .getLayoutManager();
-
-      if (layoutManager instanceof GroupedListSurfaceLayoutManager) { // new list mode
-        if(x < 0 || y < 0) {
-          // zoom with top-center of the visible area as anchor
-          myViewportScroller = new TopBoundCenterScroller(
-            new Dimension(port.getViewSize()), new Point(scrollPosition), port.getExtentSize(), previousScale, getScale());
-        }
-        else {
-          // zoom with mouse position as anchor, and considering its relative position to the existing scene views
-          myViewportScroller = new ReferencePointScroller(
-            new Dimension(port.getViewSize()), new Point(scrollPosition),
-            new Point(x, y), previousScale, getScale(), findSceneViewRectangles(),
-            (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
-                                                                                     getPositionableContent(),
-                                                                                     getExtentSize()));
-        }
-      } else if(layoutManager instanceof GroupedGridSurfaceLayoutManager) { // new grid mode
-        // zoom with top-left corner of the visible area as anchor
-        myViewportScroller = new TopLeftCornerScroller(
-          new Dimension(port.getViewSize()), new Point(scrollPosition), previousScale, getScale());
+    if (isGroupedListLayout) { // new list mode
+      if (focusPoint.x < 0 || focusPoint.y < 0) {
+        // zoom with top-center of the visible area as anchor
+        myViewportScroller = new TopBoundCenterScroller(
+          new Dimension(port.getViewSize()),
+          new Point(scrollPosition),
+          port.getExtentSize(),
+          update.getPreviousScale(),
+          update.getNewScale()
+        );
+      } else {
+        // zoom with mouse position as anchor, and considering its relative position to the existing scene views
+        myViewportScroller = new ReferencePointScroller(
+          new Dimension(port.getViewSize()),
+          new Point(scrollPosition),
+          focusPoint,
+          update.getPreviousScale(),
+          update.getNewScale(),
+          findSceneViewRectangles(),
+          (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView, getExtentSize())
+        );
       }
-      else if (!(layoutManager instanceof GridSurfaceLayoutManager)) {
-        Point zoomCenterInView;
-        if (x < 0 || y < 0) {
-          x = port.getViewportComponent().getWidth() / 2;
-          y = port.getViewportComponent().getHeight() / 2;
-        }
-        zoomCenterInView = new Point(scrollPosition.x + x, scrollPosition.y + y);
-
-        myViewportScroller = new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView);
+    } else if (isGroupedGridLayout) { // new grid mode
+      // zoom with top-left corner of the visible area as anchor
+      myViewportScroller = new TopLeftCornerScroller(
+        new Dimension(port.getViewSize()),
+        new Point(scrollPosition),
+        update.getPreviousScale(),
+        update.getNewScale()
+      );
+    } else if (!(layoutManager instanceof GridSurfaceLayoutManager)) {
+      Point zoomCenterInView;
+      if (focusPoint.x < 0 || focusPoint.y < 0) {
+        focusPoint = new Point(
+          port.getViewportComponent().getWidth() / 2,
+          port.getViewportComponent().getHeight() / 2
+        );
       }
+      zoomCenterInView = new Point(scrollPosition.x + focusPoint.x, scrollPosition.y + focusPoint.y);
+
+      myViewportScroller = new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView);
     }
-    return changed;
   }
 
   /**
@@ -970,9 +983,10 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    * When zooming, the sceneViews may move around, and so the rectangle's coordinates should be
    * relative to the sceneView.
    * The given rectangle should be a subsection of the given sceneView.
+   *
    * @param sceneView the {@link SceneView} that contains the given rectangle
    * @param rectangle the rectangle that should be visible, with its coordinates relative to the
-   *  sceneView, and with its currentsize (before zooming).
+   *                  sceneView, and with its currentsize (before zooming).
    */
   public final void zoomAndCenter(@NotNull SceneView sceneView,
                                   @NotNull @SwingCoordinate Rectangle rectangle) {
@@ -990,19 +1004,19 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     // Make sure both dimensions fit, and at least one of them is as tight
     // as possible (respecting the offset).
     double scaleChangeNeeded = Math.min(
-      (availableSize.getWidth() - 2*offset.width) / curSize.getWidth(),
-      (availableSize.getHeight() - 2*offset.height) / curSize.getHeight()
+      (availableSize.getWidth() - 2 * offset.width) / curSize.getWidth(),
+      (availableSize.getHeight() - 2 * offset.height) / curSize.getHeight()
     );
     // Adjust the scale change to keep the new scale between the lower and upper bounds.
-    double curScale = getScale();
+    double curScale = myZoomController.getScale();
     double boundedNewScale = getBoundedScale(curScale * scaleChangeNeeded);
-    scaleChangeNeeded = boundedNewScale/curScale;
+    scaleChangeNeeded = boundedNewScale / curScale;
     // The rectangle size and its coordinates relative to the sceneView have
     // changed due to the scale change.
     rectangle.setRect(rectangle.x * scaleChangeNeeded, rectangle.y * scaleChangeNeeded,
                       rectangle.width * scaleChangeNeeded, rectangle.height * scaleChangeNeeded);
 
-    if (setScale(boundedNewScale)) {
+    if (myZoomController.setScale(boundedNewScale)) {
       myViewportScroller = port -> scrollToCenter(sceneView, rectangle);
     }
     else {
@@ -1048,9 +1062,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
     @SurfaceScale double fitScale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, areaToCenter.getSize());
 
-    if (getScale() > fitScale) {
+    if (myZoomController.getScale() > fitScale) {
       // Scale down to fit selection.
-      setScale(fitScale, targetSwingX, targetSwingY);
+      myZoomController.setScale(fitScale, targetSwingX, targetSwingY);
     }
   }
 
@@ -1096,7 +1110,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    * Set the rotation degree of the surface to simulate the phone rotation.
    * @param value angle of the rotation.
    */
-  public void setRotateSufaceDegree(float value) {
+  public void setRotateSurfaceDegree(float value) {
     myRotateSurfaceDegree = value;
   }
 

@@ -21,6 +21,7 @@ import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
+import com.android.tools.idea.streaming.device.DeviceState.Property
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
@@ -39,7 +40,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import java.io.EOFException
 import java.io.IOException
-import java.util.EnumSet
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
@@ -84,10 +85,13 @@ internal class DeviceController(
    * Sends a control message to the device. The control message is not expected to trigger a response.
    */
   fun sendControlMessage(message: ControlMessage) {
-    if (!executor.isShutdown) {
+    try {
       executor.submit {
         send(message)
       }
+    }
+    catch (ignore: RejectedExecutionException) {
+      // Executor has been shut down by the dispose method.
     }
   }
 
@@ -116,8 +120,16 @@ internal class DeviceController(
       return withTimeout(unit.toMillis(timeout)) {
         suspendCancellableCoroutine { continuation ->
           responseCallbacks.put(request.requestId, continuation)
-          executor.submit {
-            send(request)
+          try {
+            executor.submit {
+              send(request)
+            }
+          }
+          catch (e: RejectedExecutionException) {
+            continuation.cancel() // Executor has been shut down by the dispose method.
+          }
+          catch (e: Throwable) {
+            continuation.resumeWithException(e)
           }
         }
       }
@@ -224,81 +236,19 @@ internal class DeviceController(
   }
 
   private fun onSupportedDeviceStatesChanged(message: SupportedDeviceStatesNotification) {
-    val deviceStates = try {
-      parseDeviceStates(message.text)
-    }
-    catch (e: IllegalArgumentException) {
-      thisLogger().error("Unexpected supported states message:\n${message.text}")
-      return
-    }
-    supportedFoldingStates = deviceStates
+    val foldingStates = message.deviceStates.map { FoldingState(it) }
+    supportedFoldingStates = foldingStates
+    setFoldingState(message.deviceStateId)
+
     for (listener in deviceStateListeners) {
-      listener.onSupportedDeviceStatesChanged(deviceStates)
+      listener.onSupportedDeviceStatesChanged(foldingStates)
     }
-  }
-
-  /**
-   * Builds a list of [FoldingState]s by parsing a string like:
-   * ```
-   * Supported states: [
-   *   DeviceState{identifier=0, name='CLOSE', app_accessible=true},
-   *   DeviceState{identifier=1, name='TENT', app_accessible=true},
-   *   DeviceState{identifier=2, name='HALF_FOLDED', app_accessible=true},
-   *   DeviceState{identifier=3, name='OPEN', app_accessible=true},
-   * ]
-   * ```
-   */
-  private fun parseDeviceStates(text: String): List<FoldingState> {
-    val regex = Regex("DeviceState\\{identifier=(?<id>\\d+), name='(?<name>\\w+)'(?<flags>(, \\w+=\\w+)+)?}")
-    return regex.findAll(text).map {
-      val groups = it.groups
-      val id = groups["id"]?.value?.toInt() ?: throw IllegalArgumentException()
-      val name = groups["name"]?.value ?: throw IllegalArgumentException()
-      val flagsSection = groups["flags"]?.value ?: ""
-      val flags = parseDeviceStateFlags(flagsSection)
-      FoldingState(id, deviceStateNameToFoldingStateName(name), flags)
-    }.toList()
-  }
-
-  private fun parseDeviceStateFlags(flagsText: String): Set<FoldingState.Flag> {
-    val flags = EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE)
-    for (keyValue in flagsText.split(", ")) {
-      val parts = keyValue.split('=')
-      if (parts.size == 2) {
-        for (flag in FoldingState.Flag.values()) {
-          if (parts[0].equals(flag.name, ignoreCase = true)) {
-            when (parts[1]) {
-              "true" -> flags.add(flag)
-              "false" -> flags.remove(flag)
-            }
-          }
-        }
-      }
-    }
-    return flags
-  }
-
-  private fun deviceStateNameToFoldingStateName(name: String): String {
-    var correctedName = name.replaceSuffix("_STATE", "_MODE")
-    correctedName = when (correctedName) {
-      "CLOSE" -> "CLOSED"
-      "OPENED" -> "OPEN"
-      "HALF_CLOSED" -> "HALF_OPEN"
-      "HALF_FOLDED" -> "HALF_OPEN"
-      "HALF_OPENED" -> "HALF_OPEN"
-      "CONCURRENT_INNER_DEFAULT" -> "DUAL_DISPLAY_MODE"
-      else -> correctedName
-    }
-    if (correctedName.startsWith("HALF_")) {
-      correctedName = "HALF-" + correctedName.substring("HALF_".length)
-    }
-    return toTitleCase(correctedName.replace('_', ' ').lowercase())
   }
 
   private fun onDeviceStateChanged(message: DeviceStateNotification) {
-    setFoldingState(message.deviceState)
+    setFoldingState(message.deviceStateId)
     for (listener in deviceStateListeners) {
-      listener.onDeviceStateChanged(message.deviceState)
+      listener.onDeviceStateChanged(message.deviceStateId)
     }
   }
 
@@ -316,10 +266,6 @@ internal class DeviceController(
     for (listener in displayListeners) {
       listener.onDisplayRemoved(message.displayId)
     }
-  }
-
-  private fun String.replaceSuffix(old: String, new: String): String {
-    return if (endsWith(old)) substring(0, length - old.length) + new else this
   }
 
   internal interface DeviceClipboardListener {
@@ -367,12 +313,45 @@ internal class DeviceController(
   }
 }
 
-internal data class FoldingState(val id: Int, val name: String, val flags: Set<Flag>) {
+internal data class FoldingState(
+  val id: Int,
+  val name: String,
+  val systemProperties: Set<Property> = emptySet(),
+  val physicalProperties: Set<Property> = emptySet(),
+) {
+
   val icon: Icon? = FOLDING_STATE_ICONS[name]
 
-  enum class Flag {
-    APP_ACCESSIBLE, CANCEL_WHEN_REQUESTER_NOT_ON_TOP
+  constructor(deviceState: DeviceState) :
+    this(deviceState.id, deviceState.adjustedName, deviceState.adjustedSystemProperties, deviceState.physicalProperties)
+}
+
+private val DeviceState.adjustedName: String
+  get() {
+    var adjustedName = name.replaceSuffix("_STATE", "_MODE")
+    adjustedName = when (adjustedName) {
+      "CLOSE" -> "CLOSED"
+      "OPENED" -> "OPEN"
+      "HALF_CLOSED" -> "HALF_OPEN"
+      "HALF_FOLDED" -> "HALF_OPEN"
+      "HALF_OPENED" -> "HALF_OPEN"
+      "CONCURRENT_INNER_DEFAULT", "DUAL" -> "DUAL_DISPLAY_MODE"
+      "REAR_DUAL" -> "REAR_DUAL_MODE"
+      else -> adjustedName
+    }
+    if (adjustedName.startsWith("HALF_")) {
+      adjustedName = "HALF-" + adjustedName.substring("HALF_".length)
+    }
+    return toTitleCase(adjustedName.replace('_', ' ').lowercase())
   }
+
+private val DeviceState.adjustedSystemProperties: Set<Property>
+  // For some unclear reason the video encoder connected to the second display on Samsung Fold5 doesn't
+  // produce any frames in REAR_DUAL mode. As a workaround, make that mode harder to switch to.
+  get() = if (name == "REAR_DUAL") systemProperties + Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP else systemProperties
+
+private fun String.replaceSuffix(old: String, new: String): String {
+  return if (endsWith(old)) substring(0, length - old.length) + new else this
 }
 
 private const val CONTROL_MSG_BUFFER_SIZE = 4096

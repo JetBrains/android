@@ -59,7 +59,7 @@ open class ViewNode(
   var renderBounds: Shape,
   var viewId: ResourceReference?,
   var textValue: String,
-  var layoutFlags: Int
+  var layoutFlags: Int,
 ) {
   @TestOnly
   constructor(
@@ -69,7 +69,7 @@ open class ViewNode(
     layoutBounds: Rectangle,
     viewId: ResourceReference?,
     textValue: String,
-    layoutFlags: Int
+    layoutFlags: Int,
   ) : this(
     drawId,
     qualifiedName,
@@ -78,7 +78,7 @@ open class ViewNode(
     layoutBounds,
     viewId,
     textValue,
-    layoutFlags
+    layoutFlags,
   )
 
   /** constructor for synthetic nodes */

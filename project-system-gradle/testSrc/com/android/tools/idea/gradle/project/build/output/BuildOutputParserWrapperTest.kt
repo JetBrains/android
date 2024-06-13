@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.testing.disposable
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -28,9 +31,14 @@ import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputParser
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -39,6 +47,7 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import kotlin.test.assertEquals
 
 class BuildOutputParserWrapperTest {
 
@@ -47,6 +56,9 @@ class BuildOutputParserWrapperTest {
 
   @Mock
   private lateinit var myProject: Project
+
+  @get:Rule
+  val projectRule = ProjectRule()
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
   private val buildId = Mockito.mock(Object::class.java)
@@ -57,6 +69,11 @@ class BuildOutputParserWrapperTest {
 
   @Before
   fun setUp() {
+    val studioBot = object : StudioBot.StubStudioBot() {
+      override fun isAvailable(): Boolean = true
+    }
+    ApplicationManager.getApplication()
+      .replaceService(StudioBot::class.java, studioBot, projectRule.disposable)
     MockitoAnnotations.initMocks(this)
     val parser = BuildOutputParser { _, _, messageConsumer ->
       messageConsumer?.accept(messageEvent)
@@ -93,7 +110,7 @@ class BuildOutputParserWrapperTest {
   @Test
   fun testMetricsReporting() {
     val folder = temporaryFolder.newFolder("test")
-    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Java compiler errors", "error message", "error message",
+    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Compiler", "error message", "error message",
                                         FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
     myParserWrapper.parse(null, null) {}
 
@@ -145,4 +162,25 @@ class BuildOutputParserWrapperTest {
     val messages = buildOutputEvent.studioEvent.buildOutputWindowStats.buildErrorMessagesList
     assertThat(messages).hasSize(0)
   }
+
+  /** Regression test for b/323135834. */
+  @Test
+  fun `test build url injector`() {
+    val folder = temporaryFolder.newFolder("test")
+    val id = MockitoKt.mock<ExternalSystemTaskId>()
+    whenever(id.type).thenReturn(ExternalSystemTaskType.RESOLVE_PROJECT)
+    messageEvent = FileMessageEventImpl(id, MessageEvent.Kind.ERROR, "Compiler", "!!some error message!!", "Detailed error message",
+                                        FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
+    myParserWrapper.parse(null, null) { event ->
+      val expected = """
+        Detailed error message
+
+        >> Ask Gemini !!some error message!!
+      """
+      assertEquals(expected.trimIndent(), event.description)
+
+    }
+
+  }
+
 }

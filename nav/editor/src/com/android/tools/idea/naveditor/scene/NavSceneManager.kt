@@ -104,7 +104,7 @@ open class NavSceneManager(
 
   private val layoutAlgorithms = listOf(
     NewDestinationLayoutAlgorithm(),
-    ManualLayoutAlgorithm(model.module, this),
+    ManualLayoutAlgorithm(model.module),
     ElkLayeredLayoutAlgorithm())
 
   private val savingLayoutAlgorithm = layoutAlgorithms.find { algorithm -> algorithm.canSave() }
@@ -223,7 +223,7 @@ open class NavSceneManager(
     val wasEmpty = scene.root == null || scene.root?.childCount == 0
     update()
     if (wasEmpty) {
-      designSurface.zoomToFit()
+      designSurface.zoomController.zoomToFit()
     }
 
     return CompletableFuture.completedFuture(null)

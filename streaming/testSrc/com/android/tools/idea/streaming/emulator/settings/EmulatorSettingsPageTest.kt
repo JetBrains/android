@@ -62,7 +62,7 @@ class EmulatorSettingsPageTest {
     val activateOnAppLaunchCheckBox = ui.getComponent<JCheckBox> { it.text == "Open the Running Devices tool window when launching an app" }
     val activateOnTestLaunchCheckBox =
         ui.getComponent<JCheckBox> { it.text == "Open the Running Devices tool window when launching a test" }
-    val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Enable clipboard sharing" }
+    val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Synchronize clipboard" }
     val showCameraControlPromptsCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Show camera control prompts" }
     val cameraVelocityControlComboBox = ui.getComponent<ComboBox<*>> { it.selectedItem is CameraVelocityControls }
     val snapshotAutoDeletionPolicyComboBox = ui.getComponent<ComboBox<*>> { it.selectedItem is SnapshotAutoDeletionPolicy }

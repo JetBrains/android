@@ -20,8 +20,7 @@ import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.security.RenderSecurityException
 import com.android.tools.rendering.security.RenderSecurityManager
 import com.android.tools.rendering.security.RenderSecurityManagerDefaults
-import java.io.File
-import kotlin.io.path.absolutePathString
+import kotlin.io.path.pathString
 
 /** Studio-specific [RenderSecurityManager]. */
 class StudioRenderSecurityManager(sdkPath: String?, projectPath: String?, restrictReads: Boolean) :
@@ -41,7 +40,7 @@ class StudioRenderSecurityManager(sdkPath: String?, projectPath: String?, restri
         return  // Allow loading JRE libraries
       }
       // Allow loading webp library
-      if (lib == WebpNativeLibHelper.getLibLocation()?.absolutePathString()?.let { File(it).absolutePath }) {
+      if (lib == WebpNativeLibHelper.getLibLocation()?.pathString) {
         return
       }
       throw RenderSecurityException.create("Link", lib)

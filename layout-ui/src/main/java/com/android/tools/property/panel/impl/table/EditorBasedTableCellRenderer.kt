@@ -51,7 +51,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
   private val controlTypeProvider: ControlTypeProvider<P>,
   private val editorProvider: EditorProvider<P>,
   private val fontSize: UIUtil.FontSize,
-  private var defaultRenderer: PTableCellRenderer
+  private var defaultRenderer: PTableCellRenderer,
 ) : PTableCellRenderer {
   private val componentCache = mutableMapOf<ControlKey, Pair<PropertyEditorModel, JComponent>>()
   private val leftSpacing =
@@ -67,7 +67,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
     depth: Int,
     isSelected: Boolean,
     hasFocus: Boolean,
-    isExpanded: Boolean
+    isExpanded: Boolean,
   ): JComponent? {
     if (!itemClass.isInstance(item)) {
       return defaultRenderer.getEditorComponent(
@@ -77,7 +77,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
         depth,
         isSelected,
         hasFocus,
-        isExpanded
+        isExpanded,
       )
     }
     val property = itemClass.cast(item)
@@ -92,7 +92,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
     model.tableExpansionState = computeTableExpansionState(table, item, column)
     model.property = property
     if (model.isCustomHeight) {
-      table.updateRowHeight(item, column, editor.preferredSize.height, false)
+      table.updateRowHeight(item, column, editor, false)
     }
     return editor
   }
@@ -101,7 +101,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
   private fun computeTableExpansionState(
     table: PTable,
     item: PTableItem,
-    column: PTableColumn
+    column: PTableColumn,
   ): TableExpansionState =
     when {
       // This item is not expanded: use the normal renderer.
@@ -130,7 +130,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
     property: P,
     column: PTableColumn,
     depth: Int,
-    gridLineColor: Color
+    gridLineColor: Color,
   ): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, EditorContext.TABLE_RENDERER)
     editor.font = UIUtil.getLabelFont(fontSize)
@@ -145,7 +145,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
     column: PTableColumn,
     depth: Int,
     editor: JComponent,
-    gridLineColor: Color
+    gridLineColor: Color,
   ): Border =
     when (column) {
       PTableColumn.NAME ->
@@ -153,7 +153,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
           0,
           leftSpacing - editorLeftMargin(editor) + depth * depthIndent,
           0,
-          0
+          0,
         )
       PTableColumn.VALUE -> JBUI.Borders.customLine(gridLineColor, 0, 1, 0, 0)
     }

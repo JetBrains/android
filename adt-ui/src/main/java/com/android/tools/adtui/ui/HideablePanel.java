@@ -15,6 +15,9 @@
  */
 package com.android.tools.adtui.ui;
 
+import static com.android.tools.adtui.ui.HideablePanel.ClickableComponent.NONE;
+import static java.util.Objects.requireNonNull;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.icons.AllIcons;
@@ -26,7 +29,6 @@ import java.awt.Cursor;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -44,6 +46,10 @@ public class HideablePanel extends JPanel {
    * Enum that defines which component to register the toggle click listener on.
    */
   public enum ClickableComponent {
+    /**
+     * The panel is not hideable.
+     */
+    NONE,
     /**
      * The panel title and arrow are the only parts that trigger the panel to toggle.
      */
@@ -63,6 +69,7 @@ public class HideablePanel extends JPanel {
   private final JLabel myLabel;
   private final EventListenerList myStateChangeListeners;
   private final JPanel myTitlePanel;
+  private boolean myIsExpandable = true;
 
   private HideablePanel(@NotNull Builder builder) {
     super(new BorderLayout());
@@ -75,10 +82,14 @@ public class HideablePanel extends JPanel {
     setBorder(builder.myPanelBorder == null ? HIDEABLE_PANEL_BORDER : builder.myPanelBorder);
     add(myChild, BorderLayout.CENTER);
 
-    // Set expanded state to not initial state so we trigger
-    // all state changes when we call setExpanded.
-    myExpanded = !builder.myInitiallyExpanded;
-    setExpanded(builder.myInitiallyExpanded);
+    if (builder.myClickableComponent == NONE) {
+      myIsExpandable = false;
+    } else {
+      // Set expanded state to not initial state, so we trigger
+      // all state changes when we call setExpanded.
+      myExpanded = !builder.myInitiallyExpanded;
+      setExpanded(builder.myInitiallyExpanded);
+    }
   }
 
   /**
@@ -96,26 +107,24 @@ public class HideablePanel extends JPanel {
         setExpanded(!isExpanded());
       }
     };
-    switch (builder.myClickableComponent) {
-      case TITLE:
-        clickableComponent = label;
-        break;
-      case TITLE_BAR:
-      default:
-        clickableComponent = myTitlePanel;
-        break;
+    clickableComponent = switch (builder.myClickableComponent) {
+      case NONE -> null;
+      case TITLE -> label;
+      case TITLE_BAR -> myTitlePanel;
+    };
+    if (clickableComponent != null) {
+      clickableComponent.addMouseListener(toggleAdapter);
+      clickableComponent.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
-    clickableComponent.addMouseListener(toggleAdapter);
-    clickableComponent.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
     // Add Label as first element, should always be left aligned.
-    myTitlePanel.add(label, new TabularLayout.Constraint(0, 0));
+    requireNonNull(myTitlePanel).add(label, new TabularLayout.Constraint(0, 0));
     if (builder.myShowSeparator) {
       JComponent separatorComponent = AdtUiUtils.createHorizontalSeparator();
       separatorComponent.setBorder(new JBEmptyBorder(0, 10, 0, builder.myTitleRightPadding));
       myTitlePanel.add(separatorComponent, new TabularLayout.Constraint(0, 1));
     }
-    // If we have a north east component we add that last it will only take up as much space as it needs.
+    // If we have a north-east component we add that last it will only take up as much space as it needs.
     if (builder.myNorthEastComponent != null) {
       myTitlePanel.add(builder.myNorthEastComponent,
                        new TabularLayout.Constraint(0, 2));
@@ -145,7 +154,7 @@ public class HideablePanel extends JPanel {
    * @param expanded sets the internal state for animating the expanding/collapsing of the child component.
    */
   public void setExpanded(boolean expanded) {
-    if (myExpanded != expanded) {
+    if (myExpanded != expanded && myIsExpandable) {
       myExpanded = expanded;
       myChild.setVisible(expanded);
       if (expanded) {
@@ -189,7 +198,6 @@ public class HideablePanel extends JPanel {
     @NotNull JComponent myContent;
     @NotNull ClickableComponent myClickableComponent = ClickableComponent.TITLE_BAR;
     @Nullable JComponent myNorthEastComponent;
-    @Nullable Consumer<Boolean> myOnStateChangedConsumer;
     @Nullable Border myContentBorder;
     @Nullable Border myPanelBorder;
     boolean myShowSeparator = true;

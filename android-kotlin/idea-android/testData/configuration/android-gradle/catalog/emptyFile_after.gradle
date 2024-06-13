@@ -1,0 +1,9 @@
+plugins {
+    alias(libs.plugins.jetbrains.kotlin.android)
+}
+
+android {
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}

@@ -66,9 +66,10 @@ fun Dropdowns() {
           if (it == "---") {
             separator()
           } else {
-            selectableItem(selected == it, {
-              selected = it
-            }) {
+            selectableItem(
+              selected == it,
+              onClick = { selected = it }
+            ) {
               Text(it)
             }
           }
@@ -79,9 +80,10 @@ fun Dropdowns() {
             if (it == "---") {
               separator()
             } else {
-              selectableItem(selected == it, {
-                selected = it
-              }) {
+              selectableItem(
+                selected == it,
+                onClick = { selected = it }
+              ) {
                 Text(it)
               }
             }
@@ -92,9 +94,10 @@ fun Dropdowns() {
               if (it == "---") {
                 separator()
               } else {
-                selectableItem(selected == it, {
-                  selected = it
-                }) {
+                selectableItem(
+                  selected == it,
+                  onClick = { selected = it }
+                ) {
                   Text(it)
                 }
               }
@@ -116,9 +119,10 @@ fun Dropdowns() {
           if (it == "---") {
             separator()
           } else {
-            selectableItem(selected == it, {
-              selected = it
-            }) {
+            selectableItem(
+              selected == it,
+              onClick = { selected = it }
+            ) {
               Text(it)
             }
           }

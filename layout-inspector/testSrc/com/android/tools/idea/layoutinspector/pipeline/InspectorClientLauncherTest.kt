@@ -68,7 +68,7 @@ class InspectorClientLauncherTest {
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString()
+        device.apiLevel.toString(),
       )
     }
   }
@@ -84,7 +84,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
 
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
@@ -101,7 +101,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
 
     var clientChangedCount = 0
@@ -126,7 +126,7 @@ class InspectorClientLauncherTest {
                 "Modern client",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               )
             else null
           }
@@ -135,7 +135,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
 
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
@@ -166,7 +166,7 @@ class InspectorClientLauncherTest {
                 "Client",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               )
             client.registerStateCallback { state ->
               if (state == InspectorClient.State.DISCONNECTED) {
@@ -181,7 +181,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         launcherDisposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
 
     processes.selectedProcess = MODERN_DEVICE.createProcess()
@@ -213,7 +213,7 @@ class InspectorClientLauncherTest {
                 "Modern client",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               )
             else null
           },
@@ -224,7 +224,7 @@ class InspectorClientLauncherTest {
                 "Legacy client",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               )
             else null
           },
@@ -234,15 +234,15 @@ class InspectorClientLauncherTest {
               "Fallback client",
               projectRule.project,
               params.process,
-              disposableRule.disposable
+              disposableRule.disposable,
             )
-          }
+          },
         ),
         projectRule.project,
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
 
     var clientChangedCount = 0
@@ -284,7 +284,7 @@ class InspectorClientLauncherTest {
                 "Exploding client #1",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               ) {
               override suspend fun doConnect() = throw IllegalStateException()
             }
@@ -295,7 +295,7 @@ class InspectorClientLauncherTest {
                 "Exploding client #2",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               ) {
               override suspend fun doConnect() = throw IllegalStateException()
             }
@@ -305,15 +305,15 @@ class InspectorClientLauncherTest {
               "Fallback client",
               projectRule.project,
               params.process,
-              disposableRule.disposable
+              disposableRule.disposable,
             )
-          }
+          },
         ),
         projectRule.project,
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
 
     processes.selectedProcess = MODERN_DEVICE.createProcess()
@@ -336,7 +336,7 @@ class InspectorClientLauncherTest {
                 "Exploding client #1",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               ) {
               override suspend fun doConnect() = throw IllegalStateException()
             }
@@ -347,7 +347,7 @@ class InspectorClientLauncherTest {
                 "Exploding client #2",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               ) {
               override suspend fun doConnect() = throw IllegalStateException()
             }
@@ -358,18 +358,18 @@ class InspectorClientLauncherTest {
                 "Modern client",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               )
             } else {
               null
             }
-          }
+          },
         ),
         projectRule.project,
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
 
     // Set to a valid client first, so we know we actually changed correctly to a disconnected
@@ -404,7 +404,7 @@ class InspectorClientLauncherTest {
               "Unused",
               projectRule.project,
               params.process,
-              disposableRule.disposable
+              disposableRule.disposable,
             )
           }
         ),
@@ -412,7 +412,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
 
     launcher.enabled = false
@@ -478,7 +478,7 @@ class InspectorClientLauncherTest {
                 "Initial failing client",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               ) {
               override suspend fun doConnect() {
                 if (process == process1) {
@@ -499,7 +499,7 @@ class InspectorClientLauncherTest {
                 "Only connect to process 2",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               ) {
               override suspend fun doConnect() {
                 if (process == process1) {
@@ -513,12 +513,12 @@ class InspectorClientLauncherTest {
 
               override fun toString() = "Second client for pid ${process.pid}"
             }
-          }
+          },
         ),
         projectRule.project,
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
-        disposableRule.disposable
+        disposableRule.disposable,
       )
 
     processes.selectedProcess = process1
@@ -546,7 +546,7 @@ class InspectorClientLauncherTest {
           "First Client",
           projectRule.project,
           params.process,
-          disposableRule.disposable
+          disposableRule.disposable,
         ) {
         override suspend fun doConnect() {
           when (params.process) {
@@ -570,7 +570,7 @@ class InspectorClientLauncherTest {
         projectRule.project,
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
-        disposableRule.disposable
+        disposableRule.disposable,
       )
 
     processes.selectedProcess = process1
@@ -610,7 +610,7 @@ class InspectorClientLauncherMetricsTest {
       device.manufacturer,
       device.model,
       device.version,
-      device.apiLevel.toString()
+      device.apiLevel.toString(),
     )
   }
 
@@ -628,12 +628,12 @@ class InspectorClientLauncherMetricsTest {
                 "Exploding client #1",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               ) {
               override suspend fun doConnect() {
                 metrics.logEvent(
                   DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST,
-                  stats
+                  stats,
                 )
                 throw IllegalStateException()
               }
@@ -645,12 +645,12 @@ class InspectorClientLauncherMetricsTest {
                 "Exploding client #2",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               ) {
               override suspend fun doConnect() {
                 metrics.logEvent(
                   DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST,
-                  stats
+                  stats,
                 )
                 throw IllegalStateException()
               }
@@ -662,27 +662,27 @@ class InspectorClientLauncherMetricsTest {
                 "Fallback client",
                 projectRule.project,
                 params.process,
-                disposableRule.disposable
+                disposableRule.disposable,
               ) {
               override suspend fun doConnect() {
                 metrics.logEvent(
                   DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST,
-                  stats
+                  stats,
                 )
                 metrics.logEvent(
                   DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS,
-                  stats
+                  stats,
                 )
               }
             }
-          }
+          },
         ),
         projectRule.project,
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
         metrics,
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
 
     processes.selectedProcess = MODERN_DEVICE.createProcess()
@@ -717,12 +717,12 @@ class InspectorClientLauncherMetricsTest {
               "Hangs on initial connect",
               projectRule.project,
               params.process,
-              disposableRule.disposable
+              disposableRule.disposable,
             ) {
             override suspend fun doConnect() {
               metrics.logEvent(
                 DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST,
-                stats
+                stats,
               )
               if (params.process == process1) {
                 startedWaitingLatch.countDown()
@@ -736,7 +736,7 @@ class InspectorClientLauncherMetricsTest {
       NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
-      metrics
+      metrics,
     )
 
     processes.selectedProcess = process1
@@ -761,7 +761,7 @@ class InspectorClientLauncherMetricsTest {
     assertThat(otherUsages)
       .containsExactly(
         DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED,
-        DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST
+        DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST,
       )
   }
 }
@@ -770,17 +770,16 @@ private open class FakeInspectorClient(
   val name: String,
   project: Project,
   process: ProcessDescriptor,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) :
   AbstractInspectorClient(
     ClientType.UNKNOWN_CLIENT_TYPE,
     project,
     NotificationModel(project),
     process,
-    isInstantlyAutoConnected = false,
     DisconnectedClient.stats,
     AndroidCoroutineScope(parentDisposable),
-    parentDisposable
+    parentDisposable,
   ) {
 
   override suspend fun startFetching() = throw NotImplementedError()
@@ -801,7 +800,7 @@ private open class FakeInspectorClient(
   override val treeLoader: TreeLoader
     get() = throw NotImplementedError()
 
-  override val isCapturing: Boolean
+  override val inLiveMode: Boolean
     get() = false
 
   override val provider: PropertiesProvider

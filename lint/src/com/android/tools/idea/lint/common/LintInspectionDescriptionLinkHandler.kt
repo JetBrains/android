@@ -86,8 +86,32 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
 
     // IntelliJ seems to treat newlines in the HTML as needing to also be converted to <br> (whereas
     // Lint includes these for HTML readability, but they shouldn't add additional lines since it
-    // has already added <br> as well) so strip these out.
-    description = description.replace("\n", "")
+    // has already added <br> as well) so strip these out. However, there are no <br> tags inside
+    // <pre> blocks (typically from fenced code blocks in issue explanations), so if we just drop
+    // the newlines we'll end up with pre blocks all concatenated. Therefore, special case these.
+    val sb = StringBuilder(2 * description.length)
+    var offset = 0
+    val n = description.length
+    while (offset < n) {
+      val c = description[offset]
+      // There should be no comments in this markup; just well formatted HTML
+      if (c == '<' && description.startsWith("<pre", offset, ignoreCase = true)) {
+        val end = description.indexOf("</pre>", offset + 4, ignoreCase = true)
+        if (end != -1) {
+          sb.append(description.substring(offset, end + 6))
+          offset = end + 6
+        } else {
+          sb.append(description.substring(offset))
+          offset = n
+        }
+      } else {
+        if (c != '\n') {
+          sb.append(c)
+        }
+        offset++
+      }
+    }
+    description = sb.toString()
 
     // Allow LintInspectionDescriptionLinkHandler to handle URL links, for analytics.
     description = replaceLinksInHtml(description, issue.id)
@@ -136,7 +160,7 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
         "${TextFormat.A_HREF_PREFIX}${LINK_PREFIX}" +
           "${LINK_INFO_MARKER}${LINK_INFO_SEPARATOR}" +
           "${issueId}${LINK_INFO_SEPARATOR}" +
-          "http"
+          "http",
       )
     }
 
@@ -146,7 +170,7 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
     class LinkInfo(
       val issueId: String? = null,
       val url: String? = null,
-      val problem: String? = null
+      val problem: String? = null,
     )
 
     fun decodeLinkInfo(href: String): LinkInfo {

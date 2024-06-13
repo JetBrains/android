@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
@@ -51,16 +52,17 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Dimension
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.Dimension
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
 
 private val MODERN_PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -74,7 +76,7 @@ class LayoutInspectorMainToolbarTest {
     LayoutInspectorRule(
       clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
       projectRule = androidProjectRule,
-      isPreferredProcess = { it.name == MODERN_PROCESS.name }
+      isPreferredProcess = { it.name == MODERN_PROCESS.name },
     )
 
   @get:Rule
@@ -97,11 +99,7 @@ class LayoutInspectorMainToolbarTest {
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() =
     withEmbeddedLayoutInspector(false) {
-      val toolbar = createToolbar()
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = findActionButton(ToggleLiveUpdatesAction::class.java)!!
       assertThat(toggle.isEnabled).isTrue()
       assertThat(toggle.isSelected).isTrue()
       assertThat(getPresentation(toggle.action).description)
@@ -115,14 +113,9 @@ class LayoutInspectorMainToolbarTest {
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() =
     withEmbeddedLayoutInspector(false) {
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = false
+      clientSettings.inLiveMode = false
 
-      val toolbar = createToolbar()
-
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = findActionButton(ToggleLiveUpdatesAction::class.java)!!
       assertThat(toggle.isEnabled).isTrue()
       assertThat(toggle.isSelected).isFalse()
       assertThat(getPresentation(toggle.action).description)
@@ -140,12 +133,7 @@ class LayoutInspectorMainToolbarTest {
       connect(MODERN_PROCESS)
       assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
-      val toolbar = createToolbar()
-
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = findActionButton(ToggleLiveUpdatesAction::class.java)!!
       assertThat(toggle.isEnabled).isTrue()
       assertThat(toggle.isSelected).isTrue()
       assertThat(getPresentation(toggle.action).description)
@@ -161,19 +149,14 @@ class LayoutInspectorMainToolbarTest {
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() =
     withEmbeddedLayoutInspector(false) {
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = false
+      clientSettings.inLiveMode = false
 
       installCommandHandlers()
       latch = CountDownLatch(1)
       connect(MODERN_PROCESS)
       assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
-      val toolbar = createToolbar()
-
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = findActionButton(ToggleLiveUpdatesAction::class.java)!!
       assertThat(toggle.isEnabled).isTrue()
       assertThat(toggle.isSelected).isFalse()
       assertThat(getPresentation(toggle.action).description)
@@ -191,17 +174,13 @@ class LayoutInspectorMainToolbarTest {
       installCommandHandlers()
 
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = true
+      clientSettings.inLiveMode = true
 
       val stats = layoutInspectorRule.inspector.currentClient.stats
       stats.currentModeIsLive = true
 
       val toolbar = createToolbar()
-
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)!!
       toolbar.component.size = Dimension(800, 200)
       toolbar.component.doLayout()
       val fakeUi = FakeUi(toggle)
@@ -215,7 +194,7 @@ class LayoutInspectorMainToolbarTest {
         )
 
       assertThat(commands).isEmpty()
-      assertThat(clientSettings.isCapturingModeOn).isFalse()
+      assertThat(clientSettings.inLiveMode).isFalse()
       assertThat(stats.currentModeIsLive).isTrue() // unchanged
     }
 
@@ -224,16 +203,12 @@ class LayoutInspectorMainToolbarTest {
     withEmbeddedLayoutInspector(false) {
       installCommandHandlers()
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = false
+      clientSettings.inLiveMode = false
 
       val stats = layoutInspectorRule.inspector.currentClient.stats
       stats.currentModeIsLive = false
       val toolbar = createToolbar()
-
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)!!
       toolbar.component.size = Dimension(800, 200)
       toolbar.component.doLayout()
       val fakeUi = FakeUi(toggle)
@@ -247,7 +222,7 @@ class LayoutInspectorMainToolbarTest {
         )
 
       assertThat(commands).isEmpty()
-      assertThat(clientSettings.isCapturingModeOn).isTrue()
+      assertThat(clientSettings.inLiveMode).isTrue()
       assertThat(stats.currentModeIsLive).isFalse() // unchanged
     }
 
@@ -263,10 +238,7 @@ class LayoutInspectorMainToolbarTest {
       stats.currentModeIsLive = true
       latch = CountDownLatch(2)
       val toolbar = createToolbar()
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)!!
       toolbar.component.size = Dimension(800, 200)
       toolbar.component.doLayout()
       val fakeUi = FakeUi(toggle)
@@ -295,7 +267,7 @@ class LayoutInspectorMainToolbarTest {
       installCommandHandlers()
 
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = false
+      clientSettings.inLiveMode = false
 
       connect(MODERN_PROCESS)
       assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
@@ -304,10 +276,7 @@ class LayoutInspectorMainToolbarTest {
 
       latch = CountDownLatch(1)
       val toolbar = createToolbar()
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)!!
       toolbar.component.size = Dimension(800, 200)
       toolbar.component.doLayout()
 
@@ -341,7 +310,7 @@ class LayoutInspectorMainToolbarTest {
     val isImportant =
       toolbar.component.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean
         ?: false
-    Truth.assertThat(isImportant).isTrue()
+    assertThat(isImportant).isTrue()
   }
 
   @Test
@@ -364,15 +333,8 @@ class LayoutInspectorMainToolbarTest {
   fun testLiveUpdatesAndRefreshActionsAreMissingFromEmbeddedLayoutInspector() =
     withEmbeddedLayoutInspector {
       val toolbar = createToolbar()
-
-      val liveUpdatesAction =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as? ActionButton
-      val refreshAction =
-        toolbar.component.components.find { it is ActionButton && it.action is RefreshAction }
-          as? ActionButton
-
+      val liveUpdatesAction = findActionButton(ToggleLiveUpdatesAction::class.java, toolbar)
+      val refreshAction = findActionButton(RefreshAction::class.java, toolbar)
       assertThat(liveUpdatesAction).isNull()
       assertThat(refreshAction).isNull()
     }
@@ -417,12 +379,24 @@ class LayoutInspectorMainToolbarTest {
 
   private fun createToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
-    return createStandaloneLayoutInspectorToolbar(
-      androidProjectRule.testRootDisposable,
-      JPanel(),
-      layoutInspectorRule.inspector,
-      fakeAction
-    )
+    val toolbar =
+      createStandaloneLayoutInspectorToolbar(
+        androidProjectRule.testRootDisposable,
+        JPanel(),
+        layoutInspectorRule.inspector,
+        fakeAction,
+      )
+    waitForCondition(5.seconds) { toolbar.component.components.isNotEmpty() }
+    return toolbar
+  }
+
+  private fun <T : AnAction> findActionButton(
+    actionClass: Class<T>,
+    toolbar: ActionToolbar = createToolbar(),
+  ): ActionButton? {
+    return toolbar.component.components.filterIsInstance<ActionButton>().find {
+      actionClass.isInstance(it.action)
+    }
   }
 
   private fun getPresentation(action: AnAction): Presentation {
@@ -434,7 +408,7 @@ class LayoutInspectorMainToolbarTest {
         "LayoutInspector.MainToolbar",
         presentation,
         ActionManager.getInstance(),
-        0
+        0,
       )
     action.update(event)
     return presentation

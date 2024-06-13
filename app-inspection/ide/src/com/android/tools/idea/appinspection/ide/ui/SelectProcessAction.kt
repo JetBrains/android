@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -33,6 +34,9 @@ import javax.swing.JComponent
 
 val NO_PROCESS_ACTION =
   object : AnAction(AppInspectionBundle.message("action.no.debuggable.process")) {
+
+    override fun getActionUpdateThread() = BGT
+
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = false
     }
@@ -42,6 +46,9 @@ val NO_PROCESS_ACTION =
 
 val NO_DEVICE_ACTION =
   object : AnAction(AppInspectionBundle.message("action.no.devices")) {
+
+    override fun getActionUpdateThread() = BGT
+
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = false
     }
@@ -53,12 +60,12 @@ private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
 val ICON_PHONE =
   ColoredIconGenerator.generateColoredIcon(
     StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE,
-    ICON_COLOR
+    ICON_COLOR,
   )
 val ICON_EMULATOR =
   ColoredIconGenerator.generateColoredIcon(
     StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE,
-    ICON_COLOR
+    ICON_COLOR,
   )
 
 /**
@@ -106,13 +113,15 @@ class SelectProcessAction(
   private val stopPresentation: StopPresentation = StopPresentation(),
   private val onStopAction: ((ProcessDescriptor) -> Unit)? = null,
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> },
-  private val customProcessAttribution: (ProcessDescriptor, AnActionEvent) -> Unit = { _, _ -> }
+  private val customProcessAttribution: (ProcessDescriptor, AnActionEvent) -> Unit = { _, _ -> },
 ) :
   DropDownAction(
     AppInspectionBundle.message("action.select.process"),
     AppInspectionBundle.message("action.select.process.desc"),
-    ICON_PHONE
+    ICON_PHONE,
   ) {
+
+  override fun getActionUpdateThread() = BGT
 
   companion object {
     fun createDefaultProcessLabel(process: ProcessDescriptor): String {
@@ -173,6 +182,9 @@ class SelectProcessAction(
     val stopInspectionAction =
       object :
         AnAction(stopPresentation.text, stopPresentation.desc, StudioIcons.Shell.Toolbar.STOP) {
+
+        override fun getActionUpdateThread() = BGT
+
         override fun update(e: AnActionEvent) {
           e.presentation.isEnabled = (model.selectedProcess?.isRunning == true)
         }
@@ -190,11 +202,14 @@ class SelectProcessAction(
 
   class StopPresentation(
     val text: String = AppInspectionBundle.message("action.stop.inspectors"),
-    val desc: String = AppInspectionBundle.message("action.stop.inspectors.description")
+    val desc: String = AppInspectionBundle.message("action.stop.inspectors.description"),
   )
 
   private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) :
     ToggleAction(processDescriptor.buildProcessName()) {
+
+    override fun getActionUpdateThread() = BGT
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return processDescriptor == model.selectedProcess
     }
@@ -209,9 +224,11 @@ class SelectProcessAction(
     }
   }
 
-  private inner class DeviceAction(
-    private val device: DeviceDescriptor,
-  ) : DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
+  private inner class DeviceAction(private val device: DeviceDescriptor) :
+    DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
+
+    override fun getActionUpdateThread() = BGT
+
     override fun displayTextInToolbar() = true
 
     init {

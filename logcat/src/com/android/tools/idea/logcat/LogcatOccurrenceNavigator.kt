@@ -105,7 +105,7 @@ internal class LogcatOccurrenceNavigator(private val project: Project, private v
     return OccurenceInfo(
       LogcatNavigatableAdapter(project, editor, occurrenceRange, framesUp + framesDown),
       index,
-      numOccurrences
+      numOccurrences,
     )
   }
 
@@ -190,7 +190,7 @@ internal class LogcatNavigatableAdapter(
     }
     occurrenceRange.putUserData(
       ORIGINAL_HYPERLINK_TEXT_ATTRIBUTES,
-      occurrenceRange.getTextAttributes(editor.colorsScheme)
+      occurrenceRange.getTextAttributes(editor.colorsScheme),
     )
     markupModel.setRangeHighlighterAttributes(occurrenceRange, FOLLOWED_HYPERLINK_ATTRIBUTES)
   }

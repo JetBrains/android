@@ -71,7 +71,6 @@ class BuildAnalyzerStorageManagerImpl(
       annotationProcessorAnalyzerResult = analyzersProxy.annotationProcessorsAnalyzer.result,
       alwaysRunTasksAnalyzerResult = analyzersProxy.alwaysRunTasksAnalyzer.result,
       criticalPathAnalyzerResult = analyzersProxy.criticalPathAnalyzer.result,
-      noncacheableTasksAnalyzerResult = analyzersProxy.noncacheableTasksAnalyzer.result,
       garbageCollectionAnalyzerResult = analyzersProxy.garbageCollectionAnalyzer.result,
       projectConfigurationAnalyzerResult = analyzersProxy.projectConfigurationAnalyzer.result,
       tasksConfigurationIssuesAnalyzerResult = analyzersProxy.tasksConfigurationIssuesAnalyzer.result,

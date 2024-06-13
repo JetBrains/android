@@ -207,7 +207,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     apkProvider: ApkProvider,
     consoleView: ConsoleView,
     stats: RunStats
-  ) {
+  ) : Boolean {
     val state = getLaunchOptionState(MODE)
     var extraFlags = ACTIVITY_EXTRA_FLAGS
     if (contributorsAmStartOptions.isNotEmpty()) {

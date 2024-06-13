@@ -2,7 +2,7 @@ package com.android.tools.idea.profilers
 
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.sdk.AndroidFacetChecker
+import com.android.tools.idea.sdk.AndroidProjectChecker
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
@@ -11,7 +11,7 @@ import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
-import com.android.tools.profilers.taskbased.tasks.OpenProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
@@ -59,7 +59,7 @@ class AndroidProfilerToolWindowFactoryTest {
       ?: fail("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass)
-      .isEqualTo(AndroidFacetChecker::class.qualifiedName)
+      .isEqualTo(AndroidProjectChecker::class.qualifiedName)
   }
 
   @Test
@@ -178,10 +178,9 @@ class AndroidProfilerToolWindowFactoryTest {
     val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
     assertThat(profilerToolWindow).isNotNull()
 
-    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE,
-                                       CpuTaskArgs(CpuCaptureSessionArtifact
-                                                 (profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
-                                                  Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE, CpuTaskArgs(false,
+      CpuCaptureSessionArtifact(profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                                Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
 
     // Creating the task tab with a SYSTEM_TRACE task (a CPU task) should open up a second tab with non-null content, a tab name
     // of "System Trace" and the current stage should be set to the CpuProfilerStage.
@@ -211,10 +210,9 @@ class AndroidProfilerToolWindowFactoryTest {
     val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
     assertThat(profilerToolWindow).isNotNull()
 
-    profilerToolWindow!!.createTaskTab(ProfilerTaskType.NATIVE_ALLOCATIONS,
-                                       NativeAllocationsTaskArgs(HeapProfdSessionArtifact(
-                                         profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
-                                         Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+    profilerToolWindow!!.createTaskTab(ProfilerTaskType.NATIVE_ALLOCATIONS, NativeAllocationsTaskArgs(false,
+      HeapProfdSessionArtifact(profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                               Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
 
     // Creating the task tab with a NATIVE_ALLOCATIONS task (a memory task) should open up a second tab with non-null content, a tab name
     // of "Native Allocations" and the current stage should be set to the MainMemoryProfilerStage.
@@ -243,10 +241,9 @@ class AndroidProfilerToolWindowFactoryTest {
     assertThat(profilerToolWindow).isNotNull()
 
     // Create a task tab.
-    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE,
-                                       CpuTaskArgs(CpuCaptureSessionArtifact
-                                                   (profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
-                                                    Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE, CpuTaskArgs(false,
+      CpuCaptureSessionArtifact(profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                                Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
 
     // Make sure new tab is open and is selected.
     waitForCondition(5L, TimeUnit.SECONDS) {

@@ -16,9 +16,13 @@
 package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.preview.FilePreviewElementProvider
+import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaretToEnd
@@ -33,6 +37,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -64,17 +69,20 @@ class ComposePreviewElementFlowTest {
         fun Preview1() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
     val completed = CompletableDeferred<Unit>()
     val listenersReady = CompletableDeferred<Unit>()
-    val previousElement = AtomicReference<Set<ComposePreviewElement>>(emptySet())
+    val previousElement = AtomicReference<Collection<ComposePreviewElement<*>>>(emptySet())
+    val previewElementProvider =
+      FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder)
     val testJob = launch {
       val flowScope = createChildScope()
       val flow =
-        previewElementFlowForFile(psiFilePointer)
+        previewElementsOnFileChangesFlow(projectRule.project) { previewElementProvider }
+          .map { it.asCollection() }
           .onEach { newValue ->
             val previousValue = previousElement.getAndSet(newValue)
 
@@ -161,7 +169,7 @@ class ComposePreviewElementFlowTest {
           @Preview(name = "B")
           annotation class MultiPreview
         """
-          .trimIndent()
+          .trimIndent(),
       )
     val psiFile =
       projectRule.fixture.addFileToProject(
@@ -176,16 +184,24 @@ class ComposePreviewElementFlowTest {
         fun Preview1() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+    val previewElementProvider =
+      FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder)
 
     runBlocking {
       val flowScope = createChildScope()
-      val flow = previewElementFlowForFile(psiFilePointer).stateIn(flowScope)
+      val flow =
+        previewElementsOnFileChangesFlow(projectRule.project) { previewElementProvider }
+          .stateIn(flowScope)
       assertEquals(
         "Preview1 - A,Preview1 - B",
-        flow.filter { it.size == 2 }.first().joinToString(",") { it.displaySettings.name }
+        flow
+          .map { it.asCollection() }
+          .filter { it.size == 2 }
+          .first()
+          .joinToString(",") { it.displaySettings.name },
       )
 
       // Make change
@@ -201,7 +217,11 @@ class ComposePreviewElementFlowTest {
 
       assertEquals(
         "Preview1 - A,Preview1 - B,Preview1 - C",
-        flow.filter { it.size == 3 }.first().joinToString(",") { it.displaySettings.name }
+        flow
+          .map { it.asCollection() }
+          .filter { it.size == 3 }
+          .first()
+          .joinToString(",") { it.displaySettings.name },
       )
 
       // Terminate the flow

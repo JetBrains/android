@@ -16,7 +16,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
@@ -31,7 +32,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/adt/idea/explainer:intellij.android.explainer[module]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
         "//tools/adt/idea/logcat:logcat-proto",
     ],
 )
@@ -54,7 +55,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
@@ -75,7 +77,7 @@ iml_module(
         "//tools/adt/idea/logcat:intellij.android.logcat[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/explainer:intellij.android.explainer[module, test]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
     ],
 )
 

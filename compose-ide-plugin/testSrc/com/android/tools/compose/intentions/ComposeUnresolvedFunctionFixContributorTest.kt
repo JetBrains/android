@@ -32,7 +32,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ComposeUnresolvedFunctionFixContributorTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().withKotlin()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -57,7 +57,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
           <caret>UnresolvedFunction()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val action =
@@ -109,7 +109,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
           <caret>UnresolvedFunction<Int>(45, f = { 43 }, "OK".length)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val action =
@@ -182,7 +182,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
           val k:Int = <caret>unresolvedFunction()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val action =
@@ -207,7 +207,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
           <caret>unresolvedFunction()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val action =
@@ -232,7 +232,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
           <caret>UnresolvedFunction {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val action =

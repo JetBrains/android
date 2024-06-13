@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -23,9 +24,9 @@ import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito.mock
 
 /**
  * Tests for actions used by the nav editor
@@ -51,9 +52,9 @@ class NavSelectActionsTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
 
-    val action = SelectNextAction(surface)
+    val action = SelectNextAction()
 
     performAction(action, surface, "action1")
     performAction(action, surface, "fragment1")
@@ -87,9 +88,9 @@ class NavSelectActionsTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
 
-    val action = SelectPreviousAction(surface)
+    val action = SelectPreviousAction()
 
     performAction(action, surface, "action4")
     performAction(action, surface, "action3")
@@ -114,7 +115,7 @@ class NavSelectActionsTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
     val root = model.find("root")!!
@@ -123,14 +124,14 @@ class NavSelectActionsTest : NavTestCase() {
     val fragment2 = model.find("fragment2")!!
     val fragment3 = model.find("fragment3")!!
 
-    val action = SelectAllAction(surface)
+    val action = SelectAllAction()
 
-    action.actionPerformed(mock(AnActionEvent::class.java))
+    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
     assertEquals(listOf(root, action1, fragment1, fragment2, fragment3), surface.selectionModel.selection)
   }
 
   private fun performAction(action: AnAction, surface: NavDesignSurface, id: String) {
-    action.actionPerformed(mock(AnActionEvent::class.java))
+    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
     val component = surface.model?.find(id)!!
     AndroidTestCase.assertEquals(listOf(component), surface.selectionModel.selection)
   }

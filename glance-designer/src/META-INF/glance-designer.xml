@@ -19,10 +19,6 @@
     <sourceCodePreviewRepresentationProvider implementation="com.android.tools.idea.glance.preview.AppWidgetPreviewRepresentationProvider"/>
   </extensions>
 
-  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode">
-    <sourceCodePreviewRepresentationProvider implementation="com.android.tools.idea.glance.preview.TilePreviewRepresentationProvider"/>
-  </extensions>
-
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Glance Preview Notification" displayType="NONE"/>
   </extensions>

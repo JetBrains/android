@@ -16,14 +16,27 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.intellij.util.ui.JBInsets
 import java.awt.Dimension
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Before
 import org.junit.Test
 
 class GroupedGridSurfaceLayoutManagerTest {
+
+  @Before
+  fun setUp() {
+    StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.override(false)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.clearOverride()
+  }
 
   // In the below comments, we use (a, b, c, ...) to represent the numbers of content in the rows.
   // For example, (9, 8, 7) means 9 items in row 1, 8 items in row 2, and 7 item in row 3.
@@ -31,7 +44,7 @@ class GroupedGridSurfaceLayoutManagerTest {
   @Test
   fun testLayoutSingleGroup() {
     val manager =
-      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { contents ->
+      GroupedGridSurfaceLayoutManager(EMPTY_PADDING) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
 
@@ -41,7 +54,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -139,7 +152,7 @@ class GroupedGridSurfaceLayoutManagerTest {
   @Test
   fun testLayoutSingleGroupWithHeader() {
     val manager =
-      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { contents ->
+      GroupedGridSurfaceLayoutManager(EMPTY_PADDING) { contents ->
         listOf(PositionableGroup(contents.drop(1), contents.first()))
       }
 
@@ -149,7 +162,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -233,7 +246,7 @@ class GroupedGridSurfaceLayoutManagerTest {
   @Test
   fun testLayoutDifferentSizeContent() {
     val manager =
-      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { contents ->
+      GroupedGridSurfaceLayoutManager(EMPTY_PADDING) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
 
@@ -242,7 +255,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 150, 150),
         TestPositionableContent(0, 0, 200, 200),
-        TestPositionableContent(0, 0, 300, 300)
+        TestPositionableContent(0, 0, 300, 300),
       )
 
     run {
@@ -297,7 +310,7 @@ class GroupedGridSurfaceLayoutManagerTest {
   @Test
   fun testLayoutMultipleGroups() {
     val manager =
-      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { contents ->
+      GroupedGridSurfaceLayoutManager(EMPTY_PADDING) { contents ->
         listOf(PositionableGroup(contents.take(3)), PositionableGroup(contents.drop(3)))
       }
 
@@ -307,7 +320,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -350,10 +363,10 @@ class GroupedGridSurfaceLayoutManagerTest {
   @Test
   fun testLayoutGroupWithEmptyContent() {
     val manager =
-      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { contents ->
+      GroupedGridSurfaceLayoutManager(GroupPadding(0, 0, { 0 })) { contents ->
         listOf(
           PositionableGroup(emptyList(), contents.first()),
-          PositionableGroup(contents.drop(1))
+          PositionableGroup(contents.drop(1)),
         )
       }
 
@@ -377,9 +390,7 @@ class GroupedGridSurfaceLayoutManagerTest {
   fun testPaddingAndMarginWithOneGroup() {
     val manager =
       GroupedGridSurfaceLayoutManager(
-        canvasTopPadding = 10,
-        canvasLeftPadding = 30,
-        previewFramePaddingProvider = { 20 }
+        GroupPadding(canvasTopPadding = 10, canvasLeftPadding = 30, previewPaddingProvider = { 20 })
       ) {
         listOf(PositionableGroup(it.toList()))
       }
@@ -389,7 +400,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
     run {
       // test single rows. (5)
@@ -438,14 +449,12 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
     // Two groups.
     val manager =
       GroupedGridSurfaceLayoutManager(
-        canvasTopPadding = 10,
-        canvasLeftPadding = 30,
-        previewFramePaddingProvider = { 20 }
+        GroupPadding(canvasTopPadding = 10, canvasLeftPadding = 30, previewPaddingProvider = { 20 })
       ) {
         listOf(PositionableGroup(contents.take(3)), PositionableGroup(contents.drop(3)))
       }
@@ -494,7 +503,7 @@ class GroupedGridSurfaceLayoutManagerTest {
   fun testCentralizeSinglePreview() {
     // Single visible preview case. Which the preview should be placed at the center of the window.
     val manager =
-      GroupedGridSurfaceLayoutManager(10, 0, { 20 }) { contents ->
+      GroupedGridSurfaceLayoutManager(GroupPadding(10, 0) { 20 }) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
     val contents = listOf(TestPositionableContent(0, 0, 100, 100))
@@ -515,8 +524,9 @@ class GroupedGridSurfaceLayoutManagerTest {
     val canvasTopPadding = 0
     val framePadding = 50
     val manager =
-      GroupedGridSurfaceLayoutManager(canvasTopPadding, 0, { (it * framePadding).toInt() }) {
-        contents ->
+      GroupedGridSurfaceLayoutManager(
+        GroupPadding(canvasTopPadding, 0) { (it * framePadding).toInt() }
+      ) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
     val contents =
@@ -524,7 +534,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100, scale = 0.5),
         TestPositionableContent(0, 0, 100, 100, scale = 1.0),
         TestPositionableContent(0, 0, 100, 100, scale = 1.0),
-        TestPositionableContent(0, 0, 100, 100, scale = 2.0)
+        TestPositionableContent(0, 0, 100, 100, scale = 2.0),
       )
 
     run {
@@ -583,7 +593,8 @@ class GroupedGridSurfaceLayoutManagerTest {
   fun testScaleDoNotEffectPreferredSize() {
     val framePadding = 50
     val manager =
-      GroupedGridSurfaceLayoutManager(0, 0, { (it * framePadding).toInt() }) { contents ->
+      GroupedGridSurfaceLayoutManager(GroupPadding(0, 0) { (it * framePadding).toInt() }) { contents
+        ->
         listOf(PositionableGroup(contents.toList()))
       }
 
@@ -592,7 +603,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100, scale = it),
         TestPositionableContent(0, 0, 100, 100, scale = it),
         TestPositionableContent(0, 0, 100, 100, scale = it),
-        TestPositionableContent(0, 0, 100, 100, scale = it)
+        TestPositionableContent(0, 0, 100, 100, scale = it),
       )
     }
 
@@ -611,21 +622,12 @@ class GroupedGridSurfaceLayoutManagerTest {
       assertNotEquals(scaledSize1, scaledSize2)
       assertNotEquals(scaledSize1, scaledSize3)
     }
-
-    run {
-      // Even the scale are different, the preferred size should be same.
-      val scaledSize1 = manager.getPreferredSize(contents1, width, height, null)
-      val scaledSize2 = manager.getPreferredSize(contents2, width, height, null)
-      val scaledSize3 = manager.getPreferredSize(contents3, width, height, null)
-      assertEquals(scaledSize1, scaledSize2)
-      assertEquals(scaledSize1, scaledSize3)
-    }
   }
 
   @Test
   fun testFitIntoScale() {
     val manager =
-      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { contents ->
+      GroupedGridSurfaceLayoutManager(EMPTY_PADDING) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
 
@@ -637,7 +639,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
         TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100)
+        TestPositionableContent(0, 0, 100, 100),
       )
 
     run {
@@ -664,7 +666,7 @@ class GroupedGridSurfaceLayoutManagerTest {
   @Test
   fun testZoomToFitValueIsIndependentOfContentScale() {
     val manager =
-      GroupedGridSurfaceLayoutManager(0, 0, { (it * 20).toInt() }) { contents ->
+      GroupedGridSurfaceLayoutManager(GroupPadding(0, 0) { (it * 20).toInt() }) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
 
@@ -692,7 +694,7 @@ class GroupedGridSurfaceLayoutManagerTest {
   @Test
   fun testEmptyContent() {
     val manager =
-      GroupedGridSurfaceLayoutManager(0, 0, { (it * 20).toInt() }) { contents ->
+      GroupedGridSurfaceLayoutManager(GroupPadding(0, 0) { (it * 20).toInt() }) { contents ->
         listOf(PositionableGroup(contents.toList()))
       }
     val content = emptyList<PositionableContent>()

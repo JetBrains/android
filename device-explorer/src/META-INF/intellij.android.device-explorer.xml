@@ -22,9 +22,6 @@
                              bundle="messages.DeviceFileExplorerBundle"
                              key="configurable.name.device.file.explorer"/>
 
-    <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService"/>
-    <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService"/>
-
     <applicationService serviceImplementation="com.android.tools.idea.device.explorer.common.DeviceExplorerSettings"/>
     <projectService serviceInterface="com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager"
                     serviceImplementation="com.android.tools.idea.device.explorer.files.DeviceExplorerFileManagerImpl" />

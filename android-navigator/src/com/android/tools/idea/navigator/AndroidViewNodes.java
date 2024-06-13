@@ -24,6 +24,13 @@ import com.google.common.collect.Iterables;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,17 +53,19 @@ public class AndroidViewNodes {
   public static Iterable<NamedIdeaSourceProvider> getSourceProviders(@NotNull SourceProviders sourceProviders) {
     return Iterables.concat(
       sourceProviders.getCurrentSourceProviders(),
-      sourceProviders.getCurrentUnitTestSourceProviders(),
-      sourceProviders.getCurrentAndroidTestSourceProviders(),
-      sourceProviders.getCurrentTestFixturesSourceProviders());
+      Iterables.concat(sourceProviders.getCurrentHostTestSourceProviders().values()),
+      Iterables.concat(sourceProviders.getCurrentDeviceTestSourceProviders().values()),
+      sourceProviders.getCurrentTestFixturesSourceProviders()
+    );
   }
 
   @NotNull
   public static Iterable<IdeaSourceProvider> getGeneratedSourceProviders(@NotNull SourceProviders sourceProviders) {
-    return ImmutableList.of(
-      sourceProviders.getGeneratedSources(),
-      sourceProviders.getGeneratedUnitTestSources(),
-      sourceProviders.getGeneratedAndroidTestSources(),
-      sourceProviders.getGeneratedTestFixturesSources());
+    return Iterables.concat(
+      ImmutableList.of(sourceProviders.getGeneratedSources()),
+        sourceProviders.getGeneratedHostTestSources().values(),
+        sourceProviders.getGeneratedDeviceTestSources().values(),
+        ImmutableList.of(sourceProviders.getGeneratedTestFixturesSources())
+    );
   }
 }

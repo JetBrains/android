@@ -37,8 +37,8 @@ fun SourceProviders.buildNamedModuleTemplatesFor(
   moduleRoot: File?,
   sourceProviders: Collection<NamedIdeaSourceProvider>
 ): List<NamedModuleTemplate> {
-  val unitTestProviders = this.currentUnitTestSourceProviders.associateBy { it.coreName }
-  val androidTestProviders = this.currentAndroidTestSourceProviders.associateBy { it.coreName }
+  val hostTestProviders = this.currentHostTestSourceProviders.values.flatten().associateBy { it.coreName }
+  val androidTestProviders = this.currentDeviceTestSourceProviders.values.flatten().associateBy { it.coreName }
 
   return sourceProviders.map { provider ->
     val srcRoot = if (provider.scopeType == ScopeType.MAIN) provider.javaDirectoryUrls.firstOrNull()?.toFile()
@@ -46,12 +46,12 @@ fun SourceProviders.buildNamedModuleTemplatesFor(
 
     val coreName = provider.coreName // Main source provider should also contain unit tests and Android tests
     val unitTestRoot = if (provider.scopeType == ScopeType.MAIN || provider.scopeType == ScopeType.UNIT_TEST)
-      unitTestProviders[coreName]?.javaDirectoryUrls?.firstOrNull()?.toFile()
+      hostTestProviders[coreName]?.javaDirectoryUrls?.firstOrNull()?.toFile()
     else null
 
     // Main and Unit Test source provider should also contain Android tests
     val testRoot = if (provider.scopeType == ScopeType.MAIN || provider.scopeType == ScopeType.ANDROID_TEST || provider.scopeType == ScopeType.UNIT_TEST)
-      androidTestProviders[coreName]?.javaDirectoryUrls?.firstOrNull()?.toFile()
+      androidTestProviders?.get(coreName)?.javaDirectoryUrls?.firstOrNull()?.toFile()
     else null
 
     NamedModuleTemplate(provider.name, AndroidModulePathsImpl(
@@ -75,6 +75,7 @@ private fun String.stripPrefix(scopeType: ScopeType): String {
     ScopeType.ANDROID_TEST -> this.stripPrefix("androidTest")
     ScopeType.TEST_FIXTURES -> this.stripPrefix("testFixtures")
     ScopeType.UNIT_TEST -> this.stripPrefix("test")
+    ScopeType.SCREENSHOT_TEST -> this.stripPrefix("screenshotTest")
   }
 }
 

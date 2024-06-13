@@ -18,6 +18,13 @@
     <applicationService serviceInterface="com.android.tools.idea.transport.TransportService"
                         serviceImplementation="com.android.tools.idea.transport.TransportServiceImpl"/>
   </extensions>
+
+  <extensionPoints>
+    <extensionPoint
+        qualifiedName="com.android.tools.idea.transport.transportConfigContributor"
+        interface="com.android.tools.idea.transport.TransportConfigContributor" />
+  </extensionPoints>
+
   <actions>
     <action internal="true" id="Android.TransportDemo" class="com.android.tools.idea.transport.demo.TransportPipelineAction">
       <add-to-group group-id="Internal.Android"/>

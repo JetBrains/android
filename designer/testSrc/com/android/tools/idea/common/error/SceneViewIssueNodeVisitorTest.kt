@@ -56,19 +56,22 @@ class SceneViewIssueNodeVisitorTest {
     val issue2 = TestIssue(source = IssueSourceWithFile(file2))
     val issue3 = TestIssue(source = IssueSourceWithFile(file3))
 
-    val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
-    val model = DesignerCommonIssueModel()
     val panel =
       DesignerCommonIssuePanel(
         rule.testRootDisposable,
         rule.project,
-        model,
+        false,
+        "name",
+        SHARED_ISSUE_PANEL_TAB_ID,
         { LayoutValidationNodeFactory },
-        provider,
-        { "" }
+        EmptyFilter,
+        { "" },
       )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
+    rule.project.messageBus
+      .syncPublisher(IssueProviderListener.TOPIC)
+      .issueUpdated(this, listOf(issue1, issue2, issue3))
 
     panel.setSelectedNode(visitor)
     IdeEventQueue.getInstance().flushQueue()
@@ -96,19 +99,22 @@ class SceneViewIssueNodeVisitorTest {
     val issue2 = TestIssue(source = IssueSourceWithFile(file2))
     val issue3 = TestIssue(source = IssueSourceWithFile(file3))
 
-    val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
-    val model = DesignerCommonIssueModel()
     val panel =
       DesignerCommonIssuePanel(
         rule.testRootDisposable,
         rule.project,
-        model,
+        false,
+        "name",
+        SHARED_ISSUE_PANEL_TAB_ID,
         { LayoutValidationNodeFactory },
-        provider,
-        { "" }
+        EmptyFilter,
+        { "" },
       )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
+    rule.project.messageBus
+      .syncPublisher(IssueProviderListener.TOPIC)
+      .issueUpdated(this, listOf(issue1, issue2, issue3))
 
     panel.setSelectedNode(visitor)
     IdeEventQueue.getInstance().flushQueue()
@@ -136,19 +142,22 @@ class SceneViewIssueNodeVisitorTest {
     val issue2 = TestIssue(source = IssueSourceWithFile(file2))
     val issue3 = TestIssue(source = IssueSourceWithFile(file3))
 
-    val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
-    val model = DesignerCommonIssueModel()
     val panel =
       DesignerCommonIssuePanel(
         rule.testRootDisposable,
         rule.project,
-        model,
+        false,
+        "name",
+        SHARED_ISSUE_PANEL_TAB_ID,
         { LayoutValidationNodeFactory },
-        provider,
-        { "" }
+        EmptyFilter,
+        { "" },
       )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
+    rule.project.messageBus
+      .syncPublisher(IssueProviderListener.TOPIC)
+      .issueUpdated(this, listOf(issue1, issue2, issue3))
 
     panel.setSelectedNode(visitor)
     IdeEventQueue.getInstance().flushQueue()
@@ -177,19 +186,22 @@ class SceneViewIssueNodeVisitorTest {
     val issue2 = TestIssue(source = IssueSourceWithFile(file2))
     val issue3 = TestIssue(source = IssueSourceWithFile(file3))
 
-    val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
-    val model = DesignerCommonIssueModel()
     val panel =
       DesignerCommonIssuePanel(
         rule.testRootDisposable,
         rule.project,
-        model,
+        false,
+        "name",
+        SHARED_ISSUE_PANEL_TAB_ID,
         { LayoutValidationNodeFactory },
-        provider,
-        { "" }
+        EmptyFilter,
+        { "" },
       )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
+    rule.project.messageBus
+      .syncPublisher(IssueProviderListener.TOPIC)
+      .issueUpdated(this, listOf(issue1, issue2, issue3))
 
     panel.setSelectedNode(visitor)
     IdeEventQueue.getInstance().flushQueue()

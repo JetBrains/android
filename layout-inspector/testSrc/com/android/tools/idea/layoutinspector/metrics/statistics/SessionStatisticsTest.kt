@@ -24,7 +24,9 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.ClassRule
+import org.junit.Rule
 import org.junit.Test
 
 class SessionStatisticsTest {
@@ -32,6 +34,8 @@ class SessionStatisticsTest {
   companion object {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
+
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun doNotSaveEmptyData() {
@@ -59,23 +63,25 @@ class SessionStatisticsTest {
     assertThat(result.attach.isEmbeddedLayoutInspector).isTrue()
     assertThat(result.attach.debuggerAttached).isFalse()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
+    assertThat(result.attach.attachDurationMs).isEqualTo(0)
   }
 
   @Test
   fun doSaveData() {
-    val model = model {
-      view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
-        compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
-          compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 0, composeSkips = 0)
+    val model =
+      model(disposableRule.disposable) {
+        view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+          compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
+            compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 0, composeSkips = 0)
+          }
         }
       }
-    }
     val stats =
       SessionStatisticsImpl(
         APP_INSPECTION_CLIENT,
         areMultipleProjectsOpen = { true },
         isAutoConnectEnabled = { true },
-        isEmbeddedLayoutInspector = { true }
+        isEmbeddedLayoutInspector = { true },
       )
     val compose1 = model[COMPOSE1]
     stats.start()
@@ -124,7 +130,7 @@ class SessionStatisticsTest {
       SessionStatisticsImpl(
         APP_INSPECTION_CLIENT,
         areMultipleProjectsOpen = { hasMultipleProjects },
-        isAutoConnectEnabled = { isAutoConnectEnabled }
+        isAutoConnectEnabled = { isAutoConnectEnabled },
       )
 
     stats.start()

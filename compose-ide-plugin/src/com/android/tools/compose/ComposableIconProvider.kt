@@ -51,7 +51,7 @@ class ComposableIconProvider : KotlinIconProvider() {
 
   private fun createRowIcon(baseIcon: Icon, visibilityIcon: Icon): RowIcon =
     RowIcon(2).apply {
-      setIcon(baseIcon, /* layer = */ 0)
-      setIcon(visibilityIcon, /* layer = */ 1)
+      setIcon(baseIcon, /* layer= */ 0)
+      setIcon(visibilityIcon, /* layer= */ 1)
     }
 }

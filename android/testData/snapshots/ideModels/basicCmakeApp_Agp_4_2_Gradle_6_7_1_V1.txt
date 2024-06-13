@@ -18,10 +18,6 @@ MODULE                        : project
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
@@ -43,8 +39,6 @@ MODULE                        : project
                 qName                         : :app
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
@@ -54,127 +48,131 @@ MODULE                        : project
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestApi                : <empty>
-                    androidTestApk                : <empty>
-                    androidTestCompile            : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugApi           : <empty>
-                    androidTestDebugApk           : <empty>
-                    androidTestDebugCompile       : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugProvided      : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestProvided           : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseApi         : <empty>
-                    androidTestReleaseApk         : <empty>
-                    androidTestReleaseCompile     : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseProvided    : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    apk                           : <empty>
-                    archives                      : <empty>
-                    compile                       : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiElements              : <empty>
-                    debugApk                      : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
-                    debugCompile                  : <empty>
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugProvided                 : <empty>
-                    debugReverseMetadataValues    : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugWearApp                  : <empty>
-                    debugWearBundling             : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintClassPath                 : <empty>
-                    lintPublish                   : <empty>
-                    provided                      : <empty>
-                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiElements            : <empty>
-                    releaseApk                    : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
-                    releaseCompile                : <empty>
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseProvided               : <empty>
-                    releaseReverseMetadataValues  : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseWearApp                : <empty>
-                    releaseWearBundling           : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testApi                       : <empty>
-                    testApk                       : <empty>
-                    testCompile                   : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugApi                  : <empty>
-                    testDebugApk                  : <empty>
-                    testDebugCompile              : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugProvided             : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testImplementation            : <empty>
-                    testProvided                  : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseApi                : <empty>
-                    testReleaseApk                : <empty>
-                    testReleaseCompile            : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseProvided           : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        androidApis                   : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestApi                : <empty>
+                        androidTestApk                : <empty>
+                        androidTestCompile            : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugApi           : <empty>
+                        androidTestDebugApk           : <empty>
+                        androidTestDebugCompile       : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugProvided      : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestProvided           : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseApi         : <empty>
+                        androidTestReleaseApk         : <empty>
+                        androidTestReleaseCompile     : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseProvided    : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        apk                           : <empty>
+                        archives                      : <empty>
+                        compile                       : <empty>
+                        compileOnly                   : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiElements              : <empty>
+                        debugApk                      : <empty>
+                        - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        debugCompile                  : <empty>
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugImplementation           : <empty>
+                        debugProvided                 : <empty>
+                        debugReverseMetadataValues    : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugWearApp                  : <empty>
+                        debugWearBundling             : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintClassPath                 : <empty>
+                        lintPublish                   : <empty>
+                        provided                      : <empty>
+                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiElements            : <empty>
+                        releaseApk                    : <empty>
+                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
+                        releaseCompile                : <empty>
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseImplementation         : <empty>
+                        releaseProvided               : <empty>
+                        releaseReverseMetadataValues  : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        releaseWearApp                : <empty>
+                        releaseWearBundling           : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testApi                       : <empty>
+                        testApk                       : <empty>
+                        testCompile                   : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugApi                  : <empty>
+                        testDebugApk                  : <empty>
+                        testDebugCompile              : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugProvided             : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testImplementation            : <empty>
+                        testProvided                  : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseApi                : <empty>
+                        testReleaseApk                : <empty>
+                        testReleaseCompile            : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseProvided           : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
+        sourceSetModel                : DefaultGradleSourceSetModel
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 4.2.0
@@ -187,11 +185,11 @@ MODULE                        : project.app
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : 16
-            ApiString                     : 16
+            ApiLevel                      : 21
+            ApiString                     : 21
         runtimeMinSdk
-            ApiLevel                      : 16
-            ApiString                     : 16
+            ApiLevel                      : 21
+            ApiString                     : 21
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
@@ -241,11 +239,14 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         applicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
         testApplicationId             : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -259,8 +260,8 @@ MODULE                        : project.app
             VersionCode                   : 1
             VersionName                   : 1.0
             MinSdkVersion
-                ApiLevel                      : 16
-                ApiString                     : 16
+                ApiLevel                      : 21
+                ApiString                     : 21
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
@@ -309,6 +310,7 @@ MODULE                        : project.app
             Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -356,6 +358,7 @@ MODULE                        : project.app
             Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -431,8 +434,8 @@ MODULE                        : project.app
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : 16
-                ApiString                     : 16
+                ApiLevel                      : 21
+                ApiString                     : 21
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
@@ -512,7 +515,7 @@ MODULE                        : project.app
                         module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
                         module                        : <ROOT>-:app-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     SelectedVariantName           : debug
     SelectedAbiName               : x86
     Name                          : app

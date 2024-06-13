@@ -36,6 +36,7 @@ public class Emulator implements AutoCloseable {
   private final LogFile logCat;
   private final String portString;
   private final Process process;
+  private final String name;
 
   public static void createEmulator(TestFileSystem fileSystem, String name, Path systemImage) throws IOException {
     Path avdHome = getAvdHome(fileSystem);
@@ -113,6 +114,7 @@ public class Emulator implements AutoCloseable {
     procArgs.addAll(extraEmulatorFlags);
 
     ProcessBuilder pb = new ProcessBuilder(procArgs.toArray(new String[0]));
+    pb.environment().put("HOME", fileSystem.getHome().toString());
     pb.environment().put("ANDROID_EMULATOR_HOME", fileSystem.getAndroidHome().toString());
     pb.environment().put("ANDROID_AVD_HOME", getAvdHome(fileSystem).toString());
     pb.environment().put("ANDROID_SDK_ROOT", sdk.getSourceDir().toString());
@@ -152,16 +154,17 @@ public class Emulator implements AutoCloseable {
     String portString =
       logFile.waitForMatchingLine(".*control console listening on port (\\d+), ADB on port \\d+", 2, TimeUnit.MINUTES).group(1);
 
-    return new Emulator(fileSystem, sdk, logFile, logCat, portString, process);
+    return new Emulator(fileSystem, sdk, logFile, logCat, portString, process, name);
   }
 
-  private Emulator(TestFileSystem fileSystem, AndroidSdk sdk, LogFile logFile, LogFile logCat, String portString, Process process) {
+  private Emulator(TestFileSystem fileSystem, AndroidSdk sdk, LogFile logFile, LogFile logCat, String portString, Process process, String name) {
     this.fileSystem = fileSystem;
     this.sdk = sdk;
     this.logFile = logFile;
     this.logCat = logCat;
     this.portString = portString;
     this.process = process;
+    this.name = name;
   }
 
   public void waitForBoot() throws IOException, InterruptedException {
@@ -185,6 +188,10 @@ public class Emulator implements AutoCloseable {
 
   public String getPortString() {
     return portString;
+  }
+
+  public String getName() {
+    return name;
   }
 
   public String getSerialNumber() {
@@ -216,11 +223,11 @@ public class Emulator implements AutoCloseable {
   /** A particular supported {@link Emulator} image to use. */
   public enum SystemImage {
     // Google API, userdebug builds
-    API_29("system_image_android-29_default_x86_64"),
     API_30("system_image_android-30_default_x86_64"),
     API_31("system_image_android-31_default_x86_64"),
-    API_32("system_image_android-32_default_x86_64"),
     API_33("system_image_android-33_default_x86_64"),
+    // Android Automated Test Device system image
+    API_33_ATD("system_image_android-33_aosp_atd_x86_64"),
     // Google Play builds
     API_33_PlayStore("system_image_android-33PlayStore_default_x86_64");
     /** Path to the image for this emulator {@link SystemImage}. */

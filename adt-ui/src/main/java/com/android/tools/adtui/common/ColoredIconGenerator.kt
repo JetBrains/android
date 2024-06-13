@@ -35,8 +35,7 @@ object ColoredIconGenerator {
    *
    * This method is meant to be used in renderer of selected content where the background is dark blue.
    */
-  @JvmStatic
-  fun generateWhiteIcon(icon: Icon): Icon {
+  @JvmStatic fun generateWhiteIcon(icon: Icon): Icon {
     return generateColoredIcon(icon, WHITE)
   }
 
@@ -53,7 +52,7 @@ object ColoredIconGenerator {
       cache.getOrPut(color.rgb) {
         IconLoader.filterIcon(icon, object : RgbImageFilterSupplier {
           override fun getFilter(): RGBImageFilter = object : RGBImageFilter() {
-            override fun filterRGB(x: Int, y: Int, rgb: Int): Int = (rgb or 0xffffff) and color.rgb
+            override fun filterRGB(x: Int, y: Int, rgb: Int) = (rgb or 0xffffff) and color.rgb
           }
         })
       }

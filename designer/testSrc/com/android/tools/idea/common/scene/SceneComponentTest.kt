@@ -49,7 +49,7 @@ open class SceneComponentTest : SceneTest() {
         myScene,
         LayoutTestUtilities.createMockComponent().apply {
           whenever(this.tagName).thenReturn(TEXT_VIEW)
-        }
+        },
       )
     val parent = myScene.getSceneComponent("parent")
 
@@ -122,7 +122,7 @@ open class SceneComponentTest : SceneTest() {
             .withBounds(0, 0, 2000, 2000)
             .matchParentWidth()
             .matchParentHeight()
-        )
+        ),
     )
   }
 }

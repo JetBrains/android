@@ -4,28 +4,20 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
     <orderEntry type="library" name="zxing-core" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" />
-    <orderEntry type="module" module-name="android.sdktools.adblib.ddmlibcompatibility" />
-    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
-    <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="android.sdktools.jdwpscache" />
-    <orderEntry type="module" module-name="android.sdktools.jdwptracer" />
-    <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
-    <orderEntry type="module" module-name="android.sdktools.process-monitor" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -46,5 +38,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.base" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adb.testUtil" scope="TEST" />
   </component>
 </module>

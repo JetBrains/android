@@ -82,7 +82,7 @@ class NavigationResourcesModificationListenerTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     safeArgsRule.waitForResourceRepositoryUpdates()
@@ -108,7 +108,7 @@ class NavigationResourcesModificationListenerTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     safeArgsRule.waitForResourceRepositoryUpdates()
@@ -138,7 +138,7 @@ class NavigationResourcesModificationListenerTest {
           </fragment>
         </navigation>
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     safeArgsRule.waitForResourceRepositoryUpdates()
@@ -173,7 +173,7 @@ class NavigationResourcesModificationListenerTest {
           </fragment>
         </navigation>
       """
-          .trimIndent()
+          .trimIndent(),
       )
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change and 1 vfs change

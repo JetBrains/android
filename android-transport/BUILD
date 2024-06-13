@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.transport",
     srcs = ["src"],
     iml_files = ["intellij.android.transport.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_class = "com.android.tools.idea.transport.AndroidTransportTestSuite",
     test_srcs = ["testSrc"],
     test_tags = [],
@@ -13,7 +12,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",

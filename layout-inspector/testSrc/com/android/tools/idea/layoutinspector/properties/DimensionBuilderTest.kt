@@ -47,13 +47,14 @@ class DimensionBuilderTest {
     application.registerServiceInstance(
       PropertiesComponent::class.java,
       PropertiesComponentMock(),
-      disposableRule.disposable
+      disposableRule.disposable,
     )
   }
 
   @Test
   fun testDimensionModel() {
-    val model = model { view(ROOT, 10, 20, 30, 40, qualifiedName = "rootType") }
+    val model =
+      model(disposableRule.disposable) { view(ROOT, 10, 20, 30, 40, qualifiedName = "rootType") }
     val properties =
       PropertiesTable.create(HashBasedTable.create<String, String, InspectorPropertyItem>())
     addInternalProperties(properties, model[1L]!!, "root", model)

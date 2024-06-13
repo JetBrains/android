@@ -15,7 +15,17 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedAccess
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedField
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedMethod
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationEnclosingMethod
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationInterface
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationModifiedField
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationRemovedAccess
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationRemovedField
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationRemovedMethod
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationSignature
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationSuperClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.FieldDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.LocalVariableDiff
@@ -39,41 +49,41 @@ class RegularClassVisitor(private val className: String, private val logger: ILo
   override fun visitAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>) {
     if (added.isNotEmpty()) {
       val msg = "added access flag(s): " + added.joinToString(", ")
-      handleUnsupportedChange(msg)
+      throw unsupportedSourceModificationAddedAccess(getlocation(), msg)
     }
 
     if (removed.isNotEmpty()) {
       val msg = "removed access flag(s): " + removed.joinToString(",")
-      handleUnsupportedChange(msg)
+      throw unsupportedSourceModificationRemovedAccess(getlocation(), msg)
     }
   }
 
   override fun visitSignature(old: String?, new: String?) {
-    handleUnsupportedChange("signature changed from '$old' to '$new'")
+    throw unsupportedSourceModificationSignature(getlocation(), "signature changed from '$old' to '$new'")
   }
 
   override fun visitSuperName(old: String?, new: String?) {
-    handleUnsupportedChange("superclass changed from '$old' to '$new'")
+    throw unsupportedSourceModificationSuperClass(getlocation(), "superclass changed from '$old' to '$new'")
   }
 
   override fun visitInterfaces(added: Set<String>, removed: Set<String>) {
-    handleUnsupportedChange("interfaces changed; added '$added' and removed'$removed'")
+    throw unsupportedSourceModificationInterface(getlocation(), "interfaces changed; added '$added' and removed'$removed'")
   }
 
   override fun visitEnclosingMethod(old: EnclosingMethod?, new: EnclosingMethod?) {
-    handleUnsupportedChange("enclosing method changed from '$old' to '$new'")
+    throw unsupportedSourceModificationEnclosingMethod(getlocation(), "enclosing method changed from '$old' to '$new'")
   }
 
   // Allow adding and removing synthetic methods, such as compiler-generated accessor methods.
   override fun visitMethods(added: List<IrMethod>, removed: List<IrMethod>, modified: List<MethodDiff>) {
     if (added.filterNot { it.isSynthetic() }.isNotEmpty()) {
-      val msg = "added method(s): " + added.joinToString(", ") { it.name + it.desc }
-      handleUnsupportedChange(msg)
+      val msg = "added method(s): " + added.joinToString(", ") { it.getReadableDesc() }
+      throw unsupportedSourceModificationAddedMethod(getlocation(), msg)
     }
 
     if (removed.filterNot { it.isSynthetic() }.isNotEmpty()) {
-      val msg = "removed method(s): " + removed.joinToString(", ") { it.name + it.desc }
-      handleUnsupportedChange(msg)
+      val msg = "removed method(s): " + removed.joinToString(", ") { it.getReadableDesc() }
+      throw unsupportedSourceModificationRemovedMethod(getlocation(), msg)
     }
 
     for (method in modified) {
@@ -86,25 +96,22 @@ class RegularClassVisitor(private val className: String, private val logger: ILo
   override fun visitFields(added: List<IrField>, removed: List<IrField>, modified: List<FieldDiff>) {
     if (added.isNotEmpty()) {
       val msg = "added field(s): " + added.joinToString(", ") { it.name }
-      handleUnsupportedChange(msg)
+      throw unsupportedSourceModificationAddedField(getlocation(), msg)
     }
 
     if (removed.isNotEmpty()) {
       val msg = "removed field(s): " + removed.joinToString(", ") { it.name }
-      handleUnsupportedChange(msg)
+      throw unsupportedSourceModificationRemovedField(getlocation(), msg)
     }
 
     // TODO: if we want, we can traverse the field diff to build a more detailed message.
     if (modified.isNotEmpty()) {
       val msg = "modified field(s): " + modified.joinToString(", ") { it.name }
-      handleUnsupportedChange(msg)
+      throw unsupportedSourceModificationModifiedField(getlocation(), msg)
     }
   }
 
-  private fun handleUnsupportedChange(message: String) {
-    throw LiveEditUpdateException(
-      LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, "in ${className.replace('/', '.')}, $message", null, null)
-  }
+  private inline fun getlocation() = className.replace('/', '.')
 }
 
 private class RegularMethodVisitor(val className: String, val methodName: String, val methodDesc: String) : MethodVisitor {
@@ -125,16 +132,12 @@ private class RegularMethodVisitor(val className: String, val methodName: String
   }
 
   override fun visitAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>) {
-    handleUnsupportedChange("interfaces changed; added '$added' and removed'$removed'")
+    // handleUnsupportedChange("interfaces changed; added '$added' and removed'$removed'")
   }
 
   override fun visitSignature(old: String?, new: String?) {
-    handleUnsupportedChange("signature changed from '$old' to '$new'")
+    // handleUnsupportedChange("signature changed from '$old' to '$new'")
   }
 
-  private fun handleUnsupportedChange(message: String) {
-    throw LiveEditUpdateException(
-      LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-      "in ${className.replace('/', '.')}.$methodName$methodDesc, $message", null, null)
-  }
+  private fun getLocation() = "${className.replace('/', '.')}.$methodName$methodDesc"
 }

@@ -28,6 +28,6 @@ internal fun ResultSetSqliteColumn.toViewColumn(table: SqliteTable? = null): Vie
   return ViewColumn(
     name,
     schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false,
-    schemaColumn?.isNullable ?: isNullable ?: true
+    schemaColumn?.isNullable ?: isNullable ?: true,
   )
 }

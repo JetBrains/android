@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.apk.debugging;
 
-import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
-import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 
 import java.io.IOException;
+
+import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
+import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 
 /**
  * Tests for {@link LibraryFolder}.

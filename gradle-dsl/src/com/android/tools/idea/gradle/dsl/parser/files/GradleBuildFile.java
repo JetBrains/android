@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.SOURCE_COMPATIBILITY;
 import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.TARGET_COMPATIBILITY;
-import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 
@@ -133,8 +133,10 @@ public class GradleBuildFile extends GradleScriptFile {
 
   @NotNull
   @Override
-  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
-    return GradleBlockModelMap.getElementMap(GradleBuildFile.class);
+  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
+    return GradleBlockModelMap.getElementMap(GradleBuildFile.class, kind);
   }
 
   /**
@@ -172,10 +174,9 @@ public class GradleBuildFile extends GradleScriptFile {
   }
 
   public static final class BuildGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
-      return GradleBlockModelMap.getElementMap(GradleBuildFile.class);
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
+      return GradleBlockModelMap.getElementMap(GradleBuildFile.class, kind);
     }
 
     @NotNull

@@ -25,6 +25,7 @@ import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaun
 import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTabProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -40,6 +41,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
 
+private const val EXPERIMENTAL_AGENT_FILE = "database-inspector.jar"
+private const val EXPERIMENTAL_AGENT_DEV_DIR =
+  "bazel-bin/tools/base/app-inspection/inspectors/database"
+private const val AGENT_FILE = "sqlite-inspection.jar"
+private const val AGENT_DEV_DIR = "prebuilts/tools/common/app-inspection/androidx/sqlite"
+
+private fun getAgentName() =
+  when (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
+    true -> EXPERIMENTAL_AGENT_FILE
+    false -> AGENT_FILE
+  }
+
+private fun getAgentDevDir() =
+  when (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
+    true -> EXPERIMENTAL_AGENT_DEV_DIR
+    false -> AGENT_DEV_DIR
+  }
+
 class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
   companion object {
     const val DATABASE_INSPECTOR_ID = "androidx.sqlite.inspection"
@@ -49,14 +68,15 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
   override val displayName = "Database Inspector"
   override val icon: Icon = StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR
 
-  override val inspectorLaunchParams =
-    FrameworkInspectorLaunchParams(
-      AppInspectorJar(
-        name = "sqlite-inspection.jar",
-        developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/sqlite/",
-        releaseDirectory = "plugins/android/resources/app-inspection/"
+  override val inspectorLaunchParams
+    get() =
+      FrameworkInspectorLaunchParams(
+        AppInspectorJar(
+          name = getAgentName(),
+          developmentDirectory = getAgentDevDir(),
+          releaseDirectory = "plugins/android/resources/app-inspection/",
+        )
       )
-    )
 
   override fun isApplicable(): Boolean {
     return true
@@ -69,7 +89,7 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
     messenger: AppInspectorMessenger,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AppInspectorTab {
     return object : SingleAppInspectorTab(messenger) {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -100,18 +120,18 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
           onDatabasePossiblyChanged,
           onDatabaseClosed,
           taskExecutor,
-          databaseInspectorProjectService.projectScope,
-          errorsSideChannel
+          databaseInspectorProjectService.scope,
+          errorsSideChannel,
         )
 
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
       init {
-        databaseInspectorProjectService.projectScope.launch {
+        databaseInspectorProjectService.scope.launch {
           databaseInspectorProjectService.startAppInspectionSession(
             dbClient,
             ideServices,
-            processDescriptor
+            processDescriptor,
           )
           dbClient.startTrackingDatabaseConnections()
           messenger.awaitForDisposal()

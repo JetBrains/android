@@ -24,9 +24,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiClass
 import com.intellij.psi.ResolveScopeEnlarger
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -49,67 +47,31 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
 
     return getAdditionalResolveScope(facet)
   }
-
-  fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
-    val module = facet.module
-    val project = module.project
-
-    return CachedValuesManager.getManager(project).getCachedValue(module) {
-      val localScope = facet.getLocalBindingScope()
-      val scopeIncludingDeps =
-        module
-          .getModuleSystem()
-          .getResourceModuleDependencies()
-          .mapNotNull { module -> module.androidFacet }
-          .map(AndroidFacet::getLocalBindingScope)
-          .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
-
-      CachedValueProvider.Result.create(
-        scopeIncludingDeps,
-        PsiModificationTracker.MODIFICATION_COUNT
-      )
-    }
-  }
 }
 
-private fun AndroidFacet.getLocalBindingScope(): GlobalSearchScope {
-  val module = module
-  val project = module.project
-  return CachedValuesManager.getManager(project).getCachedValue(module) {
-    val lightClasses = mutableListOf<PsiClass>()
-
-    val bindingModuleCache = LayoutBindingModuleCache.getInstance(this)
-
-    if (DataBindingUtil.isDataBindingEnabled(this)) {
-      bindingModuleCache.lightBrClass?.let { lightClasses.add(it) }
-      bindingModuleCache.lightDataBindingComponentClass?.let { lightClasses.add(it) }
-    }
-
-    bindingModuleCache.bindingLayoutGroups.forEach { group ->
-      lightClasses.addAll(bindingModuleCache.getLightBindingClasses(group))
-    }
-
-    // Light classes don't exist on disk, so you have to use their view provider to get a
-    // corresponding virtual file. This same virtual file should be used by finders to verify
-    // that classes they are returning belong to the current scope.
-    val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
-    val localScope = GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles)
-    CachedValueProvider.Result.create(localScope, PsiModificationTracker.MODIFICATION_COUNT)
-  }
-}
-
-/**
- * Additional scope enlarger for Kotlin
- *
- * Kotlin needs its own scope enlarger - it can't simply use the [BindingScopeEnlarger] above.
- * Therefore, we provide one here that simply delegates to it.
- */
+/** Additional scope enlarger for Kotlin. */
 class BindingKotlinScopeEnlarger : KotlinResolveScopeEnlarger {
-  private val delegateEnlarger =
-    ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(BindingScopeEnlarger::class.java)
-
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
     val facet = module.androidFacet?.takeIf { it.isRelevantForScopeEnlarging() } ?: return null
-    return delegateEnlarger.getAdditionalResolveScope(facet)
+    return getAdditionalResolveScope(facet)
   }
 }
+
+private fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
+  val module = facet.module
+  val project = module.project
+  return CachedValuesManager.getManager(project).getCachedValue(module) {
+    val localScope = facet.toLightBindingClassSearchScope()
+    val scopeIncludingDeps =
+      module
+        .getModuleSystem()
+        .getResourceModuleDependencies()
+        .mapNotNull { module -> module.androidFacet?.toLightBindingClassSearchScope() }
+        .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
+
+    CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
+  }
+}
+
+private fun AndroidFacet.toLightBindingClassSearchScope() =
+  LayoutBindingModuleCache.getInstance(this).lightBindingClassSearchScope

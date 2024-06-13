@@ -17,7 +17,6 @@ package com.android.tools.idea.configurations
 
 import com.android.sdklib.IAndroidTarget
 import com.android.tools.configurations.ConfigurationModelModule
-import com.android.tools.configurations.ConfigurationStateManager
 import com.android.tools.configurations.ThemeInfoProvider
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -27,7 +26,7 @@ import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
-import com.android.tools.module.ModuleKeyManager
+import com.android.tools.idea.module.ModuleKeyManager
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.android.tools.sdk.CompatibilityRenderTarget
@@ -42,11 +41,9 @@ class StudioConfigurationModelModule(val module: Module): ConfigurationModelModu
     get() = getInstance(module)
   override val resourceRepositoryManager: ResourceRepositoryManager?
     get() = StudioResourceRepositoryManager.getInstance(module)
-  override val configurationStateManager: ConfigurationStateManager
-    get() = StudioConfigurationStateManager.get(module.project)
   override val themeInfoProvider: ThemeInfoProvider = StudioThemeInfoProvider(module)
   override val androidModuleInfo: AndroidModuleInfo? = StudioAndroidModuleInfo.getInstance(module)
-  override val project: Project = module.project
+  val project: Project = module.project
   override val name: String = module.name
   override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(module.project)
   override val dependencies: ModuleDependencies = module.getModuleSystem().moduleDependencies
@@ -56,7 +53,4 @@ class StudioConfigurationModelModule(val module: Module): ConfigurationModelModu
     get() = ModuleKeyManager.getKey(module)
   override val resourcePackage: String?
     get() = module.getModuleSystem().getPackageName()
-
-  override fun dispose() {
-  }
 }

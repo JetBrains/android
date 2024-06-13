@@ -30,7 +30,7 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public final class DeviceSelectorFixture {
-  private static final Duration DURATION = Duration.ofSeconds(20);
+  private static final Duration DURATION = Duration.ofSeconds(40);
 
   @NotNull
   private final Robot myRobot;

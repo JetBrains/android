@@ -22,7 +22,7 @@ import androidx.compose.animation.tooling.TransitionInfo
 enum class ClockType {
   DEFAULT,
   WITH_TRANSITIONS,
-  WITH_COORDINATION
+  WITH_COORDINATION,
 }
 
 internal fun ClockType.getClock(): TestClock =
@@ -46,29 +46,29 @@ internal open class TestClockWithTransitions : TestClock() {
         "specType",
         startTimeMillis = 0,
         endTimeMillis = 100,
-        values = mapOf(0L to 1, 50L to 2, 100L to 3)
+        values = mapOf(0L to 1, 50L to 2, 100L to 3),
       ),
       TransitionInfo(
         "IntSnap",
         "Snap",
         startTimeMillis = 0,
         endTimeMillis = 0,
-        values = mapOf(0L to 100)
+        values = mapOf(0L to 100),
       ),
       TransitionInfo(
         "Float",
         "specType",
         startTimeMillis = 100,
         endTimeMillis = 200,
-        values = mapOf(100L to 1f, 150L to 0f, 200L to 2f)
+        values = mapOf(100L to 1f, 150L to 0f, 200L to 2f),
       ),
       TransitionInfo(
         "Double",
         "specType",
         startTimeMillis = 0,
         endTimeMillis = 100,
-        values = mapOf(0L to 1.0, 50L to 10.0, 100L to 2.0)
-      )
+        values = mapOf(0L to 1.0, 50L to 10.0, 100L to 2.0),
+      ),
     )
 }
 
@@ -93,7 +93,7 @@ internal open class TestClock {
       ComposeAnimatedProperty("Int", 1),
       ComposeAnimatedProperty("IntSnap", 1),
       ComposeAnimatedProperty("Float", 1f),
-      ComposeAnimatedProperty("Double", 1.0)
+      ComposeAnimatedProperty("Double", 1.0),
     )
 
   fun getMaxDuration() = 1000L

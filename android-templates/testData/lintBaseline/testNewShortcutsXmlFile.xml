@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file should not be edited manually! See go/template-diff-tests -->
+<issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.xml.shortcuts` appears to be unused"
+        errorLine1="&lt;shortcuts>"
+        errorLine2="^">
+        <location
+            file="src/main/res/xml/shortcuts.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+</issues>

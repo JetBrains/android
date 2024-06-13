@@ -6,24 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library">
-      <library name="background-inspector-proto" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:backgroundtask_inspector_java_proto:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/232.1.23.0/backgroundtask_inspector_java_proto-232.1.23.0.jar">
-              <sha256sum>31a9e3f4330e2f383a940e34e2a3d0ee59197766f42656c39d24e66e49a9b3ab</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/232.1.23.0/backgroundtask_inspector_java_proto-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="studio-grpc" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module-library">
       <library name="workmanager-inspector-proto" type="repository">
         <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:workmanager_inspector_proto:232.1.23.0">
@@ -45,10 +30,24 @@
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="studio-grpc" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
+    <orderEntry type="module-library">
+      <library name="background-inspector-proto" type="repository">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:backgroundtask_inspector_java_proto:232.1.23.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/232.1.23.0/backgroundtask_inspector_java_proto-232.1.23.0.jar">
+              <sha256sum>31a9e3f4330e2f383a940e34e2a3d0ee59197766f42656c39d24e66e49a9b3ab</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/232.1.23.0/backgroundtask_inspector_java_proto-232.1.23.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />

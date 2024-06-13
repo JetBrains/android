@@ -21,6 +21,7 @@ import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -41,7 +42,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
     }
   }
 
-  private class CustomViewSelector() :
+  private class CustomViewSelector :
     DropDownAction(null, "Custom View for Preview", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
     override fun update(e: AnActionEvent) {
       super.update(e)
@@ -56,6 +57,8 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
     }
 
     override fun displayTextInToolbar() = true
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }
 
   override fun getNorthGroup(): ActionGroup {
@@ -67,7 +70,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
         ToggleAction(
           "Wrap content horizontally",
           "Set preview width to wrap content",
-          StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH
+          StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH,
         ) {
         override fun isSelected(e: AnActionEvent) =
           findPreviewEditorsForContext(e.dataContext).any { it.shrinkWidth }
@@ -75,6 +78,8 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
         override fun setSelected(e: AnActionEvent, state: Boolean) {
           findPreviewEditorsForContext(e.dataContext).forEach { it.shrinkWidth = state }
         }
+
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
       }
 
     val wrapHeight =
@@ -82,7 +87,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
         ToggleAction(
           "Wrap content vertically",
           "Set preview height to wrap content",
-          StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT
+          StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT,
         ) {
         override fun isSelected(e: AnActionEvent) =
           findPreviewEditorsForContext(e.dataContext).any { it.shrinkHeight }
@@ -90,6 +95,8 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
         override fun setSelected(e: AnActionEvent, state: Boolean) {
           findPreviewEditorsForContext(e.dataContext).forEach { it.shrinkHeight = state }
         }
+
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
       }
 
     customViewPreviewActions.add(customViews)

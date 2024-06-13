@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2023.2.1">
+    version="2024.1.1">
   <feature
-      name="What's New in Iguana">
+      name="What's New in Koala">
     <tutorial
         key="whats-new"
-        label=" What's New in Iguana"
-        icon="stable/product-icon.svg"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes/2023-2-1"
+        label=" What's New in Koala"
+        icon="preview/product-icon.svg"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2024-1-1"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -37,11 +37,67 @@
           from the main menu.
           ]]>
       </description>
+      <step label="Access real devices with Device Streaming">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            Device streaming in Android Studio lets you securely connect to remote physical
+            Android devices hosted in Google's secure data centers. Powered by Firebase, it's the
+            fastest and easiest way to test your app against real devices, including the Google
+            Pixel 8 Pro, Pixel Fold, select Samsung devices, and more.
+            </p>
+            <br>
+            <img
+              src="https://d.android.com/studio/releases/assistant/2023.3.1/device-streaming.gif"
+              width="428"
+              alt="">
+            <br><br>
+            <p>
+            After connecting to a device, you can deploy your app, view the display, interact with
+            the device (including rotating or unfolding the device), and anything else you might do
+            with a device over a direct ADB over SSL connection—all without leaving Android Studio.
+            When you're done using the device, Google wipes all your data and factory resets the
+            device before making it available to another developer.
+            </p>
+            <p>
+            During Open Alpha, you can use Device Streaming at no cost by simply logging into your
+            Developer account and selecting a Firebase project. If you don't already have a Firebase
+            project, it's free and easy to create one.
+            </p>
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <action
+              key="device.streaming.onboarding"
+              label="Get Started">
+          </action>
+        </stepElement>
+      </step>
+      <step label="Build a Generative AI app using the Gemini API template">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            You can now use Android Studio to build an app that implements Generative AI using the
+            <a href="http://ai.google.dev/tutorials/android_quickstart?utm_source=android&utm_medium=referral">Google AI SDK</a>.
+            The Gemini API template in Android Studio lets you incorporate AI-powered features, such
+            as those that rely on text generation and image recognition, in your app to delight your
+            users.
+            </p>
+            <br><br>
+            <a href="https://d.android.com/r/studio-ui/ide/gemini-template">Learn more</a>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
       <footerStep label="">
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 2/09/2024</em><br><br>
+              <br><em>Last updated 3/28/2024</em><br><br>
             ]]>
           </section>
         </stepElement>

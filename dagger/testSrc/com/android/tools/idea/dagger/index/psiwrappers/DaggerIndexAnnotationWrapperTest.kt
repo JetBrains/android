@@ -59,7 +59,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtAnnotationEntry = myFixture.findParentElement("Annotati|on")
@@ -82,7 +82,7 @@ class DaggerIndexAnnotationWrapperTest {
       @com.qualified.Annotation
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtAnnotationEntry = myFixture.findParentElement("Annotati|on")
@@ -105,7 +105,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Bar
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtAnnotationEntry = myFixture.findParentElement("@Ba|r")
@@ -126,7 +126,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation(modules = [Module1::class])
       interface Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtAnnotationEntry = myFixture.findParentElement("Annota|tion")
@@ -147,7 +147,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation(modules = [Module1::class, Module2::class])
       interface Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtAnnotationEntry = myFixture.findParentElement("Annota|tion")
@@ -168,7 +168,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation(modules = [])
       interface Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtAnnotationEntry = myFixture.findParentElement("Annota|tion")
@@ -189,7 +189,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation(notModules = [Module1::class, Module2::class])
       interface Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtAnnotationEntry = myFixture.findParentElement("Annota|tion")
@@ -212,7 +212,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
@@ -235,7 +235,7 @@ class DaggerIndexAnnotationWrapperTest {
       @com.qualified.Annotation
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
@@ -256,7 +256,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation(modules = Module1.class)
       interface Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
@@ -277,7 +277,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation(modules = { Module1.class })
       interface Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
@@ -298,7 +298,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation(modules = { Module1.class, Module2.class })
       interface Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
@@ -319,7 +319,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation(modules = { })
       interface Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
@@ -340,7 +340,7 @@ class DaggerIndexAnnotationWrapperTest {
       @Annotation(notModules = { Module1.class, Module2.class })
       interface Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")

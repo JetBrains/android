@@ -72,12 +72,12 @@ object AssistedInjectConstructorDaggerConcept : DaggerConcept {
   override val indexValueReaders =
     listOf(
       AssistedInjectConstructorIndexValue.Reader,
-      AssistedInjectConstructorUnassistedParameterIndexValue.Reader
+      AssistedInjectConstructorUnassistedParameterIndexValue.Reader,
     )
   override val daggerElementIdentifiers =
     DaggerElementIdentifiers.of(
       AssistedInjectConstructorIndexValue.identifiers,
-      AssistedInjectConstructorUnassistedParameterIndexValue.identifiers
+      AssistedInjectConstructorUnassistedParameterIndexValue.identifiers,
     )
 }
 
@@ -91,7 +91,7 @@ private object AssistedInjectConstructorIndexer : DaggerConceptIndexer<DaggerInd
     val classId = wrapper.getContainingClass()?.getClassId() ?: return
     indexEntries.addIndexValue(
       classId.asFqNameString(),
-      AssistedInjectConstructorIndexValue(classId)
+      AssistedInjectConstructorIndexValue(classId),
     )
 
     for (parameter in wrapper.getParameters()) {
@@ -103,7 +103,7 @@ private object AssistedInjectConstructorIndexer : DaggerConceptIndexer<DaggerInd
       val parameterName = parameter.getSimpleName() ?: continue
       indexEntries.addIndexValue(
         parameterSimpleTypeName,
-        AssistedInjectConstructorUnassistedParameterIndexValue(classId, parameterName)
+        AssistedInjectConstructorUnassistedParameterIndexValue(classId, parameterName),
       )
     }
   }
@@ -137,15 +137,15 @@ internal data class AssistedInjectConstructorIndexValue(val classId: ClassId) : 
     internal val identifiers =
       DaggerElementIdentifiers(
         ktConstructorIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
     JavaPsiFacade.getInstance(project)
       .findClass(classId.asFqNameString(), scope)
       ?.constructors
-      ?.toList() ?: emptyList()
+      ?.asSequence() ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -153,7 +153,7 @@ internal data class AssistedInjectConstructorIndexValue(val classId: ClassId) : 
 @VisibleForTesting
 internal data class AssistedInjectConstructorUnassistedParameterIndexValue(
   val classId: ClassId,
-  val parameterName: String
+  val parameterName: String,
 ) : IndexValue() {
   override val dataType = Reader.supportedType
 
@@ -168,7 +168,7 @@ internal data class AssistedInjectConstructorUnassistedParameterIndexValue(
     override fun read(input: DataInput) =
       AssistedInjectConstructorUnassistedParameterIndexValue(
         input.readClassId(),
-        input.readString()
+        input.readString(),
       )
   }
 
@@ -199,18 +199,17 @@ internal data class AssistedInjectConstructorUnassistedParameterIndexValue(
     internal val identifiers =
       DaggerElementIdentifiers(
         ktParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.constructors.flatMap {
-      it.parameterList.parameters.filter { p -> p.name == parameterName }
-    }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.constructors
+      ?.asSequence()
+      ?.flatMap { it.parameterList.parameters.asSequence().filter { p -> p.name == parameterName } }
+      ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -218,7 +217,7 @@ internal data class AssistedInjectConstructorUnassistedParameterIndexValue(
 internal data class AssistedInjectConstructorDaggerElement(
   override val psiElement: PsiElement,
   internal val constructedType: PsiType,
-  internal val methodName: String?
+  internal val methodName: String?,
 ) : DaggerElement() {
 
   internal constructor(
@@ -231,7 +230,7 @@ internal data class AssistedInjectConstructorDaggerElement(
 
   override val metricsElementType = DaggerEditorEvent.ElementType.ASSISTED_INJECTED_CONSTRUCTOR
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
+  override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> {
     return getRelatedDaggerElementsFromIndex<AssistedFactoryMethodDaggerElement>(
         constructedType.getIndexKeys()
       )
@@ -240,7 +239,7 @@ internal data class AssistedInjectConstructorDaggerElement(
           it,
           DaggerBundle.message("assisted.factory"),
           "navigate.to.assisted.factory",
-          it.methodName
+          it.methodName,
         )
       }
   }

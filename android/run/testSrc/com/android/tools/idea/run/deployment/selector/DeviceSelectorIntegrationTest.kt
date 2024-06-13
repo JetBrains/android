@@ -33,6 +33,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.guava.await
 import kotlinx.datetime.Clock
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,9 +62,9 @@ class DeviceSelectorIntegrationTest {
             }
           }
         ),
-        launchCompatibilityCheckerFlow(project)
+        launchCompatibilityCheckerFlow(project),
       ),
-      projectRule.project
+      projectRule.project,
     )
   }
 
@@ -92,6 +93,12 @@ class DeviceSelectorIntegrationTest {
 
     // Activate the device
     val deployTarget = DeviceAndSnapshotComboBoxTarget()
+
+    // The device should not be launched by calling getAndroidDevices
+    val androidDevices = deployTarget.getAndroidDevices(project)
+    assertThrows(IllegalStateException::class.java) { androidDevices[0].launchedDevice }
+
+    // Calling getDevices should launch the device
     val devices = deployTarget.getDevices(project)
     runBlockingWithTimeout { devices.get().forEach { it.await() } }
 

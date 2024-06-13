@@ -1,20 +1,28 @@
 buildscript {
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10"
-     }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:8.1.0'
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10"
+  }
 }
 
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    compileSdk 33
-    defaultConfig {
-        applicationId "com.example.minapp"
-        minSdk 29
-    }
-    lintOptions {
-      checkReleaseBuilds false
-    }
+  compileSdk 33
+  defaultConfig {
+    namespace "com.example.minapp"
+    minSdk 29
+    targetSdk 33
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+  lintOptions {
+    checkReleaseBuilds false
+  }
+  kotlinOptions {
+    jvmTarget = '17'
+  }
 }

@@ -9,20 +9,20 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="intellij-core" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.base.layoutlib-loader" />
-    <orderEntry type="module" module-name="android.sdktools.base.sdklib-base" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.repository-base" />
-    <orderEntry type="module" module-name="android.sdktools.resource-repository-base" />
-    <orderEntry type="module" module-name="android.sdktools.base.sdk-common-base" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.base.layoutlib-api-base" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="kxml2" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.zipflinger" />
-    <orderEntry type="module" module-name="android.sdktools.base.apkparser.analyzer-base" />
-    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
-    <orderEntry type="module" module-name="android.sdktools.base.environment-services" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="asm-tools" level="project" />
   </component>
 </module>

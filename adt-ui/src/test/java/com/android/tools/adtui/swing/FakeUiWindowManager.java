@@ -50,6 +50,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.event.HyperlinkListener;
 import kotlin.jvm.functions.Function0;
+import kotlinx.coroutines.CoroutineScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import kotlinx.coroutines.CoroutineScope;
@@ -203,7 +204,7 @@ public final class FakeUiWindowManager extends WindowManagerEx {
 
     @Nullable
     @Override
-    public StatusBar createChild(@NotNull CoroutineScope coroutineScope,
+    public StatusBar createChild(@NotNull CoroutineScope scope,
                                  @NotNull IdeFrame frame,
                                  @NotNull Function0<? extends FileEditor> function0) {
       return null;

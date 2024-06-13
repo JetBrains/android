@@ -30,7 +30,7 @@ internal class ActivateTemplateButton(scope: CoroutineScope, private val templat
     addActionListener {
       template.launchCatchingDeviceActionException(
         scope,
-        projectFromComponentContext(this@ActivateTemplateButton)
+        projectFromComponentContext(this@ActivateTemplateButton),
       ) {
         activationAction.activate()
       }

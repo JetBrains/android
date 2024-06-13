@@ -59,7 +59,7 @@ class DataBindingFindUsagesTest() {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
@@ -87,7 +87,7 @@ class DataBindingFindUsagesTest() {
         </LinearLayout>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val classFile =
@@ -113,7 +113,7 @@ class DataBindingFindUsagesTest() {
           }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(classFile.virtualFile)
@@ -180,7 +180,7 @@ class DataBindingFindUsagesTest() {
         </LinearLayout>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.addFileToProject(
@@ -204,7 +204,7 @@ class DataBindingFindUsagesTest() {
           }
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
@@ -253,7 +253,7 @@ class DataBindingFindUsagesTest() {
         </LinearLayout>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val layoutFile2 =
@@ -273,7 +273,7 @@ class DataBindingFindUsagesTest() {
         </LinearLayout>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.addFileToProject(
@@ -297,7 +297,7 @@ class DataBindingFindUsagesTest() {
           }
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Find usages for layout 1 should have three; both xml files (because they both reference the

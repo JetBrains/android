@@ -17,28 +17,32 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.applyTo
+import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
 /** [PreviewElementModelAdapter] adapting [ComposePreviewElementInstance] to [NlModel]. */
 abstract class ComposePreviewElementModelAdapter :
-  MethodPreviewElementModelAdapter<ComposePreviewElementInstance, NlModel>(
-    COMPOSE_PREVIEW_ELEMENT_INSTANCE
+  ConfigurablePreviewElementModelAdapter<PsiComposePreviewElementInstance, NlModel>,
+  MethodPreviewElementModelAdapter<PsiComposePreviewElementInstance, NlModel>(
+    PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
   ) {
 
   override fun applyToConfiguration(
-    previewElement: ComposePreviewElementInstance,
-    configuration: Configuration
-  ) = previewElement.applyTo(configuration)
+    previewElement: PsiComposePreviewElementInstance,
+    configuration: Configuration,
+  ) = previewElement.applyTo(configuration) { it.settings.getDefaultPreviewDevice() }
 
   override fun createLightVirtualFile(
     content: String,
     backedFile: VirtualFile,
-    id: Long
+    id: Long,
   ): LightVirtualFile =
     ComposeAdapterLightVirtualFile("compose-model-$id.xml", content) { backedFile }
 }

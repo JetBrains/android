@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.DefaultExecutionTarget
 import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetProvider
@@ -30,17 +31,17 @@ internal constructor(
 ) : ExecutionTargetProvider() {
   override fun getTargets(
     project: Project,
-    configuration: RunConfiguration
+    configuration: RunConfiguration,
   ): List<ExecutionTarget> {
     // TODO: Should we be using the configuration parameter here? The original code didn't; the
     // DevicesSelectedService implicitly uses the currently selected run configuration, which is
     // presumably the same.
-    if (!AndroidUtils.hasAndroidFacets(project)) return listOf(DefaultExecutionTarget.INSTANCE)
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(project)) return listOf(DefaultExecutionTarget.INSTANCE)
 
     return listOf(
       DeviceAndSnapshotComboBoxExecutionTarget(
         devicesSelectedService(project).getSelectedTargets(),
-        devicesService(project)
+        devicesService(project),
       )
     )
   }

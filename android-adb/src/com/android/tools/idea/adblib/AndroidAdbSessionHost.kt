@@ -46,6 +46,8 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
 
   override val loggerFactory = AndroidAdbLoggerFactory()
 
+  override val usageTracker = AndroidAdbUsageTracker()
+
   override val asynchronousChannelGroup: AsynchronousChannelGroup? =
     AsynchronousChannelGroup.withCachedThreadPool(
       AppExecutorUtil.createBoundedScheduledExecutorService("AndroidAdbSessionHost", 4), 1)

@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import static com.android.tools.idea.res.FloatResources.parseFloatAttribute;
-import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
-
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -26,34 +23,34 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.res.FloatResources;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.rendering.RenderTask;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
-import java.awt.Dimension;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Predicate;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+import java.util.function.Predicate;
+
+import static com.android.tools.idea.res.FloatResources.parseFloatAttribute;
+import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
 
 /**
  * The UI builder / layout editor as exposed to {@link ViewHandler} instances.
@@ -253,7 +250,8 @@ public abstract class ViewEditor {
     if (file == null) {
       return;
     }
-    LayoutNavigationManager.getInstance(config.getConfigModule().getProject()).pushFile(model.getVirtualFile(), file);
+    ConfigurationManager manager = ConfigurationManager.getFromConfiguration(config);
+    LayoutNavigationManager.getInstance(manager.getProject()).pushFile(model.getVirtualFile(), file);
   }
 
   /**

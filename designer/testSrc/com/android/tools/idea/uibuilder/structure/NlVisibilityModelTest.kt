@@ -138,7 +138,7 @@ class NlVisibilityModelTest : LayoutTestCase() {
           currVisibility,
           parentVisibility,
           grandparentVisibility,
-          Visibility.GONE
+          Visibility.GONE,
         )
       }
     }
@@ -147,7 +147,7 @@ class NlVisibilityModelTest : LayoutTestCase() {
   private fun assertAgainstParent(
     currentVisibility: String?,
     parentVisibility: String?,
-    expected: Visibility
+    expected: Visibility,
   ) {
     val component = mockComponent(currentVisibility)
     val parent = mockComponent(parentVisibility)
@@ -161,7 +161,7 @@ class NlVisibilityModelTest : LayoutTestCase() {
     currentVisibility: String?,
     parentVisibility: String?,
     grandparentVisibility: String?,
-    expected: Visibility
+    expected: Visibility,
   ) {
     val component = mockComponent(currentVisibility)
     val parent = mockComponent(parentVisibility)

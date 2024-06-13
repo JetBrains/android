@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.internal
 
-import android.annotation.SuppressLint
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
@@ -60,7 +59,7 @@ import kotlinx.coroutines.withContext
  */
 private class InspectorCommand(
   val appInspectionCommand: AppInspectionCommand,
-  val completer: CompletableDeferred<AppInspection.AppInspectionResponse>?
+  val completer: CompletableDeferred<AppInspection.AppInspectionResponse>?,
 )
 
 /**
@@ -73,7 +72,7 @@ private fun CoroutineScope.commandSender(
   commands: ReceiveChannel<InspectorCommand>,
   transport: AppInspectionTransport,
   connectionStartTimeNs: Long,
-  inspectorId: String
+  inspectorId: String,
 ) = launch {
   val pendingCommands =
     ConcurrentHashMap<Int, CompletableDeferred<AppInspection.AppInspectionResponse>>()
@@ -82,7 +81,7 @@ private fun CoroutineScope.commandSender(
       .eventFlow(
         eventKind = APP_INSPECTION_RESPONSE,
         filter = { it.hasAppInspectionResponse() },
-        startTimeNs = { connectionStartTimeNs }
+        startTimeNs = { connectionStartTimeNs },
       )
       .collect {
         pendingCommands
@@ -136,7 +135,7 @@ internal class AppInspectorConnection(
   private val transport: AppInspectionTransport,
   private val inspectorId: String,
   private val connectionStartTimeNs: Long,
-  parentScope: CoroutineScope
+  parentScope: CoroutineScope,
 ) : AppInspectorMessenger {
   override val scope = parentScope.createChildScope(false)
   private val disposeCalled = AtomicBoolean(false)
@@ -152,7 +151,7 @@ internal class AppInspectorConnection(
             event.appInspectionEvent.inspectorId == inspectorId &&
             event.appInspectionEvent.hasRawEvent()
         },
-        startTimeNs = { connectionStartTimeNs }
+        startTimeNs = { connectionStartTimeNs },
       )
       .map {
         val rawEvent = it.event.appInspectionEvent.rawEvent
@@ -191,7 +190,7 @@ internal class AppInspectorConnection(
         filter = { event ->
           event.hasAppInspectionEvent() && event.appInspectionEvent.inspectorId == inspectorId
         },
-        startTimeNs = { connectionStartTimeNs }
+        startTimeNs = { connectionStartTimeNs },
       )
       .onEach {
         val appInspectionEvent = it.event.appInspectionEvent
@@ -212,10 +211,7 @@ internal class AppInspectorConnection(
 
   private fun collectProcessTermination() {
     transport
-      .eventFlow(
-        eventKind = PROCESS,
-        startTimeNs = { connectionStartTimeNs },
-      )
+      .eventFlow(eventKind = PROCESS, startTimeNs = { connectionStartTimeNs })
       .onEach {
         if (it.event.isEnded) {
           cleanup(
@@ -247,7 +243,7 @@ internal class AppInspectorConnection(
    * Query the payload, removing it from the datastore at the same time (so obsolete, expensively
    * large data doesn't fill up the cache).
    */
-  @SuppressLint("CheckResult") // deleteEvents returns an empty message, nothing to check
+  @Suppress("CheckResult") // deleteEvents returns an empty message, nothing to check
   private fun removePayload(id: Long): ByteArray {
     val response =
       transport.client.transportStub.getEventGroups(

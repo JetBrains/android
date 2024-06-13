@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.flags.junit.FlagRule
 import com.android.io.readImage
 import com.android.testutils.MockitoKt.mock
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
@@ -34,30 +33,39 @@ import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito.verify
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito.verify
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class InspectorModelTest {
-  @get:Rule
-  val highlightFlag =
-    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true)
+  companion object {
+    @JvmField @ClassRule val rule = ApplicationRule()
+  }
+
+  @get:Rule val disposableRule = DisposableRule()
+
+  val disposable
+    get() = disposableRule.disposable
 
   @Test
   fun testUpdatePropertiesOnly() {
-    val model = model {
-      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
-        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
-          view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type")
+    val model =
+      model(disposable) {
+        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
+            view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type")
+          }
+          view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
         }
-        view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
       }
-    }
     val origRoot = model[ROOT]
     var isModified = false
     var newRootReported: ViewNode? = null
@@ -93,11 +101,12 @@ class InspectorModelTest {
   @Test
   fun testChildCreated() {
     val image1 = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/image1.png").readImage()
-    val model = model {
-      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
-        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") { image(image1) }
+    val model =
+      model(disposable) {
+        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") { image(image1) }
+        }
       }
-    }
     var isModified = false
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]
@@ -130,13 +139,14 @@ class InspectorModelTest {
 
   @Test
   fun testNodeDeleted() {
-    val model = model {
-      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
-        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+    val model =
+      model(disposable) {
+        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
+            view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+          }
         }
       }
-    }
     var isModified = false
     model.setSelection(model[VIEW3], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW3]
@@ -162,18 +172,19 @@ class InspectorModelTest {
 
   @Test
   fun testNodeChanged() {
-    val model = model {
-      view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
-        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") {
-            compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 15, composeSkips = 12) {
-              compose(COMPOSE1, "Text", "text.kt", 234, composeCount = 5, composeSkips = 22)
+    val model =
+      model(disposable) {
+        view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+          view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+            view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") {
+              compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 15, composeSkips = 12) {
+                compose(COMPOSE1, "Text", "text.kt", 234, composeCount = 5, composeSkips = 22)
+              }
             }
           }
+          view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
         }
-        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
-    }
     var isModified = false
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]
@@ -213,7 +224,7 @@ class InspectorModelTest {
 
   @Test
   fun testWindows() {
-    val model = InspectorModel(mock())
+    val model = InspectorModel(mock(), AndroidCoroutineScope(disposable))
     assertThat(model.isEmpty).isTrue()
 
     // add first window
@@ -267,7 +278,7 @@ class InspectorModelTest {
 
   @Test
   fun testDrawTreeOnInitialCreateAndUpdate() {
-    val model = model {}
+    val model = model(disposable) {}
     val newWindow =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
         view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
@@ -310,14 +321,15 @@ class InspectorModelTest {
 
   @Test
   fun testThreadSafetyInModelLookup() {
-    val model = model {
-      view(ROOT, x = 2, y = 4, width = 6, height = 8, qualifiedName = "root") {
-        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+    val model =
+      model(disposable) {
+        view(ROOT, x = 2, y = 4, width = 6, height = 8, qualifiedName = "root") {
+          view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+            view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+          }
+          view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
         }
-        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
-    }
 
     val window1 =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
@@ -373,7 +385,7 @@ class InspectorModelTest {
 
   @Test
   fun fireAttachStateEvent() {
-    val model = InspectorModel(mock())
+    val model = InspectorModel(mock(), AndroidCoroutineScope(disposable))
     val mockListener = mock<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
     model.addAttachStageListener(mockListener)
 
@@ -388,7 +400,7 @@ class InspectorModelTest {
     val scheduler = MoreExecutors.listeningDecorator(virtualTimeScheduler)
 
     val model =
-      model(scheduler = scheduler) {
+      model(disposable, scheduler = scheduler) {
         view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
           compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
             compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 0, composeSkips = 0)
@@ -489,7 +501,7 @@ class InspectorModelTest {
     var countdownStopped = false
 
     val model =
-      model(scheduler = scheduler) {
+      model(disposable, scheduler = scheduler) {
         view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
           compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
             compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 0, composeSkips = 0)
@@ -567,20 +579,21 @@ class InspectorModelTest {
 
   @Test
   fun testClear() {
-    val model = model {
-      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
-        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
-          view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type")
+    val model =
+      model(disposable) {
+        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
+            view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type")
+          }
+          view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
         }
-        view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
       }
-    }
 
     model.foldInfo =
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     model.clear()
     assertThat(model.foldInfo).isNull()
@@ -590,7 +603,8 @@ class InspectorModelTest {
   fun testModelIsClearedOnProcessChange() {
     val latch = CountDownLatch(1)
     val processModel = ProcessesModel(TestProcessDiscovery())
-    val inspectorModel = InspectorModel(mock(), null, processModel)
+    val inspectorModel =
+      InspectorModel(mock(), AndroidCoroutineScope(disposable), processesModel = processModel)
     assertThat(inspectorModel.isEmpty).isTrue()
 
     val observedNewWindows = mutableListOf<AndroidWindow?>()
@@ -619,7 +633,7 @@ class InspectorModelTest {
 
   @Test
   fun testListenersAreInvokedWithLastValue() {
-    val model = model { view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") }
+    val model = model(disposable) { view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") }
 
     // Selection
     model.setSelection(model[ROOT], SelectionOrigin.INTERNAL)

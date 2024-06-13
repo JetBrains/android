@@ -29,10 +29,9 @@ enum class InsightsTestProject(
   override val setup: () -> () -> Unit = { {} },
   override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
   override val expectedSyncIssues: Set<Int> = emptySet(),
-  override val verifyOpened: ((Project) -> Unit)? = null
+  override val verifyOpened: ((Project) -> Unit)? = null,
 ) : TemplateBasedTestProject {
-  SIMPLE_APP("simpleApp"),
-  ;
+  SIMPLE_APP("simpleApp");
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String =
     "tools/adt/idea/app-quality-insights/ide/testData/projects"

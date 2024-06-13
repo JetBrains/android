@@ -36,7 +36,7 @@ interface RenderModelModule : Disposable, IdeaModuleProvider {
 
   val resourceRepositoryManager: ResourceRepositoryManager
 
-  val info: AndroidModuleInfo
+  val info: AndroidModuleInfo?
 
   val androidPlatform: AndroidPlatform?
 

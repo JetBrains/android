@@ -33,6 +33,6 @@ interface VisualizationModelsProvider {
   fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): List<NlModel>
 }

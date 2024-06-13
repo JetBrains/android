@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.GradleDetector
 class AndroidLintPlaySdkIndexNonCompliantInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.play.sdk.index.non.compliant"),
-    GradleDetector.PLAY_SDK_INDEX_NON_COMPLIANT
+    GradleDetector.PLAY_SDK_INDEX_NON_COMPLIANT,
   )

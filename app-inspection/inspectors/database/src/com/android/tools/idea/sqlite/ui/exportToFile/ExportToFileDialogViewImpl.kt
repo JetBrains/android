@@ -62,7 +62,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 
 /** @see ExportToFileDialogView */
-class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogParams) :
+class ExportToFileDialogViewImpl(val project: Project, private val params: ExportDialogParams) :
   DialogWrapper(project, true), ExportToFileDialogView {
   private val listeners = mutableListOf<ExportToFileDialogView.Listener>()
   private val analyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
@@ -147,7 +147,7 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
       delimiterLabel,
       delimiterComboBox,
       saveLocationLabel,
-      saveLocationTextField
+      saveLocationTextField,
     )
   }
 
@@ -205,8 +205,8 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
     val dialog: FileSaverDialog =
       FileChooserFactory.getInstance()
         .createSaveFileDialog(
-          FileSaverDescriptor("Save as...", "", selectedFormatExtension()),
-          contentPanel
+          FileSaverDescriptor("Save As...", "", selectedFormatExtension()),
+          contentPanel,
         )
 
     val pathSuggestion = createSuggestedPath()
@@ -273,7 +273,7 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
           is ExportTableDialogParams -> "$databaseName-${params.srcTable}"
           is ExportQueryResultsDialogParams -> "$databaseName-query-results"
         },
-        false
+        false,
       )
     val extension = selectedFormatExtension()
     val extensionPart = if (extension.isBlank()) "" else ".$extension"
@@ -304,7 +304,6 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
     return selectedFormat.fileExtension
   }
 
-  @Suppress("MoveVariableDeclarationIntoWhen")
   private fun selectedFormat(): ExportFormat {
     val buttonText = formatButtonGroup.elements.asSequence().firstOrNull { it.isSelected }?.text
     return when (buttonText) {
@@ -359,12 +358,12 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
         DatabaseInspectorBundle.message(
           "export.dialog.file.already.exists.overwrite.prompt",
           file.fileName.toString(),
-          file.parent.toString()
+          file.parent.toString(),
         ),
         DatabaseInspectorBundle.message("export.dialog.file.already.exists.overwrite.title"),
         CommonBundle.message("button.overwrite"),
         CommonBundle.message("button.cancel"),
-        Messages.getWarningIcon()
+        Messages.getWarningIcon(),
       )
     return (result == Messages.YES)
   }

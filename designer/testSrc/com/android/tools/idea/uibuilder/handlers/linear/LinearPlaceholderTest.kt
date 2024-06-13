@@ -36,7 +36,7 @@ class LinearPlaceholderTest : SceneTest() {
         textView1,
         linearLayout.drawX,
         linearLayout.drawY,
-        linearLayout.drawY + linearLayout.drawHeight
+        linearLayout.drawY + linearLayout.drawHeight,
       )
 
     val region = placeholder.region
@@ -56,7 +56,7 @@ class LinearPlaceholderTest : SceneTest() {
         textView1,
         linearLayout.drawX,
         linearLayout.drawY,
-        linearLayout.drawY + linearLayout.drawHeight
+        linearLayout.drawY + linearLayout.drawHeight,
       )
 
     val left = linearLayout.drawX - 5 - textView1.drawWidth / 2
@@ -86,7 +86,7 @@ class LinearPlaceholderTest : SceneTest() {
         textView1,
         linearLayout.drawX,
         linearLayout.drawY,
-        linearLayout.drawY + linearLayout.drawHeight
+        linearLayout.drawY + linearLayout.drawHeight,
       )
 
     textView2.setPosition(linearLayout.drawX, linearLayout.drawY)
@@ -113,7 +113,7 @@ class LinearPlaceholderTest : SceneTest() {
         button,
         button.drawX,
         button.drawY,
-        linearLayout.drawY + linearLayout.drawHeight
+        linearLayout.drawY + linearLayout.drawHeight,
       )
 
     textView2.setPosition(button.drawX, button.drawY)
@@ -140,7 +140,7 @@ class LinearPlaceholderTest : SceneTest() {
         textView2,
         button.drawX,
         button.drawY,
-        linearLayout.drawY + linearLayout.drawHeight
+        linearLayout.drawY + linearLayout.drawHeight,
       )
 
     textView1.setPosition(textView2.drawX, textView2.drawY)
@@ -167,7 +167,7 @@ class LinearPlaceholderTest : SceneTest() {
         null,
         textView2.drawX + textView2.drawWidth,
         textView2.drawY,
-        linearLayout.drawY + linearLayout.drawHeight
+        linearLayout.drawY + linearLayout.drawHeight,
       )
 
     textView1.setPosition(textView2.drawX + textView2.drawWidth, textView2.drawY)
@@ -219,8 +219,8 @@ class LinearPlaceholderTest : SceneTest() {
             .withBounds(400, 0, 200, 200)
             .id("@id/myText2")
             .width("100dp")
-            .height("100dp")
-        )
+            .height("100dp"),
+        ),
     )
   }
 }

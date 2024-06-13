@@ -17,10 +17,12 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.res.SampleDataListener.Companion.ensureSubscribed
-import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.toPathString
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -29,47 +31,20 @@ import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
-import org.jetbrains.android.AndroidPluginDisposable
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to any
  * module whose sample data directory has been modified (if such a repository exists).
- *
- * A project's [SampleDataListener] is instantiated the first time a [SampleDataResourceRepository]
- * is created for one of project's modules (e.g. when the user opens a resource file or activity for
- * the first time). The listener remains for the lifetime of the project.
- *
- * When a [SampleDataResourceRepository] is created, it calls [ensureSubscribed] to make sure that
- * the project's [SampleDataListener] is tracking VFS and PSI events.
  */
+@Service(Service.Level.PROJECT)
 class SampleDataListener(project: Project) :
-  PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener {
-
-  companion object {
-    private val LOG = Logger.getInstance(SampleDataListener::class.java)
-
-    @JvmStatic
-    fun ensureSubscribed(project: Project) {
-      project.getService(Subscriber::class.java)!!.ensureSubscribed()
-    }
+  PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener, Disposable {
+  init {
+    VirtualFileManager.getInstance().addVirtualFileListener(this, this)
   }
 
-  /**
-   * Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS
-   * and PSI changes.
-   */
-  class Subscriber(val project: Project) :
-    LazyFileListenerSubscriber<SampleDataListener>(
-      SampleDataListener(project),
-      AndroidPluginDisposable.getProjectInstance(project)
-    ) {
-
-    override fun subscribe() {
-      VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
-      AndroidFileChangeListener.getInstance(project).setSampleDataListener(listener)
-    }
-  }
+  override fun dispose() {}
 
   /**
    * A file is relevant to this listener if
@@ -124,6 +99,14 @@ class SampleDataListener(project: Project) :
   override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
 
   override fun propertyChanged(event: PsiTreeChangeEvent) {}
+
+  companion object {
+    private val LOG = Logger.getInstance(SampleDataListener::class.java)
+
+    @JvmStatic fun getInstance(project: Project): SampleDataListener = project.service()
+
+    fun getInstanceIfCreated(project: Project): SampleDataListener? = project.serviceIfCreated()
+  }
 }
 
 /**

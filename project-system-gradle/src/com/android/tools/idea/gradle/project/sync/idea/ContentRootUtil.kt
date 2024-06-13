@@ -16,17 +16,14 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.activeSourceProviders
-import com.android.tools.idea.gradle.project.model.androidTestSourceProviders
 import com.android.tools.idea.gradle.project.model.testFixturesSourceProviders
-import com.android.tools.idea.gradle.project.model.unitTestSourceProviders
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGeneratedSourceFoldersToUse
 import com.intellij.openapi.externalSystem.model.DataNode
-import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
@@ -68,26 +65,26 @@ private fun IdeSourceProvider.processAll(
   }
 }
 
-private typealias ArtifactSelector = (IdeVariantCore) -> IdeBaseArtifactCore?
-private typealias SourceProviderSelector = (GradleAndroidModelData) -> List<IdeSourceProvider>
-
 fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: GradleAndroidModelData) {
   val variant = androidModel.selectedVariantCore
 
   fun populateContentEntries(
-    artifactSelector: ArtifactSelector,
-    sourceProviderSelector: SourceProviderSelector
+    artifact: IdeBaseArtifactCore?,
+    sourceProviders: List<IdeSourceProvider>
   ): List<DataNode<ContentRootData>> {
-    val sourceSetDataNode = findSourceSetDataForArtifact(artifactSelector(variant) ?: return emptyList())
-    val contentRoots = collectContentRootDataForArtifact(artifactSelector, sourceProviderSelector, androidModel, variant)
+    val sourceSetDataNode = findSourceSetDataForArtifact(artifact ?: return emptyList())
+    val contentRoots = collectContentRootDataForArtifact(artifact, sourceProviders, androidModel)
     return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
   }
 
   val sourceSetContentRoots =
-    populateContentEntries(IdeVariantCore::mainArtifact,  GradleAndroidModelData::activeSourceProviders) +
-      populateContentEntries(IdeVariantCore::unitTestArtifact, GradleAndroidModelData::unitTestSourceProviders) +
-      populateContentEntries(IdeVariantCore::androidTestArtifact, GradleAndroidModelData::androidTestSourceProviders) +
-      populateContentEntries(IdeVariantCore::testFixturesArtifact, GradleAndroidModelData::testFixturesSourceProviders)
+    mutableSetOf(populateContentEntries (variant.mainArtifact,  androidModel.activeSourceProviders)).apply {
+      variant.hostTestArtifacts.forEach { add(populateContentEntries(it, androidModel.getTestSourceProviders(it.name))) }
+      variant.deviceTestArtifacts
+        .find { it.name == IdeArtifactName.ANDROID_TEST }
+        ?.let { add(populateContentEntries(it, androidModel.getTestSourceProviders(it.name))) }
+      add(populateContentEntries(variant.testFixturesArtifact, androidModel.testFixturesSourceProviders))
+    }.flatten()
 
   val holderModuleRoots = findAll(ProjectKeys.CONTENT_ROOT)
 
@@ -113,12 +110,11 @@ private fun maybeMoveDuplicateHolderContentRootsToSourceSets(
 }
 
 private fun collectContentRootDataForArtifact(
-  artifactSelector: ArtifactSelector,
-  sourceProviderSelector: SourceProviderSelector,
-  androidModel: GradleAndroidModelData,
-  selectedVariant: IdeVariantCore
+  artifact: IdeBaseArtifactCore?,
+  sourceProviders: List<IdeSourceProvider>,
+  androidModel: GradleAndroidModelData
 ) : Collection<ContentRootData> {
-  val artifact = artifactSelector(selectedVariant) ?: throw ExternalSystemException("Couldn't find artifact for descriptor")
+  checkNotNull(artifact) { "Couldn't find artifact for descriptor" }
 
   val newContentRoots = mutableListOf<ContentRootData>()
 
@@ -137,7 +133,7 @@ private fun collectContentRootDataForArtifact(
   val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(
     artifact, androidModel.androidProject
   ).map(File::getAbsolutePath).toSet()
-  sourceProviderSelector(androidModel).forEach { sourceProvider ->
+  sourceProviders.forEach { sourceProvider ->
     sourceProvider.processAll(artifact.isTestArtifact) { path, sourceType ->
       // For b/232007221 the variant specific source provider is currently giving us a kapt generated source folder as a Java folder.
       // In order to prevent duplicate root warnings and to ensure this kapt path is marked generated we ensure it is not added as

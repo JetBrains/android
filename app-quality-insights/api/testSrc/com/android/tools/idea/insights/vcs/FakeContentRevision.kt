@@ -16,16 +16,18 @@
 package com.android.tools.idea.insights.vcs
 
 import com.intellij.dvcs.DvcsUtil
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.openapi.vcs.changes.ContentRevision
 import com.intellij.openapi.vcs.history.ShortVcsRevisionNumber
 import com.intellij.openapi.vcs.history.VcsRevisionNumber
 
-data class FakeContentRevision(private val localFilePath: FilePath, private val revision: String) :
-  ContentRevision {
+data class FakeContentRevision(
+  private val localFilePath: FilePath,
+  private val revision: String,
+  private val contentProvider: () -> String,
+) : ContentRevision {
   override fun getContent(): String {
-    return FileUtil.loadFile(localFilePath.ioFile)
+    return contentProvider.invoke()
   }
 
   override fun getFile(): FilePath {

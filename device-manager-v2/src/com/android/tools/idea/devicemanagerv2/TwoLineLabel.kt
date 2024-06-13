@@ -53,7 +53,7 @@ class TwoLineLabel : JBPanel<TwoLineLabel>(null), TableComponent {
 
   override fun updateTablePresentation(
     manager: TablePresentationManager,
-    presentation: TablePresentation
+    presentation: TablePresentation,
   ) {
     presentation.applyColors(this)
     manager.applyPresentation(line1Label, presentation)
@@ -65,7 +65,7 @@ class TwoLineLabel : JBPanel<TwoLineLabel>(null), TableComponent {
             presentation.rowSelected -> presentation.foreground.lighten()
             else -> LINE2_COLOR
           }
-      )
+      ),
     )
   }
 

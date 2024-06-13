@@ -18,5 +18,5 @@ package com.android.tools.idea.compose.preview.animation
 enum class AnimationState {
   State1,
   State2,
-  State3
+  State3,
 }

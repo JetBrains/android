@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
@@ -27,12 +27,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
-import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -43,12 +39,16 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.times
+import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 
@@ -72,8 +72,6 @@ class LayoutInspectorTest {
   private val projectRule = ProjectRule()
 
   private val adbRule = FakeAdbRule()
-  private val adbProperties: AdbDebugViewProperties =
-    FakeShellCommandHandler().apply { adbRule.withDeviceCommandHandler(this) }
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   private val timer = FakeTimer()
@@ -83,10 +81,7 @@ class LayoutInspectorTest {
   val grpcServerRule =
     FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
 
-  private val deviceToStreamMap =
-    mapOf(
-      device1 to createFakeStream(1, device1),
-    )
+  private val deviceToStreamMap = mapOf(device1 to createFakeStream(1, device1))
 
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)
@@ -97,17 +92,19 @@ class LayoutInspectorTest {
   private lateinit var mockForegroundProcessDetection: ForegroundProcessDetection
   private lateinit var inspectorModel: InspectorModel
   private lateinit var mockRenderModel: RenderModel
+  private lateinit var scope: CoroutineScope
 
   @Before
   fun setUp() {
-    val scope = AndroidCoroutineScope(disposableRule.disposable)
+    scope = AndroidCoroutineScope(disposableRule.disposable)
+
     val (deviceModel, processModel) = createDeviceModel(device1)
     this.deviceModel = deviceModel
     this.processModel = processModel
     mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
     val mockClientSettings = mock<InspectorClientSettings>()
     val mockLauncher = mock<InspectorClientLauncher>()
-    inspectorModel = model { view(ROOT, qualifiedName = "root") }
+    inspectorModel = model(disposableRule.disposable) { view(ROOT, qualifiedName = "root") }
     mockRenderModel = mock()
 
     val mockTreeSettings = mock<TreeSettings>()
@@ -122,7 +119,7 @@ class LayoutInspectorTest {
         inspectorModel,
         NotificationModel(projectRule.project),
         mockTreeSettings,
-        renderModel = mockRenderModel
+        renderModel = mockRenderModel,
       )
   }
 
@@ -133,22 +130,26 @@ class LayoutInspectorTest {
   }
 
   @Test
-  fun testStopInspectorListenersAreCalled() {
+  fun testStopInspectorListenersAreCalled() = runBlocking {
     var called = false
     layoutInspector.stopInspectorListeners.add { called = true }
 
     layoutInspector.stopInspector()
 
+    scope.coroutineContext.job.children.forEach { it.join() }
+
     assertThat(called).isTrue()
   }
 
   @Test
-  fun testStopInspector() {
+  fun testStopInspector() = runBlocking {
     // test has device, no process
     deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
     processModel.selectedProcess = null
 
     layoutInspector.stopInspector()
+
+    scope.coroutineContext.job.children.forEach { it.join() }
 
     verify(mockForegroundProcessDetection).stopPollingSelectedDevice()
     assertThat(processModel.selectedProcess).isNull()
@@ -159,66 +160,11 @@ class LayoutInspectorTest {
 
     layoutInspector.stopInspector()
 
+    scope.coroutineContext.job.children.forEach { it.join() }
+
     verifyNoMoreInteractions(mockForegroundProcessDetection)
     assertThat(processModel.selectedProcess).isNull()
   }
-
-  @Test
-  fun testStopInspectorResetsDebugViewAttributes() =
-    runBlockingWithFlagState(true) {
-      val scope = AndroidCoroutineScope(disposableRule.disposable)
-      val (deviceModel, processModel) = createDeviceModel(device1)
-      val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
-      val mockClientSettings = mock<InspectorClientSettings>()
-      val mockLauncher = mock<InspectorClientLauncher>()
-      whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-      val inspectorModel = InspectorModel(projectRule.project)
-      val mockTreeSettings = mock<TreeSettings>()
-      val layoutInspector =
-        LayoutInspector(
-          scope,
-          processModel,
-          deviceModel,
-          mockForegroundProcessDetection,
-          mockClientSettings,
-          mockLauncher,
-          inspectorModel,
-          NotificationModel(projectRule.project),
-          mockTreeSettings
-        )
-
-      val fakeProcess = device1.toDeviceDescriptor().createProcess("fake_process")
-
-      connectDevice(device1)
-
-      val debugViewAttributes = DebugViewAttributes.getInstance()
-      val changed = debugViewAttributes.set(projectRule.project, fakeProcess)
-      assertThat(changed).isTrue()
-
-      // test has device, no process
-      deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
-      processModel.selectedProcess = null
-
-      layoutInspector.stopInspector()
-
-      verify(mockForegroundProcessDetection).stopPollingSelectedDevice()
-      assertThat(processModel.selectedProcess).isNull()
-
-      assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-      assertThat(adbProperties.debugViewAttributes).isNull()
-
-      // test no device, has process
-      deviceModel.setSelectedDevice(null)
-      processModel.selectedProcess = fakeProcess
-
-      layoutInspector.stopInspector()
-
-      verifyNoMoreInteractions(mockForegroundProcessDetection)
-      assertThat(processModel.selectedProcess).isNull()
-      // the device is still connected, so the global flag should not be reset
-      assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-      assertThat(adbProperties.debugViewAttributes).isNull()
-    }
 
   @Test
   fun updateRenderOnModelChanges() {
@@ -226,9 +172,8 @@ class LayoutInspectorTest {
     val newWindow = window(ROOT, ROOT, onRefreshImages = { imagesRefreshed = true })
 
     inspectorModel.update(newWindow, listOf(ROOT), 0)
-
-    assertThat(imagesRefreshed).isTrue()
-    verify(mockRenderModel, times(2)).refresh()
+    waitForCondition(10.seconds) { imagesRefreshed }
+    verify(mockRenderModel, timeout(TimeUnit.SECONDS.toMillis(10)).times(2)).refresh()
   }
 
   /** Connect a device to the transport and to adb. */
@@ -247,7 +192,7 @@ class LayoutInspectorTest {
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString()
+        device.apiLevel.toString(),
       )
     }
   }

@@ -27,6 +27,7 @@ import com.android.tools.idea.wizard.template.Language;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
@@ -124,7 +125,7 @@ public class GradleVersionCatalogTest2 {
     //Test find usages
     editor.open(versionsFilePath);
 
-    editor.select(String.format("(androidApplication)"))
+    editor.select(String.format("(android-application)"))
       .invokeAction(EditorFixture.EditorAction.FIND_USAGES);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -136,27 +137,37 @@ public class GradleVersionCatalogTest2 {
     FindToolWindowFixture.ContentFixture toolWindow = ideFrame.getFindToolWindow();
     JTreeFixture toolWindowTree = new JTreeFixture(ideFrame.robot(), toolWindow.getContentsTree());
 
-    toolWindowTree.expandRow(toolWindowTree.getRowCount() -1);  // Expand Usages in Project And Libraries
-    toolWindowTree.expandRow(toolWindowTree.getRowCount()-1); // Expand My_Application.app
-    toolWindowTree.expandRow(toolWindowTree.getRowCount()-2);
-
-    toolWindowTree.doubleClickRow(toolWindowTree.getRowCount()-1);
-    toolWindowTree.doubleClickRow(toolWindowTree.getRowCount()-1); //To reduce flakiness
-
-    assertThat(editor.getCurrentFileName()).contains("build.gradle.kts");
+    navigateToFileUsingLastRow(toolWindowTree, ideFrame);
+    // Wait for the file to open.
+    Wait.seconds(60)
+      .expecting("Waiting for the file to open...")
+      .until(() -> editor.getCurrentFileName().equalsIgnoreCase("build.gradle.kts"));
 
     // Test error highlighting
     editor.open(versionsFilePath);
-
     editor.select(String.format("(kotlin) = "))
       .enterText("hello");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    editor.waitUntilErrorAnalysisFinishes();
+    editor.waitForFileToActivate();
     editor.waitUntilErrorAnalysisFinishes();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     assertThat(editor.getHighlights(HighlightSeverity.WARNING).size())
       .isGreaterThan(1);
+  }
+
+  // A recursive function which can help in navigating through the steps to find the last file in the tree.
+  private void navigateToFileUsingLastRow(JTreeFixture tree, IdeFrameFixture ideFrame) {
+    // Expand the last row.
+    String val = (Objects.requireNonNull(tree.valueAt(tree.getRowCount() - 1)));
+    boolean condition = val.equalsIgnoreCase("2|alias|(|libs|.|plugins|.|android|.|application|)");
+    if (condition) {
+      tree.doubleClickRow(tree.getRowCount() - 1);
+    }
+    else {
+      tree.expandRow(tree.getRowCount() - 1);
+      guiTest.waitForAllBackgroundTasksToBeCompleted();
+      navigateToFileUsingLastRow(tree, ideFrame);
+    }
   }
 }

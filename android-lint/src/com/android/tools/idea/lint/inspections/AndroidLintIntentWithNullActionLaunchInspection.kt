@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.IntentWillNullActionDetector
 class AndroidLintIntentWithNullActionLaunchInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.intent.with.null.action.launch"),
-    IntentWillNullActionDetector.ISSUE
+    IntentWillNullActionDetector.ISSUE,
   )

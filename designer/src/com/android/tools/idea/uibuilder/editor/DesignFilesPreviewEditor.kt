@@ -84,7 +84,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
         .setActionManagerProvider { surface ->
           PreviewEditorActionManagerProvider(
             surface as NlDesignSurface,
-            file?.toPsiFile(myProject)?.typeOf()
+            file?.toPsiFile(myProject)?.typeOf(),
           )
         }
         .build()
@@ -129,7 +129,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
       modelProvider,
       { emptyList() },
       { panel, model -> addAnimationToolbar(panel, model) },
-      AndroidEditorSettings.getInstance().globalState.preferredDrawableSurfaceState()
+      AndroidEditorSettings.getInstance().globalState.preferredDrawableSurfaceState(),
     )
   }
 
@@ -139,7 +139,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
       project: Project,
       facet: AndroidFacet,
       componentRegistrar: Consumer<NlComponent>,
-      file: VirtualFile
+      file: VirtualFile,
     ): NlModel {
       val config = ConfigurationManager.getOrCreateInstance(facet.module).getPreviewConfig()
       animatedSelectorModel =
@@ -152,9 +152,9 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
               project,
               facet,
               componentRegistrar,
-              config
+              config,
             )
-          }
+          },
         )
       return animatedSelectorModel!!.getNlModel()
     }
@@ -169,7 +169,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
           animatedSelectorModel!!,
           AnimatedSelectorListener(surface),
           16,
-          0L
+          0L,
         )
       } else if (model?.type is AnimatedVectorFileType) {
         // If opening an animated vector, add an unlimited animation bar
@@ -177,7 +177,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
           this,
           AnimatedVectorListener(surface),
           16,
-          0L
+          0L,
         )
       } else if (model?.type is AnimationListFileType) {
         // If opening an animation list, add an animation bar with progress
@@ -197,7 +197,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
             AnimationListListener(surface),
             16,
             0,
-            maxTimeMs
+            maxTimeMs,
           )
           .apply { setLooping(!oneShotString) }
       } else {
@@ -230,7 +230,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
                 toolbar.forceElapsedReset = true
               }
             }
-          }
+          },
         )
     }
     return toolbar
@@ -245,7 +245,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
  */
 class PreviewEditorActionManagerProvider(
   surface: NlDesignSurface,
-  private val fileType: DesignerEditorFileType?
+  private val fileType: DesignerEditorFileType?,
 ) : NlActionManager(surface) {
   override fun getSceneViewContextToolbarActions(): List<AnAction> {
     return when (fileType) {
@@ -332,7 +332,7 @@ private class AnimationListListener(val surface: DesignSurface<*>) : AnimationLi
    */
   private fun updateAnimationDrawableInformation(
     controller: AnimationController,
-    manager: LayoutlibSceneManager
+    manager: LayoutlibSceneManager,
   ) {
     val animationDrawable = findAnimationDrawable(manager)
     modelTimeMap =

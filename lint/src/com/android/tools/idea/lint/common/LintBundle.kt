@@ -41,7 +41,7 @@ class LintBundle private constructor() {
     @JvmStatic
     fun message(
       @PropertyKey(resourceBundle = BUNDLE_NAME) key: String,
-      vararg params: Any?
+      vararg params: Any?,
     ): String {
       return CommonBundle.message(getBundle(), key, *params)
     }

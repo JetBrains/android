@@ -39,6 +39,7 @@ import com.android.tools.property.ptable.item.Item
 import com.android.tools.property.ptable.item.PTableTestModel
 import com.android.tools.property.ptable.item.createModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.openapi.wm.PassThroughIdeFocusManager
@@ -52,6 +53,8 @@ import com.intellij.ui.TableCell
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.hover.TableHoverListener
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.ui.util.height
+import com.intellij.ui.util.width
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -129,7 +132,7 @@ class PTableImplTest {
         Item("readonly"),
         Item("visible", "true"),
         Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
-        Item("new")
+        Item("new"),
       )
     table =
       PTableImpl(
@@ -137,13 +140,13 @@ class PTableImplTest {
         null,
         rendererProvider!!,
         editorProvider!!,
-        nameColumnFraction = nameColumnFraction!!
+        nameColumnFraction = nameColumnFraction!!,
       )
     val app = ApplicationManager.getApplication()
     app.replaceService(
       IdeFocusManager::class.java,
       PassThroughIdeFocusManager.getInstance(),
-      disposableRule.disposable
+      disposableRule.disposable,
     )
   }
 
@@ -455,11 +458,12 @@ class PTableImplTest {
     table!!.dispatchEvent(event)
     assertThat(table!!.editingRow).isEqualTo(5)
     val editor = table!!.editorComponent as SimpleEditorComponent
-    editor.preferredSize = Dimension(400, 400)
-    table!!.updateRowHeight(item, PTableColumn.VALUE, 400, false)
-    assertThat(table!!.getRowHeight(5)).isEqualTo(400)
-    table!!.updateRowHeight(item, PTableColumn.VALUE, 800, false)
-    assertThat(table!!.getRowHeight(5)).isEqualTo(800)
+    table!!.updateRowHeight(item, PTableColumn.VALUE, editor, false)
+    assertThat(table!!.getRowHeight(5)).isEqualTo(404)
+
+    table!!.removeEditor()
+    table!!.updateRowHeight(item, PTableColumn.VALUE, editor, false)
+    assertThat(table!!.getRowHeight(5)).isEqualTo(404)
   }
 
   @Test
@@ -528,7 +532,7 @@ class PTableImplTest {
       Item("size"),
       Item("readonly"),
       Item("visible"),
-      Group("weiss", Item("siphon"), Item("extra"))
+      Group("weiss", Item("siphon"), Item("extra")),
     )
 
     assertThat(table!!.selectedRow).isEqualTo(-1)
@@ -832,7 +836,7 @@ class PTableImplTest {
           depth: Int,
           isSelected: Boolean,
           hasFocus: Boolean,
-          isExpanded: Boolean
+          isExpanded: Boolean,
         ): JComponent = component
       }
     val rendererProvider =
@@ -840,7 +844,7 @@ class PTableImplTest {
         override fun invoke(
           table: PTable,
           property: PTableItem,
-          column: PTableColumn
+          column: PTableColumn,
         ): PTableCellRenderer {
           return specialRenderer
         }
@@ -902,7 +906,7 @@ class PTableImplTest {
           depth: Int,
           isSelected: Boolean,
           hasFocus: Boolean,
-          isExpanded: Boolean
+          isExpanded: Boolean,
         ): JComponent {
           val row = table.tableModel.items.indexOf(item)
           val left =
@@ -1050,7 +1054,12 @@ class PTableImplTest {
     }
   }
 
-  private class SimpleEditorComponent : JPanel()
+  private class SimpleEditorComponent : JPanel() {
+    override fun getPreferredSize(): Dimension {
+      val insets = DarculaTextBorder().getBorderInsets(this)
+      return Dimension(400 + insets.width, 400 + insets.height)
+    }
+  }
 
   private inner class SimplePTableCellEditorProvider : PTableCellEditorProvider {
     val editor = SimplePTableCellEditor()
@@ -1058,7 +1067,7 @@ class PTableImplTest {
     override fun invoke(
       table: PTable,
       property: PTableItem,
-      column: PTableColumn
+      column: PTableColumn,
     ): PTableCellEditor {
       editor.property = property
       editor.column = column
@@ -1072,7 +1081,7 @@ class PTableImplTest {
     override fun invoke(
       table: PTable,
       property: PTableItem,
-      column: PTableColumn
+      column: PTableColumn,
     ): PTableCellRenderer {
       return renderer
     }

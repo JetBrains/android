@@ -58,6 +58,13 @@ import com.intellij.refactoring.suggested.startOffset
 import java.text.ParseException
 import java.time.Clock
 
+private val IS_FILTERS =
+  mapOf<String, (TextRange) -> LogcatFilter>(
+    "crash" to { CrashFilter(it) },
+    "firebase" to { RegexFilter(firebaseRegex, TAG, matchCase = true, it) },
+    "stacktrace" to { StackTraceFilter(it) },
+  ) + LogLevel.values().associate { level -> level.stringValue to { ExactLevelFilter(level, it) } }
+
 /** Parses a Logcat Filter expression into a [LogcatFilter] */
 internal class LogcatFilterParser(
   project: Project,
@@ -212,7 +219,7 @@ internal class LogcatFilterParser(
 
   private fun LogcatFilterEvent.Builder.updateTermVariants(
     field: LogcatFilterField,
-    updater: (TermVariants.Builder) -> Unit
+    updater: (TermVariants.Builder) -> Unit,
   ) {
     val terms =
       when (field) {
@@ -238,7 +245,7 @@ internal class LogcatFilterParser(
 
   private fun createTopLevelFilter(
     expressions: Array<LogcatFilterExpression>,
-    matchCase: Boolean
+    matchCase: Boolean,
   ): LogcatFilter {
     val filters =
       when {
@@ -264,7 +271,7 @@ internal class LogcatFilterParser(
 
   private fun combineConsecutiveValues(
     expressions: Array<LogcatFilterExpression>,
-    matchCase: Boolean
+    matchCase: Boolean,
   ): List<LogcatFilter> {
     // treat consecutive top level values as concatenations rather than an 'and'.
     // First, group consecutive top level value expressions.
@@ -293,7 +300,7 @@ internal class LogcatFilterParser(
 
   private fun combineLiterals(
     expressions: List<LogcatFilterExpression>,
-    matchCase: Boolean
+    matchCase: Boolean,
   ): StringFilter {
     val text =
       expressions.joinToString("") {
@@ -305,7 +312,7 @@ internal class LogcatFilterParser(
       text.trim(),
       IMPLICIT_LINE,
       matchCase,
-      TextRange(expressions.first().startOffset, expressions.last().endOffset)
+      TextRange(expressions.first().startOffset, expressions.last().endOffset),
     )
   }
 
@@ -320,7 +327,7 @@ internal class LogcatFilterParser(
       else ->
         throw ParseException(
           "Unexpected element: ${this::class.simpleName}",
-          -1
+          -1,
         ) // Should not happen
     }
   }
@@ -332,7 +339,7 @@ internal class LogcatFilterParser(
           firstChild.toText(),
           IMPLICIT_LINE,
           matchCase,
-          TextRange(startOffset, endOffset)
+          TextRange(startOffset, endOffset),
         )
       KEY,
       STRING_KEY,
@@ -341,7 +348,7 @@ internal class LogcatFilterParser(
       else ->
         throw ParseException(
           "Unexpected elementType: $firstChild.elementType",
-          -1
+          -1,
         ) // Should not happen
     }
 }
@@ -394,7 +401,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
 
 private fun LogcatFilterLiteralExpression.createAgeFilter(
   text: String,
-  clock: Clock
+  clock: Clock,
 ): LogcatFilter {
   return try {
     AgeFilter(text, clock, TextRange(startOffset, endOffset))
@@ -404,15 +411,13 @@ private fun LogcatFilterLiteralExpression.createAgeFilter(
 }
 
 private fun LogcatFilterLiteralExpression.createIsFilter(text: String): LogcatFilter {
-  return when {
-    !StudioFlags.LOGCAT_IS_FILTER.get() ->
-      throw LogcatFilterParseException(PsiErrorElementImpl("Invalid key: is"))
-    text == "crash" -> CrashFilter(TextRange(startOffset, endOffset))
-    text == "firebase" ->
-      RegexFilter(firebaseRegex, TAG, matchCase = true, TextRange(startOffset, endOffset))
-    text == "stacktrace" -> StackTraceFilter(TextRange(startOffset, endOffset))
-    else -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid filter: is:$text"))
+  if (!StudioFlags.LOGCAT_IS_FILTER.get()) {
+    throw LogcatFilterParseException(PsiErrorElementImpl("Invalid key: is"))
   }
+  val createFilter =
+    IS_FILTERS[text]
+      ?: throw LogcatFilterParseException(PsiErrorElementImpl("Invalid filter: is:$text"))
+  return createFilter(TextRange(startOffset, endOffset))
 }
 
 private fun LogcatFilterLiteralExpression.createNameFilter(text: String): LogcatFilter =
@@ -424,8 +429,7 @@ private fun PsiElement.asLogLevel(): LogLevel =
 
 internal fun String.isValidLogLevel(): Boolean = LogLevel.getByString(lowercase()) != null
 
-internal fun String.isValidIsFilter(): Boolean =
-  this == "crash" || this == "firebase" || this == "stacktrace"
+internal fun String.isValidIsFilter(): Boolean = IS_FILTERS.contains(this)
 
 internal fun String.isValidLogAge(): Boolean {
   durationRegex.matchEntire(this) ?: return false
@@ -474,6 +478,7 @@ private fun LogcatFilter.getFieldForImplicitOr(index: Int): FilterType {
     this is RegexFilter -> FilterType(field)
     this is ExactStringFilter -> FilterType(field)
     this is LevelFilter -> FilterType("level")
+    this is ExactLevelFilter -> FilterType("level")
     this is AgeFilter -> FilterType("age")
     this is CrashFilter -> FilterType("is")
     this is StackTraceFilter -> FilterType("is")

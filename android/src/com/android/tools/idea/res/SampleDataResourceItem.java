@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.EXT_CSV;
 import static com.android.SdkConstants.EXT_JSON;
+import static com.intellij.openapi.application.ActionsKt.runReadAction;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -249,8 +250,9 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
       extension = "";
     }
 
-    SmartPsiElementPointer<PsiElement> psiPointer =
-      SmartPointerManager.getInstance(sampleDataSource.getProject()).createSmartPsiElementPointer(sampleDataSource);
+    SmartPsiElementPointer<PsiElement> psiPointer = runReadAction(
+      () -> SmartPointerManager.getInstance(sampleDataSource.getProject()).createSmartPsiElementPointer(sampleDataSource)
+    );
 
     switch (extension) {
       case EXT_JSON: {

@@ -25,7 +25,7 @@ import org.junit.runner.Description
 
 class VitalsGrpcServerRule(
   private val connection: VitalsConnection,
-  private val timeoutMs: Long = 5000
+  private val timeoutMs: Long = 5000,
 ) : NamedExternalResource() {
   lateinit var server: Server
   val database = FakeVitalsDatabase(connection)

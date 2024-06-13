@@ -37,6 +37,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -77,7 +78,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
   @Test
   fun testSetupStageCalledOnEnterAndSetsStageCorrectly() {
     val heapProfdSessionArtifact = createHeapProfdSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(heapProfdSessionArtifact)
+    val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(false, heapProfdSessionArtifact)
     // Verify that the stage is not set in the StudioProfilers stage management before the call to setupStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
     // Verify that the current stage stored in the MemoryTaskHandler is not set before the call to setupStage.
@@ -102,7 +103,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
   fun testStartTaskInvokedOnEnterWithAliveSession() {
     TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
     val heapProfdSessionArtifact = createHeapProfdSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(heapProfdSessionArtifact)
+    val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(false, heapProfdSessionArtifact)
     myNativeAllocationsTaskHandler.enter(nativeAllocationsTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
     assertThat(myNativeAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording)
@@ -114,7 +115,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myNativeAllocationsTaskHandler.setupStage()
-    myNativeAllocationsTaskHandler.startTask()
+    myNativeAllocationsTaskHandler.startTask(NativeAllocationsTaskArgs(false, null))
     assertThat(myNativeAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording).isTrue()
   }
 
@@ -123,7 +124,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     // To start the task and thus the capture, the stage must be set up before. Here we will test the case where startTask is invoked
     // without the stage being set precondition being met.
     val exception = assertFailsWith<Throwable> {
-      myNativeAllocationsTaskHandler.startTask()
+      myNativeAllocationsTaskHandler.startTask(NativeAllocationsTaskArgs(false, null))
     }
     assertThat(myNativeAllocationsTaskHandler.stage).isNull()
     assertThat(exception.message).isEqualTo(
@@ -136,7 +137,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     // Start the task successfully. No need to configure the StartTrace event's status to be SUCCESS as the Fake StartTrace command for
     // memory profiler assumes a successful start trace status event.
     myNativeAllocationsTaskHandler.setupStage()
-    myNativeAllocationsTaskHandler.startTask()
+    myNativeAllocationsTaskHandler.startTask(NativeAllocationsTaskArgs(false, null))
     assertThat(myNativeAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording).isTrue()
 
     // Wait for successful start event to be consumed.
@@ -158,7 +159,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
       .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
       .build()
     myNativeAllocationsTaskHandler.setupStage()
-    myNativeAllocationsTaskHandler.startTask()
+    myNativeAllocationsTaskHandler.startTask(NativeAllocationsTaskArgs(false, null))
     assertThat(myManager.isSessionAlive).isTrue()
 
     // Wait for successful start event to be consumed.
@@ -173,15 +174,12 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
     // Create a fake HeapProfdSessionArtifact.
     val heapProfdSessionArtifact = createHeapProfdSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(heapProfdSessionArtifact)
+    val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(false, heapProfdSessionArtifact)
     // The session is not alive (dead) so loadTask and thus loadCapture should be called.
     val argsSuccessfullyUsed = myNativeAllocationsTaskHandler.enter(nativeAllocationsTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
@@ -192,14 +190,11 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testLoadTaskWithNonNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
-
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
     val heapProfdSessionArtifact = createHeapProfdSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(heapProfdSessionArtifact)
+    val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(false, heapProfdSessionArtifact)
     val argsSuccessfullyUsed = myNativeAllocationsTaskHandler.loadTask(nativeAllocationsTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
 
@@ -208,20 +203,17 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
   }
 
   @Test
-  fun testLoadTaskWithNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
-                                             Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
-
+  fun testLoadTaskWithNullTaskArgsArtifact() {
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
     val exception = assertFailsWith<Throwable> {
-      myNativeAllocationsTaskHandler.loadTask(null)
+      myNativeAllocationsTaskHandler.loadTask(NativeAllocationsTaskArgs(false, null))
     }
 
     assertThat(exception.message).isEqualTo(
-      "There was an error with the Native Allocations task. Error message: The task arguments (TaskArgs) supplied are not of the " +
-      "expected type (NativeAllocationsTaskArgs).")
+      "There was an error with the Native Allocations task. Error message: The task arguments (NativeAllocationsTaskArgs) supplied do " +
+      "not contains a valid artifact to load.")
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to MainMemoryProfilerStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -235,16 +227,17 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
                               listOf(createHeapProfdSessionArtifact(myProfilers, selectedSession, 1, 100))),
     )
 
-    val nativeAllocationsTaskArgs = myNativeAllocationsTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val nativeAllocationsTaskArgs = myNativeAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(nativeAllocationsTaskArgs).isNotNull()
     assertThat(nativeAllocationsTaskArgs).isInstanceOf(NativeAllocationsTaskArgs::class.java)
-    assertThat(nativeAllocationsTaskArgs!!.getMemoryCaptureArtifact()).isNotNull()
-    assertThat(nativeAllocationsTaskArgs.getMemoryCaptureArtifact().artifactProto.fromTimestamp).isEqualTo(1L)
-    assertThat(nativeAllocationsTaskArgs.getMemoryCaptureArtifact().artifactProto.toTimestamp).isEqualTo(100L)
+    nativeAllocationsTaskArgs as NativeAllocationsTaskArgs
+    assertThat(nativeAllocationsTaskArgs.getMemoryCaptureArtifact()).isNotNull()
+    assertThat(nativeAllocationsTaskArgs.getMemoryCaptureArtifact()!!.artifactProto.fromTimestamp).isEqualTo(1L)
+    assertThat(nativeAllocationsTaskArgs.getMemoryCaptureArtifact()!!.artifactProto.toTimestamp).isEqualTo(100L)
   }
 
   @Test
-  fun testCreateArgsFails() {
+  fun testCreateArgsFailsToFindArtifact() {
     // By setting a session id that does not match any of the session items, the task artifact will not be found in the call to createArgs
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
@@ -253,10 +246,9 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
         createHeapProfdSessionArtifact(myProfilers, selectedSession, 1, 100))),
     )
 
-    val heapProfdSessionArtifact = myNativeAllocationsTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
-    // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
-    // the task).
-    assertThat(heapProfdSessionArtifact).isNull()
+    assertThrows(IllegalStateException::class.java) {
+      myNativeAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
+    }
   }
 
   @Test

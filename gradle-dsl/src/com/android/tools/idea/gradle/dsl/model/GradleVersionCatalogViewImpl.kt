@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.dsl.model
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogView
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
@@ -44,7 +44,7 @@ class GradleVersionCatalogViewImpl(private val parsedModel: GradleSettingsModel?
       val name = versionCatalogModel.name
       val path = versionCatalogModel.from().getValue(GradlePropertyModel.STRING_TYPE)
       if (path != null) {
-        normalisePath(path)?.let { result[name] = it }
+        normalisePath(path, parsedModel?.project)?.let { result[name] = it }
       }
     }
     return result
@@ -52,14 +52,6 @@ class GradleVersionCatalogViewImpl(private val parsedModel: GradleSettingsModel?
 
   private fun getTimeStamp(parsedModel: GradleSettingsModel?) =
     parsedModel?.psiFile?.modificationStamp
-
-  private fun normalisePath(path: String): VirtualFile? {
-    val fromPath = FileUtil.toSystemIndependentName(path)
-    val project = parsedModel?.project
-    val rootPath = project?.guessProjectDir()?.path ?: return null
-    val normalizedPath = "$rootPath/$fromPath"
-    return VfsUtil.findFileByIoFile(File(FileUtilRt.toSystemDependentName(normalizedPath)), false)
-  }
 
   private fun updateViewIfRequired() {
     val newModificationStamp = getTimeStamp(parsedModel)
@@ -72,5 +64,19 @@ class GradleVersionCatalogViewImpl(private val parsedModel: GradleSettingsModel?
   override fun getCatalogToFileMap(): Map<String, VirtualFile> {
     updateViewIfRequired()
     return catalogToFile.toMap()
+  }
+}
+
+private fun normalisePath(path: String, project: Project?): VirtualFile? {
+  val fromPath = FileUtil.toSystemIndependentName(path)
+  val rootPath = project?.guessProjectDir()?.path ?: return null
+  val normalizedPath = "$rootPath/$fromPath"
+  return VfsUtil.findFileByIoFile(File(FileUtil.toSystemDependentName(
+    normalizedPath)), false)
+}
+
+class SimplifiedVersionCatalogViewImpl(val project: Project) : GradleVersionCatalogView {
+  override fun getCatalogToFileMap(): Map<String, VirtualFile> {
+    return normalisePath("gradle/libs.versions.toml", project)?.let { mapOf("libs" to it) } ?: mapOf()
   }
 }

@@ -2,13 +2,14 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProject
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState
+import com.android.tools.idea.run.AndroidDevice
+
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
-import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -49,21 +50,14 @@ class GradleAndroidTestRunConfigurationExecutorProviderTest {
           override fun getRunProfileState(executor: Executor, env: ExecutionEnvironment, state: DeployTargetState) = null
 
           override fun getDevices(project: Project) = DeviceFutures.forDevices(listOf(mock<IDevice>()))
+
+          override fun getAndroidDevices(project: Project): List<AndroidDevice> = throw UnsupportedOperationException()
         }
       }
     }
     config.setModule(projectRule.module)
     val env = ExecutionEnvironmentBuilder.create(DefaultRunExecutor.getRunExecutorInstance(), config).build()
-    val originalValue = AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE
-
-    AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE = true
     val runProfileState = config.getState(DefaultRunExecutor.getRunExecutorInstance(), env) as AndroidConfigurationExecutorRunProfileState
     assertThat(runProfileState.executor).isInstanceOf(GradleAndroidTestRunConfigurationExecutor::class.java)
-
-    AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE = false
-    val runProfileState2 = config.getState(DefaultRunExecutor.getRunExecutorInstance(), env) as AndroidConfigurationExecutorRunProfileState
-    assertThat(runProfileState2.executor).isInstanceOf(AndroidTestRunConfigurationExecutor::class.java)
-
-    AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE = originalValue
   }
 }

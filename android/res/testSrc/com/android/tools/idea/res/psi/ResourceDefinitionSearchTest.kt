@@ -34,7 +34,7 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
         <string name="app_name">My Application</string>
       </resources>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -50,7 +50,7 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
         }
       }
       """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -75,7 +75,7 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
         <string name="app_name">My Application</string>
       </resources>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val file =
@@ -88,7 +88,7 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
         <string name="test">@string/app_<caret>name</string>
       </resources>
       """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -108,7 +108,7 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
     public override fun createDataForSource(
       editor: Editor,
       offset: Int,
-      source: PsiElement
+      source: PsiElement,
     ): GotoData {
       return super.createDataForSource(editor, offset, source)
     }

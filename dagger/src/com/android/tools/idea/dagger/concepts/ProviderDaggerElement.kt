@@ -42,13 +42,13 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
 
   abstract fun canProvideFor(consumer: ConsumerDaggerElementBase): Boolean
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
+  override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> =
     getRelatedDaggerElementsFromIndex<ConsumerDaggerElementBase>(getIndexKeys()).map {
       DaggerRelatedElement(
         it,
         it.relatedElementGrouping,
         it.getRelationDescriptionKey(),
-        it.psiElement.getCustomRelatedElementDisplayName()
+        it.psiElement.getCustomRelatedElementDisplayName(),
       )
     }
 
@@ -98,7 +98,7 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
 
 internal data class ProviderDaggerElement(
   override val psiElement: PsiElement,
-  private val providedPsiType: PsiType
+  private val providedPsiType: PsiType,
 ) : ProviderDaggerElementBase() {
 
   internal constructor(psiElement: KtClassOrObject) : this(psiElement, psiElement.classToPsiType())

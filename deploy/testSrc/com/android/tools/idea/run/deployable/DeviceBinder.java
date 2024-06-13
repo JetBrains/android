@@ -77,7 +77,7 @@ public class DeviceBinder {
   @NotNull
   private static IDevice.DeviceState convertToDeviceState(@NotNull DeviceStatus deviceStatus) {
     // DeviceStatus is mirror of DeiceState.
-    return IDevice.DeviceState.values()[deviceStatus.ordinal()];
+    return IDevice.DeviceState.valueOf(deviceStatus.name());
   }
 
   @NotNull

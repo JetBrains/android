@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.application.ApplicationManager
+import java.util.concurrent.TimeUnit
 import junit.framework.Assert
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
@@ -62,13 +63,7 @@ class TextFieldSizeAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -101,18 +96,12 @@ class TextFieldSizeAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
-        task.runAsyncRenderActionWithSession {}
+        task.runAsyncRenderActionWithSession({}, 0, TimeUnit.SECONDS)
         val result = task.render().get()
         val issues = TextFieldSizeAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(1, issues.size)

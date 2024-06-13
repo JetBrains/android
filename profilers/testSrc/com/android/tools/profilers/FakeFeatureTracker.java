@@ -18,20 +18,24 @@ package com.android.tools.profilers;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
-import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
-import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.tasks.TaskFinishedState;
+import com.android.tools.profilers.tasks.TaskMetadata;
+import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata;
+import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
+import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
 import com.android.utils.Pair;
 import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.google.wireless.android.sdk.stats.PowerProfilerCaptureMetadata;
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,16 +48,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * Stores the last {@link CpuCaptureMetadata} passed to the tracker.
    */
   private CpuCaptureMetadata myLastCpuCaptureMetadata;
-
-  /**
-   * Stores the last {@link EnergyEventMetadata} passed to the tracker.
-   */
-  private EnergyEventMetadata myLastEnergyEventMetadata;
-
-  /**
-   * Stores the last {@link EnergyRangeMetadata} passed to the tracker.
-   */
-  private EnergyRangeMetadata myLastEnergyRangeMetadata;
 
   /**
    * Stores the last {@link FilterMetadata} passed to the tracker.
@@ -109,6 +103,8 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * Count of power rails and battery counters found in a power profiler capture.
    */
   private PowerProfilerCaptureMetadata myPowerProfilerCaptureMetadata;
+
+  private boolean isTaskSettingChanged;
 
   @Override
   public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
@@ -426,11 +422,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectEnergyRange(@NotNull EnergyRangeMetadata rangeMetadata) {
-    myLastEnergyRangeMetadata = rangeMetadata;
-  }
-
-  @Override
   public void trackMemoryProfilerInstanceFilter(@NotNull CaptureObjectInstanceFilter filter) {
   }
 
@@ -531,19 +522,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
     return myTpdQueryMetrics;
   }
 
-  public EnergyRangeMetadata getLastEnergyRangeMetadata() {
-    return myLastEnergyRangeMetadata;
-  }
-
-  @Override
-  public void trackSelectEnergyEvent(@NotNull EnergyEventMetadata eventMetadata) {
-    myLastEnergyEventMetadata = eventMetadata;
-  }
-
-  public EnergyEventMetadata getLastEnergyEventMetadata() {
-    return myLastEnergyEventMetadata;
-  }
-
   public FilterMetadata getLastFilterMetadata() {
     return myLastFilterMetadata;
   }
@@ -561,4 +539,28 @@ public final class FakeFeatureTracker implements FeatureTracker {
   public PowerProfilerCaptureMetadata getPowerProfilerCaptureMetadata() {
     return myPowerProfilerCaptureMetadata;
   }
+
+  @Override
+  public void trackTaskSettingsOpened(boolean isSettingsChanged) {
+    isTaskSettingChanged = isSettingsChanged;
+  }
+
+  @Override
+  public void trackTaskEntered(@NotNull com.android.tools.profilers.tasks.TaskMetadata taskMetadata) { }
+
+  @Override
+  public void trackTaskFinished(@NotNull com.android.tools.profilers.tasks.TaskMetadata taskMetadata,
+                                @NotNull TaskFinishedState taskFinishedState) { }
+
+  @Override
+  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
+                              @NotNull TaskStartFailedMetadata taskStartFailedMetadata) { }
+
+  @Override
+  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
+                              @NotNull TaskStopFailedMetadata taskStopFailedMetadata) { }
+
+  @Override
+  public void trackTaskFailed(@NotNull TaskMetadata taskMetadata,
+                              @NotNull TaskProcessingFailedMetadata taskProcessingFailedMetadata) { }
 }

@@ -19,6 +19,7 @@ import static com.android.utils.PositionXmlParser.CONTENT_KEY;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Location;
@@ -77,6 +78,12 @@ class DomPsiParser extends XmlParser {
   @Override
   public Node findNodeAt(@NonNull XmlContext context, int offset) {
     return DomPsiConverter.findNodeAt(context.document, offset);
+  }
+
+  @Nullable
+  @Override
+  public Node findNodeAt(@NonNull Node node, int offset) {
+    return DomPsiConverter.findNodeAt(node, offset);
   }
 
   @Nullable

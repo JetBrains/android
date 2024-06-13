@@ -23,8 +23,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.LightVirtualFile
 import org.junit.Assert
@@ -35,9 +33,10 @@ import kotlin.test.assertEquals
 private class TestMethodPreviewElement(
   override val methodFqn: String,
   override val displaySettings: PreviewDisplaySettings = someDisplaySettings(),
-  override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>? = null,
-  override val previewBodyPsi: SmartPsiElementPointer<PsiElement>? = null,
-) : MethodPreviewElement
+  override val previewElementDefinition: Unit? = null,
+  override val previewBody: Unit? = null,
+  override val hasAnimations: Boolean = false,
+) : MethodPreviewElement<Unit>
 
 private class TestModel(override var dataContext: DataContext) : DataContextHolder {
   override fun dispose() {}
@@ -52,22 +51,20 @@ private class TestAdapter :
 
   override fun applyToConfiguration(
     previewElement: TestMethodPreviewElement,
-    configuration: Configuration
+    configuration: Configuration,
   ) {}
 
   override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
     LightVirtualFile()
 }
 
-private fun someDisplaySettings(
-  name: String = "",
-) =
+private fun someDisplaySettings(name: String = "") =
   PreviewDisplaySettings(
     name = name,
     group = null,
     showDecoration = false,
     showBackground = false,
-    backgroundColor = null
+    backgroundColor = null,
   )
 
 class MethodPreviewElementModelAdapterTest {
@@ -109,7 +106,7 @@ class MethodPreviewElementModelAdapterTest {
     val previewElement =
       TestMethodPreviewElement(
         methodFqn = "someMethodFqn",
-        displaySettings = someDisplaySettings(name = "preview settings name")
+        displaySettings = someDisplaySettings(name = "preview settings name"),
       )
 
     assertEquals(
@@ -118,7 +115,7 @@ class MethodPreviewElementModelAdapterTest {
         methodName=someMethodFqn
     """
         .trimIndent(),
-      adapter.toLogString(previewElement)
+      adapter.toLogString(previewElement),
     )
   }
 }

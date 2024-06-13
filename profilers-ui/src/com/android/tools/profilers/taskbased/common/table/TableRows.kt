@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.taskbased.common.table
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
@@ -23,24 +25,35 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun EllipsesText(text: String) {
-  Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 5.dp))
+  Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
 }
 
 @Composable
-fun leftAlignedColumnText(text: String, rowScope: RowScope) {
+fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: RowScope) {
   with(rowScope) {
     Box(
-      modifier = Modifier.weight(1f).fillMaxHeight(),
+      modifier = Modifier.weight(1f).fillMaxHeight().padding(horizontal = 5.dp),
       contentAlignment = Alignment.CenterStart
     ) {
-      EllipsesText(text = text)
+      Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        iconPainter?.let {
+          Icon(
+            painter = it,
+            contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC,
+          )
+        }
+        EllipsesText(text = text)
+      }
     }
   }
 }
@@ -48,7 +61,7 @@ fun leftAlignedColumnText(text: String, rowScope: RowScope) {
 @Composable
 fun rightAlignedColumnText(text: String, colWidth: Dp) {
   Box(
-    modifier = Modifier.width(colWidth).fillMaxHeight(),
+    modifier = Modifier.width(colWidth).fillMaxHeight().padding(horizontal = 5.dp),
     contentAlignment = Alignment.CenterEnd
   ) {
     EllipsesText(text = text)

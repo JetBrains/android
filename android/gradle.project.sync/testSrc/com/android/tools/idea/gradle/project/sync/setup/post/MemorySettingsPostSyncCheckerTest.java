@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker.MemorySettingsNotification;
+import com.android.tools.idea.memorysettings.MemorySettingsRecommendation;
+import com.intellij.diagnostic.VMOptions;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationsManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.IOException;
 import org.mockito.Mock;
+
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class MemorySettingsPostSyncCheckerTest extends HeavyPlatformTestCase {
   @Mock

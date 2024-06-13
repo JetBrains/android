@@ -47,9 +47,9 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationFileState;
 import com.android.tools.configurations.ConfigurationModelModule;
 import com.android.tools.configurations.ConfigurationSettings;
+import com.android.tools.configurations.DeviceState;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.res.ResourceRepositoryManager;
@@ -87,18 +87,18 @@ import org.jetbrains.annotations.Nullable;
 public class ConfigurationMatcher {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ConfigurationMatcher");
 
-  @NotNull private final Configuration myConfiguration;
-  @NotNull private final ConfigurationSettings mySettings;
+  @NotNull private final ConfigurationForFile myConfiguration;
+  @NotNull private final ConfigurationManager myManager;
   @Nullable private final ResourceRepository myResources;
   @Nullable private final ResourceNamespace myNamespace;
   @Nullable private final VirtualFile myFile;
 
-  public ConfigurationMatcher(@NotNull Configuration configuration, @Nullable VirtualFile file) {
+  public ConfigurationMatcher(@NotNull ConfigurationForFile configuration, @Nullable VirtualFile file) {
     myConfiguration = configuration;
     myFile = file;
 
-    mySettings = myConfiguration.getSettings();
-    ResourceRepositoryManager repositoryManager = mySettings.getConfigModule().getResourceRepositoryManager();
+    myManager = myConfiguration.getSettings();
+    ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null) {
       myResources = null;
       myNamespace = null;
@@ -286,9 +286,9 @@ public class ConfigurationMatcher {
   /** Like {@link ConfigurationManager#getLocalesInProject()}, but ensures that the currently selected locale is first in the list */
   @NotNull
   public List<Locale> getPrioritizedLocales() {
-    ImmutableList<Locale> projectLocales = mySettings.getLocalesInProject();
+    ImmutableList<Locale> projectLocales = myManager.getLocalesInProject();
     List<Locale> locales = new ArrayList<>(projectLocales.size() + 1); // Locale.ANY is not in getLocales() list
-    Locale current = mySettings.getLocale();
+    Locale current = myManager.getLocale();
     locales.add(current);
     for (Locale locale : projectLocales) {
       if (!locale.equals(current)) {
@@ -387,7 +387,7 @@ public class ConfigurationMatcher {
    */
   void findAndSetCompatibleConfig(boolean favorCurrentConfig) {
     List<Locale> localeList = getPrioritizedLocales();
-    List<Device> deviceList = mySettings.getDevices();
+    List<Device> deviceList = myManager.getDevices();
     FolderConfiguration editedConfig = myConfiguration.getEditedConfig();
     FolderConfiguration currentConfig = myConfiguration.getFullConfig();
 
@@ -520,7 +520,7 @@ public class ConfigurationMatcher {
   }
 
   private void addRenderTargetToBundles(List<ConfigBundle> configBundles) {
-    IAndroidTarget target = mySettings.getTarget();
+    IAndroidTarget target = myManager.getTarget();
     if (target != null) {
       int apiLevel = target.getVersion().getFeatureLevel();
       for (ConfigBundle bundle : configBundles) {
@@ -571,7 +571,7 @@ public class ConfigurationMatcher {
       String currentLanguage = defaultLocale.getLanguage();
       String currentRegion = defaultLocale.getCountry();
 
-      ImmutableList<Locale> localeList = mySettings.getLocalesInProject();
+      ImmutableList<Locale> localeList = myManager.getLocalesInProject();
       final int count = localeList.size();
       for (int l = 0; l < count; l++) {
         Locale locale = localeList.get(l);
@@ -609,7 +609,7 @@ public class ConfigurationMatcher {
 
   @NotNull
   private ConfigMatch selectConfigMatch(@NotNull List<ConfigMatch> matches) {
-    List<String> deviceIds = mySettings.getConfigModule().getConfigurationStateManager().getProjectState().getDeviceIds();
+    List<String> deviceIds = myManager.getStateManager().getProjectState().getDeviceIds();
     Map<String, Integer> idRank = Maps.newHashMapWithExpectedSize(deviceIds.size());
     int rank = 0;
     for (String id : deviceIds) {
@@ -622,7 +622,7 @@ public class ConfigurationMatcher {
     }
     else {
       // API 11-13: look for a x-large device
-      IAndroidTarget projectTarget = mySettings.getProjectTarget();
+      IAndroidTarget projectTarget = myManager.getProjectTarget();
       if (projectTarget != null) {
         int apiLevel = projectTarget.getVersion().getFeatureLevel();
         if (apiLevel >= 11 && apiLevel < 14) {
@@ -651,7 +651,7 @@ public class ConfigurationMatcher {
     // We use FileEditorManagerImpl instead of FileEditorManager to get access to the lock-free version
     // (also used by DebuggerContextUtil) since the normal method only works from the dispatch thread
     // (grabbing a read lock is not enough).
-    FileEditorManager editorManager = FileEditorManager.getInstance(mySettings.getProject());
+    FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
     if (editorManager instanceof FileEditorManagerImpl) { // not the case under test fixtures apparently
       Editor activeEditor = ((FileEditorManagerImpl)editorManager).getSelectedTextEditor(true);
       if (activeEditor != null) {
@@ -659,7 +659,7 @@ public class ConfigurationMatcher {
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
         if (file != null && !file.equals(myFile) && file.getFileType() == XmlFileType.INSTANCE
             && ResourceFilesUtil.getFolderType(myFile) == ResourceFilesUtil.getFolderType(file)) {
-          Configuration configuration = ConfigurationManager.getOrCreateInstance(myConfiguration.getModule()).getConfiguration(file);
+          Configuration configuration = myConfiguration.getSettings().getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
           for (ConfigMatch match : matches) {
             if (fullConfig.equals(match.testConfig)) {
@@ -682,7 +682,7 @@ public class ConfigurationMatcher {
   @Nullable
   public static VirtualFile getBetterMatch(@NotNull Configuration configuration, @Nullable Device device, @Nullable String stateName,
                                            @Nullable Locale locale, @Nullable IAndroidTarget target) {
-    VirtualFile file = configuration.getFile();
+    VirtualFile file = ConfigurationFileUtil.getVirtualFile(configuration);
     ConfigurationModelModule module = configuration.getConfigModule();
     if (file != null) {
       if (device == null) {
@@ -692,7 +692,7 @@ public class ConfigurationMatcher {
         State deviceState = configuration.getDeviceState();
         stateName = deviceState != null ? deviceState.getName() : null;
       }
-      State selectedState = ConfigurationFileState.getState(device, stateName);
+      State selectedState = DeviceState.getDeviceState(device, stateName);
       if (selectedState == null) {
         return null; // Invalid state name passed in for the current device.
       }

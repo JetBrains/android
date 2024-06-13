@@ -20,7 +20,7 @@ java_binary(
     name = "deploy_env",
     main_class = "NoMain",
     runtime_deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
     ],
 )
 
@@ -37,7 +37,7 @@ java_binary(
         # "@maven//:io.grpc.grpc-all",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
         "//tools/adt/idea/bleak:intellij.android.bleak",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config_testlib",
@@ -53,7 +53,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/bleak:intellij.android.bleak[module]",
@@ -82,7 +83,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/as-driver:asdriver_proto",
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
@@ -106,7 +108,8 @@ iml_module(
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
     ],
 )
 

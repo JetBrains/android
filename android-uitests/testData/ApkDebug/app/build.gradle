@@ -7,12 +7,12 @@ ext.versionCodes = ['armeabi-v7a':1, 'arm64-v8a':2, 'x86':4]
 
 android {
     namespace "com.example.SanAngeles"
-    compileSdkVersion 25
+    compileSdkVersion 34
 
     defaultConfig {
         applicationId 'com.example.SanAngeles'
-        minSdkVersion 4
-        targetSdkVersion 25
+        minSdkVersion 25
+        targetSdkVersion 34
         versionCode  1
         versionName  "1.0"
     }

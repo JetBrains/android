@@ -1462,6 +1462,122 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
   }
 
+  // Regression b/316305727
+  // Setting and updating version before apply is called
+  @Test
+  fun testPluginsRemapVersion() {
+    writeToBuildFile("")
+    writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+      """.trimIndent())
+
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    val plugins = vcModel.plugins("libs")!!
+    val foo = plugins.findProperty("foo")
+    foo.getMapValue("id")!!.setValue("com.google.foo")
+    foo.getMapValue("version")!!.setValue(ReferenceTo(vcModel.versions("libs")!!.findProperty("fooVersion")))
+
+    //reset value triggering removing and adding literal
+    foo.getMapValue("version")!!.setValue("2.3.4")
+
+    applyChanges(pbm)
+    verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+        [plugins]
+        foo = { id = "com.google.foo", version = "2.3.4" }
+      """.trimIndent())
+  }
+
+  // Regression b/316305727
+  @Test
+  fun testPluginsRemapVersion2() {
+    writeToBuildFile("")
+    writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+      """.trimIndent())
+
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    val plugins = vcModel.plugins("libs")!!
+    val foo = plugins.findProperty("foo")
+    foo.getMapValue("id")!!.setValue("com.google.foo")
+    foo.getMapValue("version")!!.setValue("2.3.4")
+
+    //reset value triggering removing and adding literal
+    foo.getMapValue("version")!!.setValue(ReferenceTo(vcModel.versions("libs")!!.findProperty("fooVersion")))
+
+    applyChanges(pbm)
+    verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+        [plugins]
+        foo = { id = "com.google.foo", version.ref = "fooVersion" }
+      """.trimIndent())
+  }
+
+
+  // Regression b/316305727
+  @Test
+  fun testLibraryRemapVersion() {
+    writeToBuildFile("")
+    writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+      """.trimIndent())
+
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    val libraries = vcModel.libraries("libs")!!
+    val foo = libraries.findProperty("foo")
+    foo.getMapValue("name")!!.setValue("foo")
+    foo.getMapValue("group")!!.setValue("com.google")
+    foo.getMapValue("version")!!.setValue(ReferenceTo(vcModel.versions("libs")!!.findProperty("fooVersion")))
+
+    //reset value triggering removing and adding literal
+    foo.getMapValue("version")!!.setValue("2.3.4")
+
+    applyChanges(pbm)
+    verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+        [libraries]
+        foo = { name = "foo", group = "com.google", version = "2.3.4"}
+      """.trimIndent())
+  }
+
+  // Regression b/316305727
+  @Test
+  fun testLibraryRemapVersion2() {
+    writeToBuildFile("")
+    writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "1.2.3"
+      """.trimIndent())
+
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    val libraries = vcModel.libraries("libs")!!
+    val foo = libraries.findProperty("foo")
+    foo.getMapValue("name")!!.setValue("foo")
+    foo.getMapValue("group")!!.setValue("com.google")
+    foo.getMapValue("version")!!.setValue("2.3.4")
+
+    //reset value triggering removing and adding literal
+    foo.getMapValue("version")!!.setValue(ReferenceTo(vcModel.versions("libs")!!.findProperty("fooVersion")))
+
+    applyChanges(pbm)
+    verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "1.2.3"
+        [libraries]
+        foo = { name = "foo", group = "com.google", version.ref = "fooVersion" }
+      """.trimIndent())
+  }
+
   @Test
   fun testPluginCreateMapWithVersionRef() {
     writeToBuildFile("")

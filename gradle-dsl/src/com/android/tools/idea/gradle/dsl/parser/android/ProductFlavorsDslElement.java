@@ -38,7 +38,10 @@ public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollection
                                        ProductFlavorsDslElementSchema::new);
 
   @Override
-  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+  public PropertiesElementDescription getChildPropertiesElementDescription(
+    GradleDslNameConverter converter,
+    String name
+  ) {
     return PRODUCT_FLAVOR;
   }
 

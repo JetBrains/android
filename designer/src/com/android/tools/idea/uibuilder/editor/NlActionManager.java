@@ -24,8 +24,10 @@ import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
+import com.android.tools.idea.uibuilder.actions.ConvertToComposeAction;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
 import com.android.tools.idea.uibuilder.actions.DisableToolsVisibilityAndPositionInPreviewAction;
 import com.android.tools.idea.uibuilder.actions.MorphComponentAction;
@@ -117,11 +119,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   @Override
   public void registerActionsShortcuts(@NotNull JComponent component) {
     if (mySelectAllAction == null) {
-      mySelectAllAction = new SelectAllAction(mySurface);
-      myGotoComponentAction = new GotoComponentAction(mySurface);
-      mySelectParent = new SelectParentAction(mySurface);
-      mySelectNextAction = new SelectNextAction(mySurface);
-      mySelectPreviousAction = new SelectPreviousAction(mySurface);
+      mySelectAllAction = new SelectAllAction();
+      myGotoComponentAction = new GotoComponentAction();
+      mySelectParent = new SelectParentAction();
+      mySelectNextAction = new SelectNextAction();
+      mySelectPreviousAction = new SelectPreviousAction();
       myPasteWithNewIdsAction = new PasteWithNewIds();
     }
     registerAction(mySelectAllAction, IdeActions.ACTION_SELECT_ALL, component);
@@ -226,7 +228,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     //noinspection ConstantConditions
     group.add(getRegisteredActionByName(IdeActions.ACTION_DELETE));
     group.addSeparator();
-    group.add(new ZoomToSelectionAction(mySurface));
+    group.add(new ZoomToSelectionAction());
     group.add(myGotoComponentAction);
 
     return group;
@@ -237,11 +239,15 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       group.add(new MorphComponentAction(leafComponent));
     }
     if (ConvertToConstraintLayoutAction.ENABLED) {
-      group.add(new ConvertToConstraintLayoutAction(mySurface));
+      group.add(new ConvertToConstraintLayoutAction());
     }
     group.add(createRefactoringMenu());
 
     group.addSeparator();
+    if (StudioFlags.NELE_XML_TO_COMPOSE.get()) {
+      group.add(new ConvertToComposeAction());
+      group.addSeparator();
+    }
   }
 
   @Nullable
@@ -450,13 +456,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   /**
    * Wrapper around a {@link DirectViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
-  private class DirectViewActionWrapper extends AnAction implements ViewActionPresentation {
+  private class DirectViewActionWrapper extends AnAction {
     private final DirectViewAction myAction;
     private final ViewHandler myHandler;
     private final ViewEditor myEditor;
     private final NlComponent myComponent;
     private final List<NlComponent> mySelectedChildren;
-    private Presentation myCurrentPresentation;
 
     private DirectViewActionWrapper(@NotNull DirectViewAction action,
                                     @NotNull ViewEditor editor,
@@ -498,6 +503,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent e) {
       // Unfortunately, the action event we're fed here does *not* have the correct
       // current modifier state; there are code paths which just feed in a value of 0
@@ -512,49 +522,20 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       // (Longer term we consider having a singleton Toolkit listener which listens
       // for AWT events globally and tracks the most recent global modifier key state.)
       int modifiersEx = mySurface.getGuiInputHandler().getLastModifiersEx();
-
-      myCurrentPresentation = e.getPresentation();
-      try {
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, modifiersEx);
-      }
-      finally {
-        myCurrentPresentation = null;
-      }
-    }
-
-    // ---- Implements ViewActionPresentation ----
-
-    @Override
-    public void setLabel(@NotNull String label) {
-      myCurrentPresentation.setText(label);
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-      myCurrentPresentation.setEnabled(enabled);
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-      myCurrentPresentation.setVisible(visible);
-    }
-
-    @Override
-    public void setIcon(@Nullable Icon icon) {
-      myCurrentPresentation.setIcon(icon);
+      ViewActionPresentationWrapper wrapper = new ViewActionPresentationWrapper(e.getPresentation());
+      myAction.updatePresentation(wrapper, myEditor, myHandler, myComponent, mySelectedChildren, modifiersEx);
     }
   }
 
   /**
    * Wrapper around a {@link ToggleViewAction} which uses an IDE {@link AnAction} in the toolbar
    */
-  private class ToggleViewActionWrapper extends AnAction implements ViewActionPresentation {
+  private class ToggleViewActionWrapper extends AnAction {
     private final ToggleViewAction myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
     private final NlComponent myComponent;
     private final List<NlComponent> mySelectedChildren;
-    private Presentation myCurrentPresentation;
     private ToggleViewActionWrapper myGroupSibling;
 
     private ToggleViewActionWrapper(@NotNull ToggleViewAction action,
@@ -602,53 +583,30 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent e) {
-      myCurrentPresentation = e.getPresentation();
-      try {
-        boolean selected = myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
-        if (myAction.getSelectedLabel() != null) {
-          myCurrentPresentation.setText(selected ? myAction.getSelectedLabel() : myAction.getUnselectedLabel());
-        }
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers(), selected);
+      ViewActionPresentationWrapper wrapper = new ViewActionPresentationWrapper(e.getPresentation());
+      boolean selected = myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
+      if (myAction.getSelectedLabel() != null) {
+        wrapper.setLabel(selected ? myAction.getSelectedLabel() : myAction.getUnselectedLabel());
       }
-      finally {
-        myCurrentPresentation = null;
-      }
-    }
-
-    // ---- Implements ViewActionPresentation ----
-
-    @Override
-    public void setLabel(@NotNull String label) {
-      myCurrentPresentation.setText(label);
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-      myCurrentPresentation.setEnabled(enabled);
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-      myCurrentPresentation.setVisible(visible);
-    }
-
-    @Override
-    public void setIcon(@Nullable Icon icon) {
-      myCurrentPresentation.setIcon(icon);
+      myAction.updatePresentation(wrapper, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers(), selected);
     }
   }
 
   /**
    * Wrapper around a {@link ViewActionMenu} which uses an IDE {@link AnAction} in the toolbar
    */
-  private class ViewActionMenuWrapper extends ActionGroup implements ViewActionPresentation {
+  private class ViewActionMenuWrapper extends ActionGroup {
     private final ViewActionMenu myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
     private final NlComponent myComponent;
     private final List<NlComponent> mySelectedChildren;
-    private Presentation myCurrentPresentation;
 
     private ViewActionMenuWrapper(@NotNull ViewActionMenu action,
                                   @NotNull ViewEditor editor,
@@ -665,41 +623,18 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent e) {
-      myCurrentPresentation = e.getPresentation();
-      try {
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
-      }
-      finally {
-        myCurrentPresentation = null;
-      }
-    }
-
-    // ---- Implements ViewActionPresentation ----
-
-    @Override
-    public void setLabel(@NotNull String label) {
-      myCurrentPresentation.setText(label);
+      ViewActionPresentationWrapper wrapper = new ViewActionPresentationWrapper(e.getPresentation());
+      myAction.updatePresentation(wrapper, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
     }
 
     @Override
-    public void setEnabled(boolean enabled) {
-      myCurrentPresentation.setEnabled(enabled);
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-      myCurrentPresentation.setVisible(visible);
-    }
-
-    @Override
-    public void setIcon(@Nullable Icon icon) {
-      myCurrentPresentation.setIcon(icon);
-    }
-
-    @NotNull
-    @Override
-    public AnAction[] getChildren(@Nullable AnActionEvent e) {
+    public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
       List<AnAction> actions = new ArrayList<>();
       for (ViewAction viewAction : myAction.getActions()) {
         addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
@@ -708,13 +643,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
   }
 
-  private class ViewActionToolbarMenuWrapper extends DropDownAction implements ViewActionPresentation {
+  private class ViewActionToolbarMenuWrapper extends DropDownAction {
     private final NestedViewActionMenu myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
     private final NlComponent myComponent;
     private final List<NlComponent> mySelectedChildren;
-    private Presentation myCurrentPresentation;
 
     private ViewActionToolbarMenuWrapper(@NotNull NestedViewActionMenu action,
                                          @NotNull ViewEditor editor,
@@ -730,14 +664,14 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent e) {
-      myCurrentPresentation = e.getPresentation();
-      try {
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
-      }
-      finally {
-        myCurrentPresentation = null;
-      }
+      ViewActionPresentationWrapper wrapper = new ViewActionPresentationWrapper(e.getPresentation());
+      myAction.updatePresentation(wrapper, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
     }
 
     @Override
@@ -781,27 +715,33 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       }
       return panel;
     }
+  }
 
-    // ---- Implements ViewActionPresentation ----
+  private static class ViewActionPresentationWrapper implements ViewActionPresentation {
+    private final Presentation myPresentation;
+
+    public ViewActionPresentationWrapper(@NotNull Presentation presentation) {
+      myPresentation = presentation;
+    }
 
     @Override
     public void setLabel(@NotNull String label) {
-      myCurrentPresentation.setText(label);
+      myPresentation.setText(label);
     }
 
     @Override
     public void setEnabled(boolean enabled) {
-      myCurrentPresentation.setEnabled(enabled);
+      myPresentation.setEnabled(enabled);
     }
 
     @Override
     public void setVisible(boolean visible) {
-      myCurrentPresentation.setVisible(visible);
+      myPresentation.setVisible(visible);
     }
 
     @Override
     public void setIcon(@Nullable Icon icon) {
-      myCurrentPresentation.setIcon(icon);
+      myPresentation.setIcon(icon);
     }
   }
 }

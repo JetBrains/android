@@ -45,6 +45,7 @@ import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndexKt;
+import com.android.tools.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -55,12 +56,12 @@ import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
-import com.android.tools.res.FileResourceReader;
-import com.android.tools.res.FrameworkResourceRepositoryManager;
+import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -85,8 +86,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.StudioAndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -266,6 +267,19 @@ public class AndroidLintIdeClient extends LintIdeClient {
     return super.getCacheDir(name, create);
   }
 
+  @Override
+  public @Nullable File getRootDir() {
+    String pathname = ExternalSystemApiUtil.getExternalRootProjectPath(getModule());
+    if (pathname != null) {
+      File root = new File(pathname);
+      if (root.exists()) {
+        return root;
+      }
+    }
+
+    return super.getRootDir();
+  }
+
   private static final String MERGED_MANIFEST_INFO = "lint-merged-manifest-info";
 
   @Nullable
@@ -430,7 +444,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
         if (scope == ResourceRepositoryScope.ANDROID) {
           IAndroidTarget target = project.getBuildTarget();
           if (target != null) {
-            return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
+            return StudioFrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
               target.getPath(IAndroidTarget.RESOURCES),
               // TBD: Do we need to get the framework resources to provide all languages?
               false, Collections.emptySet());

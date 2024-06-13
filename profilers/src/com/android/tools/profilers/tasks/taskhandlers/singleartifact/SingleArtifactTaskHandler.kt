@@ -51,7 +51,7 @@ abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: Sess
   /**
    * Builds upon the ProfilerTaskHandler enter method by setting up the respective stage first to enable starting and loading a task.
    */
-  override fun enter(args: TaskArgs?): Boolean {
+  override fun enter(args: TaskArgs): Boolean {
     setupStage()
     return super.enter(args)
   }
@@ -68,11 +68,18 @@ abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: Sess
   /**
    * For a single artifact task handler, starting the task functionally is equivalent to starting the capture of the artifact.
    */
-  override fun startTask() {
+  override fun startTask(args: TaskArgs) {
     if (stage == null) {
       handleError("Cannot start the task as the InterimStage was null")
       return
     }
+
+    // Prevent redundant capture initiation from AndroidProfilerLaunchTaskContributor if the task has already started from startup,
+    // avoiding potential issues caused by initiating multiple captures in succession.
+    if (args.isFromStartup) {
+      return
+    }
+
     TaskHandlerUtils.executeTaskAction(action = { startCapture(stage!!) }, errorHandler = ::handleError)
   }
 

@@ -63,7 +63,17 @@ public class LineChart extends AnimatedComponent {
    */
   private static final double BUCKET_BAR_PERCENTAGE = 0.7;
 
+  /**
+   *  A constant supplier used by LineChart#fillEndSupplier, indicating never filling the chart.
+   *  When producing the right edge, LineChart#fillEndSupplier expects a supplier to produce a fraction between 0 and 1.
+   *  The fraction determines where the right edge extends to (if the edge passes the last data-point).
+   */
   public static final DoubleSupplier ALWAYS_0 = () -> 0;
+  /**
+   *  A constant supplier used by LineChart#fillEndSupplier, indicating always filling the entire chart.
+   *  When producing the right edge, LineChart#fillEndSupplier expects a supplier to produce a fraction between 0 and 1.
+   *  The fraction determines where the right edge extends to (if the edge passes the last data-point).
+   */
   public static final DoubleSupplier ALWAYS_1 = () -> 1;
 
   @NotNull final LineChartModel myModel;

@@ -14,6 +14,7 @@ add_library(
 
         SHARED
 
+        accessors/audio_manager.cc
         accessors/clipboard_manager.cc
         accessors/device_state_manager.cc
         accessors/display_info.cc
@@ -29,12 +30,14 @@ add_library(
         accessors/virtual_display.cc
         accessors/window_manager.cc
         agent.cc
+        audio_streamer.cc
         base128_input_stream.cc
         base128_output_stream.cc
         codec_output_buffer.cc
         concurrent_list.cc
         control_messages.cc
         controller.cc
+        device_state.cc
         display_streamer.cc
         io_exception.cc
         jvm.cc
@@ -44,15 +47,18 @@ add_library(
         shell_command_executor.cc
         session_environment.cc
         settings.cc
+        socket_writer.cc
         string_printf.cc
         string_util.cc
         surface.cc
         ui_settings.cc
+        ui_settings_state.cc
         video_packet_header.cc
 )
 
 target_include_directories(screen-sharing-agent PRIVATE .)
 
+find_library(aaudio aaudio)
 find_library(log log)
 find_library(mediandk mediandk)
 
@@ -60,6 +66,7 @@ target_link_libraries(
         screen-sharing-agent
         -landroid
 
+        ${aaudio}
         ${log}
         ${mediandk}
 )

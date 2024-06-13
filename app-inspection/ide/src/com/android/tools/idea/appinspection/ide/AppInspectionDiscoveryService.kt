@@ -69,7 +69,7 @@ class AppInspectionDiscoveryService : Disposable {
       scope,
       // gRPC guarantees FIFO, so we want to poll gRPC messages sequentially
       MoreExecutors.newSequentialExecutor(AndroidExecutors.getInstance().workerThreadExecutor)
-        .asCoroutineDispatcher()
+        .asCoroutineDispatcher(),
     ) { device ->
       val jarCopier = findDevice(device)?.createJarCopier()
       if (jarCopier == null) {
@@ -78,7 +78,7 @@ class AppInspectionDiscoveryService : Disposable {
             "device.not.found",
             device.manufacturer,
             device.model,
-            device.serial
+            device.serial,
           )
         )
       }
@@ -92,7 +92,7 @@ class AppInspectionDiscoveryService : Disposable {
         override fun projectClosing(project: Project) {
           scope.launch { apiServices.disposeClients(project.name) }
         }
-      }
+      },
     )
   }
 

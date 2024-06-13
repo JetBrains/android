@@ -63,7 +63,7 @@ public class FontDownloadService {
                               boolean menuFontsOnly,
                               @Nullable Runnable success,
                               @Nullable Runnable failure) {
-    myCacheService = DownloadableFontCacheServiceImpl.getInstance();
+    myCacheService = StudioDownloadableFontCacheService.getInstance();
     myFontPath = myCacheService.getFontPath();
     myFontsToDownload = fontsToDownload;
     myDownloadMenuFontsOnly = menuFontsOnly;

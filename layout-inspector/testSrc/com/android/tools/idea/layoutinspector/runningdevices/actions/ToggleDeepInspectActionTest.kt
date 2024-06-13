@@ -61,9 +61,7 @@ class ToggleDeepInspectActionTest {
     toggleDeepInspectAction.update(event)
     assertThat(event.presentation.text).isEqualTo("Toggle Deep Inspect")
     assertThat(event.presentation.description)
-      .isEqualTo(
-        "Select components by clicking on the device. Enabling Deep Inspect will intercept clicks from the device."
-      )
+      .isEqualTo("Enable Deep Inspect to select components by clicking on the device.")
   }
 
   @Test
@@ -72,7 +70,7 @@ class ToggleDeepInspectActionTest {
       FakeInspectorClient(
         projectRule.project,
         MODERN_DEVICE.createProcess(),
-        disposableRule.disposable
+        disposableRule.disposable,
       )
     val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, {}, { inspectorClient })
 
@@ -91,17 +89,16 @@ class ToggleDeepInspectActionTest {
 private open class FakeInspectorClient(
   project: Project,
   process: ProcessDescriptor,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) :
   AbstractInspectorClient(
     DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT,
     project,
     NotificationModel(project),
     process,
-    isInstantlyAutoConnected = true,
     DisconnectedClient.stats,
     AndroidCoroutineScope(parentDisposable),
-    parentDisposable
+    parentDisposable,
   ) {
   override suspend fun startFetching() = throw NotImplementedError()
 
@@ -121,7 +118,7 @@ private open class FakeInspectorClient(
   override val treeLoader: TreeLoader
     get() = throw NotImplementedError()
 
-  override val isCapturing: Boolean
+  override val inLiveMode: Boolean
     get() = false
 
   override val provider: PropertiesProvider

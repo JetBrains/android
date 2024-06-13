@@ -52,8 +52,8 @@ object DimensionUnitAction :
             setUnits(event, DimensionUnits.PIXELS)
           }
         }
-      }
-    )
+      },
+    ),
   ) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

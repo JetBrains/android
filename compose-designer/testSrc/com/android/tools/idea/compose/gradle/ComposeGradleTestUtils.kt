@@ -22,12 +22,13 @@ import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -62,7 +63,7 @@ internal fun getPsiFile(project: Project, relativePath: String): PsiFile {
 /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
 suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
   fakeUi: FakeUi,
-  timeout: Duration = 30.seconds
+  timeout: Duration = 90.seconds,
 ) =
   try {
     withTimeout(timeout = timeout) {
@@ -76,7 +77,7 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
       while (isActive && sceneViewPeerPanels.isEmpty()) {
         withContext(Dispatchers.Main) {
           delay(250)
-          ApplicationManager.getApplication().invokeAndWait { fakeUi.root.validate() }
+          withContext(uiThread) { fakeUi.root.validate() }
           sceneViewPeerPanels.addAll(fakeUi.findAllComponents())
 
           if (retryCounter++ % 4 == 0) {
@@ -95,21 +96,22 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
         .debug("ComposePreviewRepresentation active")
 
       // Now wait for them to be rendered
-      waitForRender(sceneViewPeerPanels)
+      waitForRender(sceneViewPeerPanels, timeout)
     }
   } catch (e: TimeoutCancellationException) {
     throw AssertionError(
       "Timeout while waiting for render to complete",
-      TimeoutException().also { it.stackTrace = RenderService.getCurrentExecutionStackTrace() }
+      TimeoutException().also { it.stackTrace = RenderService.getCurrentExecutionStackTrace() },
     )
   }
 
-private suspend fun ComposePreviewRepresentation.waitForRender(
-  sceneViewPeerPanels: Set<SceneViewPeerPanel>
+suspend fun waitForRender(
+  sceneViewPeerPanels: Set<SceneViewPeerPanel>,
+  timeout: Duration = 60.seconds,
 ) =
-  withTimeout(timeout = 30.seconds) {
+  withTimeout(timeout) {
     Logger.getInstance(ComposePreviewRepresentation::class.java).debug("Waiting for render")
-    waitForAnyPendingRefresh()
+    waitForAllRefreshesToFinish(timeout)
     var retryCounter = 0
     while (
       isActive &&
@@ -138,7 +140,7 @@ internal fun FakeUi.clickPreviewName(sceneViewPanel: SceneViewPeerPanel) {
 internal fun FakeUi.clickPreviewImage(
   sceneViewPanel: SceneViewPeerPanel,
   rightClick: Boolean = false,
-  pressingShift: Boolean = false
+  pressingShift: Boolean = false,
 ) {
   sceneViewPanel.positionableAdapter.let {
     runInEdtAndWait {
@@ -146,7 +148,7 @@ internal fun FakeUi.clickPreviewImage(
       mouse.click(
         it.x + it.scaledContentSize.width / 2,
         it.y + it.scaledContentSize.height / 2,
-        if (rightClick) FakeMouse.Button.RIGHT else FakeMouse.Button.LEFT
+        if (rightClick) FakeMouse.Button.RIGHT else FakeMouse.Button.LEFT,
       )
       if (pressingShift) keyboard.release(VK_SHIFT)
     }
@@ -156,16 +158,9 @@ internal fun FakeUi.clickPreviewImage(
 internal fun createNlModelForCompose(
   parent: Disposable,
   facet: AndroidFacet,
-  file: VirtualFile
+  file: VirtualFile,
 ): NlModel {
-  val nlModel =
-    create(
-      parent,
-      NlComponentRegistrar,
-      null,
-      facet,
-      file,
-    )
+  val nlModel = create(parent, NlComponentRegistrar, facet, file)
   // Sets the correct model update for Compose
   nlModel.setModelUpdater(AccessibilityModelUpdater())
   return nlModel

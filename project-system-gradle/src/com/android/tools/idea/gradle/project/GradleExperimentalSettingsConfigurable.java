@@ -15,22 +15,11 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT;
-import static com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
-import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
-
 import com.android.tools.idea.flags.ExperimentalConfigurable;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.ui.MessageType;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import java.io.File;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -40,15 +29,10 @@ import org.jetbrains.annotations.TestOnly;
 public class GradleExperimentalSettingsConfigurable implements ExperimentalConfigurable {
   private JCheckBox myUseMultiVariantExtraArtifacts;
   private JCheckBox myConfigureAllGradleTasks;
-  private JCheckBox myTraceGradleSyncCheckBox;
-  private JComboBox myTraceProfileComboBox;
-  private TextFieldWithBrowseButton myTraceProfilePathField;
   private JCheckBox myEnableParallelSync;
   private JCheckBox myEnableDeviceApiOptimization;
   private JCheckBox myDeriveRuntimeClasspathsForLibraries;
   private JPanel myPanel;
-
-  private boolean shouldRestart = false;
 
   @NotNull private final GradleExperimentalSettings mySettings;
 
@@ -62,7 +46,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
     myDeriveRuntimeClasspathsForLibraries.setVisible(StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get());
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
-    initTraceComponents();
+    myUseMultiVariantExtraArtifacts.setVisible(StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get());
     reset();
   }
 
@@ -78,8 +62,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
            mySettings.SKIP_GRADLE_TASKS_LIST == isConfigureAllGradleTasksEnabled() ||
            mySettings.ENABLE_PARALLEL_SYNC != isParallelSyncEnabled() ||
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
-           mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries() ||
-           isTraceSettingsModified();
+           mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries();
   }
 
   @Override
@@ -89,20 +72,15 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     mySettings.ENABLE_PARALLEL_SYNC = isParallelSyncEnabled();
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
-    applyTraceSettings();
   }
 
   @Override
   public void reset() {
     myUseMultiVariantExtraArtifacts.setSelected(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     myConfigureAllGradleTasks.setSelected(!mySettings.SKIP_GRADLE_TASKS_LIST);
-    myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
-    myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
-    myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
     myEnableParallelSync.setSelected(mySettings.ENABLE_PARALLEL_SYNC);
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
-    updateTraceComponents();
   }
 
   @VisibleForTesting
@@ -124,36 +102,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myConfigureAllGradleTasks.setSelected(value);
   }
 
-  boolean isTraceGradleSyncEnabled() {
-    return myTraceGradleSyncCheckBox.isSelected();
-  }
-
-  @TestOnly
-  void enableTraceGradleSync(boolean value) {
-    myTraceGradleSyncCheckBox.setSelected(value);
-  }
-
-  @Nullable
-  GradleExperimentalSettingsConfigurable.TraceProfileItem getTraceProfileSelection() {
-    return (GradleExperimentalSettingsConfigurable.TraceProfileItem)myTraceProfileComboBox.getSelectedItem();
-  }
-
-  @TestOnly
-  void setTraceProfileSelection(@NotNull GradleExperimentalSettingsConfigurable.TraceProfileItem value) {
-    myTraceProfileComboBox.setSelectedItem(value);
-  }
-
-  @NotNull
-  String getTraceProfileLocation() {
-    return myTraceProfilePathField.getText();
-  }
-
-  @TestOnly
-  void setTraceProfileLocation(@NotNull String value) {
-    myTraceProfilePathField.setText(value);
-  }
-
-  boolean isParallelSyncEnabled() {
+   boolean isParallelSyncEnabled() {
     return myEnableParallelSync.isSelected();
   }
 
@@ -180,94 +129,4 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myDeriveRuntimeClasspathsForLibraries.setSelected(value);
   }
 
-  private void initTraceComponents() {
-    myTraceGradleSyncCheckBox.addActionListener(e -> updateTraceComponents());
-
-    myTraceProfileComboBox.addActionListener(e -> {
-      myTraceProfilePathField.setEnabled(SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
-      if (isTraceProfileInvalid()) {
-        ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
-      }
-    });
-
-    myUseMultiVariantExtraArtifacts.setVisible(StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get());
-
-    myTraceProfilePathField.addBrowseFolderListener("Trace Profile", "Please select trace profile",
-                                                    null, createSingleFileDescriptor("profile"));
-    myTraceProfileComboBox.addItem(DEFAULT);
-    myTraceProfileComboBox.addItem(SPECIFIED_LOCATION);
-  }
-
-  private boolean isTraceSettingsModified() {
-    return mySettings.TRACE_GRADLE_SYNC != isTraceGradleSyncEnabled() ||
-           mySettings.TRACE_PROFILE_SELECTION != getTraceProfileSelection() ||
-           !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation());
-  }
-
-  private void updateTraceComponents() {
-    myTraceProfileComboBox.setEnabled(myTraceGradleSyncCheckBox.isSelected());
-    // Enable text field only if trace is enabled, and using profile from local disk.
-    myTraceProfilePathField
-      .setEnabled(myTraceGradleSyncCheckBox.isSelected() && SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
-    if (isTraceProfileInvalid()) {
-      ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
-    }
-  }
-
-  @Override
-  public @NotNull ApplyState preApplyCallback() {
-    // Don't apply changes if trace profile is not valid.
-    if (isTraceProfileInvalid()) {
-      ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
-      return ApplyState.BLOCK;
-    }
-
-    if (isTraceSettingsModified()) {
-      return ApplyState.RESTART;
-    }
-
-    return ApplyState.OK;
-  }
-
-  private void applyTraceSettings() {
-    if (isTraceSettingsModified()) {
-      saveTraceSettings();
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        TraceSyncUtil.updateTraceArgsInFile();
-      }
-    }
-  }
-
-  private void saveTraceSettings() {
-    mySettings.TRACE_GRADLE_SYNC = isTraceGradleSyncEnabled();
-    mySettings.TRACE_PROFILE_SELECTION = getTraceProfileSelection();
-    mySettings.TRACE_PROFILE_LOCATION = getTraceProfileLocation();
-  }
-
-  @VisibleForTesting
-  boolean isTraceProfileInvalid() {
-    if (isTraceGradleSyncEnabled()) {
-      if (getTraceProfileSelection() == SPECIFIED_LOCATION) {
-        File selectedFile = new File(getTraceProfileLocation());
-        return !selectedFile.isFile() || !selectedFile.getName().endsWith(".profile");
-      }
-    }
-    return false;
-  }
-
-  public enum TraceProfileItem {
-    DEFAULT("Default profile"),
-    SPECIFIED_LOCATION("Specified location");
-
-    private final String displayValue;
-
-    TraceProfileItem(@NotNull String value) {
-      displayValue = value;
-    }
-
-    @Override
-    public String toString() {
-      return displayValue;
-    }
-  }
 }

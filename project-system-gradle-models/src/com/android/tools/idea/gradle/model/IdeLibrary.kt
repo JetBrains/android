@@ -180,7 +180,8 @@ enum class IdeModuleWellKnownSourceSet(
   TEST_FIXTURES("testFixtures", true),
 
   UNIT_TEST("unitTest", false),
-  ANDROID_TEST("androidTest", false);
+  ANDROID_TEST("androidTest", false),
+  SCREENSHOT_TEST("screenshotTest", false);
 
   companion object {
     private val nameToValue = values().associateBy { it.sourceSetName }

@@ -42,8 +42,7 @@ internal data class FormattingOptions(
     COMPACT(LogcatBundle.message("logcat.format.action.compact")) {
       override val formattingOptions: FormattingOptions
         get() = logcatFormattingOptions.compactFormattingOptions
-    },
-    ;
+    };
 
     // Needs to be abstract so Style enum values do not depend on AndroidLogcatFormattingOptions
     // because AndroidLogcatFormattingOptions has

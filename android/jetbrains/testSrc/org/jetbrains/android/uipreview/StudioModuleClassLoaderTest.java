@@ -36,6 +36,7 @@ import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.StudioResourceIdManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidLibraryDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
@@ -45,8 +46,7 @@ import com.android.tools.idea.testing.ModuleModelBuilder;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
-import com.android.tools.res.ids.ResourceIdManager;
-import com.android.tools.res.ids.TestResourceIdManager;
+import com.android.tools.idea.res.TestResourceIdManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
@@ -161,7 +161,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     ResourceNamespace namespace = Objects.requireNonNull(repositoryManager).getNamespace();
     ResourceRepository moduleResources = repositoryManager.getModuleResources();
     ResourceClassRegistry rClassRegistry = ResourceClassRegistry.get(module.getProject());
-    rClassRegistry.addLibrary(moduleResources, ResourceIdManager.get(module), "test", namespace);
+    rClassRegistry.addLibrary(moduleResources, StudioResourceIdManager.get(module), "test", namespace);
 
     ApplicationManager.getApplication().runReadAction(() -> {
       try (ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference = StudioModuleClassLoaderManager.get()
@@ -389,7 +389,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     return new AndroidLibraryDependency(
       IdeAndroidLibraryImpl.Companion.create(
         artifactAddress,
-        Component.Companion.parse(artifactAddress),
+        Component.parse(artifactAddress),
         "",
         gradleCacheRoot.toPath().resolve(folder).toFile(),
         "manifest.xml",

@@ -18,20 +18,14 @@ package com.android.tools.profilers.taskbased.tabs.taskgridandbars
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.IdeProfilerComponents
-import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TaskActionBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TopBar
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
-import com.android.tools.profilers.taskbased.tasks.TaskGridModel
-import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 
 @Composable
 private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
@@ -41,7 +35,7 @@ private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
   Column(modifier = modifier) {
     topBar()
     ToolWindowHorizontalDivider()
-    Box(modifier = Modifier.weight(1f)) {
+    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
       taskGrid()
     }
     ToolWindowHorizontalDivider()
@@ -50,39 +44,20 @@ private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
 }
 
 @Composable
-fun TaskGridAndBars(taskGridModel: TaskGridModel,
-                    selectedDevice: Common.Device,
-                    selectedProcess: Common.Process,
-                    taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
-                    onEnterProfilerTask: () -> Unit,
-                    profilers: StudioProfilers,
+fun TaskGridAndBars(taskHomeTabModel: TaskHomeTabModel,
                     ideProfilerComponents: IdeProfilerComponents,
                     modifier: Modifier) {
-  val selectedTaskType by taskGridModel.selectedTaskType.collectAsState()
-  val canStartTask = selectedDevice != Common.Device.getDefaultInstance()
-                     && selectedProcess != Common.Process.getDefaultInstance()
-                     && selectedTaskType != ProfilerTaskType.UNSPECIFIED
+  val taskTypes = taskHomeTabModel.taskHandlers.keys.toList()
+  val profilers = taskHomeTabModel.profilers
+  val taskGridModel = taskHomeTabModel.taskGridModel
+
   TaskGridAndBarsContainer(
     taskGrid = {
-      TaskGrid(taskGridModel = taskGridModel, selectedDevice = selectedDevice, selectedProcess = selectedProcess,
-               taskHandlers = taskHandlers)
+      TaskGrid(taskGridModel = taskGridModel, taskTypes = taskTypes)
     },
     topBar = { TopBar(profilers, ideProfilerComponents) },
-    taskActionBar = { TaskActionBar(canStartTask, onEnterProfilerTask, true) },
-    modifier = modifier)
-}
-
-@Composable
-fun TaskGridAndBars(taskGridModel: TaskGridModel,
-                    selectedRecording: SessionItem?,
-                    taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
-                    onEnterProfilerTask: () -> Unit,
-                    modifier: Modifier) {
-  val selectedTaskType by taskGridModel.selectedTaskType.collectAsState()
-  val canStartTask = selectedRecording != null && selectedTaskType != ProfilerTaskType.UNSPECIFIED
-  TaskGridAndBarsContainer(
-    taskGrid = { TaskGrid(taskGridModel = taskGridModel, selectedRecording = selectedRecording, taskHandlers = taskHandlers) },
-    topBar = { TopBar() },
-    taskActionBar = { TaskActionBar(canStartTask, onEnterProfilerTask, false) },
+    taskActionBar = {
+      TaskActionBar(taskHomeTabModel)
+    },
     modifier = modifier)
 }

@@ -79,7 +79,7 @@ class LegacyInspectorMetricsTest {
         client.stats,
         unused,
         timeoutScope,
-        debuggerScope
+        debuggerScope,
       )
     client
   }

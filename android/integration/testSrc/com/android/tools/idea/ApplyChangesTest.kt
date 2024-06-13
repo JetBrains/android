@@ -42,6 +42,7 @@ class ApplyChangesTest {
   @Test
   fun applyChangesTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/applychanges")
+
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
     system.runAdb { adb ->
@@ -70,9 +71,7 @@ class ApplyChangesTest {
           studio.waitForBuild()
           studio.executeAction("Run")
 
-          system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.applychanges",
-            60, TimeUnit.SECONDS)
+          studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.applychanges", 60, TimeUnit.SECONDS)
 
           adb.runCommand("logcat") {
             waitForLog(".*OnResume Before.*", 600, TimeUnit.SECONDS);

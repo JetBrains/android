@@ -17,6 +17,7 @@ package com.android.tools.asdriver.tests;
 
 import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 
 public interface Display extends AutoCloseable {
   String getDisplay();
@@ -26,6 +27,16 @@ public interface Display extends AutoCloseable {
       return new MacDisplay();
     } else if (SystemInfo.isLinux) {
       return new XvfbServer();
+    } else {
+      return new NativeDisplay();
+    }
+  }
+
+  static Display createCustom(@NotNull String resolution) throws IOException {
+    if (SystemInfo.isMac) {
+      return new MacDisplay();
+    } else if (SystemInfo.isLinux) {
+      return new XvfbServer(resolution);
     } else {
       return new NativeDisplay();
     }

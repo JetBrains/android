@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.filters;
 
-import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS;
 
-import com.android.tools.idea.explainer.IssueExplainer;
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.studiobot.StudioBot;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -33,6 +32,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTask;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +41,8 @@ import org.jetbrains.plugins.gradle.execution.filters.GradleReRunBuildFilter;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsoleManager {
+  public static final Key<String[]> EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY = Key.create("extra.gradle.command.line.options");
+
   @Override
   public boolean isApplicableFor(@NotNull ExternalSystemTask task) {
     return GradleConstants.SYSTEM_ID.equals(task.getId().getProjectSystemId()) &&
@@ -64,20 +66,19 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
     return super.attachExecutionConsole(project, task, env, processHandler);
   }
 
+  /** Converts console output items injected by Studio Bot into hyperlinks. */
   @Override
   public Filter[] getCustomExecutionFilters(@NotNull Project project,
                                             @NotNull ExternalSystemTask task,
                                             @Nullable ExecutionEnvironment env) {
-    // converts explainer console output to hyperlinks
     Filter[] filters = super.getCustomExecutionFilters(project, task, env);
-    IssueExplainer explainer = IssueExplainer.get();
-    if (!explainer.isAvailable()) {
+    StudioBot studioBot = StudioBot.Companion.getInstance();
+    if (studioBot == null || !studioBot.isAvailable()) {
       return filters;
     }
-    String explainerLinkText = explainer.getConsoleLinkText();
     Filter[] customFilters = new Filter[filters.length + 1];
     System.arraycopy(filters, 0, customFilters, 0, filters.length);
-    customFilters[filters.length] = new ExplainBuildErrorFilter(explainerLinkText);
+    customFilters[filters.length] = new ExplainBuildErrorFilter();
     return customFilters;
   }
 
@@ -86,10 +87,10 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
   public AnAction[] getCustomContextActions(@NotNull Project project,
                                             @NotNull ExternalSystemTask task,
                                             @Nullable ExecutionEnvironment env) {
-    // add sync tree popup menu items for an explainer service
+    // adds a Gemini popup menu item to the sync tree view
     AnAction[] contextActions = super.getCustomContextActions(project, task, env);
-    IssueExplainer explainer = IssueExplainer.get();
-    if (!explainer.isAvailable()) {
+    StudioBot studioBot = StudioBot.Companion.getInstance();
+    if (!studioBot.isAvailable()) {
       return contextActions;
     }
     AnAction[] extendedActions = new AnAction[contextActions.length + 1];

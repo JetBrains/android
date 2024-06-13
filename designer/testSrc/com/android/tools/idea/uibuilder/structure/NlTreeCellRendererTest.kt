@@ -118,7 +118,7 @@ class NlTreeCellRendererTest {
         expanded = false,
         leaf = true,
         row = 3,
-        hasFocus = false
+        hasFocus = false,
       ) as JComponent
     val labels = UIUtil.findComponentsOfType(component, JLabel::class.java)
     assertThat(labels[0].text).isEqualTo("ListPreference")
@@ -136,7 +136,7 @@ class NlTreeCellRendererTest {
         ApplicationManager.getApplication().runReadAction<XmlTag> {
           XmlTagUtil.createTag(
               projectRule.project,
-              "<SwitchPreferenceCompat></SwitchPreferenceCompat>"
+              "<SwitchPreferenceCompat></SwitchPreferenceCompat>",
             )
             .apply { putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module) }
         }
@@ -159,7 +159,7 @@ class NlTreeCellRendererTest {
         expanded = false,
         leaf = true,
         row = 3,
-        hasFocus = false
+        hasFocus = false,
       ) as JComponent
     val labels = UIUtil.findComponentsOfType(component, JLabel::class.java)
     assertThat(labels[0].text).isEqualTo("SwitchPreferenceCompat")
@@ -177,7 +177,7 @@ class NlTreeCellRendererTest {
         ApplicationManager.getApplication().runReadAction<XmlTag> {
           XmlTagUtil.createTag(
               projectRule.project,
-              "<SwitchPreferenceCompat android:title=\"Title\"></SwitchPreferenceCompat>"
+              "<SwitchPreferenceCompat android:title=\"Title\"></SwitchPreferenceCompat>",
             )
             .apply { putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module) }
         }
@@ -200,7 +200,7 @@ class NlTreeCellRendererTest {
         expanded = false,
         leaf = true,
         row = 3,
-        hasFocus = false
+        hasFocus = false,
       ) as JComponent
     val labels = UIUtil.findComponentsOfType(component, JLabel::class.java)
     assertThat(labels[0].text).isEqualTo("Title")
@@ -218,7 +218,7 @@ class NlTreeCellRendererTest {
         ApplicationManager.getApplication().runReadAction<XmlTag> {
           XmlTagUtil.createTag(
               projectRule.project,
-              "<SwitchPreferenceCompat app:title=\"Title\"></SwitchPreferenceCompat>"
+              "<SwitchPreferenceCompat app:title=\"Title\"></SwitchPreferenceCompat>",
             )
             .apply { putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module) }
         }
@@ -241,7 +241,7 @@ class NlTreeCellRendererTest {
         expanded = false,
         leaf = true,
         row = 3,
-        hasFocus = false
+        hasFocus = false,
       ) as JComponent
     val labels = UIUtil.findComponentsOfType(component, JLabel::class.java)
     assertThat(labels[0].text).isEqualTo("Title")

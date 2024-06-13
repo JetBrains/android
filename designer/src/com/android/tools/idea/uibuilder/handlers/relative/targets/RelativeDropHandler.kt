@@ -65,7 +65,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
   fun updateAttributes(
     attributes: NlAttributesHolder,
     @AndroidDpCoordinate x: Int,
-    @AndroidDpCoordinate y: Int
+    @AndroidDpCoordinate y: Int,
   ) {
     val newX = processHorizontalAttributes(attributes, x)
     val newY = processVerticalAttributes(attributes, y)
@@ -77,7 +77,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
   @AndroidDpCoordinate
   private fun processHorizontalAttributes(
     attributes: NlAttributesHolder,
-    @AndroidDpCoordinate x: Int
+    @AndroidDpCoordinate x: Int,
   ): Int {
     val parent = myComponent.parent!!
 
@@ -112,7 +112,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
    */
   private fun addHorizontalParentConstraints(
     attributes: NlAttributesHolder,
-    @AndroidDpCoordinate x: Int
+    @AndroidDpCoordinate x: Int,
   ) {
     val parent = myComponent.parent!!
     if (x + myComponent.drawWidth / 2 < parent.drawCenterX) {
@@ -129,7 +129,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
       getProperAttributesForLayout(myComponent, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT).forEach {
         attributes.setAndroidAttribute(
           it,
-          maxOf(parent.drawRight - (x + myComponent.drawWidth), 0).toDpString()
+          maxOf(parent.drawRight - (x + myComponent.drawWidth), 0).toDpString(),
         )
       }
     }
@@ -141,13 +141,13 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
       attributes,
       LEFT_ALIGN_ATTRIBUTES,
       myComponent.drawLeft,
-      LEFT_ATTRIBUTE_RULES
+      LEFT_ATTRIBUTE_RULES,
     )
     updateAlignAttributeIfNeed(
       attributes,
       RIGHT_ALIGN_ATTRIBUTES,
       myComponent.drawRight,
-      RIGHT_ATTRIBUTE_RULES
+      RIGHT_ATTRIBUTE_RULES,
     )
 
     val isRtl = myComponent.scene.isInRTL
@@ -155,13 +155,13 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
       attributes,
       START_ALIGN_ATTRIBUTES,
       if (isRtl) myComponent.drawRight else myComponent.drawLeft,
-      if (isRtl) RTL_START_ATTRIBUTE_RULES else START_ATTRIBUTE_RULES
+      if (isRtl) RTL_START_ATTRIBUTE_RULES else START_ATTRIBUTE_RULES,
     )
     updateAlignAttributeIfNeed(
       attributes,
       END_ALIGN_ATTRIBUTES,
       if (isRtl) myComponent.drawLeft else myComponent.drawRight,
-      if (isRtl) RTL_END_ATTRIBUTE_RULES else END_ATTRIBUTE_RULES
+      if (isRtl) RTL_END_ATTRIBUTE_RULES else END_ATTRIBUTE_RULES,
     )
   }
 
@@ -169,7 +169,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
   @AndroidDpCoordinate
   private fun processVerticalAttributes(
     attributes: NlAttributesHolder,
-    @AndroidDpCoordinate y: Int
+    @AndroidDpCoordinate y: Int,
   ): Int {
     val parent = myComponent.parent!!
 
@@ -205,28 +205,28 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
    */
   private fun addVerticalParentConstraint(
     attributes: NlAttributesHolder,
-    @AndroidDpCoordinate y: Int
+    @AndroidDpCoordinate y: Int,
   ) {
     val parent = myComponent.parent!!
     if (y + myComponent.drawHeight / 2 < parent.drawCenterY) {
       // near to the top side
       attributes.setAndroidAttribute(
         SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP,
-        SdkConstants.VALUE_TRUE
+        SdkConstants.VALUE_TRUE,
       )
       attributes.setAndroidAttribute(
         SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-        maxOf(y - parent.drawTop, 0).toDpString()
+        maxOf(y - parent.drawTop, 0).toDpString(),
       )
     } else {
       // near to the bottom side
       attributes.setAndroidAttribute(
         SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
-        SdkConstants.VALUE_TRUE
+        SdkConstants.VALUE_TRUE,
       )
       attributes.setAndroidAttribute(
         SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
-        maxOf(parent.drawBottom - (y + myComponent.drawHeight), 0).toDpString()
+        maxOf(parent.drawBottom - (y + myComponent.drawHeight), 0).toDpString(),
       )
     }
   }
@@ -237,13 +237,13 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
       attributes,
       TOP_ALIGN_ATTRIBUTES,
       myComponent.drawTop,
-      TOP_ATTRIBUTE_RULES
+      TOP_ATTRIBUTE_RULES,
     )
     updateAlignAttributeIfNeed(
       attributes,
       BOTTOM_ALIGN_ATTRIBUTES,
       myComponent.drawBottom,
-      BOTTOM_ATTRIBUTE_RULES
+      BOTTOM_ATTRIBUTE_RULES,
     )
   }
 
@@ -251,7 +251,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
     attributes: NlAttributesHolder,
     attributesToUpdate: Array<String>,
     coordinateToUpdate: Int,
-    rules: AlignAttributeRules
+    rules: AlignAttributeRules,
   ) {
     if (attributesToUpdate.any { attributes.getAndroidAttribute(it) != null }) {
       updateAlignAttribute(myComponent, attributes, coordinateToUpdate, rules)
@@ -280,7 +280,7 @@ private val MARGINS_WITHOUT_RTL =
     SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
     SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
     SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
-    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
   )
 
 /**
@@ -306,7 +306,7 @@ private val HORIZONTAL_ALIGNING_ATTRIBUTE_NAMES =
     SdkConstants.ATTR_LAYOUT_TO_LEFT_OF,
     SdkConstants.ATTR_LAYOUT_TO_START_OF,
     SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF,
-    SdkConstants.ATTR_LAYOUT_TO_END_OF
+    SdkConstants.ATTR_LAYOUT_TO_END_OF,
   )
 
 /**
@@ -324,5 +324,5 @@ private val VERTICAL_ALIGNING_ATTRIBUTE_NAMES =
     SdkConstants.ATTR_LAYOUT_ALIGN_TOP,
     SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM,
     SdkConstants.ATTR_LAYOUT_ABOVE,
-    SdkConstants.ATTR_LAYOUT_BELOW
+    SdkConstants.ATTR_LAYOUT_BELOW,
   )

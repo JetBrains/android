@@ -16,6 +16,7 @@
 package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.common.model.DataContextHolder
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
@@ -35,7 +36,7 @@ private fun simplestDisplaySettings(name: String = "") =
   PreviewDisplaySettings(name, null, false, false, null)
 
 private class TestAdapter : GlancePreviewElementModelAdapter<TestModel>() {
-  override fun toXml(previewElement: GlancePreviewElement) = ""
+  override fun toXml(previewElement: PsiGlancePreviewElement) = ""
 
   override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
     LightVirtualFile()
@@ -43,13 +44,14 @@ private class TestAdapter : GlancePreviewElementModelAdapter<TestModel>() {
 
 private fun glancePreviewElement(
   methodFqn: String,
-  displaySettings: PreviewDisplaySettings = simplestDisplaySettings()
+  displaySettings: PreviewDisplaySettings = simplestDisplaySettings(),
 ) =
-  GlancePreviewElement(
+  PsiGlancePreviewElement(
     displaySettings = displaySettings,
-    previewElementDefinitionPsi = null,
-    previewBodyPsi = null,
-    methodFqn = methodFqn
+    previewElementDefinition = null,
+    previewBody = null,
+    methodFqn = methodFqn,
+    configuration = PreviewConfiguration.cleanAndGet(),
   )
 
 class GlancePreviewElementModelAdapterTest {
@@ -64,7 +66,7 @@ class GlancePreviewElementModelAdapterTest {
 
     val adapter = TestAdapter()
 
-    assertTrue(adapter.calcAffinity(pe1, pe1) < adapter.calcAffinity(pe1, pe2))
+    assertTrue(adapter.calcAffinity(pe1, pe1) == adapter.calcAffinity(pe1, pe2))
     assertTrue(adapter.calcAffinity(pe1, pe2) < adapter.calcAffinity(pe1, pe3))
     assertTrue(adapter.calcAffinity(pe1, pe3) < adapter.calcAffinity(pe1, null))
     assertTrue(adapter.calcAffinity(pe1, null) < adapter.calcAffinity(pe1, pe4))
@@ -87,38 +89,55 @@ class GlancePreviewElementModelAdapterTest {
   }
 
   @Test
-  fun testAppWidgetXml() {
+  fun testAppWidgetXml_defaultSize() {
     assertEquals(
       """<androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:minWidth="1px"
+    android:minHeight="1px"
     tools:composableName="foo" />
 
 """
         .trimIndent(),
       AppWidgetModelAdapter.toXml(
-        GlancePreviewElement(simplestDisplaySettings(), null, null, "foo")
-      )
+        GlancePreviewElement(
+          simplestDisplaySettings(),
+          null,
+          null,
+          "foo",
+          PreviewConfiguration.cleanAndGet(),
+        )
+      ),
     )
   }
 
   @Test
-  fun testWearTilesXml() {
+  fun testAppWidgetXml_withSize() {
     assertEquals(
-      """<androidx.glance.wear.tiles.preview.GlanceTileServiceViewAdapter
+      """<androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="1234dp"
+    android:layout_height="2000dp"
+    android:minWidth="1px"
+    android:minHeight="1px"
     tools:composableName="foo" />
 
 """
         .trimIndent(),
-      WearTilesModelAdapter.toXml(
-        GlancePreviewElement(simplestDisplaySettings(), null, null, "foo")
-      )
+      AppWidgetModelAdapter.toXml(
+        GlancePreviewElement(
+          simplestDisplaySettings(),
+          null,
+          null,
+          "foo",
+          // height cannot be higher than 2000
+          PreviewConfiguration.cleanAndGet(width = 1234, height = 5678),
+        )
+      ),
     )
   }
 

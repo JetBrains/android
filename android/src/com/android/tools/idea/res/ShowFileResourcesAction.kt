@@ -40,7 +40,7 @@ class ShowFileResourcesAction : AnAction("Show resources defined in file") {
       definedInFile.joinToString(
         prefix = "Resources defined in ${virtualFile.path}\n\n",
         separator = "\n",
-        transform = { "${it.referenceToSelf.resourceUrl} $it" }
+        transform = { "${it.referenceToSelf.resourceUrl} $it" },
       )
 
     val scratchFile =
@@ -50,7 +50,7 @@ class ShowFileResourcesAction : AnAction("Show resources defined in file") {
           "resources from ${psiFile.name}",
           PlainTextLanguage.INSTANCE,
           textOutput,
-          ScratchFileService.Option.create_new_always
+          ScratchFileService.Option.create_new_always,
         ) ?: return
     FileEditorManager.getInstance(project).openFile(scratchFile, true)
   }

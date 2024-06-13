@@ -104,14 +104,14 @@ class SessionStatisticsImpl(
   },
   isEmbeddedLayoutInspector: () -> Boolean = {
     LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-  }
+  },
 ) : SessionStatistics {
   private val attach =
     AttachStatistics(
       clientType,
       areMultipleProjectsOpen,
       isAutoConnectEnabled,
-      isEmbeddedLayoutInspector
+      isEmbeddedLayoutInspector,
     )
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()

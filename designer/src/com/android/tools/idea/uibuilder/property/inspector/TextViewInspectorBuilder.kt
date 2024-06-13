@@ -42,7 +42,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
   fun attachToInspector(
     inspector: InspectorPanel,
     properties: PropertiesTable<NlPropertyItem>,
-    getTitleLine: () -> InspectorLineModel
+    getTitleLine: () -> InspectorLineModel,
   ) {
     if (!isApplicable(properties)) return
 
@@ -52,7 +52,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
       inspector,
       properties.getOrNull(TOOLS_URI, ATTR_TEXT)
         ?: properties[ANDROID_URI, ATTR_TEXT].designProperty,
-      titleLine
+      titleLine,
     )
     addEditor(inspector, properties[ANDROID_URI, ATTR_CONTENT_DESCRIPTION], titleLine)
 
@@ -77,7 +77,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
   private fun addEditor(
     inspector: InspectorPanel,
     property: NlPropertyItem,
-    group: InspectorLineModel
+    group: InspectorLineModel,
   ): InspectorLineModel {
     return inspector.addEditor(editorProvider.createEditor(property), group)
   }
@@ -85,7 +85,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
   private fun addTextStyle(
     inspector: InspectorPanel,
     properties: PropertiesTable<NlPropertyItem>,
-    group: InspectorLineModel
+    group: InspectorLineModel,
   ) {
     val textStyle =
       properties.getOrNull(ANDROID_URI, ATTR_TEXT_STYLE) as? NlFlagsPropertyItem ?: return
@@ -103,7 +103,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
   private fun addAlignment(
     inspector: InspectorPanel,
     properties: PropertiesTable<NlPropertyItem>,
-    group: InspectorLineModel
+    group: InspectorLineModel,
   ) {
     val alignment = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALIGNMENT) ?: return
     val model = HorizontalEditorPanelModel(alignment)
@@ -115,7 +115,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
         alignment,
         "Align Start of View",
         TEXT_ALIGN_LAYOUT_LEFT,
-        TextAlignment.VIEW_START
+        TextAlignment.VIEW_START,
       )
     )
     panel.add(
@@ -124,7 +124,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
         alignment,
         "Align Start of Text",
         TEXT_ALIGN_LEFT,
-        TextAlignment.TEXT_START
+        TextAlignment.TEXT_START,
       )
     )
     panel.add(
@@ -136,7 +136,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
         alignment,
         "Align End of Text",
         TEXT_ALIGN_RIGHT,
-        TextAlignment.TEXT_END
+        TextAlignment.TEXT_END,
       )
     )
     panel.add(
@@ -145,7 +145,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
         alignment,
         "Align End of View",
         TEXT_ALIGN_LAYOUT_RIGHT,
-        TextAlignment.VIEW_END
+        TextAlignment.VIEW_END,
       )
     )
   }
@@ -156,7 +156,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
     description: String,
     icon: Icon,
     trueValue: String,
-    falseValue: String = ""
+    falseValue: String = "",
   ): Pair<PropertyEditorModel, JComponent> {
     val model = ToggleButtonPropertyEditorModel(description, icon, trueValue, falseValue, property)
     val editor = ToggleButtonPropertyEditor(model)
@@ -175,7 +175,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
         ATTR_LINE_SPACING_EXTRA,
         ATTR_TEXT_STYLE,
         ATTR_TEXT_ALL_CAPS,
-        ATTR_TEXT_COLOR
+        ATTR_TEXT_COLOR,
       )
 
     fun isApplicable(properties: PropertiesTable<NlPropertyItem>): Boolean {

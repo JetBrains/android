@@ -43,6 +43,7 @@ data class ApkInfo @JvmOverloads constructor (
   val requiredInstallOptions: Set<AppInstallOption> = emptySet(),
   val isSandboxApk: Boolean = false,
   val baselineProfiles: List<BaselineProfileDetails> = emptyList(),
+  val minSdkVersionForDexing: Int? = null,
 ) {
   init {
     Preconditions.checkArgument(files.isNotEmpty())
@@ -63,11 +64,13 @@ data class ApkInfo @JvmOverloads constructor (
     applicationId: String,
     requiredInstallOptions: Set<AppInstallOption> = emptySet(),
     isSandboxApk: Boolean = false,
-    baselineProfiles: List<BaselineProfileDetails> = emptyList()
-  ) : this(listOf(ApkFileUnit("", file)), applicationId, requiredInstallOptions, isSandboxApk, baselineProfiles)
+    baselineProfiles: List<BaselineProfileDetails> = emptyList(),
+    minSdkVersionForDexing: Int? = null,
+  ) : this(listOf(ApkFileUnit("", file)), applicationId, requiredInstallOptions, isSandboxApk, baselineProfiles, minSdkVersionForDexing)
 
-  constructor(apkFileList: List<ApkFileUnit>, pkgName: String, baselineProfiles: List<BaselineProfileDetails>) :
-    this(files = apkFileList, pkgName, baselineProfiles = baselineProfiles) {
+  constructor(apkFileList: List<ApkFileUnit>, pkgName: String,
+              baselineProfiles: List<BaselineProfileDetails>, minSdkVersionForDexing: Int?) :
+    this(files = apkFileList, pkgName, baselineProfiles = baselineProfiles, minSdkVersionForDexing = minSdkVersionForDexing) {
   }
 
 }

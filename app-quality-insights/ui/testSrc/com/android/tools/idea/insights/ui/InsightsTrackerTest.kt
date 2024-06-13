@@ -24,16 +24,13 @@ import com.android.tools.idea.insights.ui.vcs.VCS_INFO_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.intellij.diff.DiffManager
 import com.intellij.execution.impl.ConsoleViewImpl
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.EditorMouseFixture
-import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Before
@@ -57,7 +54,6 @@ class InsightsTrackerTest {
 
   private lateinit var console: ConsoleViewImpl
   private lateinit var tracker: AppInsightsTracker
-  private lateinit var mockDiffManager: DiffManager
 
   private val editor
     get() = console.editor
@@ -65,10 +61,6 @@ class InsightsTrackerTest {
   @Before
   fun setUp() {
     tracker = MockitoKt.mock()
-
-    mockDiffManager = MockitoKt.mock()
-    ApplicationManager.getApplication()
-      .replaceService(DiffManager::class.java, mockDiffManager, projectRule.testRootDisposable)
 
     console =
       initConsoleWithFilters(projectRule.project, tracker).apply {
@@ -136,7 +128,7 @@ class InsightsTrackerTest {
                   .TARGET_FILE_HYPER_LINK
             }
             .build()
-        )
+        ),
       )
   }
 
@@ -198,7 +190,7 @@ class InsightsTrackerTest {
                   .DIFF_INLAY
             }
             .build()
-        )
+        ),
       )
   }
 }

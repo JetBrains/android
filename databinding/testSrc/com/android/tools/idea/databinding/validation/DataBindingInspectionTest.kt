@@ -52,7 +52,7 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
            <application />
          </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Add a fake "BindingAdapter" to this project so the tests resolve the dependency; this is
@@ -74,7 +74,7 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
           String[] value();
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     ) {
       // The following line is needed or else we get an error for referencing a file out of bounds
@@ -99,7 +99,7 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
         fun sampleFunction() {
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(useBindingAdapterFile.virtualFile)
@@ -122,7 +122,7 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
           }
         }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(useBindingAdapterFile.virtualFile)

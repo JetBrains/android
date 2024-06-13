@@ -25,11 +25,17 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.SetChange
+import com.android.sdklib.deviceprovisioner.TemplateState
+import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.categorytable.CategoryTable
+import com.android.tools.adtui.categorytable.CategoryTablePersistentStateComponent
+import com.android.tools.adtui.categorytable.CategoryTableStateSerializer
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
+import com.android.tools.adtui.categorytable.enumSerializer
+import com.android.tools.adtui.categorytable.stringSerializer
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.util.ActionToolbarUtil
@@ -52,6 +58,10 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
+import com.intellij.openapi.components.RoamingType
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.State
+import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -60,6 +70,8 @@ import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import java.awt.BorderLayout
+import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -74,8 +86,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidPluginDisposable
-import java.awt.BorderLayout
-import javax.swing.JPanel
 
 /** The main Device Manager panel, containing a table of devices and a toolbar of buttons above. */
 internal class DeviceManagerPanel
@@ -94,7 +104,7 @@ constructor(
   constructor(
     project: Project,
     deviceProvisioner: DeviceProvisioner =
-      project.service<DeviceProvisionerService>().deviceProvisioner
+      project.service<DeviceProvisionerService>().deviceProvisioner,
   ) : this(
     project,
     AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project)),
@@ -103,7 +113,7 @@ constructor(
     deviceProvisioner.templates,
     deviceProvisioner.createDeviceActions(),
     deviceProvisioner.createTemplateActions(),
-    WearPairingManager.getInstance().pairedDevicesFlow()
+    WearPairingManager.getInstance().pairedDevicesFlow(),
   )
 
   constructor(
@@ -117,7 +127,7 @@ constructor(
     deviceProvisioner.templates,
     deviceProvisioner.createDeviceActions(),
     deviceProvisioner.createTemplateActions(),
-    WearPairingManager.getInstance().pairedDevicesFlow()
+    WearPairingManager.getInstance().pairedDevicesFlow(),
   )
 
   private val splitter = JBSplitter(true)
@@ -129,11 +139,12 @@ constructor(
    * creates a device, or a DropDownAction that shows a popup menu of ways to create a device.
    */
   private val addDevice: AnAction? = run {
-    val createDeviceActions = createDeviceActions.map { it.toAnAction() }
-    val createTemplateActions = createTemplateActions.map { it.toAnAction() }
+    val createActionsCount = createDeviceActions.size + createTemplateActions.size
+    val createDeviceActions = createDeviceActions.map { it.toAnAction(createActionsCount == 1) }
+    val createTemplateActions = createTemplateActions.map { it.toAnAction(createActionsCount == 1) }
     val createActions = createDeviceActions + createTemplateActions
 
-    when (createActions.size) {
+    when (createActionsCount) {
       0 -> null
       1 -> createActions[0]
       else ->
@@ -151,7 +162,7 @@ constructor(
             ActionData(it.templatePresentation.description.titlecase() + "...") {
               ActionToolbarUtil.findActionButton(toolbar, addDevice)?.click()
             }
-          }
+          },
       )
       .apply { background = JBUI.CurrentTheme.Table.background(false, true) }
 
@@ -161,7 +172,7 @@ constructor(
       DeviceRowData::key,
       uiDispatcher,
       rowDataProvider = ::provideRowData,
-      emptyStatePanel = emptyStatePanel
+      emptyStatePanel = emptyStatePanel,
     )
 
   private val templateInstantiationCount = ConcurrentHashMultiset.create<DeviceTemplate>()
@@ -194,7 +205,13 @@ constructor(
     add(toolbar.component, BorderLayout.NORTH)
 
     deviceTable.categoryIndent = 0
-    deviceTable.toggleSortOrder(DeviceTableColumns.nameAttribute)
+
+    val persistentState = project?.service<DeviceTablePersistentStateComponent>()
+    if (persistentState != null) {
+      persistentState.table = deviceTable
+    } else {
+      deviceTable.toggleSortOrder(DeviceTableColumns.nameAttribute)
+    }
     deviceTable.addToScrollPane(scrollPane)
 
     splitter.firstComponent = scrollPane
@@ -229,15 +246,21 @@ constructor(
   }
 
   private suspend fun trackDeviceTemplates() {
-    templates
-      .map { it.toSet() }
-      .trackSetChanges()
-      .collect { change ->
-        when (change) {
-          is SetChange.Add -> deviceTable.addOrUpdateRow(DeviceRowData.create(change.value))
-          is SetChange.Remove -> deviceTable.removeRowByKey(change.value)
+    val currentTemplates = mutableMapOf<DeviceTemplate, TemplateState>()
+    templates.pairWithNestedState(DeviceTemplate::stateFlow).collect { pairs ->
+      val newTemplates = pairs.map { it.first }.toSet()
+      val removed = currentTemplates.keys - newTemplates
+      removed.forEach {
+        currentTemplates.remove(it)
+        deviceTable.removeRowByKey(it)
+      }
+      for ((template, state) in pairs) {
+        if (currentTemplates[template] != state) {
+          currentTemplates[template] = state
+          deviceTable.addOrUpdateRow(DeviceRowData.create(template))
         }
       }
+    }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -288,19 +311,24 @@ constructor(
     }
   }
 
-  private fun <A : DeviceAction> A.toAnAction(action: suspend A.() -> Unit): DumbAwareAction {
+  private fun <A : DeviceAction> A.toAnAction(
+    action: suspend A.() -> Unit,
+    isIconEnabled: Boolean = true,
+  ): DumbAwareAction {
     panelScope.launch {
       // Any time the DeviceAction presentation changes, update the ActivityTracker so that we can
       // update the AnAction presentation
       presentation.collect { ActivityTracker.getInstance().inc() }
     }
-    return object :
-      DumbAwareAction(presentation.value.label, presentation.value.label, presentation.value.icon) {
+    val icon = if (isIconEnabled) presentation.value.icon else null
+    return object : DumbAwareAction(presentation.value.label, presentation.value.label, icon) {
       override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = presentation.value.enabled
-        e.presentation.icon = presentation.value.icon
+        if (isIconEnabled) {
+          e.presentation.icon = presentation.value.icon
+        }
         e.presentation.text = presentation.value.label
         e.presentation.description = presentation.value.label
       }
@@ -311,10 +339,11 @@ constructor(
     }
   }
 
-  private fun CreateDeviceAction.toAnAction() = toAnAction(CreateDeviceAction::create)
+  private fun CreateDeviceAction.toAnAction(isIconEnabled: Boolean) =
+    toAnAction(CreateDeviceAction::create, isIconEnabled)
 
-  private fun CreateDeviceTemplateAction.toAnAction() =
-    toAnAction(CreateDeviceTemplateAction::create)
+  private fun CreateDeviceTemplateAction.toAnAction(isIconEnabled: Boolean) =
+    toAnAction(CreateDeviceTemplateAction::create, isIconEnabled)
 
   private fun createToolbar(actions: List<AnAction>): ActionToolbar {
     val toolbar =
@@ -364,13 +393,14 @@ constructor(
           panelScope.createChildScope(isSupervisor = true),
           row.handle,
           devices,
-          pairedDevicesFlow
+          pairedDevicesFlow,
         )
     }.apply { addCloseActionListener { deviceDetailsPanelRow = null } }
 
   override fun getData(dataId: String): Any? =
     when {
       DEVICE_MANAGER_PANEL_KEY.`is`(dataId) -> this
+      DEVICE_MANAGER_COROUTINE_SCOPE_KEY.`is`(dataId) -> panelScope
       else -> null
     }
 }
@@ -383,6 +413,7 @@ internal suspend fun IconButton.trackActionPresentation(action: DeviceAction?) =
       action.presentation.collect {
         isEnabled = it.enabled
         baseIcon = it.icon
+        toolTipText = if (it.enabled) it.label else it.detail
       }
   }
 
@@ -399,3 +430,23 @@ private fun Flow<DeviceState>.pairWithConnectionState():
 private const val TOOLBAR_ID = "DeviceManager2"
 
 internal val DEVICE_MANAGER_PANEL_KEY = DataKey.create<DeviceManagerPanel>("DeviceManagerPanel")
+internal val DEVICE_MANAGER_COROUTINE_SCOPE_KEY =
+  DataKey.create<CoroutineScope>("DeviceManagerCoroutineScope")
+
+@Service(Service.Level.PROJECT)
+@State(
+  name = "DeviceTable",
+  storages = [Storage("deviceManager.xml", roamingType = RoamingType.DISABLED)],
+)
+class DeviceTablePersistentStateComponent : CategoryTablePersistentStateComponent() {
+  override val serializer =
+    CategoryTableStateSerializer(
+      listOf(
+        DeviceTableColumns.Status.attribute.enumSerializer("Status"),
+        DeviceTableColumns.Name.attribute.stringSerializer("Name"),
+        DeviceTableColumns.Api.attribute.stringSerializer("API"),
+        DeviceTableColumns.HandleType.attribute.stringSerializer("Type"),
+        DeviceTableColumns.FormFactor.enumSerializer("FormFactor"),
+      )
+    )
+}

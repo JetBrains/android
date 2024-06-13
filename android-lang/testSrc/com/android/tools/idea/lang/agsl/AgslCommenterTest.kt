@@ -15,20 +15,34 @@
  */
 package com.android.tools.idea.lang.agsl
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.testFramework.LightPlatformCodeInsightTestCase
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.util.application
 import org.intellij.lang.annotations.Language
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class AgslCommenterTest : LightPlatformCodeInsightTestCase() {
-  override fun getTestDataPath(): String = com.android.tools.idea.lang.getTestDataPath()
+@RunWith(JUnit4::class)
+class AgslCommenterTest {
+
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+
+  private val fixture by lazy { projectRule.fixture }
 
   // This is how this case handled in other languages
-  fun testComment() = toggleLineComment("test", "//test")
-  fun testUncomment() = toggleLineComment("//test", "test")
-  fun testCommentOnEmptyLine() = toggleLineComment("<caret>\n", "//<caret>\n")
-  fun testUncommentOnEmptyLine() = toggleLineComment("// <caret>\n", "\n<caret>")
-  fun testLineCommentBlock() = toggleLineComment(
+  @Test
+  fun comment() = toggleLineComment("test", "//test")
+  @Test
+  fun uncomment() = toggleLineComment("//test", "test")
+  @Test
+  fun commentOnEmptyLine() = toggleLineComment("<caret>\n", "//<caret>\n")
+  @Test
+  fun uncommentOnEmptyLine() = toggleLineComment("// <caret>\n", "\n<caret>")
+  @Test
+  fun lineCommentBlock() = toggleLineComment(
     """
     uniform shader imageA;
     <block>uniform shader imageB;
@@ -43,7 +57,8 @@ class AgslCommenterTest : LightPlatformCodeInsightTestCase() {
     """.trimIndent()
   )
 
-  fun testLineUncommentBlock() = toggleLineComment(
+  @Test
+  fun lineUncommentBlock() = toggleLineComment(
     """
     uniform shader imageA;
     <block>//uniform shader imageB;
@@ -58,7 +73,8 @@ class AgslCommenterTest : LightPlatformCodeInsightTestCase() {
     """.trimIndent()
   )
 
-  fun testCommentBlock() = toggleBlockComment(
+  @Test
+  fun commentBlock() = toggleBlockComment(
     """
     <block>uniform shader</block> imageB;
     """.trimIndent(),
@@ -67,7 +83,8 @@ class AgslCommenterTest : LightPlatformCodeInsightTestCase() {
     """.trimIndent()
   )
 
-  fun testUncommentBlock() = toggleBlockComment(
+  @Test
+  fun uncommentBlock() = toggleBlockComment(
     """
     uniform shader imageA;
     <block>/*uniform shader*/</block> imageB;
@@ -87,8 +104,12 @@ class AgslCommenterTest : LightPlatformCodeInsightTestCase() {
   }
 
   private fun doTest(@Language("AGSL") before: String, @Language("AGSL") after: String, actionId: String) {
-    configureFromFileText("file.agsl", before)
-    PlatformTestUtil.invokeNamedAction(actionId)
-    checkResultByText(after)
+    fixture.configureByText("file.agsl", before)
+
+    application.invokeAndWait {
+      PlatformTestUtil.invokeNamedAction(actionId)
+    }
+
+    fixture.checkResult(after)
   }
 }

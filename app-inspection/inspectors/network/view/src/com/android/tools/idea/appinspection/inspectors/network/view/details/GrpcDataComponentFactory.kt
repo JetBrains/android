@@ -48,7 +48,7 @@ internal class GrpcDataComponentFactory(
   private val project: Project,
   private val parentDisposable: Disposable,
   data: GrpcData,
-  private val protoFileFinder: ProtoFileFinder = ProtoFileFinderImpl(project)
+  private val protoFileFinder: ProtoFileFinder = ProtoFileFinderImpl(project),
 ) : DataComponentFactory(data) {
   private val grpcData: GrpcData
     get() = data as GrpcData
@@ -72,7 +72,7 @@ internal class GrpcDataComponentFactory(
     return when {
       bytes.isEmpty() -> null
       fileType != null ->
-        createHideablePrettyComponent("Payload (${fileType.displayName})", bytes, fileType)
+        createPrettyComponent("Payload (${fileType.displayName})", bytes, fileType)
       text.isTextProto() -> createTextProtoComponent(text, bytes)
       else -> createRawComponent(text, bytes)
     }
@@ -97,7 +97,7 @@ internal class GrpcDataComponentFactory(
     val rawComponent = BinaryDataViewer(bytes)
     val switchingPanel =
       SwitchingPanel(protoTextComponent, "View Proto Text", rawComponent, "View Raw")
-    return createHideablePanel("Payload (Proto)", switchingPanel, switchingPanel.switcher)
+    return createTitledPanel("Payload (Proto)", switchingPanel, switchingPanel.switcher)
   }
 
   /** Creates a component that displays a raw payload. */
@@ -105,7 +105,7 @@ internal class GrpcDataComponentFactory(
     val rawComponent = BinaryDataViewer(bytes)
     val textComponent = createPrettyComponent(text.toByteArray(), PlainTextFileType.INSTANCE)
     val switchingPanel = SwitchingPanel(rawComponent, "View Raw", textComponent, "View Text")
-    return createHideablePanel("Payload", switchingPanel, switchingPanel.switcher)
+    return createTitledPanel("Payload", switchingPanel, switchingPanel.switcher)
   }
 
   /**
@@ -123,8 +123,8 @@ internal class GrpcDataComponentFactory(
     }
   }
 
-  private fun createHideablePrettyComponent(title: String, bytes: ByteArray, fileType: FileType) =
-    createHideablePanel(title, createPrettyComponent(bytes, fileType), null)
+  private fun createPrettyComponent(title: String, bytes: ByteArray, fileType: FileType) =
+    createTitledPanel(title, createPrettyComponent(bytes, fileType), null)
 
   private fun createPrettyComponent(bytes: ByteArray, fileType: FileType): JComponent {
     return IntellijDataViewer.createPrettyViewerIfPossible(
@@ -132,7 +132,7 @@ internal class GrpcDataComponentFactory(
         bytes,
         fileType,
         true,
-        parentDisposable
+        parentDisposable,
       )
       .component
   }

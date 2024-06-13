@@ -39,7 +39,7 @@ class SafeArgsXmlTagTest {
         xmlTag = originalTag,
         icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
         name = "Foo",
-        containerIdentifier = "package1"
+        containerIdentifier = "package1",
       )
 
     val tagB =
@@ -47,7 +47,7 @@ class SafeArgsXmlTagTest {
         xmlTag = originalTag,
         icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
         name = "Foo",
-        containerIdentifier = "package1"
+        containerIdentifier = "package1",
       )
 
     ApplicationManager.getApplication().runReadAction {

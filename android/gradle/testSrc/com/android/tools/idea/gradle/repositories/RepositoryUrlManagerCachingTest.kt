@@ -73,7 +73,7 @@ class RepositoryUrlManagerCachingTest {
       }
     }
 
-    override fun readUrlData(url: String, timeout: Int): ByteArray? = null
+    override fun readUrlData(url: String, timeout: Int, lastModified: Long) = ReadUrlDataResult(null, true)
 
     override fun error(throwable: Throwable, message: String?) = Unit
   }

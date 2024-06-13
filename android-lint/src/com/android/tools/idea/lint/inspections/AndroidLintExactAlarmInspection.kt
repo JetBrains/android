@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.AlarmDetector
 class AndroidLintExactAlarmInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.exact.alarm"),
-    AlarmDetector.EXACT_ALARM
+    AlarmDetector.EXACT_ALARM,
   )

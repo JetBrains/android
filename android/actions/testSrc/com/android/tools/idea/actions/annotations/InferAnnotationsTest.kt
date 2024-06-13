@@ -16,12 +16,15 @@
 package com.android.tools.idea.actions.annotations
 
 import com.android.test.testutils.TestUtils
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.HEADER
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.generateReport
 import com.android.tools.idea.flags.StudioFlags.INFER_ANNOTATIONS_REFACTORING_ENABLED
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.lint.client.api.LintClient
+import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
-import com.intellij.codeInsight.JavaCodeInsightTestCase
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -30,15 +33,24 @@ import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.VfsTestUtil
 import com.intellij.usageView.UsageInfo
-import org.intellij.lang.annotations.Language
-import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.junit.Ignore
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
+import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.junit.Assert.fail
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 private const val INFER_PATH = "/infer/"
 
@@ -46,7 +58,9 @@ private const val INFER_PATH = "/infer/"
 // TODO: Inferred Permission requirement with multiple (anyOf/allOf)
 // TODO: Resource types with array initializer
 // TODO: Restore disabled/ignored tests
-//  "Inference:  Method{androidx.compose.ui.res.vectorResource(Companion,Theme,Resources,int)}Parameter{int resId}:@AnyRes because it's passed getResourceId(
+//  "Inference:
+// Method{androidx.compose.ui.res.vectorResource(Companion,Theme,Resources,int)}Parameter{int
+// resId}:@AnyRes because it's passed getResourceId(
 //            AndroidVectorResources.STYLEABLE_ANIMATED_VECTOR_DRAWABLE_DRAWABLE,
 //            0
 //        ) (a resource of any type) in a call"
@@ -54,22 +68,29 @@ private const val INFER_PATH = "/infer/"
 
 // Require resources with spaces (HTML File template)
 // https://github.com/bazelbuild/bazel/issues/374
-@Ignore
-class InferAnnotationsTest : JavaCodeInsightTestCase() {
-  override fun setUp() {
+@RunWith(JUnit4::class)
+@RunsInEdt
+class InferAnnotationsTest {
+  @get:Rule val testName = TestName()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
+
+  private val project by lazy { projectRule.project }
+  private val fixture by lazy { projectRule.fixture }
+
+  @Before
+  fun setUp() {
     INFER_ANNOTATIONS_REFACTORING_ENABLED.override(true)
     LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
-    super.setUp()
+
+    fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/android/testData").toString()
   }
 
-  override fun getTestDataPath(): String {
-    return AndroidTestBase.getTestDataPath()
-  }
-
-  fun testProperties() {
+  @Test
+  fun properties() {
     @Suppress("CanBeParameter", "MemberVisibilityCanBePrivate", "ConstPropertyName")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.ColorRes
@@ -99,7 +120,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         fun test(@ColorRes c: Int) {
         }
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -6 +6
           class Test(
         -         arg1: Int,
@@ -107,11 +129,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         -         var arg3: Int,
         -         internal val arg4: Int,
         -         private var arg5: Int
-        +         @ColorRes arg1: Int,
-        +         @get:ColorRes @param:ColorRes val arg2: Int,
-        +         @get:ColorRes @set:ColorRes @param:ColorRes var arg3: Int,
-        +         @get:ColorRes @param:ColorRes internal val arg4: Int,
-        +         @ColorRes private var arg5: Int
+        +     @ColorRes arg1: Int,
+        +     @get:ColorRes @param:ColorRes val arg2: Int,
+        +     @get:ColorRes @set:ColorRes @param:ColorRes var arg3: Int,
+        +     @get:ColorRes @param:ColorRes internal val arg4: Int,
+        +     @ColorRes private var arg5: Int
           ) {
         @@ -16 +16
         +   @get:ColorRes
@@ -144,12 +166,14 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testPropertyGetterSetter() {
+  @Test
+  fun propertyGetterSetter() {
     // Makes sure that if we have a @get:Annotation annotation on the
     // property itself, we don't also place the annotation on the
     // individual getter or setter bodies!
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.IdRes
         class Test {
@@ -174,7 +198,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             private fun call(@IdRes id: Int) { }
         }
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -4 +4
           class Test {
         +     @get:IdRes
@@ -183,10 +208,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testInlineClassConstructor() {
+  @Test
+  fun inlineClassConstructor() {
     @Suppress("CanBeParameter")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.ColorRes
@@ -206,11 +233,13 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testAnyRes() {
+  @Test
+  fun anyRes() {
     // If we return something marked @AnyRes, the return type should also be @AnyRes.
     // Also makes sure we don't inline all the individual resource types.
     checkJava(
-      before = """
+      before =
+        """
         import androidx.annotation.AnyRes;
         public class Test {
             private int test(@AnyRes int id) {
@@ -218,12 +247,14 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class Test:
           Method test(int):
             @AnyRes because it returns id annotated with @AnyRes
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -3 +3
           public class Test {
         +     @AnyRes
@@ -232,10 +263,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testAnyResDeleteExistingJava() {
+  @Test
+  fun anyResDeleteExistingJava() {
     // If we add @AnyRes, remove any other existing resource annotations first
     checkJava(
-      before = """
+      before =
+        """
         import androidx.annotation.*;
         public class Test {
             @StringRes @DrawableRes
@@ -246,12 +279,14 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class Test:
           Method test(int):
             @AnyRes because it returns id annotated with @AnyRes
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -3 +3
           public class Test {
         -     @StringRes @DrawableRes
@@ -265,10 +300,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testAnyResDeleteExistingKotlin() {
+  @Test
+  fun anyResDeleteExistingKotlin() {
     // If we add @AnyRes, remove any other existing resource annotations first.
     checkKotlin(
-      before = """
+      before =
+        """
         import androidx.annotation.*
         class Test {
             @StringRes @DrawableRes
@@ -279,12 +316,14 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class Test:
           Method test(int):
             @AnyRes because it returns id annotated with @AnyRes
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -3 +3
           class Test {
         -     @StringRes @DrawableRes
@@ -298,11 +337,13 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testAnyResAllowed() {
+  @Test
+  fun anyResAllowed() {
     // Makes sure that if we *call* something annotated with @AnyRes, we don't then conclude
     // that the passed in thing is also allowed to be any res
     checkJava(
-      before = """
+      before =
+        """
         import androidx.annotation.AnyRes;
         import androidx.annotation.DimenRes;
         public class Test {
@@ -317,28 +358,32 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testHalfFloat() {
+  @Test
+  fun halfFloat() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
         class InferTypes {
             fun test1(@HalfFloat d: Int) {
-                test1(arg3 = d)
+                test1(arg1 = d)
             }
 
             fun test1(arg1: Int = 0, arg2: Int = 0) { }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes:
           Method test1(int,int):
             Parameter int arg1:
               @HalfFloat because it's passed d (a half-precision float) in a call from InferTypes#test1
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -9 +9
         -     fun test1(arg1: Int = 0, arg2: Int = 0) { }
         +     fun test1(@HalfFloat arg1: Int = 0, arg2: Int = 0) { }
@@ -347,10 +392,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testCheckResult() {
+  @Test
+  fun checkResult() {
     @Suppress("RedundantOverride")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
 
@@ -367,7 +414,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             override fun test(): String = super.test()
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.Child1:
           Method test():
             @CheckResult because it extends or is overridden by an annotated method
@@ -379,12 +427,14 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testSkipInheritance() {
-    // Some annotations shouldn't be inherited (for example, because they're defined to apply to the hierarchy anyway so lint
+  @Test
+  fun skipInheritance() {
+    // Some annotations shouldn't be inherited (for example, because they're defined to apply to the
+    // hierarchy anyway so lint
     // will look up the chain). This test makes sure we don't inherit these.
-    @Suppress("RedundantOverride")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
 
@@ -398,7 +448,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             @IdRes override fun test(): Int = super.test()
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.Child1:
           Method test():
             @CheckResult because it extends or is overridden by an annotated method
@@ -406,13 +457,18 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testReverseConstants() {
-    // When we pick up annotations with numbers, if the numbers represent logical constants like Integer.MAX_VALUE
-    // or Float.MAX_VALUE, we shouldn't inline the exact value, we should in the annotation source use the
+  @Ignore("b/308190483")
+  @Test
+  fun reverseConstants() {
+    // When we pick up annotations with numbers, if the numbers represent logical constants like
+    // Integer.MAX_VALUE
+    // or Float.MAX_VALUE, we shouldn't inline the exact value, we should in the annotation source
+    // use the
     // constants instead. This test looks for that.
     @Suppress("RedundantOverride")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
         import androidx.annotation.IntRange
@@ -429,7 +485,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             override fun test2(): Int = super.test2()
         }
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -13 +13
           class Child : Parent() {
         +     @IntRange(from = -java.lang.Integer.MIN_VALUE.toLong(), to = java.lang.Long.MAX_VALUE)
@@ -442,9 +499,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testIgnore() {
+  @Test
+  fun ignore() {
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -463,10 +522,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testLocalVariableInference() {
+  @Test
+  fun localVariableInference() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkJava(
-      before = """
+      before =
+        """
         package test.pkg;
 
         import androidx.annotation.*;
@@ -480,7 +541,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             void test1(int arg1, int arg2) { }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.JavaTest:
           Method test1(int,int):
             Parameter int arg1:
@@ -492,10 +554,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testPropertyAccessor() {
+  @Test
+  fun propertyAccessor() {
     @Suppress("RedundantGetter", "RedundantSetter", "MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -511,14 +575,16 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.Test:
           Property drawable (getter):
             @DrawableRes because it's passed to the d parameter in JavaTest#paint, a drawable
           Property drawable (setter):
             @ColorRes because it's passed d (a color) in a call from JavaTest#test
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -7 +7
             var drawable: Int = 0
         +     @DrawableRes
@@ -528,11 +594,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         +     set(@ColorRes value) {
                 field = value
         """,
-      extraFiles = arrayOf(
-        createFile(
-          "JavaAccess.java",
-          // language=JAVA
-          """
+      extraFiles =
+        arrayOf(
+          fixture.addFileToProject(
+            "JavaAccess.java",
+            // language=JAVA
+            """
           package test.pkg;
           import androidx.annotation.*;
           public class JavaTest {
@@ -545,15 +612,18 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
               }
           }
           """
+          )
         )
-      )
     )
   }
 
-  fun testAnonymousClassJava() {
+  @Ignore("b/308190483")
+  @Test
+  fun anonymousClassJava() {
     @Suppress("ConstantConditions")
     checkJava(
-      before = """
+      before =
+        """
         package test.pkg;
         import android.view.View;
         import androidx.annotation.*;
@@ -575,13 +645,15 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.JavaTest.<Anonymous Runnable>.<Anonymous View>:
           Method setPadding(int,int,int,int):
             Parameter int bottom:
               @Px because it's passed size (a pixel dimension) in a call from anonymous class extending View#test
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -10 +10
                               @Override
         -                     public void setPadding(int left, int top, int right, int bottom) {
@@ -591,11 +663,13 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testAnonymousClassKotlin() {
+  @Test
+  fun anonymousClassKotlin() {
     // Also tests companion objects and top level functions
-    @Suppress("ConstantConditions", "RedundantOverride")
+    @Suppress("ConstantConditions")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import android.view.View
         import androidx.annotation.*
@@ -619,7 +693,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         }
         fun test2(w: Int) { }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Function test.pkg.test2(int):
           Parameter int w:
             @Px because it's passed size (a pixel dimension) in a call from KotlinTest#test
@@ -634,7 +709,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             Parameter int left:
               @Px because it's passed size (a pixel dimension) in a call from KotlinTest#test
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -6 +6
               companion object {
         -         fun test(width: Int, height: Int) { }
@@ -655,10 +731,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testWeirdSample() {
+  @Test
+  fun weirdSample() {
     @Suppress("unused")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.CheckResult
@@ -690,11 +768,13 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testIgnoreMathUtilities() {
+  @Test
+  fun ignoreMathUtilities() {
     // TODO: What about androidx' core/core/src/main/java/androidx/core/math/MathUtils.java?
     @Suppress("ResultOfMethodCallIgnored")
     checkJava(
-      before = """
+      before =
+        """
         package test.pkg;
         import androidx.annotation.*;
         public class JavaTest {
@@ -714,13 +794,15 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testRequiresPermissionExceptionsHandled() {
-    // Makes sure that when we call a method which requires permissions but we end up
-    // cathing the exception, either directly (SecurityException) or some super class of
+  @Test
+  fun requiresPermissionExceptionsHandled() {
+    // Makes sure that when we call a method which requires permissions, but we end up
+    // catching the exception, either directly (SecurityException) or some super class of
     // it, we don't then transfer the permission requirement too.
     @Suppress("CatchMayIgnoreException", "TryWithIdenticalCatches", "UnusedAssignment")
     checkJava(
-      before = """
+      before =
+        """
         package test.pkg;
         import android.Manifest;
         import android.hardware.camera2.CameraAccessException;
@@ -760,11 +842,14 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testRequiresPermissionConstantMapping() {
-    // Makes sure that we map back from strings into constants when we can for the built-in permissions
-    @Suppress("CatchMayIgnoreException", "TryWithIdenticalCatches", "UnusedAssignment")
+  @Test
+  fun requiresPermissionConstantMapping() {
+    // Makes sure that we map back from strings into constants when we can for the built-in
+    // permissions
+    @Suppress("TryWithIdenticalCatches", "UnusedAssignment")
     checkJava(
-      before = """
+      before =
+        """
         package test.pkg;
         import androidx.annotation.*;
 
@@ -782,14 +867,16 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             public void openCamera2() { }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.PermissionTest:
           Method requiresPermission1():
             @RequiresPermission(Manifest.permission.CAMERA) because it calls PermissionTest#openCamera1
           Method requiresPermission2():
             @RequiresPermission(Manifest.permission.CAMERA) because it calls PermissionTest#openCamera2
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -2 +2
           package test.pkg;
         + import android.Manifest;
@@ -808,10 +895,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testRanges() {
-    @Suppress("RedundantOverride")
+  @Test
+  fun ranges() {
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
         import androidx.annotation.IntRange
@@ -832,14 +920,16 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             family.getFont(index) // has >= 0 constraint in android.jar
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.Test:
           Method getSecondaryAlpha():
             @FloatRange(from=0.0, to=1.00) because it returns Test#getAlpha annotated with @FloatRange(from=0.0, to=1.00)
           Method getSecondaryViewAlpha():
             @IntRange(from = 0L, to = 255L) because it returns Test#getViewAlpha annotated with @IntRange(from = 0L, to = 255L)
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -13 +13
         +     @FloatRange(from = 0.0, to = 1.0)
               fun getSecondaryAlpha() = getAlpha()
@@ -851,11 +941,13 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testAnnotationSourceJava() {
+  @Test
+  fun annotationSourceJava() {
     // Tests passing annotation constraints and making sure that we stringify these properly
     // to Java (todo: consider placing the usage in a separate Kotlin file!)
     checkJava(
-      before = """
+      before =
+        """
         package test.pkg;
 
         import static test.pkg.JavaTest.call2;
@@ -871,7 +963,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.Test:
           Method test():
             @IntRange(from = MY_VALUE, to = Long.MAX_VALUE) because it returns JavaTest#call annotated with @IntRange(from = MY_VALUE, to = Long.MAX_VALUE)
@@ -879,9 +972,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             @CheckResult(suggest = "My \"suggestion\"\nNext line.") because it returns JavaTest#call2 annotated with @CheckResult(suggest = "My \"suggestion\"\nNext line.")
             @IntRange(from = MY_CONSTANT) because it returns JavaTest#call2 annotated with @IntRange(from = MY_CONSTANT)
         """,
-      // In the below, we should be getting a fully qualified name reference to MY_CONSTANT, but it doesn't
+      // In the below, we should be getting a fully qualified name reference to MY_CONSTANT, but it
+      // doesn't
       // resolve from unit tests.
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -7 +7
           public class Test {
         +     @IntRange(from = JavaTest.MY_VALUE, to = Long.MAX_VALUE)
@@ -892,11 +987,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
               public static int test2() {
         """,
       includeAndroidJar = true, // to resolve Long.MAX_VALUE
-      extraFiles = arrayOf(
-        createFile(
-          "JavaTest.java",
-          // language=Java
-          """
+      extraFiles =
+        arrayOf(
+          fixture.addFileToProject(
+            "JavaTest.java",
+            // language=Java
+            """
           package test.pkg;
 
           import androidx.annotation.CheckResult;
@@ -918,11 +1014,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
               }
           }
           """
-        ),
-        createFile(
-          "Constants.kt",
-          // language=kotlin
-          """
+          ),
+          fixture.addFileToProject(
+            "Constants.kt",
+            // language=kotlin
+            """
           package test.pkg
           class Constants {
               companion object {
@@ -931,16 +1027,19 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
           }
           fun test(): Int = JavaTest.call()
           """
-        ),
-      )
+          ),
+        )
     )
   }
 
-  fun testTurnOffInferenceViaSettings() {
-    // We're configuring specific settings here which turn off both inheritance and resource inferences
+  @Test
+  fun turnOffInferenceViaSettings() {
+    // We're configuring specific settings here which turn off both inheritance and resource
+    // inferences
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
         class InferTypes {
@@ -959,14 +1058,20 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         }
         """,
       expectedReport = "Nothing found.",
-      settings = InferAnnotationsSettings().apply { resources = false; inherit = false }
+      settings =
+        InferAnnotationsSettings().apply {
+          resources = false
+          inherit = false
+        }
     )
   }
 
-  fun testPublicOnlyJava() {
+  @Test
+  fun publicOnlyJava() {
     // Makes sure that we ignore non-public attributes in Java if that setting is turned on
     checkJava(
-      before = """
+      before =
+        """
         package test.pkg;
         import androidx.annotation.*;
         class InferTypes {
@@ -982,11 +1087,13 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testPublicOnlyKotlin() {
+  @Test
+  fun publicOnlyKotlin() {
     // Makes sure that we ignore non-public attributes in Java if that setting is turned on
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
         class InferTypes {
@@ -1002,12 +1109,14 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testKotlinInternal() {
+  @Test
+  fun kotlinInternal() {
     // Makes sure that when we generate signatures for internal Kotlin elements, we don't include
     // the mangling signatures (a$b$c...)
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
         internal class InferTypes {
@@ -1017,7 +1126,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             internal fun callee(arg1: Int = 0) { }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes:
           Method callee(int):
             Parameter int arg1:
@@ -1026,10 +1136,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes1() {
+  @Test
+  fun resourceTypes1() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1044,7 +1156,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             fun test1target(arg1: Int = 0, arg2: Int = 0, arg3: Int = 0, arg4: Int = 0) { }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes:
           Method test1target(int,int,int,int):
             Parameter int arg3:
@@ -1053,9 +1166,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes2() {
+  @Test
+  fun resourceTypes2() {
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1064,7 +1179,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             var test2 = android.R.string.ok
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes:
           Property test2:
             @StringRes because it's assigned android.R.string.ok
@@ -1072,10 +1188,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes2Java() {
+  @Test
+  fun resourceTypes2Java() {
     // Like testResourceTypes2 but for Java
     checkJava(
-      before = """
+      before =
+        """
         package test.pkg;
 
         import androidx.annotation.*;
@@ -1084,7 +1202,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             int test2 = android.R.string.ok;
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes:
           Field test2:
             @StringRes because it's assigned android.R.string.ok
@@ -1092,10 +1211,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes3() {
+  @Test
+  fun resourceTypes3() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1117,7 +1238,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes:
           Method test3a(int):
             @StringRes because it returns android.R.string.ok
@@ -1129,10 +1251,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes4() {
+  @Test
+  fun resourceTypes4() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1157,7 +1281,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes:
           Method test4(int,int,int,int):
             @DimenRes because it returns android.R.dimen.app_icon_size
@@ -1167,10 +1292,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes5() {
+  @Test
+  fun resourceTypes5() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1186,7 +1313,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes:
           Method test5(int,int,boolean):
             @AnyRes because it returns a annotated with @AnyRes
@@ -1194,10 +1322,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes6() {
+  @Test
+  fun resourceTypes6() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1214,13 +1344,15 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes:
           Method test6(int):
             Parameter int unknown:
               @AnyRes because it's passed a (a resource of any type) in a call from InferTypes#test6
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -13 +13
               }
         -     fun test6(unknown: Int) {
@@ -1230,10 +1362,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes7() {
+  @Test
+  fun resourceTypes7() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1253,10 +1387,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes8() {
+  @Test
+  fun resourceTypes8() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1274,10 +1410,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes9() {
+  @Test
+  fun resourceTypes9() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1287,7 +1425,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             class Child1 : Parent1() { override fun test(d: Int): Int = 0 }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.InferTypes.Child1:
           Method test(int):
             @StringRes because it extends or is overridden by an annotated method
@@ -1295,7 +1434,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             Parameter int d:
               @DrawableRes because it extends a method with that parameter annotated or inferred
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -7 +7
               open class Parent1 { @StringRes open fun test(@DrawableRes d: Int): Int = 0 }
         -     class Child1 : Parent1() { override fun test(d: Int): Int = 0 }
@@ -1306,10 +1446,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testResourceTypes10() {
+  @Test
+  fun resourceTypes10() {
     @Suppress("MemberVisibilityCanBePrivate")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import androidx.annotation.*
@@ -1320,15 +1462,18 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
 
         }
         """,
-      // For now, we don't push requirements *up* in the hierarchy. Maybe we should... maybe we shouldn't....
+      // For now, we don't push requirements *up* in the hierarchy. Maybe we should... maybe we
+      // shouldn't....
       expectedReport = "Nothing found."
     )
   }
 
-  fun testResourceTypes11() {
+  @Test
+  fun resourceTypes11() {
     // Make sure we handle the special marker resource types @ColorInt and @Px/@Dimension correctly
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
         fun test11(p1: Int, p2: Int, p3: Int) {
@@ -1338,7 +1483,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         fun paint(@ColorInt c: Int, @Px p: Int) { }
         fun style(@StyleableRes s: Int) { }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Function test.pkg.test11(int,int,int):
           Parameter int p1:
             @ColorInt because it's passed to the c parameter in paint, a color int
@@ -1348,7 +1494,7 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             @StyleableRes because it's passed to the s parameter in style, a styleable
         """,
       expectedDiffs =
-      """
+        """
         @@ -3 +3
           import androidx.annotation.*
         - fun test11(p1: Int, p2: Int, p3: Int) {
@@ -1358,19 +1504,23 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testDimensionUnits() {
+  @Test
+  fun dimensionUnits() {
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
         import androidx.annotation.Dimension.DP
+        import androidx.annotation.Dimension.SP
         fun test11(p1: Int, p2: Int, p3: Int) {
             paint(p1, p2, p3)
         }
         // @Dimension without unit defaults to PX, equivalent to @Px
-        fun paint(@Dimension d: Int, @Dimension(unit = Dimension.SP) s: Int, @Dimension(unit = DP) d2: Int) { }
+        fun paint(@Dimension d: Int, @Dimension(unit = SP) s: Int, @Dimension(unit = DP) d2: Int) { }
       """,
-      expectedReport = """
+      expectedReport =
+        """
         Function test.pkg.test11(int,int,int):
           Parameter int p1:
             @Px because it's passed to the d parameter in paint, a pixel dimension
@@ -1379,20 +1529,24 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
           Parameter int p3:
             @Dimension(DP) because it's passed to the d2 parameter in paint, a density-independent (dp) pixel dimension
         """,
-      expectedDiffs = """
-        @@ -4 +4
-          import androidx.annotation.Dimension.DP
+      expectedDiffs =
+        """
+        @@ -5 +5
+          import androidx.annotation.Dimension.SP
         - fun test11(p1: Int, p2: Int, p3: Int) {
-        + fun test11(@Px p1: Int, @Dimension(Dimension.SP) p2: Int, @Dimension(DP) p3: Int) {
+        + fun test11(@Px p1: Int, @Dimension(SP) p2: Int, @Dimension(DP) p3: Int) {
               paint(p1, p2, p3)
         """
     )
   }
 
-  fun testLambdaVariables() {
+  @Ignore("b/308190483") // Does find the first lambda parameter ("item ->")
+  @Test
+  fun lambdaVariables() {
     @Suppress("Convert2MethodRef", "CodeBlock2Expr")
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
         import androidx.annotation.*
         fun testLambda(list: List<Int>) {
@@ -1406,11 +1560,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         """,
       expectedReport = "Nothing found.",
       settings = InferAnnotationsSettings().apply { annotateLocalVariables = true },
-      extraFiles = arrayOf(
-        createFile(
-          "JavaTest.java",
-          // language=Java
-          """
+      extraFiles =
+        arrayOf(
+          fixture.addFileToProject(
+            "JavaTest.java",
+            // language=Java
+            """
           package test.pkg;
           import androidx.annotation.*;
           import java.util.List;
@@ -1430,12 +1585,13 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
               }
           }
           """
-        )
-      ),
+          )
+        ),
     )
   }
 
-  fun testInferParameterFromUsage() {
+  @Test
+  fun inferParameterFromUsage() {
     doTest(
       """
       Class InferParameterFromUsage:
@@ -1446,7 +1602,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testInferResourceFromArgument() {
+  @Test
+  fun inferResourceFromArgument() {
     doTest(
       """
       Class InferResourceFromArgument:
@@ -1457,7 +1614,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testInferMethodAnnotationFromReturnValue() {
+  @Test
+  fun inferMethodAnnotationFromReturnValue() {
     doTest(
       """
       Class InferMethodAnnotationFromReturnValue:
@@ -1468,7 +1626,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testReturnValue() {
+  @Test
+  fun returnValue() {
     doTest(
       KotlinFileType.INSTANCE,
       """
@@ -1486,7 +1645,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testInferFromInheritance() {
+  @Test
+  fun inferFromInheritance() {
     doTest(
       """
       Class InferFromInheritance.Child:
@@ -1499,10 +1659,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testEnforcePermission1() {
+  @Test
+  fun enforcePermission1() {
     @Suppress("SwitchStatementWithTooFewBranches")
     checkJava(
-      before = """
+      before =
+        """
         import android.content.Context;
         import androidx.annotation.RequiresPermission;
         public class EnforcePermission {
@@ -1532,14 +1694,16 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class EnforcePermission:
           Method impliedPermission():
             @RequiresPermission(EnforcePermission.MY_PERMISSION) because it calls enforceCallingOrSelfPermission
           Method impliedPermissionByStringLiteral():
             @RequiresPermission("mypermission") because it calls enforceCallingOrSelfPermission
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -6 +6
               private Context mContext;
         +     @RequiresPermission(EnforcePermission.MY_PERMISSION)
@@ -1552,9 +1716,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testPermissionMany() {
+  @Test
+  fun permissionMany() {
     checkKotlin(
-      before = """
+      before =
+        """
         package test.pkg
 
         import android.Manifest.permission.ACCESS_COARSE_LOCATION
@@ -1601,7 +1767,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
           single3()
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Function test.pkg.callAllOf():
           @RequiresPermission(allOf=[Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION]) because it calls allOf
         Function test.pkg.callAnyOf():
@@ -1613,7 +1780,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         Function test.pkg.callSingle3():
           @RequiresPermission(Manifest.permission.ACCESS_COARSE_LOCATION) because it calls single3
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -27 +27
         + @RequiresPermission(allOf = [ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION])
           fun callAllOf() {
@@ -1634,9 +1802,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testLocalVariables() {
+  @Test
+  fun localVariables() {
     checkJava(
-      before = """
+      before =
+        """
         import androidx.annotation.*;
         public class LocalVars {
             public void call(@DrawableRes int drawable) {
@@ -1648,10 +1818,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         }
         """,
       settings = InferAnnotationsSettings().apply { annotateLocalVariables = true },
-      expectedReport = """
+      expectedReport =
+        """
         @DrawableRes because it's passed to the drawable parameter in LocalVars#call, a drawable
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -6 +6
               public void test() {
         -         int drawable = 0;
@@ -1661,9 +1833,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testEnforcePermission2() {
+  @Test
+  fun enforcePermission2() {
     checkJava(
-      before = """
+      before =
+        """
         import androidx.annotation.RequiresPermission;
 
         @SuppressWarnings({"unused", "WeakerAccess"})
@@ -1681,12 +1855,14 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Class EnforcePermission:
           Method unconditionalPermission():
             @RequiresPermission(EnforcePermission.MY_PERMISSION) because it calls EnforcePermission#impliedPermission
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -7 +7
         +     @RequiresPermission(EnforcePermission.MY_PERMISSION)
               public void unconditionalPermission() {
@@ -1694,7 +1870,9 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun ignored_testConditionalPermission() {
+  @Test
+  @Ignore("b/308190483")
+  fun conditionalPermission() {
     if (!INFER_ANNOTATIONS_REFACTORING_ENABLED.get()) {
       return
     }
@@ -1710,20 +1888,24 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     }
   }
 
-  fun ignored_testIndirectPermission() {
+  @Test
+  @Ignore("b/308190483")
+  fun indirectPermission() {
     // Not yet implemented: Expected fail!
     try {
       doTest(null)
       fail("Expected this test to fail")
     } catch (e: java.lang.RuntimeException) {
-      assertEquals("Nothing found to infer", e.message)
+      assertThat(e.message).isEqualTo("Nothing found to infer")
     }
   }
 
-  fun testReflectionJava() {
+  @Test
+  fun reflectionJava() {
     @Suppress("RedundantThrows")
     checkJava(
-      before = """
+      before =
+        """
         package test.pkg;
         import java.lang.reflect.InvocationTargetException;
         import java.lang.reflect.Method;
@@ -1767,7 +1949,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
       """,
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.Reflection:
           Method usedFromReflection1(int):
             @Keep because it is called reflectively from Reflection#reflect1
@@ -1778,7 +1961,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
           Method usedFromReflection2(int,int):
             @Keep because it is called reflectively from Reflection#reflect3
         """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -2 +2
           package test.pkg;
         + import androidx.annotation.Keep;
@@ -1801,11 +1985,15 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testReflectionKotlin() {
-    // This tests regular Kotlin access of Java reflection, not the specialized Kotlin reflection APIs
+  @Ignore("b/308190483")
+  @Test
+  fun reflectionKotlin() {
+    // This tests regular Kotlin access of Java reflection, not the specialized Kotlin reflection
+    // APIs
     @Suppress("RemoveRedundantQualifierName")
     checkKotlin(
-      before = """
+      before =
+        """
         @file:Suppress("unused", "UNUSED_PARAMETER")
         package test.pkg
         import androidx.annotation.*
@@ -1862,7 +2050,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         }
       """,
       // TODO: usedFromReflection2(String>) below is suspicious; figure out why
-      expectedReport = """
+      expectedReport =
+        """
         Class test.pkg.Reflection:
           Method Reflection(int):
             @Keep because it is called reflectively from Reflection#reflect6
@@ -1879,7 +2068,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
           Method usedFromReflection2(int,int):
             @Keep because it is called reflectively from Reflection#reflect3
               """,
-      expectedDiffs = """
+      expectedDiffs =
+        """
         @@ -4 +4
           import androidx.annotation.*
         - class Reflection(value: Int) {
@@ -1910,10 +2100,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testFieldReflection() {
+  @Test
+  fun fieldReflection() {
     // From androidx
     checkKotlin(
-      before = """
+      before =
+        """
         @file:JvmName("InspectableValueKt")
         package androidx.compose.ui.platform
         import android.util.Log
@@ -1932,7 +2124,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
             }
         }
         """,
-      expectedReport = """
+      expectedReport =
+        """
         Property isDebugInspectorInfoEnabled:
           @Keep because it is called reflectively from enableDebugInspectorInfo
         """
@@ -1945,11 +2138,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
       doTest(null)
       fail("Expected this test to fail")
     } catch (e: java.lang.RuntimeException) {
-      assertEquals("Nothing found to infer", e.message)
+      assertThat(e.message).isEqualTo("Nothing found to infer")
     }
   }
 
-  fun testMultiplePasses() {
+  @Test
+  fun multiplePasses() {
     doTest(
       """
       Class A:
@@ -1962,14 +2156,16 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
           Parameter int id:
             @DrawableRes because it's passed to the id parameter in D#something, a drawable
       """,
-      findVirtualFile(INFER_PATH + "A.java"),
-      findVirtualFile(INFER_PATH + "B.java"),
-      findVirtualFile(INFER_PATH + "C.java"),
-      findVirtualFile(INFER_PATH + "D.java")
+      INFER_PATH + "A.java",
+      INFER_PATH + "B.java",
+      INFER_PATH + "C.java",
+      INFER_PATH + "D.java"
     )
   }
 
-  fun testPutValue() {
+  @Ignore("b/308190483")
+  @Test
+  fun putValue() {
     if (!INFER_ANNOTATIONS_REFACTORING_ENABLED.get()) {
       return
     }
@@ -1987,10 +2183,12 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     }
   }
 
-  fun testHiddenJava() {
+  @Test
+  fun hiddenJava() {
     @Suppress("JavaDoc")
     checkJava(
-      before = """
+      before =
+        """
       import androidx.annotation.DimenRes;
       /** @hide */
       public class InferParameterFromUsage {
@@ -2002,7 +2200,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
           }
       }
       """,
-      expectedReport = """
+      expectedReport =
+        """
       Class InferParameterFromUsage (Hidden):
         Method inferParameterFromMethodCall(int,int) (Hidden):
           Parameter int id:
@@ -2011,9 +2210,11 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     )
   }
 
-  fun testHiddenKotlin() {
+  @Test
+  fun hiddenKotlin() {
     checkKotlin(
-      before = """
+      before =
+        """
       package test.pkg
       import androidx.annotation.DimenRes
       /**
@@ -2027,7 +2228,8 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
           private fun getDimensionPixelSize(@DimenRes id: Int) {}
       }
       """,
-      expectedReport = """
+      expectedReport =
+        """
       Class test.pkg.InferParameterFromUsage (Hidden):
         Method inferParameterFromMethodCall(int,int) (Hidden):
           Parameter int id:
@@ -2043,16 +2245,19 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
   // Used by checkResultByFile to locate test data; there is no checkResult method that
   // lets us pass in a string, so we use this to inject contents we want for the file
   // based checking method.
-  override fun findVirtualFile(filePath: String): VirtualFile {
-    myResultFiles[filePath]?.let { return it }
-    return super.findVirtualFile(filePath)
+  private fun findVirtualFile(filePath: String): VirtualFile {
+    myResultFiles[filePath]?.let {
+      return it
+    }
+    val absolutePath: String = fixture.testDataPath + filePath
+    VfsRootAccess.allowRootAccess(projectRule.testRootDisposable, absolutePath)
+    return VfsTestUtil.findFileByCaseSensitivePath(absolutePath)
   }
 
   /**
-   * Given [before], a Java string containing a source file, this method runs
-   * inference, and then optionally checks that the generated report matches
-   * [expectedReport] and that when we apply the suggestions the resulting
-   * file is updated to match [after].
+   * Given [before], a Java string containing a source file, this method runs inference, and then
+   * optionally checks that the generated report matches [expectedReport] and that when we apply the
+   * suggestions the resulting file is updated to match [after].
    */
   private fun checkJava(
     @Language("java") before: String = "",
@@ -2063,14 +2268,22 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     includeAndroidJar: Boolean = false,
     vararg extraFiles: PsiFile
   ) {
-    doTest(JavaFileType.INSTANCE, before, expectedReport, after, expectedDiffs, settings, includeAndroidJar, *extraFiles)
+    doTest(
+      JavaFileType.INSTANCE,
+      before,
+      expectedReport,
+      after,
+      expectedDiffs,
+      settings,
+      includeAndroidJar,
+      *extraFiles
+    )
   }
 
   /**
-   * Given [before], a Kotlin string containing a source file, this method
-   * runs inference, and then optionally checks that the generated report
-   * matches [expectedReport] and that when we apply the suggestions the
-   * resulting file is updated to match [after].
+   * Given [before], a Kotlin string containing a source file, this method runs inference, and then
+   * optionally checks that the generated report matches [expectedReport] and that when we apply the
+   * suggestions the resulting file is updated to match [after].
    */
   private fun checkKotlin(
     @Language("kotlin") before: String = "",
@@ -2081,14 +2294,22 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     includeAndroidJar: Boolean = false,
     vararg extraFiles: PsiFile
   ) {
-    doTest(KotlinFileType.INSTANCE, before, expectedReport, after, expectedDiffs, settings, includeAndroidJar, *extraFiles)
+    doTest(
+      KotlinFileType.INSTANCE,
+      before,
+      expectedReport,
+      after,
+      expectedDiffs,
+      settings,
+      includeAndroidJar,
+      *extraFiles
+    )
   }
 
   /**
-   * Given a [before] string containing a source file of type [fileType],
-   * runs inference, and then optionally checks that the generated report
-   * matches [expectedReport] and that when we apply the suggestions the
-   * resulting file is updated to match [after].
+   * Given a [before] string containing a source file of type [fileType], runs inference, and then
+   * optionally checks that the generated report matches [expectedReport] and that when we apply the
+   * suggestions the resulting file is updated to match [after].
    */
   private fun doTest(
     fileType: FileType,
@@ -2100,10 +2321,10 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     includeAndroidJar: Boolean = false,
     vararg extraFiles: PsiFile
   ) {
-    assertTrue(expectedReport != null || after != null || expectedDiffs != null) // must test *something*
+    assertThat(expectedReport ?: after ?: expectedDiffs).isNotNull()
     doTest(
       setup = { inference ->
-        val file = configureByText(fileType, before.trimIndent())
+        val file = fixture.configureByText(fileType, before.trimIndent())
         inference.collect(file)
         if (extraFiles.isEmpty()) {
           AnalysisScope(file)
@@ -2115,30 +2336,33 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
         }
       },
       verify = { inference, report ->
-        expectedReport?.let { assertEquals(it.trimIndent(), report) }
+        expectedReport?.let { assertThat(report).isEqualTo(it.trimIndent()) }
 
         if (after != null || expectedDiffs != null) {
           inference.apply(inference.settings, project)
         }
 
         if (expectedDiffs != null) {
-          val actualAfter = file.text
+          val actualAfter = fixture.file.text
           val actualDiffs = getDiff(before.trimIndent(), actualAfter)
-          assertEquals(expectedDiffs.trimIndent().trim(), actualDiffs)
+          assertThat(actualDiffs).isEqualTo(expectedDiffs.trimIndent().trim())
         }
 
         if (after != null) {
           val outputBytes = after.trimIndent().toByteArray()
           val fileName = "after.${fileType.defaultExtension}"
           try {
-            val file = object : FakeVirtualFile(myFile.virtualFile.parent, fileName) {
-              override fun getCharset(): Charset = Charsets.UTF_8
-              override fun getInputStream(): InputStream = ByteArrayInputStream(outputBytes)
-              override fun getLength(): Long = outputBytes.size.toLong()
-            }
+            val file =
+              object : FakeVirtualFile(fixture.file.virtualFile.parent, fileName) {
+                override fun getCharset(): Charset = Charsets.UTF_8
+
+                override fun getInputStream(): InputStream = ByteArrayInputStream(outputBytes)
+
+                override fun getLength(): Long = outputBytes.size.toLong()
+              }
             myResultFiles[fileName] = file
 
-            checkResultByFile(fileName)
+            fixture.checkResultByFile(fileName)
           } finally {
             myResultFiles.remove(fileName)
           }
@@ -2150,56 +2374,65 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
   }
 
   private fun getDiff(left: String, right: String) =
-    TestUtils.getDiff(left, right, 1).trim().lines().map { it.trimEnd() }.filter { it.isNotBlank() }.joinToString("\n")
+    TestUtils.getDiff(left, right, 1)
+      .trim()
+      .lines()
+      .map { it.trimEnd() }
+      .filter { it.isNotBlank() }
+      .joinToString("\n")
 
   /**
-   * Loads the test file named after the calling unit test, runs inference on
-   * it, generates an inference report and compares it to [expectedReport].
+   * Loads the test file named after the calling unit test, runs inference on it, generates an
+   * inference report and compares it to [expectedReport].
    */
   private fun doTest(expectedReport: String?) {
-    val name = getTestName(false) + ".java"
+    val name = testName.methodName.replaceFirstChar(Char::uppercaseChar) + ".java"
     doTest(
       setup = { inference ->
-        configureByFile(INFER_PATH + "before" + name)
-        inference.collect(file)
-        AnalysisScope(file)
+        fixture.configureByFile(INFER_PATH + "before" + name)
+        inference.collect(fixture.file)
+        AnalysisScope(fixture.file)
       },
       verify = { inference, report ->
-        expectedReport?.let { assertEquals(it.trimIndent(), report) }
+        expectedReport?.let { assertThat(report).isEqualTo(it.trimIndent()) }
         inference.apply(inference.settings, project)
-        checkResultByFile(INFER_PATH + "after" + name)
+        fixture.checkResultByFile(INFER_PATH + "after" + name)
       }
     )
   }
 
   /**
-   * Loads the test file named after the calling unit test, adds in all the
-   * extra [files], and runs inference across all those files, generates an
-   * inference report and compares it to [expectedReport].
+   * Loads the test file named after the calling unit test, adds in all the extra [filePaths], and
+   * runs inference across all those files, generates an inference report and compares it to
+   * [expectedReport].
    */
-  private fun doTest(@Suppress("SameParameterValue") expectedReport: String?, vararg files: VirtualFile) {
-    assert(files.isNotEmpty()) // should have chosen other override
+  private fun doTest(
+    @Suppress("SameParameterValue") expectedReport: String?,
+    vararg filePaths: String
+  ) {
+    assert(filePaths.isNotEmpty()) // should have chosen other override
     doTest(
       setup = { inference ->
-        configureByFiles(null, *files)
+        fixture.configureByFiles(*filePaths)
+        val virtualFiles = filePaths.map(::findVirtualFile)
         for (i in 0 until InferAnnotationsAction.MAX_PASSES) {
-          for (virtualFile in files) {
-            val psiFile = psiManager.findFile(virtualFile)
-            assertNotNull(psiFile)
+          for (virtualFile in virtualFiles) {
+            val psiFile = fixture.psiManager.findFile(virtualFile)
+            assertThat(psiFile).isNotNull()
             inference.collect(psiFile!!)
           }
         }
-        AnalysisScope(project, files.toList())
+        AnalysisScope(project, virtualFiles)
       },
       verify = { _, report ->
-        expectedReport?.let { assertEquals(it.trimIndent(), report) }
+        expectedReport?.let { assertThat(report).isEqualTo(it.trimIndent()) }
       }
     )
   }
 
   /**
-   * Generic test which performs environment setup and invokes various
-   * callbacks to do additional configuration and verification.
+   * Generic test which performs environment setup and invokes various callbacks to do additional
+   * configuration and verification.
    */
   private fun doTest(
     create: (InferAnnotationsSettings) -> InferAnnotations = { InferAnnotations(it, project) },
@@ -2211,22 +2444,22 @@ class InferAnnotationsTest : JavaCodeInsightTestCase() {
     if (!INFER_ANNOTATIONS_REFACTORING_ENABLED.get()) {
       return
     }
-    val annotationsJarPath = "$testDataPath/infer/data.jar"
+    val annotationsJarPath = "${fixture.testDataPath}/infer/data.jar"
     val annotationsJar = LocalFileSystem.getInstance().findFileByPath(annotationsJarPath)
     if (annotationsJar != null) {
       val file = JarFileSystem.getInstance().getJarRootForLocalFile(annotationsJar)
       if (file != null) {
-        ModuleRootModificationUtil.addModuleLibrary(myModule, file.url)
+        ModuleRootModificationUtil.addModuleLibrary(fixture.module, file.url)
       }
     }
 
     if (includeAndroidJar) {
       val androidJar = TestUtils.resolvePlatformPath("android.jar")
-      assertNotNull(androidJar)
+      assertThat(androidJar).isNotNull()
       val jarFile = LocalFileSystem.getInstance().findFileByPath(androidJar.toString())!!
       val file = JarFileSystem.getInstance().getJarRootForLocalFile(jarFile)
       if (file != null) {
-        ModuleRootModificationUtil.addModuleLibrary(myModule, file.url)
+        ModuleRootModificationUtil.addModuleLibrary(fixture.module, file.url)
       }
     }
 

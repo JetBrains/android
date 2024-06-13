@@ -22,8 +22,7 @@ enum class LogLevel(val stringValue: String, val priorityLetter: Char) {
   INFO("info", 'I'),
   WARN("warn", 'W'),
   ERROR("error", 'E'),
-  ASSERT("assert", 'A'),
-  ;
+  ASSERT("assert", 'A');
 
   companion object {
     /**

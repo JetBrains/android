@@ -18,14 +18,15 @@ package com.android.tools.idea.actions;
 import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 
 import com.android.SdkConstants;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.xml.AttrNameSplitter;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.xml.AttrNameSplitter;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -34,6 +35,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.util.Collection;
@@ -57,30 +59,34 @@ public class ThemeMenuAction extends DropDownAction {
   }
 
   @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
-  }
-
-  @Override
   public boolean displayTextInToolbar() {
     return true;
   }
 
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   private void updatePresentation(@NotNull AnActionEvent e) {
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
-    if (configurations == null) {
+    Project project = e.getProject();
+    Presentation presentation = e.getPresentation();
+
+    // TODO(b/324574786): Remove the smart mode check. It's only needed here to avoid invoking
+    //  getResourceResolver in non-smart mode.
+    if (configurations == null || project == null || DumbService.getInstance(project).isDumb()) {
+      presentation.setEnabled(false);
       return;
     }
+    presentation.setEnabled(true);
     Configuration configuration = Iterables.getFirst(configurations, null);
-    Presentation presentation = e.getPresentation();
     boolean visible = configuration != null;
     if (visible) {
       String brief = getThemeLabel(configuration.getTheme(), true);
       presentation.setText(brief, false);
     }
-    if (visible != presentation.isVisible()) {
-      presentation.setVisible(visible);
-    }
+    presentation.setVisible(visible);
   }
 
   /**
@@ -143,7 +149,7 @@ public class ThemeMenuAction extends DropDownAction {
     List<String> recommendedThemes = ThemeUtils.getRecommendedThemeNames(themeResolver, filter);
     addThemes(recommendedThemes, currentThemeName, true);
 
-    Project project = configuration.getConfigModule().getProject();
+    Project project = ConfigurationManager.getFromConfiguration(configuration).getProject();
 
     // Add recent used themes
     // Don't show any theme added above as recent Theme.
@@ -250,15 +256,21 @@ public class ThemeMenuAction extends DropDownAction {
       // The theme in here must be one of default theme, project themes, recommend themes, or recent used themes.
       // It doesn't need to be added to recent used theme since it is in the dropdown menu already.
       configuration.setTheme(myTheme);
-      if (ThemeUtils.getRecentlyUsedThemes(configuration.getConfigModule().getProject()).contains(myTheme)) {
+      Project project = ConfigurationManager.getFromConfiguration(configuration).getProject();
+      if (ThemeUtils.getRecentlyUsedThemes(project).contains(myTheme)) {
         // Add this theme to recent Themes again to make it as the most recent one.
-        ThemeUtils.addRecentlyUsedTheme(configuration.getConfigModule().getProject(), myTheme);
+        ThemeUtils.addRecentlyUsedTheme(project, myTheme);
       }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
   }
 
   @VisibleForTesting
-  public class MoreThemesAction extends DumbAwareAction {
+  public static class MoreThemesAction extends DumbAwareAction {
 
     public MoreThemesAction() {
       super("More Themes...");
@@ -277,10 +289,15 @@ public class ThemeMenuAction extends DropDownAction {
           String theme = dialog.getTheme();
           if (theme != null) {
             configuration.setTheme(theme);
-            ThemeUtils.addRecentlyUsedTheme(configuration.getConfigModule().getProject(), theme);
+            ThemeUtils.addRecentlyUsedTheme(ConfigurationManager.getFromConfiguration(configuration).getProject(), theme);
           }
         }
       }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
   }
 }

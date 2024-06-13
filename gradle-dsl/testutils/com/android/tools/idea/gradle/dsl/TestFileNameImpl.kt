@@ -100,8 +100,6 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_APPLY_CHANGES_EXPECTED("externalNativeBuildModel/addNdkBuildVersionAndApplyChangesExpected"),
   EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION("externalNativeBuildModel/setConstructorToFunction"),
   EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION_EXPECTED("externalNativeBuildModel/setConstructorToFunctionExpected"),
-  MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES("modelMapPropertyImpl/propertyValues"),
-  PROPERTY_MODEL_UTILS_TEST_AS_FILE("propertyModelUtils/testAsFile"),
   SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT("sourceDirectoryModel/sourceDirectoryText"),
   SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_ADD_AND_APPLY_EXPECTED("sourceDirectoryModel/sourceDirectoryEntriesAddAndApplyExpected"),
   SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REMOVE_AND_APPLY_EXPECTED("sourceDirectoryModel/sourceDirectoryEntriesRemoveAndApplyExpected"),

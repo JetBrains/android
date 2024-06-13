@@ -74,7 +74,7 @@ class LayoutHandlerTest : SceneTest() {
                 .withBounds(0, 0, 1000, 1000)
                 .width("500dp")
                 .height("500dp")
-            )
+            ),
         )
         .build()
 
@@ -89,7 +89,7 @@ class LayoutHandlerTest : SceneTest() {
           "layout.xml",
           component(SdkConstants.TAG_LAYOUT)
             .withBounds(0, 0, 1000, 1000)
-            .children(component(SdkConstants.TAG_DATA).withBounds(0, 0, 0, 0))
+            .children(component(SdkConstants.TAG_DATA).withBounds(0, 0, 0, 0)),
         )
         .build()
 

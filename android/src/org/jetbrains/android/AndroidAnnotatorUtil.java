@@ -337,7 +337,6 @@ public class AndroidAnnotatorUtil {
       myIncludeClickAction = true;
       myHasCustomColor = hasCustomColor;
       mySetColorTask = new SetAttributeConsumer(element, ResourceType.COLOR);
-
       // compute icon when renderer created on background thread
       myIcon = buildIcon();
     }

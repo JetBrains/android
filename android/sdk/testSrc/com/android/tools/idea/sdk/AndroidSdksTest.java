@@ -44,7 +44,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;

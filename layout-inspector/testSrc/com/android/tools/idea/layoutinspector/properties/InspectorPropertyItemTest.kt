@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_PADDING_TOP
 import com.android.SdkConstants.ATTR_TEXT_SIZE
@@ -34,16 +33,18 @@ import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
+import java.awt.Color
+import java.awt.Rectangle
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.Color
-import java.awt.Rectangle
 
 abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidProjectRule) {
   protected val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
@@ -55,7 +56,14 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   @Before
   fun setUp() {
     val project = projectRule.project
-    model = model(project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
+    model = runInEdtAndGet {
+      model(
+        projectRule.testRootDisposable,
+        project,
+        FakeTreeSettings(),
+        body = DemoExample.setUpDemo(projectRule.fixture),
+      )
+    }
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     model!!.resourceLookup.dpi = 560
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
@@ -66,87 +74,75 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
     model = null
   }
 
-  protected fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected suspend fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem =
+    createTestProperty(
       "x",
       PropertyType.DIMENSION_DP,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
-      model!!
+      emptyList(),
+      fakeComposeNode,
+      model!!,
     )
-  }
 
-  protected fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected suspend fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem =
+    createTestProperty(
       "textSize",
       PropertyType.DIMENSION_SP,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
-      model!!
+      emptyList(),
+      fakeComposeNode,
+      model!!,
     )
-  }
 
-  protected fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected suspend fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem =
+    createTestProperty(
       "lineSpacing",
       PropertyType.DIMENSION_EM,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
-      model!!
+      emptyList(),
+      fakeComposeNode,
+      model!!,
     )
-  }
 
-  protected fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected suspend fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
+    val node = model!!["title"]!!
+    return createTestProperty(
       ATTR_PADDING_TOP,
       PropertyType.DIMENSION,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
-      model!!
+      emptyList(),
+      node,
+      model!!,
     )
   }
 
-  protected fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected suspend fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
+    val node = model!!["title"]!!
+    return createTestProperty(
       ATTR_PADDING_TOP,
       PropertyType.DIMENSION_FLOAT,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
-      model!!
+      emptyList(),
+      node,
+      model!!,
     )
   }
 
-  protected fun textSizePropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected suspend fun textSizePropertyOf(value: String?): InspectorPropertyItem {
+    val node = model!!["title"]!!
+    return createTestProperty(
       ATTR_TEXT_SIZE,
       PropertyType.DIMENSION_FLOAT,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
-      model!!
+      emptyList(),
+      node,
+      model!!,
     )
   }
 
@@ -166,45 +162,35 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       composeOffset = 420,
       composeLineNumber = 17,
       0,
-      0
+      0,
     )
 
-  protected fun browseProperty(attrName: String, type: PropertyType, source: ResourceReference?) {
+  protected suspend fun browseProperty(
+    attrName: String,
+    type: PropertyType,
+    source: ResourceReference?,
+  ) {
     val node = model!!["title"]!!
     val property =
-      InspectorPropertyItem(
-        ANDROID_URI,
-        attrName,
-        attrName,
-        type,
-        null,
-        PropertySection.DECLARED,
-        source ?: node.layout,
-        node.drawId,
-        model!!
-      )
-    property.helpSupport.browse()
+      createTestProperty(attrName, type, null, source ?: node.layout, emptyList(), node, model!!)
+    runInEdtAndWait { property.helpSupport.browse() }
   }
 
-  protected fun colorPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected suspend fun colorPropertyOf(value: String?): InspectorPropertyItem =
+    createTestProperty(
       "color",
       PropertyType.COLOR,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
-      model!!
+      emptyList(),
+      fakeComposeNode,
+      model!!,
     )
-  }
 }
 
-@RunsInEdt
 class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRule.onDisk()) {
   @Test
-  fun testFormatDimensionInPixels() {
+  fun testFormatDimensionInPixels() = runBlocking {
     assertThat(dimensionPropertyOf("").value).isEqualTo("")
     assertThat(dimensionPropertyOf("-1").value).isEqualTo("-1")
     assertThat(dimensionPropertyOf("-2147483648").value).isEqualTo("-2147483648")
@@ -220,7 +206,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatDimensionInDp() {
+  fun testFormatDimensionInDp() = runBlocking {
     PropertiesSettings.dimensionUnits = DimensionUnits.DP
     assertThat(dimensionPropertyOf("").value).isEqualTo("")
     assertThat(dimensionPropertyOf("-1").value).isEqualTo("-1")
@@ -237,7 +223,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatDimensionFloatInPixels() {
+  fun testFormatDimensionFloatInPixels() = runBlocking {
     assertThat(dimensionFloatPropertyOf("").value).isEqualTo("")
     assertThat(dimensionFloatPropertyOf("0").value).isEqualTo("0px")
     assertThat(dimensionFloatPropertyOf("0.5").value).isEqualTo("0.5px")
@@ -253,7 +239,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatDimensionFloatInDp() {
+  fun testFormatDimensionFloatInDp() = runBlocking {
     PropertiesSettings.dimensionUnits = DimensionUnits.DP
     assertThat(dimensionFloatPropertyOf("").value).isEqualTo("")
     assertThat(dimensionFloatPropertyOf("0").value).isEqualTo("0dp")
@@ -270,7 +256,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatTextSizeInPixels() {
+  fun testFormatTextSizeInPixels() = runBlocking {
     assertThat(textSizePropertyOf("").value).isEqualTo("")
     assertThat(textSizePropertyOf("49.0").value).isEqualTo("49.0px")
     model!!.resourceLookup.fontScale = 0.9f
@@ -284,7 +270,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatTextSizeInSp() {
+  fun testFormatTextSizeInSp() = runBlocking {
     PropertiesSettings.dimensionUnits = DimensionUnits.DP
     model!!.resourceLookup.fontScale = 1.0f
     assertThat(textSizePropertyOf("").value).isEqualTo("")
@@ -302,7 +288,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatDimensionDpInDp() {
+  fun testFormatDimensionDpInDp() = runBlocking {
     PropertiesSettings.dimensionUnits = DimensionUnits.DP
     assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0dp")
@@ -319,7 +305,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatDimensionDpInPixels() {
+  fun testFormatDimensionDpInPixels() = runBlocking {
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
     assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0px")
@@ -336,7 +322,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatDimensionSpInDp() {
+  fun testFormatDimensionSpInDp() = runBlocking {
     PropertiesSettings.dimensionUnits = DimensionUnits.DP
     assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionSpPropertyOf("12.0").value).isEqualTo("12.0sp")
@@ -351,7 +337,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatDimensionSpInPixels() {
+  fun testFormatDimensionSpInPixels() = runBlocking {
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
     model!!.resourceLookup.fontScale = 1.0f
     assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
@@ -369,7 +355,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatDimensionEmInDp() {
+  fun testFormatDimensionEmInDp() = runBlocking {
     PropertiesSettings.dimensionUnits = DimensionUnits.DP
     assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
@@ -384,7 +370,7 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testFormatDimensionEmInPixels() {
+  fun testFormatDimensionEmInPixels() = runBlocking {
     assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
     model!!.resourceLookup.fontScale = 0.9f
@@ -398,19 +384,18 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   }
 
   @Test
-  fun testBrowseBackgroundInLayout() {
+  fun testBrowseBackgroundInLayout() = runBlocking {
     browseProperty(ATTR_BACKGROUND, PropertyType.DRAWABLE, null)
     fileOpenCaptureRule.checkEditor("demo.xml", 14, "framework:background=\"@drawable/battery\"")
   }
 
   @Test
-  fun testColor() {
+  fun testColor() = runBlocking {
     assertThat(colorPropertyOf("#0000FF").colorButton?.actionIcon)
       .isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0x0000FF), false)))
   }
 }
 
-@RunsInEdt
 class InspectorPropertyItemTestWithSdk :
   InspectorPropertyItemTestBase(
     AndroidProjectRule.withAndroidModel(
@@ -419,15 +404,16 @@ class InspectorPropertyItemTestWithSdk :
       )
       .named(InspectorPropertyItemTestWithSdk::class.simpleName)
   ) {
+
   @Test
-  fun testBrowseTextSizeFromTextAppearance() {
+  fun testBrowseTextSizeFromTextAppearance() = runBlocking {
     val textAppearance =
       ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
     browseProperty(ATTR_TEXT_SIZE, PropertyType.INT32, textAppearance)
     fileOpenCaptureRule.checkEditor(
       "styles_material.xml",
       228,
-      "<item name=\"textSize\">@dimen/text_size_body_1_material</item>"
+      "<item name=\"textSize\">@dimen/text_size_body_1_material</item>",
     )
   }
 }

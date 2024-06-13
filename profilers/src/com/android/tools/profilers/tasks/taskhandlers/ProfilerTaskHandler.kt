@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskEntered
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.diagnostic.Logger
 
@@ -44,9 +45,10 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    * task or load the task with the supplied args). Note that the returned boolean only tells us if the ProfilerTaskHandlers' enter was
    * successful, it does not tell us if the startTask or loadTask functionality was successful.
    */
-  open fun enter(args: TaskArgs?) : Boolean {
+  open fun enter(args: TaskArgs) : Boolean {
+    trackTaskEntered(sessionsManager.studioProfilers)
     if (sessionsManager.isSessionAlive) {
-      startTask()
+      startTask(args)
     }
     else {
       return loadTask(args)
@@ -63,8 +65,10 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
 
   /**
    * Task behavior on start.
+   *
+   * Reads the task arguments (@param args) to determine if the task should be started on startup or not.
    */
-  abstract fun startTask()
+  abstract fun startTask(args: TaskArgs)
 
   /**
    * Task behavior on stop.
@@ -76,7 +80,7 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    *
    * Returns a boolean indicating whether it was able to cast to the correct TaskArgs subtype or not.
    */
-  abstract fun loadTask(args: TaskArgs?) : Boolean
+  abstract fun loadTask(args: TaskArgs) : Boolean
 
   /**
    * Returns the name of the task.
@@ -89,15 +93,43 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    *
    * To construct the arguments to load a previous or imported task, the session (sessionItems) are passed in for inspection.
    *
+   * @param isStartupTask boolean flag indicating whether the task was initiated on startup of the process or not
    * @param sessionItems list of session items (sessions taken in the current profiler instance or from importing) that contain artifacts
    * @param selectedSession the current session (alive or not) that the current task corresponds to
    */
-  abstract fun createArgs(sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): TaskArgs?
+  fun createArgs(isStartupTask: Boolean,sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): TaskArgs {
+    val isTaskOngoing = SessionsManager.isSessionAlive(selectedSession)
+    // Finds the artifact that backs the task identified via its corresponding unique session (selectedSession).
+    val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
+
+    return if (isTaskOngoing) {
+      // If the session/task is not complete yet, then the TaskArgs only need to contain data on whether it is a startup task or not.
+      createStartTaskArgs(isStartupTask)
+    }
+    else if (artifact != null && supportsArtifact(artifact)) {
+      // If the task is complete and supports the found artifact, a TaskArgs is constructed using the artifact to load the completed task.
+      createLoadingTaskArgs(artifact)
+    }
+    else {
+      // There should never be a state in which a session is complete (not alive) and does not have a corresponding artifact present.
+      throw IllegalStateException("No supported artifact was found to construct the TaskArgs with")
+    }
+  }
 
   /**
    * Returns whether the task supports a given session artifact (backing data construct).
    */
   abstract fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean
+
+  /**
+   * Returns the TaskArgs (arguments construct) used when starting a task.
+   */
+  protected abstract fun createStartTaskArgs(isStartupTask: Boolean): TaskArgs
+
+  /**
+   * Returns the TaskArgs (arguments construct) used when loading an existing task.
+   */
+  protected abstract fun createLoadingTaskArgs(artifact: SessionArtifact<*>): TaskArgs
 
   /**
    * Returns whether the task supports a given device and process. Some tasks only require checking the device, some only the process, and

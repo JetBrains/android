@@ -21,10 +21,10 @@ package com.android.tools.idea.bleak;
  * {@code className}, through field {@code fieldName}. Negative indices count backwards from the end of the
  * leaktrace.
  */
-public class IgnoredRef {
-  private int index;
-  private String className;
-  private String fieldName;
+public class IgnoredRef implements MainCheckIgnoreListEntry {
+  private final int index;
+  private final String className;
+  private final String fieldName;
 
   public IgnoredRef(int index, String className, String fieldName) {
     this.index = index;
@@ -32,7 +32,8 @@ public class IgnoredRef {
     this.fieldName = fieldName;
   }
 
-  public IgnoreListEntry<LeakInfo> toIgnoreListEntry() {
-    return (LeakInfo info) -> info.getLeaktrace().referenceMatches(index, className, fieldName);
+  @Override
+  public boolean test(LeakInfo info) {
+    return info.getLeaktrace().referenceMatches(index, className, fieldName);
   }
 }

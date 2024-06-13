@@ -27,7 +27,7 @@ class FocusableActionButton(action: AnAction) :
     action,
     action.templatePresentation.clone(),
     "",
-    ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE
+    ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE,
   ) {
 
   init {

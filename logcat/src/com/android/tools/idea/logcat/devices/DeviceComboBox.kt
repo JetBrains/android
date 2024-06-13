@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.sdklib.deviceprovisioner.DeviceIcons
+import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
@@ -40,8 +42,10 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
+import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
 import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
@@ -69,6 +73,10 @@ import kotlin.io.path.pathString
 private val DELETE_ICON = FILTER_HISTORY_DELETE
 @Suppress("UseDPIAwareInsets") private val COMBO_ITEM_INSETS = Insets(2, 8, 2, 4)
 private val DELETE_KEY_CODES = arrayOf(KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE)
+
+private val PHYSICAL_ICONS = StudioDefaultDeviceIcons
+private val EMULATOR_ICONS =
+  DeviceIcons(VIRTUAL_DEVICE_PHONE, VIRTUAL_DEVICE_WEAR, VIRTUAL_DEVICE_TV, VIRTUAL_DEVICE_CAR)
 
 /**
  * A [ComboBox] for selecting a device.
@@ -112,7 +120,7 @@ internal class DeviceComboBox(
           val itemRemoved =
             handleItemError(
               item,
-              LogcatBundle.message("logcat.device.combo.error.message", item.path)
+              LogcatBundle.message("logcat.device.combo.error.message", item.path),
             )
           if (itemRemoved) {
             return
@@ -133,7 +141,7 @@ internal class DeviceComboBox(
     val answer =
       MessageDialogBuilder.yesNo(
           LogcatBundle.message("logcat.device.combo.error.title"),
-          LogcatBundle.message("logcat.device.combo.error.message", message)
+          LogcatBundle.message("logcat.device.combo.error.message", message),
         )
         .ask(project)
     if (answer) {
@@ -192,7 +200,7 @@ internal class DeviceComboBox(
       true ->
         deviceComboModel.replaceDevice(
           device,
-          device.deviceId == (item as? DeviceItem)?.device?.deviceId
+          device.deviceId == (item as? DeviceItem)?.device?.deviceId,
         )
       false -> deviceAdded(device) // Device was removed manually so we re-add it
     }
@@ -250,7 +258,7 @@ internal class DeviceComboBox(
       item: DeviceComboItem?,
       index: Int,
       selected: Boolean,
-      hasFocus: Boolean
+      hasFocus: Boolean,
     ) {
       if (item == null) {
         append(LogcatBundle.message("logcat.device.combo.no.connected.devices"), ERROR_ATTRIBUTES)
@@ -263,7 +271,8 @@ internal class DeviceComboBox(
     }
 
     private fun renderDevice(device: Device) {
-      icon = if (device.isEmulator) VIRTUAL_DEVICE_PHONE else PHYSICAL_DEVICE_PHONE
+      val icons = if (device.isEmulator) EMULATOR_ICONS else PHYSICAL_ICONS
+      icon = icons.iconForDeviceType(device.type)
 
       append(device.name, REGULAR_ATTRIBUTES)
       if (device.isOnline) {
@@ -271,7 +280,7 @@ internal class DeviceComboBox(
       }
       append(
         LogcatBundle.message("logcat.device.combo.version", device.release, device.sdk.toString()),
-        GRAY_ATTRIBUTES
+        GRAY_ATTRIBUTES,
       )
       if (!device.isOnline) {
         append(LogcatBundle.message("logcat.device.combo.offline"), GRAYED_BOLD_ATTRIBUTES)

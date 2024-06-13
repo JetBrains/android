@@ -72,7 +72,7 @@ class VisualLintAnalysisTest {
         OverlapAnalyzerInspection(),
         LongTextAnalyzerInspection(),
         ButtonSizeAnalyzerInspection(),
-        WearMarginAnalyzerInspection()
+        WearMarginAnalyzerInspection(),
       )
     projectRule.fixture.enableInspections(*visualLintInspections)
     InspectionProfileManager.getInstance(projectRule.project)
@@ -80,7 +80,7 @@ class VisualLintAnalysisTest {
       .setErrorLevel(
         HighlightDisplayKey.find(VisualLintErrorType.BOUNDS.shortName)!!,
         HighlightDisplayLevel.ERROR,
-        projectRule.project
+        projectRule.project,
       )
   }
 
@@ -129,7 +129,7 @@ class VisualLintAnalysisTest {
           assertEquals(
             "Content of text_dashboard &lt;TextView> is partially covered by imageView &lt;ImageView> in 3 preview configurations." +
               "<BR/>This may affect text readability. Fix this issue by adjusting widget positioning.",
-            it.description
+            it.description,
           )
           assertEquals(HighlightSeverity.WARNING, it.severity)
         }
@@ -137,7 +137,7 @@ class VisualLintAnalysisTest {
           assertEquals(3, it.models.size)
           assertEquals(
             "Bottom navigation bar is not recommended for breakpoints over 600dp",
-            it.summary
+            it.summary,
           )
           assertEquals(
             "Bottom navigation bar is not recommended for breakpoints >= 600dp, which affects 3 preview configurations." +
@@ -145,7 +145,7 @@ class VisualLintAnalysisTest {
               "<A HREF=\"https://d.android.com/r/studio-ui/designer/material/navigation-rail\">navigation rail</A> or " +
               "<A HREF=\"https://d.android.com/r/studio-ui/designer/material/navigation-drawer\">navigation drawer</A> " +
               "for breakpoints >= 600dp.",
-            it.description
+            it.description,
           )
           assertNotNull(it.hyperlinkListener)
           assertEquals(HighlightSeverity.WARNING, it.severity)
@@ -154,14 +154,14 @@ class VisualLintAnalysisTest {
           assertEquals(2, it.models.size)
           assertEquals(
             "text_notifications <TextView> has lines containing more than 120 characters",
-            it.summary
+            it.summary,
           )
           assertEquals(
             "TextView has lines containing more than 120 characters in 2 preview configurations.<BR/>Material Design recommends " +
               "reducing the width of TextView or switching to a " +
               "<A HREF=\"https://m3.material.io/foundations/layout/applying-layout/window-size-classes#a9594611-a6d4-4dce-abcb-15e7dd431f8a\">" +
               "multi-column layout</A> for breakpoints >= 600dp.",
-            it.description
+            it.description,
           )
           assertNotNull(it.hyperlinkListener)
           assertEquals(HighlightSeverity.WARNING, it.severity)
@@ -172,7 +172,7 @@ class VisualLintAnalysisTest {
           assertEquals(
             "ImageView is partially hidden in layout because it is not contained within the bounds of its parent in 2 preview " +
               "configurations.<BR/>Fix this issue by adjusting the size or position of ImageView.",
-            it.description
+            it.description,
           )
           assertEquals(HighlightSeverity.ERROR, it.severity)
         }
@@ -182,7 +182,7 @@ class VisualLintAnalysisTest {
           assertEquals(
             "The button Button is wider than 320dp in 4 preview configurations." +
               "<BR/>Material Design recommends buttons to be no wider than 320dp",
-            it.description
+            it.description,
           )
           assertEquals(HighlightSeverity.WARNING, it.severity)
         }
@@ -192,7 +192,7 @@ class VisualLintAnalysisTest {
           assertEquals(
             "The text field EditText is wider than 488dp in 3 preview configurations." +
               "<BR/>Material Design recommends text fields to be no wider than 488dp",
-            it.description
+            it.description,
           )
           assertEquals(HighlightSeverity.WARNING, it.severity)
         }
@@ -204,7 +204,7 @@ class VisualLintAnalysisTest {
 
     projectRule.fixture.disableInspections(
       BoundsAnalyzerInspection(),
-      TextFieldSizeAnalyzerInspection()
+      TextFieldSizeAnalyzerInspection(),
     )
     issueProvider.clear()
     analyzeFile(module, filesToAnalyze, "_device_class_phone")
@@ -249,12 +249,12 @@ class VisualLintAnalysisTest {
           assertEquals(3, it.models.size)
           assertEquals(
             "The view image_view <ImageView> is too close to the side of the device",
-            it.summary
+            it.summary,
           )
           assertEquals(
             "In 3 preview configurations, the view ImageView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
-            it.description
+            it.description,
           )
           assertEquals(HighlightSeverity.WARNING, it.severity)
         }
@@ -262,12 +262,12 @@ class VisualLintAnalysisTest {
           assertEquals(4, it.models.size)
           assertEquals(
             "The view textview1 <TextView> is too close to the side of the device",
-            it.summary
+            it.summary,
           )
           assertEquals(
             "In 4 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
-            it.description
+            it.description,
           )
           assertEquals(HighlightSeverity.WARNING, it.severity)
         }
@@ -275,12 +275,12 @@ class VisualLintAnalysisTest {
           assertEquals(1, it.models.size)
           assertEquals(
             "The view textview2 <TextView> is too close to the side of the device",
-            it.summary
+            it.summary,
           )
           assertEquals(
             "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
-            it.description
+            it.description,
           )
           assertEquals(HighlightSeverity.WARNING, it.severity)
         }
@@ -288,12 +288,12 @@ class VisualLintAnalysisTest {
           assertEquals(3, it.models.size)
           assertEquals(
             "The view textview3 <TextView> is too close to the side of the device",
-            it.summary
+            it.summary,
           )
           assertEquals(
             "In 3 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
-            it.description
+            it.description,
           )
           assertEquals(HighlightSeverity.WARNING, it.severity)
         }
@@ -301,12 +301,12 @@ class VisualLintAnalysisTest {
           assertEquals(1, it.models.size)
           assertEquals(
             "The view textview4 <TextView> is too close to the side of the device",
-            it.summary
+            it.summary,
           )
           assertEquals(
             "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
-            it.description
+            it.description,
           )
           assertEquals(HighlightSeverity.WARNING, it.severity)
         }
@@ -314,33 +314,28 @@ class VisualLintAnalysisTest {
     }
   }
 
-  private fun analyzeFile(
-    module: Module,
-    files: List<VirtualFile>,
-    deviceId: String,
-  ) {
+  private fun analyzeFile(module: Module, files: List<VirtualFile>, deviceId: String) {
     val facet = AndroidFacet.getInstance(module)!!
     val configuration =
       RenderTestUtil.getConfiguration(
         module,
         files[0],
         deviceId,
-        "Theme.MaterialComponents.DayNight.DarkActionBar"
+        "Theme.MaterialComponents.DayNight.DarkActionBar",
       )
     files.forEach { file ->
       val nlModel =
         SyncNlModel.create(
           projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
-          null,
           facet,
           file,
-          configuration
+          configuration,
         )
       val psiFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, file) as XmlFile
       nlModel.syncWithPsi(
         AndroidPsiUtils.getRootTagSafely(psiFile)!!,
-        emptyList<TagSnapshotTreeNode>()
+        emptyList<TagSnapshotTreeNode>(),
       )
       RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
         task.setDecorations(false)
@@ -351,7 +346,7 @@ class VisualLintAnalysisTest {
             issueProvider,
             result,
             nlModel,
-            VisualLintBaseConfigIssues()
+            VisualLintBaseConfigIssues(),
           )
         } catch (ex: Exception) {
           throw RuntimeException(ex)

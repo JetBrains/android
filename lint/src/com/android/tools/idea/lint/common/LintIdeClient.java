@@ -368,7 +368,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
       Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
       message = format.convertTo(message, RAW);
-      lintResult.getProblems().add(new LintProblemData(issue, message, textRange, configuredSeverity, quickfixData));
+      lintResult.getProblems().add(new LintProblemData(incident, issue, message, textRange, configuredSeverity, quickfixData));
     }
 
     Location secondary = location.getSecondary();
@@ -436,7 +436,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       }
       Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
       message = format.convertTo(message, RAW);
-      problemList.add(new LintProblemData(issue, message, textRange, configuredSeverity, quickfixData));
+      problemList.add(new LintProblemData(incident, issue, message, textRange, configuredSeverity, quickfixData));
 
       if (location.getSecondary() != null) {
         reportSecondary(context, issue, severity, location, message, format, quickfixData);

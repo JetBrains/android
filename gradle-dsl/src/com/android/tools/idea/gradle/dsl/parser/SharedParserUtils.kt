@@ -93,12 +93,12 @@ fun GradleDslFile.getPropertiesElement(
 
     val newElement: GradlePropertiesDslElement = when (resultElement) {
       // Some parent blocks require special-case treatment
-      is GradleDslFile, is SubProjectsDslElement -> createNewElementForFileOrSubProject(resultElement, nestedElementName) ?: return null
+      is GradleDslFile, is SubProjectsDslElement -> createNewElementForFileOrSubProject(converter, resultElement, nestedElementName) ?: return null
       // we're not going to be clever about the contents of a ConfigurationDslElement: but we do need
       // to record whether there's anything there or not.
       is ConfigurationDslElement -> GradleDslClosure(resultElement, null, elementName)
       // normal cases can simply construct a child block based on information in the parent Dsl element
-      else -> resultElement.getChildPropertiesElementDescription(nestedElementName)?.constructor?.construct(resultElement, elementName)
+      else -> resultElement.getChildPropertiesElementDescription(converter, nestedElementName)?.constructor?.construct(resultElement, elementName)
               ?: return null
     }
 
@@ -107,10 +107,12 @@ fun GradleDslFile.getPropertiesElement(
   }
 }
 
-private fun createNewElementForFileOrSubProject(resultElement: GradlePropertiesDslElement,
-                                                nestedElementName: String): GradlePropertiesDslElement? {
+private fun createNewElementForFileOrSubProject(
+  converter: GradleDslNameConverter,
+  resultElement: GradlePropertiesDslElement,
+  nestedElementName: String): GradlePropertiesDslElement? {
   val elementName = GradleNameElement.fake(nestedElementName)
-  return when (val properties = resultElement.getChildPropertiesElementDescription(nestedElementName)) {
+  return when (val properties = resultElement.getChildPropertiesElementDescription(converter, nestedElementName)) {
     null -> {
       val projectKey = ProjectPropertiesDslElement.getStandardProjectKey(nestedElementName) ?: return null
       ProjectPropertiesDslElement(resultElement, GradleNameElement.fake(projectKey))

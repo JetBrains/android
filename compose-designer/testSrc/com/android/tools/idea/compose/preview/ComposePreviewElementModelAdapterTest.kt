@@ -15,64 +15,66 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import org.junit.Assert
 import org.junit.Test
 
 class ComposePreviewElementModelAdapterTest {
 
+  private val adapter =
+    object : ComposePreviewElementModelAdapter() {
+      override fun toXml(previewElement: PsiComposePreviewElementInstance) = ""
+
+      override fun createDataContext(previewElement: PsiComposePreviewElementInstance) =
+        DataContext {}
+    }
+
   @Test
   fun testAffinity() {
     val composable0 =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable0, just a different instance
     val composable0b =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // Same as composable0 but with different display settings
     val composable1 =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
         PreviewDisplaySettings("Different name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // Same as composable0 but with different display settings
     val composable2 =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
         PreviewDisplaySettings("Different name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
-
-    val adapter =
-      object : ComposePreviewElementModelAdapter() {
-        override fun toXml(previewElement: ComposePreviewElementInstance) = ""
-
-        override fun createDataContext(previewElement: ComposePreviewElementInstance) =
-          DataContext {}
-      }
 
     val result =
       listOf(composable2, composable1, composable0b)
@@ -82,5 +84,62 @@ class ComposePreviewElementModelAdapterTest {
 
     // The more similar, the lower result of modelAffinity.
     Assert.assertArrayEquals(arrayOf(composable0b, composable1, composable2), result)
+  }
+
+  @Test
+  fun testCalcAffinityPriority() {
+    val composable0 =
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
+        "composableMethodName",
+        PreviewDisplaySettings("A name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(),
+      )
+
+    // The same as composable0, just a different instance
+    val composable0b =
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
+        "composableMethodName",
+        PreviewDisplaySettings("A name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(),
+      )
+
+    // Same as composable0 but with different display settings
+    val composable1 =
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
+        "composableMethodName",
+        PreviewDisplaySettings("Different name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(),
+      )
+
+    // Different methodFqn as composable0 but with the same display settings
+    val composable2 =
+      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
+        "composableMethodName2",
+        PreviewDisplaySettings("A name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(),
+      )
+
+    Assert.assertTrue(
+      adapter.calcAffinity(composable0, composable0) ==
+        adapter.calcAffinity(composable0, composable0b)
+    )
+    Assert.assertTrue(
+      adapter.calcAffinity(composable0, composable0b) <
+        adapter.calcAffinity(composable0, composable1)
+    )
+    Assert.assertTrue(
+      adapter.calcAffinity(composable0, composable1) < adapter.calcAffinity(composable0, null)
+    )
+    Assert.assertTrue(
+      adapter.calcAffinity(composable0, null) < adapter.calcAffinity(composable0, composable2)
+    )
   }
 }

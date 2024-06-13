@@ -22,7 +22,11 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,17 +102,26 @@ public class GradleSyncMemoryUseTest {
     });
   }
 
+  private static String getAppcompatDependencyString(IdeFrameFixture ideFrameFixture) throws IOException {
+    String appGradleContents =
+      new String(ideFrameFixture.findFileByRelativePath("app/build.gradle").contentsToByteArray(), StandardCharsets.UTF_8);
+    Matcher matcher = Pattern.compile("'androidx\\.appcompat:appcompat:.*'").matcher(appGradleContents);
+    matcher.find();
+    return matcher.group();
+  }
+
   @Test
   @UseBleak
   public void changeDependency() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    String appcompatDependencyString = getAppcompatDependencyString(ideFrameFixture);
     guiTest.runWithBleak(() -> {
       ideFrameFixture
         .actAndWaitForGradleProjectSyncToFinish(
           it ->
             it.getEditor()
               .open("app/build.gradle")
-              .select("implementation ('androidx.appcompat:appcompat:1.3.0')")
+              .select("implementation (" + appcompatDependencyString + ")")
               .enterText("'com.android.support:design:28.0.0'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
@@ -118,7 +131,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .select("implementation ('com.android.support:design:28.0.0')")
-              .enterText("'androidx.appcompat:appcompat:1.3.0'")
+              .enterText(appcompatDependencyString)
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
               .performAction("Sync Now")
@@ -130,13 +143,14 @@ public class GradleSyncMemoryUseTest {
   @UseBleak
   public void changeDependencyFailed() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    String appcompatDependencyString = getAppcompatDependencyString(ideFrameFixture);
     guiTest.runWithBleak(() -> {
       ideFrameFixture
         .actAndWaitForGradleProjectSyncToFinish(
           it ->
             it.getEditor()
               .open("app/build.gradle")
-              .select("implementation ('androidx.appcompat:appcompat:1.3.0')")
+              .select("implementation (" + appcompatDependencyString + ")")
               .enterText("'com.android.support:design123'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
@@ -146,7 +160,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .select("implementation ('com.android.support:design123')")
-              .enterText("'androidx.appcompat:appcompat:1.3.0'")
+              .enterText(appcompatDependencyString)
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
               .performAction("Sync Now")

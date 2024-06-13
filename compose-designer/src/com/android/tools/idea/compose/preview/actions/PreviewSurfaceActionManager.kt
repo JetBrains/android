@@ -23,19 +23,22 @@ import com.android.tools.idea.common.surface.InteractiveLabelPanel
 import com.android.tools.idea.common.surface.LabelPanel
 import com.android.tools.idea.common.surface.LayoutData
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.compose.preview.actions.ml.SendPreviewToStudioBotAction
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
+import java.awt.MouseInfo
 import javax.swing.JComponent
+import javax.swing.SwingUtilities
 
 /** [ActionManager] to be used by the Compose Preview. */
 internal class PreviewSurfaceActionManager(
@@ -43,17 +46,10 @@ internal class PreviewSurfaceActionManager(
   private val navigationHandler: NavigationHandler,
 ) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
 
-  private val sceneManagerProvider: () -> LayoutlibSceneManager? = {
-    // Copy the model of the current selected object (if any)
-    surface.selectionModel.primary?.model?.let { surface.getSceneManager(it) }
-      ?: surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
-  }
-
   private val copyResultImageAction =
     CopyResultImageAction(
-      sceneManagerProvider,
       message("copy.result.image.action.title"),
-      message("copy.result.image.action.done.text")
+      message("copy.result.image.action.done.text"),
     )
 
   override fun registerActionsShortcuts(component: JComponent) {
@@ -64,7 +60,7 @@ internal class PreviewSurfaceActionManager(
     return InteractiveLabelPanel(
       LayoutData.fromSceneView(sceneView),
       surface,
-      suspend { navigationHandler.handleNavigate(sceneView, false) }
+      suspend { navigationHandler.handleNavigate(sceneView, false) },
     )
   }
 
@@ -72,13 +68,16 @@ internal class PreviewSurfaceActionManager(
     // Copy Image
     val actionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
 
-    val sceneView = surface.sceneViewAtMousePosition ?: return actionGroup
+    val mousePosition = MouseInfo.getPointerInfo().location
+    SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
     // Zoom to Selection
-    (surface as? NlDesignSurface)?.let {
-      actionGroup.add(ZoomToSelectionAction(surface, sceneView))
-    }
+    actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y))
     // Jump to Definition
-    actionGroup.add(JumpToDefinitionAction(surface, navigationHandler, sceneView))
+    actionGroup.add(JumpToDefinitionAction(mousePosition.x, mousePosition.y, navigationHandler))
+    // Send Preview to Studio Bot and ask to fix it
+    if (StudioFlags.COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT.get()) {
+      actionGroup.add(SendPreviewToStudioBotAction())
+    }
 
     return actionGroup
   }
@@ -90,13 +89,10 @@ internal class PreviewSurfaceActionManager(
     listOf(Separator()) +
       listOfNotNull(
           EnableUiCheckAction(),
-          AnimationInspectorAction(),
-          EnableInteractiveAction(
-            isEssentialsModeEnabled = {
-              ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-            },
-            essentialsModeDescription = message("action.interactive.essentials.mode.description")
+          AnimationInspectorAction(
+            defaultModeDescription = message("action.animation.inspector.description")
           ),
+          EnableInteractiveAction(),
           DeployToDeviceAction(),
         )
         .disabledIfRefreshingOrRenderErrors()

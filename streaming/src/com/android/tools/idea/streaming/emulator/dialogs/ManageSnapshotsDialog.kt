@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.SnapshotPackage
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.common.AdtUiUtils.updateToolbars
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.adtui.util.getHumanizedSize
 import com.android.tools.concurrency.AndroidIoManager
@@ -74,7 +75,7 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.table.TableView
 import com.intellij.util.IconUtil
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
-import com.intellij.util.text.JBDateFormat
+import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBImageIcon
@@ -133,6 +134,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
 
   private val snapshotTableModel = SnapshotTableModel()
   private val snapshotTable = SnapshotTable(snapshotTableModel)
+  private lateinit var decoratedTable: JPanel
   private val createSnapshotButton = JButton(message("manage.snapshots.create.snapshot")).apply {
     addActionListener { createSnapshot() }
   }
@@ -242,7 +244,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     val htmlEscaper = HtmlEscapers.htmlEscaper()
     val name = htmlEscaper.escape(snapshot.displayName)
     val size = getHumanizedSize(snapshot.sizeOnDisk)
-    val creationTime = JBDateFormat.getFormatter().formatDateTime(snapshot.creationTime).replace(",", "")
+    val creationTime = DateFormatUtil.formatDateTime(snapshot.creationTime)
     val folderName = htmlEscaper.escape(snapshot.snapshotFolder.fileName.toString())
     val attributeSection = when (snapshot.creationTime) {
       0L -> message("manage.snapshots.create.time.none")
@@ -302,7 +304,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
           .setRemoveActionUpdater { !snapshotTable.selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) }
           .setToolbarPosition(ActionToolbarPosition.BOTTOM)
           .setButtonComparator(message("manage.snapshots.load"), message("manage.snapshots.edit"), message("manage.snapshots.remove"))
-          .createPanel()
+          .createPanel().also { decoratedTable = it }
       )
     }
   }
@@ -332,6 +334,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
               snapshotTableModel.addRow(snapshot)
               snapshotTable.selection = listOf(snapshot)
               TableUtil.scrollSelectionToVisible(snapshotTable)
+              updateToolbars(decoratedTable)  // Workaround for https://youtrack.jetbrains.com/issue/IDEA-352328.
             }
           }
         }
@@ -1161,13 +1164,11 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
   }
 }
 
-private fun formatPrettySnapshotDateTime(time: Long): String {
-  return if (time > 0) JBDateFormat.getFormatter().formatPrettyDateTime(time).replace(",", "") else "-"
-}
+private fun formatPrettySnapshotDateTime(time: Long): String =
+  if (time > 0) DateFormatUtil.formatPrettyDateTime(time).replace(",", "") else "-"
 
-private fun formatSnapshotSize(size: Long): String {
-  return if (size > 0) getHumanizedSize(size) else "-"
-}
+private fun formatSnapshotSize(size: Long): String =
+  if (size > 0) getHumanizedSize(size) else "-"
 
 private fun composeSnapshotId(existingSnapshots: Collection<SnapshotInfo>): String {
   val timestamp = TIMESTAMP_FORMAT.format(Date())

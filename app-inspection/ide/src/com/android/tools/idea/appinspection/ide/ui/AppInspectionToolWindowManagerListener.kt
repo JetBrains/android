@@ -35,7 +35,7 @@ class AppInspectionToolWindowManagerListener(
         if (appInspectionView.isInspectionActive()) {
           ideServices.showNotification(
             AppInspectionBundle.message("inspection.is.running"),
-            hyperlinkClicked = { appInspectionView.stopInspectors() }
+            hyperlinkClicked = { appInspectionView.stopInspectors() },
           )
         }
       }

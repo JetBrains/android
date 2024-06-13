@@ -22,5 +22,5 @@ import javax.swing.Icon
 class FakeActionIconButton(
   override var actionButtonFocusable: Boolean,
   override var actionIcon: Icon,
-  override var action: AnAction?
+  override var action: AnAction?,
 ) : ActionIconButton

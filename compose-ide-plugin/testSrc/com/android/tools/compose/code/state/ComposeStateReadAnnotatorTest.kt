@@ -58,7 +58,7 @@ private val COMPOSE_RUNTIME_IMPORTS =
 @RunWith(JUnit4::class)
 @RunsInEdt
 class ComposeStateReadAnnotatorTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
   private val annotator = ComposeStateReadAnnotator()
@@ -101,7 +101,7 @@ class ComposeStateReadAnnotatorTest {
       .assertSingleHighlight(
         "|value|)",
         stateVariable = "stateListVar[0]",
-        composeScope = OUTER_FUNCTION
+        composeScope = OUTER_FUNCTION,
       )
   }
 
@@ -158,37 +158,24 @@ class ComposeStateReadAnnotatorTest {
 
   @Test
   fun composableLambdaArgument() {
-    createPsiFile(
-        "fun Inner(arg: @Composable () -> Unit)",
-        "Inner { stateVar.value }",
-      )
+    createPsiFile("fun Inner(arg: @Composable () -> Unit)", "Inner { stateVar.value }")
       .assertSingleHighlight("|value|")
   }
 
   @Test
   fun noncomposableLambdaArgument() {
-    createPsiFile(
-        "fun Inner(arg: () -> Unit)",
-        "Inner { stateVar.value }",
-      )
-      .assertNoHighlight()
+    createPsiFile("fun Inner(arg: () -> Unit)", "Inner { stateVar.value }").assertNoHighlight()
   }
 
   @Test
   fun inlineLambdaArgument() {
-    createPsiFile(
-        "inline fun Inner(arg: () -> Unit)",
-        "Inner { stateVar.value }",
-      )
+    createPsiFile("inline fun Inner(arg: () -> Unit)", "Inner { stateVar.value }")
       .assertSingleHighlight("|value|", composeScope = OUTER_FUNCTION)
   }
 
   @Test
   fun noinlineLambdaArgument() {
-    createPsiFile(
-        "inline fun Inner(noinline arg: () -> Unit)",
-        "Inner { stateVar.value }",
-      )
+    createPsiFile("inline fun Inner(noinline arg: () -> Unit)", "Inner { stateVar.value }")
       .assertNoHighlight()
   }
 
@@ -223,7 +210,7 @@ class ComposeStateReadAnnotatorTest {
     innerFunctionSignature: String,
     innerFunctionInvocation: String,
     stateVarCreation: String = "val stateVar = rememberSaveable { mutableStateOf(\"\") }",
-    extraCode: String = ""
+    extraCode: String = "",
   ): PsiFile {
     return fixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -239,7 +226,7 @@ class ComposeStateReadAnnotatorTest {
       }
       $extraCode
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -253,7 +240,7 @@ class ComposeStateReadAnnotatorTest {
   private fun PsiFile.assertSingleHighlight(
     window: String,
     stateVariable: String = "stateVar",
-    composeScope: String = ComposeBundle.message("state.read.recompose.target.enclosing.lambda")
+    composeScope: String = ComposeBundle.message("state.read.recompose.target.enclosing.lambda"),
   ) {
     val allElements = collectDescendantsOfType<PsiElement>()
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())

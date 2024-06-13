@@ -56,7 +56,7 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
       null,
       parentDisposable,
       null,
-      Alarm.ThreadToUse.SWING_THREAD
+      Alarm.ThreadToUse.SWING_THREAD,
     )
   private val componentModel = NlPropertiesModel(this, facet, queue)
   private val componentView = NlPropertiesView(componentModel)
@@ -81,7 +81,7 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
       { showResolvedValueAction },
       ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke,
       "toggleResolvedValues",
-      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
   }
 

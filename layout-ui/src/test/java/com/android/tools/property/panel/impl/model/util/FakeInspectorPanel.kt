@@ -41,7 +41,7 @@ class FakeInspectorPanel : InspectorPanel {
   override fun addSubTitle(
     title: String,
     initiallyExpanded: Boolean,
-    parent: InspectorLineModel?
+    parent: InspectorLineModel?,
   ): InspectorLineModel {
     val line = FakeInspectorLineModel(FakeLineType.SUBTITLE)
     line.title = title
@@ -52,7 +52,7 @@ class FakeInspectorPanel : InspectorPanel {
   override fun addCustomEditor(
     editorModel: PropertyEditorModel,
     editor: JComponent,
-    parent: InspectorLineModel?
+    parent: InspectorLineModel?,
   ): InspectorLineModel {
     val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
     editorModel.lineModel = line
@@ -67,7 +67,7 @@ class FakeInspectorPanel : InspectorPanel {
     searchable: Boolean,
     tableUI: TableUIProvider,
     actions: List<AnAction>,
-    parent: InspectorLineModel?
+    parent: InspectorLineModel?,
   ): TableLineModel {
     val line = FakeTableLineModel(tableModel, tableUI, searchable)
     lines.add(line)
@@ -77,7 +77,7 @@ class FakeInspectorPanel : InspectorPanel {
 
   override fun addComponent(
     component: JComponent,
-    parent: InspectorLineModel?
+    parent: InspectorLineModel?,
   ): InspectorLineModel {
     val line = FakeComponentLineModel(component)
     lines.add(line)

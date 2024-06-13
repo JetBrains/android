@@ -33,10 +33,13 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtOperationExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.uast.UAnnotation
@@ -55,27 +58,22 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
   ) {
-    runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
+    runPreviewPickerChecks(holder, previewAnnotation)
   }
 
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
   ) {
-    runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
+    runPreviewPickerChecks(holder, previewAnnotation)
   }
 
-  private fun runPreviewPickerChecks(
-    holder: ProblemsHolder,
-    previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean
-  ) {
-    // MultiPreviews are not relevant for the PreviewPicker
-    if (isMultiPreview) return
+  private fun runPreviewPickerChecks(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry) {
+    // If it's not a preview, it must be a MultiPreview, and MultiPreviews are not relevant for the
+    // PreviewPicker
+    if (!isPreview(previewAnnotation)) return
 
     if (previewAnnotation.getModuleSystem()?.isPreviewPickerEnabled() != true) return
 
@@ -114,14 +112,26 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
       val message = messageBuffer.toString().trim()
 
       val uElement = (previewAnnotation.toUElement() as? UAnnotation) ?: return
-      val deviceValueExpression = uElement.findDeclaredAttributeValue("device") ?: return
-      val deviceValueElement = deviceValueExpression.sourcePsiElement ?: return
+      val deviceValueExpression =
+        uElement.findDeclaredAttributeValue("device")?.sourcePsiElement ?: return
+      val deviceValueElement =
+        if (deviceValueExpression is KtOperationExpression) {
+          // If the expression is a string concatenation, highlight the entire expression
+          deviceValueExpression
+        } else {
+          // Otherwise, highlight the string literal itself.
+          PsiTreeUtil.findChildOfType(
+            deviceValueExpression,
+            KtLiteralStringTemplateEntry::class.java,
+            false,
+          ) ?: return
+        }
 
       holder.registerProblem(
         deviceValueElement,
         message,
         ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
-        DeviceParameterQuickFix(deviceValueElement, result.proposedFix)
+        DeviceParameterQuickFix(deviceValueElement, result.proposedFix),
       )
     }
   }
@@ -135,7 +145,7 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
  */
 private class DeviceParameterQuickFix(
   deviceValueElement: PsiElement,
-  private val resultingString: String
+  private val resultingString: String,
 ) : LocalQuickFixOnPsiElement(deviceValueElement) {
   override fun getText(): String = message("picker.preview.annotator.fix.replace", resultingString)
 
@@ -145,7 +155,7 @@ private class DeviceParameterQuickFix(
     project: Project,
     file: PsiFile,
     startElement: PsiElement,
-    endElement: PsiElement
+    endElement: PsiElement,
   ) {
     try {
       // Find the element that corresponds to the Argument value, this is needed in case the
@@ -184,7 +194,7 @@ private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer:
           buffer = messageBuffer,
           separator = ", ",
           prefix = "$messagePrefix: ",
-          postfix = " $messagePostfix\n"
+          postfix = " $messagePostfix\n",
         )
       }
       is MultipleChoiceValueType -> {
@@ -195,7 +205,7 @@ private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer:
           buffer = messageBuffer,
           separator = ", ",
           prefix = "$messagePrefix: ",
-          postfix = " $messagePostfix\n"
+          postfix = " $messagePostfix\n",
         )
       }
     }
@@ -205,7 +215,7 @@ private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer:
 private fun addSimpleMessage(
   prefix: String,
   issues: List<IssueReason>,
-  messageBuffer: StringBuffer
+  messageBuffer: StringBuffer,
 ) {
   val allParameters = issues.map(IssueReason::parameterName)
   if (allParameters.isEmpty()) return

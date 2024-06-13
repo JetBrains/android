@@ -29,6 +29,7 @@ import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.util.waitForCondition
+import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.android.tools.idea.sdk.AndroidEnvironmentChecker
@@ -61,6 +62,7 @@ class LogcatToolWindowFactoryTest {
   private val disposableRule = DisposableRule()
 
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
+  private val fakeLogcatService = FakeLogcatService()
 
   @get:Rule
   val rule =
@@ -69,10 +71,11 @@ class LogcatToolWindowFactoryTest {
       ProjectServiceRule(
         projectRule,
         DeviceComboBoxDeviceTrackerFactory::class.java,
-        DeviceComboBoxDeviceTrackerFactory { deviceTracker }
+        DeviceComboBoxDeviceTrackerFactory { deviceTracker },
       ),
+      ProjectServiceRule(projectRule, LogcatService::class.java, fakeLogcatService),
       EdtRule(),
-      disposableRule
+      disposableRule,
     )
 
   private val project
@@ -81,11 +84,9 @@ class LogcatToolWindowFactoryTest {
   private val disposable
     get() = disposableRule.disposable
 
-  private val fakeLogcatService = FakeLogcatService()
-
   @Before
   fun setUp() {
-    project.replaceService(LogcatService::class.java, fakeLogcatService, disposable)
+    project.replaceService(LogcatService::class.java, this.fakeLogcatService, disposable)
   }
 
   @Test
@@ -132,7 +133,7 @@ class LogcatToolWindowFactoryTest {
         formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(15))),
         "filter",
         filterMatchCase = true,
-        isSoftWrap = false
+        isSoftWrap = false,
       )
 
     val logcatMainPanel =
@@ -140,7 +141,7 @@ class LogcatToolWindowFactoryTest {
         .createChildComponent(
           project,
           ActionGroup.EMPTY_GROUP,
-          clientState = LogcatPanelConfig.toJson(logcatPanelConfig)
+          clientState = LogcatPanelConfig.toJson(logcatPanelConfig),
         )
 
     // It's enough to assert on just one field in the config. We test more thoroughly in
@@ -220,13 +221,23 @@ class LogcatToolWindowFactoryTest {
     assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile()).isEqualTo(path)
   }
 
+  @Test
+  fun clearLogcat_clearsLogcat() {
+    val toolWindow = MockToolWindow(project)
+    logcatToolWindowFactory().init(toolWindow)
+
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("serial")
+
+    waitForCondition { fakeLogcatService.clearRequests.contains("serial") }
+  }
+
   private fun logcatToolWindowFactory(
-    processNameMonitor: ProcessNameMonitor = FakeProcessNameMonitor(),
+    processNameMonitor: ProcessNameMonitor = FakeProcessNameMonitor()
   ): LogcatToolWindowFactory {
     project.registerOrReplaceServiceInstance(
       ProcessNameMonitor::class.java,
       processNameMonitor,
-      disposable
+      disposable,
     )
     return LogcatToolWindowFactory()
   }

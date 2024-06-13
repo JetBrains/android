@@ -18,20 +18,19 @@ package com.android.tools.idea.editors.liveedit
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.usesCompose
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.DeployableToDevice
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.deployment.liveedit.EditEvent
+import com.android.tools.idea.run.deployment.liveedit.DefaultApkClassProvider
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditNotifications
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
-import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup.Companion.getExecutorSetting
 import com.android.tools.idea.run.profiler.ProfilingMode
@@ -47,7 +46,6 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
@@ -58,20 +56,20 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiManager
+import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
-import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.Executor
 
 /**
@@ -103,22 +101,31 @@ class LiveEditServiceImpl(val project: Project,
     Disposer.register(this) { LiveEditIssueNotificationAction.unregisterProject(project) }
     registerWithRunningDevices(project, adapter)
 
-    // TODO: Deactivate this when not needed.
-    val listener = PsiListener(this::onPsiChanged)
-    PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
+    deployMonitor = LiveEditProjectMonitor(this, project, DefaultApkClassProvider());
 
-    deployMonitor = LiveEditProjectMonitor(this, project)
+    // When we change editor, grab a snapshot of the current PSI. We cannot do this in the beforeDocumentChanged
+    // callback, as certain editor actions modify the PSI *before* the document callbacks occur. This causes us to
+    // obtain an incorrect (too recent) snapshot in those cases, and makes the PSI validation diff incorrect.
+    project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun selectionChanged(event: FileEditorManagerEvent) {
+        val file = event.newFile ?: return
+        deployMonitor.updatePsiSnapshot(file)
+      }
+    })
+
+    project.messageBus.connect(this).subscribe(VirtualFileManager.VFS_CHANGES, object: BulkFileListener {
+      override fun before(events: MutableList<out VFileEvent>) {
+        for (event in events.filterIsInstance<VFileDeleteEvent>()) {
+          deployMonitor.fileChanged(event.file)
+        }
+      }
+    })
 
     // Listen to changes in Kotlin files. The class-differ equivalent of listening to the PSI.
     EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
-      override fun beforeDocumentChange(event: DocumentEvent) {
-        val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
-        file.letIfLiveEditable { deployMonitor.beforeFileChanged(it) }
-      }
-
       override fun documentChanged(event: DocumentEvent) {
         val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
-        file.letIfLiveEditable { deployMonitor.fileChanged(it) }
+        deployMonitor.fileChanged(file)
       }
     }, this)
 
@@ -196,7 +203,11 @@ class LiveEditServiceImpl(val project: Project,
                                packageName: String,
                                device: IDevice,
                                app: LiveEditApp): Boolean {
-    return deployMonitor.notifyAppDeploy(packageName, device, app) { isLiveEditable(runProfile, executor) }
+    // Obtain the list of files open and focused in the editor. This will be a single file unless the user has a split view.
+    // When Live Edit is active, the first time a file is focused in the editor, we take a snapshot of the PSI. We pass the list of
+    // currently focused files when a deployment occurs to ensure that we also take a PSI snapshot of them.
+    val openFiles = FileEditorManager.getInstance(project).selectedFiles.toList()
+    return deployMonitor.notifyAppDeploy(packageName, device, app, openFiles) { isLiveEditable(runProfile, executor) }
   }
 
   override fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {
@@ -218,15 +229,6 @@ class LiveEditServiceImpl(val project: Project,
     else if (newMode == LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC) {
       deployMonitor.onManualLETrigger()
     }
-  }
-
-  @com.android.annotations.Trace
-  private fun onPsiChanged(event: EditEvent) {
-    // Disable PSI event detection if the class differ path is enabled.
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
-      return
-    }
-    executor.execute { deployMonitor.onPsiChanged(event) }
   }
 
   override fun dispose() {
@@ -291,7 +293,7 @@ class LiveEditServiceImpl(val project: Project,
    * Adds content listeners, so we know when a device is added/removed to the running devices tool window.
    */
   private fun addListenersToRunningDevices(adapter: EmulatorLiveEditAdapter, runningDevicesWindow: ToolWindow) {
-    runningDevicesWindow.addContentManagerListener(object : ContentManagerListener {
+    object : ContentManagerHierarchyAdapter(runningDevicesWindow) {
       override fun contentAdded(event: ContentManagerEvent) {
         val dataProvider = event.content.component as? DataProvider ?: return
         val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
@@ -299,57 +301,20 @@ class LiveEditServiceImpl(val project: Project,
       }
 
       override fun contentRemoveQuery(event: ContentManagerEvent) {
+        val content = event.content
+        if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
+          return
+        }
         val dataProvider = event.content.component as? DataProvider ?: return
         val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
         serial?.let { adapter.unregister(it) }
       }
-    })
+    }
 
-    runningDevicesWindow.contentManagerIfCreated?.contents?.forEach {
+    runningDevicesWindow.contentManagerIfCreated?.contentsRecursively?.forEach {
       val dataProvider = it.component as? DataProvider ?: return@forEach
       val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
       serial?.let { s -> adapter.register(s) }
     }
-  }
-
-  private fun VirtualFile.letIfLiveEditable(block: (KtFile) -> Unit) {
-    val ktFile = ReadAction.compute<KtFile?, Throwable> {
-      if (shouldHandleFile(this)) {
-        return@compute getKtFile(this)
-      }
-      null
-    }
-    if (ktFile != null) {
-      block(ktFile)
-    }
-  }
-
-  @RequiresReadLock
-  private fun shouldHandleFile(file: VirtualFile): Boolean {
-    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
-      return false
-    }
-
-    if (project.isDisposed || !file.isValid || !file.isWritable) {
-      return false
-    }
-
-    // Filter to only files from this project.
-    val index = ProjectFileIndex.getInstance(project)
-    return index.isInProject(file)
-  }
-
-  @RequiresReadLock
-  private fun getKtFile(file: VirtualFile): KtFile? {
-    // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes an event is generated with a
-    // non-physical version of a given file, which will cause some Live Edit checks that assume a non-null VirtualFile to fail.
-    val ktFile = PsiManager.getInstance(project).findFile(file)?.originalFile as? KtFile ?: return null
-
-    // Ignore .kts files.
-    if (ktFile.isScript()) {
-      return null
-    }
-
-    return ktFile
   }
 }

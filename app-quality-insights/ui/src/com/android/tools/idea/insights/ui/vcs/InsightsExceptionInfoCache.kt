@@ -35,7 +35,7 @@ class InsightsExceptionInfoCache(val project: Project, private val searchScope: 
 
   fun resolveClassOrFile(
     className: String,
-    fileName: String?
+    fileName: String?,
   ): ExceptionInfoCache.ClassResolveInfo {
     return delegate.resolveClassOrFile(className, fileName)
   }

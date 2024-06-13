@@ -54,7 +54,7 @@ private val LOG: Logger
 internal fun addHardwareView(
   inspector: InspectorPanel,
   properties: Map<String, PsiPropertyItem>,
-  editorProvider: EditorProvider<PsiPropertyItem>
+  editorProvider: EditorProvider<PsiPropertyItem>,
 ) {
   val panelBuilder = HardwarePanelBuilder()
   val editors = mutableListOf<PropertyEditorModel>()
@@ -77,7 +77,7 @@ internal fun addHardwareView(
   // The Dimensions parameter actually uses 3 other parameters: width, height, dimensionUnit.
   panelBuilder.addLine(
     PARAMETER_HARDWARE_DIMENSIONS,
-    createDimensionLine(properties, editorProvider, editors)
+    createDimensionLine(properties, editorProvider, editors),
   )
 
   addSinglePropertyLine(PARAMETER_HARDWARE_DENSITY)
@@ -97,7 +97,7 @@ internal fun addHardwareView(
 private fun createDimensionLine(
   properties: Map<String, PsiPropertyItem>,
   editorProvider: EditorProvider<PsiPropertyItem>,
-  editors: MutableList<PropertyEditorModel>
+  editors: MutableList<PropertyEditorModel>,
 ): JPanel {
   /** The added [component] will shrink horizontally to fit its content */
   fun JPanel.addShrink(component: Component, gbc: GridBagConstraints) {
@@ -135,7 +135,7 @@ private fun createDimensionLine(
           component.preferredSize = Dimension(JBUI.scale(52), preferredSize.height)
           component.minimumSize = Dimension(JBUI.scale(52), minimumSize.height)
         },
-        gbc
+        gbc,
       )
     }
   return dimensionLine
@@ -143,7 +143,7 @@ private fun createDimensionLine(
 
 private fun EditorProvider<PsiPropertyItem>.createEditor(
   property: PsiPropertyItem,
-  existing: MutableList<PropertyEditorModel>
+  existing: MutableList<PropertyEditorModel>,
 ): JComponent {
   val editorPair = createEditor(property)
   existing.add(editorPair.first)

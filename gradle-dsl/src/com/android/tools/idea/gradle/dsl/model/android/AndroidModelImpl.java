@@ -45,9 +45,9 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.
 import static com.android.tools.idea.gradle.dsl.parser.android.TestCoverageDslElement.TEST_COVERAGE;
 import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.NUMERIC;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.STRING;
 

@@ -16,6 +16,8 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
+import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -28,15 +30,22 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
+import com.intellij.mock.Mock
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
 import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl
+import com.intellij.openapi.fileEditor.FileEditorComposite
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.impl.EditorWindow
+import com.intellij.openapi.fileEditor.impl.FileEditorOpenOptions
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.testFramework.DisposableRule
@@ -54,11 +63,15 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.io.File
 import java.nio.file.Path
 import java.util.EnumSet
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.UIManager
+import kotlin.time.Duration.Companion.seconds
+
+private val TIMEOUT = 5.seconds
 
 private const val DISPLAY_INFO_PHONE =
   "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:4619827259835644672\", 1080 x 2400, modeId 1, defaultModeId 1," +
@@ -112,6 +125,9 @@ class ScreenshotViewerTest {
     override val displayName = "Test frame"
   }
 
+  private val fileNamePrompts = mutableListOf<String>()
+  private val openedFiles = mutableListOf<String>()
+
   @After
   fun tearDown() {
     findModelessDialog { it is ScreenshotViewer }?.close(CLOSE_EXIT_CODE)
@@ -119,36 +135,63 @@ class ScreenshotViewerTest {
 
   @Test
   fun testResizing() {
-    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
-    val zoomFactor = zoomModel.zoomFactor
-
+    waitForCondition(TIMEOUT) {
+      zoomModel.zoomFactor == 1.0
+    }
     viewer.rootPane.setSize(viewer.rootPane.width + 50, viewer.rootPane.width + 100)
     ui.layoutAndDispatchEvents()
-    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(zoomFactor)
+    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(1.0)
   }
 
   @Test
   fun testUpdateEditorImage() {
-    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
-    val zoomFactor = zoomModel.zoomFactor
+    waitForCondition(TIMEOUT) {
+      zoomModel.zoomFactor == 1.0
+    }
 
     viewer.updateEditorImage()
     ui.layoutAndDispatchEvents()
-    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(zoomFactor)
+    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(1.0)
+  }
+
+  @Test
+  fun testRecapture() {
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val screenshotSupplier = object : ScreenshotSupplier {
+      var captured = false
+
+      override fun captureScreenshot(): ScreenshotImage {
+        captured = true
+        return screenshotImage
+      }
+
+      override fun dispose() {
+      }
+    }
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator(), screenshotSupplier)
+    val ui = FakeUi(viewer.rootPane)
+
+    val recaptureButton = ui.getComponent<JButton> { it.text == "Recapture" }
+    ui.clickOn(recaptureButton)
+    assertThat(screenshotSupplier.captured).isTrue()
+    Disposer.dispose(screenshotSupplier)
+    assertThat(recaptureButton.isEnabled).isFalse()
   }
 
   @Test
   fun testClipRoundScreenshot() {
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
 
@@ -164,7 +207,7 @@ class ScreenshotViewerTest {
   @Test
   fun testClipRoundScreenshotWithBackgroundColor() {
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -172,6 +215,9 @@ class ScreenshotViewerTest {
     clipComboBox.selectFirstMatch("Rectangular")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+    }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
@@ -184,13 +230,16 @@ class ScreenshotViewerTest {
       UIManager.setLookAndFeel(DarculaLaf())
     }
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
 
     clipComboBox.selectFirstMatch("Rectangular")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+    }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
@@ -200,7 +249,7 @@ class ScreenshotViewerTest {
   @Test
   fun testPlayCompatibleScreenshotIsAvailable() {
     val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -208,9 +257,29 @@ class ScreenshotViewerTest {
   }
 
   @Test
+  fun testPlayStoreCompatibleOptionIsSetByDefaultForWearDevices() {
+    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Play Store Compatible")
+  }
+
+  @Test
+  fun testPlayStoreCompatibleOptionIsNotSetByDefaultForNonWearDevices() {
+    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.selectedItem?.toString()).isNotEqualTo("Play Store Compatible")
+  }
+
+  @Test
   fun testPlayCompatibleScreenshotIsNotAvailableWhenScreenshotIsNot1to1Ratio() {
     val screenshotImage = ScreenshotImage(createImage(384, 500), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -220,7 +289,7 @@ class ScreenshotViewerTest {
   @Test
   fun testPlayCompatibleScreenshot() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -228,6 +297,9 @@ class ScreenshotViewerTest {
     clipComboBox.selectFirstMatch("Play Store Compatible")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+    }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
@@ -240,7 +312,7 @@ class ScreenshotViewerTest {
       UIManager.setLookAndFeel(DarculaLaf())
     }
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -248,6 +320,9 @@ class ScreenshotViewerTest {
     clipComboBox.selectFirstMatch("Play Store Compatible")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+    }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
@@ -257,7 +332,7 @@ class ScreenshotViewerTest {
   @Test
   fun testComboBoxDefaultsToDisplayShapeIfAvailable() {
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -267,7 +342,7 @@ class ScreenshotViewerTest {
   @Test
   fun testComboBoxDefaultsToPlayStoreCompatibleIfDisplayShapeIsNotAvailable() {
     val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH_SQUARE)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -276,8 +351,8 @@ class ScreenshotViewerTest {
 
   @Test
   fun testComboBoxDefaultsToRectangularIfPlayStoreCompatibleAndDisplayShapeAreNotAvailable() {
-    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -285,15 +360,20 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  fun testScreenshotUsageIsTracked_OkAction_Phone() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
-    overrideSaveFileDialog()
+  fun testSave_Phone() {
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
+    val tempFile = FileUtil.createTempFile("saved_screenshot", SdkConstants.DOT_PNG)
+    overrideSaveFileDialog(tempFile)
 
     viewer.doOKAction()
 
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(fileNamePrompts).hasSize(1)
+    val parentPrefix = tempFile.parent.toString().replace(File.separatorChar, '/')
+    assertThat(fileNamePrompts[0]).matches("file://$parentPrefix/Screenshot_\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d\\d\\d\\d")
+    assertThat(openedFiles).containsExactly("file://${tempFile.toString().replace(File.separatorChar, '/')}")
     assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
       DeviceScreenshotEvent.newBuilder()
         .setDeviceType(DeviceScreenshotEvent.DeviceType.PHONE)
@@ -303,12 +383,41 @@ class ScreenshotViewerTest {
   }
 
   @Test
+  fun testSave_Wear() {
+    val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
+    val ui = FakeUi(viewer.rootPane)
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    val tempFile = FileUtil.createTempFile("saved_screenshot", SdkConstants.DOT_PNG)
+    overrideSaveFileDialog(tempFile)
+
+    clipComboBox.selectFirstMatch("Play Store Compatible")
+    viewer.doOKAction()
+
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(fileNamePrompts).hasSize(1)
+    val parentPrefix = tempFile.parent.toString().replace(File.separatorChar, '/')
+    assertThat(fileNamePrompts[0]).matches("file://$parentPrefix/Screenshot_\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d\\d\\d\\d")
+    assertThat(openedFiles).containsExactly("file://${tempFile.toString().replace(File.separatorChar, '/')}")
+    assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
+      DeviceScreenshotEvent.newBuilder()
+        .setDeviceType(DeviceScreenshotEvent.DeviceType.WEAR)
+        .setDecorationOption(DeviceScreenshotEvent.DecorationOption.PLAY_COMPATIBLE)
+        .build()
+    )
+  }
+
+  @Test
   fun testScreenshotUsageIsTracked_CopyClipboard_Phone() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
     val copyClipboardButton = ui.getComponent<JButton> { it.text == "Copy to Clipboard" }
 
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value != null
+    }
     copyClipboardButton.doClick()
 
     EDT.dispatchAllInvocationEvents()
@@ -322,31 +431,9 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  fun testScreenshotUsageIsTracked_OkAction_Wear() {
-    val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
-    val ui = FakeUi(viewer.rootPane)
-    val clipComboBox = ui.getComponent<JComboBox<*>>()
-    overrideSaveFileDialog()
-
-    clipComboBox.selectFirstMatch("Play Store Compatible")
-    viewer.doOKAction()
-
-    EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
-      DeviceScreenshotEvent.newBuilder()
-        .setDeviceType(DeviceScreenshotEvent.DeviceType.WEAR)
-        .setDecorationOption(DeviceScreenshotEvent.DecorationOption.PLAY_COMPATIBLE)
-        .build()
-    )
-  }
-
-
-  @Test
   fun testScreenshotUsageIsTracked_CopyClipboard_Wear() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
     val copyClipboardButton = ui.getComponent<JButton> { it.text == "Copy to Clipboard" }
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -370,7 +457,7 @@ class ScreenshotViewerTest {
     ScreenshotViewer.PersistentState.getInstance(projectRule.project).frameScreenshot = true
 
     // test that no exceptions are thrown
-    createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor(), framingOptions = listOf())
+    createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator(), framingOptions = listOf())
   }
 
   private fun createImage(width: Int, height: Int): BufferedImage {
@@ -383,30 +470,42 @@ class ScreenshotViewerTest {
   }
 
   private fun createScreenshotViewer(screenshotImage: ScreenshotImage,
-                                     screenshotPostprocessor: ScreenshotPostprocessor,
+                                     screenshotDecorator: ScreenshotDecorator,
+                                     screenshotSupplier: ScreenshotSupplier? = null,
                                      framingOptions: List<FramingOption> = listOf(testFrame)): ScreenshotViewer {
-    val screenshotFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
-    val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, null, screenshotPostprocessor,
+    val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+    val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
+    val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, screenshotSupplier, screenshotDecorator,
                                   framingOptions, 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
     viewer.show()
     return viewer
   }
 
-  private fun overrideSaveFileDialog() {
-    val tempFile = FileUtil.createTempFile("foo", "screenshot")
-    val virtualFileWrapper = VirtualFileWrapper(tempFile)
+  private fun overrideSaveFileDialog(file: File) {
+    val virtualFileWrapper = VirtualFileWrapper(file)
     val factory = object : FileChooserFactoryImpl() {
       override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
         return object : FileSaverDialog {
-          override fun save(baseDir: VirtualFile?, filename: String?) = virtualFileWrapper
+          override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper {
+            fileNamePrompts.add("$baseDir/$filename")
+            return virtualFileWrapper
+          }
           override fun save(baseDir: Path?, filename: String?) = virtualFileWrapper
         }
       }
     }
     ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, disposableRule.disposable)
+
+    val fileEditorManager = object : Mock.MyFileEditorManager() {
+      @Suppress("UnstableApiUsage")
+      override fun openFile(file: VirtualFile, window: EditorWindow?, options: FileEditorOpenOptions): FileEditorComposite {
+        openedFiles.add(file.toString())
+        return super.openFile(file, window, options)
+      }
+    }
+    projectRule.project.replaceService(FileEditorManager::class.java, fileEditorManager, disposableRule.disposable)
   }
 
   private fun UsageTrackerRule.screenshotEvents(): List<DeviceScreenshotEvent> =
     usages.filter { it.studioEvent.kind == DEVICE_SCREENSHOT_EVENT }.map { it.studioEvent.deviceScreenshotEvent }
-
 }

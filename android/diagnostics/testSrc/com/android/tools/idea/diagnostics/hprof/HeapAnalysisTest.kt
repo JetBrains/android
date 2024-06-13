@@ -52,6 +52,20 @@ class HeapAnalysisTest {
     }.run(scenario, baselineFileName, nominatedClassNames, config = config, summaryBaselineFileName = summaryBaselineFileName)
   }
 
+  /**
+   * Current JVM version: 8,11,17
+   */
+  private fun javaVersion(): Int {
+    val version = System.getProperty("java.specification.version")
+    val dot = version.indexOf('.')
+    return if (dot >= 0) {
+      version.substring(dot + 1).toInt()
+    }
+    else {
+      version.toInt()
+    }
+  }
+
   @Test
   fun testPathsThroughDifferentFields() {
     class MyRef(val referent: Any)
@@ -72,7 +86,7 @@ class HeapAnalysisTest {
                                 refStore.createWeakReference(a)))
         addRootUnknown(TestClassA())
       }
-      runHProfScenario(scenario, "testPathsThroughDifferentFields.txt",
+      runHProfScenario(scenario, if (javaVersion()<=17) "testPathsThroughDifferentFields17.txt" else "testPathsThroughDifferentFields.txt",
                        listOf("TestClassB",
                               "TestClassA",
                               "TestString"))

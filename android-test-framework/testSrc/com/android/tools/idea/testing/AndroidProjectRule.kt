@@ -45,6 +45,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -507,6 +508,9 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
+
+    // Wait for indexing to finish, especially if an SDK was added to the classpath.
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
   }
 
   private fun <T : Facet<C>, C : FacetConfiguration> addFacet(type: FacetType<T, C>, facetName: String): T {

@@ -26,7 +26,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -40,14 +42,15 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.util.io.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
 
-private fun <T : PreviewElement, M> calcAffinityMatrix(
+private fun <T : PreviewElement<*>, M> calcAffinityMatrix(
   elements: List<T>,
   models: List<M>,
-  previewElementModelAdapter: PreviewElementModelAdapter<T, M>
+  previewElementModelAdapter: PreviewElementModelAdapter<T, M>,
 ): List<List<Int>> {
   val modelElements = models.map { previewElementModelAdapter.modelToElement(it) }
   return elements.map { element ->
@@ -61,10 +64,10 @@ private fun <T : PreviewElement, M> calcAffinityMatrix(
  * indices are for the input [models] [List]. If there are less [models] than [elements] then
  * indices for some [PreviewElement]s will be set to -1.
  */
-fun <T : PreviewElement, M> matchElementsToModels(
+fun <T : PreviewElement<*>, M> matchElementsToModels(
   models: List<M>,
   elements: List<T>,
-  previewElementModelAdapter: PreviewElementModelAdapter<T, M>
+  previewElementModelAdapter: PreviewElementModelAdapter<T, M>,
 ): List<Int> {
   val affinityMatrix = calcAffinityMatrix(elements, models, previewElementModelAdapter)
   if (affinityMatrix.isEmpty()) {
@@ -112,21 +115,28 @@ fun <T : PreviewElement, M> matchElementsToModels(
  *   [LayoutlibSceneManager].
  * @param refreshFilter a filter to only refresh some of the existing previews. By default, all of
  *   them are refreshed
+ * @param refreshOrder a function that maps scene managers to integers. Then the previews will be
+ *   refreshed in ascending order according to these integers. Also, the order between previews
+ *   mapped to the same integer is not guaranteed.
+ * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
  */
 @Slow
-suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
+suspend fun <T : PreviewElement<*>> NlDesignSurface.refreshExistingPreviewElements(
   progressIndicator: ProgressIndicator,
   modelToPreview: NlModel.() -> T?,
   configureLayoutlibSceneManager:
     (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
   refreshFilter: (LayoutlibSceneManager) -> Boolean = { true },
-  refreshOrder: (LayoutlibSceneManager) -> Int = { 0 }
+  refreshOrder: (LayoutlibSceneManager) -> Int = { 0 },
+  refreshEventBuilder: PreviewRefreshEventBuilder?,
 ) {
   val previewElementsToSceneManagers =
     sceneManagers.filter(refreshFilter).sortedBy(refreshOrder).mapNotNull {
       val previewElement = modelToPreview(it.model) ?: return@mapNotNull null
       previewElement to it
     }
+  refreshEventBuilder?.withPreviewsCount(sceneManagers.size)
+  refreshEventBuilder?.withPreviewsToRefresh(previewElementsToSceneManagers.size)
   previewElementsToSceneManagers.forEachIndexed { index, pair ->
     if (progressIndicator.isCanceled)
       return@refreshExistingPreviewElements // Return early if user cancels the refresh.
@@ -134,12 +144,14 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
       message(
         "refresh.progress.indicator.rendering.preview",
         index + 1,
-        previewElementsToSceneManagers.size
+        previewElementsToSceneManagers.size,
       )
     val (previewElement, sceneManager) = pair
     // When showing decorations, show the full device size
-    configureLayoutlibSceneManager(previewElement.displaySettings, sceneManager)
-      .requestDoubleRender()
+    renderAndTrack(
+      configureLayoutlibSceneManager(previewElement.displaySettings, sceneManager),
+      refreshEventBuilder,
+    )
   }
 }
 
@@ -160,8 +172,9 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
  * @param modelUpdater [NlModel.NlModelUpdaterInterface] to be used for updating the [NlModel]
  * @param configureLayoutlibSceneManager helper called when the method needs to configure a
  *   [LayoutlibSceneManager].
+ * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
  */
-suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
+suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   tryReusingModels: Boolean,
   reinflate: Boolean,
   previewElements: Collection<T>,
@@ -174,14 +187,18 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   modelUpdater: NlModel.NlModelUpdaterInterface,
   navigationHandler: PreviewNavigationHandler,
   configureLayoutlibSceneManager:
-    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
+    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
+  refreshEventBuilder: PreviewRefreshEventBuilder?,
 ): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
-  val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
-  val configurationManager =
+
+  val (facet, configurationManager) =
     withContext(AndroidDispatchers.workerThread) {
-      ConfigurationManager.getOrCreateInstance(facet.module)
+      AndroidFacet.getInstance(psiFile)?.let { facet ->
+        return@withContext facet to ConfigurationManager.getOrCreateInstance(facet.module)
+      } ?: (null to null)
     }
+  if (facet == null || configurationManager == null) return emptyList()
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new
   // ones.
   val existingModels = models.toMutableList()
@@ -209,6 +226,9 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     Disposer.dispose(it)
   }
 
+  refreshEventBuilder?.withPreviewsCount(elementsToReusableModels.size)
+  refreshEventBuilder?.withPreviewsToRefresh(elementsToReusableModels.size)
+
   // Second, reorder the models to reuse and create the new models needed,
   // adding placeholders for all of them, but without rendering anything yet.
   val elementsToSceneManagers =
@@ -220,7 +240,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       val fileContents = previewElementModelAdapter.toXml(previewElement)
       debugLogger?.logPreviewElement(
         previewElementModelAdapter.toLogString(previewElement),
-        fileContents
+        fileContents,
       )
 
       val newModel: NlModel
@@ -231,7 +251,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         val affinity =
           previewElementModelAdapter.calcAffinity(
             previewElement,
-            previewElementModelAdapter.modelToElement(model)
+            previewElementModelAdapter.modelToElement(model),
           )
         // If the model is for the same element (affinity=0) and we know that it is not spoiled by
         // previous actions (reinflate=false) we can skip reinflate and therefore refresh much
@@ -266,28 +286,27 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       newModel.modelDisplayName = previewElement.displaySettings.name
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
-      (previewElement as? MethodPreviewElement)?.let { newModel.organizationGroup = it.methodFqn }
+      (previewElement as? MethodPreviewElement<*>)?.let {
+        newModel.organizationGroup = it.methodFqn
+      }
+      val newSceneManager =
+        withContext(AndroidDispatchers.workerThread) { addModelWithoutRender(newModel).await() }
       val sceneManager =
-        configureLayoutlibSceneManager(
-            previewElement.displaySettings,
-            addModelWithoutRender(newModel)
-          )
-          .also {
-            if (forceReinflate) {
-              it.forceReinflate()
-            }
-            if (invalidatePreviousRender) {
-              it.invalidateCachedResponse()
-            }
+        configureLayoutlibSceneManager(previewElement.displaySettings, newSceneManager).also {
+          if (forceReinflate) {
+            it.forceReinflate()
           }
+          if (invalidatePreviousRender) {
+            it.invalidateCachedResponse()
+          }
+        }
 
       val offset = runReadAction {
-        previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0
+        previewElement.previewElementDefinition?.element?.textOffset ?: 0
       }
       val defaultFile =
-        previewElement.previewElementDefinitionPsi?.virtualFile?.let {
-          getPsiFileSafely(project, it)
-        } ?: psiFile
+        previewElement.previewElementDefinition?.virtualFile?.let { getPsiFileSafely(project, it) }
+          ?: psiFile
       navigationHandler.setDefaultLocation(newModel, defaultFile, offset)
 
       withContext(AndroidDispatchers.workerThread) {
@@ -308,11 +327,30 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     if (progressIndicator.isCanceled) return@forEachIndexed
     progressIndicator.text =
       message("refresh.progress.indicator.rendering.preview", idx + 1, elementsToSceneManagers.size)
-    sceneManager.render { previewsRendered++ }
+    renderAndTrack(sceneManager, refreshEventBuilder) { if (it == null) previewsRendered++ }
   }
   onRenderCompleted(previewsRendered)
 
   debugLogger?.logRenderComplete(this)
   log.info("Render completed")
   return elementsToSceneManagers.map { it.first }
+}
+
+private suspend fun renderAndTrack(
+  sceneManager: LayoutlibSceneManager,
+  refreshEventBuilder: PreviewRefreshEventBuilder?,
+  onCompleteCallback: (Throwable?) -> Unit = {},
+) {
+  val inflate = sceneManager.isForceReinflate
+  val quality = sceneManager.quality
+  val startMs = System.currentTimeMillis()
+  sceneManager.render {
+    onCompleteCallback(it)
+    refreshEventBuilder?.addPreviewRenderDetails(
+      sceneManager.renderResult?.isErrorResult() ?: false,
+      inflate,
+      quality,
+      System.currentTimeMillis() - startMs,
+    )
+  }
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.prefs.AndroidLocationsSingleton;
-import com.android.repository.api.Channel;
 import com.android.repository.api.DelegatingProgressIndicator;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.PackageOperation;
@@ -40,25 +39,19 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
-import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.JBColor;
 import java.io.File;
 import java.io.IOException;
@@ -74,8 +67,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.event.AncestorEvent;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,8 +87,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   private static final int ESTIMATED_ZIP_DECOMPRESSION_RATE = 4;
 
   private SdkUpdaterConfigPanel myPanel;
-  private Channel myCurrentChannel;
-  private Runnable myChannelChangedCallback;
 
   @NotNull
   @Override
@@ -108,7 +97,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nls
   @Override
   public String getDisplayName() {
-    return AndroidBundle.message("configurable.SdkUpdaterConfigurable.display.name");
+    return "Android SDK Updater";
   }
 
   @Nullable
@@ -120,25 +109,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nullable
   @Override
   public JComponent createComponent() {
-    myChannelChangedCallback = () -> {
-      Channel channel = StudioSettingsController.getInstance().getChannel();
-      if (myCurrentChannel == null) {
-        myCurrentChannel = channel;
-      }
-      if (!Objects.equal(channel, myCurrentChannel)) {
-        myCurrentChannel = channel;
-        myPanel.refresh(true);
-      }
-    };
-    myPanel =
-      new SdkUpdaterConfigPanel(myChannelChangedCallback, new StudioDownloader(), StudioSettingsController.getInstance(), this);
-    JComponent component = myPanel.getComponent();
-    component.addAncestorListener(new AncestorListenerAdapter() {
-      @Override
-      public void ancestorAdded(AncestorEvent event) {
-        myChannelChangedCallback.run();
-      }
-    });
+    myPanel = new SdkUpdaterConfigPanel(new StudioDownloader(), StudioSettingsController.getInstance(), this);
 
     return myPanel.getComponent();
   }
@@ -158,22 +129,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public boolean isModified() {
-    if (myPanel.isModified()) {
-      return true;
-    }
-
-    // If the user modifies the channel, comes back here, and then applies the change, we want to be able to update
-    // right away. Thus we mark ourselves as modified if UpdateSettingsConfigurable is modified, and then reload in
-    // apply().
-    DataContext dataContext = DataManager.getInstance().getDataContext(myPanel.getComponent());
-    Settings data = Settings.KEY.getData(dataContext);
-    if (data != null) {
-      Configurable updatesConfigurable = data.find("preferences.updates");
-      if (updatesConfigurable != null) {
-        return updatesConfigurable.isModified();
-      }
-    }
-    return false;
+    return myPanel.isModified();
   }
 
   @Override
@@ -328,10 +284,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         throw new ConfigurationException("Installation was canceled.");
       }
     }
-    else {
-      // We didn't have any changes, so just reload (maybe the channel changed).
-      myChannelChangedCallback.run();
-    }
   }
 
   @VisibleForTesting
@@ -420,7 +372,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     String[] options = {Messages.getCancelButton(), Messages.getOkButton()};
     Icon icon = AllIcons.General.Warning;
 
-    // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display offscree
+    // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display off-screen
     return Messages.showIdeaMessageDialog(null, message.getHtml(), "Confirm Change", options, 1, icon, null) == 1;
   }
 

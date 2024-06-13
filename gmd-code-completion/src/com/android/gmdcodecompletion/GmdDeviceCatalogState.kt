@@ -23,6 +23,6 @@ abstract class GmdDeviceCatalogState(
   open val expireDate: Date = Date(0),
   open val myDeviceCatalog: GmdDeviceCatalog) {
   fun isCacheFresh(): Boolean {
-    return (Calendar.getInstance().time < expireDate && !myDeviceCatalog.isEmpty())
+    return (Calendar.getInstance().time < expireDate && !myDeviceCatalog.isEmptyCatalog)
   }
 }

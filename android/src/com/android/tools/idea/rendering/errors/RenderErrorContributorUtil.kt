@@ -21,7 +21,6 @@ import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.rendering.HtmlLinkManager
 import com.android.utils.HtmlBuilder
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.project.Project
 
 /**
  * Create a [MessageTip] to build the project with a link to its action
@@ -59,18 +58,18 @@ fun createBuildTheModuleMessage(linkManager: HtmlLinkManager): MessageTip {
 }
 
 /**
- * Create a [MessageTip] to build and refresh the layout with a link to its action
+ * Create a [MessageTip] to build and refresh the preview with a link to its action
  *
  * @param linkManager the manager with the action to take
  */
-fun createBuildAndRefreshLayoutMessage(linkManager: HtmlLinkManager): MessageTip {
+fun createBuildAndRefreshPreviewMessage(linkManager: HtmlLinkManager): MessageTip {
   return MessageTip(
     AllIcons.General.Information,
     HtmlBuilder()
       .addLink(
         "Tip: ",
         "Build & Refresh",
-        " the layout.",
+        " the preview.",
         linkManager.createRefreshRenderUrl()
       )
   )
@@ -80,14 +79,13 @@ fun createBuildAndRefreshLayoutMessage(linkManager: HtmlLinkManager): MessageTip
  * Adds "Show Exception" call action to the html builder.
  *
  * @param linkManager the manager with the action to take
- * @param project the project on which you want to report the bug
  * @param throwable the exception on which you want to show the action
  */
-fun HtmlBuilder.addExceptionMessage(linkManager: HtmlLinkManager, project: Project?, throwable: Throwable?): HtmlBuilder {
+fun HtmlBuilder.addExceptionMessage(linkManager: HtmlLinkManager, throwable: Throwable?): HtmlBuilder {
   throwable?.let {
     addLink(
       "Show Exception",
-      linkManager.createRunnableLink(ShowExceptionFix(project, throwable))
+      linkManager.createActionLink(ShowExceptionFix(throwable))
     )
   }
   return this
@@ -96,10 +94,9 @@ fun HtmlBuilder.addExceptionMessage(linkManager: HtmlLinkManager, project: Proje
 /**
  * Create a [MessageTip] with a link to the bug report page
  *
- * @param project the project on which you want to report the bug
  * @param linkManager the manager with the action to take
 */
-fun createAddReportBugMessage(project: Project, linkManager: HtmlLinkManager, textBefore: String? = null): MessageTip {
+fun createAddReportBugMessage(linkManager: HtmlLinkManager, textBefore: String? = null): MessageTip {
   val builder = HtmlBuilder()
   textBefore?.let {
     builder.add(it).newline()
@@ -110,6 +107,6 @@ fun createAddReportBugMessage(project: Project, linkManager: HtmlLinkManager, te
       null,
       "Report Bug",
       ".",
-      linkManager.createRunnableLink { SendFeedbackAction.submit(project) })
+      linkManager.createActionLink { module -> SendFeedbackAction.submit(module?.project ?: return@createActionLink) })
   )
 }

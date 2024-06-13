@@ -21,7 +21,9 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.UsefulTestCase
+import org.junit.Rule
 import org.junit.Test
 
 private val LAYOUT_SCREEN_SIMPLE =
@@ -32,42 +34,49 @@ private val LAYOUT_MAIN =
   ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class ViewNodeTest {
+  @get:Rule val disposableRule = DisposableRule()
+
+  val disposable
+    get() = disposableRule.disposable
+
   @Test
   fun testFlatten() {
-    val model = model {
-      view(ROOT) {
-        view(VIEW1) { view(VIEW3) }
-        view(VIEW2)
+    val model =
+      model(disposable) {
+        view(ROOT) {
+          view(VIEW1) { view(VIEW3) }
+          view(VIEW2)
+        }
       }
-    }
 
     UsefulTestCase.assertSameElements(
       model[ROOT]!!.flattenedList().map { it.drawId }.toList(),
       ROOT,
       VIEW1,
       VIEW3,
-      VIEW2
+      VIEW2,
     )
     UsefulTestCase.assertSameElements(
       model[VIEW1]!!.flattenedList().map { it.drawId }.toList(),
       VIEW1,
-      VIEW3
+      VIEW3,
     )
   }
 
   @Test
   fun testIsSystemNode() {
-    val model = model {
-      view(ROOT, layout = null, qualifiedName = "com.android.internal.policy.DecorView") {
-        view(VIEW1, layout = LAYOUT_SCREEN_SIMPLE) {
-          view(VIEW2, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {
-            view(VIEW3, layout = LAYOUT_MAIN) {
-              view(VIEW4, layout = null, qualifiedName = "com.acme.MyImageView")
+    val model =
+      model(disposable) {
+        view(ROOT, layout = null, qualifiedName = "com.android.internal.policy.DecorView") {
+          view(VIEW1, layout = LAYOUT_SCREEN_SIMPLE) {
+            view(VIEW2, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {
+              view(VIEW3, layout = LAYOUT_MAIN) {
+                view(VIEW4, layout = null, qualifiedName = "com.acme.MyImageView")
+              }
             }
           }
         }
       }
-    }
     val treeSettings = FakeTreeSettings()
     val system1 = model[ROOT]!!
     val system2 = model[VIEW1]!!
@@ -98,15 +107,16 @@ class ViewNodeTest {
 
   @Test
   fun testClosestUnfilteredNode() {
-    val model = model {
-      view(ROOT, layout = null, qualifiedName = "com.android.internal.policy.DecorView") {
-        view(VIEW1, layout = LAYOUT_MAIN) {
-          view(VIEW2, layout = LAYOUT_SCREEN_SIMPLE) {
-            view(VIEW3, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {}
+    val model =
+      model(disposable) {
+        view(ROOT, layout = null, qualifiedName = "com.android.internal.policy.DecorView") {
+          view(VIEW1, layout = LAYOUT_MAIN) {
+            view(VIEW2, layout = LAYOUT_SCREEN_SIMPLE) {
+              view(VIEW3, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {}
+            }
           }
         }
       }
-    }
     val treeSettings = FakeTreeSettings()
     val root = model[ROOT]!!
     val view1 = model[VIEW1]!!

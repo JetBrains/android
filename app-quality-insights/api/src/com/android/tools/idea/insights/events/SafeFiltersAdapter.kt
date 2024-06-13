@@ -32,7 +32,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     var result = delegate.transition(state, tracker, key)
     if (result.newState.connections.selected?.isConfigured != true) {
@@ -41,7 +41,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
           issues =
             LoadingState.UnknownFailure(
               "Currently selected app is not configured with the current insights tool.",
-              UnconfiguredAppException
+              UnconfiguredAppException,
             ),
           currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
@@ -50,10 +50,10 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
             result.newState.filters.copy(
               versions = MultiSelection.emptySelection(),
               devices = MultiSelection.emptySelection(),
-              operatingSystems = MultiSelection.emptySelection()
-            )
+              operatingSystems = MultiSelection.emptySelection(),
+            ),
         ),
-        action = Action.CancelFetches
+        action = Action.CancelFetches,
       )
     }
     if (result.newState.filters.failureTypeToggles.selected.isEmpty()) {
@@ -63,9 +63,9 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
             issues = LoadingState.UnknownFailure(null, NoTypesSelectedException),
             currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
-            currentNotes = LoadingState.Ready(null)
+            currentNotes = LoadingState.Ready(null),
           ),
-          action = Action.CancelFetches
+          action = Action.CancelFetches,
         )
     }
     if (
@@ -78,9 +78,9 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
             issues = LoadingState.UnknownFailure(null, NoVersionsSelectedException),
             currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
-            currentNotes = LoadingState.Ready(null)
+            currentNotes = LoadingState.Ready(null),
           ),
-          action = Action.CancelFetches
+          action = Action.CancelFetches,
         )
     }
     if (
@@ -93,9 +93,9 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
             issues = LoadingState.UnknownFailure(null, NoDevicesSelectedException),
             currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
-            currentNotes = LoadingState.Ready(null)
+            currentNotes = LoadingState.Ready(null),
           ),
-          action = Action.CancelFetches
+          action = Action.CancelFetches,
         )
     }
     if (
@@ -108,9 +108,9 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
             issues = LoadingState.UnknownFailure(null, NoOperatingSystemsSelectedException),
             currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
-            currentNotes = LoadingState.Ready(null)
+            currentNotes = LoadingState.Ready(null),
           ),
-          action = Action.CancelFetches
+          action = Action.CancelFetches,
         )
     }
     return result

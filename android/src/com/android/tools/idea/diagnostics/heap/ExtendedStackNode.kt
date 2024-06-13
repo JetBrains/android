@@ -18,7 +18,8 @@ package com.android.tools.idea.diagnostics.heap
 data class ExtendedStackNode(
   val className: String,
   val label: String,
-  val isDisposedButReferenced: Boolean) {
+  val isDisposedButReferenced: Boolean,
+  val isLoadedWithNominatedLoader: Boolean) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -28,6 +29,7 @@ data class ExtendedStackNode(
     if (className != other.className) return false
     if (label != other.label) return false
     if (isDisposedButReferenced != other.isDisposedButReferenced) return false
+    if (isLoadedWithNominatedLoader != other.isLoadedWithNominatedLoader) return false
 
     return true
   }
@@ -36,6 +38,7 @@ data class ExtendedStackNode(
     var result = className.hashCode()
     result = 31 * result + label.hashCode()
     result = 31 * result + isDisposedButReferenced.hashCode()
+    result = 31 * result + isLoadedWithNominatedLoader.hashCode()
     return result
   }
 }

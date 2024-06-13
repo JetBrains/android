@@ -17,35 +17,38 @@ package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.animation.AnimationCard
-import com.android.tools.idea.compose.preview.animation.NoopAnimationTracker
-import com.android.tools.idea.compose.preview.animation.TestUtils
+import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
-import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.AnimationCard
+import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
+import com.android.tools.idea.preview.animation.TestUtils.findToolbar
+import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.RunsInEdt
+import java.awt.Dimension
+import javax.swing.JPanel
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Dimension
-import javax.swing.JPanel
 
 class FromToStateTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private val minimumSize = Dimension(10, 10)
 
+  @RunsInEdt
   @Test
   fun createCard() {
     var callbacks = 0
     val state =
-      FromToState(NoopAnimationTracker) { callbacks++ }
+      FromToState(NoopComposeAnimationTracker) { callbacks++ }
         .apply {
           updateStates(setOf("One", "Two", "Three"))
           setStartState("One")
@@ -53,57 +56,56 @@ class FromToStateTest {
         }
     val card =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          createTestSlider(),
           Mockito.mock(DesignSurface::class.java),
-          ElementState("Title"),
+          MutableStateFlow(ElementState()),
+          "Title",
           state.extraActions,
-          NoopAnimationTracker
+          NoopComposeAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }
 
-    ApplicationManager.getApplication().invokeAndWait {
-      val ui =
-        FakeUi(card).apply {
-          updateToolbars()
-          layoutAndDispatchEvents()
-        }
+    val ui =
+      FakeUi(card).apply {
+        updateToolbars()
+        layoutAndDispatchEvents()
+      }
 
-      val toolbarComponents = card.findToolbar("AnimationCard").component.components
-      assertEquals(5, toolbarComponents.size)
-      // All components are visible
-      toolbarComponents.forEach { assertBigger(minimumSize, it.size) }
-      // Default state.
-      assertEquals("One", (toolbarComponents[2] as JPanel).findComboBox().text)
-      assertEquals("Two", (toolbarComponents[4] as JPanel).findComboBox().text)
-      assertEquals("One", state.getState(0))
-      assertEquals("Two", state.getState(1))
-      val hash = state.stateHashCode()
-      // Swap state.
-      ui.clickOn(toolbarComponents[1])
-      // State hashCode has changed.
-      assertNotEquals(hash, state.stateHashCode())
-      // The states swapped.
-      assertEquals(1, callbacks)
-      assertEquals("Two", (toolbarComponents[2] as JPanel).findComboBox().text)
-      assertEquals("One", (toolbarComponents[4] as JPanel).findComboBox().text)
-      assertEquals("Two", state.getState(0))
-      assertEquals("One", state.getState(1))
-      // Update states.
-      state.updateStates(setOf("Four", "Five", "Six"))
-      state.setStartState("Four")
-      ui.updateToolbars()
-      assertEquals("Four", (toolbarComponents[2] as JPanel).findComboBox().text)
-      assertEquals("Five", (toolbarComponents[4] as JPanel).findComboBox().text)
-      assertEquals("Four", state.getState(0))
-      assertEquals("Five", state.getState(1))
-      // Swap state.
-      ui.clickOn(toolbarComponents[1])
-      assertEquals("Five", (toolbarComponents[2] as JPanel).findComboBox().text)
-      assertEquals("Four", (toolbarComponents[4] as JPanel).findComboBox().text)
-      assertEquals("Five", state.getState(0))
-      assertEquals("Four", state.getState(1))
-      // State doesn't exist
-      assertNull(state.getState(2))
-    }
+    val toolbar = card.findToolbar("AnimationCard")
+    assertEquals(5, toolbar.components.size)
+    // All components are visible
+    toolbar.components.forEach { assertBigger(minimumSize, it.size) }
+    // Default state.
+    assertEquals("One", (toolbar.components[2] as JPanel).findComboBox().text)
+    assertEquals("Two", (toolbar.components[4] as JPanel).findComboBox().text)
+    assertEquals("One", state.getState(0))
+    assertEquals("Two", state.getState(1))
+    val hash = state.stateHashCode()
+    // Swap state.
+    ui.clickOn(toolbar.components[1])
+    // State hashCode has changed.
+    assertNotEquals(hash, state.stateHashCode())
+    // The states swapped.
+    assertEquals(1, callbacks)
+    assertEquals("Two", (toolbar.components[2] as JPanel).findComboBox().text)
+    assertEquals("One", (toolbar.components[4] as JPanel).findComboBox().text)
+    assertEquals("Two", state.getState(0))
+    assertEquals("One", state.getState(1))
+    // Update states.
+    state.updateStates(setOf("Four", "Five", "Six"))
+    state.setStartState("Four")
+    ui.updateToolbars()
+    assertEquals("Four", (toolbar.components[2] as JPanel).findComboBox().text)
+    assertEquals("Five", (toolbar.components[4] as JPanel).findComboBox().text)
+    assertEquals("Four", state.getState(0))
+    assertEquals("Five", state.getState(1))
+    // Swap state.
+    ui.clickOn(toolbar.components[1])
+    assertEquals("Five", (toolbar.components[2] as JPanel).findComboBox().text)
+    assertEquals("Four", (toolbar.components[4] as JPanel).findComboBox().text)
+    assertEquals("Five", state.getState(0))
+    assertEquals("Four", state.getState(1))
+    // State doesn't exist
+    assertNull(state.getState(2))
   }
 }

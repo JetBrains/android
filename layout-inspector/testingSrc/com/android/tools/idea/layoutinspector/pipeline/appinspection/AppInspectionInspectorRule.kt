@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.adblib.testing.FakeAdbSession
 import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
@@ -48,41 +49,15 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-/**
- * An [InspectorClientProvider] for creating an app inspection-based client.
- *
- * Note that some parameters are provided lazily to allow rules to initialize them first.
- */
-fun AppInspectionClientProvider(
-  getApiServices: () -> AppInspectionApiServices,
-  getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor,
-  getClientSettings: () -> InspectorClientSettings,
-  getDisposable: () -> Disposable
-) = InspectorClientProvider { params, inspector ->
-  val apiServices = getApiServices()
-
-  AppInspectionInspectorClient(
-      process = params.process,
-      isInstantlyAutoConnected = params.isInstantlyAutoConnected,
-      model = inspector.inspectorModel,
-      notificationModel = inspector.notificationModel,
-      metrics = LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
-      treeSettings = inspector.treeSettings,
-      inspectorClientSettings = getClientSettings(),
-      coroutineScope = AndroidCoroutineScope(getDisposable()),
-      parentDisposable = getDisposable(),
-      apiServices = apiServices
-    )
-    .apply { launchMonitor = getMonitor(this) }
-}
-
 /** App inspection-pipeline specific setup and teardown for tests. */
 class AppInspectionInspectorRule(
   private val projectRule: AndroidProjectRule,
-  withDefaultResponse: Boolean = true
+  withDefaultResponse: Boolean = true,
 ) : TestRule {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
+
+  val adbSession = FakeAdbSession()
 
   // This flag allows us to avoid a path in Compose inspector client construction so we don't need
   // to mock a bunch of services
@@ -123,7 +98,7 @@ class AppInspectionInspectorRule(
           val rawResponse =
             AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
           AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
-        }
+        },
       )
 
     val composeInspectorHandler =
@@ -138,7 +113,7 @@ class AppInspectionInspectorRule(
           val rawResponse =
             AppInspection.RawResponse.newBuilder().setContent(composeResponse.toByteString())
           AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
-        }
+        },
       )
 
     transportService.setCommandHandler(
@@ -150,22 +125,22 @@ class AppInspectionInspectorRule(
             COMPOSE_LAYOUT_INSPECTOR_ID -> composeInspectorHandler.handleCommand(command, events)
           }
         }
-      }
+      },
     )
   }
 
-  /** Convenience method to create an [AppInspectionClientProvider]. */
+  /** Convenience method to create an [appInspectionClientProvider]. */
   fun createInspectorClientProvider(
     getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor = { defaultMonitor(it) },
     getClientSettings: () -> InspectorClientSettings = { defaultInspectorClientSettings() },
     getDisposable: () -> Disposable = { defaultDisposable() },
-    apiServicesProvider: () -> AppInspectionApiServices = { inspectionService.apiServices }
+    apiServicesProvider: () -> AppInspectionApiServices = { inspectionService.apiServices },
   ): InspectorClientProvider {
-    return AppInspectionClientProvider(
+    return appInspectionClientProvider(
       apiServicesProvider,
       getMonitor,
       getClientSettings,
-      getDisposable
+      getDisposable,
     )
   }
 
@@ -175,7 +150,7 @@ class AppInspectionInspectorRule(
       client.notificationModel,
       ListenerCollection.createWithDirectExecutor(),
       client.stats,
-      client.coroutineScope
+      client.coroutineScope,
     )
   }
 
@@ -193,5 +168,33 @@ class AppInspectionInspectorRule(
     return innerRules.fold(base) { stmt: Statement, rule: TestRule ->
       rule.apply(stmt, description)
     }
+  }
+
+  /**
+   * An [InspectorClientProvider] for creating an app inspection-based client.
+   *
+   * Note that some parameters are provided lazily to allow rules to initialize them first.
+   */
+  private fun appInspectionClientProvider(
+    getApiServices: () -> AppInspectionApiServices,
+    getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor,
+    getClientSettings: () -> InspectorClientSettings,
+    getDisposable: () -> Disposable,
+  ) = InspectorClientProvider { params, inspector ->
+    val apiServices = getApiServices()
+
+    AppInspectionInspectorClient(
+        process = params.process,
+        model = inspector.inspectorModel,
+        notificationModel = inspector.notificationModel,
+        metrics = LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
+        treeSettings = inspector.treeSettings,
+        inspectorClientSettings = getClientSettings(),
+        coroutineScope = AndroidCoroutineScope(getDisposable()),
+        parentDisposable = getDisposable(),
+        apiServices = apiServices,
+        debugViewAttributes = DebugViewAttributes(projectRule.project, adbSession),
+      )
+      .apply { launchMonitor = getMonitor(this) }
   }
 }

@@ -20,9 +20,11 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
 import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.analytics.crash.CrashReporter
+import com.android.tools.fonts.DownloadableFontCacheService
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
+import com.android.tools.idea.fonts.StudioDownloadableFontCacheService
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.requiresAndroidModel
@@ -53,24 +55,24 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 import org.jetbrains.android.sdk.AndroidSdkUtils
-import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
+import java.lang.ref.WeakReference
 
 /** Studio-specific implementation of [EnvironmentContext]. */
 class StudioEnvironmentContext(private val module: Module) : EnvironmentContext {
   override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(module.project)
 
-  override val runnableFixFactory: RenderProblem.RunnableFixFactory = ShowFixFactory
+  override val actionFixFactory: RenderProblem.ActionFixFactory = ShowFixFactory
 
   override fun reportMissingSdkDependency(logger: IRenderLogger) {
     val message = RenderProblem.create(ProblemSeverity.ERROR)
     logger.addMessage(message)
     message.htmlBuilder.addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-                                logger.linkManager.createRunnableLink {
-                                  val project = module.project
+                                logger.linkManager.createActionLink { module ->
+                                  val project = module?.project ?: return@createActionLink
                                   val service = ProjectSettingsService.getInstance(project)
                                   if (project.requiresAndroidModel() && service is AndroidProjectSettingsService) {
                                     (service as AndroidProjectSettingsService).openSdkSettings()
-                                    return@createRunnableLink
+                                    return@createActionLink
                                   }
                                   AndroidSdkUtils.openModuleDependenciesConfigurable(module)
                                 })
@@ -98,7 +100,14 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   }
 
   override fun getNavGraphResolver(resourceResolver: ResourceResolver): NavGraphResolver {
-    return NavGraphResolver { navGraph -> getStartDestLayoutId(navGraph, module.project, resourceResolver) }
+    val projectRef = WeakReference(module.project)
+    return NavGraphResolver { navGraph ->
+      val project = projectRef.get() ?: run {
+        Logger.getInstance(StudioRenderSecurityManager::class.java).warn("getNavGraphResolver for disposed project")
+        return@NavGraphResolver null
+      }
+      getStartDestLayoutId(navGraph, project, resourceResolver)
+    }
   }
 
   override fun createRenderSecurityManager(projectPath: String?, platform: AndroidPlatform?): RenderSecurityManager {
@@ -133,4 +142,7 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   // We only track allocations in testing mode
   override fun isInTest(): Boolean = GuiTestingService.getInstance()?.isGuiTestingMode == true ||
                                          ApplicationManager.getApplication()?.isUnitTestMode == true
+
+  override val downloadableFontCacheService: DownloadableFontCacheService
+    get() = StudioDownloadableFontCacheService.getInstance()
 }

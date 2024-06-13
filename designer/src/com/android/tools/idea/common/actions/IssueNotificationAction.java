@@ -25,6 +25,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue;
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView;
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -32,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.util.IconUtil;
 import icons.StudioIcons;
 import java.util.List;
@@ -106,16 +109,22 @@ public class IssueNotificationAction extends ToggleAction {
     if (project == null) {
       return;
     }
-    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
-    String tabName = null;
-    if (surface instanceof NlDesignSurface) {
-      tabName = ((NlDesignSurface)surface).getVisualLintIssueProvider().getUiCheckInstanceId();
+    if (!state) {
+      ToolWindow problemsWindow = ProblemsView.getToolWindow(project);
+      if (problemsWindow != null) {
+        problemsWindow.hide();
+      }
     }
-    IssuePanelService issuePanelService = IssuePanelService.getInstance(project);
-    if (tabName != null) {
-      issuePanelService.setIssuePanelVisibilityByTabName(state, tabName, issuePanelService::focusIssuePanelIfVisible);
+    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    String tabId = null;
+    if (surface instanceof NlDesignSurface) {
+      tabId = ((NlDesignSurface)surface).getVisualLintIssueProvider().getUiCheckInstanceId();
+    }
+    if (tabId != null) {
+      ProblemsViewToolWindowUtils.INSTANCE.selectTab(project, tabId);
     } else {
-      issuePanelService.setSharedIssuePanelVisibility(state, issuePanelService::focusIssuePanelIfVisible);
+      IssuePanelService issuePanelService = IssuePanelService.getInstance(project);
+      issuePanelService.showSharedIssuePanel(true, null);
     }
   }
 

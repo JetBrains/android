@@ -27,42 +27,42 @@ class ResizeBaseTargetTest {
   fun testResizingCursors() {
     assertEquals(
       AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.W_RESIZE),
-      TestResizeBaseTarget(ResizeBaseTarget.Type.LEFT).getMouseCursor(0)
+      TestResizeBaseTarget(ResizeBaseTarget.Type.LEFT).getMouseCursor(0),
     )
 
     assertEquals(
       AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.E_RESIZE),
-      TestResizeBaseTarget(ResizeBaseTarget.Type.RIGHT).getMouseCursor(0)
+      TestResizeBaseTarget(ResizeBaseTarget.Type.RIGHT).getMouseCursor(0),
     )
 
     assertEquals(
       AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.N_RESIZE),
-      TestResizeBaseTarget(ResizeBaseTarget.Type.TOP).getMouseCursor(0)
+      TestResizeBaseTarget(ResizeBaseTarget.Type.TOP).getMouseCursor(0),
     )
 
     assertEquals(
       AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.S_RESIZE),
-      TestResizeBaseTarget(ResizeBaseTarget.Type.BOTTOM).getMouseCursor(0)
+      TestResizeBaseTarget(ResizeBaseTarget.Type.BOTTOM).getMouseCursor(0),
     )
 
     assertEquals(
       AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.NW_RESIZE),
-      TestResizeBaseTarget(ResizeBaseTarget.Type.LEFT_TOP).getMouseCursor(0)
+      TestResizeBaseTarget(ResizeBaseTarget.Type.LEFT_TOP).getMouseCursor(0),
     )
 
     assertEquals(
       AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.SW_RESIZE),
-      TestResizeBaseTarget(ResizeBaseTarget.Type.LEFT_BOTTOM).getMouseCursor(0)
+      TestResizeBaseTarget(ResizeBaseTarget.Type.LEFT_BOTTOM).getMouseCursor(0),
     )
 
     assertEquals(
       AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.NE_RESIZE),
-      TestResizeBaseTarget(ResizeBaseTarget.Type.RIGHT_TOP).getMouseCursor(0)
+      TestResizeBaseTarget(ResizeBaseTarget.Type.RIGHT_TOP).getMouseCursor(0),
     )
 
     assertEquals(
       AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.SE_RESIZE),
-      TestResizeBaseTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM).getMouseCursor(0)
+      TestResizeBaseTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM).getMouseCursor(0),
     )
   }
 }

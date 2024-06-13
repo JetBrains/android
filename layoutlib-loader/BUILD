@@ -5,12 +5,12 @@ iml_module(
     name = "intellij.android.layoutlib-loader",
     srcs = ["src"],
     iml_files = ["intellij.android.layoutlib-loader.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",

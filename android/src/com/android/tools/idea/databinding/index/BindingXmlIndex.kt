@@ -22,8 +22,11 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.FilenameIndex
@@ -41,34 +44,32 @@ import com.intellij.util.io.DataInputOutputUtil.writeINT
 import com.intellij.util.io.IOUtil
 import com.intellij.util.xml.NanoXmlBuilder
 import com.intellij.util.xml.NanoXmlUtil
-import org.jetbrains.kotlin.idea.base.util.projectScope
 import java.io.DataInput
 import java.io.DataOutput
 import java.io.Reader
 
-/**
- * File based index for data binding layout xml files.
- */
+private val BINDING_XML_INDEX_NAME = ID.create<Int, BindingXmlData>("BindingXmlIndex")
+
+/** File based index for data binding layout xml files. */
 class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
-  /**
-   * An entry into this index, containing information associated with a target layout file.
-   */
+  /** An entry into this index, containing information associated with a target layout file. */
   data class Entry(val file: VirtualFile, val data: BindingXmlData)
 
   companion object {
-    @JvmField
-    val NAME = ID.create<Int, BindingXmlData>("BindingXmlIndex")
-
     private fun getDataForFile(file: VirtualFile, project: Project): BindingXmlData? {
-      val data = FileBasedIndex.getInstance().getSingleEntryIndexData(NAME, file, project) ?: return null
+      val data =
+        FileBasedIndex.getInstance().getSingleEntryIndexData(BINDING_XML_INDEX_NAME, file, project)
+          ?: return null
 
       val parentFolderName = file.parent?.name ?: return null
-      if (ResourceFolderType.getFolderType(parentFolderName) != ResourceFolderType.LAYOUT) return null
+      if (ResourceFolderType.getFolderType(parentFolderName) != ResourceFolderType.LAYOUT)
+        return null
 
       return data
     }
 
     fun getDataForFile(project: Project, file: VirtualFile) = getDataForFile(file, project)
+
     fun getDataForFile(psiFile: PsiFile) = getDataForFile(psiFile.virtualFile, psiFile.project)
 
     /**
@@ -76,19 +77,22 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
      *
      * This may return multiple entries as a layout may have multiple configurations.
      */
-    private fun getEntriesForLayout(project: Project, layoutName: String, scope: GlobalSearchScope) =
+    private fun getEntriesForLayout(
+      project: Project,
+      layoutName: String,
+      scope: GlobalSearchScope,
+    ) =
       FilenameIndex.getVirtualFilesByName("$layoutName.xml", scope).mapNotNull { file ->
         getDataForFile(file, project)?.let { data -> Entry(file, data) }
       }
 
-    @JvmStatic
-    fun getEntriesForLayout(project: Project, layoutName: String) = getEntriesForLayout(project, layoutName, project.projectScope())
-    fun getEntriesForLayout(module: Module, layoutName: String) = getEntriesForLayout(module.project, layoutName,
-                                                                                      module.moduleContentWithDependenciesScope)
+    fun getEntriesForLayout(module: Module, layoutName: String) =
+      getEntriesForLayout(module.project, layoutName, module.moduleContentWithDependenciesScope)
   }
 
   /**
-   * Defines the data externalizer handling the serialization/de-serialization of indexed information.
+   * Defines the data externalizer handling the serialization/de-serialization of indexed
+   * information.
    */
   override fun getValueExternalizer(): DataExternalizer<BindingXmlData> {
     return object : DataExternalizer<BindingXmlData> {
@@ -137,12 +141,24 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
 
         val viewIds = mutableListOf<ViewIdData>()
         for (i in 1..readINT(input)) {
-          viewIds.add(ViewIdData(IOUtil.readUTF(input),
-                                 IOUtil.readUTF(input),
-                                 readNullableUTF(input),
-                                 readNullableUTF(input)))
+          viewIds.add(
+            ViewIdData(
+              IOUtil.readUTF(input),
+              IOUtil.readUTF(input),
+              readNullableUTF(input),
+              readNullableUTF(input),
+            )
+          )
         }
-        return BindingXmlData(layoutType, rootTag, viewBindingIgnore, customBindingName, imports, variables, viewIds)
+        return BindingXmlData(
+          layoutType,
+          rootTag,
+          viewBindingIgnore,
+          customBindingName,
+          imports,
+          variables,
+          viewIds,
+        )
       }
 
       private fun readNullableUTF(input: DataInput): String? {
@@ -156,20 +172,24 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
   }
 
   override fun getName(): ID<Int, BindingXmlData> {
-    return NAME
+    return BINDING_XML_INDEX_NAME
   }
-
 
   override fun getIndexer(): SingleEntryIndexer<BindingXmlData> {
     return object : SingleEntryIndexer<BindingXmlData>(false) {
 
-      // Quick heuristic to avoid indexing non-layout files. We can't determine for sure at indexing time whether this is a layout file,
-      // as that relies on the parent directory which can't be accessed during indexing (see [FileBasedIndexExtension] docs). But layout
-      // files must contain the Android namespace declaration (see https://developer.android.com/guide/topics/resources/layout-resource),
+      // Quick heuristic to avoid indexing non-layout files. We can't determine for sure at indexing
+      // time whether this is a layout file,
+      // as that relies on the parent directory which can't be accessed during indexing (see
+      // [FileBasedIndexExtension] docs). But layout
+      // files must contain the Android namespace declaration (see
+      // https://developer.android.com/guide/topics/resources/layout-resource),
       // and so this indexer can skip processing any files that don't contain the declaration.
-      // This is checked with a text search rather than in the XML parsing below, since NanoXmlBuilder doesn't get directly called when
+      // This is checked with a text search rather than in the XML parsing below, since
+      // NanoXmlBuilder doesn't get directly called when
       // the parser sees the namespace.
-      private val xmlNamespaceRegex = Regex("""xmlns:android\s*=\s*"http://schemas.android.com/apk/res/android"""")
+      private val xmlNamespaceRegex =
+        Regex("""xmlns:android\s*=\s*"http://schemas.android.com/apk/res/android"""")
 
       override fun computeValue(inputData: FileContent): BindingXmlData? {
         val inputAsText = inputData.contentAsText
@@ -197,114 +217,150 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           var viewTypeOverride: String? = null
         }
 
-        NanoXmlUtil.parse(EscapingXmlReader(inputAsText), object : NanoXmlBuilder {
-          val tags = mutableListOf<TagData>()
+        NanoXmlUtil.parse(
+          EscapingXmlReader(inputAsText),
+          object : NanoXmlBuilder {
+            val tags = mutableListOf<TagData>()
 
-          override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
-            tags.add(TagData(name))
-            if (name == TAG_LAYOUT) {
-              bindingLayoutType = DATA_BINDING_LAYOUT
+            override fun startElement(
+              name: String,
+              nsPrefix: String?,
+              nsURI: String?,
+              systemID: String,
+              lineNr: Int,
+            ) {
+              tags.add(TagData(name))
+              if (name == TAG_LAYOUT) {
+                bindingLayoutType = DATA_BINDING_LAYOUT
+              }
+
+              if (tags.size == 1) {
+                rootTag = name
+              }
             }
 
-            if (tags.size == 1) {
-              rootTag = name
-            }
-          }
-
-          override fun addAttribute(key: String, nsPrefix: String?, nsURI: String?, value: String, type: String) {
-            val currTag = tags.last() // We are processing a tag so we know there's at least one
-            when (currTag.name) {
-              SdkConstants.TAG_DATA ->
-                when (key) {
-                  SdkConstants.ATTR_CLASS -> customBindingName = value
-                }
-
-              SdkConstants.TAG_IMPORT ->
-                when (key) {
-                  SdkConstants.ATTR_TYPE -> currTag.importType = value
-                  SdkConstants.ATTR_ALIAS -> currTag.importAlias = value
-                }
-
-              SdkConstants.TAG_VARIABLE ->
-                when (key) {
-                  SdkConstants.ATTR_NAME -> currTag.variableName = value
-                  SdkConstants.ATTR_TYPE -> currTag.variableType = value
-                }
-
-              else -> {
-                // If here, we are a View tag, e.g. <Button>, <EditText>, <include>, <merge>, etc.
-
-                if (nsURI == SdkConstants.ANDROID_URI) {
+            override fun addAttribute(
+              key: String,
+              nsPrefix: String?,
+              nsURI: String?,
+              value: String,
+              type: String,
+            ) {
+              val currTag = tags.last() // We are processing a tag so we know there's at least one
+              when (currTag.name) {
+                SdkConstants.TAG_DATA ->
                   when (key) {
-                    SdkConstants.ATTR_ID -> currTag.viewId = ResourceUrl.parse(value)?.name
+                    SdkConstants.ATTR_CLASS -> customBindingName = value
                   }
-                }
-                else if (nsURI == SdkConstants.TOOLS_URI) {
-                  if (bindingLayoutType == PLAIN_LAYOUT
-                      && currTag.name != SdkConstants.VIEW_INCLUDE && currTag.name != SdkConstants.VIEW_MERGE) {
+                SdkConstants.TAG_IMPORT ->
+                  when (key) {
+                    SdkConstants.ATTR_TYPE -> currTag.importType = value
+                    SdkConstants.ATTR_ALIAS -> currTag.importAlias = value
+                  }
+                SdkConstants.TAG_VARIABLE ->
+                  when (key) {
+                    SdkConstants.ATTR_NAME -> currTag.variableName = value
+                    SdkConstants.ATTR_TYPE -> currTag.variableType = value
+                  }
+                else -> {
+                  // If here, we are a View tag, e.g. <Button>, <EditText>, <include>, <merge>, etc.
+
+                  if (nsURI == SdkConstants.ANDROID_URI) {
                     when (key) {
-                      SdkConstants.ATTR_VIEW_BINDING_TYPE -> currTag.viewTypeOverride = value
+                      SdkConstants.ATTR_ID -> currTag.viewId = ResourceUrl.parse(value)?.name
                     }
-                  }
-                }
-                else if (nsURI == null) {
-                  if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
-                    when (key) {
-                      SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
+                  } else if (nsURI == SdkConstants.TOOLS_URI) {
+                    if (
+                      bindingLayoutType == PLAIN_LAYOUT &&
+                        currTag.name != SdkConstants.VIEW_INCLUDE &&
+                        currTag.name != SdkConstants.VIEW_MERGE
+                    ) {
+                      when (key) {
+                        SdkConstants.ATTR_VIEW_BINDING_TYPE -> currTag.viewTypeOverride = value
+                      }
                     }
-                  }
-                  else if (currTag.name == SdkConstants.VIEW_TAG) {
-                    when (key) {
-                      SdkConstants.ATTR_CLASS -> currTag.viewClass = value
+                  } else if (nsURI == null) {
+                    if (
+                      currTag.name == SdkConstants.VIEW_INCLUDE ||
+                        currTag.name == SdkConstants.VIEW_MERGE
+                    ) {
+                      when (key) {
+                        SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
+                      }
+                    } else if (currTag.name == SdkConstants.VIEW_TAG) {
+                      when (key) {
+                        SdkConstants.ATTR_CLASS -> currTag.viewClass = value
+                      }
                     }
                   }
                 }
               }
-            }
 
-            // If here, it means we're on the root tag
-            if (tags.size == 1) {
-              if (bindingLayoutType == PLAIN_LAYOUT && nsURI == SdkConstants.TOOLS_URI && key == SdkConstants.ATTR_VIEW_BINDING_IGNORE) {
-                viewBindingIgnore = value.toBoolean()
+              // If here, it means we're on the root tag
+              if (tags.size == 1) {
+                if (
+                  bindingLayoutType == PLAIN_LAYOUT &&
+                    nsURI == SdkConstants.TOOLS_URI &&
+                    key == SdkConstants.ATTR_VIEW_BINDING_IGNORE
+                ) {
+                  viewBindingIgnore = value.toBoolean()
+                }
               }
             }
-          }
 
-          override fun elementAttributesProcessed(name: String, nsPrefix: String?, nsURI: String?) {
-            val currTag = tags.last() // We are processing a tag so we know there's at least one
-            when (currTag.name) {
-              SdkConstants.TAG_DATA -> {
-                // Nothing to do here, but case needed to avoid ending up in default branch
-              }
-
-              SdkConstants.TAG_IMPORT ->
-                if (currTag.importType != null) {
-                  imports.add(ImportData(currTag.importType!!, currTag.importAlias))
+            override fun elementAttributesProcessed(
+              name: String,
+              nsPrefix: String?,
+              nsURI: String?,
+            ) {
+              val currTag = tags.last() // We are processing a tag so we know there's at least one
+              when (currTag.name) {
+                SdkConstants.TAG_DATA -> {
+                  // Nothing to do here, but case needed to avoid ending up in default branch
                 }
-
-              SdkConstants.TAG_VARIABLE ->
-                if (currTag.variableName != null && currTag.variableType != null) {
-                  variables.add(VariableData(currTag.variableName!!, currTag.variableType!!))
-                }
-
-              else ->
-                if (currTag.viewId != null) {
-                  // Tag should either be something like <TextView>, <Button>, etc.
-                  // OR the special-case <view class="path.to.CustomView"/>
-                  val viewName = if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
-                  if (viewName != null) {
-                    viewIds.add(ViewIdData(currTag.viewId!!, viewName, currTag.viewLayout, currTag.viewTypeOverride))
+                SdkConstants.TAG_IMPORT ->
+                  if (currTag.importType != null) {
+                    imports.add(ImportData(currTag.importType!!, currTag.importAlias))
                   }
-                }
+                SdkConstants.TAG_VARIABLE ->
+                  if (currTag.variableName != null && currTag.variableType != null) {
+                    variables.add(VariableData(currTag.variableName!!, currTag.variableType!!))
+                  }
+                else ->
+                  if (currTag.viewId != null) {
+                    // Tag should either be something like <TextView>, <Button>, etc.
+                    // OR the special-case <view class="path.to.CustomView"/>
+                    val viewName =
+                      if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
+                    if (viewName != null) {
+                      viewIds.add(
+                        ViewIdData(
+                          currTag.viewId!!,
+                          viewName,
+                          currTag.viewLayout,
+                          currTag.viewTypeOverride,
+                        )
+                      )
+                    }
+                  }
+              }
             }
-          }
 
-          override fun endElement(s: String?, s1: String?, s2: String?) {
-            tags.removeAt(tags.lastIndex)
-          }
-        })
+            override fun endElement(s: String?, s1: String?, s2: String?) {
+              tags.removeAt(tags.lastIndex)
+            }
+          },
+        )
 
-        return BindingXmlData(bindingLayoutType, rootTag.orEmpty(), viewBindingIgnore, customBindingName, imports, variables, viewIds)
+        return BindingXmlData(
+          bindingLayoutType,
+          rootTag.orEmpty(),
+          viewBindingIgnore,
+          customBindingName,
+          imports,
+          variables,
+          viewIds,
+        )
       }
     }
   }
@@ -321,12 +377,12 @@ private const val COMMENT_END = "-->"
  * Reader that attempts to escape known codes (e.g. "&lt;") on the fly as it reads.
  *
  * It seems that NanoXml does not itself translate escape characters, instead skipping over them.
- * So, we have to intercept them ourselves. For the attributes we parse, we only care about a
- * subset of all potentially escaped characters -- specifically '<' and '>', which can be used
- * in generic types. The rest, we can skip over, which NanoXml would have done anyway.
+ * So, we have to intercept them ourselves. For the attributes we parse, we only care about a subset
+ * of all potentially escaped characters -- specifically '<' and '>', which can be used in generic
+ * types. The rest, we can skip over, which NanoXml would have done anyway.
  *
- * We also skip over comments ourselves, as NanoXml seems to trip up if it hits a comment that
- * has an unescaped & inside it.
+ * We also skip over comments ourselves, as NanoXml seems to trip up if it hits a comment that has
+ * an unescaped & inside it.
  */
 private class EscapingXmlReader(text: CharSequence) : Reader() {
   /**
@@ -336,12 +392,15 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
    */
   private class InputState(val text: CharSequence) {
     var srcIndex = 0
+
     fun read(): Char = text[srcIndex++]
+
     fun skip(numChars: Int = 1) {
       srcIndex += numChars
     }
 
     fun beforeEnd() = srcIndex < text.length
+
     fun atEnd() = srcIndex >= text.length
   }
 
@@ -352,7 +411,9 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
    */
   private class OutputBuffer(val cbuf: CharArray, var dstIndex: Int, val maxWriteCount: Int) {
     var numCharsWritten = 0
+
     fun isFull() = numCharsWritten >= maxWriteCount
+
     fun write(c: Char) {
       assert(!isFull())
       cbuf[dstIndex++] = c
@@ -372,8 +433,8 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
   }
 
   /**
-   * Verify the input state is pointing at a valid character, potentially updating it if
-   * necessary (e.g. to skip over comments).
+   * Verify the input state is pointing at a valid character, potentially updating it if necessary
+   * (e.g. to skip over comments).
    *
    * If true is returned, you can safely call [readNextCharInto]; otherwise, you should abort as we
    * are out of input text.
@@ -392,9 +453,8 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
   /**
    * Read the next character out of the input text and write it into the output buffer.
    *
-   * When done, the input state will be pointing at the next character to parse. This may be
-   * more than one character later, if the character that was just read in was escaped
-   * (e.g. '&lt;')
+   * When done, the input state will be pointing at the next character to parse. This may be more
+   * than one character later, if the character that was just read in was escaped (e.g. '&lt;')
    *
    * It's expected that the state is valid before calling this method. In other words, callers
    * should call [prepareNextChar] first.
@@ -416,27 +476,24 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
   }
 
   /**
-   * Keep reading characters out of the input text until you hit the [terminal] string or the
-   * end of the text, whichever comes first. Once finished, [buffer] will be populated with all
-   * text up to but not including [terminal]. However, [terminal] will still be consumed.
+   * Keep reading characters out of the input text until you hit the [terminal] string or the end of
+   * the text, whichever comes first. Once finished, [buffer] will be populated with all text up to
+   * but not including [terminal]. However, [terminal] will still be consumed.
    */
   private fun readIntoBufferUntil(terminal: String) {
     buffer.clear()
     do {
       buffer.append(state.read())
-    }
-    while (state.beforeEnd() && !isMatch(terminal))
+    } while (state.beforeEnd() && !isMatch(terminal))
     if (state.beforeEnd()) {
       state.skip(terminal.length) // Consume `terminal`
     }
   }
 
-  /**
-   * Check if the [target] text matches the current input position.
-   */
+  /** Check if the [target] text matches the current input position. */
   private fun isMatch(target: String): Boolean {
-    return (state.srcIndex + target.length <= state.text.length
-            && target.indices.all { i -> target[i] == state.text[state.srcIndex + i] })
+    return (state.srcIndex + target.length <= state.text.length &&
+      target.indices.all { i -> target[i] == state.text[state.srcIndex + i] })
   }
 
   private fun skipIfMatch(target: String): Boolean {
@@ -448,4 +505,15 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
   }
 
   override fun close() {} // We just point at a String in memory, no need to close anything
+}
+
+@Service(Service.Level.PROJECT)
+class BindingXmlIndexModificationTracker(private val project: Project) : ModificationTracker {
+  override fun getModificationCount() =
+    FileBasedIndex.getInstance().getIndexModificationStamp(BINDING_XML_INDEX_NAME, project)
+
+  companion object {
+    fun getInstance(project: Project): ModificationTracker =
+      project.service<BindingXmlIndexModificationTracker>()
+  }
 }

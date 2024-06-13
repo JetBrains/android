@@ -90,7 +90,7 @@ class NlPaletteModelTest {
         null,
         null,
         emptyList(),
-        emptyList()
+        emptyList(),
       )
     assertThat(added).isFalse()
     assertThat(getProjectGroup(palette)).isNull()
@@ -173,7 +173,7 @@ class NlPaletteModelTest {
         getPreviewXml(CUSTOM_VIEW_CLASS),
         "family",
         ImmutableList.of("family", "size"),
-        emptyList()
+        emptyList(),
       )
     val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     val added2 =
@@ -188,7 +188,7 @@ class NlPaletteModelTest {
         getPreviewXml(CUSTOM_VIEW_CLASS),
         "family",
         ImmutableList.of("family", "size"),
-        emptyList()
+        emptyList(),
       )
     val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     assertThat(added1).isTrue()
@@ -213,7 +213,7 @@ class NlPaletteModelTest {
         getPreviewXml(CUSTOM_VIEW_GROUP_CLASS),
         "family",
         ImmutableList.of("family", "size"),
-        emptyList()
+        emptyList(),
       )
     val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS) {}
     val added2 =
@@ -228,7 +228,7 @@ class NlPaletteModelTest {
         getPreviewXml(CUSTOM_VIEW_GROUP_CLASS),
         "family",
         ImmutableList.of("family", "size"),
-        emptyList()
+        emptyList(),
       )
     val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS) {}
     assertThat(added1).isTrue()
@@ -305,7 +305,7 @@ class NlPaletteModelTest {
     palette.accept { item: Palette.Item ->
       TestCase.assertTrue(
         "ID is not unique: " + item.id + " with layoutType: " + layoutType,
-        ids.add(item.id)
+        ids.add(item.id),
       )
     }
     assertThat(ids).isNotEmpty()

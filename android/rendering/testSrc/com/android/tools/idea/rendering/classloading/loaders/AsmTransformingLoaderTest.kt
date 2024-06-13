@@ -15,19 +15,30 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
-import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.loadClassBytes
-import com.android.tools.idea.rendering.classloading.textifyClass
+import com.android.tools.rendering.classloading.NopClassLocator
 import com.android.tools.rendering.classloading.ClassTransform
+import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.commons.ClassRemapper
+import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper
 import com.android.tools.rendering.classloading.loaders.NopLoader
 import com.android.tools.rendering.classloading.loaders.StaticLoader
 import org.junit.Assert.assertNull
 import org.junit.Test
-import org.jetbrains.org.objectweb.asm.ClassVisitor
-import org.jetbrains.org.objectweb.asm.commons.ClassRemapper
-import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.function.Function
 import kotlin.test.assertEquals
+
+private fun textifyClass(c: ByteArray): String {
+  val stringWriter = StringWriter()
+  ClassReader(c).accept(TraceClassVisitor(PrintWriter(stringWriter)), 0)
+
+  return stringWriter.toString()
+}
 
 @Suppress("unused")
 class TransformableClass {

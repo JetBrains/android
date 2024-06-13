@@ -25,11 +25,13 @@ import com.android.tools.idea.progress.StudioProgressRunner;
  */
 public class StudioSdkUtil {
   /**
-   * Convenience method to reload the local and remote SDK, showing a modal, non-cancellable progress window.
+   * Convenience method to reload the local and remote SDK, showing a non-cancellable progress window.
+   * Setting modal to true starts a dialog that blocks user.
+   * Setting modal to false starts non-blocking dialog in background.
    */
-  public static void reloadRemoteSdkWithModalProgress() {
+  public static void reloadRemoteSdk(boolean modal) {
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    StudioProgressRunner runner = new StudioProgressRunner(true, false, "Refreshing SDK", null);
+    StudioProgressRunner runner = new StudioProgressRunner(modal, false, "Refreshing SDK", null);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(StudioSdkUtil.class);
     RepoManager sdkManager = sdkHandler.getSdkManager(progress);
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null, runner, new StudioDownloader(),

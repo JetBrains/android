@@ -19,11 +19,11 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
-import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.res.DynamicValueResourceRepository
-import com.android.tools.idea.res.createTestModuleRepository
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.res.ModuleResourceRepository
 import com.android.tools.res.LocalResourceRepository
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.EdtExecutorService
@@ -61,31 +61,32 @@ class StringResourceRepositoryTest {
   @Before
   fun setUp() {
     androidProjectRule.fixture.testDataPath =
-        resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+      resolveWorkspacePath("tools/adt/idea/android/testData").toString()
     facet = AndroidFacet.getInstance(androidProjectRule.module)!!
     dynamicResourceRepository =
-        DynamicValueResourceRepository.createForTest(
-            facet,
-            ResourceNamespace.RES_AUTO,
-            mutableMapOf(
-                DYNAMIC_KEY_1 to DynamicResourceValue(ResourceType.STRING, DYNAMIC_VALUE_1),
-                DYNAMIC_KEY_2 to DynamicResourceValue(ResourceType.STRING, DYNAMIC_VALUE_2),
-            ))
+      DynamicValueResourceRepository.createForTest(
+        facet,
+        ResourceNamespace.RES_AUTO,
+        mutableMapOf(
+          DYNAMIC_KEY_1 to DynamicResourceValue(ResourceType.STRING, DYNAMIC_VALUE_1),
+          DYNAMIC_KEY_2 to DynamicResourceValue(ResourceType.STRING, DYNAMIC_VALUE_2),
+        )
+      )
 
     resourceDirectory =
-        androidProjectRule.fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
+      androidProjectRule.fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
     key1 = StringResourceKey("key1", resourceDirectory)
     invalidKey = StringResourceKey("key1", resourceDirectory.parent)
     localResourceRepository =
-        createTestModuleRepository(
-            facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO, dynamicResourceRepository)
+      ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO, dynamicResourceRepository)
     stringResourceRepository = StringResourceRepository.create(localResourceRepository)
 
     runBlocking {
       withTimeout(2.seconds) {
         suspendCoroutine<Unit> {
           localResourceRepository.invokeAfterPendingUpdatesFinish(
-              EdtExecutorService.getInstance()) { it.resume(Unit) }
+            EdtExecutorService.getInstance()
+          ) { it.resume(Unit) }
         }
       }
     }

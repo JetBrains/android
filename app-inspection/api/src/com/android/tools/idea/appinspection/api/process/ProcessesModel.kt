@@ -45,20 +45,20 @@ class ProcessesModel(
   private val executor: Executor,
   private val processDiscovery: ProcessDiscovery,
   private val acceptProcess: (ProcessDescriptor) -> Boolean = { true },
-  private val isPreferred: (ProcessDescriptor) -> Boolean = { false }
+  private val isPreferred: (ProcessDescriptor) -> Boolean = { false },
 ) : Disposable {
 
   @TestOnly
   constructor(
     processDiscovery: ProcessDiscovery,
-    isPreferred: (ProcessDescriptor) -> Boolean = { false }
+    isPreferred: (ProcessDescriptor) -> Boolean = { false },
   ) : this(MoreExecutors.directExecutor(), processDiscovery, isPreferred = isPreferred)
 
   @TestOnly
   constructor(
     processDiscovery: ProcessDiscovery,
     acceptProcess: (ProcessDescriptor) -> Boolean,
-    isPreferred: (ProcessDescriptor) -> Boolean = { false }
+    isPreferred: (ProcessDescriptor) -> Boolean = { false },
   ) : this(MoreExecutors.directExecutor(), processDiscovery, acceptProcess, isPreferred)
 
   private val lock = Any()
@@ -79,14 +79,6 @@ class ProcessesModel(
     get() = synchronized(lock) { _processes.toSet() }
 
   /**
-   * Returns true if [selectedProcess] auto connected.
-   *
-   * Ideally this should be accessed within the callback from the selectedProcessListeners
-   */
-  var isAutoConnected = false
-    private set
-
-  /**
    * Setting the currently selected process the side effect of firing listeners that the selected
    * process changed.
    *
@@ -98,23 +90,18 @@ class ProcessesModel(
   var selectedProcess: ProcessDescriptor?
     get() = synchronized(lock) { _selectedProcess }
     set(value) {
-      setSelectedProcess(value)
-    }
-
-  private fun setSelectedProcess(process: ProcessDescriptor?, autoConnected: Boolean = false) {
-    synchronized(lock) {
-      if (_selectedProcess != process) {
-        // While we leave processes in the list when they die, once we update the active
-        // selection, we silently prune them at that point. Otherwise, dead processes would
-        // continue to build up. This also has the nice effect of making it feel that when a
-        // user starts running a new process, it neatly replaces the last dead one.
-        _processes.removeAll { it != process && !it.isRunning }
-        _selectedProcess = process
-        isAutoConnected = autoConnected && (process != null)
-        _selectedProcessListeners.forEach { (listener, executor) -> executor.execute(listener) }
+      synchronized(lock) {
+        if (_selectedProcess != value) {
+          // While we leave processes in the list when they die, once we update the active
+          // selection, we silently prune them at that point. Otherwise, dead processes would
+          // continue to build up. This also has the nice effect of making it feel that when a
+          // user starts running a new process, it neatly replaces the last dead one.
+          _processes.removeAll { it != value && !it.isRunning }
+          _selectedProcess = value
+          _selectedProcessListeners.forEach { (listener, executor) -> executor.execute(listener) }
+        }
       }
     }
-  }
 
   /** Add a listener which will be triggered with the selected process when it changes. */
   fun addSelectedProcessListeners(executor: Executor, listener: () -> Unit) {
@@ -137,7 +124,7 @@ class ProcessesModel(
         synchronized(lock) {
           _processes.add(process)
           if (isProcessPreferred(process)) {
-            setSelectedProcess(process, autoConnected = true)
+            selectedProcess = process
           }
         }
       }
@@ -160,9 +147,17 @@ class ProcessesModel(
     processDiscovery.removeProcessListener(processListener)
   }
 
+  fun addProcessListener(processListener: ProcessListener) {
+    processDiscovery.addProcessListener(executor, processListener)
+  }
+
+  fun removeProcessListener(processListener: ProcessListener) {
+    processDiscovery.removeProcessListener(processListener)
+  }
+
   fun isProcessPreferred(
     processDescriptor: ProcessDescriptor?,
-    includeDead: Boolean = false
+    includeDead: Boolean = false,
   ): Boolean {
     return processDescriptor != null &&
       (processDescriptor.isRunning || includeDead) &&

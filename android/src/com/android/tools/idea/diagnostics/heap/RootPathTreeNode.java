@@ -26,7 +26,7 @@ public class RootPathTreeNode {
   @NotNull final String className;
   @NotNull final String label;
   boolean isDisposedButReferenced;
-
+  boolean isLoadedWithNominatedLoader;
   @NotNull final Map<ExtendedStackNode, RootPathTreeNode> children = Maps.newHashMap();
   boolean isRepeated = false;
 
@@ -39,10 +39,12 @@ public class RootPathTreeNode {
   RootPathTreeNode(@NotNull final String label,
                    @NotNull final String className,
                    boolean isDisposedButReferenced,
+                   boolean isLoadedWithNominatedLoader,
                    @NotNull final ExtendedReportStatistics extendedReportStatistics) {
     this.className = className;
     this.label = label;
     this.isDisposedButReferenced = isDisposedButReferenced;
+    this.isLoadedWithNominatedLoader = isLoadedWithNominatedLoader;
     this.instancesStatistics =
       new ObjectsStatistics[extendedReportStatistics.componentToExceededClustersStatistics.size()][MAX_NUMBER_OF_NOMINATED_NODE_TYPES];
     this.selfSizes =
@@ -64,8 +66,14 @@ public class RootPathTreeNode {
   }
 
   @NotNull
-  public String getPresentation(int exceededClusterId, int nominatedNodeTypeId) {
-    return label + ": " + className + (isDisposedButReferenced ? "(disposed)" : "");
+  public String getPresentation(int exceededClusterId, int nominatedNodeTypeId, short visitedEssentialNominatedNodeTypesMask) {
+    return label +
+           ": " +
+           className +
+           (isDisposedButReferenced ? (((visitedEssentialNominatedNodeTypesMask & (1 << DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE)) == 0)
+                                       ? " (disposedRoot)"
+                                       : " (disposedChild)") : "") +
+           (isLoadedWithNominatedLoader ? " (nominatedLoader)" : "");
   }
 
   static class RootPathArrayTreeNode extends RootPathTreeNode {
@@ -79,8 +87,9 @@ public class RootPathTreeNode {
     public RootPathArrayTreeNode(@NotNull final String label,
                                  @NotNull final String className,
                                  boolean isDisposedButReferenced,
+                                 boolean isLoadedWithNominatedLoader,
                                  @NotNull final ExtendedReportStatistics extendedReportStatistics) {
-      super(label, className, isDisposedButReferenced, extendedReportStatistics);
+      super(label, className, isDisposedButReferenced, isLoadedWithNominatedLoader, extendedReportStatistics);
     }
 
     void markNodeAsNominated(int exceededClusterId, int nominatedNodeTypeId, long size) {
@@ -106,9 +115,9 @@ public class RootPathTreeNode {
 
     @NotNull
     @Override
-    public String getPresentation(int exceededClusterId, int nominatedNodeTypeId) {
+    public String getPresentation(int exceededClusterId, int nominatedNodeTypeId, short visitedEssentialNominatedNodeTypesMask) {
       if (sizeDistributionMap == null || selfSizes[exceededClusterId][nominatedNodeTypeId] == null) {
-        return super.getPresentation(exceededClusterId, nominatedNodeTypeId);
+        return super.getPresentation(exceededClusterId, nominatedNodeTypeId, visitedEssentialNominatedNodeTypesMask);
       }
       StringBuilder builder = new StringBuilder();
       for (int i = 0; i < SCALE_LABELS.length; i++) {
@@ -116,7 +125,7 @@ public class RootPathTreeNode {
           builder.append(SCALE_LABELS[i]).append("->").append(sizeDistributionMap[i]).append(';');
         }
       }
-      return super.getPresentation(exceededClusterId, nominatedNodeTypeId) + " {" + builder + "}";
+      return super.getPresentation(exceededClusterId, nominatedNodeTypeId, visitedEssentialNominatedNodeTypesMask) + " {" + builder + "}";
     }
   }
 }

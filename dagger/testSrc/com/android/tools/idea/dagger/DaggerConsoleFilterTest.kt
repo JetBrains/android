@@ -140,7 +140,7 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
     navigateToResultInLine(
       filter,
       "example.NotExistingClass some text example.MyClass.myMethod()",
-      1
+      1,
     )
     elementAtCaret = myFixture.elementAtCaret as? PsiMethod
     assertThat(elementAtCaret!!.name).isEqualTo(method.name)
@@ -169,7 +169,7 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
           class Inner {}
         }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val filter = DaggerConsoleFilter()

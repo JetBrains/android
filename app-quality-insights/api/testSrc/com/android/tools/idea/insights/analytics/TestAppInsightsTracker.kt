@@ -26,7 +26,7 @@ object TestAppInsightsTracker : AppInsightsTracker {
   override fun logCrashesFetched(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails,
   ) = Unit
 
   override fun logCrashListDetailView(
@@ -35,12 +35,12 @@ object TestAppInsightsTracker : AppInsightsTracker {
 
   override fun logStacktraceClicked(
     mode: ConnectionMode?,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails,
   ) = Unit
 
   override fun logConsoleLinkClicked(
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails,
   ) = Unit
 
   override fun logMatchers(event: AppQualityInsightsUsageEvent.AppQualityInsightsMatcherDetails) =
@@ -48,24 +48,24 @@ object TestAppInsightsTracker : AppInsightsTracker {
 
   override fun logError(
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails,
   ) = Unit
 
   override fun logIssueStatusChanged(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails,
   ) = Unit
 
   override fun logNotesAction(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails,
   ) = Unit
 
   override fun logOfflineTransitionAction(
     unanonymizedAppId: String,
     mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails
+    event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails,
   ) = Unit
 }

@@ -18,6 +18,7 @@ package androidx.compose.compiler.plugins.kotlin
 
 import java.io.File
 import java.io.OutputStreamWriter
+import java.lang.Appendable
 
 /**
  * This class is a very rudimentary json serializer. It is not fully featured, and does not
@@ -27,7 +28,7 @@ import java.io.OutputStreamWriter
  * should probably go down that path. Please use this class with caution.
  */
 class JsonBuilder(private val sb: Appendable, private val indent: Int = 0) {
-    private var hasEntry = false
+    var hasEntry = false
 
     private val nonWordCharRegex = Regex("\\W")
 

@@ -92,7 +92,7 @@ val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(
  *
  * Example: text color of "Leak" button
  */
-val linkForeground = JBUI.CurrentTheme.Link.linkColor()
+val linkForeground = JBUI.CurrentTheme.Link.Foreground.ENABLED
 
 /**
  * Background color for selected content.

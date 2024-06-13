@@ -57,13 +57,13 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
                                          @Nullable Project project,
                                          @NotNull HtmlLinkManager linkManager,
                                          @Nullable Throwable throwable,
-                                         @NotNull RunnableFixFactory fixFactory) {
+                                         @NotNull RenderProblem.ActionFixFactory fixFactory) {
     Html problem = new Html(severity, ourNextOrdinal++);
     HtmlBuilder builder = problem.getHtmlBuilder();
     builder.add(message);
     if (throwable != null) {
       problem.throwable(throwable);
-      String url = linkManager.createRunnableLink(fixFactory.create(project, problem));
+      String url = linkManager.createActionLink(fixFactory.create(problem));
       builder.add(" (").addLink("Details", url).add(")");
       if (message.equals(throwable.getMessage())) {
         problem.myIsDefaultHtml = true;
@@ -242,9 +242,9 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
     }
   }
 
-  public interface RunnableFixFactory {
-    Runnable create(Project project, RenderProblem problem);
+  public interface ActionFixFactory {
+    HtmlLinkManager.Action create(RenderProblem problem);
   }
 
-  public static final RunnableFixFactory NOOP_RUNNABLE_FIX_FACTORY = (project, problem) -> () -> { };
+  public static final ActionFixFactory NOOP_ACTION_FIX_FACTORY = (problem) -> (module) -> { };
 }

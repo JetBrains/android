@@ -28,6 +28,8 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings
 import com.intellij.psi.impl.source.codeStyle.CodeFormatterFacade
 import com.intellij.psi.impl.source.codeStyle.PostFormatProcessor
 import com.intellij.psi.impl.source.codeStyle.PostFormatProcessorHelper
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.idea.formatter.kotlinCommonSettings
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
@@ -57,7 +59,7 @@ class ComposePostFormatProcessor : PostFormatProcessor {
   override fun processText(
     source: PsiFile,
     rangeToReformat: TextRange,
-    settings: CodeStyleSettings
+    settings: CodeStyleSettings,
   ): TextRange {
     return if (isAvailable(source, settings))
       ComposeModifierProcessor(settings).processText(source, rangeToReformat)
@@ -96,18 +98,28 @@ class ComposeModifierProcessor(private val settings: CodeStyleSettings) : KtTree
 /**
  * Returns true if it's Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or
  * longer.
+ *
+ * Note that this function calls [isModifierChainLongerThanTwo] that potentially uses the analysis
+ * API for K2. Since reformat can be used by template on write action, we need to wrap it with
+ * [allowAnalysisFromWriteAction].
+ *
+ * TODO(310045274): We have to avoid analysis API use on write action eventually. Double check if we
+ *   can avoid analysis here and drop [allowAnalysisFromWriteAction] (as explained above, reformat
+ *   will run after final PSI is determined by the template, so it looks impossible to drop analysis
+ *   here though).
  */
+@OptIn(KaAllowAnalysisFromWriteAction::class)
 private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
   // Take very top KtDotQualifiedExpression, e.g for `Modifier.adjust1().adjust2()` take whole
   // expression, not only `Modifier.adjust1()`.
   return element is KtDotQualifiedExpression &&
     element.parent !is KtDotQualifiedExpression &&
-    isModifierChainLongerThanTwo(element)
+         @Suppress("OPT_IN_USAGE_ERROR") allowAnalysisFromWriteAction { isModifierChainLongerThanTwo(element) }
 }
 
 /** Splits KtDotQualifiedExpression it one call per line. */
 internal fun wrapModifierChain(element: KtDotQualifiedExpression, settings: CodeStyleSettings) {
-  CodeStyle.doWithTemporarySettings(element.project, settings) { tempSettings: CodeStyleSettings ->
+  CodeStyle.runWithLocalSettings(element.project, settings) { tempSettings: CodeStyleSettings ->
     tempSettings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP = CommonCodeStyleSettings.WRAP_ALWAYS
     tempSettings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN = true
     CodeFormatterFacade(tempSettings, element.language).processElement(element.node)

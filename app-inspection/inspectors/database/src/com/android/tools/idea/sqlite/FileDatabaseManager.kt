@@ -32,6 +32,7 @@ import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 
 /** Class responsible for downloading and deleting file database data */
 interface FileDatabaseManager {
@@ -44,7 +45,7 @@ interface FileDatabaseManager {
   suspend fun loadDatabaseFileData(
     packageName: String,
     processDescriptor: ProcessDescriptor,
-    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
+    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId,
   ): DatabaseFileData
 
   /** Deletes the files associated to [databaseFileData]. */
@@ -57,18 +58,19 @@ class FileDatabaseManagerImpl(
   private val deviceFileDownloaderService: DeviceFileDownloaderService =
     DeviceFileDownloaderService.getInstance(project),
 ) : FileDatabaseManager {
+  private val parentDisposable = project.getService(ProjectDisposableScope::class.java)
 
   override suspend fun loadDatabaseFileData(
     packageName: String,
     processDescriptor: ProcessDescriptor,
-    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
+    databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId,
   ): DatabaseFileData {
     val path = databaseToDownload.path
     // Room uses write-ahead-log, so we need to download these additional files to open the db
     val pathsToDownload = listOf(path, "$path-shm", "$path-wal")
 
     val disposableDownloadProgress = DisposableDownloadProgress(coroutineContext[Job]!!)
-    Disposer.register(project, disposableDownloadProgress)
+    Disposer.register(parentDisposable, disposableDownloadProgress)
 
     val files =
       try {
@@ -79,13 +81,13 @@ class FileDatabaseManagerImpl(
             processDescriptor.device.serial,
             pathsToDownload,
             disposableDownloadProgress,
-            downloadDestinationFolder
+            downloadDestinationFolder,
           )
         }
       } catch (e: IllegalArgumentException) {
         throw DeviceNotFoundException(
           "Device '${processDescriptor.device.model} ${processDescriptor.device.serial}' not found.",
-          e
+          e,
         )
       } catch (e: DeviceFileDownloaderService.FileDownloadFailedException) {
         throw FileDatabaseException(e.message, e)
@@ -131,5 +133,5 @@ class FileDatabaseException(override val message: String?, override val cause: T
 
 class DeviceNotFoundException(
   override val message: String?,
-  override val cause: Throwable? = null
+  override val cause: Throwable? = null,
 ) : RuntimeException()

@@ -34,7 +34,7 @@ class SystemTraceFrameManagerTest {
                                         createEvent(40, 60, "mainLoop#Compute"), // Not a frame event
                                         createEvent(65, 82, "Choreographer#doFrame") // Good frame
                                       ),
-                                      listOf())
+                                      listOf(), listOf())
     val renderThreadModel = ThreadModel(TEST_RENDER_ID, TEST_PID, CpuThreadInfo.RENDER_THREAD_NAME,
                                         listOf(
                                           createEvent(4, 7, "DrawFrame"), // Good frame
@@ -45,7 +45,7 @@ class SystemTraceFrameManagerTest {
                                           createEvent(60, 80, "waitIO"), // Not a frame event
                                           createEvent(81, 100, "queueBuffer") // Bad frame
                                         ),
-                                        listOf())
+                                        listOf(), listOf())
     val processModel = ProcessModel(TEST_PID, "Test",
                                     mapOf(TEST_PID to mainThreadModel, TEST_RENDER_ID to renderThreadModel),
                                     emptyMap())
@@ -94,7 +94,7 @@ class SystemTraceFrameManagerTest {
                                    createEvent(20, 22, "Choreographer#doFrame"),
                                    createEvent(30, 50, "Choreographer#doFrame")
                                  ),
-                                 listOf())
+                                 listOf(), listOf())
     val renderThread = ThreadModel(TEST_RENDER_ID, TEST_PID, CpuThreadInfo.RENDER_THREAD_NAME,
                                    listOf(
                                      createEvent(4, 7, "DrawFrame"),
@@ -103,7 +103,7 @@ class SystemTraceFrameManagerTest {
                                      createEvent(18, 20, "DrawFrame"),
                                      createEvent(40, 55, "queueBuffer")
                                    ),
-                                   listOf())
+                                   listOf(), listOf())
 
     val process = ProcessModel(TEST_PID, "Test",
                                mapOf(TEST_PID to mainThread, TEST_RENDER_ID to renderThread),

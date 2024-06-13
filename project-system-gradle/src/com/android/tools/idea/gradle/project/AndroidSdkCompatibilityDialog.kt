@@ -103,15 +103,8 @@ class AndroidSdkCompatibilityDialog(
     }
 
     return JBUI.Panels.simplePanel(10, 10).apply {
-      addToCenter(ScrollPaneFactory.createScrollPane(
-        JBUI.Panels.simplePanel(10, 10).addToTop(panel),
-        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
-      ).apply {
-        border = BorderFactory.createEmptyBorder()
-      })
-      preferredSize = JBDimension(500, 300)
-      minimumSize = JBDimension(500, 300)
+      addToTop(panel)
+      preferredSize = JBDimension(550, 325)
     }
   }
 

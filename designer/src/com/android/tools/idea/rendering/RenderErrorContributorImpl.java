@@ -33,7 +33,7 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
-import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildAndRefreshLayoutMessage;
+import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildAndRefreshPreviewMessage;
 import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildTheModuleMessage;
 import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildTheProjectMessage;
 import static com.android.tools.idea.res.IdeResourcesUtil.isViewPackageNeeded;
@@ -413,8 +413,8 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     if (!addShowExceptionLink) {
       return;
     }
-    ShowExceptionFix showExceptionFix = new ShowExceptionFix(project, throwable);
-    builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
+    ShowExceptionFix showExceptionFix = new ShowExceptionFix(throwable);
+    builder.addLink("Show Exception", linkManager.createActionLink(showExceptionFix));
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
@@ -513,7 +513,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       .setSeverity(HighlightSeverity.ERROR)
       .setSummary("Rendering sandbox error")
       .setHtmlContent(builder)
-      .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
+      .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
       .build();
     return true;
   }
@@ -637,7 +637,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       }
     }
 
-    builder.addLink("Copy stack to clipboard", myLinkManager.createRunnableLink(() -> {
+    builder.addLink("Copy stack to clipboard", myLinkManager.createActionLink((module) -> {
       String text = Throwables.getStackTraceAsString(throwable);
       try {
         CopyPasteManager.getInstance().setContents(new StringSelection(text));
@@ -676,7 +676,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
 
       HtmlBuilder builder = new HtmlBuilder();
       builder.add("(")
-        .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createRunnableLink(() -> {
+        .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createActionLink((module) -> {
           new SetAttributeFix(applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).executeCommand();
 
           if (myDesignSurface != null) {
@@ -746,7 +746,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         addIssue()
           .setSummary("Incorrect resource value format")
           .setHtmlContent(builder)
-          .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
+          .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
           .build();
         return true;
       }
@@ -841,7 +841,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       addIssue()
         .setSeverity(ProblemSeverities.toHighlightSeverity(message.getSeverity()))
         .setSummary(summary)
-        .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
+        .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
         .setHtmlContent(builder)
         .build();
     }
@@ -931,7 +931,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       warning.appendHtml(builder.getStringBuilder());
       final Object clientData = warning.getClientData();
       if (clientData != null) {
-        builder.addLink(" (Ignore for this session)", myLinkManager.createRunnableLink(() -> {
+        builder.addLink(" (Ignore for this session)", myLinkManager.createActionLink((module) -> {
           RenderLogger.ignoreFidelityWarning(clientData);
           if (myDesignSurface != null) {
             myDesignSurface.forceUserRequestedRefresh();
@@ -951,7 +951,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       }
     }
     builder.endList();
-    builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createRunnableLink(() -> {
+    builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createActionLink((module) -> {
       RenderLogger.ignoreAllFidelityWarnings();
       if (myDesignSurface != null) {
         myDesignSurface.forceUserRequestedRefresh();
@@ -1085,7 +1085,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       .setHtmlContent(builder)
       .addMessageTip(createBuildTheModuleMessage(myLinkManager))
       .addMessageTip(createBuildTheProjectMessage(myLinkManager, null))
-      .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
+      .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
       .build();
   }
 
@@ -1126,8 +1126,8 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         .addLink("Open Class", myLinkManager.createOpenClassUrl(className));
       if (throwable != null) {
         builder.add(", ");
-        ShowExceptionFix detailsFix = new ShowExceptionFix(project, throwable);
-        builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
+        ShowExceptionFix detailsFix = new ShowExceptionFix(throwable);
+        builder.addLink("Show Exception", myLinkManager.createActionLink(detailsFix));
       }
       builder.add(", ")
         .addLink("Clear Cache", myLinkManager.createClearCacheUrl())

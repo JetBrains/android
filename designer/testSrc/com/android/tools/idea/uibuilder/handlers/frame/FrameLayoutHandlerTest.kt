@@ -88,7 +88,7 @@ class FrameLayoutHandlerTest : SceneTest() {
               .id("@id/myText1")
               .width("100dp")
               .height("100dp")
-          )
+          ),
       )
 
     val model = builder.build()
@@ -96,7 +96,7 @@ class FrameLayoutHandlerTest : SceneTest() {
     assertEquals(
       "NlComponent{tag=<FrameLayout>, bounds=[0,0:1000x1000}\n" +
         "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}",
-      NlTreeDumper.dumpTree(model.components)
+      NlTreeDumper.dumpTree(model.components),
     )
     format(model.file)
 

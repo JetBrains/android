@@ -46,7 +46,7 @@ class PreJIssueTransitionTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Ready(Timed(Selection(null, emptyList()), Instant.now()))
+        LoadingState.Ready(Timed(Selection(null, emptyList()), Instant.now())),
       )
 
     val event =
@@ -57,11 +57,11 @@ class PreJIssueTransitionTest {
             emptyList(),
             emptyList(),
             emptyList(),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         FakeClock(),
-        currentState
+        currentState,
       )
 
     with(event.transition(currentState, TestAppInsightsTracker, TEST_KEY)) {
@@ -85,7 +85,7 @@ class PreJIssueTransitionTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Ready(Timed(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)), Instant.now()))
+        LoadingState.Ready(Timed(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)), Instant.now())),
       )
 
     val event = SelectedIssueChanged(ISSUE1)

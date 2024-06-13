@@ -1,6 +1,5 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
-    <option name="" path="ActionManager" hit="" />
     <option name="action" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
     <option name="and" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
     <option name="create" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
@@ -56,6 +55,8 @@
     <option name="previous" path="ActionManager" hit="Change to previous device in the device menu" />
     <option name="the" path="ActionManager" hit="Change to previous device in the device menu" />
     <option name="to" path="ActionManager" hit="Change to previous device in the device menu" />
+    <option name="compose" path="ActionManager" hit="Compose Preview" />
+    <option name="preview" path="ActionManager" hit="Compose Preview" />
     <option name="constraint" path="ActionManager" hit="Constraint Layout Help Panel" />
     <option name="help" path="ActionManager" hit="Constraint Layout Help Panel" />
     <option name="layout" path="ActionManager" hit="Constraint Layout Help Panel" />
@@ -93,6 +94,9 @@
     <option name="force" path="ActionManager" hit="Force Refresh Layout" />
     <option name="layout" path="ActionManager" hit="Force Refresh Layout" />
     <option name="refresh" path="ActionManager" hit="Force Refresh Layout" />
+    <option name="compose" path="ActionManager" hit="Generate Compose Preview" />
+    <option name="generate" path="ActionManager" hit="Generate Compose Preview" />
+    <option name="preview" path="ActionManager" hit="Generate Compose Preview" />
     <option name="help" path="ActionManager" hit="Motion Layout Help Panel" />
     <option name="layout" path="ActionManager" hit="Motion Layout Help Panel" />
     <option name="motion" path="ActionManager" hit="Motion Layout Help Panel" />
@@ -127,11 +131,6 @@
     <option name="data" path="ActionManager" hit="Sample Data Directory" />
     <option name="directory" path="ActionManager" hit="Sample Data Directory" />
     <option name="sample" path="ActionManager" hit="Sample Data Directory" />
-    <option name="filters" path="ActionManager" hit="Severity Filters of Issue Panel" />
-    <option name="issue" path="ActionManager" hit="Severity Filters of Issue Panel" />
-    <option name="of" path="ActionManager" hit="Severity Filters of Issue Panel" />
-    <option name="panel" path="ActionManager" hit="Severity Filters of Issue Panel" />
-    <option name="severity" path="ActionManager" hit="Severity Filters of Issue Panel" />
     <option name="help" path="ActionManager" hit="Show Help Panel" />
     <option name="panel" path="ActionManager" hit="Show Help Panel" />
     <option name="show" path="ActionManager" hit="Show Help Panel" />
@@ -165,6 +164,7 @@
     <option name="layout" path="ActionManager" hit="Switch Layout Qualifier" />
     <option name="qualifier" path="ActionManager" hit="Switch Layout Qualifier" />
     <option name="switch" path="ActionManager" hit="Switch Layout Qualifier" />
+    <option name="+" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
     <option name="and" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
     <option name="blueprint" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
     <option name="cycling" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
@@ -204,11 +204,11 @@
     <option name="the" path="ActionManager" hit="Update the preview to latest code change" />
     <option name="to" path="ActionManager" hit="Update the preview to latest code change" />
     <option name="update" path="ActionManager" hit="Update the preview to latest code change" />
+    <option name="options" path="ActionManager" hit="View Options" />
+    <option name="view" path="ActionManager" hit="View Options" />
   </configurable>
-  <configurable id="nele.options" configurable_name="Design Tools">
+  <configurable id="nele.options" configurable_name="UI Tools">
     <option name="code" hit="Code" />
-    <option name="compose" hit="Compose Preview" />
-    <option name="preview" hit="Compose Preview" />
     <option name="compose" hit="Compose files with previews:" />
     <option name="files" hit="Compose files with previews:" />
     <option name="previews" hit="Compose files with previews:" />
@@ -221,8 +221,6 @@
     <option name="editor" hit="Default Editor Mode" />
     <option name="mode" hit="Default Editor Mode" />
     <option name="design" hit="Design" />
-    <option name="design" hit="Design Tools" />
-    <option name="tools" hit="Design Tools" />
     <option name="drawables" hit="Drawables:" />
     <option name="enable" hit="Enable live updates" />
     <option name="live" hit="Enable live updates" />
@@ -237,6 +235,12 @@
     <option name="navigation" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="other" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="resources" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="preview" hit="Preview Settings" />
+    <option name="settings" hit="Preview Settings" />
+    <option name="resource" hit="Resource Usage:" />
+    <option name="usage" hit="Resource Usage:" />
     <option name="split" hit="Split" />
+    <option name="tools" hit="UI Tools" />
+    <option name="ui" hit="UI Tools" />
   </configurable>
 </options>

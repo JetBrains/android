@@ -19,10 +19,9 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-import kotlin.time.Duration.Companion.seconds
 
 private const val APP_INSPECTION_TOOL_WINDOW_TITLE = "App Inspection"
 
@@ -61,34 +60,51 @@ class LaunchInspectorsTest {
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
+          emulator.waitForBoot()
+          adb.waitForDevice(emulator)
+
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
 
-          emulator.waitForBoot()
           studio.executeAction("Run")
-          system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.minapp",
+          studio.waitForEmulatorStart(
+            system.installation.ideaLog,
+            emulator,
+            "com\\.example\\.minapp",
             60,
-            TimeUnit.SECONDS
+            TimeUnit.SECONDS,
           )
-          studio.waitForComponentWithExactText("Run:")
-          adb.runCommand("logcat") {
 
-            // TODO(b/255808916): See TODO section in the test KDoc.
-            waitForLog(".*Hello Minimal World!.*", 60.seconds)
-            Thread.sleep(2_000)
+          // TODO(b/255808916): See TODO section in the test KDoc.
+          emulator.logCat.waitForMatchingLine(".*Hello Minimal World!.*", 60, TimeUnit.SECONDS)
+          Thread.sleep(2_000)
 
-            studio.showToolWindow(APP_INSPECTION_TOOL_WINDOW_TITLE)
-            studio.waitForComponentByClass("WorkBenchLoadingPanel")
-            // Component for Background Task Inspector.
-            studio.waitForComponentByClass("BackgroundTaskEntriesView")
-            // Component for Network Inspector.
-            studio.waitForComponentByClass("RangeTooltipComponent")
+          studio.showToolWindow(APP_INSPECTION_TOOL_WINDOW_TITLE)
+          studio.waitForComponentByClass("WorkBenchLoadingPanel")
+          // Component for Background Task Inspector.
+          studio.waitForComponentByClass("BackgroundTaskEntriesView")
+          // Component for Network Inspector.
+          studio.waitForComponentByClass("RangeTooltipComponent")
 
-            waitForLog(".*Inspector installed: androidx.sqlite.inspection", 60.seconds)
-            waitForLog(".*Inspector installed: backgroundtask.inspection", 60.seconds)
-            waitForLog(".*Inspector installed: studio.network.inspection", 60.seconds)
-          }
+          emulator.logCat.waitForMatchingLine(
+            ".*Inspector installed: androidx.sqlite.inspection",
+            60,
+            TimeUnit.SECONDS,
+          )
+          emulator.logCat
+            .reset() // have to reset log position between checks because Inspector lines can appear
+          // in any order
+          emulator.logCat.waitForMatchingLine(
+            ".*Inspector installed: backgroundtask.inspection",
+            60,
+            TimeUnit.SECONDS,
+          )
+          emulator.logCat.reset()
+          emulator.logCat.waitForMatchingLine(
+            ".*Inspector installed: studio.network.inspection",
+            60,
+            TimeUnit.SECONDS,
+          )
         }
       }
     }

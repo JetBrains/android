@@ -55,7 +55,7 @@ class GridPlaceholderTest : SceneTest() {
         Region(900, 0, 1000, 200),
         Region(900, 200, 1000, 400),
         Region(900, 400, 1000, 900),
-        Region(900, 900, 1000, 1000)
+        Region(900, 900, 1000, 1000),
       )
 
     assertEquals(expected.size, placeholders.size)
@@ -103,11 +103,11 @@ class GridPlaceholderTest : SceneTest() {
 
     assertEquals(
       "0",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW)
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW),
     )
     assertEquals(
       "1",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN)
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN),
     )
 
     val row1column0 = placeholders.single { it.region == Region(0, 200, 200, 400) }
@@ -115,11 +115,11 @@ class GridPlaceholderTest : SceneTest() {
     mySceneManager.update()
     assertEquals(
       "1",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW)
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW),
     )
     assertEquals(
       "0",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN)
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN),
     )
 
     val row0column2 = placeholders.single { it.region == Region(400, 0, 900, 200) }
@@ -127,11 +127,11 @@ class GridPlaceholderTest : SceneTest() {
     mySceneManager.update()
     assertEquals(
       "0",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW)
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW),
     )
     assertEquals(
       "2",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN)
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN),
     )
   }
 
@@ -155,11 +155,11 @@ class GridPlaceholderTest : SceneTest() {
     gapPlaceholder.updateAttribute(Mockito.mock(SceneComponent::class.java), attributeHolder)
     assertEquals(
       "2",
-      attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW)
+      attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW),
     )
     assertEquals(
       "2",
-      attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN)
+      attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN),
     )
   }
 
@@ -199,8 +199,8 @@ class GridPlaceholderTest : SceneTest() {
             .width("100dp")
             .height("100dp")
             .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "3")
-            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "3")
-        )
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "3"),
+        ),
     )
   }
 }

@@ -42,7 +42,7 @@ class DataBindingKotlinAnnotator : Annotator {
 
   private fun highlightIfGradleKotlinKaptPluginNotApplied(
     element: PsiElement,
-    holder: AnnotationHolder
+    holder: AnnotationHolder,
   ) {
     val module = element.module ?: return
 
@@ -50,7 +50,7 @@ class DataBindingKotlinAnnotator : Annotator {
       holder
         .newAnnotation(
           HighlightSeverity.ERROR,
-          "To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle"
+          "To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle",
         )
         .create()
     }

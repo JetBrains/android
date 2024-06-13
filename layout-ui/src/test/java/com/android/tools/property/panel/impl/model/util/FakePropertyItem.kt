@@ -30,7 +30,7 @@ open class FakePropertyItem(
   initialValue: String? = null,
   override var browseButton: ActionIconButton? = null,
   override var colorButton: ActionIconButton? = null,
-  override val editingSupport: EditingSupport = EditingSupport.INSTANCE
+  override val editingSupport: EditingSupport = EditingSupport.INSTANCE,
 ) : PropertyItem {
 
   override var isReference: Boolean = false

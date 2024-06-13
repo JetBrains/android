@@ -50,6 +50,7 @@ import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -118,6 +119,13 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
     setUpThreadingChecks();
+
+    // Initialize ApplicationManager.
+    // We need to do this now, because the calls to EmbeddedDistributionPaths.getInstance() and
+    // WriteAction.runAndWait() below require the application manager to be initialized. Ordinarily,
+    // this is handled by JavaCodeInsightTestFixture#setUp(), but TestApplicationManager will only
+    // be initialized once, so putting in this early initialize call won't cause any harm later.
+    TestApplicationManager.getInstance();
 
     AdtTestProjectDescriptor descriptor;
     if (myProjectDescriptor == null) {
@@ -205,7 +213,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     final var oldAndroidSdkPath = ideSdks.getAndroidSdkPath();
     Disposer.register(myFixture.getTestRootDisposable(), () -> {
       WriteAction.runAndWait(() -> {
-        AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.getAbsolutePath() : null);
+        AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.toPath() : null);
       });
     });
     ProjectTypeService.setProjectType(getProject(), new ProjectType("Android"));

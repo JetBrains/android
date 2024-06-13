@@ -34,7 +34,7 @@ object DoubleValidation : EditingValidation {
       editedValue.trim().toDoubleOrNull() == null ->
         return Pair(
           EditingErrorCategory.ERROR,
-          message("animation.inspector.picker.validation.double.nan")
+          message("animation.inspector.picker.validation.double.nan"),
         )
       else -> EDITOR_NO_ERROR
     }

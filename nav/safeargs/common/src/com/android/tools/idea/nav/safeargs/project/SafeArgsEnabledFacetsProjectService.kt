@@ -34,7 +34,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * This component also serves as a [ModificationTracker] that will allow caches to know when this
  * list might have been updated.
  */
-@Service
+@Service(Service.Level.PROJECT)
 class SafeArgsEnabledFacetsProjectService(val project: Project) : ModificationTracker {
   companion object {
     fun getInstance(project: Project): SafeArgsEnabledFacetsProjectService =
@@ -57,7 +57,7 @@ class SafeArgsEnabledFacetsProjectService(val project: Project) : ModificationTr
 
           CachedValueProvider.Result.create(facets, this)
         },
-        false
+        false,
       )
   }
 

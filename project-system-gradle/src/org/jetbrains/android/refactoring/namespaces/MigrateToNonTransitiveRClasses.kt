@@ -18,13 +18,13 @@ package org.jetbrains.android.refactoring.namespaces
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent

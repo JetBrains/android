@@ -25,7 +25,7 @@ package com.android.tools.idea.common.surface
   AnnotationTarget.FUNCTION,
   AnnotationTarget.LOCAL_VARIABLE,
   AnnotationTarget.VALUE_PARAMETER,
-  AnnotationTarget.PROPERTY
+  AnnotationTarget.PROPERTY,
 )
 internal annotation class SurfaceScale
 
@@ -43,7 +43,7 @@ internal annotation class SurfaceScale
   AnnotationTarget.FIELD,
   AnnotationTarget.FUNCTION,
   AnnotationTarget.LOCAL_VARIABLE,
-  AnnotationTarget.VALUE_PARAMETER
+  AnnotationTarget.VALUE_PARAMETER,
 )
 internal annotation class SurfaceZoomLevel
 
@@ -56,6 +56,6 @@ internal annotation class SurfaceZoomLevel
   AnnotationTarget.FIELD,
   AnnotationTarget.FUNCTION,
   AnnotationTarget.LOCAL_VARIABLE,
-  AnnotationTarget.VALUE_PARAMETER
+  AnnotationTarget.VALUE_PARAMETER,
 )
 annotation class SurfaceScreenScalingFactor

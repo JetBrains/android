@@ -154,88 +154,90 @@ MODULE: project_sm_src.app
                     ._sm_src/app/src/release/shaders
                 BaselineProfileDirectories:
                     ._sm_src/app/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ._sm_src/app/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ._sm_src/app/src/test/assets
-                JavaDirectories:
-                    ._sm_src/app/src/test/java
-                KotlinDirectories:
-                    ._sm_src/app/src/test/java
-                    ._sm_src/app/src/test/kotlin
-                JniLibsDirectories:
-                    ._sm_src/app/src/test/jniLibs
-                ResDirectories:
-                    ._sm_src/app/src/test/res
-                ResourcesDirectories:
-                    ._sm_src/app/src/test/resources
-                ShadersDirectories:
-                    ._sm_src/app/src/test/shaders
-                BaselineProfileDirectories:
-                    ._sm_src/app/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ._sm_src/app/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ._sm_src/app/src/testDebug/assets
-                JavaDirectories:
-                    ._sm_src/app/src/testDebug/java
-                KotlinDirectories:
-                    ._sm_src/app/src/testDebug/java
-                    ._sm_src/app/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ._sm_src/app/src/testDebug/jniLibs
-                ResDirectories:
-                    ._sm_src/app/src/testDebug/res
-                ResourcesDirectories:
-                    ._sm_src/app/src/testDebug/resources
-                ShadersDirectories:
-                    ._sm_src/app/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ._sm_src/app/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ._sm_src/app/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ._sm_src/app/src/androidTest/assets
-                JavaDirectories:
-                    ._sm_src/app/src/androidTest/java
-                KotlinDirectories:
-                    ._sm_src/app/src/androidTest/java
-                    ._sm_src/app/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ._sm_src/app/src/androidTest/jniLibs
-                ResDirectories:
-                    ._sm_src/app/src/androidTest/res
-                ResourcesDirectories:
-                    ._sm_src/app/src/androidTest/resources
-                ShadersDirectories:
-                    ._sm_src/app/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ._sm_src/app/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ._sm_src/app/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ._sm_src/app/src/androidTestDebug/assets
-                JavaDirectories:
-                    ._sm_src/app/src/androidTestDebug/java
-                KotlinDirectories:
-                    ._sm_src/app/src/androidTestDebug/java
-                    ._sm_src/app/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ._sm_src/app/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ._sm_src/app/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ._sm_src/app/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ._sm_src/app/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ._sm_src/app/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ._sm_src/app/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ._sm_src/app/src/test/assets
+                    JavaDirectories:
+                        ._sm_src/app/src/test/java
+                    KotlinDirectories:
+                        ._sm_src/app/src/test/java
+                        ._sm_src/app/src/test/kotlin
+                    JniLibsDirectories:
+                        ._sm_src/app/src/test/jniLibs
+                    ResDirectories:
+                        ._sm_src/app/src/test/res
+                    ResourcesDirectories:
+                        ._sm_src/app/src/test/resources
+                    ShadersDirectories:
+                        ._sm_src/app/src/test/shaders
+                    BaselineProfileDirectories:
+                        ._sm_src/app/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ._sm_src/app/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ._sm_src/app/src/testDebug/assets
+                    JavaDirectories:
+                        ._sm_src/app/src/testDebug/java
+                    KotlinDirectories:
+                        ._sm_src/app/src/testDebug/java
+                        ._sm_src/app/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ._sm_src/app/src/testDebug/jniLibs
+                    ResDirectories:
+                        ._sm_src/app/src/testDebug/res
+                    ResourcesDirectories:
+                        ._sm_src/app/src/testDebug/resources
+                    ShadersDirectories:
+                        ._sm_src/app/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ._sm_src/app/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ._sm_src/app/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ._sm_src/app/src/androidTest/assets
+                    JavaDirectories:
+                        ._sm_src/app/src/androidTest/java
+                    KotlinDirectories:
+                        ._sm_src/app/src/androidTest/java
+                        ._sm_src/app/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ._sm_src/app/src/androidTest/jniLibs
+                    ResDirectories:
+                        ._sm_src/app/src/androidTest/res
+                    ResourcesDirectories:
+                        ._sm_src/app/src/androidTest/resources
+                    ShadersDirectories:
+                        ._sm_src/app/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ._sm_src/app/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ._sm_src/app/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ._sm_src/app/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ._sm_src/app/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ._sm_src/app/src/androidTestDebug/java
+                        ._sm_src/app/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ._sm_src/app/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ._sm_src/app/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ._sm_src/app/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ._sm_src/app/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ._sm_src/app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -282,7 +284,7 @@ MODULE: project_sm_src.app
                 ShadersDirectoryUrls:
                     file://._sm_src/app/src/main/shaders
                     file://._sm_src/app/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -320,8 +322,8 @@ MODULE: project_sm_src.app
                 ShadersDirectoryUrls:
                     file://._sm_src/app/src/test/shaders
                     file://._sm_src/app/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://._sm_src/app/src/androidTest/AndroidManifest.xml
@@ -368,13 +370,13 @@ MODULE: project_sm_src.app
                     file://._sm_src/app/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://._sm_src/app/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://._sm_src/app/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://._sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -510,7 +512,7 @@ MODULE: project_sm_src.app
                     file://._sm_src/app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://._sm_src/app/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -559,7 +561,7 @@ MODULE: project_sm_src.app
                     file://._sm_src/app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://._sm_src/app/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:

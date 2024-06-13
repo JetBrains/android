@@ -16,7 +16,7 @@
 
 package androidx.compose.compiler.plugins.kotlin.lower
 
-import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
+import androidx.compose.compiler.plugins.kotlin.k1.hasComposableAnnotation
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.ir.descriptors.IrBasedDeclarationDescriptor
 import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.jetbrains.kotlin.ir.util.DescriptorsRemapper
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.StarProjectionImpl
 
 /**
  * This symbol remapper is aware of possible descriptor signature change to align
@@ -43,6 +44,9 @@ import org.jetbrains.kotlin.types.KotlinType
  *
  * This conversion is only required with decoys, but can be applied to the JVM as well for
  * consistency.
+ *
+ * This is K1 specific. In K2, descriptors are only there for backwards compatibility and
+ * always reflect the IR.
  */
 class ComposableSymbolRemapper : DeepCopySymbolRemapper(
     object : DescriptorsRemapper {
@@ -84,8 +88,8 @@ class ComposableSymbolRemapper : DeepCopySymbolRemapper(
             this is IrBasedDeclarationDescriptor<*> ||
                 containingDeclaration.let { it is FunctionDescriptor && it.isTransformed() }
 
-        private fun KotlinType.containsComposable() =
+        private fun KotlinType.containsComposable(): Boolean =
             hasComposableAnnotation() ||
-                arguments.any { it.type.hasComposableAnnotation() }
+                arguments.any { it !is StarProjectionImpl && it.type.containsComposable() }
     }
 )

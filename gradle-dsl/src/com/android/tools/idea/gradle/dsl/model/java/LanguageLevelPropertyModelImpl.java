@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
-import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.convertToGradleString;
-import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString;
-
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
@@ -32,6 +28,10 @@ import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
+import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.convertToGradleString;
+import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString;
 
 public class LanguageLevelPropertyModelImpl extends ResolvedPropertyModelImpl implements LanguageLevelPropertyModel {
   public LanguageLevelPropertyModelImpl(@NotNull GradlePropertyModelImpl realModel) {

@@ -22,9 +22,11 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.model.y
@@ -37,6 +39,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -44,9 +50,6 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JPanel
 
 class AccessibilityModelUpdaterTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
@@ -77,7 +80,7 @@ class AccessibilityModelUpdaterTest {
             add(previewView, BorderLayout.CENTER)
           },
           1.0,
-          true
+          true,
         )
       fakeUi.root.validate()
     }
@@ -95,7 +98,7 @@ class AccessibilityModelUpdaterTest {
 
   private fun createComposePreviewRepresentation(
     psiFile: PsiFile,
-    view: TestComposePreviewView
+    view: TestComposePreviewView,
   ): ComposePreviewRepresentation {
     val previewRepresentation =
       ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
@@ -112,11 +115,11 @@ class AccessibilityModelUpdaterTest {
     val uiCheckElement = twoElementsPreviewModel.dataContext.previewElement()!!
 
     runBlocking {
-      composePreviewRepresentation.waitForAnyPendingRefresh()
+      waitForAllRefreshesToFinish(30.seconds)
       val onRefreshCompletable = previewView.getOnRefreshCompletable()
       composePreviewRepresentation.setMode(
         PreviewMode.UiCheck(
-          uiCheckElement,
+          UiCheckInstance(uiCheckElement, isWearPreview = false),
           atfChecksEnabled = true,
         )
       )

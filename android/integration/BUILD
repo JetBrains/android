@@ -1,8 +1,7 @@
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_LATEST")
 
 # managed by go/iml_to_build
 iml_module(
@@ -13,13 +12,15 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )
 
@@ -102,7 +103,7 @@ iml_studio_test(
     data = [
         ":buildproject_deps",
         ":mindebugapp",
-        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_GRADLE_VERSION,
@@ -138,7 +139,6 @@ iml_studio_test(
         ":minapp",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:gradle-distrib-7.2",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
@@ -172,6 +172,19 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "GoToDeclarationTest",
+    timeout = "long",
+    data = [
+        ":languagehighlighting",
+        ":languagehighlighting_deps",
+        INTEGRATION_TEST_GRADLE_VERSION,
+        INTEGRATION_TEST_SYSTEM_IMAGE,
+    ],
+    module = ":intellij.android.core.integration",
+    test_class = "com.android.tools.idea.GoToDeclarationTest",
+)
+
+iml_studio_test(
     name = "LiveEditTest",
     timeout = "long",
     data = [
@@ -180,8 +193,9 @@ iml_studio_test(
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:gradle-distrib-8.0",
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+        INTEGRATION_TEST_GRADLE_VERSION,
+        INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
     tags_linux = [
@@ -198,7 +212,7 @@ iml_studio_test(
 apply_changes_data = [
     ":buildproject_deps",
     ":applychangesproject",
-    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
@@ -237,7 +251,7 @@ iml_studio_test(
 build_and_run_test_data = [
     ":buildproject_deps",
     ":minapp",
-    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     INTEGRATION_TEST_GRADLE_VERSION,
@@ -261,6 +275,7 @@ iml_studio_test(
 create_project_test_data = [
     ":createproject_deps",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
     "//prebuilts/studio/sdk:platforms/latest",
     "//tools/base/build-system:gradle-distrib-7.5",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
@@ -279,7 +294,7 @@ maven_repository(
     name = "createproject_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.7.0",
+        "@maven//:androidx.activity.activity-compose_1.8.0",
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
@@ -322,17 +337,17 @@ maven_repository(
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.6.4",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KOTLIN_ARTIFACTS_FOR_TESTS,
 )
 
 maven_repository(
     name = "openproject_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KOTLIN_ARTIFACTS_FOR_TESTS,
 )
 
 iml_studio_test(
@@ -341,7 +356,7 @@ iml_studio_test(
     data = [
         ":buildproject_deps",
         ":minapp",
-        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
     module = ":intellij.android.core.integration",
@@ -356,7 +371,7 @@ iml_studio_test(
     data = [
         ":buildproject_deps",
         ":minapp",
-        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
         "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
     ],
@@ -423,11 +438,11 @@ iml_studio_test(
     data = [
         ":instrumenttestapp",
         ":run_instrumented_test_project_deps",
-        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:gradle-distrib-7.5",
-        INTEGRATION_TEST_SYSTEM_IMAGE,
+        INTEGRATION_TEST_GRADLE_VERSION,
+        "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
@@ -440,12 +455,34 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "MultipleDevicesInstrumentedTest",
+    timeout = "long",
+    data = [
+        ":instrumenttestapp",
+        ":run_instrumented_test_project_deps",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        INTEGRATION_TEST_GRADLE_VERSION,
+        "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.MultipleDevicesInstrumentedTest",
+)
+
+iml_studio_test(
     name = "DebugJUnitTest",
     timeout = "long",
     data = [
         ":debug_junit_test_deps",
         ":debugjunittest",
-        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
     module = ":intellij.android.core.integration",
@@ -463,7 +500,7 @@ iml_studio_test(
     data = [
         ":buildkmpproject_deps",
         ":kmpapp",
-        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/android-33",
@@ -493,11 +530,12 @@ maven_repository(
     name = "buildproject_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
-        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
+        "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KOTLIN_ARTIFACTS_FOR_TESTS,
     visibility = ["//visibility:public"],
 )
 
@@ -533,26 +571,27 @@ maven_repository(
         "@maven//:androidx.core.core-ktx_1.8.0",
         "@maven//:androidx.test.espresso.espresso-core_3.4.0",
         "@maven//:androidx.test.ext.junit_1.1.3",
-        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
-        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:com.android.tools.emulator.proto_30.2.0",
-        "@maven//:com.android.tools.utp.android-device-provider-ddmlib_30.2.0",
-        "@maven//:com.android.tools.utp.android-device-provider-gradle_30.2.0",
-        "@maven//:com.android.tools.utp.android-test-plugin-host-additional-test-output_30.2.0",
-        "@maven//:com.android.tools.utp.android-test-plugin-host-coverage_30.2.0",
-        "@maven//:com.android.tools.utp.android-test-plugin-host-device-info-proto_30.2.0",
-        "@maven//:com.android.tools.utp.android-test-plugin-host-device-info_30.2.0",
-        "@maven//:com.android.tools.utp.android-test-plugin-host-logcat_30.2.0",
-        "@maven//:com.android.tools.utp.android-test-plugin-host-retention_30.2.0",
-        "@maven//:com.android.tools.utp.android-test-plugin-result-listener-gradle-proto_30.2.0",
-        "@maven//:com.android.tools.utp.android-test-plugin-result-listener-gradle_30.2.0",
+        "@maven//:com.android.tools.utp.android-device-provider-ddmlib_31.1.0",
+        "@maven//:com.android.tools.utp.android-device-provider-gradle_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-additional-test-output_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-apk-installer_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-coverage_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-device-info-proto_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-device-info_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-emulator-control_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-logcat_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-host-retention_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-result-listener-gradle-proto_31.1.0",
+        "@maven//:com.android.tools.utp.android-test-plugin-result-listener-gradle_31.1.0",
         "@maven//:com.google.android.material.material_1.5.0",
-        "@maven//:com.google.testing.platform.android-device-provider-local",
-        "@maven//:com.google.testing.platform.android-driver-instrumentation",
-        "@maven//:com.google.testing.platform.android-test-plugin",
-        "@maven//:com.google.testing.platform.core",
-        "@maven//:com.google.testing.platform.core-proto",
-        "@maven//:com.google.testing.platform.launcher",
+        "@maven//:com.google.testing.platform.android-device-provider-local_0.0.8-alpha08",
+        "@maven//:com.google.testing.platform.android-driver-instrumentation_0.0.8-alpha08",
+        "@maven//:com.google.testing.platform.android-test-plugin_0.0.8-alpha08",
+        "@maven//:com.google.testing.platform.core_0.0.8-alpha08",
+        "@maven//:com.google.testing.platform.launcher_0.0.8-alpha08",
         "@maven//:javax.annotation.javax.annotation-api_1.3.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.7.20",
@@ -583,11 +622,11 @@ maven_repository(
     name = "showusages_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
-        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KOTLIN_ARTIFACTS_FOR_TESTS,
     visibility = ["//visibility:public"],
 )
 
@@ -595,11 +634,11 @@ maven_repository(
     name = "languagehighlighting_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
-        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KOTLIN_ARTIFACTS_FOR_TESTS,
     visibility = ["//visibility:public"],
 )
 
@@ -609,8 +648,8 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.appcompat.appcompat_1.4.1",
         "@maven//:androidx.core.core-ktx_1.8.0",
-        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
-        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
@@ -650,10 +689,10 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-compose_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.1",
-        "@maven//:com.android.application.com.android.application.gradle.plugin_7.4.2",
-        "@maven//:com.android.library.com.android.library.gradle.plugin_7.4.2",
-        "@maven//:com.android.tools.build.aapt2_7.4.2-8841542",
-        "@maven//:com.android.tools.lint.lint-gradle_30.4.2",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_8.1.0",
+        "@maven//:com.android.library.com.android.library.gradle.plugin_8.1.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.lint.lint-gradle_31.1.0",
         "@maven//:com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin_1.8.21-1.0.11",
         "@maven//:com.google.devtools.ksp.symbol-processing_1.8.21-1.0.11",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
@@ -662,7 +701,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.21",
         "@maven//:org.jetbrains.kotlin.kotlin-klib-commonizer-embeddable_1.8.21",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.9.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.21",
         "@maven//:org.jetbrains.kotlin.multiplatform.org.jetbrains.kotlin.multiplatform.gradle.plugin_1.8.21",

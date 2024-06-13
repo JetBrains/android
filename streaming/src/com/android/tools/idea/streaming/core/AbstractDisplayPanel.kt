@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.tools.adtui.common.AdtUiUtils.updateToolbars
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
+import com.android.tools.idea.streaming.device.B330395367Logger
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBScrollBar
@@ -82,6 +85,7 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
   init {
     Disposer.register(disposableParent, this)
+    B330395367Logger.log { "${this@AbstractDisplayPanel.simpleId} created disposableParent=${disposableParent.simpleId}" }
 
     background = primaryPanelBackground
 
@@ -121,6 +125,15 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   }
 
   final override fun dispose() {
+    B330395367Logger.log { "${this@AbstractDisplayPanel.simpleId}.dispose" }
+  }
+
+  override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    val sizeChanged = width != this.width || height != this.height
+    super.setBounds(x, y, width, height)
+    if (sizeChanged && zoomToolbarVisible) {
+      updateToolbars(floatingToolbar)
+    }
   }
 
   /**

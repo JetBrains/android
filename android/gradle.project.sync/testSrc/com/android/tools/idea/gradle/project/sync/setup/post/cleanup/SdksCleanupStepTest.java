@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
 import static com.android.SdkConstants.FD_PKG_SOURCES;
-import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupUtil.updateSdkIfNeeded;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.sdk.SdksCleanupUtil.updateSdkIfNeeded;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Sdks.findAndroidTarget;
 import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
@@ -44,7 +45,6 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -190,6 +190,7 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
   private void createSdk() {
     createSdk(Sdks.getLatestAndroidPlatform());
   }
+
   private void createSdk(AndroidVersion version) {
     File sdkPath = TestUtils.getSdk().toFile();
     Sdks.allowAccessToSdk(getTestRootDisposable());

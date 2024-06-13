@@ -23,7 +23,7 @@ open class DefaultHitProvider : HitProvider {
   override fun addHit(
     component: SceneComponent,
     sceneTransform: SceneContext,
-    picker: ScenePicker
+    picker: ScenePicker,
   ) {
     component.fillRect(rect)
 
@@ -33,14 +33,14 @@ open class DefaultHitProvider : HitProvider {
       sceneTransform.getSwingXDip(rect.x.toFloat()),
       sceneTransform.getSwingYDip(rect.y.toFloat()),
       sceneTransform.getSwingXDip((rect.x + rect.width).toFloat()),
-      sceneTransform.getSwingYDip((rect.y + rect.height).toFloat())
+      sceneTransform.getSwingYDip((rect.y + rect.height).toFloat()),
     )
   }
 
   override fun intersects(
     component: SceneComponent,
     sceneTransform: SceneContext,
-    rectangle: Rectangle
+    rectangle: Rectangle,
   ): Boolean {
     component.fillRect(rect)
     return rectangle.intersects(rect)

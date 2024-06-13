@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.rendering.RenderTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -37,7 +37,9 @@ abstract class InspectorTests {
 
   lateinit var psiFilePointer: SmartPsiElementPointer<PsiFile>
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
+
+  @get:Rule val renderRule = RenderTestRule()
 
   lateinit var parentDisposable: Disposable
 
@@ -45,13 +47,13 @@ abstract class InspectorTests {
 
   @Before
   open fun setUp() {
-    parentDisposable = projectRule.fixture.testRootDisposable
+    parentDisposable = projectRule.testRootDisposable
     val model = runInEdtAndGet {
       NlModelBuilderUtil.model(
           projectRule,
           "layout",
           "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
         )
         .build()
     }
@@ -64,32 +66,26 @@ abstract class InspectorTests {
         """
       fun main() {}
     """
-          .trimIndent()
+          .trimIndent(),
       )
     ApplicationManager.getApplication().invokeAndWait {
       psiFilePointer = SmartPointerManager.createPointer(psiFile)
     }
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.override(true)
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.override(true)
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION.override(true)
   }
 
   @After
   open fun tearDown() {
-    ComposePreviewAnimationManager.closeCurrentInspector()
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.clearOverride()
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.clearOverride()
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION.clearOverride()
+    ComposeAnimationInspectorManager.closeCurrentInspector()
   }
 
-  fun createAndOpenInspector(): AnimationPreview {
-    Assert.assertFalse(ComposePreviewAnimationManager.isInspectorOpen())
-    ComposePreviewAnimationManager.createAnimationInspectorPanel(
+  fun createAndOpenInspector(disposable: Disposable = parentDisposable): ComposeAnimationPreview {
+    Assert.assertFalse(ComposeAnimationInspectorManager.isInspectorOpen())
+    ComposeAnimationInspectorManager.createAnimationInspectorPanel(
       surface,
-      parentDisposable,
-      psiFilePointer
+      disposable,
+      psiFilePointer,
     ) {}
-    Assert.assertTrue(ComposePreviewAnimationManager.isInspectorOpen())
-    return ComposePreviewAnimationManager.currentInspector!!
+    Assert.assertTrue(ComposeAnimationInspectorManager.isInspectorOpen())
+    return ComposeAnimationInspectorManager.currentInspector!!
   }
 }

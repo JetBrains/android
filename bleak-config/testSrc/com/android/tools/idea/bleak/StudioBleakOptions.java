@@ -25,8 +25,9 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class StudioBleakOptions {
-  private static IgnoreList<LeakInfo> globalIgnoreList = new IgnoreList<> (Arrays.stream(new IgnoredRef[]{
-    new IgnoredRef(-2, "com.intellij.openapi.util.ObjectTree", "myObject2ParentNode"),
+  private static final IgnoreList<LeakInfo> globalIgnoreList = new IgnoreList<>(Arrays.stream(new MainCheckIgnoreListEntry[] {
+    new IgnoredRef(1, "com.intellij.openapi.util.Disposer", "ourTree"),
+    new IgnoredClass("com.android.tools.idea.bleak.DisposerInfo"),
     new IgnoredRef(1, "com.android.tools.idea.testing.DisposerExplorer", "object2ParentNode"),
     new IgnoredRef(-2, "com.android.tools.idea.diagnostics.report.MetricsLogFileProviderKt", "DefaultMetricsLogFileProvider"),
     new IgnoredRef(-4, "com.android.tools.idea.tests.gui.framework.GuiPerfLogger", "myMetric"),
@@ -100,18 +101,23 @@ public class StudioBleakOptions {
     new IgnoredRef(-1, "com.android.tools.idea.io.grpc.netty.shaded.io.netty.util.internal.shaded.org.jctools.queues.MpscChunkedArrayQueue", "producerBuffer"),
     new IgnoredRef(-1, "com.android.tools.idea.io.grpc.netty.shaded.io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueue", "buffer"),
     new IgnoredRef(-1, "com.android.tools.idea.io.grpc.netty.shaded.io.netty.buffer.PoolChunk", "subpages"),
-  }).map(IgnoredRef::toIgnoreListEntry).toList());
+  }).toList());
 
-  private static Supplier<List<Expander>> customExpanders = () -> List.of(new SmartListExpander(), new SmartFMapExpander());
+  private static final IgnoreList<DisposerLeakInfo> globalDisposerIgnorelist = new IgnoreList<>(Arrays.stream(new IgnoredDisposerRef[]{
+  }).toList());
 
-  private static List<Object> forbiddenObjects = List.of(TObjectHash.REMOVED);
+  private static final Supplier<List<Expander>> customExpanders = () -> List.of(new SmartListExpander(), new SmartFMapExpander());
+
+  private static final List<Object> forbiddenObjects = List.of(TObjectHash.REMOVED);
 
   public static BleakOptions getDefaults() {
-    return new BleakOptions().withCheck(new MainBleakCheck(globalIgnoreList, customExpanders, forbiddenObjects, Duration.ofSeconds(60)));
+    return new BleakOptions().withCheck(new MainBleakCheck(globalIgnoreList, customExpanders, forbiddenObjects, Duration.ofSeconds(60)))
+      .withCheck(new DisposerCheck(globalDisposerIgnorelist));
   }
 
   public static BleakOptions defaultsWithAdditionalIgnoreList(IgnoreList<LeakInfo> additionalIgnoreList) {
       return new BleakOptions()
-        .withCheck(new MainBleakCheck(globalIgnoreList.plus(additionalIgnoreList), customExpanders, forbiddenObjects, Duration.ofSeconds(60)));
+        .withCheck(new MainBleakCheck(globalIgnoreList.plus(additionalIgnoreList), customExpanders, forbiddenObjects, Duration.ofSeconds(60)))
+        .withCheck(new DisposerCheck(globalDisposerIgnorelist));
   }
 }

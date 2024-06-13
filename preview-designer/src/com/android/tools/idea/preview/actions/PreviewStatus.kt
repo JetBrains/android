@@ -37,7 +37,7 @@ sealed class PreviewStatus(
   override val description: String,
   override val presentation: ComposeStatus.Presentation? = null,
   /** When true, the refresh icon will be displayed next to the notification chip. */
-  val hasRefreshIcon: Boolean = false
+  val hasRefreshIcon: Boolean = false,
 ) : ComposeStatus {
   /** The Preview found a syntax error and paused the updates. */
   object SyntaxError :
@@ -46,7 +46,7 @@ sealed class PreviewStatus(
       message("notification.syntax.errors.title"),
       message("notification.syntax.errors.description"),
       null,
-      false
+      false,
     )
 
   /** The Preview found a compilation error and paused the updates. */
@@ -56,7 +56,7 @@ sealed class PreviewStatus(
       message("notification.needs.build.broken.title"),
       message("notification.needs.build.broken.description"),
       ComposeStatus.Presentation.Error,
-      true
+      true,
     )
 
   /** The Preview is refreshing. */
@@ -66,7 +66,7 @@ sealed class PreviewStatus(
     PreviewStatus(
       AnimatedIcon.Default(),
       message("notification.preview.refreshing.title"),
-      detailsMessage
+      detailsMessage,
     )
 
   /** The Preview is out of date. This state will not happen if Fast Preview is enabled. */
@@ -76,7 +76,7 @@ sealed class PreviewStatus(
       message("notification.preview.out.of.date.title"),
       message("notification.preview.out.of.date.description"),
       ComposeStatus.Presentation.Warning,
-      true
+      true,
     )
 
   /** The Preview is compiling. */
@@ -84,7 +84,7 @@ sealed class PreviewStatus(
     PreviewStatus(
       AnimatedIcon.Default(),
       message("notification.preview.fast.compile.title"),
-      message("notification.preview.fast.compile.description")
+      message("notification.preview.fast.compile.description"),
     )
 
   /** An issue was found while rendering the Preview. */
@@ -94,7 +94,7 @@ sealed class PreviewStatus(
       message("notification.preview.render.issues.title"),
       message("notification.preview.render.issues.description"),
       ComposeStatus.Presentation.Warning,
-      true
+      true,
     )
 
   /** The Preview has failed to compile a fast change. */
@@ -104,7 +104,7 @@ sealed class PreviewStatus(
       message("notification.preview.fast.disabled.reason.compiler.error.title"),
       message("notification.preview.fast.disabled.reason.compiler.error.description"),
       ComposeStatus.Presentation.Error,
-      true
+      true,
     )
 
   /** The Preview is fully up to date. */
@@ -112,7 +112,7 @@ sealed class PreviewStatus(
     PreviewStatus(
       AllIcons.General.InspectionsOK,
       message("notification.preview.up.to.date.title"),
-      message("notification.preview.up.to.date.description")
+      message("notification.preview.up.to.date.description"),
     )
 }
 
@@ -154,7 +154,6 @@ class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
 class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    IssuePanelService.getInstance(project)
-      .setIssuePanelVisibility(true, IssuePanelService.TabCategory.DESIGN_TOOLS)
+    IssuePanelService.getInstance(project).showSharedIssuePanel()
   }
 }

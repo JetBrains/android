@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooOld
@@ -27,7 +28,6 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.toException
-import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import org.junit.Test
 
@@ -38,25 +38,25 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val originalException = AgpVersionsMismatch(
       listOf(
-        Pair(AgpVersion.parse("7.2.1"), "mainProj"),
-        Pair(AgpVersion.parse("7.4.0"), "included")
+        Pair("7.2.1", "mainProj"),
+        Pair("7.4.0", "included")
       )
     )
 
     SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
 
-    runSyncAndCheckFailure(
-      preparedProject,
-      { buildIssue ->
-        Truth.assertThat(buildIssue).isNotNull()
-        Truth.assertThat(buildIssue.description).contains("""
-          Using multiple versions of the Android Gradle Plugin [7.2.1, 7.4.0] across Gradle builds is not allowed.
-          Affected builds: [mainProj, included].
-        """.trimIndent()
+    runSyncAndCheckBuildIssueFailure(
+      preparedProject = preparedProject,
+      verifyBuildIssue = { buildIssue ->
+        expect.that(buildIssue).isNotNull()
+        expect.that(buildIssue.description).contains("""
+                Using multiple versions of the Android Gradle Plugin [7.2.1, 7.4.0] across Gradle builds is not allowed.
+                Affected builds: [mainProj, included].
+              """.trimIndent()
         )
-        Truth.assertThat(buildIssue.quickFixes).hasSize(0)
+        expect.that(buildIssue.quickFixes).hasSize(0)
       },
-      AndroidStudioEvent.GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS
     )
   }
 
@@ -67,62 +67,62 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
 
     SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
 
-    runSyncAndCheckFailure(
-      preparedProject,
-      { buildIssue ->
-        Truth.assertThat(buildIssue).isNotNull()
-        Truth.assertThat(buildIssue.quickFixes.size).isEqualTo(1)
-        Truth.assertThat(buildIssue.description)
+    runSyncAndCheckBuildIssueFailure(
+      preparedProject = preparedProject,
+      verifyBuildIssue = { buildIssue ->
+        expect.that(buildIssue).isNotNull()
+        expect.that(buildIssue.quickFixes.size).isEqualTo(1)
+        expect.that(buildIssue.description)
           .contains("The project is using an incompatible version (AGP 3.1.4) of the Android Gradle plugin.")
-        Truth.assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
-        Truth.assertThat((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
+        expect.that(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+        expect.that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
-      AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN
     )
   }
 
   @Test
   fun testAgpVersionTooNewError() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val originalException = AgpVersionTooNew(AgpVersion.parse("99.1.4"))
+    val originalException = AgpVersionTooNew(AgpVersion.parse("99.1.4"), latestSupportedVersion = AgpVersions.latestKnown)
 
     SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
 
-    runSyncAndCheckFailure(
-      preparedProject,
-      { buildIssue ->
-        Truth.assertThat(buildIssue).isNotNull()
-        Truth.assertThat(buildIssue.quickFixes.size).isEqualTo(1)
-        Truth.assertThat(buildIssue.description)
+    runSyncAndCheckBuildIssueFailure(
+      preparedProject = preparedProject,
+      verifyBuildIssue = { buildIssue ->
+        expect.that(buildIssue).isNotNull()
+        expect.that(buildIssue.quickFixes.size).isEqualTo(1)
+        expect.that(buildIssue.description)
           .contains("The project is using an incompatible version (AGP 99.1.4) of the Android Gradle plugin.")
-        Truth.assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
-        Truth.assertThat((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
+        expect.that(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+        expect.that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
-      AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW
     )
   }
 
   @Test
   fun testAgpVersionIncompatible() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val originalException = AgpVersionIncompatible(AgpVersion.parse("7.1.0-beta01"))
+    val originalException = AgpVersionIncompatible(AgpVersion.parse("7.1.0-beta01"), latestSupportedVersion = AgpVersions.latestKnown)
 
     SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
 
-    runSyncAndCheckFailure(
-      preparedProject,
-      { buildIssue ->
-        Truth.assertThat(buildIssue).isNotNull()
-        Truth.assertThat(buildIssue.quickFixes.size).isEqualTo(1)
-        Truth.assertThat(buildIssue.description)
+    runSyncAndCheckBuildIssueFailure(
+      preparedProject = preparedProject,
+      verifyBuildIssue = { buildIssue ->
+        expect.that(buildIssue).isNotNull()
+        expect.that(buildIssue.quickFixes.size).isEqualTo(1)
+        expect.that(buildIssue.description)
           .contains("The project is using an incompatible preview version (AGP 7.1.0-beta01) of the Android Gradle plugin.")
-        Truth.assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
-        Truth.assertThat((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
+        expect.that(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+        expect.that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/preview/features#agp-previews")
       },
-      AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE
     )
   }
 

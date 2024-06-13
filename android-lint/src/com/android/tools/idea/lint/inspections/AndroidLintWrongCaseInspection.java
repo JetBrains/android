@@ -17,44 +17,10 @@ package com.android.tools.idea.lint.inspections;
 
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.common.ReplaceStringQuickFix;
 import com.android.tools.lint.checks.WrongCaseDetector;
-import com.android.tools.lint.detector.api.LintFix;
-import com.intellij.openapi.editor.Document;
-import com.intellij.psi.PsiElement;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
   public AndroidLintWrongCaseInspection() {
     super(AndroidLintBundle.message("android.lint.inspections.wrong.case"), WrongCaseDetector.WRONG_CASE);
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                         @NotNull PsiElement endElement,
-                                         @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    @SuppressWarnings("unchecked")
-    List<String> oldAndNew = LintFix.getStringList(fixData, WrongCaseDetector.KEY_REPLACEMENTS);
-    if (oldAndNew != null && oldAndNew.size() == 2) {
-      String current = oldAndNew.get(0);
-      String proposed = oldAndNew.get(1);
-      return new LintIdeQuickFix[]{new ReplaceStringQuickFix(null, null, current, proposed) {
-        @Override
-        protected void editAfter(@SuppressWarnings("UnusedParameters") @NotNull Document document) {
-          String text = document.getText();
-          int index = text.indexOf("</" + current + ">");
-          if (index != -1) {
-            document.replaceString(index + 2, index + 2 + current.length(), proposed);
-          }
-        }
-      }};
-    }
-
-    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }

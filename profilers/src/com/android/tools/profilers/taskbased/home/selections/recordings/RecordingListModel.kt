@@ -35,7 +35,9 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class RecordingListModel(val profilers: StudioProfilers,
                          private val taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
-                         private val resetTaskSelection: () -> Unit) : AspectObserver() {
+                         private val resetTaskSelection: () -> Unit,
+                         private val setTaskSelection: (ProfilerTaskType) -> Unit = {},
+                         private val openProfilerTask: () -> Unit) : AspectObserver() {
   private val _recordingList = MutableStateFlow(listOf<SessionItem>())
   val recordingList = _recordingList.asStateFlow()
   private val _selectedRecording = MutableStateFlow<SessionItem?>(null)
@@ -47,32 +49,74 @@ class RecordingListModel(val profilers: StudioProfilers,
   }
 
   fun onRecordingSelection(newRecording: SessionItem?) {
-    resetTaskSelection()
+    val recordingTaskType = newRecording?.let { getSupportedTask(it) } ?: ProfilerTaskType.UNSPECIFIED
+    setTaskSelection(recordingTaskType)
     _selectedRecording.value = newRecording
+    updateTaskSelection()
   }
 
-  fun isSelectedRecordingExportable() = selectedRecording.value.let {
+  fun isSelectedRecordingExportable() = _selectedRecording.value.let {
     it != null && it.containsExactlyOneArtifact() && (it.getChildArtifacts().firstOrNull()?.canExport ?: false)
   }
 
   val exportableArtifact get() = if (isSelectedRecordingExportable()) selectedRecording.value!!.getChildArtifacts().first() else null
 
-  private fun sessionItemsUpdated() {
-    val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>().filter { !it.isOngoing }
-    val newRecordingList = mutableListOf<SessionItem>()
-    newRecordingList.addAll(sessionItems)
-    _recordingList.value = newRecordingList
+  fun isRecordingSelected() = _selectedRecording.value != null
+
+  fun doDeleteSelectedRecording() {
+    assert(isRecordingSelected())
+    _selectedRecording.value!!.deleteSession()
+    resetTaskSelection()
+    resetRecordingSelection()
+  }
+
+  private fun resetRecordingSelection() {
+    _selectedRecording.value = null
   }
 
   /**
-   * Constructs and returns a comma separated string of tasks that can be launched from a given recording.
+   * Returns the task or viewer that can be launched from a given recording.
+   *
+   * Note: A "viewer" is essentially the same as a task, but it specifies the context in which the task is used when opening an imported or
+   * past recording. This method assumes a one-to-one mapping between each recording or artifact and each corresponding task or viewer.
    */
-  fun createStringOfSupportedTasks(recording: SessionItem): String {
+  fun getSupportedTask(recording: SessionItem): ProfilerTaskType {
     val supportedTaskTypes = taskHandlers.filter { (taskType, taskHandler) ->
       TaskSupportUtils.isTaskSupportedByRecording(taskType, taskHandler, recording)
     }.keys
 
-    return if (supportedTaskTypes.isEmpty()) "No tasks available" else supportedTaskTypes.joinToString(separator = ", ") { it.description }
+    return if (supportedTaskTypes.size == 1) supportedTaskTypes.first() else ProfilerTaskType.UNSPECIFIED
+  }
+
+  private fun updateTaskSelection() {
+    // If only one task is supported after the recording is selected, that task is auto-selected.
+    val supportedTasks = taskHandlers.entries.toList().filter {
+      _selectedRecording.value != null && TaskSupportUtils.isTaskSupportedByRecording(it.key, it.value, _selectedRecording.value!!) }
+    if (supportedTasks.size == 1) {
+      setTaskSelection(supportedTasks.first().key)
+    }
+  }
+
+  private fun sessionItemsUpdated() {
+    val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>().filter { !it.isOngoing }
+    val newRecordingList = mutableListOf<SessionItem>()
+    newRecordingList.addAll(sessionItems)
+    val oldRecordingList = _recordingList.value.toList()
+    _recordingList.value = newRecordingList
+    autoOpenRecordingIfNewlyImported(oldRecordingList, newRecordingList)
+  }
+
+  /**
+   * Checks whether the updated recording list indicates the addition of a single, new imported recording. If so, the recording is
+   * automatically selected and opened.
+   */
+  private fun autoOpenRecordingIfNewlyImported(oldRecordingList: List<SessionItem>, newRecordingList: List<SessionItem>) {
+    val difference = newRecordingList.toSet() - oldRecordingList.toSet()
+    // Confirm there is one, new recording added. If so, auto open the new recording.
+    if (newRecordingList.size > oldRecordingList.size && difference.size == 1 && difference.first().isImported()) {
+      onRecordingSelection(difference.first())
+      openProfilerTask()
+    }
   }
 
   @VisibleForTesting

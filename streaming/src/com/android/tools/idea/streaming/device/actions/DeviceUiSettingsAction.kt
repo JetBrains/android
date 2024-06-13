@@ -17,19 +17,16 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.core.findComponentForAction
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.device.DeviceUiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
+import com.android.tools.idea.streaming.uisettings.ui.showUiSettingsPopup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.ui.popup.Balloon
-import com.intellij.openapi.util.Disposer
-import com.intellij.ui.awt.RelativePoint
 import kotlinx.coroutines.launch
+import java.awt.Dimension
 import java.awt.EventQueue
-import javax.swing.JComponent
 
 private val isSettingsPickerEnabled: Boolean
   get() = StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.get()
@@ -37,23 +34,30 @@ private val isSettingsPickerEnabled: Boolean
 /**
  * Opens a picker with UI settings of a physical device.
  */
-internal class DeviceUiSettingsAction : AbstractDeviceAction(configFilter = { it.apiLevel >= 34 && isSettingsPickerEnabled }) {
-
+internal class DeviceUiSettingsAction : AbstractDeviceAction(
+  configFilter = {
+    it.apiLevel >= 33
+    && isSettingsPickerEnabled
+    && it.deviceProperties.resolution != null
+    && it.deviceProperties.density != null
+  }
+) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
     val deviceView = event.getData(DEVICE_VIEW_KEY) ?: return
-    val component = event.findComponentForAction(this) as? JComponent ?: deviceView
+    val project = event.project ?: return
     val deviceController = getDeviceController(event) ?: return
-    val disposable = Disposer.newDisposable()
-    val model = UiSettingsModel()
-    val controller = DeviceUiSettingsController(deviceController, model)
-    val balloon = UiSettingsPanel(model, disposable).createPicker()
-    Disposer.register(balloon, disposable)
+    val config = getDeviceConfig(event) ?: return
+    val screenSize = config.deviceProperties.resolution?.let { Dimension(it.width, it.height) } ?: return
+    val density = config.deviceProperties.density ?: return
+    val model = UiSettingsModel(screenSize, density, config.apiLevel)
+    val controller = DeviceUiSettingsController(deviceController, config, project, model)
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
-        balloon.show(RelativePoint.getCenterOf(component), Balloon.Position.above)
+        val panel = UiSettingsPanel(model, showResetButton = false, isWear = config.isWatch)
+        showUiSettingsPopup(panel, this@DeviceUiSettingsAction, event, deviceView)
       }
     }
   }

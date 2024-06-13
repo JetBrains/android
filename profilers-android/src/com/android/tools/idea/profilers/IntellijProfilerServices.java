@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers;
 
+import static com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter.fromTechnologyToTaskType;
+
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
@@ -27,6 +29,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
@@ -39,6 +42,8 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.TaskRecordingType;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
@@ -276,6 +281,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return selectedValue.get();
   }
 
+  @Override
+  public void openErrorDialog(@NotNull String message, @NotNull String title) {
+    Messages.showErrorDialog(message, title);
+  }
+
   /**
    * Gets a {@link List} of directories containing the symbol files corresponding to the architecture of the session currently selected.
    */
@@ -302,6 +312,53 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
     return CpuProfilerConfigConverter.toProfilingConfiguration(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel);
+  }
+
+  @Override
+  public void enableStartupTask(@NotNull ProfilerTaskType taskType, @NotNull TaskRecordingType recordingType) {
+    // This method should only be called by tasks that can be run on startup.
+    assert (isTaskSupportedOnStartup(taskType));
+
+    RunManager runManager = RunManager.getInstance(myProject);
+    if (runManager != null) {
+      RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
+      if (configurationSettings != null &&
+          configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
+        ProfilerState profilerState = androidConfiguration.getProfilerState();
+        // Disable/reset all startup profiling configurations before setting one.
+        profilerState.disableStartupProfiling();
+
+        profilerState.STARTUP_PROFILING_ENABLED = true;
+        if (taskType == ProfilerTaskType.NATIVE_ALLOCATIONS) {
+          profilerState.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
+        }
+        else {
+          profilerState.STARTUP_CPU_PROFILING_ENABLED = true;
+          profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME =
+            CpuProfilerConfigConverter.fromTaskTypeToConfigName(taskType, recordingType);
+        }
+      }
+    }
+  }
+
+  @Override
+  public void disableStartupTasks() {
+    RunManager runManager = RunManager.getInstance(myProject);
+    if (runManager != null) {
+      RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
+      if (configurationSettings != null &&
+          configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
+        ProfilerState profilerState = androidConfiguration.getProfilerState();
+        // Disable/reset all startup profiling configurations before setting one.
+        profilerState.disableStartupProfiling();
+      }
+    }
+  }
+
+  @Override
+  public boolean isTaskSupportedOnStartup(@NotNull ProfilerTaskType taskType) {
+    // The CpuProfilerConfig technologies are the only profiling configurations allowed to be performed on startup.
+    return Arrays.stream(CpuProfilerConfig.Technology.values()).anyMatch(value -> fromTechnologyToTaskType(value) == taskType);
   }
 
   @Override
@@ -383,11 +440,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
    */
   @VisibleForTesting
   public static class FeatureConfigProd implements FeatureConfig {
-    @Override
-    public boolean isEnergyProfilerEnabled() {
-      return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
-    }
-
     @Override
     public boolean isJankDetectionUiEnabled() {
       return StudioFlags.PROFILER_JANK_DETECTION_UI.get();

@@ -1,0 +1,4 @@
+def myVal = 'three'
+myTestDslElement {
+  stringVal "${myVal}"
+}

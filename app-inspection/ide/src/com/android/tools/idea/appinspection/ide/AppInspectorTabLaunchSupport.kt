@@ -73,7 +73,7 @@ class AppInspectorTabLaunchSupport(
         InspectorTabJarTargets(
           provider,
           frameworkConfigs.getFrameworkJarTargets() +
-            libraryConfigs.getLibraryJarTargets(process, provider)
+            libraryConfigs.getLibraryJarTargets(process, provider),
         )
       }
   }
@@ -89,7 +89,7 @@ class AppInspectorTabLaunchSupport(
 
   private suspend fun List<AppInspectorLaunchConfig>.getLibraryJarTargets(
     process: ProcessDescriptor,
-    provider: AppInspectorTabProvider
+    provider: AppInspectorTabProvider,
   ): Map<String, InspectorJarTarget> {
     assert(all { config -> config.params is LibraryInspectorLaunchParams })
 
@@ -125,7 +125,7 @@ class AppInspectorTabLaunchSupport(
               } else {
                 InspectorJarTarget.Unresolved(
                   provider.toIncompatibleVersionMessage(),
-                  artifactCoordinates[i]
+                  artifactCoordinates[i],
                 )
               }
             }
@@ -135,19 +135,19 @@ class AppInspectorTabLaunchSupport(
   }
 
   private suspend fun getInspectorJarTarget(
-    artifactCoordinate: RunningArtifactCoordinate,
+    artifactCoordinate: RunningArtifactCoordinate
   ): InspectorJarTarget =
     try {
       InspectorJarTarget.Resolved(
         artifactService
           .getOrResolveInspectorArtifact(artifactCoordinate, project)
           .toAppInspectorJar(),
-        artifactCoordinate
+        artifactCoordinate,
       )
     } catch (e: AppInspectionArtifactNotFoundException) {
       InspectorJarTarget.Unresolved(
         artifactCoordinate.toUnresolvedInspectorMessage(),
-        artifactCoordinate
+        artifactCoordinate,
       )
     }
 
@@ -162,7 +162,7 @@ sealed class InspectorJarTarget {
 
   class Resolved(
     val jar: AppInspectorJar,
-    override val artifactCoordinate: RunningArtifactCoordinate?
+    override val artifactCoordinate: RunningArtifactCoordinate?,
   ) : InspectorJarTarget()
 
   /**
@@ -187,7 +187,7 @@ fun AppInspectorTabProvider.toIncompatibleVersionMessage() =
       .mapNotNull { it.params as? LibraryInspectorLaunchParams }
       .first()
       .minVersionLibraryCoordinate
-      .toString()
+      .toString(),
   )
 
 fun MinimumArtifactCoordinate.toUnsupportedProjectSystemMessage() =

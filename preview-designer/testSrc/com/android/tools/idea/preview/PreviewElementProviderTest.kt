@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.preview.PreviewElement
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.testFramework.LightVirtualFile
+import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 class PreviewElementProviderTest {
   @Test
@@ -29,7 +36,7 @@ class PreviewElementProviderTest {
         listOf(
           TestPreviewElement("PreviewMethod1"),
           TestPreviewElement("PreviewMethod2"),
-          TestPreviewElement("AMethod")
+          TestPreviewElement("AMethod"),
         )
       )
 
@@ -43,7 +50,7 @@ class PreviewElementProviderTest {
     // The filtered provider contains all elements without the word internal
     Assert.assertEquals(
       listOf("PreviewMethod1", "PreviewMethod2"),
-      filtered.previewElements().map { it.displaySettings.name }.toList()
+      filtered.previewElements().map { it.displaySettings.name }.toList(),
     )
 
     // Now remove all elements with the word Preview
@@ -58,17 +65,17 @@ class PreviewElementProviderTest {
         listOf(
           TestPreviewElement("PreviewMethod1"),
           TestPreviewElement("PreviewMethod2"),
-          TestPreviewElement("AMethod")
+          TestPreviewElement("AMethod"),
         )
       )
 
     val modificationTracker = SimpleModificationTracker()
     val memoized =
       MemoizedPreviewElementProvider(
-        object : PreviewElementProvider<PreviewElement> {
+        object : PreviewElementProvider<PreviewElement<Unit>> {
           override suspend fun previewElements() = staticPreviewProvider.previewElements()
         },
-        modificationTracker
+        modificationTracker,
       )
 
     // Before the first refresh, the list is empty
@@ -79,5 +86,22 @@ class PreviewElementProviderTest {
     Assert.assertEquals(3, memoized.previewElements().count())
     modificationTracker.incModificationCount()
     Assert.assertEquals(1, memoized.previewElements().count())
+  }
+
+  @Test
+  fun testFileProvider() = runBlocking {
+    val project = mock<Project>()
+    val virtualFile = LightVirtualFile()
+    val psiFilePointer = mock<SmartPsiElementPointer<PsiFile>>()
+    whenever(psiFilePointer.project).thenReturn(project)
+    whenever(psiFilePointer.virtualFile).thenReturn(virtualFile)
+
+    val previewElements = listOf(TestPreviewElement(), TestPreviewElement())
+    val filePreviewElementFinder = mock<FilePreviewElementFinder<TestPreviewElement>>()
+    whenever(filePreviewElementFinder.findPreviewElements(project, virtualFile))
+      .thenReturn(previewElements)
+
+    val provider = FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder)
+    assertEquals(previewElements, provider.previewElements().toList())
   }
 }

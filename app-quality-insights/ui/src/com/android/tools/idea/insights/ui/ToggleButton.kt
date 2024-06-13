@@ -50,7 +50,7 @@ import javax.swing.JButton
 fun ToggleButton(
   withIssue: ((ToggleButtonState) -> Unit) -> Unit,
   onOpen: (AppInsightsIssue) -> Unit,
-  onClose: (AppInsightsIssue) -> Unit
+  onClose: (AppInsightsIssue) -> Unit,
 ): JButton {
   val button = JButton("").apply { isOpaque = false }
   var activeIssue: AppInsightsIssue? = null
@@ -74,6 +74,10 @@ fun ToggleButton(
         button.isEnabled = false
       }
     }
+    button.toolTipText =
+      if (state.buttonState.permission != Permission.FULL)
+        "You don't have the necessary permissions to open/close issues."
+      else if (state.buttonState.mode == ConnectionMode.OFFLINE) "AQI is offline." else null
   }
 
   button.addActionListener {
@@ -92,7 +96,7 @@ data class ToggleButtonEnabledState(val permission: Permission, val mode: Connec
 
 data class ToggleButtonState(
   val issue: AppInsightsIssue,
-  val buttonState: ToggleButtonEnabledState
+  val buttonState: ToggleButtonEnabledState,
 ) {
   fun shouldBeEnabled() =
     buttonState.mode == ConnectionMode.ONLINE && buttonState.permission == Permission.FULL

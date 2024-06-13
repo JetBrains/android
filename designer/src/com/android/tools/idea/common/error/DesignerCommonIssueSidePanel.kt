@@ -19,8 +19,6 @@ import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
-import com.intellij.designer.model.EmptyXmlTag
-import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
@@ -79,7 +77,7 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
               EditorFactory.getInstance().releaseEditor(editor)
             }
           }
-        }
+        },
       )
   }
 
@@ -164,7 +162,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
       JBScrollPane(
         contentPanel,
         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
       )
     scrollPane.border = JBUI.Borders.emptyTop(12)
     add(scrollPane, BorderLayout.CENTER)
@@ -207,33 +205,20 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
           override fun createHyperlinkListener(): HyperlinkListener {
             return hyperlinkListener.takeIf { it != null } ?: super.createHyperlinkListener()
           }
-        },
+        }
       )
     }
 
   private fun VisualLintRenderIssue.getAffectedFiles(): List<VirtualFile> {
-    val modelFiles =
-      models
-        .filter { model -> this.shouldHighlight(model) }
-        .map {
-          @Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
-        }
-        .distinct()
-    val navigatableFile =
-      (components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
-          as? OpenFileDescriptor)
-        ?.file
-    return if (navigatableFile == null || modelFiles.contains(navigatableFile)) {
-      modelFiles
+    val navigatableFile = (navigatable as? OpenFileDescriptor)?.file
+    return if (navigatableFile == null || affectedFiles.contains(navigatableFile)) {
+      affectedFiles
     } else {
-      modelFiles.toMutableList().apply { add(navigatableFile) }
+      affectedFiles.toMutableList().apply { add(navigatableFile) }
     }
   }
 
-  private fun JPanel.addVisualRenderIssue(
-    issue: VisualLintRenderIssue,
-    project: Project,
-  ) {
+  private fun JPanel.addVisualRenderIssue(issue: VisualLintRenderIssue, project: Project) {
     val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }
     affectedFilePanel.layout = BoxLayout(affectedFilePanel, BoxLayout.Y_AXIS)
 
@@ -246,7 +231,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
             font = font.deriveFont(Font.BOLD)
             alignmentX = LEFT_ALIGNMENT
             border = JBUI.Borders.empty(4, 0)
-          },
+          }
         )
       }
       for (file in relatedFiles) {

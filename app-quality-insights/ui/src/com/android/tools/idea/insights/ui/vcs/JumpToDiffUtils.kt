@@ -19,27 +19,40 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.vcs.VcsForAppInsights
 import com.android.tools.idea.insights.vcs.createShortRevisionString
-import com.intellij.diff.DiffDialogHints
 import com.intellij.diff.DiffEditorTitleCustomizer
-import com.intellij.diff.DiffManager
-import com.intellij.diff.chains.DiffRequestProducerException
+import com.intellij.diff.editor.DiffRequestProcessorEditor
+import com.intellij.diff.impl.CacheDiffRequestProcessor
+import com.intellij.diff.impl.DiffRequestProcessor
+import com.intellij.diff.requests.DiffRequest
+import com.intellij.diff.requests.ErrorDiffRequest
+import com.intellij.diff.tools.fragmented.UnifiedDiffViewer
+import com.intellij.diff.tools.simple.SimpleDiffViewer
 import com.intellij.diff.util.DiffUserDataKeys
 import com.intellij.diff.util.DiffUserDataKeysEx
+import com.intellij.diff.util.DiffUtil
 import com.intellij.diff.util.Side
-import com.intellij.openapi.ListSelection
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorProvider
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.openapi.vcs.changes.Change
+import com.intellij.openapi.vcs.changes.DiffPreviewProvider
+import com.intellij.openapi.vcs.changes.PreviewDiffVirtualFile
 import com.intellij.openapi.vcs.changes.actions.diff.ChangeDiffRequestProducer
-import com.intellij.openapi.vcs.changes.ui.ChangeDiffRequestChain
 import com.intellij.openapi.vcs.history.VcsDiffUtil.createChangesWithCurrentContentForFile
 import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.components.JBLabel
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
+
+private fun getLogger() =
+  Logger.getInstance("com.android.tools.idea.insights.ui.vcs.JumpToDiffUtils")
 
 /**
  * Context data for requesting a diff view.
@@ -55,7 +68,7 @@ data class ContextDataForDiff(
   val revision: String,
   val filePath: FilePath,
   val lineNumber: Int,
-  val origin: Connection?
+  val origin: Connection?,
 )
 
 /**
@@ -67,59 +80,126 @@ data class ContextDataForDiff(
  * The caret is placed on the line of the left panel where the crash is associated to.
  */
 fun goToDiff(context: ContextDataForDiff, project: Project) {
-  val requestChain = InsightsDiffRequestChain(context, project)
+  val provider = InsightsDiffViewProvider(context, project)
+  val diffVFile =
+    InsightsDiffVirtualFile(provider).also {
+      // This is needed in unit tests where a non-text editor should be created, see
+      // TestEditorManagerImpl#openFileImpl3.
+      it.putUserData(
+        FileEditorProvider.KEY,
+        FileEditorProvider.EP_FILE_EDITOR_PROVIDER.extensionList.first { ex ->
+          ex.accept(project, it)
+        },
+      )
+    }
 
-  // TODO: Should bring up an existing window if there is one instead of creating a new one.
-  DiffManager.getInstance().showDiff(project, requestChain, DiffDialogHints.DEFAULT)
+  val fileEditor =
+    FileEditorManager.getInstance(project).openFile(diffVFile, true).first()
+      as DiffRequestProcessorEditor
+
+  // If it's the already opened file, the previously scrolled position is preserved and might not
+  // be what we want. So we scroll to the desired position ourselves.
+  invokeLater { fileEditor.scrollToLocation(context) }
 }
 
-class InsightsDiffRequestChain(val context: ContextDataForDiff, val project: Project) :
-  ChangeDiffRequestChain.Async() {
-  override fun loadRequestProducers(): ListSelection<out ChangeDiffRequestChain.Producer> {
-    try {
-      val changeContext =
-        mapOf<Key<*>, Any>(
-          // Customize titles.
-          DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER to
-            listOfNotNull(
-              createEditorTitleFromContext(context, project),
-              createEditorTitle("Current source")
-            ),
-          // Customize caret place
-          DiffUserDataKeys.SCROLL_TO_LINE to Pair.create(Side.LEFT, context.lineNumber - 1),
-          // Customize diff alignment.
-          DiffUserDataKeys.ALIGNED_TWO_SIDED_DIFF to true
-        )
+private fun DiffRequestProcessorEditor.scrollToLocation(context: ContextDataForDiff) {
+  val viewer = processor.activeViewer ?: return
+  when (viewer) {
+    is SimpleDiffViewer -> {
+      viewer.currentSide = Side.LEFT
+      DiffUtil.scrollEditor(viewer.getEditor(Side.LEFT), context.lineNumber - 1, true)
+    }
+    is UnifiedDiffViewer -> {
+      // The right (current src) side is the master side and this can't be changed. So we need to
+      // map the line number with our best efforts. This is not desirable but should be rare.
+      val approximateLocation = viewer.transferLineToOneside(Side.LEFT, context.lineNumber - 1)
+      DiffUtil.scrollEditor(viewer.editor, approximateLocation, true)
+    }
+    else -> {
+      getLogger().warn("Not supported viewer type: $viewer")
+      return
+    }
+  }
+}
 
-      val chained =
-        changes.mapNotNull { ChangeDiffRequestProducer.create(project, it, changeContext) }.toList()
+class InsightsDiffVirtualFile(val provider: InsightsDiffViewProvider) :
+  PreviewDiffVirtualFile(provider)
 
-      return ListSelection.create(chained, null)
-    } catch (exception: Exception) {
-      // Rethrow, then the exception message would be printed out in the diff view.
-      throw DiffRequestProducerException(exception.message, exception.cause)
+data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val project: Project) :
+  DiffPreviewProvider {
+
+  data class OwnerObject(
+    val vcsKey: VCS_CATEGORY,
+    val revision: String,
+    val filePath: FilePath,
+    val project: Project,
+  )
+
+  override fun createDiffRequestProcessor(): DiffRequestProcessor {
+    // Note this object will be disposed when the corresponding DiffRequestProcessorEditor is
+    // disposed by the DiffEditorProvider when the editor is closed.
+    return object : CacheDiffRequestProcessor<ChangeDiffRequestProducer>(project) {
+      override fun getRequestName(provider: ChangeDiffRequestProducer): String {
+        return provider.name
+      }
+
+      override fun getCurrentRequestProvider(): ChangeDiffRequestProducer? {
+        return ChangeDiffRequestProducer.create(project, change, viewConfiguration)
+      }
+
+      override fun loadRequest(
+        provider: ChangeDiffRequestProducer,
+        indicator: ProgressIndicator,
+      ): DiffRequest {
+        val request = provider.process(context, indicator)
+
+        return if (request is ErrorDiffRequest) {
+          // Show more user-friendly error message.
+          val message = "Source revision is not available. Update your working tree and try again."
+          thisLogger().warn(message + "(original message: ${request.message})")
+          ErrorDiffRequest(request.title, message, request.producer, request.exception)
+        } else {
+          request
+        }
+      }
     }
   }
 
-  private val changes: List<Change>
+  override fun getOwner(): Any {
+    // We will bring up the existing diff view if the associated historical source file is the same.
+    return OwnerObject(
+      vcsKey = insightsContext.vcsKey,
+      revision = insightsContext.revision,
+      filePath = insightsContext.filePath,
+      project,
+    )
+  }
+
+  override fun getEditorTabName(processor: DiffRequestProcessor?): String {
+    return insightsContext.filePath.name
+  }
+
+  private val viewConfiguration =
+    mapOf<Key<*>, Any>(
+      // Customize titles.
+      DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER to
+        listOfNotNull(
+          createEditorTitleFromContext(insightsContext, project),
+          createEditorTitle("Current source"),
+        ),
+      // Customize caret place
+      DiffUserDataKeys.SCROLL_TO_LINE to Pair.create(Side.LEFT, insightsContext.lineNumber - 1),
+      // Customize diff alignment.
+      DiffUserDataKeys.ALIGNED_TWO_SIDED_DIFF to true,
+    )
+
+  private val change: Change
     get() {
       val vcsContent =
-        VcsForAppInsights.getExtensionByKey(context.vcsKey)
-          ?.createVcsContent(context.filePath, context.revision, project)
+        VcsForAppInsights.getExtensionByKey(insightsContext.vcsKey)
+          ?.createVcsContent(insightsContext.filePath, insightsContext.revision, project)
 
-      // We try to retrieve content beforehand to have a chance to make the error message more
-      // user-friendly if there's errors. If no retrieving errors, still it doesn't hurt as
-      // there's a cache layer under the hood and our effort is not wasted.
-      try {
-        vcsContent?.content
-      } catch (exception: Exception) {
-        val message = "Source revision is not available. Update your working tree and try again."
-
-        thisLogger().warn(message + "(original message: ${exception.message})")
-        throw DiffRequestProducerException(message, exception.cause)
-      }
-
-      return createChangesWithCurrentContentForFile(context.filePath, vcsContent)
+      return createChangesWithCurrentContentForFile(insightsContext.filePath, vcsContent).single()
     }
 }
 
@@ -129,7 +209,7 @@ private fun createEditorTitle(title: String): DiffEditorTitleCustomizer {
 
 private fun createEditorTitleFromContext(
   vcsContext: ContextDataForDiff,
-  project: Project
+  project: Project,
 ): DiffEditorTitleCustomizer {
   val shortVcsRevisionNumber = createShortRevisionString(vcsContext.vcsKey, vcsContext.revision)
 

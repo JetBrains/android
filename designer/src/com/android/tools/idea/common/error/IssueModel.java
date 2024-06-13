@@ -97,7 +97,7 @@ public class IssueModel implements Disposable {
 
   @Nullable
   public Issue getHighestSeverityIssue(@NotNull NlComponent component) {
-    IssueSource componentSource = IssueSource.fromNlComponent(component);
+    IssueSource componentSource = new NlComponentIssueSource(component);
     Issue[] filtered = myIssues.stream()
       .filter((it) -> componentSource.equals(it.getSource()))
       .toArray(size -> new Issue[size]);

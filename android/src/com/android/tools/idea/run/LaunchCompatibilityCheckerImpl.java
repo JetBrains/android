@@ -16,24 +16,21 @@
 package com.android.tools.idea.run;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.android.tools.idea.run.util.LaunchUtils;
-import com.android.tools.idea.run.util.SwapInfo;
+import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,21 +39,14 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   @NotNull @VisibleForTesting final AndroidVersion myMinSdkVersion;
   @NotNull private final IAndroidTarget myProjectTarget;
   @NotNull private final AndroidFacet myFacet;
-  @Nullable private final ExecutionEnvironment myEnvironment;
-  @Nullable private final AndroidRunConfigurationBase myAndroidRunConfigurationBase;
   @NotNull private final Set<Abi> mySupportedAbis;
 
-  public LaunchCompatibilityCheckerImpl(@NotNull AndroidVersion minSdkVersion,
+  private LaunchCompatibilityCheckerImpl(@NotNull AndroidVersion minSdkVersion,
                                         @NotNull IAndroidTarget target,
                                         @NotNull AndroidFacet facet,
-                                        @Nullable ExecutionEnvironment environment,
-                                        @Nullable AndroidRunConfigurationBase androidRunConfigurationBase,
                                         @NotNull Set<Abi> supportedAbis) {
-    assert (environment == null && androidRunConfigurationBase == null) || (environment != null && androidRunConfigurationBase != null);
     myMinSdkVersion = minSdkVersion;
     myProjectTarget = target;
-    myEnvironment = environment;
-    myAndroidRunConfigurationBase = androidRunConfigurationBase;
     myFacet = facet;
     mySupportedAbis = supportedAbis;
   }
@@ -71,40 +61,22 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   public LaunchCompatibility validate(@NotNull AndroidDevice device) {
     LaunchCompatibility launchCompatibility = LaunchCompatibility.YES;
 
-    if (myEnvironment != null && myAndroidRunConfigurationBase != null) {
-      SwapInfo swapInfo = myEnvironment.getUserData(SwapInfo.SWAP_INFO_KEY);
-      if (swapInfo != null) {
-        if (device.getVersion().compareTo(AndroidVersion.VersionCodes.O, null) < 0) {
-          launchCompatibility =
-            new LaunchCompatibility(State.WARNING, "The device needs to be running Oreo or newer.");
-        }
-        else if (!device.isRunning()) {
-          launchCompatibility =
-            new LaunchCompatibility(State.ERROR, "Please ensure the target device/emulator is running.");
-        }
-        else {
-          try {
-            ApplicationIdProvider applicationIdProvider = myAndroidRunConfigurationBase.getApplicationIdProvider();
-            if (applicationIdProvider == null) {
-              return new LaunchCompatibility(State.ERROR, "Cannot get applicationId.");
-            }
-            Client client = device.getLaunchedDevice().get().getClient(applicationIdProvider.getPackageName());
-            if (client == null) {
-              launchCompatibility = new LaunchCompatibility(
-                State.ERROR,
-                "App not running on device. Please first install/run the app on the target device/emulator.");
-            }
-          }
-          catch (InterruptedException | ExecutionException | ApkProvisionException e) {
-            launchCompatibility =
-              new LaunchCompatibility(State.WARNING, "Could not determine if device is compatible.");
-          }
-        }
-      }
-    }
+    return launchCompatibility.combine(device.canRun(myMinSdkVersion, myProjectTarget,
+                                                     new RequiredHardwareFeatures(myFacet), mySupportedAbis));
+  }
 
-    return launchCompatibility.combine(device.canRun(myMinSdkVersion, myProjectTarget, myFacet,
-                                                     LaunchCompatibilityCheckerImpl::getRequiredHardwareFeatures, mySupportedAbis));
+  /**
+   * A supplier implemented as a static class to make its dependencies (a facet) explicit.
+   */
+  private static class RequiredHardwareFeatures implements Supplier<EnumSet<IDevice.HardwareFeature>> {
+    @NotNull private final AndroidFacet myFacet;
+
+    private RequiredHardwareFeatures(@NotNull AndroidFacet facet) { myFacet = facet; }
+
+    @Override
+    public EnumSet<IDevice.HardwareFeature> get() {
+      return getRequiredHardwareFeatures(myFacet);
+    }
   }
 
   /**
@@ -123,9 +95,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     }
   }
 
-  public static @Nullable LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
-                                                            @Nullable ExecutionEnvironment env,
-                                                            @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
+  public static @Nullable LaunchCompatibilityChecker create(@NotNull AndroidFacet facet) {
     AndroidPlatform platform = AndroidPlatforms.getInstance(facet.getModule());
     if (platform == null) {
       return null;
@@ -139,7 +109,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     AndroidVersion minSdkVersion = getMinSdkVersion(facet);
     Set<Abi> supportedAbis = androidModel.getSupportedAbis();
 
-    return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);
+    return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, supportedAbis);
   }
 
   private static AndroidVersion getMinSdkVersion(@NotNull AndroidFacet facet) {

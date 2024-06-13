@@ -18,12 +18,12 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,17 +35,35 @@ public class OpenCloseVisualizationToolTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
+  private IdeFrameFixture myIdeFrameFixture;
   private EditorFixture editor;
 
   private final String activity_myFile = "app/src/main/res/layout/activity_my.xml";
 
-  @Before
-  public void setup() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-    editor = ideFrame.getEditor();
-  }
+  private File projectDir;
+  private String projectName = "SimpleApplication";
 
+  @Before
+  public void setUp() throws Exception {
+    projectDir = guiTest.setUpProject(projectName, null, null, null, null);
+    guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    myIdeFrameFixture = guiTest.ideFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editor = myIdeFrameFixture.getEditor();
+    editor.open(activity_myFile, EditorFixture.Tab.DESIGN);
+    editor.getLayoutEditor().waitForRenderToFinish();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editor.waitForFileToActivate(90);
+    assertThat(editor.getVisualizationTool().waitForRenderToFinish().getCurrentFileName())
+      .isEqualTo("activity_my.xml");
+  }
+  @After
+  public void cleanUp() {
+    myIdeFrameFixture.requestFocusIfLost();
+    myIdeFrameFixture.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+  }
   /**
    * Verifies that the Visualization Tool can be open and closed correctly.
    * <p>
@@ -72,11 +90,6 @@ public class OpenCloseVisualizationToolTest {
    */
   @Test
   public void testDisplayContentsInVisualizationWindow() {
-    editor.open(activity_myFile);
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-    assertThat(editor.getVisualizationTool().getCurrentFileName())
-      .isEqualTo("activity_my.xml");
-
     // Zooming to fit the screen
     editor.getVisualizationTool().zoomToFit();
     editor.getVisualizationTool().waitForRenderToFinish();
@@ -129,11 +142,6 @@ public class OpenCloseVisualizationToolTest {
    */
   @Test
   public void testZoomInZoomOut() {
-    editor.open(activity_myFile);
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-    assertThat(editor.getVisualizationTool().getCurrentFileName())
-      .isEqualTo("activity_my.xml");
-
     //Get original scale value
     double originalScale = editor.getVisualizationTool().getScale();
 

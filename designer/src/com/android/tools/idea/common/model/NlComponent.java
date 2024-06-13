@@ -45,6 +45,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
@@ -67,6 +68,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
@@ -502,7 +505,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   @Nullable
-  public String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
+  private String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
     TagSnapshot snapshot = mySnapshot;
     if (snapshot != null) {
       String value = snapshot.getAttribute(attribute, namespace);
@@ -530,13 +533,15 @@ public class NlComponent implements NlAttributesHolder {
       if (styleRef == null) {
         return null;
       }
-      ResourceResolver resolver = myModel.getConfiguration().getResourceResolver();
-      StyleResourceValue styleResValue = resolver.getStyle(styleRef);
-      if (styleResValue == null) {
-        return null;
-      }
+
       ResourceNamespace resNamespace = namespace != null ? ResourceNamespace.fromNamespaceUri(namespace) : ResourceNamespace.TODO();
       if (resNamespace == null) {
+        return null;
+      }
+
+      ResourceResolver resolver = myModel.getCachedResourceResolver();
+      StyleResourceValue styleResValue = resolver.getStyle(styleRef);
+      if (styleResValue == null) {
         return null;
       }
       StyleItemResourceValue item = resolver.findItemInStyle(styleResValue, ResourceReference.attr(resNamespace, attribute));

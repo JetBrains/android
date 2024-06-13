@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.repository.IdeNetworkCacheUtils
 import com.android.ide.common.repository.NetworkCache
 import com.android.tools.idea.ui.GuiTestingService
 import com.google.common.annotations.VisibleForTesting
@@ -37,12 +38,9 @@ const val GRADLE_VERSIONS_CACHE_DIR_KEY = "gradle.versions"
 object GradleVersionsRepository : NetworkCache(
   GRADLE_VERSIONS_URL, GRADLE_VERSIONS_CACHE_DIR_KEY, getCacheDir(), cacheExpiryHours = 24) {
 
-  override fun readUrlData(url: String, timeout: Int) = HttpRequests
-    .request(url)
-    .accept("application/json")
-    .connectTimeout(timeout)
-    .readTimeout(timeout)
-    .readBytes(null)
+  @Slow
+  override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
+    IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified, mimeType = "application/json")
 
   override fun readDefaultData(relative: String): InputStream? = null
 

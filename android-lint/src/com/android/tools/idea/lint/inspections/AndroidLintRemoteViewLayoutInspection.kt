@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.RemoteViewDetector
 class AndroidLintRemoteViewLayoutInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.remote.view.layout"),
-    RemoteViewDetector.ISSUE
+    RemoteViewDetector.ISSUE,
   )

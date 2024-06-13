@@ -20,6 +20,7 @@ import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
 import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -28,6 +29,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.res.CacheableResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -38,6 +40,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.UIUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,7 +84,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNotSame(res3, res1);
 
     ModuleResourceRepository resources =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
 
     // Check that values are handled correctly. First a plain value (not overridden anywhere).
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
@@ -118,7 +121,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertEquals("En Annen", stringValue.getValue());
 
     // Change flavor order and make sure things are updated and work correctly.
-    resources.updateRoots(ImmutableList.of(res2, res1, res3));
+    resources.refreshChildren(ImmutableList.of(res2, res1, res3));
 
     // Should now be picking app_name from res2 rather than res1 since it's now first.
     assertStringIs(resources, "app_name", "Different App Name", res -> res.getConfiguration().isDefault()); // res2
@@ -131,7 +134,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertStringIs(resources, "another_unique_string", "Another Unique", res -> res.getConfiguration().isDefault()); // Overridden in res1
 
     // Hide a resource root (res2)
-    resources.updateRoots(ImmutableList.of(res1, res3));
+    resources.refreshChildren(ImmutableList.of(res1, res3));
 
     // No longer aliasing the main layout
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh")); // res3 layout1.xml
@@ -141,14 +144,14 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertStringIs(resources, "title_crossfade", "Simple Crossfade"); // No longer overridden in res2
 
     // Finally ensure that we can switch roots repeatedly (had some earlier bugs related to root unregistration).
-    resources.updateRoots(ImmutableList.of(res2, res1, res3));
-    resources.updateRoots(ImmutableList.of(res3));
-    resources.updateRoots(ImmutableList.of(res2, res1, res3));
-    resources.updateRoots(ImmutableList.of(res3));
-    resources.updateRoots(ImmutableList.of(res2, res1, res3));
-    resources.updateRoots(ImmutableList.of(res2));
-    resources.updateRoots(ImmutableList.of(res3));
-    resources.updateRoots(ImmutableList.of(res1, res2, res3));
+    resources.refreshChildren(ImmutableList.of(res2, res1, res3));
+    resources.refreshChildren(ImmutableList.of(res3));
+    resources.refreshChildren(ImmutableList.of(res2, res1, res3));
+    resources.refreshChildren(ImmutableList.of(res3));
+    resources.refreshChildren(ImmutableList.of(res2, res1, res3));
+    resources.refreshChildren(ImmutableList.of(res2));
+    resources.refreshChildren(ImmutableList.of(res3));
+    resources.refreshChildren(ImmutableList.of(res1, res2, res3));
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
 
     // Make sure I get all the resource ids (there can be multiple; these are not replaced via overlays)
@@ -171,7 +174,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res3 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
     myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res1/values-no/values.xml");
     ModuleResourceRepository resources =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
     assertStringIs(resources, "title_layout_changes", "Layout Changes"); // sanity check
 
     // Layout resource check:
@@ -245,7 +248,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res2 = values2.getParent().getParent();
     VirtualFile res3 = values3.getParent().getParent();
     ModuleResourceRepository resources =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
     PsiFile psiValues1 = PsiManager.getInstance(getProject()).findFile(values1);
     assertNotNull(psiValues1);
     PsiFile psiValues1No = PsiManager.getInstance(getProject()).findFile(values1No);
@@ -378,7 +381,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
 
     assertNotSame(res1, res2);
-    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
+    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO);
     Set<ResourceType> typesWithoutRes3 = EnumSet.of(ResourceType.ARRAY, ResourceType.ID, ResourceType.LAYOUT,
                                                     ResourceType.STRING, ResourceType.STYLE);
 
@@ -388,7 +391,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res3 = values3.getParent().getParent();
     assertNotSame(res1, res3);
     assertNotSame(res2, res3);
-    resources.updateRoots(ImmutableList.of(res1, res2, res3));
+    resources.refreshChildren(ImmutableList.of(res1, res2, res3));
 
     EnumSet<ResourceType> allTypes = EnumSet.copyOf(typesWithoutRes3);
     allTypes.addAll(ImmutableList.of(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.STYLEABLE, ResourceType.PLURALS));
@@ -422,7 +425,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNull(fileManager.getCachedDirectory(res2));
     assertNull(fileManager.getCachedPsiFile(layout2));
 
-    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
+    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO);
 
     assertNotNull(fileManager.getCachedDirectory(res2));
 
@@ -479,8 +482,19 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
   public void testAllowEmpty() {
     assertTrue(Lint.assertionsEnabled()); // This test should be run with assertions enabled!
-    CacheableResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList(), RES_AUTO, null);
+    CacheableResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList(), RES_AUTO);
     repository.getModificationCount();
     assertEmpty(repository.getResources(RES_AUTO, ResourceType.ID).keySet());
+  }
+
+  public void testNamespaceUpdatesReflectedInRepository() {
+    assertThat(StudioResourceRepositoryManager.getModuleResources(myFacet).getNamespaces())
+      .containsExactly(ResourceNamespace.RES_AUTO);
+
+    enableNamespacing(myFacet, "p1.p2");
+    UIUtil.dispatchAllInvocationEvents();
+
+    assertThat(StudioResourceRepositoryManager.getModuleResources(myFacet).getNamespaces())
+      .containsExactly(ResourceNamespace.fromPackageName("p1.p2"));
   }
 }

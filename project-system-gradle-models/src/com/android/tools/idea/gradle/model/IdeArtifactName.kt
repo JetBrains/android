@@ -16,5 +16,29 @@
 package com.android.tools.idea.gradle.model
 
 enum class IdeArtifactName {
-  MAIN, ANDROID_TEST, UNIT_TEST, TEST_FIXTURES
+  MAIN, ANDROID_TEST, UNIT_TEST, TEST_FIXTURES, SCREENSHOT_TEST;
+
+  companion object {
+    @JvmStatic
+    fun IdeArtifactName.toWellKnownSourceSet(): IdeModuleWellKnownSourceSet {
+      return when (this) {
+        MAIN -> IdeModuleWellKnownSourceSet.MAIN
+        UNIT_TEST -> IdeModuleWellKnownSourceSet.UNIT_TEST
+        ANDROID_TEST -> IdeModuleWellKnownSourceSet.ANDROID_TEST
+        TEST_FIXTURES -> IdeModuleWellKnownSourceSet.TEST_FIXTURES
+        SCREENSHOT_TEST -> IdeModuleWellKnownSourceSet.SCREENSHOT_TEST
+      }
+    }
+
+    @JvmStatic
+    fun IdeArtifactName.toPrintableName(): String {
+      return when (this) {
+        MAIN -> "Main"
+        UNIT_TEST -> "UnitTest"
+        ANDROID_TEST -> "AndroidTest"
+        TEST_FIXTURES -> "TestFixtures"
+        SCREENSHOT_TEST -> "ScreenshotTest"
+      }
+    }
+  }
 }

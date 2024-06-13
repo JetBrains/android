@@ -62,7 +62,7 @@ class ClassLoadingDebugLayer(val module: Module) : Layer() {
               startX + horShift,
               startY + vertShift,
               PROGRESS_WIDTH * stat.progress / stat.toDo,
-              PROGRESS_HEIGHT
+              PROGRESS_HEIGHT,
             )
             vertShift += 2 * PROGRESS_HEIGHT
           }

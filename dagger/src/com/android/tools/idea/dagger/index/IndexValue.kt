@@ -29,6 +29,7 @@ import com.android.tools.idea.dagger.concepts.EntryPointMethodDaggerElement
 import com.android.tools.idea.dagger.concepts.ModuleDaggerElement
 import com.android.tools.idea.dagger.concepts.ProviderDaggerElement
 import com.android.tools.idea.dagger.concepts.SubcomponentDaggerElement
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -79,17 +80,18 @@ abstract class IndexValue {
   /**
    * Resolve the Dagger element represented by this [IndexValue] into one or more [DaggerElement]s.
    */
-  fun resolveToDaggerElements(project: Project, scope: GlobalSearchScope): List<DaggerElement> {
-    val candidates =
-      getResolveCandidates(project, scope).mapNotNull {
-        daggerElementIdentifiers.getDaggerElement(it)
+  fun resolveToDaggerElements(project: Project, scope: GlobalSearchScope): Sequence<DaggerElement> {
+    return getResolveCandidates(project, scope).mapNotNull { psiElement ->
+      // Resolving candidates can take a while, and this happens within a much larger read lock when
+      // "slow" gutter icons are being processed.
+      ProgressManager.checkCanceled()
+
+      daggerElementIdentifiers.getDaggerElement(psiElement)?.also { daggerElement ->
+        // Validate that the type of [DaggerElement] specified by this [IndexValue] matches what was
+        // resolved.
+        require(dataType.daggerElementType.isInstance(daggerElement))
       }
-
-    // Validate that the type of [DaggerElement] specified by this [IndexValue] matches what was
-    // resolved.
-    candidates.forEach { assert(dataType.daggerElementType.isInstance(it)) }
-
-    return candidates
+    }
   }
 
   /**
@@ -103,8 +105,8 @@ abstract class IndexValue {
    */
   protected abstract fun getResolveCandidates(
     project: Project,
-    scope: GlobalSearchScope
-  ): List<PsiElement>
+    scope: GlobalSearchScope,
+  ): Sequence<PsiElement>
 
   /**
    * Identifiers that search specifically for the types of [DaggerElement]s represented by this

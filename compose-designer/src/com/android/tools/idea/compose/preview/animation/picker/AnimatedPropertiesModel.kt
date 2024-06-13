@@ -24,8 +24,9 @@ import com.android.tools.idea.compose.pickers.common.enumsupport.PsiEnumProvider
 import com.android.tools.idea.compose.pickers.common.inspector.PsiEditorProvider
 import com.android.tools.idea.compose.pickers.common.inspector.PsiPropertyItemControlTypeProvider
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
-import com.android.tools.idea.compose.preview.animation.ComposeUnit
+import com.android.tools.idea.compose.preview.animation.ComposeUnit.createProperties
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorPanel
@@ -37,9 +38,9 @@ const val TARGET_PROPERTY: String = "target"
 
 /** A [PsiPropertiesModel] for displaying and editing an [initial] and [target] states. */
 internal class AnimatedPropertiesModel(
-  val initial: ComposeUnit.Unit<*>,
-  val target: ComposeUnit.Unit<*>,
-  val onModified: (ComposeUnit.Unit<*>?, ComposeUnit.Unit<*>?) -> Unit
+  val initial: AnimationUnit.Unit<*>,
+  val target: AnimationUnit.Unit<*>,
+  val onModified: (AnimationUnit.Unit<*>?, AnimationUnit.Unit<*>?) -> Unit,
 ) : PsiPropertiesModel() {
 
   override val properties: PropertiesTable<PsiPropertyItem> =
@@ -65,12 +66,12 @@ internal class AnimatedPropertiesModel(
       override val editorProvider: EditorProvider<PsiPropertyItem> =
         PsiEditorProvider(
           PsiEnumProvider(EnumSupportValuesProvider.EMPTY),
-          AnimatedPropertyTypeProvider
+          AnimatedPropertyTypeProvider,
         )
 
       override fun attachToInspector(
         inspector: InspectorPanel,
-        properties: PropertiesTable<PsiPropertyItem>
+        properties: PropertiesTable<PsiPropertyItem>,
       ) {
         // If parameter is one-dimensional it displayed as:
         //      initial : {value}

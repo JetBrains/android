@@ -78,7 +78,7 @@ internal class PreviewPickerAnnotationInspectionTest {
         @Composable
         fun preview1() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // No existing errors
@@ -96,7 +96,7 @@ internal class PreviewPickerAnnotationInspectionTest {
 Parameter: unit should be one of: px, dp.
 
 Missing parameter: dpi.""",
-      replaceWithMessage = "Replace with spec:shape=Normal,width=1080,height=1920,unit=dp,dpi=420"
+      replaceWithMessage = "Replace with spec:shape=Normal,width=1080,height=1920,unit=dp,dpi=420",
     )
   }
 
@@ -116,7 +116,7 @@ Missing parameter: dpi.""",
         @Composable
         fun preview1() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // No existing errors
@@ -137,7 +137,7 @@ Parameter: orientation should be one of: portrait, landscape.
 
 Missing parameter: height.""",
       replaceWithMessage =
-        "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp"
+        "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp",
     )
   }
 
@@ -159,7 +159,7 @@ Missing parameter: height.""",
         @Composable
         fun preview1() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     checkInspectionErrorAndApplyFix(
@@ -168,14 +168,14 @@ Missing parameter: height.""",
         """Bad value type for: height.
 
 Parameter: height should have Float(dp/px) value.""",
-      replaceWithMessage = "Replace with spec:width=1080px,height=1900px"
+      replaceWithMessage = "Replace with spec:width=1080px,height=1900px",
     )
   }
 
   private fun checkInspectionErrorAndApplyFix(
     affectedText: String,
     errorDescription: String,
-    replaceWithMessage: String
+    replaceWithMessage: String,
   ) {
     val info = annotateAndGetLintInfo()
     assertEquals(affectedText, info!!.text)

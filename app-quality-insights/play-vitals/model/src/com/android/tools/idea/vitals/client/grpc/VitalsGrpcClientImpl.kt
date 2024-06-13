@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals.client.grpc
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Event
@@ -39,7 +40,6 @@ import com.android.tools.idea.vitals.datamodel.extract
 import com.android.tools.idea.vitals.datamodel.toIssueDetails
 import com.android.tools.idea.vitals.datamodel.toProto
 import com.android.tools.idea.vitals.datamodel.toSampleEvent
-import com.google.gct.login.GoogleLogin
 import com.google.play.developer.reporting.AggregationPeriod
 import com.google.play.developer.reporting.FetchReleaseFilterOptionsRequest
 import com.google.play.developer.reporting.GetErrorCountMetricSetRequest
@@ -54,7 +54,7 @@ import com.google.play.developer.reporting.VitalsErrorsServiceGrpc
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.application
+import com.intellij.util.IncorrectOperationException
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.guava.await
@@ -85,7 +85,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     dimensions: List<DimensionType>,
     metrics: List<MetricType>,
     freshness: Freshness,
-    maxNumResults: Int
+    maxNumResults: Int,
   ): List<DimensionsAndMetrics> {
     val timezone: TimeZone = freshness.latestEndTime.timeZone
     val zoneId = ZoneId.of(timezone.id)
@@ -131,14 +131,12 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
       .map { row ->
         DimensionsAndMetrics(
           dimensions = row.dimensionsList.map { Dimension.fromProto(it) },
-          metrics = row.metricsList.map { Metric.fromProto(it) }
+          metrics = row.metricsList.map { Metric.fromProto(it) },
         )
       }
   }
 
-  override suspend fun getErrorCountMetricsFreshnessInfo(
-    connection: Connection,
-  ): List<Freshness> {
+  override suspend fun getErrorCountMetricsFreshnessInfo(connection: Connection): List<Freshness> {
     val queryErrorCountMetricsSetRequest =
       GetErrorCountMetricSetRequest.newBuilder()
         .apply {
@@ -185,7 +183,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     connection: Connection,
     filters: QueryFilters,
     maxNumResults: Int,
-    pageTokenFromPreviousCall: String?
+    pageTokenFromPreviousCall: String?,
   ): List<IssueDetails> {
     val searchErrorIssuesRequest =
       SearchErrorIssuesRequest.newBuilder()
@@ -215,7 +213,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId,
-    maxNumResults: Int
+    maxNumResults: Int,
   ): List<Event> {
     val searchErrorReportsRequest =
       SearchErrorReportsRequest.newBuilder()
@@ -244,8 +242,8 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
   companion object {
     private val LOG = Logger.getInstance(VitalsGrpcClientImpl::class.java)
 
-    fun create(parentDisposable: Disposable): VitalsGrpcClientImpl {
-      application.assertIsNonDispatchThread()
+    @WorkerThread
+    fun create(parentDisposable: Disposable, interceptor: ClientInterceptor): VitalsGrpcClientImpl {
       val address = StudioFlags.PLAY_VITALS_GRPC_SERVER.get()
       LOG.info("Play Vitals gRpc server connected at $address")
       return VitalsGrpcClientImpl(
@@ -257,12 +255,16 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
             }
             .build()
             .also {
-              Disposer.register(parentDisposable) {
-                it.shutdown()
-                it.awaitTermination(1, TimeUnit.SECONDS)
+              try {
+                Disposer.register(parentDisposable) {
+                  it.shutdown()
+                  it.awaitTermination(1, TimeUnit.SECONDS)
+                }
+              } catch (e: IncorrectOperationException) {
+                it.shutdownNow()
               }
             },
-        authTokenInterceptor = GoogleLogin.instance.getActiveUserAuthInterceptor()
+        authTokenInterceptor = interceptor,
       )
     }
   }

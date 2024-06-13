@@ -20,7 +20,7 @@ import com.android.tools.idea.compose.annotator.check.common.ParameterRule
 
 internal enum class DeviceSpecRule(
   override val requiredParameters: List<ParameterRule>,
-  override val optionalParameters: List<ParameterRule>
+  override val optionalParameters: List<ParameterRule>,
 ) : CheckRule {
   Legacy(
     requiredParameters =
@@ -29,9 +29,9 @@ internal enum class DeviceSpecRule(
         LegacyParameterRule.width,
         LegacyParameterRule.height,
         LegacyParameterRule.unit,
-        LegacyParameterRule.dpi
+        LegacyParameterRule.dpi,
       ),
-    optionalParameters = listOf(LegacyParameterRule.id)
+    optionalParameters = listOf(LegacyParameterRule.id),
   ),
   LanguageBased(
     requiredParameters = listOf(LanguageParameterRule.width, LanguageParameterRule.height),
@@ -40,11 +40,11 @@ internal enum class DeviceSpecRule(
         LanguageParameterRule.round,
         LanguageParameterRule.orientation,
         LanguageParameterRule.chinSize,
-        LanguageParameterRule.dpi
-      )
+        LanguageParameterRule.dpi,
+      ),
   ),
   LanguageWithParentId(
     requiredParameters = listOf(LanguageParameterRule.parent),
-    optionalParameters = listOf(LanguageParameterRule.orientation)
-  )
+    optionalParameters = listOf(LanguageParameterRule.orientation),
+  ),
 }

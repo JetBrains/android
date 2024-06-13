@@ -85,7 +85,7 @@ class PreviewPickerLineMarkerProviderTest {
         @Composable
         fun preview1() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -172,7 +172,7 @@ private fun PsiFile.findPreviewAnnotation(ordinal: Int): PsiElement = runInEdtAn
       this,
       indexOfElement,
       KtNameReferenceExpression::class.java,
-      true
+      true,
     )
   )
 }

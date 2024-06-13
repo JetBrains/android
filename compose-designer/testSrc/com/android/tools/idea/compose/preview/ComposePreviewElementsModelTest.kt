@@ -16,11 +16,14 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
-import com.android.tools.idea.compose.preview.PreviewGroup.Companion.namedGroup
-import com.android.tools.preview.ComposePreviewElement
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.idea.compose.PsiComposePreviewElement
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.concurrency.FlowableCollection
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -28,23 +31,26 @@ import org.junit.Test
 
 class ComposePreviewElementsModelTest {
   @Test
-  fun testPreviewFilters(): Unit = runBlocking {
+  fun testInstantiatedPreviewElementsFlow(): Unit = runBlocking {
     val basePreviewElement =
-      SingleComposePreviewElementInstance.forTesting("Template", groupName = "TemplateGroup")
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "Template",
+        groupName = "TemplateGroup",
+      )
 
     // Fake PreviewElementTemplate that generates a couple of instances
     val template =
-      object : ComposePreviewElement by basePreviewElement {
+      object : PsiComposePreviewElement by basePreviewElement {
         private val templateInstances =
           listOf(
-            SingleComposePreviewElementInstance.forTesting(
+            SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
               "Instance1",
-              groupName = "TemplateGroup"
+              groupName = "TemplateGroup",
             ),
-            SingleComposePreviewElementInstance.forTesting("Instance2", groupName = "TemplateGroup")
+            SingleComposePreviewElementInstance.forTesting("Instance2", groupName = "TemplateGroup"),
           )
 
-        override fun resolve(): Sequence<ComposePreviewElementInstance> =
+        override fun resolve(): Sequence<PsiComposePreviewElementInstance> =
           templateInstances.asSequence()
       }
     val allPreviews =
@@ -53,92 +59,23 @@ class ComposePreviewElementsModelTest {
         SingleComposePreviewElementInstance.forTesting("SeparatePreview", groupName = "GroupA"),
         SingleComposePreviewElementInstance.forTesting("PreviewMethod2", groupName = "GroupB"),
         SingleComposePreviewElementInstance.forTesting("AMethod"),
-        template
+        template,
       )
 
-    // Initialize flows
-    val filterFlow =
-      MutableStateFlow<ComposePreviewElementsModel.Filter>(
-        ComposePreviewElementsModel.Filter.Disabled
-      )
-    val filteredInstancesFlow =
-      ComposePreviewElementsModel.filteredPreviewElementsFlow(
-        ComposePreviewElementsModel.instantiatedPreviewElementsFlow(MutableStateFlow(allPreviews)),
-        filterFlow
+    val instancesFlow =
+      ComposePreviewElementsModel.instantiatedPreviewElementsFlow(
+        MutableStateFlow(FlowableCollection.Present(allPreviews))
       )
 
-    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
+    assertThat(instancesFlow.first().asCollection().map { it.methodFqn })
       .containsExactly(
         "PreviewMethod1",
         "SeparatePreview",
         "PreviewMethod2",
         "AMethod",
         "Instance1",
-        "Instance2"
+        "Instance2",
       )
       .inOrder()
-
-    // Set an instance filter
-    filterFlow.value =
-      ComposePreviewElementsModel.Filter.Single(
-        allPreviews.first() as SingleComposePreviewElementInstance
-      )
-    assertThat(filteredInstancesFlow.first().map { it.methodFqn }).containsExactly("PreviewMethod1")
-
-    // Set the group filter
-    filterFlow.value = ComposePreviewElementsModel.Filter.Group(namedGroup("GroupA"))
-    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
-      .containsExactly("PreviewMethod1", "SeparatePreview")
-      .inOrder()
-
-    // Remove instance filter
-    filterFlow.value = ComposePreviewElementsModel.Filter.Disabled
-    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
-      .containsExactly(
-        "PreviewMethod1",
-        "SeparatePreview",
-        "PreviewMethod2",
-        "AMethod",
-        "Instance1",
-        "Instance2"
-      )
-      .inOrder()
-
-    // This should filter and keep the group
-    filterFlow.value = ComposePreviewElementsModel.Filter.Group(namedGroup("GroupA"))
-    assertThat(
-        filteredInstancesFlow.first().map { "${it.instanceId} (${it.displaySettings.group})" }
-      )
-      .containsExactly(
-        "PreviewMethod1 (GroupA)",
-        "SeparatePreview (GroupA)",
-      )
-      .inOrder()
-  }
-
-  @Test
-  fun instanceFilterIsApplied(): Unit = runBlocking {
-    val previewElement = SingleComposePreviewElementInstance.forTesting("A1", groupName = "GroupA")
-    val allPreviews =
-      listOf(
-        previewElement,
-        SingleComposePreviewElementInstance.forTesting("A2", groupName = "GroupA"),
-        SingleComposePreviewElementInstance.forTesting("B1", groupName = "GroupB"),
-        SingleComposePreviewElementInstance.forTesting("C1", groupName = "GroupC")
-      )
-
-    // Initialize flows
-    val filterFlow =
-      MutableStateFlow<ComposePreviewElementsModel.Filter>(
-        ComposePreviewElementsModel.Filter.Disabled
-      )
-    val filteredInstancesFlow =
-      ComposePreviewElementsModel.filteredPreviewElementsFlow(
-        MutableStateFlow(allPreviews),
-        filterFlow
-      )
-
-    filterFlow.value = ComposePreviewElementsModel.Filter.Single(previewElement)
-    assertThat(filteredInstancesFlow.first()).containsExactly(previewElement)
   }
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -31,10 +29,13 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 /**
  * Builder class for subclasses of GradlePropertyModelImpl.

@@ -131,7 +131,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       components.add(new Aehd(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
-      components.add(new AndroidVirtualDevice(remotePackages, myInstallUpdates));
+      AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(remotePackages, myInstallUpdates);
+      if (avdCreator.isAvdCreationNeeded(myLocalHandler)) {
+        components.add(avdCreator);
+      }
     }
     return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
   }

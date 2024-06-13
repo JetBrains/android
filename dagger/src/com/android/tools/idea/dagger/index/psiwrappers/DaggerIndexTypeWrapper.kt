@@ -60,7 +60,7 @@ interface DaggerIndexTypeWrapper : DaggerIndexPsiWrapper {
 
 internal class KtTypeReferenceWrapper(
   private val ktTypeReference: KtTypeReference,
-  private val importHelper: KotlinImportHelper
+  private val importHelper: KotlinImportHelper,
 ) : DaggerIndexTypeWrapper {
   override fun getSimpleName(): String? {
     val typeElement = ktTypeReference.typeElement

@@ -16,28 +16,15 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.disabledIf
 import com.android.tools.idea.preview.actions.hasSceneViewErrors
+import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-
-// TODO(b/292057010) Enable group filtering for Gallery mode.
-private class ComposePreviewDefaultWrapper(actions: List<AnAction>) : DefaultActionGroup(actions) {
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-
-    e.getData(COMPOSE_PREVIEW_MANAGER)?.let {
-      e.presentation.isVisible = it.mode.value is PreviewMode.Default
-    }
-  }
-}
 
 private class ComposePreviewUiCheckWrapper(actions: List<AnAction>) : DefaultActionGroup(actions) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -50,13 +37,6 @@ private class ComposePreviewUiCheckWrapper(actions: List<AnAction>) : DefaultAct
     }
   }
 }
-
-/**
- * Makes the given action only visible when the Compose preview is not in interactive or animation
- * modes. Returns an [ActionGroup] that handles the visibility.
- */
-internal fun AnAction.visibleOnlyInComposeDefaultPreview(): ActionGroup =
-  ComposePreviewDefaultWrapper(listOf(this))
 
 /**
  * Makes the given action only visible when the Compose preview is in UI Check mode. Returns an

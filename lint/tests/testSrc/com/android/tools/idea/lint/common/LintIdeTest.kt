@@ -87,7 +87,7 @@ class LintIdeTest : UsefulTestCase() {
     // Set up module and content roots
     factory.registerFixtureBuilder(
       LintModuleFixtureBuilder::class.java,
-      LintModuleFixtureBuilderImpl::class.java
+      LintModuleFixtureBuilderImpl::class.java,
     )
     val moduleFixtureBuilder = projectBuilder.addModule(LintModuleFixtureBuilder::class.java)
     moduleFixtureBuilder.setModuleRoot(fixture.tempDirPath)
@@ -126,7 +126,7 @@ class LintIdeTest : UsefulTestCase() {
     val lintClient =
       LintIdeClient(
         myFixture.project,
-        LintEditorResult(module, vfPointer, fileContent, Sets.newHashSet())
+        LintEditorResult(module, vfPointer, fileContent, Sets.newHashSet()),
       )
 
     assertThat(lintClient.module).isSameAs(module)
@@ -137,7 +137,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintUseValueOfInspection(),
       "Replace with valueOf()",
       "/src/test/pkg/UseValueOf.java",
-      "java"
+      "java",
     )
   }
 
@@ -146,7 +146,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintUseValueOfInspection(),
       "Suppress UseValueOf with an annotation",
       "/src/test/pkg/UseValueOf.java",
-      "java"
+      "java",
     )
   }
 
@@ -155,7 +155,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintNotInterpolatedInspection(),
       "Replace single quotes with double quotes",
       "build.gradle",
-      "gradle"
+      "gradle",
     )
   }
 
@@ -165,7 +165,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintMissingSuperCallInspection(),
       "Add super call",
       "/src/p1/p2/SuperTestJava.java",
-      "java"
+      "java",
     )
   }
 
@@ -175,7 +175,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintMissingSuperCallInspection(),
       "Add super call",
       "/src/p1/p2/SuperTest.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -185,7 +185,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintMissingSuperCallInspection(),
       "Suppress MissingSuperCall with an annotation",
       "/src/p1/p2/SuperTest.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -195,7 +195,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintMissingSuperCallInspection(),
       "Add super call",
       "/src/p1/p2/SuperTest.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -205,7 +205,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintCheckResultInspection(),
       "Call replace instead",
       "/src/p1/p2/JavaCheckResultTest1.java",
-      "java"
+      "java",
     )
   }
 
@@ -215,7 +215,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintCheckResultInspection(),
       "Call replace instead",
       "/src/p1/p2/KotlinCheckResultTest1.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -229,7 +229,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintMissingSuperCallInspection(),
       "Add super call",
       "src/p1/p2/CallSuperTest.java",
-      "java"
+      "java",
     )
   }
 
@@ -239,7 +239,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintMissingSuperCallInspection(),
       "Add super call",
       "src/p1/p2/FooImpl.java",
-      "java"
+      "java",
     )
   }
 
@@ -249,7 +249,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintMissingSuperCallInspection(),
       "Add super call",
       "src/p1/p2/FooImpl.kt",
-      "kt"
+      "kt",
     )
   }
 
@@ -259,7 +259,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintStopShipInspection(),
       "Remove STOPSHIP",
       "/src/test/pkg/StopShip.java",
-      "java"
+      "java",
     )
   }
 
@@ -281,7 +281,7 @@ class LintIdeTest : UsefulTestCase() {
       AndroidLintGradlePathInspection(),
       "Replace with my/libs/http.jar",
       "build.gradle",
-      "gradle"
+      "gradle",
     )
   }
 
@@ -352,7 +352,7 @@ class LintIdeTest : UsefulTestCase() {
   private fun doGlobalInspectionTest(
     inspection: GlobalInspectionTool,
     globalTestDir: String,
-    scope: AnalysisScope
+    scope: AnalysisScope,
   ) {
     doGlobalInspectionTest(GlobalInspectionToolWrapper(inspection), globalTestDir, scope)
   }
@@ -360,7 +360,7 @@ class LintIdeTest : UsefulTestCase() {
   private fun doGlobalInspectionTest(
     wrapper: GlobalInspectionToolWrapper,
     globalTestDir: String,
-    scope: AnalysisScope
+    scope: AnalysisScope,
   ) {
     myFixture.enableInspections(wrapper.tool)
     scope.invalidate()
@@ -371,7 +371,7 @@ class LintIdeTest : UsefulTestCase() {
       globalContext,
       wrapper,
       false,
-      testDataPath + globalTestDir
+      testDataPath + globalTestDir,
     )
     globalContext.getPresentation(wrapper).problemElements
   }
@@ -383,7 +383,7 @@ class LintIdeTest : UsefulTestCase() {
     inspection: AndroidLintInspectionBase,
     message: String,
     copyTo: String,
-    extension: String
+    extension: String,
   ) {
     val action = doTestHighlightingAndGetQuickfix(inspection, message, copyTo, extension)
     doTestWithAction(extension, action!!)
@@ -391,12 +391,17 @@ class LintIdeTest : UsefulTestCase() {
 
   private fun doTestWithAction(extension: String, action: IntentionAction) {
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(
-        ThrowableRunnable<Throwable?> {
-          action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-        }
-      )
+    // TODO(b/319287252): Remove write command after migration to ModCommand API is complete.
+    if (action.asModCommandAction() != null) {
+      myFixture.checkPreviewAndLaunchAction(action)
+    } else {
+      WriteCommandAction.writeCommandAction(myFixture.project)
+        .run(
+          ThrowableRunnable<Throwable?> {
+            action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+          }
+        )
+    }
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after." + extension)
   }
 
@@ -405,7 +410,7 @@ class LintIdeTest : UsefulTestCase() {
     inspection: AndroidLintInspectionBase,
     message: String,
     copyTo: String,
-    extension: String
+    extension: String,
   ): IntentionAction? {
     doTestHighlighting(inspection, copyTo, extension, skipCheck = false)
     return getIntentionAction(message)
@@ -415,7 +420,7 @@ class LintIdeTest : UsefulTestCase() {
     inspection: AndroidLintInspectionBase,
     copyTo: String,
     extension: String,
-    skipCheck: Boolean
+    skipCheck: Boolean,
   ) {
     myFixture.enableInspections(inspection)
     val file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo)
@@ -475,7 +480,7 @@ class LintIdeTest : UsefulTestCase() {
         @Target({METHOD})
         public @interface CallSuper {
         }"""
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -495,7 +500,7 @@ class LintIdeTest : UsefulTestCase() {
           public @interface CheckResult {
               String suggest() default "";
           }"""
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -510,7 +515,7 @@ class LintIdeTest : UsefulTestCase() {
     LintModuleFixtureBuilder<ModuleFixtureImpl> {
 
     init {
-      AdtTestProjectDescriptors.default().configureFixture(this)
+      AdtTestProjectDescriptors.kotlin().configureFixture(this)
     }
 
     private var myModuleRoot: File? = null
@@ -554,7 +559,7 @@ class LintIdeTest : UsefulTestCase() {
     val client =
       LintIdeClient(
         myFixture.project,
-        LintEditorResult(module, vFile, fileContent, Sets.newHashSet())
+        LintEditorResult(module, vFile, fileContent, Sets.newHashSet()),
       )
 
     assertThat(file).isNotNull()

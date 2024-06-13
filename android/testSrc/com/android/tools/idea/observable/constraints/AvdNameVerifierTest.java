@@ -22,7 +22,7 @@ import com.android.tools.idea.avdmanager.AvdNameVerifier;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link com.android.tools.idea.avdmanager.AvdNameVerifier}
+ * Tests for {@link AvdNameVerifier}
  */
 public class AvdNameVerifierTest {
 

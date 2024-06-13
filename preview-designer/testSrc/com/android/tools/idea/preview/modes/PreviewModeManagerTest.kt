@@ -27,18 +27,9 @@ class PreviewModeManagerTest {
   fun modeStaysTheSame() {
     val selected = TestPreviewElement("Selected")
     val mode = PreviewMode.Gallery(selected)
-    val newElements =
-      listOf(
-        TestPreviewElement("First"),
-        selected,
-        TestPreviewElement("Second"),
-      )
+    val newElements = listOf(TestPreviewElement("First"), selected, TestPreviewElement("Second"))
     val previousElements =
-      setOf(
-        TestPreviewElement("First"),
-        selected,
-        TestPreviewElement("Selected"),
-      )
+      setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
     val newMode = mode.newMode(newElements = newElements, previousElements = previousElements)
     assertEquals(mode, newMode)
   }
@@ -47,23 +38,12 @@ class PreviewModeManagerTest {
   fun modeIsUpdated() {
     val selected = TestPreviewElement("Selected")
     val newSelected = TestPreviewElement("NewSelected")
-    val newElements =
-      listOf(
-        newSelected,
-        TestPreviewElement("Second"),
-      )
+    val newElements = listOf(newSelected, TestPreviewElement("Second"))
     val previousElements =
-      setOf(
-        TestPreviewElement("First"),
-        selected,
-        TestPreviewElement("Selected"),
-      )
+      setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
     val newMode =
       PreviewMode.Gallery(selected)
-        .newMode(
-          newElements = newElements,
-          previousElements = previousElements,
-        )
+        .newMode(newElements = newElements, previousElements = previousElements)
     assertNotNull(newMode)
     assertEquals(newSelected, newMode.selected)
   }
@@ -72,35 +52,20 @@ class PreviewModeManagerTest {
   fun modeSelectionIsNull() {
     val selected = TestPreviewElement("Selected")
     val previousElements =
-      setOf(
-        TestPreviewElement("First"),
-        selected,
-        TestPreviewElement("Selected"),
-      )
+      setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
     val newMode =
       PreviewMode.Gallery(selected)
-        .newMode(
-          newElements = emptyList(),
-          previousElements = previousElements,
-        )
+        .newMode(newElements = emptyList(), previousElements = previousElements)
     assertNull(newMode.selected)
   }
 
   @Test
   fun modeIsFound() {
     val selected = TestPreviewElement("Selected")
-    val newElements =
-      listOf(
-        selected,
-        TestPreviewElement("First"),
-        TestPreviewElement("Selected"),
-      )
+    val newElements = listOf(selected, TestPreviewElement("First"), TestPreviewElement("Selected"))
     val newMode =
       PreviewMode.Gallery(selected)
-        .newMode(
-          newElements = newElements,
-          previousElements = emptySet(),
-        )
+        .newMode(newElements = newElements, previousElements = emptySet())
     assertEquals(selected, newMode.selected)
   }
 
@@ -108,12 +73,7 @@ class PreviewModeManagerTest {
   fun firstElementSelected() {
     val selected = TestPreviewElement("Selected")
     val mode = PreviewMode.Gallery(null)
-    val newElements =
-      listOf(
-        selected,
-        TestPreviewElement("First"),
-        TestPreviewElement("Second"),
-      )
+    val newElements = listOf(selected, TestPreviewElement("First"), TestPreviewElement("Second"))
     val newMode = mode.newMode(newElements = newElements, previousElements = emptySet())
     assertEquals(selected, newMode.selected)
   }

@@ -221,7 +221,7 @@ class PropertyComboBoxTest {
 
   private fun createFakeUiForComboBoxEditor(
     comboBox: PropertyComboBox,
-    size: Dimension = Dimension(200, 20)
+    size: Dimension = Dimension(200, 20),
   ): FakeUi {
     val editor = comboBox.editor
     editor.size = size
@@ -252,7 +252,7 @@ class PropertyComboBoxTest {
     property: PropertyItem,
     enumSupport: EnumSupport,
     context: EditorContext = EditorContext.TABLE_EDITOR,
-    editable: Boolean = true
+    editable: Boolean = true,
   ): PropertyComboBox {
     val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
     val comboBox = PropertyComboBox(model, context)
@@ -276,7 +276,7 @@ class PropertyComboBoxTest {
         { _keyCount++ },
         KeyStrokes.ESCAPE,
         "escape",
-        condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+        condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
       )
     }
   }

@@ -21,6 +21,9 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LabelPanel;
 import com.android.tools.idea.common.surface.LayoutData;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.SceneViewErrorsPanel;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -135,6 +138,20 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   @NotNull
   public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView) {
     return new LabelPanel(LayoutData.Companion.fromSceneView(sceneView));
+  }
+
+  /**
+   * Creates a {@link SceneViewErrorsPanel} for a {link SceneView}.
+   */
+  @NotNull
+  public JComponent createErrorPanel(@NotNull SceneView sceneView) {
+    return new SceneViewErrorsPanel(() -> {
+      // If the flag COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR is enabled and  there is a valid image, never display the error panel.
+      if (LayoutlibSceneManagerUtilsKt.hasValidImage(sceneView) && StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get())
+        return SceneViewErrorsPanel.Style.HIDDEN;
+      if (LayoutlibSceneManagerUtilsKt.hasRenderErrors(sceneView)) return SceneViewErrorsPanel.Style.SOLID;
+      return SceneViewErrorsPanel.Style.HIDDEN;
+    });
   }
 
   /**

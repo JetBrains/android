@@ -76,13 +76,13 @@ public class NoLaunch extends LaunchOption<NoLaunch.State> {
     }
 
     @Override
-    protected void doLaunch(@NotNull IDevice device,
+    protected boolean doLaunch(@NotNull IDevice device,
                             @NotNull App app,
                             @NotNull ApkProvider apkProvider,
                             boolean isDebug,
                             @NotNull String extraFlags,
                             @NotNull ConsoleView console) throws ExecutionException {
-
+      return false;
     }
   }
 }

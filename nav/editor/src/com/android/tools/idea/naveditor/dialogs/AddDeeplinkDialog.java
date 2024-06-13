@@ -69,7 +69,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
   private final BindingsManager myBindings = new BindingsManager();
   private final boolean myIsExtended;
 
-  private static final Version EXTENDED_VERSION = Version.Companion.parse("2.3.0-alpha06");
+  private static final Version EXTENDED_VERSION = Version.parse("2.3.0-alpha06");
 
   public AddDeeplinkDialog(@Nullable NlComponent existing, @NotNull NlComponent parent) {
     super(false);

@@ -102,7 +102,7 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
       calendar.add(Calendar.DATE, 1)
       val managedVirtualDeviceCatalogService = ManagedVirtualDeviceCatalogService()
       managedVirtualDeviceCatalogService.loadState(ManagedVirtualDeviceCatalogState(calendar.time,
-                                                                                    ManagedVirtualDeviceCatalog().syncDeviceCatalog()))
+                                                                                    ManagedVirtualDeviceCatalogService.syncDeviceCatalog()))
       assertTrue(managedVirtualDeviceCatalogService.state.isCacheFresh())
       managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(mockProject, mockProgressIndicator)
       // The only time we invoked mockDeviceManager and mockRepoManager is when freshManagedVirtualDeviceCatalogState is syncing

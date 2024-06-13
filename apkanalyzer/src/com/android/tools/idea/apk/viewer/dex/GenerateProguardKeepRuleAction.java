@@ -24,6 +24,7 @@ import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -55,6 +56,12 @@ public class GenerateProguardKeepRuleAction extends AnAction {
     super("Generate Proguard keep rule", "Generates Proguard keep rule", AllIcons.Actions.Download);
     myTree = tree;
   }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
 
   @NotNull
   @VisibleForTesting
@@ -187,6 +194,9 @@ public class GenerateProguardKeepRuleAction extends AnAction {
   @Nullable
   private DexElementNode getSelectedNode() {
     TreePath path = myTree.getSelectionPath();
+    if (path == null) {
+      return null;
+    }
     Object component = path.getLastPathComponent();
     return component instanceof DexElementNode ? (DexElementNode)component : null;
   }

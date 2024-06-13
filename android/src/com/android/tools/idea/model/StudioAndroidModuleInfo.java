@@ -18,6 +18,7 @@ package com.android.tools.idea.model;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
+import static com.android.tools.idea.util.DumbServiceUtilKt.uiSafeRunReadActionInSmartMode;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -27,7 +28,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
@@ -51,7 +51,6 @@ import org.jetbrains.annotations.TestOnly;
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifestManager#getSnapshot(Module)}.
  */
 public class StudioAndroidModuleInfo extends AndroidFacetScopedService implements AndroidModuleInfo {
-  private static final Logger LOG = Logger.getInstance(StudioAndroidModuleInfo.class);
   @VisibleForTesting
   static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
 
@@ -157,8 +156,8 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
     }
 
     try {
-      return DumbService.getInstance(facet.getModule().getProject())
-        .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
+      return uiSafeRunReadActionInSmartMode(facet.getModule().getProject(),
+                                            () -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
     }
     catch (IndexNotReadyException e) {
       // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
@@ -185,8 +184,8 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
     }
 
     try {
-      return DumbService.getInstance(facet.getModule().getProject())
-        .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getTargetSdk());
+      return uiSafeRunReadActionInSmartMode(facet.getModule().getProject(),
+                                            () -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getTargetSdk());
     }
     catch (IndexNotReadyException e) {
       // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.

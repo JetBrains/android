@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.visual;
 
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -23,8 +24,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The project-level settings for visualization (a.k.a. Layout Validation) tool.
  */
+@Service(Service.Level.PROJECT)
 @State(name = "VisualizationToolProject")
-public class VisualizationToolProjectSettings implements PersistentStateComponent<VisualizationToolProjectSettings.MyState> {
+public final class VisualizationToolProjectSettings implements PersistentStateComponent<VisualizationToolProjectSettings.MyState> {
   private ProjectState myProjectState = new ProjectState();
 
   public static VisualizationToolProjectSettings getInstance(@NotNull Project project) {

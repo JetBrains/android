@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.compose.preview.animation.actions
 
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.message
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
 /** A button to swap current animation states. */
-class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
+class SwapAction(val tracker: ComposeAnimationTracker, val swapStates: () -> Unit) :
   DumbAwareAction(
-    message("animation.inspector.action.swap.states"), null,
-    StudioIcons.LayoutEditor.Motion.PLAY_YOYO
+    message("animation.inspector.action.swap.states"),
+    null,
+    StudioIcons.LayoutEditor.Motion.PLAY_YOYO,
   ) {
 
   private var isSwappingStates = false
@@ -35,5 +37,9 @@ class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
     swapStates()
     isSwappingStates = false
     tracker.triggerSwapStatesAction()
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
   }
 }

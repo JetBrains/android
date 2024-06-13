@@ -31,40 +31,40 @@
     </table>
     <br>
     <u><b>Other Manifest Files</b></u><br>(Included in merge, but did not
-    contribute any elements)<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/AndroidManifest.xml'>animated-vector-drawable:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/AndroidManifest.xml'>appcompat-v7:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/AndroidManifest.xml'>constraint-layout:1.0.2</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml'>core:runtime:1.1.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/AndroidManifest.xml'>lifecycle:livedata:1.1.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml'>lifecycle:runtime:1.1.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/AndroidManifest.xml'>lifecycle:viewmodel:1.1.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/AndroidManifest.xml'>livedata-core:1.1.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/AndroidManifest.xml'>support-compat:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/AndroidManifest.xml'>support-core-ui:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/AndroidManifest.xml'>support-core-utils:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/AndroidManifest.xml'>support-fragment:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml'>support-vector-drawable:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/AndroidManifest.xml'>support:asynclayoutinflater:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/AndroidManifest.xml'>support:coordinatorlayout:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/AndroidManifest.xml'>support:cursoradapter:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/AndroidManifest.xml'>support:customview:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/AndroidManifest.xml'>support:documentfile:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/AndroidManifest.xml'>support:drawerlayout:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/AndroidManifest.xml'>support:interpolator:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/AndroidManifest.xml'>support:loader:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/AndroidManifest.xml'>support:localbroadcastmanager:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/AndroidManifest.xml'>support:print:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/AndroidManifest.xml'>support:slidingpanelayout:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/AndroidManifest.xml'>support:swiperefreshlayout:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/AndroidManifest.xml'>support:versionedparcelable:28.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/AndroidManifest.xml'>support:viewpager:28.0.0</a>
+    contribute any elements)<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/AndroidManifest.xml'>animated-vector-drawable:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/AndroidManifest.xml'>appcompat-v7:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/AndroidManifest.xml'>constraint-layout:1.0.2</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml'>core:runtime:1.1.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/AndroidManifest.xml'>lifecycle:livedata:1.1.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml'>lifecycle:runtime:1.1.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/AndroidManifest.xml'>lifecycle:viewmodel:1.1.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/AndroidManifest.xml'>livedata-core:1.1.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/AndroidManifest.xml'>support-compat:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/AndroidManifest.xml'>support-core-ui:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/AndroidManifest.xml'>support-core-utils:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/AndroidManifest.xml'>support-fragment:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml'>support-vector-drawable:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/AndroidManifest.xml'>support:asynclayoutinflater:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/AndroidManifest.xml'>support:coordinatorlayout:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/AndroidManifest.xml'>support:cursoradapter:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/AndroidManifest.xml'>support:customview:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/AndroidManifest.xml'>support:documentfile:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/AndroidManifest.xml'>support:drawerlayout:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/AndroidManifest.xml'>support:interpolator:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/AndroidManifest.xml'>support:loader:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/AndroidManifest.xml'>support:localbroadcastmanager:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/AndroidManifest.xml'>support:print:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/AndroidManifest.xml'>support:slidingpanelayout:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/AndroidManifest.xml'>support:swiperefreshlayout:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/AndroidManifest.xml'>support:versionedparcelable:28.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/AndroidManifest.xml'>support:viewpager:28.0.0</a>
     manifest<br><br><br><br><u><b>Merge Warnings</b></u><br><font color="#ff0000"><b>Warning</b></font>:
     Namespace 'android.support.graphics.drawable' is used in multiple modules
     and/or libraries: AndroidManifest.xml, AndroidManifest.xml. Please ensure
     that all modules and libraries have a unique namespace. For more
     information, See
     https://developer.android.com/studio/build/configure-app-module#set-namespace
-    <a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml'>support-vector-drawable:28.0.0</a>
+    <a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml'>support-vector-drawable:28.0.0</a>
     manifest<br>
   </body>
 </html>

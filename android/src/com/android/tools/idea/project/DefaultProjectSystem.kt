@@ -17,6 +17,7 @@ package com.android.tools.idea.project
 
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.apk.ApkFacet
+import com.android.tools.idea.flags.StudioFlags.ENABLE_APK_PROJECT_SYSTEM
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.navigator.getSubmodules
@@ -31,7 +32,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemToken
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
-import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidInnerClassFinder
@@ -74,6 +74,9 @@ import java.util.IdentityHashMap
  * recognized. It provides a minimal set of capabilities and opts out of most optional behaviors.
  */
 class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
+  override fun isAndroidProject(): Boolean {
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+  }
 
   override fun getBootClasspath(module: Module): Collection<String> {
     throw IllegalStateException("Not implemented")
@@ -109,11 +112,15 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
   override val projectSystem = this
 
   private val moduleCache: MutableMap<Module, AndroidModuleSystem> = IdentityHashMap()
-  override fun getModuleSystem(module: Module): AndroidModuleSystem = moduleCache.getOrPut(module, { DefaultModuleSystem(module) })
+  override fun getModuleSystem(module: Module): AndroidModuleSystem = synchronized(moduleCache) {
+    moduleCache.getOrPut(module) { DefaultModuleSystem(module) }
+  }
 
   @TestOnly
   fun setModuleSystem(module: Module, moduleSystem: AndroidModuleSystem) {
-    moduleCache[module] = moduleSystem
+    synchronized(moduleCache) {
+      moduleCache[module] = moduleSystem
+    }
   }
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? {
@@ -130,8 +137,8 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
     if (forTests) {
       return NonGradleApkProvider(facet, applicationIdProvider, null)
     }
-    val apkFacet = ApkFacet.getInstance(module)
-    return when {
+    val apkFacet = if (ENABLE_APK_PROJECT_SYSTEM.get()) null else ApkFacet.getInstance(module)
+    return when  {
       apkFacet != null -> FileSystemApkProvider(apkFacet.module, File(apkFacet.configuration.APK_PATH))
       runConfiguration is AndroidRunConfiguration -> NonGradleApkProvider(facet, applicationIdProvider, runConfiguration.ARTIFACT_NAME)
       else -> null

@@ -37,15 +37,15 @@ class ColorLutTest : TestCase() {
 
       assertTrue(
         "Red comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
-        Math.abs(r(color1) - r(color2)) <= threshhold
+        Math.abs(r(color1) - r(color2)) <= threshhold,
       )
       assertTrue(
         "Green comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
-        Math.abs(g(color1) - g(color2)) <= threshhold
+        Math.abs(g(color1) - g(color2)) <= threshhold,
       )
       assertTrue(
         "Blue comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
-        Math.abs(b(color1) - b(color2)) <= threshhold
+        Math.abs(b(color1) - b(color2)) <= threshhold,
       )
     }
   }

@@ -1,9 +1,9 @@
 Root 1:
-       96B/2 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D(disposed)
-       64B/2 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-       16B/1 objects          []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
+   96B          2          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D (disposedRoot)
+   64B          2          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+   16B          1          []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B (disposedChild)
 Root 2:
-       96B/1 objects          (root): java.util.ImmutableCollections$List12
-       56B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-       40B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-       16B/1 objects          []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
+   96B          1          (root): java.util.ImmutableCollections$List12
+   56B          1          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+   40B          1          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+   16B          1          []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B (disposedRoot)

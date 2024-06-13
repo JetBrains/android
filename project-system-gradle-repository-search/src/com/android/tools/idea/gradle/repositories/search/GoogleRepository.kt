@@ -29,24 +29,47 @@ open class GoogleRepositoryBase(val repository: GoogleMavenRepository) : Artifac
   override fun doSearch(request: SearchRequest): SearchResult {
     fun String?.toFilterPredicate() =
       nullize(true)?.let { Regex(it.replace("*", ".*")) }?.let { { probe: String -> it.matches(probe) } } ?: { true }
-    val groupFilter = request.query.groupId.toFilterPredicate()
-    val artifactFilter = request.query.artifactName.toFilterPredicate()
 
-    return SearchResult(
-      repository
-        .getGroups()
-        .filter(groupFilter)
-        .sorted()
-        .flatMap { groupId ->
+    return when (request.query) {
+      is GroupArtifactQuery -> {
+        val groupFilter = request.query.groupId.toFilterPredicate()
+        val artifactFilter = request.query.artifactName.toFilterPredicate()
+        SearchResult(
           repository
-            .getArtifacts(groupId)
-            .filter(artifactFilter)
+            .getGroups()
+            .filter(groupFilter)
             .sorted()
-            .map { artifactId ->
-              val versions = repository.getVersions(groupId, artifactId)
-              FoundArtifact(name, groupId, artifactId, versions)
-            }
-            .toList()
-        }.toList())
+            .flatMap { groupId ->
+              repository
+                .getArtifacts(groupId)
+                .filter(artifactFilter)
+                .sorted()
+                .map { artifactId ->
+                  val versions = repository.getVersions(groupId, artifactId)
+                  FoundArtifact(name, groupId, artifactId, versions)
+                }
+                .toList()
+            }.toList())
+      }
+
+      is ModuleQuery -> {
+        val moduleFilter = request.query.module.toFilterPredicate()
+        SearchResult(
+          repository
+            .getGroups()
+            .sorted()
+            .flatMap { groupId ->
+              repository
+                .getArtifacts(groupId)
+                .filter { moduleFilter("$groupId:$it") }
+                .sorted()
+                .map { artifactId ->
+                  val versions = repository.getVersions(groupId, artifactId)
+                  FoundArtifact(name, groupId, artifactId, versions)
+                }
+                .toList()
+            }.toList())
+      }
+    }
   }
 }

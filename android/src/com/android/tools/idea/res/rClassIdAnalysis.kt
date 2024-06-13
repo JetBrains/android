@@ -12,7 +12,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes
  */
 fun getRClassResources(
   packageName: String?,
-  classContentLoader: (String) -> ByteArray?
+  classContentLoader: (String) -> ByteArray?,
 ): RClassResources? {
   packageName ?: return null
   val resourceTypes = findResourceTypes(packageName, classContentLoader) ?: return null
@@ -49,7 +49,7 @@ private class ExtractConstants : ClassVisitor(Opcodes.ASM9) {
     name: String?,
     descriptor: String?,
     signature: String?,
-    value: Any?
+    value: Any?,
   ): FieldVisitor? {
     name ?: return null
     if (
@@ -74,7 +74,7 @@ private val classReaderFlags =
 private fun findResources(
   packageName: String,
   resourceType: ResourceType,
-  classContentLoader: (String) -> ByteArray?
+  classContentLoader: (String) -> ByteArray?,
 ): Map<String, Int>? {
   val fqcn = "$packageName.R$${resourceType.getName()}"
   val innerClassBytes = classContentLoader(fqcn) ?: return null
@@ -85,7 +85,7 @@ private fun findResources(
 
 private fun findResourceTypes(
   packageName: String,
-  classContentLoader: (String) -> ByteArray?
+  classContentLoader: (String) -> ByteArray?,
 ): Set<ResourceType>? {
   val fqcn = "$packageName.R"
   val classContent = classContentLoader(fqcn) ?: return null
@@ -99,7 +99,7 @@ private fun findResourceTypes(
         name: String?,
         outerName: String?,
         innerName: String?,
-        access: Int
+        access: Int,
       ) {
         innerName ?: return
         name ?: return

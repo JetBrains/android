@@ -36,8 +36,8 @@ public class ScenePickerTest extends TestCase {
   private void testLine(int range, int w) {
     ScenePicker scenePicker = new ScenePicker();
     scenePicker.reset();
-    scenePicker.addLine(new Integer(1), range, 10, 10, 100, 100, w);
-    scenePicker.addLine(new Integer(1), range, 2100, 2100, 1100, 1100, w);
+    scenePicker.addLine(1, range, 10, 10, 100, 100, w);
+    scenePicker.addLine(1, range, 2100, 2100, 1100, 1100, w);
     boolean[] found = new boolean[1];
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));
@@ -73,7 +73,7 @@ public class ScenePickerTest extends TestCase {
   public void testRect() {
     ScenePicker scenePicker = new ScenePicker();
     scenePicker.reset();
-    scenePicker.addRect(new Integer(1), 10, 10, 10, 100, 100);
+    scenePicker.addRect(1, 10, 10, 10, 100, 100);
     boolean[] found = new boolean[1];
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));
@@ -136,7 +136,7 @@ public class ScenePickerTest extends TestCase {
     assertFalse(found[0]);
 
     scenePicker.reset();
-    scenePicker.addRect(new Integer(1), 10, 11, 11, 10, 10);
+    scenePicker.addRect(1, 10, 11, 11, 10, 10);
     error = 5;
     for (int y = 0; y < 20; y += 1) {
       for (int x = 0; x < 20; x += 1) {
@@ -177,7 +177,7 @@ public class ScenePickerTest extends TestCase {
     int x4 = 100;
     int y4 = 100;
     error = 3;
-    scenePicker.addCurveTo(new Integer(1), range, x1, y1, x2, y2, x3, y3, x4, y4, w);
+    scenePicker.addCurveTo(1, range, x1, y1, x2, y2, x3, y3, x4, y4, w);
     boolean[] found = new boolean[1];
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));
@@ -233,7 +233,7 @@ public class ScenePickerTest extends TestCase {
         for (int x = x1 - maxRadius; x <= x1 + maxRadius; x++) {
           for (int y = y1 - maxRadius; y <= y1 + maxRadius; y++) {
             scenePicker.reset();
-            scenePicker.addCircle(new Integer(1), range, x1, y1, r);
+            scenePicker.addCircle(1, range, x1, y1, r);
             found[0] = false;
             expectedDistance = Math.max(Math.hypot(x - x1, y - y1) - r, 0);
 
@@ -252,7 +252,7 @@ public class ScenePickerTest extends TestCase {
     error = 2;
 
     for (int i = 0; i < 1000; i++) {
-      scenePicker.addCircle(new Integer(1), 3, 2 * (i % 100), 2 * (i / 100), 0);
+      scenePicker.addCircle(1, 3, 2 * (i % 100), 2 * (i / 100), 0);
     }
 
     boolean[] found = new boolean[1];
@@ -329,7 +329,7 @@ public class ScenePickerTest extends TestCase {
     int x4 = 10;
     int y4 = 10;
     error = 3;
-    scenePicker.addCurveTo(new Integer(1), 4, x1, y1, x2, y2, x3, y3, x4, y4, 0);
+    scenePicker.addCurveTo(1, 4, x1, y1, x2, y2, x3, y3, x4, y4, 0);
 
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));

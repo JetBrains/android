@@ -62,7 +62,7 @@ interface NodeType<T> {
     data: Transferable,
     before: Any? = null,
     isMove: Boolean,
-    draggedFromTree: List<Any>
+    draggedFromTree: List<Any>,
   ): Boolean = false
 
   /** Delete this [node] after a successful DnD move operation. */

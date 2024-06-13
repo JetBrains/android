@@ -19,6 +19,7 @@ import static com.intellij.openapi.application.ApplicationManager.getApplication
 
 import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -160,7 +161,7 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   @Override
   public boolean isAndroidProject(@NotNull Project project) {
-    return hasAndroidFacets(project);
+    return ProjectSystemUtil.getProjectSystem(project).isAndroidProject();
   }
 
   // TODO(b/291955340): Should have @RequiresBackgroundThread
@@ -298,18 +299,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH = '/' + s + properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH;
 
     properties.RES_OVERLAY_FOLDERS.replaceAll(overlayFolder -> '/' + s + overlayFolder);
-  }
-
-  @Nullable
-  public static VirtualFile findFileByAbsoluteOrRelativePath(@Nullable VirtualFile baseDir, @NotNull String path) {
-    VirtualFile libDir = LocalFileSystem.getInstance().findFileByPath(path);
-    if (libDir != null) {
-      return libDir;
-    }
-    else if (baseDir != null) {
-      return LocalFileSystem.getInstance().findFileByPath(baseDir.getPath() + '/' + path);
-    }
-    return null;
   }
 
   @Nullable
@@ -645,9 +634,12 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   /**
-   * Checks if the project contains a module with an Android facet.
+   * Do not use. Use {@code CommonAndroidutil.getInstance().isAndroidProject()} to test whether
+   * a project is an Android project.
    */
+  @Deprecated(forRemoval = true)
   public static boolean hasAndroidFacets(@NotNull Project project) {
+    LOG.error("hasAndroidFacets is to be removed. Use CommonAndroidutil.getInstance().isAndroidProject().");
     ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
     return facetManager.hasFacets(AndroidFacet.ID);
   }

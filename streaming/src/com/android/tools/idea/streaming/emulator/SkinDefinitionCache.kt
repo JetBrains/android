@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.annotations.concurrency.Slow
-import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.containers.CollectionFactory
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.nio.file.Path
 
@@ -27,14 +27,14 @@ import java.nio.file.Path
 @ThreadSafe
 internal class SkinDefinitionCache {
   /** Skin definitions keyed by skin definition folders. */
-  private val folderToSkin: MutableMap<Path, SkinDefinition?> = ContainerUtil.createConcurrentWeakValueMap()
+  private val folderToSkin: MutableMap<Path, SkinDefinition?> = CollectionFactory.createConcurrentWeakValueMap()
 
   @Slow
   fun getSkinDefinition(skinFolder: Path?): SkinDefinition? {
     if (skinFolder == null) {
       return null
     }
-    return folderToSkin.computeIfAbsent(skinFolder) { SkinDefinition.create(skinFolder) }
+    return folderToSkin.computeIfAbsent(skinFolder) { SkinDefinition.createOrNull(skinFolder) }
   }
 
   companion object {

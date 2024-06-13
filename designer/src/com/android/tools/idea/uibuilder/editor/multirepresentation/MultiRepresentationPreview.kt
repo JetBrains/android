@@ -25,10 +25,11 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.FILE_EDITOR
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -42,9 +43,12 @@ import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
+import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.util.SlowOperations
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
@@ -81,9 +85,9 @@ data class Representation(
     entryTagName = "setting",
     keyAttributeName = "name",
     valueAttributeName = "value",
-    surroundWithTag = false
+    surroundWithTag = false,
   )
-  var settings: PreviewRepresentationState = mutableMapOf()
+  var settings: PreviewRepresentationState = mutableMapOf(),
 )
 
 /**
@@ -93,7 +97,7 @@ data class Representation(
 @Tag(MULTI_PREVIEW_STATE_TAG)
 data class MultiRepresentationPreviewFileEditorState(
   @Attribute("selected") var selectedRepresentationName: RepresentationName = "",
-  @Tag("representations") var representations: Collection<Representation> = mutableListOf()
+  @Tag("representations") var representations: Collection<Representation> = mutableListOf(),
 ) : FileEditorState {
   override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel): Boolean =
     otherState is MultiRepresentationPreviewFileEditorState && this == otherState
@@ -114,7 +118,7 @@ data class MultiRepresentationPreviewFileEditorState(
 open class MultiRepresentationPreview(
   psiFile: PsiFile,
   private val editor: Editor,
-  private val providers: Collection<PreviewRepresentationProvider>
+  private val providers: Collection<PreviewRepresentationProvider>,
 ) : PreviewRepresentationManager, DesignFileEditor(psiFile.virtualFile!!), AndroidCoroutinesAware {
 
   private val LOG = Logger.getInstance(MultiRepresentationPreview::class.java)
@@ -246,12 +250,21 @@ open class MultiRepresentationPreview(
     representationNeverShown = false
   }
 
-  private fun validateCurrentRepresentationName() {
+  private fun updateCurrentRepresentationName() {
     synchronized(representations) {
       if (representations.isEmpty()) {
         currentRepresentationName = ""
-      } else if (!representations.containsKey(currentRepresentationName)) {
-        currentRepresentationName = representationNames.minOf { it }
+        return@synchronized
+      }
+      val representationsWithPreviews = representations.filter { it.value.hasPreviewsCached() }
+      if (currentRepresentationName !in representationsWithPreviews.keys) {
+        // Prefer selecting a representation with previews.
+        currentRepresentationName =
+          if (representationsWithPreviews.isNotEmpty()) {
+            representationsWithPreviews.keys.first()
+          } else {
+            representationNames.minOf { it }
+          }
       }
     }
     if (representationNeverShown) {
@@ -262,8 +275,7 @@ open class MultiRepresentationPreview(
   /** Updates the current representations and ensures the current selected one is valid. */
   private suspend fun updateRepresentationsImpl() {
     if (Disposer.isDisposed(this@MultiRepresentationPreview)) return
-    val file = readAction { psiFilePointer.element }
-    if (file == null || !readAction { file.isValid }) return
+    val file = readAction { psiFilePointer.element?.takeIf { it.isValid } } ?: return
 
     val providers = providers.filter { it.accept(project, file) }.toList()
     val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
@@ -277,7 +289,11 @@ open class MultiRepresentationPreview(
       }
       shortcutsApplicableComponent?.let {
         launch(uiThread) {
-          if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
+          SlowOperations.allowSlowOperations(
+            ThrowableComputable {
+              if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
+            }
+          )
         }
       }
       newRepresentations[provider.displayName] = representation
@@ -309,12 +325,16 @@ open class MultiRepresentationPreview(
       // when saving the state.
       stateFromDisk?.let { currentRepresentationName = it.selectedRepresentationName }
     }
+    // Updates the cached value of hasPreviews for each representation
+    withContext(workerThread) { representations.values.forEach { it.hasPreviews() } }
 
     withContext(uiThread) {
       // update current if it was deleted
-      validateCurrentRepresentationName()
+      updateCurrentRepresentationName()
 
-      representationSelectionToolbar.isVisible = representations.size > 1
+      // Only show the bar if there is more than one representation with previews to be shown.
+      representationSelectionToolbar.isVisible =
+        representations.filter { it.value.hasPreviewsCached() }.size > 1
       onRepresentationsUpdated?.invoke()
     }
   }
@@ -397,7 +417,7 @@ open class MultiRepresentationPreview(
 
     return MultiRepresentationPreviewFileEditorState(
       currentRepresentationName,
-      representationStates
+      representationStates,
     )
   }
 
@@ -426,7 +446,7 @@ open class MultiRepresentationPreview(
 
   private class RepresentationOption(
     val representationName: String,
-    val parent: MultiRepresentationPreview
+    val parent: MultiRepresentationPreview,
   ) : AnAction(representationName) {
     override fun actionPerformed(e: AnActionEvent) {
       // Here we iterate over all editors as change in selection (write) should trigger updates in
@@ -435,25 +455,34 @@ open class MultiRepresentationPreview(
     }
   }
 
-  private class RepresentationsSelector(val parent: MultiRepresentationPreview) :
+  private class RepresentationsSelector :
     DropDownAction(null, "Representations", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
     override fun update(e: AnActionEvent) {
       super.update(e)
       removeAll()
+      val previewEditor =
+        (e.getData(FILE_EDITOR) as? TextEditorWithPreview)?.previewEditor
+          as? MultiRepresentationPreview ?: return
 
       // We need just a single previewEditor here (any) to retrieve (read) the states and currently
       // selected state
-      synchronized(parent.representations) { parent.representations.keys }
-        .forEach { add(RepresentationOption(it, parent)) }
-      e.presentation.setText(parent.currentRepresentationName, false)
+      synchronized(previewEditor.representations) { previewEditor.representations }
+        .forEach {
+          if (it.value.hasPreviewsCached()) {
+            add(RepresentationOption(it.key, previewEditor))
+          }
+        }
+      e.presentation.setText(previewEditor.currentRepresentationName, false)
     }
 
     override fun displayTextInToolbar() = true
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }
 
   private fun createActionGroup(): ActionGroup {
     val actionGroup = DefaultActionGroup()
-    val representationsSelector = RepresentationsSelector(this)
+    val representationsSelector = RepresentationsSelector()
     actionGroup.add(representationsSelector)
     return actionGroup
   }

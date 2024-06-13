@@ -36,7 +36,7 @@ class EditTextHandlerTest : LayoutTestCase() {
                 .withBounds(0, 0, 200, 200)
                 .wrapContentHeight()
                 .wrapContentWidth()
-            )
+            ),
         )
         .build()
     val editText = model.components.get(0).getChild(0)!!

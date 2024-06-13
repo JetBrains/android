@@ -43,9 +43,9 @@ class LogcatStudioBotTest {
                 "\tat android.os.Binder.transact(Binder.java:1164)\n" +
                 "\tat alqf.onTransact(:com.google.android.gms@225014044@22.50.14 (190400-499278674):17)\n" +
                 "\tat android.os.Binder.execTransactInternal(Binder.java:1285)\n" +
-                "\tat android.os.Binder.execTransact(Binder.java:1244)\n"
+                "\tat android.os.Binder.execTransact(Binder.java:1244)\n",
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo(
         """
@@ -64,9 +64,9 @@ class LogcatStudioBotTest {
     assertThat(
         logcatMessage(
             tag = "MyTag",
-            message = "Compat change id reported: 183155436; UID 10111; state: ENABLED\n"
+            message = "Compat change id reported: 183155436; UID 10111; state: ENABLED\n",
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo("Compat change id reported: 183155436; UID 10111; state: ENABLED with tag MyTag")
   }
@@ -189,9 +189,9 @@ class LogcatStudioBotTest {
                 "\tat java.util.concurrent.ThreadPoolExecutor\$Worker.run(ThreadPoolExecutor.java:637)\n" +
                 "\tat qhq.run(PG:2)\n" +
                 "\tat qic.run(PG:4)\n" +
-                "\tat java.lang.Thread.run(Thread.java:1012) \n"
+                "\tat java.lang.Thread.run(Thread.java:1012) \n",
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo(
         """
@@ -314,9 +314,9 @@ class LogcatStudioBotTest {
                 "\tat okhttp3.internal.connection.RealCall\$AsyncCall.run(RealCall.kt:517) \n" +
                 "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1137) \n" +
                 "\tat java.util.concurrent.ThreadPoolExecutor\$Worker.run(ThreadPoolExecutor.java:637) \n" +
-                "\tat java.lang.Thread.run(Thread.java:1012) "
+                "\tat java.lang.Thread.run(Thread.java:1012) ",
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo(
         """
@@ -369,9 +369,9 @@ class LogcatStudioBotTest {
                 "\tat android.app.ActivityThread.main(ActivityThread.java:8128) \n" +
                 "\tat java.lang.reflect.Method.invoke(Native Method) \n" +
                 "\tat com.android.internal.os.RuntimeInit\$MethodAndArgsCaller.run(RuntimeInit.java:578) \n" +
-                "\tat com.android.internal.os.ZygoteInit.main(ZygoteInit.java:946) "
+                "\tat com.android.internal.os.ZygoteInit.main(ZygoteInit.java:946) ",
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo(
         "FATAL EXCEPTION: main\n" +

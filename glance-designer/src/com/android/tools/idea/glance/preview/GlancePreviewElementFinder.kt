@@ -15,119 +15,92 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.annotations.findAnnotatedMethodsValues
-import com.android.tools.idea.annotations.hasAnnotation
+import com.android.annotations.concurrency.Slow
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.idea.preview.FilePreviewElementFinder
+import com.android.tools.idea.preview.annotations.NodeInfo
+import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
+import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.toSmartPsiPointer
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
+import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.toUElementOfType
 
-private const val GLANCE_PREVIEW_ANNOTATION_NAME = "GlancePreview"
+private const val GLANCE_PREVIEW_ANNOTATION_NAME = "Preview"
 private const val GLANCE_PREVIEW_ANNOTATION_FQN =
   "androidx.glance.preview.$GLANCE_PREVIEW_ANNOTATION_NAME"
 
-private const val SURFACE_PARAM_NAME = "surface"
-private const val APP_WIDGET_SURFACE = "AppWidget"
-private const val TILE_SURFACE = "Tile"
-
-/**
- * Returns true if the [annotationEntry] annotation has [SURFACE_PARAM_NAME] parameter of
- * [surfaceName] value, false otherwise.
- */
-private fun surfaceFilter(annotationEntry: UAnnotation?, surfaceName: String) =
+/** Returns true if this [UAnnotation] is a Glance @Preview annotation. */
+private fun isGlancePreview(annotation: UAnnotation) =
   ReadAction.compute<Boolean, Throwable> {
-    annotationEntry?.findAttributeValue(SURFACE_PARAM_NAME)?.evaluate() == surfaceName
+    GLANCE_PREVIEW_ANNOTATION_FQN == annotation.qualifiedName
   }
 
-/**
- * Returns true if this [UAnnotation] is a @GlancePreview annotation for the [surfaceName] surface.
- */
-private fun UAnnotation.isGlancePreview(surfaceName: String) =
-  ReadAction.compute<Boolean, Throwable> {
-    GLANCE_PREVIEW_ANNOTATION_FQN == qualifiedName && surfaceFilter(this, surfaceName)
-  }
+@Slow
+private fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
+  uMethod: UMethod
+): PsiGlancePreviewElement? {
+  val annotation = element as UAnnotation
+  if (!isGlancePreview(annotation)) return null
 
-/**
- * Returns the sequence of the Glance preview elements for [surfaceName] surface from the [methods].
- */
-private fun toGlancePreviewElements(
-  methods: List<UMethod>,
-  surfaceName: String
-): Sequence<GlancePreviewElement> =
-  methods
-    .flatMap { method ->
-      val uClass = method.uastParent as UClass
-      val methodFqn = "${uClass.qualifiedName}.${method.name}"
-      method.uAnnotations
-        .filter { it.isGlancePreview(surfaceName) }
-        .map {
-          val displaySettings = PreviewDisplaySettings(method.name, null, false, false, null)
-          GlancePreviewElement(
-            displaySettings,
-            it.toSmartPsiPointer(),
-            method.uastBody.toSmartPsiPointer(),
-            methodFqn
-          )
-        }
-    }
-    .asSequence()
+  val uClass = uMethod.uastParent as UClass
+  val methodFqn = "${uClass.qualifiedName}.${uMethod.name}"
+  val displaySettings = PreviewDisplaySettings(uMethod.name, null, false, false, null)
+  val defaultValues = runReadAction { annotation.findPreviewDefaultValues() }
+  val widthDp =
+    annotation.findAttributeValue(PARAMETER_WIDTH_DP)?.evaluate() as? Int
+      ?: defaultValues[PARAMETER_WIDTH_DP]?.toIntOrNull()
+  val heightDp =
+    annotation.findAttributeValue(PARAMETER_HEIGHT_DP)?.evaluate() as? Int
+      ?: defaultValues[PARAMETER_HEIGHT_DP]?.toIntOrNull()
+  return GlancePreviewElement(
+    displaySettings,
+    annotation.toSmartPsiPointer(),
+    uMethod.uastBody.toSmartPsiPointer(),
+    methodFqn,
+    PreviewConfiguration.cleanAndGet(width = widthDp, height = heightDp),
+  )
+}
 
-/** Common class to find Glance preview elements for [surfaceName] surface. */
-open class GlancePreviewElementFinder(private val surfaceName: String) :
-  FilePreviewElementFinder<GlancePreviewElement> {
-  private val glanceSurfaceUAnnotationFilter: (UAnnotation?) -> Boolean = {
-    surfaceFilter(it, surfaceName)
-  }
-
-  private val glanceSurfaceKtAnnotationFilter: (KtAnnotationEntry) -> Boolean = {
-    ReadAction.compute<Boolean, Throwable> {
-      glanceSurfaceUAnnotationFilter(it.psiOrParent.toUElementOfType())
-    }
-  }
-
-  private val methodsToElements: (List<UMethod>) -> Sequence<GlancePreviewElement> = {
-    toGlancePreviewElements(it, surfaceName)
-  }
-
+/** Common class to find Glance preview elements. */
+open class GlancePreviewElementFinder : FilePreviewElementFinder<PsiGlancePreviewElement> {
+  /**
+   * Returns a [Sequence] of all the Glance Preview elements in the [vFile]. Glance Preview elements
+   * are `@Composable` functions that are also tagged with `@Preview` or a MultiPreview. A
+   * `@Composable` function tagged with many `@Preview` or with a MultiPreview annotation can return
+   * multiple preview elements.
+   */
   override suspend fun findPreviewElements(project: Project, vFile: VirtualFile) =
     findAnnotatedMethodsValues(
       project,
       vFile,
-      GLANCE_PREVIEW_ANNOTATION_FQN,
-      GLANCE_PREVIEW_ANNOTATION_NAME,
-      glanceSurfaceUAnnotationFilter,
-      methodsToElements
-    )
+      COMPOSABLE_ANNOTATION_FQ_NAME,
+      COMPOSABLE_ANNOTATION_NAME,
+    ) { methods ->
+      methods
+        .asSequence()
+        .flatMap { method ->
+          method.findAllAnnotationsInGraph(filter = ::isGlancePreview).mapNotNull {
+            it.asGlancePreviewNode(method)
+          }
+        }
+        .distinct()
+    }
 
-  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
-    val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
-    if (
-      readAction {
-        psiFile.viewProvider.document?.charsSequence?.contains(GLANCE_PREVIEW_ANNOTATION_NAME)
-      } == false
-    )
-      return false
-    return hasAnnotation(
-      project,
-      vFile,
-      GLANCE_PREVIEW_ANNOTATION_FQN,
-      GLANCE_PREVIEW_ANNOTATION_NAME,
-      glanceSurfaceKtAnnotationFilter
-    )
-  }
+  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) =
+    findPreviewElements(project, vFile).any()
 }
 
 /** Object that finds Glance App Widget preview elements in the (Kotlin) file. */
-object AppWidgetPreviewElementFinder : GlancePreviewElementFinder(APP_WIDGET_SURFACE)
-
-/** Object that finds Glance Tile preview elements in the (Kotlin) file. */
-object TilePreviewElementFinder : GlancePreviewElementFinder(TILE_SURFACE)
+object AppWidgetPreviewElementFinder : GlancePreviewElementFinder()

@@ -59,7 +59,7 @@ class SqliteCliProviderImpl(private val project: Project) : SqliteCliProvider {
   @TestOnly
   fun getSqliteCli(
     systemPropertyResolver: (key: String) -> String?,
-    systemEnvResolver: (key: String) -> String?
+    systemEnvResolver: (key: String) -> String?,
   ): Path? {
     // check system property/env overrides
     val overrideFile =

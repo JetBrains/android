@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.navigator
 
-import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeDateProvider
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.FeatureSurveys
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
@@ -37,9 +35,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verifyNoInteractions
 import java.util.concurrent.TimeUnit
 
 @RunsInEdt
@@ -65,7 +60,7 @@ class ProjectViewListenerTest {
 
   @Test
   fun testMetricsSentOnChange() {
-    val listener = ProjectViewListener(projectRule.project, FeatureSurveys, virtualTimeScheduler, virtualTimeProvider)
+    val listener = ProjectViewListener(projectRule.project, virtualTimeScheduler, virtualTimeProvider)
     listener.toolWindowsRegistered(listOf(ToolWindowId.PROJECT_VIEW), ToolWindowManager.getInstance(projectRule.project))
     virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
 
@@ -81,7 +76,7 @@ class ProjectViewListenerTest {
 
   @Test
   fun testMetricsSentOnChangeImmediatelyAfterInit() {
-    val listener = ProjectViewListener(projectRule.project, FeatureSurveys, virtualTimeScheduler, virtualTimeProvider)
+    val listener = ProjectViewListener(projectRule.project, virtualTimeScheduler, virtualTimeProvider)
     listener.toolWindowsRegistered(listOf(ToolWindowId.PROJECT_VIEW), ToolWindowManager.getInstance(projectRule.project))
     virtualTimeScheduler.advanceBy(1, TimeUnit.SECONDS)
     ProjectView.getInstance(projectRule.project).changeView(ProjectViewPane.ID)
@@ -95,7 +90,7 @@ class ProjectViewListenerTest {
 
   @Test
   fun testMetricsSentOnQuickChangeReturnBack() {
-    val listener = ProjectViewListener(projectRule.project, FeatureSurveys, virtualTimeScheduler, virtualTimeProvider)
+    val listener = ProjectViewListener(projectRule.project, virtualTimeScheduler, virtualTimeProvider)
     listener.toolWindowsRegistered(listOf(ToolWindowId.PROJECT_VIEW), ToolWindowManager.getInstance(projectRule.project))
     virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
     ProjectView.getInstance(projectRule.project).changeView(ProjectViewPane.ID)
@@ -111,7 +106,7 @@ class ProjectViewListenerTest {
 
   @Test
   fun testSentOnTwoQuickChangesToOtherViews() {
-    val listener = ProjectViewListener(projectRule.project, FeatureSurveys, virtualTimeScheduler, virtualTimeProvider)
+    val listener = ProjectViewListener(projectRule.project, virtualTimeScheduler, virtualTimeProvider)
     listener.toolWindowsRegistered(listOf(ToolWindowId.PROJECT_VIEW), ToolWindowManager.getInstance(projectRule.project))
     virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
     ProjectView.getInstance(projectRule.project).changeView(ProjectViewPane.ID)
@@ -127,35 +122,6 @@ class ProjectViewListenerTest {
       ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID to ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT,
       ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT to ProjectViewSelectionChangeEvent.ProjectViewContent.OTHER
     ).inOrder()
-  }
-
-  @Test
-  fun testSurveyTriggered() {
-    val featureSurveysMock: FeatureSurveys = MockitoKt.mock()
-    val listener = ProjectViewListener(projectRule.project, featureSurveysMock, virtualTimeScheduler, virtualTimeProvider)
-    listener.toolWindowsRegistered(listOf(ToolWindowId.PROJECT_VIEW), ToolWindowManager.getInstance(projectRule.project))
-    virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
-    ProjectView.getInstance(projectRule.project).changeView(ProjectViewPane.ID)
-    virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
-
-    Mockito.verify(featureSurveysMock, times(1)).triggerSurveyByName("ANDROID_PROJECT_VIEW_UNSELECTED")
-  }
-
-  @Test
-  fun testSurveyNotTriggeredWhenAndroidRemoved() {
-    val featureSurveysMock: FeatureSurveys = MockitoKt.mock()
-    val listener = ProjectViewListener(projectRule.project, featureSurveysMock, virtualTimeScheduler, virtualTimeProvider)
-    listener.toolWindowsRegistered(listOf(ToolWindowId.PROJECT_VIEW), ToolWindowManager.getInstance(projectRule.project))
-    virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
-
-    ProjectView.getInstance(projectRule.project).apply {
-      Truth.assertThat(currentViewId).isEqualTo(ANDROID_VIEW_ID)
-      removeProjectPane(getProjectViewPaneById(ANDROID_VIEW_ID))
-    }
-
-    virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
-
-    verifyNoInteractions(featureSurveysMock)
   }
 
   private fun selectionChangeEvents() = tracker.usages

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.common.editor.DesignerEditor;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
@@ -30,7 +31,8 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
-public class LayoutNavigationManager implements Disposable {
+@Service(Service.Level.PROJECT)
+public final class LayoutNavigationManager implements Disposable {
 
   /**
    * The map associate a "destination" file with a "source" file.

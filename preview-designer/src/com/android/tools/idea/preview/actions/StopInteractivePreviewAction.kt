@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -26,30 +27,24 @@ import icons.StudioIcons
  * Action to stop the interactive preview (including animation inspection). Only visible when it's
  * already running and if the preview is not refreshing.
  */
-class StopInteractivePreviewAction(private val forceDisable: (e: AnActionEvent) -> Boolean) :
+class StopInteractivePreviewAction(private val isDisabled: (e: AnActionEvent) -> Boolean) :
   DumbAwareAction(
     message("action.stop.interactive.title"),
     message("action.stop.interactive.description"),
-    StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
+    StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE,
   ) {
   override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabled =
-      findPreviewModeManagersForContext(e.dataContext).any {
-        it.mode.value is PreviewMode.Interactive
-      } && !forceDisable(e)
-    e.presentation.isVisible =
-      findPreviewModeManagersForContext(e.dataContext).any {
-        it.mode.value is PreviewMode.Interactive
-      }
+    val previewMode = e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.mode?.value
+    e.presentation.isEnabled = previewMode is PreviewMode.Interactive && !isDisabled(e)
+    e.presentation.isVisible = previewMode is PreviewMode.Interactive
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     navigateBack(e)
   }
 
-  // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
-  // VirtualFile
+  /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

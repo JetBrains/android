@@ -21,7 +21,6 @@
                       icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"
                       factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
                       doNotActivateOnStart="true"/>
-    <applicationService serviceImplementation="com.android.tools.idea.profilers.AndroidProfilerService"/>
   </extensions>
   <actions>
     <action id="Android.ChooseProfileConfiguration" class="com.android.tools.idea.profilers.ChooseProfileConfigurationPopupAction"
@@ -39,6 +38,40 @@
     <action id="Android.StartCallstackSample" class="com.android.tools.idea.profilers.StartCallstackSampleAction">
     </action>
     <action id="Android.StopCpuCapture" class="com.android.tools.idea.profilers.StopCpuCaptureAction">
+    </action>
+    <action id="Android.StartHeapDump" class="com.android.tools.idea.profilers.StartHeapDumpAction">
+    </action>
+    <action id="Android.StartNativeAllocations" class="com.android.tools.idea.profilers.StartNativeAllocationsAction">
+    </action>
+    <action id="Android.StopNativeAllocations" class="com.android.tools.idea.profilers.StopNativeAllocationsAction">
+    </action>
+    <action id="Android.ProfilerSelectDevice" class="com.android.tools.idea.profilers.actions.ProfilerSelectDeviceAction">
+    </action>
+    <action id="Android.ProfilerSelectProcess" class="com.android.tools.idea.profilers.actions.ProfilerSelectProcessAction">
+    </action>
+    <action id="Android.StartProfilerTask" class="com.android.tools.idea.profilers.actions.StartProfilerTaskAction">
+    </action>
+    <action id="Android.SetProfilingStartingPointToNow" class="com.android.tools.idea.profilers.actions.SetProfilingStartingPointToNowAction">
+    </action>
+    <action id="Android.SetProfilingStartingPointToProcessStart" class="com.android.tools.idea.profilers.actions.SetProfilingStartingPointToProcessStartAction">
+    </action>
+    <action id="Android.StopProfilerTask" class="com.android.tools.idea.profilers.actions.StopProfilerTaskAction">
+    </action>
+    <action id="Android.SelectSystemTraceTask" class="com.android.tools.idea.profilers.actions.SelectSystemTraceTaskAction">
+    </action>
+    <action id="Android.SelectHeapDumpTask" class="com.android.tools.idea.profilers.actions.SelectHeapDumpTaskAction">
+    </action>
+    <action id="Android.SelectCallstackSampleTask" class="com.android.tools.idea.profilers.actions.SelectCallstackSampleTaskAction">
+    </action>
+    <action id="Android.SelectNativeAllocationsTask" class="com.android.tools.idea.profilers.actions.SelectNativeAllocationsTaskAction">
+    </action>
+    <action id="Android.SelectLiveViewTask" class="com.android.tools.idea.profilers.actions.SelectLiveViewTaskAction">
+    </action>
+    <action id="Android.SelectJavaKotlinMethodRecording" class="com.android.tools.idea.profilers.actions.SelectJavaKotlinMethodRecordingTaskAction">
+    </action>
+    <action id="Android.SetRecordingTypeToSampling" class="com.android.tools.idea.profilers.actions.SetRecordingTypeToSamplingAction">
+    </action>
+    <action id="Android.Profile" class="com.android.tools.idea.profilers.actions.ProfileAction">
     </action>
   </actions>
   <extensions defaultExtensionNs="com.android.run">
@@ -59,6 +92,9 @@
               fieldName="INSTANCE" extensions="heapprofd"/>
     <fileType name="PerfettoCapture" implementationClass="com.android.tools.idea.profilers.capture.PerfettoCaptureFileType"
               extensions="pftrace;perfetto-trace"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.transport">
+    <transportConfigContributor implementation="com.android.tools.idea.profilers.ProfilerTransportConfigContributor" />
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.profilers.profilerProgramRunnerToken"

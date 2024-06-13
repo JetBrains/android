@@ -48,7 +48,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   private val keepNewAfterFlyAway: Boolean,
   private val allowEditing: Boolean,
   private val valueEditable: (P) -> Boolean,
-  private val hasCustomCursor: (P) -> Boolean
+  private val hasCustomCursor: (P) -> Boolean,
 ) : FilteredPTableModel<P>, PTableModel {
 
   private val listeners = mutableListOf<PTableModelUpdateListener>()

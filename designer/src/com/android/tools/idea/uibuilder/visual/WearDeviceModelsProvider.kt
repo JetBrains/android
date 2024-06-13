@@ -53,7 +53,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()

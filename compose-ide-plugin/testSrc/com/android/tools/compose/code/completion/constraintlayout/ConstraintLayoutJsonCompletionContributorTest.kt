@@ -684,7 +684,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
         "percentWidth",
         "percentHeight",
         "pathMotionArc",
-        "type"
+        "type",
       )
   }
 

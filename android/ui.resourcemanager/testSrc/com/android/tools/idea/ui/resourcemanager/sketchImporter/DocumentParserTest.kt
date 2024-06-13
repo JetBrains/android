@@ -107,7 +107,7 @@ class DocumentParserTest {
 
     val style = styles[0]
     assertEquals("1. Light Theme/1. Color/3. Extended/4. Cyan/900", style.name)
-    assertEquals(Color(1, 135, 116, 255), style.value.fills!![0]!!.color)
+    assertEquals(Color(1, 135, 116, 255), style.value.fills[0]!!.color)
   }
 
   @Test

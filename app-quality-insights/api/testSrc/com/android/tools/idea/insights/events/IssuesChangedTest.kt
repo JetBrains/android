@@ -55,19 +55,19 @@ private val fetchedVersion =
   listOf(
     DEFAULT_FETCHED_VERSIONS,
     WithCount(42, Version("2", "2.0")),
-    WithCount(33, Version("2.1", "2.1"))
+    WithCount(33, Version("2.1", "2.1")),
   )
 private val fetchedDevice =
   listOf(
     DEFAULT_FETCHED_DEVICES,
     WithCount(10, Device("Google", "Pixel 2")),
-    WithCount(22, Device("Apple", "iPhone 14"))
+    WithCount(22, Device("Apple", "iPhone 14")),
   )
 private val fetchedOs =
   listOf(
     DEFAULT_FETCHED_OSES,
     WithCount(10, OperatingSystemInfo("11", "Android (11)")),
-    WithCount(41, OperatingSystemInfo("13", "Android (13)"))
+    WithCount(41, OperatingSystemInfo("13", "Android (13)")),
   )
 
 class IssuesChangedTest {
@@ -80,7 +80,7 @@ class IssuesChangedTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Loading
+        LoadingState.Loading,
       )
     val event =
       IssuesChanged(
@@ -90,11 +90,11 @@ class IssuesChangedTest {
             fetchedVersion,
             fetchedDevice,
             fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         FakeClock(),
-        currentState
+        currentState,
       )
 
     with(event.transition(currentState, TestAppInsightsTracker, TEST_KEY)) {
@@ -111,7 +111,7 @@ class IssuesChangedTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant()))
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
       )
 
     val event =
@@ -122,11 +122,11 @@ class IssuesChangedTest {
             fetchedVersion,
             fetchedDevice,
             fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         clock,
-        currentState
+        currentState,
       )
 
     with(event.transition(currentState, TestAppInsightsTracker, TEST_KEY)) {
@@ -151,7 +151,7 @@ class IssuesChangedTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant()))
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
       )
 
     val event =
@@ -162,11 +162,11 @@ class IssuesChangedTest {
             fetchedVersion,
             fetchedDevice,
             fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         clock,
-        currentState
+        currentState,
       )
 
     with(event.transition(currentState, TestAppInsightsTracker, TEST_KEY)) {
@@ -191,7 +191,7 @@ class IssuesChangedTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Loading
+        LoadingState.Loading,
       )
     val event =
       IssuesChanged(
@@ -201,15 +201,15 @@ class IssuesChangedTest {
             fetchedVersion,
             fetchedDevice,
             fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         FakeClock(),
         AppInsightsState(
           Selection(CONNECTION1, listOf(CONNECTION1)),
           TEST_FILTERS,
-          LoadingState.Loading
-        )
+          LoadingState.Loading,
+        ),
       )
 
     val resultState = event.transition(currentState, TestAppInsightsTracker, TEST_KEY)
@@ -240,13 +240,13 @@ class IssuesChangedTest {
         MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), fetchedDevice),
         MultiSelection(setOf(DEFAULT_FETCHED_OSES), fetchedOs),
         selectionOf(SignalType.SIGNAL_REGRESSED),
-        selectionOf(VisibilityType.USER_PERCEIVED)
+        selectionOf(VisibilityType.USER_PERCEIVED),
       )
     val currentState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         currentFilters,
-        LoadingState.Loading
+        LoadingState.Loading,
       )
     val event =
       IssuesChanged(
@@ -256,15 +256,15 @@ class IssuesChangedTest {
             fetchedVersion,
             fetchedDevice,
             fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         FakeClock(),
         AppInsightsState(
           Selection(CONNECTION1, listOf(CONNECTION1)),
           TEST_FILTERS,
-          LoadingState.Loading
-        )
+          LoadingState.Loading,
+        ),
       )
 
     val result = event.transition(currentState, TestAppInsightsTracker, TEST_KEY)
@@ -292,7 +292,7 @@ class IssuesChangedTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant()))
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
       )
 
     val event =
@@ -303,11 +303,11 @@ class IssuesChangedTest {
             fetchedVersion,
             fetchedDevice,
             fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         clock,
-        currentState
+        currentState,
       )
 
     with(event.transition(currentState, TestAppInsightsTracker, VITALS_KEY)) {

@@ -117,14 +117,14 @@ class SourceProviderUtilTest {
     SourceProvidersImpl(
       mainIdeaSourceProvider = main,
       currentSourceProviders = listOf(main, debug),
-      currentUnitTestSourceProviders = listOf(test, testDebug),
-      currentAndroidTestSourceProviders = listOf(androidTest, androidTestDebug),
+      currentHostTestSourceProviders = mapOf(CommonTestType.UNIT_TEST to listOf(test, testDebug)),
+      currentDeviceTestSourceProviders = mapOf(CommonTestType.ANDROID_TEST to listOf(androidTest, androidTestDebug)),
       currentTestFixturesSourceProviders = listOf(),
       currentAndSomeFrequentlyUsedInactiveSourceProviders = listOf(main, debug, release),
       mainAndFlavorSourceProviders = listOf(main),
       generatedSources = emptySourceProvider(ScopeType.MAIN),
-      generatedUnitTestSources = emptySourceProvider(ScopeType.UNIT_TEST),
-      generatedAndroidTestSources = emptySourceProvider(ScopeType.ANDROID_TEST),
+      generatedHostTestSources = mapOf(CommonTestType.UNIT_TEST to emptySourceProvider(ScopeType.UNIT_TEST)),
+      generatedDeviceTestSources = mapOf(CommonTestType.ANDROID_TEST to emptySourceProvider(ScopeType.ANDROID_TEST)),
       generatedTestFixturesSources = emptySourceProvider(ScopeType.TEST_FIXTURES)
     )
 

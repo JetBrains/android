@@ -10,12 +10,12 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="intellij-core" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.base.sdklib-base" />
-    <orderEntry type="module" module-name="android.sdktools.base.sdk-common-base" />
-    <orderEntry type="module" module-name="android.sdktools.base.layoutlib-api-base" />
-    <orderEntry type="module" module-name="android.sdktools.base.render-resources" />
-    <orderEntry type="module" module-name="android.sdktools.base.rendering" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
   </component>
 </module>

@@ -64,7 +64,7 @@ abstract class Placeholder(val host: SceneComponent) {
    */
   open fun findNextSibling(
     appliedComponent: SceneComponent,
-    newParent: SceneComponent
+    newParent: SceneComponent,
   ): SceneComponent? {
     if (appliedComponent.parent != newParent) {
       return null
@@ -87,7 +87,7 @@ abstract class Placeholder(val host: SceneComponent) {
     sceneComponent: SceneComponent,
     attributes: NlAttributesHolder,
     x: Int,
-    y: Int
+    y: Int,
   ) = Unit
 
   /** Function to update attribute when mouse is released. */
@@ -99,7 +99,7 @@ data class Region(
   @AndroidDpCoordinate val top: Int,
   @AndroidDpCoordinate val right: Int,
   @AndroidDpCoordinate val bottom: Int,
-  val level: Int = 0
+  val level: Int = 0,
 ) {
   /** Helper function to determine if [Region] contains the specified point. */
   fun contains(x: Int, y: Int): Boolean = x in left..right && y in top..bottom
@@ -110,7 +110,7 @@ class SnappingInfo(
   @AndroidDpCoordinate val left: Int,
   @AndroidDpCoordinate val top: Int,
   @AndroidDpCoordinate val right: Int,
-  @AndroidDpCoordinate val bottom: Int
+  @AndroidDpCoordinate val bottom: Int,
 ) {
   /** Helper function for getting centerX */
   @AndroidDpCoordinate val centerX: Int = (left + right) / 2

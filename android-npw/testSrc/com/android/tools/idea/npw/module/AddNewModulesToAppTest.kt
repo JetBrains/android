@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.module
 
 
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
 import com.android.tools.idea.npw.dynamicapp.DynamicFeatureModel
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker

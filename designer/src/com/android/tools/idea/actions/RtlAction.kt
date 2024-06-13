@@ -18,6 +18,7 @@ package com.android.tools.idea.actions
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier
 import com.android.resources.LayoutDirection
 import com.android.tools.configurations.ConfigurationListener.CFG_LOCALE
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 
@@ -26,6 +27,7 @@ private const val DESCRIPTION = "Text direction setting in the editor"
 
 /** Action that sets the layout direction in the layout editor */
 class RtlAction : ToggleAction(TEXT, DESCRIPTION, null) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun displayTextInToolbar(): Boolean = true
 

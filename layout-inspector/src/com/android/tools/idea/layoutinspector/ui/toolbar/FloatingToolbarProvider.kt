@@ -33,7 +33,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
 class FloatingToolbarProvider(
   private val deviceViewPanel: DeviceViewPanel,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
 
   /** Defines the groups of actions shown in the floating toolbar */
@@ -65,7 +65,7 @@ class FloatingToolbarProvider(
     get() =
       findActionButton(
         actionGroup.toggle3dGroup,
-        Toggle3dAction { deviceViewPanel.layoutInspector.renderModel }
+        Toggle3dAction { deviceViewPanel.layoutInspector.renderModel },
       )
 
   init {

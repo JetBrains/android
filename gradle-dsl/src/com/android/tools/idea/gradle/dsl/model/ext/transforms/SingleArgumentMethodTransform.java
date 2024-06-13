@@ -15,21 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.removeElement;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
-
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
 
 /**
  * <p>This transform used for single argument method calls which have a preceding property name.</p>

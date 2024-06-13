@@ -181,10 +181,7 @@ class HtmlLinksHandler(val actionHandlers: ViewActionHandlers) : HyperlinkListen
   val registeredLinkActions = mutableMapOf<String, Runnable>()
 
   fun externalLink(text: String, link: BuildAnalyzerBrowserLinks): String {
-    registeredLinkActions[link.name] = Runnable {
-      BrowserUtil.browse(link.urlTarget)
-      actionHandlers.helpLinkClicked(link)
-    }
+    registeredLinkActions[link.name] = Runnable { actionHandlers.helpLinkClicked(link) }
     return "<a href='${link.name}'>$text</a><icon src='AllIcons.Ide.External_link_arrow'>"
   }
 

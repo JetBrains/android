@@ -47,7 +47,7 @@ import org.jetbrains.annotations.VisibleForTesting
 
 class AppInsightsGutterIconAction(
   private val insights: List<AppInsight>,
-  private val itemChosenCallback: (AppInsight) -> Unit
+  private val itemChosenCallback: (AppInsight) -> Unit,
 ) : AnAction() {
   private val logger: Logger
     get() = Logger.getInstance(javaClass)
@@ -92,12 +92,12 @@ class AppInsightsGutterIconAction(
               ResizedSimpleColoredComponent().apply {
                 icon =
                   generateColoredIcon(
-                    StudioIcons.AppQualityInsights.ISSUE,
-                    UIUtil.getLabelDisabledForeground()
+                    StudioIcons.GutterIcons.ISSUE,
+                    UIUtil.getLabelDisabledForeground(),
                   )
                 append(
                   eventsTotal.formatNumberToPrettyString(),
-                  SimpleTextAttributes.REGULAR_ATTRIBUTES
+                  SimpleTextAttributes.REGULAR_ATTRIBUTES,
                 )
               }
 
@@ -106,11 +106,11 @@ class AppInsightsGutterIconAction(
                 icon =
                   generateColoredIcon(
                     StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE,
-                    UIUtil.getLabelDisabledForeground()
+                    UIUtil.getLabelDisabledForeground(),
                   )
                 append(
                   usersTotal.formatNumberToPrettyString(),
-                  SimpleTextAttributes.REGULAR_ATTRIBUTES
+                  SimpleTextAttributes.REGULAR_ATTRIBUTES,
                 )
               }
 
@@ -201,7 +201,7 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
     value: RenderInstruction,
     index: Int,
     isSelected: Boolean,
-    cellHasFocus: Boolean
+    cellHasFocus: Boolean,
   ): Component {
     return when (value) {
       is HeaderInstruction -> {
@@ -211,7 +211,7 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
           ResizedSimpleColoredComponent().apply {
             append(value.name, SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
           },
-          BorderLayout.WEST
+          BorderLayout.WEST,
         )
         renderer
       }
@@ -235,10 +235,10 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
         renderer.add(leftComponent, BorderLayout.WEST)
 
         val eventsComponent =
-          JListSimpleColoredComponent(StudioIcons.AppQualityInsights.ISSUE, list, hasFocus).apply {
+          JListSimpleColoredComponent(StudioIcons.GutterIcons.ISSUE, list, hasFocus).apply {
             append(
               issueDetails.eventsCount.formatNumberToPrettyString(),
-              SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
+              SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
             )
           }
 
@@ -246,12 +246,12 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
           JListSimpleColoredComponent(
               StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE,
               list,
-              hasFocus
+              hasFocus,
             )
             .apply {
               append(
                 issueDetails.impactedDevicesCount.formatNumberToPrettyString(),
-                SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
+                SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
               )
             }
 

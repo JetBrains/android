@@ -38,7 +38,7 @@ data class LineToInsights(val line: Int, val insights: List<AppInsight>)
 internal fun buildIssue(appVcsInfo: AppVcsInfo): AppInsightsIssue {
   return AppInsightsIssue(
     issueDetails = MockitoKt.mock(),
-    sampleEvent = Event(appVcsInfo = appVcsInfo)
+    sampleEvent = Event(appVcsInfo = appVcsInfo),
   )
 }
 
@@ -49,13 +49,13 @@ internal fun buildAppInsight(frame: Frame, issue: AppInsightsIssue): AppInsight 
     stackFrame = frame,
     cause = MockitoKt.mock<Cause.Frame>(),
     provider = MockitoKt.mock(),
-    markAsSelectedCallback = MockitoKt.mock()
+    markAsSelectedCallback = MockitoKt.mock(),
   )
 }
 
 internal fun withFakedInsights(
   expectedInsightsFromTabProvider1: List<AppInsight>,
-  expectedInsightsFromTabProvider2: List<AppInsight> = emptyList()
+  expectedInsightsFromTabProvider2: List<AppInsight> = emptyList(),
 ) {
   AppInsightsTabProvider.EP_NAME.extensionList.filterIsInstance<TestTabProvider>().forEachIndexed {
     index,
@@ -70,7 +70,7 @@ internal fun withFakedInsights(
 
 internal fun Document.assertHighlightResults(
   results: List<HighlightInfo>,
-  expectedLineToInsights: List<LineToInsights>
+  expectedLineToInsights: List<LineToInsights>,
 ) {
   Truth.assertThat(results.size).isEqualTo(expectedLineToInsights.size)
 

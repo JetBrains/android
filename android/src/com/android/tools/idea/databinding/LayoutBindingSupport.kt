@@ -19,23 +19,25 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Extension point for supporting Data Binding / View Binding methods.
- */
+/** Extension point for supporting Data Binding / View Binding methods. */
 interface LayoutBindingSupport {
   companion object {
     @JvmField
-    val EP_NAME = ExtensionPointName<LayoutBindingSupport>("com.android.tools.idea.databinding.layoutBindingSupport")
+    val EP_NAME =
+      ExtensionPointName<LayoutBindingSupport>(
+        "com.android.tools.idea.databinding.layoutBindingSupport"
+      )
   }
+
   /**
-   * Return a [ModificationTracker] that is incremented every time the setting for whether
-   * data binding is enabled or disabled changes.
+   * Return a [ModificationTracker] that is incremented every time the setting for whether data
+   * binding is enabled or disabled changes.
    */
   val dataBindingEnabledTracker: ModificationTracker
 
   /**
-   * Return a [ModificationTracker] that is incremented every time the setting for whether
-   * view binding is enabled or disabled changes.
+   * Return a [ModificationTracker] that is incremented every time the setting for whether view
+   * binding is enabled or disabled changes.
    */
   val viewBindingEnabledTracker: ModificationTracker
 

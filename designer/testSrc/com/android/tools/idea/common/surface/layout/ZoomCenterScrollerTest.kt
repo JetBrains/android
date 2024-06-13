@@ -39,7 +39,7 @@ class ZoomCenterScrollerTest {
       TestDesignSurfaceViewport(
         Dimension(2000, 2000),
         viewRect,
-        viewportComponent = viewportComponent
+        viewportComponent = viewportComponent,
       )
 
     val scroller =
@@ -61,7 +61,7 @@ class ZoomCenterScrollerTest {
       TestDesignSurfaceViewport(
         Dimension(2000, 2000),
         viewRect,
-        viewportComponent = viewportComponent
+        viewportComponent = viewportComponent,
       )
 
     val scroller = ZoomCenterScroller(Dimension(1000, 1000), viewRect.location, Point(200, 400))
@@ -82,7 +82,7 @@ class ZoomCenterScrollerTest {
       TestDesignSurfaceViewport(
         Dimension(1000, 1000),
         viewRect,
-        viewportComponent = viewportComponent
+        viewportComponent = viewportComponent,
       )
 
     val scroller = ZoomCenterScroller(Dimension(2000, 2000), viewRect.location, Point(250, 250))
@@ -103,7 +103,7 @@ class ZoomCenterScrollerTest {
       TestDesignSurfaceViewport(
         Dimension(1000, 1000),
         viewRect,
-        viewportComponent = viewportComponent
+        viewportComponent = viewportComponent,
       )
 
     val scroller = ZoomCenterScroller(Dimension(2000, 2000), viewRect.location, Point(200, 400))

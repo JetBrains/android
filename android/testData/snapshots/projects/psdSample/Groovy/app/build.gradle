@@ -57,6 +57,9 @@ android {
         testFunctionalTest false
     }
     buildTypes {
+        debug {
+            pseudoLocalesEnabled = true
+        }
         release {
             applicationIdSuffix "suffix"
             versionNameSuffix "vsuffix"

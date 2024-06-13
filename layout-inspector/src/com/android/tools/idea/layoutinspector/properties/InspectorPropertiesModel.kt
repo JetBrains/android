@@ -62,6 +62,13 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   override var properties: PropertiesTable<InspectorPropertyItem> = PropertiesTable.emptyTable()
     @VisibleForTesting set
 
+  /**
+   * The [properties] are for the [ViewNode] with a [ViewNode.drawId] equal to
+   * [propertiesForDrawId]. Use this value to determine if we have an update to the current
+   * properties or this is a different but similar node type.
+   */
+  private var propertiesForDrawId = 0L
+
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
   var layoutInspector: LayoutInspector? by Delegates.observable(null, ::inspectorChanged)
 
@@ -73,7 +80,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   private fun inspectorChanged(
     property: KProperty<*>,
     oldInspector: LayoutInspector?,
-    newInspector: LayoutInspector?
+    newInspector: LayoutInspector?,
   ) {
     cleanUp(oldInspector)
     newInspector?.inspectorModel?.addSelectionListener(selectionListener)
@@ -111,6 +118,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
       currentProvider.requestProperties(newView)
     } else {
       properties = PropertiesTable.emptyTable()
+      propertiesForDrawId = 0L
       firePropertiesGenerated()
     }
   }
@@ -119,7 +127,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   private fun handleModelChange(
     old: AndroidWindow?,
     new: AndroidWindow?,
-    structuralChange: Boolean
+    structuralChange: Boolean,
   ) {
     if (structuralChange) {
       structuralUpdates++
@@ -136,19 +144,33 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   private fun updateProperties(
     from: PropertiesProvider,
     view: ViewNode,
-    table: PropertiesTable<InspectorPropertyItem>
+    table: PropertiesTable<InspectorPropertyItem>,
   ) {
     val selectedView = layoutInspector?.inspectorModel?.selection
     if (from != provider || selectedView == null || selectedView.drawId != view.drawId) {
       return
     }
-    properties = table
-    firePropertiesGenerated()
+    if (properties.sameKeys(table) && view.drawId == propertiesForDrawId) {
+      for (property in table.values) {
+        properties[property.namespace, property.name].value = property.snapshotValue
+      }
+      firePropertyValuesChanged()
+    } else {
+      properties = table
+      propertiesForDrawId = view.drawId
+      firePropertiesGenerated()
+    }
   }
 
   private fun firePropertiesGenerated() {
     modelListeners.forEach {
       ApplicationManager.getApplication().invokeLater { it.propertiesGenerated(this) }
+    }
+  }
+
+  private fun firePropertyValuesChanged() {
+    modelListeners.forEach {
+      ApplicationManager.getApplication().invokeLater { it.propertyValuesChanged(this) }
     }
   }
 }

@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea
 
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.ZoomController
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder.TestActionManager
 import com.android.tools.idea.common.model.DefaultSelectionModel
@@ -36,6 +39,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.mockito.Mockito
 import java.awt.Dimension
+import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 import javax.swing.JPanel
 
@@ -45,7 +49,7 @@ object DesignSurfaceTestUtil {
   fun createMockSurface(
     disposableParent: Disposable,
     surfaceClass: Class<out DesignSurface<out SceneManager>>,
-    interactionHandlerCreator: (DesignSurface<out SceneManager>) -> InteractionHandler
+    interactionHandlerCreator: (DesignSurface<out SceneManager>) -> InteractionHandler,
   ): DesignSurface<out SceneManager> {
     val surface = Mockito.mock(surfaceClass)
     Disposer.register(disposableParent, surface)
@@ -55,7 +59,7 @@ object DesignSurfaceTestUtil {
     val selectionModel: SelectionModel = DefaultSelectionModel()
     whenever(surface.selectionModel).thenReturn(selectionModel)
     whenever(surface.size).thenReturn(Dimension(1000, 1000))
-    whenever(surface.scale).thenReturn(0.5)
+    whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))
     whenever(surface.selectionAsTransferable).thenCallRealMethod()
     val interactable = TestInteractable(surface, JPanel(), surface)
     whenever(surface.guiInputHandler)
@@ -92,12 +96,16 @@ object DesignSurfaceTestUtil {
     sceneManagerFactory: (DesignSurface<out SceneManager>, SyncNlModel) -> SceneManager,
     surfaceClass: Class<out DesignSurface<out SceneManager>>,
     interactionHandlerCreator: (DesignSurface<out SceneManager>) -> InteractionHandler,
-    model: SyncNlModel
+    model: SyncNlModel,
   ): DesignSurface<out SceneManager> {
     val surface = createMockSurface(disposableParent, surfaceClass, interactionHandlerCreator)
 
     whenever(surface.model).thenReturn(model)
     whenever(surface.models).thenReturn(ImmutableList.of(model))
+    whenever(surface.setModel(any())).thenReturn(CompletableFuture.completedFuture(null))
+    whenever(surface.addModelWithoutRender(any()))
+      .thenReturn(CompletableFuture.completedFuture(null))
+    whenever(surface.addAndRenderModel(any())).thenReturn(CompletableFuture.completedFuture(null))
     whenever(surface.configuration).thenReturn(model.configuration)
     whenever(surface.configurations).thenReturn(ImmutableList.of(model.configuration))
 
@@ -120,7 +128,52 @@ object DesignSurfaceTestUtil {
     whenever(surface.scene).thenReturn(scene)
     whenever(surface.project).thenReturn(project)
     whenever(surface.layoutType).thenCallRealMethod()
-    whenever(surface.canZoomToFit()).thenReturn(true)
+    val zoomController = createZoomControllerFake(returnScale = 0.5)
+    whenever(surface.zoomController).thenReturn(zoomController)
     return surface
   }
+
+  @JvmStatic
+  @JvmOverloads
+  fun createZoomControllerFake(
+    returnScale: Double = 1.0,
+    onZoom: ((ZoomType) -> Unit)? = null,
+  ): ZoomController =
+    object : ZoomController {
+      override val scale: Double
+        get() = returnScale
+
+      override val screenScalingFactor: Double
+        get() = 1.0
+
+      override var storeId: String? = null
+
+      override val minScale: Double
+        get() = 0.1
+
+      override val maxScale: Double
+        get() = 10.0
+
+      override val maxZoomToFitLevel: Double
+        get() = 1.0
+
+      override fun setScale(scale: Double, x: Int, y: Int) = true
+
+      override fun zoomToFit(): Boolean = true
+
+      override fun getFitScale(): Double = 1.0
+
+      override fun zoom(type: ZoomType): Boolean {
+        onZoom?.invoke(type)
+        return true
+      }
+
+      override fun canZoomIn(): Boolean = true
+
+      override fun canZoomOut(): Boolean = true
+
+      override fun canZoomToFit(): Boolean = true
+
+      override fun canZoomToActual(): Boolean = true
+    }
 }

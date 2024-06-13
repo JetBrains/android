@@ -22,44 +22,17 @@ import com.android.SdkConstants.ATTR_MIN_HEIGHT
 import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
-import com.android.ide.common.resources.Locale
-import com.android.resources.Density
-import com.android.sdklib.AndroidDpCoordinate
-import com.android.sdklib.IAndroidTarget
-import com.android.sdklib.devices.Device
-import com.android.tools.configurations.Configuration
-import com.android.tools.configurations.Wallpaper
-import com.android.tools.configurations.updateScreenSize
-import com.android.tools.preview.config.findOrParseFromDefinition
-import com.android.tools.preview.config.getDefaultPreviewDevice
+import com.android.annotations.TestOnly
+import com.android.tools.environment.Logger
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
-import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPsiElementPointer
-import org.jetbrains.annotations.TestOnly
-import java.awt.Dimension
-import java.awt.image.BufferedImage
 import java.util.Objects
-import java.util.function.Consumer
-import kotlin.math.max
 import kotlin.math.min
-
-const val UNDEFINED_API_LEVEL = -1
-const val UNDEFINED_DIMENSION = -1
-
-const val MAX_WIDTH = 2000
-const val MAX_HEIGHT = 2000
 
 /** Default background to be used by the rendered elements when showBackground is set to true. */
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
-
-/** Value to use for the wallpaper attribute when none has been specified. */
-private const val NO_WALLPAPER_SELECTED = -1
 
 /**
  * Method name to be used when we fail to load a PreviewParameterProvider. In this case, we should
@@ -85,184 +58,6 @@ fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT)
     "${dimension}dp"
   }
 
-/** Empty device spec when the user has not specified any. */
-private const val NO_DEVICE_SPEC = ""
-
-/**
- * Applies the [PreviewConfiguration] to the given [Configuration].
- *
- * [highestApiTarget] should return the highest api target available for a given [Configuration].
- * [devicesProvider] should return all the devices available for a [Configuration].
- * [defaultDeviceProvider] should return which device to use for a [Configuration] if the device
- * specified in the [PreviewConfiguration.deviceSpec] is not available or does not exist in the
- * devices returned by [devicesProvider].
- *
- * If [customSize] is not null, the dimensions will be forced in the resulting configuration.
- */
-private fun PreviewConfiguration.applyTo(
-  renderConfiguration: Configuration,
-  highestApiTarget: (Configuration) -> IAndroidTarget?,
-  devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?,
-  @AndroidDpCoordinate customSize: Dimension? = null,
-) {
-  fun updateRenderConfigurationTargetIfChanged(newTarget: IAndroidTarget) {
-    if (renderConfiguration.target?.hashString() != newTarget.hashString()) {
-      renderConfiguration.target = newTarget
-    }
-  }
-
-  renderConfiguration.startBulkEditing()
-  renderConfiguration.imageTransformation = imageTransformation
-  if (apiLevel != UNDEFINED_API_LEVEL) {
-    val newTarget =
-      renderConfiguration.settings.targets.firstOrNull { it.version.apiLevel == apiLevel }
-    highestApiTarget(renderConfiguration)?.let {
-      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, newTarget))
-    }
-  } else {
-    // Use the highest available one when not defined.
-    highestApiTarget(renderConfiguration)?.let { updateRenderConfigurationTargetIfChanged(it) }
-  }
-
-  if (theme != null) {
-    renderConfiguration.setTheme(theme)
-  }
-
-  renderConfiguration.locale = Locale.create(locale)
-  renderConfiguration.uiModeFlagValue = uiMode
-  renderConfiguration.fontScale = max(0f, fontScale)
-  renderConfiguration.setWallpaper(Wallpaper.values().getOrNull(wallpaper))
-
-  val allDevices = devicesProvider(renderConfiguration)
-  val device =
-    allDevices.findOrParseFromDefinition(deviceSpec) ?: defaultDeviceProvider(renderConfiguration)
-  if (device != null) {
-    // Ensure the device is reset
-    renderConfiguration.setEffectiveDevice(null, null)
-    // If the user is not using the device frame, we never want to use the round frame around. See
-    // b/215362733
-    renderConfiguration.setDevice(device, false)
-    // If there is no application theme set, we might need to change the theme when changing the
-    // device, because different devices might
-    // have different default themes.
-    renderConfiguration.setTheme(renderConfiguration.getPreferredTheme())
-  }
-
-  customSize?.let {
-    // When the device frame is not being displayed and the user has given us some specific sizes,
-    // we want to apply those to the
-    // device itself.
-    // This is to match the intuition that those sizes always determine the size of the composable.
-    renderConfiguration.device?.let { device ->
-      // The PX are converted to DP by multiplying it by the dpiFactor that is the ratio of the
-      // current dpi vs the default dpi (160).
-      val dpiFactor = 1.0 * renderConfiguration.density.dpiValue / Density.DEFAULT_DENSITY
-      renderConfiguration.updateScreenSize((it.width * dpiFactor).toInt(), (it.height * dpiFactor).toInt(), device)
-    }
-  }
-  renderConfiguration.finishBulkEditing()
-}
-
-/**
- * If specified in the [ComposePreviewElement], this method will return the `widthDp` and `heightDp`
- * dimensions as a [Pair] as long as the device frame is disabled (i.e. `showDecorations` is false).
- */
-@AndroidDpCoordinate
-private fun ComposePreviewElement.getCustomDeviceSize(): Dimension? =
-  if (!displaySettings.showDecoration && configuration.width != -1 && configuration.height != -1) {
-    Dimension(configuration.width, configuration.height)
-  } else null
-
-/** Applies the [ComposePreviewElement] settings to the given [renderConfiguration]. */
-fun ComposePreviewElement.applyTo(renderConfiguration: Configuration) {
-  configuration.applyTo(
-    renderConfiguration,
-    { it.settings.highestApiTarget },
-    { it.settings.devices },
-    { it.settings.getDefaultPreviewDevice() },
-    getCustomDeviceSize()
-  )
-}
-
-@TestOnly
-fun PreviewConfiguration.applyConfigurationForTest(
-  renderConfiguration: Configuration,
-  highestApiTarget: (Configuration) -> IAndroidTarget?,
-  devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?,
-) {
-  applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider)
-}
-
-@TestOnly
-fun ComposePreviewElement.applyConfigurationForTest(
-  renderConfiguration: Configuration,
-  highestApiTarget: (Configuration) -> IAndroidTarget?,
-  devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?,
-) {
-  configuration.applyTo(
-    renderConfiguration,
-    highestApiTarget,
-    devicesProvider,
-    defaultDeviceProvider,
-    getCustomDeviceSize()
-  )
-}
-
-/** Contains settings for rendering. */
-data class PreviewConfiguration
-internal constructor(
-  val apiLevel: Int,
-  val theme: String?,
-  val width: Int,
-  val height: Int,
-  val locale: String,
-  val fontScale: Float,
-  val uiMode: Int,
-  val deviceSpec: String,
-  val wallpaper: Int,
-  val imageTransformation: Consumer<BufferedImage>?,
-) {
-  companion object {
-    /**
-     * Cleans the given values and creates a PreviewConfiguration. The cleaning ensures that the
-     * user inputted value are within reasonable values before the PreviewConfiguration is created
-     */
-    @JvmStatic
-    fun cleanAndGet(
-      apiLevel: Int? = null,
-      theme: String? = null,
-      width: Int? = null,
-      height: Int? = null,
-      locale: String? = null,
-      fontScale: Float? = null,
-      uiMode: Int? = null,
-      device: String? = null,
-      wallpaper: Int? = null,
-      imageTransformation: Consumer<BufferedImage>? = null,
-    ): PreviewConfiguration =
-      // We only limit the sizes. We do not limit the API because using an incorrect API level will
-      // throw an exception that
-      // we will handle and any other error.
-      PreviewConfiguration(
-        apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
-        theme = theme,
-        width = width?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(1, MAX_WIDTH)
-            ?: UNDEFINED_DIMENSION,
-        height = height?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(1, MAX_HEIGHT)
-            ?: UNDEFINED_DIMENSION,
-        locale = locale ?: "",
-        fontScale = fontScale ?: 1f,
-        uiMode = uiMode ?: 0,
-        deviceSpec = device ?: NO_DEVICE_SPEC,
-        wallpaper = wallpaper ?: NO_WALLPAPER_SELECTED,
-        imageTransformation = imageTransformation,
-      )
-  }
-}
-
 /**
  * Definition of a preview parameter provider. This is defined by annotating parameters with
  * `PreviewParameter`
@@ -279,33 +74,34 @@ data class PreviewParameter(
   val limit: Int,
 )
 
-/** Definition of a Composable preview element */
-interface ComposePreviewElement : MethodPreviewElement {
-  /** Fully Qualified Name of the composable method */
-  override val methodFqn: String
-
-  /** Preview element configuration that affects how LayoutLib resolves the resources */
-  val configuration: PreviewConfiguration
-
+/**
+ * Definition of a Composable preview element. [T] represents a generic type specifying the location
+ * of the code. See [PreviewElement] for more details.
+ */
+interface ComposePreviewElement<T> : MethodPreviewElement<T>, ConfigurablePreviewElement<T> {
   /**
-   * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A single [ComposePreviewElement] can produce
-   * multiple [ComposePreviewElementInstance]s for example if @Composable method has parameters.
+   * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A
+   * single [ComposePreviewElement] can produce multiple [ComposePreviewElementInstance]s for
+   * example if @Composable method has parameters.
    */
-  fun resolve(): Sequence<ComposePreviewElementInstance>
+  fun resolve(): Sequence<ComposePreviewElementInstance<T>>
 }
 
 /** Definition of a preview element */
-abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSerializable {
-  /** Unique identifier that can be used for filtering. */
-  abstract val instanceId: String
-
+abstract class ComposePreviewElementInstance<T> :
+  ComposePreviewElement<T>, XmlSerializable, PreviewElementInstance<T> {
   /**
    * Whether the Composable being previewed contains animations. If true, the Preview should allow
    * opening the animation inspector.
    */
-  var hasAnimations = false
+  override var hasAnimations = false
 
-  override fun resolve(): Sequence<ComposePreviewElementInstance> = sequenceOf(this)
+  override fun resolve(): Sequence<ComposePreviewElementInstance<T>> = sequenceOf(this)
+
+  abstract override fun createDerivedInstance(
+    displaySettings: PreviewDisplaySettings,
+    config: PreviewConfiguration,
+  ): ComposePreviewElementInstance<T>
 
   override fun toPreviewXml(): PreviewXmlBuilder {
     val width = dimensionToString(configuration.width, VALUE_WRAP_CONTENT)
@@ -324,7 +120,7 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
     if (displaySettings.showBackground) {
       xmlBuilder.androidAttribute(
         ATTR_BACKGROUND,
-        displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND
+        displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND,
       )
     }
 
@@ -338,7 +134,7 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
 
-    other as ComposePreviewElementInstance
+    other as ComposePreviewElementInstance<T>
 
     return methodFqn == other.methodFqn &&
       instanceId == other.instanceId &&
@@ -352,19 +148,31 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
 /**
  * Definition of a single preview element instance. This represents a `Preview` with no parameters.
  */
-class SingleComposePreviewElementInstance(
+class SingleComposePreviewElementInstance<T>(
   override val methodFqn: String,
   override val displaySettings: PreviewDisplaySettings,
-  override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-  override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+  override val previewElementDefinition: T?,
+  override val previewBody: T?,
   override val configuration: PreviewConfiguration,
-) : ComposePreviewElementInstance() {
+) : ComposePreviewElementInstance<T>() {
   override val instanceId: String = methodFqn
+
+  override fun createDerivedInstance(
+    displaySettings: PreviewDisplaySettings,
+    config: PreviewConfiguration,
+  ) =
+    SingleComposePreviewElementInstance(
+      methodFqn,
+      displaySettings,
+      previewElementDefinition,
+      previewBody,
+      config,
+    )
 
   companion object {
     @JvmStatic
     @TestOnly
-    fun forTesting(
+    fun <T> forTesting(
       composableMethodFqn: String,
       displayName: String = "",
       groupName: String? = null,
@@ -374,7 +182,7 @@ class SingleComposePreviewElementInstance(
       displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
       configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet(),
     ) =
-      SingleComposePreviewElementInstance(
+      SingleComposePreviewElementInstance<T>(
         composableMethodFqn,
         PreviewDisplaySettings(
           displayName,
@@ -382,36 +190,53 @@ class SingleComposePreviewElementInstance(
           showDecorations,
           showBackground,
           backgroundColor,
-          displayPositioning
+          displayPositioning,
         ),
         null,
         null,
-        configuration
+        configuration,
       )
   }
 }
 
-class
-ParametrizedComposePreviewElementInstance(
-  private val basePreviewElement: ComposePreviewElement,
-  parameterName: String,
+class ParametrizedComposePreviewElementInstance<T>(
+  private val basePreviewElement: ComposePreviewElement<T>,
+  parameterName: String?,
   val providerClassFqn: String,
   val index: Int,
   val maxIndex: Int,
-) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
+) : ComposePreviewElementInstance<T>(), ComposePreviewElement<T> by basePreviewElement {
+  override var hasAnimations = false
   override val instanceId: String = "$methodFqn#$parameterName$index"
+
+  override fun createDerivedInstance(
+    displaySettings: PreviewDisplaySettings,
+    config: PreviewConfiguration,
+  ): ParametrizedComposePreviewElementInstance<T> {
+    val singleInstance =
+      SingleComposePreviewElementInstance(
+        methodFqn,
+        displaySettings,
+        previewElementDefinition,
+        previewBody,
+        config,
+      )
+    return ParametrizedComposePreviewElementInstance(
+      singleInstance,
+      null,
+      providerClassFqn,
+      index,
+      maxIndex,
+    )
+  }
 
   override val displaySettings: PreviewDisplaySettings =
     PreviewDisplaySettings(
-      "${basePreviewElement.displaySettings.name} ($parameterName ${
-        // Make all index numbers to use the same number of digits,
-        // so that they can be properly sorted later.
-        index.toString().padStart(maxIndex.toString().length, '0')
-      })",
+      getDisplayName(parameterName),
       basePreviewElement.displaySettings.group,
       basePreviewElement.displaySettings.showDecoration,
       basePreviewElement.displaySettings.showBackground,
-      basePreviewElement.displaySettings.backgroundColor
+      basePreviewElement.displaySettings.backgroundColor,
     )
 
   override fun toPreviewXml(): PreviewXmlBuilder {
@@ -421,22 +246,41 @@ ParametrizedComposePreviewElementInstance(
       // The FQN of the ParameterProvider class
       .toolsAttribute("parameterProviderClass", providerClassFqn)
   }
+
+  private fun getDisplayName(parameterName: String?): String {
+    return if (parameterName == null) {
+      // This case corresponds to the parameter already having been added to the display name,
+      // so it should not be added again.
+      basePreviewElement.displaySettings.name
+    } else {
+      "${basePreviewElement.displaySettings.name} ($parameterName ${
+        // Make all index numbers to use the same number of digits,
+        // so that they can be properly sorted later.
+        index.toString().padStart(maxIndex.toString().length, '0')
+      })"
+    }
+  }
 }
 
 /**
  * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on
- * parameters.
+ * parameters. [ModuleClassLoader] constructed with the provided [parentClassLoader] should be able
+ * to load classes of [PreviewParameter.providerClassFqn] and create instances of those. Therefore,
+ * the caller should make sure [parentClassLoader] is aware of Android platform classes as those
+ * might be referenced by [parameterProviders]s.
  */
-open class ParametrizedComposePreviewElementTemplate(
-  private val basePreviewElement: ComposePreviewElement,
+open class ParametrizedComposePreviewElementTemplate<T>(
+  private val basePreviewElement: ComposePreviewElement<T>,
   val parameterProviders: Collection<PreviewParameter>,
-  private val renderContextFactory: (PsiFile?) -> ModuleRenderContext?,
-) : ComposePreviewElement by basePreviewElement {
+  private val parentClassLoader: ClassLoader =
+    ParametrizedComposePreviewElementTemplate::class.java.classLoader,
+  private val renderContextFactory: (ComposePreviewElement<T>) -> ModuleRenderContext?,
+) : ComposePreviewElement<T> by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
    * will be populated with data from the parameter providers.
    */
-  override fun resolve(): Sequence<ComposePreviewElementInstance> {
+  override fun resolve(): Sequence<ComposePreviewElementInstance<T>> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
     if (parameterProviders.size > 1) {
@@ -444,12 +288,9 @@ open class ParametrizedComposePreviewElementTemplate(
         .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val moduleRenderContext = renderContextFactory(basePreviewElement.containingFile) ?: return sequenceOf()
+    val moduleRenderContext = renderContextFactory(basePreviewElement) ?: return sequenceOf()
     ModuleClassLoaderManager.get()
-      .getPrivate(
-        ParametrizedComposePreviewElementTemplate::class.java.classLoader,
-        moduleRenderContext
-      )
+      .getPrivate(parentClassLoader, moduleRenderContext)
       .useWithClassLoader { classLoader ->
         return parameterProviders
           .map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }
@@ -460,7 +301,7 @@ open class ParametrizedComposePreviewElementTemplate(
   private fun loadPreviewParameterProvider(
     classLoader: ClassLoader,
     previewParameter: PreviewParameter,
-  ): Sequence<ComposePreviewElementInstance> {
+  ): Sequence<ComposePreviewElementInstance<T>> {
     try {
       val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn)
       val parameterProviderSizeMethod =
@@ -492,7 +333,7 @@ open class ParametrizedComposePreviewElementTemplate(
             parameterName = previewParameter.name,
             index = 0,
             maxIndex = 0,
-            providerClassFqn = previewParameter.providerClassFqn
+            providerClassFqn = previewParameter.providerClassFqn,
           )
         )
       } else {
@@ -503,7 +344,7 @@ open class ParametrizedComposePreviewElementTemplate(
               parameterName = previewParameter.name,
               index = index,
               maxIndex = providerCount - 1,
-              providerClassFqn = previewParameter.providerClassFqn
+              providerClassFqn = previewParameter.providerClassFqn,
             )
           }
           .asSequence()
@@ -524,7 +365,7 @@ open class ParametrizedComposePreviewElementTemplate(
         PreviewDisplaySettings(basePreviewElement.displaySettings.name, null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
     )
   }
@@ -533,7 +374,7 @@ open class ParametrizedComposePreviewElementTemplate(
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
 
-    other as ParametrizedComposePreviewElementTemplate
+    other as ParametrizedComposePreviewElementTemplate<*>
 
     return basePreviewElement == other.basePreviewElement &&
       parameterProviders == other.parameterProviders

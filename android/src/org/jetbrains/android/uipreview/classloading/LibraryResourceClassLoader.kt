@@ -22,6 +22,7 @@ import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ResourceClassRegistry
+import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.res.ResourceNamespacing
@@ -78,7 +79,7 @@ private fun ResourceClassRegistry.registerLibraryResources(
 private fun registerResources(module: Module) {
   val androidFacet: AndroidFacet = AndroidFacet.getInstance(module) ?: return
   val repositoryManager = StudioResourceRepositoryManager.getInstance(androidFacet)
-  val idManager = ResourceIdManager.get(module)
+  val idManager = StudioResourceIdManager.get(module)
   val classRegistry = ResourceClassRegistry.get(module.project)
 
   // If final ids are used, we will read the real class from disk later (in loadAndParseRClass), using this class loader. So we
@@ -123,7 +124,7 @@ class LibraryResourceClassLoader(
       throw ClassNotFoundException(name)
     }
 
-    if (ResourceIdManager.get(module).finalIdsUsed) {
+    if (StudioResourceIdManager.get(module).finalIdsUsed) {
       // If final IDs are used, we check to see if the child loader will load the class.  If so, throw a ClassNotFoundException
       // here and let the R classes be loaded by the child class loader.
       //

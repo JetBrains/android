@@ -15,14 +15,13 @@
  */
 package com.android.tools.fonts;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
-import com.intellij.openapi.application.ApplicationManager;
 import java.util.concurrent.CompletableFuture;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.Font;
 import java.io.File;
@@ -35,24 +34,18 @@ import java.util.List;
  * This service maintain a sorted list of fonts {@link #getFontFamilies} and holds methods for getting individual fonts.
  */
 public interface DownloadableFontCacheService {
-
-  @NotNull
-  static DownloadableFontCacheService getInstance() {
-    return ApplicationManager.getApplication().getService(DownloadableFontCacheService.class);
-  }
-
   /**
    * Returns a list of downloadable fonts sorted by name.
    * The returned list can be modified without affecting the font cache.
    */
-  @NotNull
+  @NonNull
   List<FontFamily> getFontFamilies();
 
   /**
    * Returns a list of system fonts sorted by name.
    * The returned list can be modified without affecting the font cache.
    */
-  @NotNull
+  @NonNull
   List<FontFamily> getSystemFontFamilies();
 
   /**
@@ -62,7 +55,7 @@ public interface DownloadableFontCacheService {
    * Or <code>null</code> if no menu file is specified.
    */
   @Nullable
-  File getCachedMenuFile(@NotNull FontFamily family);
+  File getCachedMenuFile(@NonNull FontFamily family);
 
   /**
    * Returns a font file for the specified font.
@@ -70,7 +63,7 @@ public interface DownloadableFontCacheService {
    * Or <code>null</code> if no menu file is specified.
    */
   @Nullable
-  File getCachedFontFile(@NotNull FontDetail family);
+  File getCachedFontFile(@NonNull FontDetail family);
 
   /**
    * Returns XML for a font-family file describing the font.
@@ -78,30 +71,30 @@ public interface DownloadableFontCacheService {
    */
   @Nullable
   @Language("XML")
-  String toXml(@NotNull FontFamily family);
+  String toXml(@NonNull FontFamily family);
 
   /**
    * Start downloading the specified font without waiting for the outcome.
    */
-  CompletableFuture<Boolean> download(@NotNull FontFamily family);
+  CompletableFuture<Boolean> download(@NonNull FontFamily family);
 
   /**
    * Lookup the {@link FontFamily} of a certain font.
    */
   @Nullable
-  FontFamily findFont(@NotNull FontProvider provider, @NotNull String fontName);
+  FontFamily findFont(@NonNull FontProvider provider, @NonNull String fontName);
 
   /**
    * Returns a {@link FontFamily} for a named system font or <code>null</code>
    * if no font with the specified name exists.
    */
   @Nullable
-  FontFamily getSystemFont(@NotNull String name);
+  FontFamily getSystemFont(@NonNull String name);
 
   /**
    * Return a {@link FontFamily} for the default system font which is "sans serif".
    */
-  @NotNull
+  @NonNull
   FontFamily getDefaultSystemFont();
 
   /**
@@ -109,14 +102,14 @@ public interface DownloadableFontCacheService {
    * The font returned may only contain the glyphs for the font name and may not be able to display other characters.
    */
   @Nullable
-  Font loadMenuFont(@NotNull FontFamily fontFamily);
+  Font loadMenuFont(@NonNull FontFamily fontFamily);
 
   /**
    * Loads a {@link Font} for general use.
    * The supported character set is dependent on the font which may or may not include latin characters.
    */
   @Nullable
-  Font loadDetailFont(@NotNull FontDetail fontDetail);
+  Font loadDetailFont(@NonNull FontDetail fontDetail);
 
   /**
    * Will start a download of the most recent downloadable font directory.
@@ -129,5 +122,5 @@ public interface DownloadableFontCacheService {
    * Returns the path to the current font cache directory, if any.
    */
   @Nullable
-  File getFontPath();
+  File getFontCachePath();
 }

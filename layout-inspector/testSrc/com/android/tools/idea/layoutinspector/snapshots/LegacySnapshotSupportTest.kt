@@ -21,9 +21,10 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -33,14 +34,15 @@ import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyDeviceRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.readBytes
+import kotlinx.coroutines.runBlocking
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.ArgumentMatchers
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -81,13 +83,13 @@ DONE.
     waitForCondition(5, TimeUnit.SECONDS) { !legacyClient.model.isEmpty }
     legacyClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
-    val newModel = InspectorModel(legacyRule.project)
+    val newModel = InspectorModel(legacyRule.project, AndroidCoroutineScope(legacyRule.disposable))
     val newNotificationModel = NotificationModel(legacyRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     snapshotLoader.loadFile(savePath, newModel, newNotificationModel, stats)
 
     val window = newModel.windows[windowName]!!
-    window.refreshImages(1.0)
+    runBlocking { window.refreshImages(1.0) }
     val root = window.root
     assertThat(root.drawId).isEqualTo(0x41673e3)
     assertThat(root.layoutBounds.x).isEqualTo(0)
@@ -140,17 +142,17 @@ DONE.
     treeSample: String,
     windowName: String,
     imageFile: Path,
-    legacyClient: LegacyClient
+    legacyClient: LegacyClient,
   ) {
     val client = mock<Client>()
     whenever(client.device).thenReturn(mock())
     whenever(
         client.dumpViewHierarchy(
-          Mockito.eq(windowName),
-          Mockito.anyBoolean(),
-          Mockito.anyBoolean(),
-          Mockito.anyBoolean(),
-          Mockito.any(DebugViewDumpHandler::class.java)
+          ArgumentMatchers.eq(windowName),
+          ArgumentMatchers.anyBoolean(),
+          ArgumentMatchers.anyBoolean(),
+          ArgumentMatchers.anyBoolean(),
+          ArgumentMatchers.any(DebugViewDumpHandler::class.java),
         )
       )
       .thenAnswer { invocation ->
@@ -173,9 +175,9 @@ DONE.
 
     whenever(
         client.captureView(
-          Mockito.eq(windowName),
-          Mockito.any(),
-          Mockito.any()
+          ArgumentMatchers.eq(windowName),
+          ArgumentMatchers.any(),
+          ArgumentMatchers.any(),
         )
       )
       .thenAnswer { invocation ->
@@ -186,7 +188,7 @@ DONE.
             DebugViewDumpHandler.CHUNK_VUOP,
             ByteBuffer.wrap(imageFile.readBytes()),
             true,
-            1234
+            1234,
           )
       }
     whenever(client.device.density).thenReturn(560)

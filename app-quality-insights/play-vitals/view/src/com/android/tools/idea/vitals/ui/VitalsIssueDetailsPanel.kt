@@ -19,6 +19,7 @@ import com.android.sdklib.computeFullReleaseName
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Connection
@@ -32,21 +33,27 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
+import com.android.tools.idea.insights.ui.CURRENT_ISSUE_KEY
 import com.android.tools.idea.insights.ui.DETAIL_PANEL_HORIZONTAL_SPACING
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
 import com.android.tools.idea.insights.ui.DetailsTabbedPane
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
+import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.TabbedPaneDefinition
+import com.android.tools.idea.insights.ui.createInsightToolBar
 import com.android.tools.idea.insights.ui.dateFormatter
 import com.android.tools.idea.insights.ui.prettyRangeString
 import com.android.tools.idea.insights.ui.shortenEventId
 import com.android.tools.idea.insights.ui.transparentPanel
 import com.android.tools.idea.insights.ui.vcs.VcsCommitLabel
+import com.android.tools.idea.studiobot.StudioBot.RequestSource.PLAY_VITALS
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.HyperlinkLabel
@@ -93,7 +100,7 @@ data class VitalsDetailsState(
   val connectionMode: ConnectionMode,
   val selectedOsVersion: Set<OperatingSystemInfo>,
   val selectedDevices: Set<Device>,
-  val selectedVisibility: VisibilityType?
+  val selectedVisibility: VisibilityType?,
 ) {
 
   fun toConsoleUrl(): String? {
@@ -137,7 +144,7 @@ private val DefaultVitalsDetailsState =
     ConnectionMode.ONLINE,
     emptySet(),
     emptySet(),
-    null
+    null,
   )
 
 class VitalsIssueDetailsPanel(
@@ -145,8 +152,8 @@ class VitalsIssueDetailsPanel(
   private val project: Project,
   val headerHeightUpdatedCallback: (Int) -> Unit,
   parentDisposable: Disposable,
-  private val tracker: AppInsightsTracker
-) : JPanel(BorderLayout()) {
+  private val tracker: AppInsightsTracker,
+) : JPanel(BorderLayout()), DataProvider {
   private val scope = AndroidCoroutineScope(parentDisposable)
   private val detailsState =
     controller.state
@@ -159,7 +166,7 @@ class VitalsIssueDetailsPanel(
           state.mode,
           state.filters.operatingSystems.getSelectedValueOrEmpty(),
           state.filters.devices.getSelectedValueOrEmpty(),
-          state.filters.visibilityType.selected
+          state.filters.visibilityType.selected,
         )
       }
       .stateIn(scope, SharingStarted.Eagerly, DefaultVitalsDetailsState)
@@ -211,7 +218,7 @@ class VitalsIssueDetailsPanel(
         appendSecondaryText(
           "Select an issue to view the stacktrace.",
           EMPTY_STATE_TEXT_FORMAT,
-          null
+          null,
         )
       }
 
@@ -228,7 +235,7 @@ class VitalsIssueDetailsPanel(
         .collect { issue ->
           (mainPanel.layout as CardLayout).show(
             mainPanel,
-            if (issue != null) MAIN_CARD else EMPTY_CARD
+            if (issue != null) MAIN_CARD else EMPTY_CARD,
           )
           if (issue == null) {
             header.clear()
@@ -258,7 +265,7 @@ class VitalsIssueDetailsPanel(
                             .DETAILS
                         crashType = issue.issueDetails.fatality.toCrashType()
                       }
-                      .build()
+                      .build(),
                   )
                 }
               }
@@ -274,7 +281,7 @@ class VitalsIssueDetailsPanel(
       ScrollPaneFactory.createScrollPane(
           createContentPanel(),
           ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
         )
         .apply {
           isOpaque = false
@@ -308,7 +315,7 @@ class VitalsIssueDetailsPanel(
           DetailsTabbedPane(
               "VitalsDetails",
               listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.consoleView.component)),
-              stackTraceConsole
+              stackTraceConsole,
             )
             .component
         )
@@ -326,6 +333,13 @@ class VitalsIssueDetailsPanel(
           layout = BoxLayout(this, BoxLayout.X_AXIS)
           add(affectedVersionsLabel)
           add(Box.createHorizontalGlue())
+          if (StudioFlags.PLAY_VITALS_SHOW_INSIGHT.get()) {
+            // Work around for Gemini's onboarding flow not exposed.
+            // Action system will take care of calling update on InsightAction.
+            // InsightAction (added when creating toolbar) updates the text depending on Gemini's
+            // onboarding status
+            createInsightToolBar("play vitals", this).also { add(it.component) }
+          }
         }
       )
       add(Box.createVerticalStrut(5))
@@ -359,14 +373,23 @@ class VitalsIssueDetailsPanel(
     }
 
   private fun updateBodySection(issue: AppInsightsIssue) {
-    deviceLabel.text = issue.sampleEvent.eventData.device.let { "${it.manufacturer} ${it.model}" }
+    deviceLabel.text = issue.sampleEvent.eventData.device.displayName
     eventIdLabel.text = "Event ${issue.sampleEvent.name.shortenEventId()}"
     affectedApiLevelsLabel.text =
-      computeFullReleaseName(
-        issue.sampleEvent.eventData.operatingSystemInfo.displayVersion.toInt(),
-        null,
-        includeApiLevel = true
-      )
+      try {
+        computeFullReleaseName(
+          issue.sampleEvent.eventData.operatingSystemInfo.displayVersion.toInt(),
+          null,
+          includeApiLevel = true,
+        )
+      } catch (e: NumberFormatException) {
+        Logger.getInstance(this::class.java)
+          .warn(
+            "Unable to read OS version number. Sample event may be missing for Issue ${issue.id.value}"
+          )
+        "unknown"
+      }
+
     timestampLabel.text = dateFormatter.format(issue.sampleEvent.eventData.eventTime)
 
     commitLabel.updateOnIssueChange(issue.sampleEvent.appVcsInfo, project)
@@ -383,8 +406,18 @@ class VitalsIssueDetailsPanel(
 
   override fun updateUI() {
     super.updateUI()
-    emptyText?.setFont(StartupUiUtil.labelFont)
+    // This can be called from the superclass's constructor, while our fields haven't been
+    // initialized yet.
+    @Suppress("UNNECESSARY_SAFE_CALL") emptyText?.setFont(StartupUiUtil.labelFont)
+    @Suppress("UNNECESSARY_SAFE_CALL") stackTraceConsole?.updateUI()
   }
+
+  override fun getData(dataId: String): Any? =
+    when {
+      REQUEST_SOURCE_KEY.`is`(dataId) -> PLAY_VITALS
+      CURRENT_ISSUE_KEY.`is`(dataId) -> detailsState.value.selectedIssue
+      else -> null
+    }
 }
 
 private fun <T> MultiSelection<WithCount<T>>.getSelectedValueOrEmpty() =

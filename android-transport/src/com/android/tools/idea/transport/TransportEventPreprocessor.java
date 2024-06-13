@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Interface for preprocessing transport events before they are inserted into the data store. Does not modify the event.
  * <p>
- * For instance, energy profiler preprocesses CPU and network events to calculate energy usage.
+ * For instance, energy profiler preprocesses CPU events to calculate energy usage.
  */
 public interface TransportEventPreprocessor {
   /**

@@ -15,15 +15,16 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
   public enum EventStatements {

@@ -48,13 +48,10 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -126,7 +123,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
 
   public void testGetAndroidSdkPath() {
     WriteAction.runAndWait(() -> {
-      AndroidSdkPathStore.getInstance().setAndroidSdkPath(TestUtils.getSdk().toAbsolutePath().toString());
+      AndroidSdkPathStore.getInstance().setAndroidSdkPath(TestUtils.getSdk());
     });
     // Create default SDKs first.
     myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
@@ -287,31 +284,16 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
   }
 
   /**
-   * Verify that the field's and method's names in ProjectJDKImpl have not changed, to try to catch changes in its implementation.
+   * Verify that the method's names in Sdk have not changed, to try to catch changes in its implementation.
    * If this test fails, we need to confirm the changes are included as needed in
    * {@link SdkExtensions#isEqualTo(Sdk, Sdk)}
    */
-  public void testProjectJdkImplFieldsAndMethods() {
-    List<String> expectedFieldNames = Arrays.asList("ATTRIBUTE_VALUE", "ELEMENT_ADDITIONAL", "ELEMENT_NAME", "ELEMENT_TYPE");
-    List<String> currentFieldNames = Arrays.stream(ProjectJdkImpl.class.getFields())
-      .map(Field::getName)
-      .distinct()
-      .sorted()
-      .collect(Collectors.toList());
-    assertThat(currentFieldNames).isEqualTo(expectedFieldNames);
-
+  public void testSdkInterfaceMethodsExposed() {
     List<String> expectedMethodNames = Arrays.asList(
-      "accumulateAndGet", "addRoot", "changeType", "clone", "commitChanges", "compareAndExchange", "compareAndExchangeAcquire",
-      "compareAndExchangeRelease", "compareAndSet", "copyCopyableDataTo", "copyUserDataTo", "dispose", "equals", "get", "getAcquire",
-      "getAndAccumulate", "getAndSet", "getAndUpdate", "getClass", "getCopyableUserData", "getGlobalVirtualFilePointerListener",
-      "getHomeDirectory", "getHomePath", "getName", "getOpaque", "getPlain", "getRootProvider", "getRoots", "getSdkAdditionalData",
-      "getSdkModificator", "getSdkType", "getUrls", "getUserData", "getUserDataString", "getVersionString", "hashCode", "isUserDataEmpty",
-      "isWritable", "lazySet", "notify", "notifyAll", "putCopyableUserData", "putUserData", "putUserDataIfAbsent", "readExternal",
-      "removeAllRoots", "removeRoot", "removeRoots", "replace", "resetVersionString", "set", "setHomePath", "setName", "setOpaque",
-      "setPlain", "setRelease", "setSdkAdditionalData", "setVersionString", "toString", "updateAndGet", "wait", "weakCompareAndSet",
-      "weakCompareAndSetAcquire", "weakCompareAndSetPlain", "weakCompareAndSetRelease", "weakCompareAndSetVolatile", "writeExternal"
+      "clone", "getHomeDirectory", "getHomePath", "getName", "getRootProvider", "getSdkAdditionalData", "getSdkModificator",
+      "getSdkType", "getUserData", "getVersionString", "putUserData"
     );
-    List<String> currentMethodNames = Arrays.stream(ProjectJdkImpl.class.getMethods())
+    List<String> currentMethodNames = Arrays.stream(Sdk.class.getMethods())
       .map(Method::getName)
       .distinct()
       .sorted()

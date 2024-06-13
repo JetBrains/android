@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Par
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterReference
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.property.ptable.PTableGroupModification
+import kotlinx.coroutines.CoroutineScope
 
 /** Provides [ViewNode] and [ResourceLookup] for an [InspectorPropertyItem]. */
 interface ViewNodeAndResourceLookup {
@@ -31,6 +32,9 @@ interface ViewNodeAndResourceLookup {
 
   /** The current selected node */
   val selection: ViewNode?
+
+  /** An coroutine scope for use by property items */
+  val scope: CoroutineScope
 
   /**
    * Perform a lookup of a compose parameter item given a parameter reference
@@ -46,6 +50,6 @@ interface ViewNodeAndResourceLookup {
     reference: ParameterReference,
     startIndex: Int,
     maxElements: Int,
-    callback: (ParameterGroupItem?, PTableGroupModification?) -> Unit
+    callback: (ParameterGroupItem?, PTableGroupModification?) -> Unit,
   ) {}
 }

@@ -60,10 +60,10 @@ import javax.swing.JComponent
 import javax.swing.ScrollPaneConstants
 
 private const val MIN_TAG_LENGTH = 10
-private const val MAX_TAG_LENGTH = 35
+private const val MAX_TAG_LENGTH = 120
 private const val MIN_APP_NAME_LENGTH = 10
-private const val MAX_APP_NAME_LENGTH = 45
-private const val MAX_PROCESS_NAME_LENGTH = 45
+private const val MAX_APP_NAME_LENGTH = 120
+private const val MAX_PROCESS_NAME_LENGTH = 120
 private val previewZoneId = ZoneId.of("GMT")
 private val previewFormatter = MessageFormatter(LogcatColors(), previewZoneId)
 private val previewTimestamp =
@@ -78,9 +78,9 @@ private val previewMessages =
         "com.example.app1",
         "com.example.app1:process",
         "ExampleTag1",
-        previewTimestamp
+        previewTimestamp,
       ),
-      "Sample logcat message 1."
+      "Sample logcat message 1.",
     ),
     LogcatMessage(
       LogcatHeader(
@@ -90,9 +90,9 @@ private val previewMessages =
         "com.example.app1",
         "com.example.app1:process",
         "ExampleTag1",
-        previewTimestamp
+        previewTimestamp,
       ),
-      "Sample logcat message 2."
+      "Sample logcat message 2.",
     ),
     LogcatMessage(
       LogcatHeader(
@@ -102,9 +102,9 @@ private val previewMessages =
         "com.example.app2",
         "com.example.app2:process",
         "ExampleTag2",
-        previewTimestamp
+        previewTimestamp,
       ),
-      "Sample logcat message 3."
+      "Sample logcat message 3.",
     ),
     LogcatMessage(
       LogcatHeader(
@@ -114,9 +114,9 @@ private val previewMessages =
         "com.example.app2",
         "com.example.app2:process",
         "ExampleTag2",
-        previewTimestamp
+        previewTimestamp,
       ),
-      "Sample logcat multiline\nmessage."
+      "Sample logcat multiline\nmessage.",
     ),
   )
 private val MAX_SAMPLE_DOCUMENT_TEXT_LENGTH =
@@ -250,7 +250,7 @@ internal class LogcatFormatDialog(
     applyAction.apply(
       standardFormattingOptions.copy(),
       compactFormattingOptions.copy(),
-      defaultFormatting
+      defaultFormatting,
     )
   }
 
@@ -484,15 +484,18 @@ internal class LogcatFormatDialog(
     applyComponentsToOptions(options)
     val textAccumulator = TextAccumulator()
     previewFormatter.formatMessages(options, textAccumulator, previewMessages)
-    previewEditor.document.setReadOnly(false)
-    previewEditor.document.setText("")
-    DocumentAppender(project, previewEditor.document, MAX_PREVIEW_DOCUMENT_BUFFER_SIZE)
-      .appendToDocument(textAccumulator)
-    previewEditor.document.insertString(
-      previewEditor.document.textLength,
-      " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH)
-    )
-    previewEditor.document.setReadOnly(true)
+    try {
+      previewEditor.document.setReadOnly(false)
+      previewEditor.document.setText("")
+      DocumentAppender(project, previewEditor.document, MAX_PREVIEW_DOCUMENT_BUFFER_SIZE)
+        .appendToDocument(textAccumulator)
+      previewEditor.document.insertString(
+        previewEditor.document.textLength,
+        " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH),
+      )
+    } finally {
+      previewEditor.document.setReadOnly(true)
+    }
 
     applyComponentsToOptions(
       if (formattingStyle.get() == STANDARD) standardFormattingOptions else compactFormattingOptions
@@ -539,7 +542,7 @@ internal class LogcatFormatDialog(
     fun apply(
       standardOptions: FormattingOptions,
       compactOptions: FormattingOptions,
-      defaultStyle: FormattingOptions.Style
+      defaultStyle: FormattingOptions.Style,
     )
   }
 
@@ -552,7 +555,7 @@ internal class LogcatFormatDialog(
    * and `Cancel` buttons. There seems to be no way to reuse them.
    */
   private inner class MyDialogWrapper(project: Project, private val panel: JComponent) :
-    DialogWrapper(project, null, true, IdeModalityType.PROJECT) {
+    DialogWrapper(project, null, true, IdeModalityType.IDE) {
     override fun createCenterPanel(): JComponent = panel
 
     init {

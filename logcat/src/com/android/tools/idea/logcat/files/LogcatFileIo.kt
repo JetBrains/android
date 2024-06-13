@@ -32,9 +32,7 @@ private const val MAX_LOGCAT_ENTRY = 4000
 private val gson = GsonBuilder().setPrettyPrinting().create()
 
 /** Contains functions to read and write a Logcat file */
-internal class LogcatFileIo(
-  private val zoneId: ZoneId = ZoneId.systemDefault(),
-) {
+internal class LogcatFileIo(private val zoneId: ZoneId = ZoneId.systemDefault()) {
   @Suppress("unused") // Used via `values()`
   private enum class LogcatFileType(val headerRegex: Regex) {
     JSON("^\\{".toRegex()),
@@ -48,7 +46,7 @@ internal class LogcatFileIo(
     logcatMessages: List<LogcatMessage>,
     device: Device,
     filter: String,
-    projectApplicationIds: Set<String>
+    projectApplicationIds: Set<String>,
   ) {
     val data = LogcatFileData(Metadata(device, filter, projectApplicationIds), logcatMessages)
     path.writer().use { gson.toJson(data, it) }
@@ -61,7 +59,7 @@ internal class LogcatFileIo(
       else ->
         LogcatFileData(
           null,
-          LogcatFileParser(type.headerRegex, zoneId = zoneId).parseLogcatFile(path)
+          LogcatFileParser(type.headerRegex, zoneId = zoneId).parseLogcatFile(path),
         )
     }
   }

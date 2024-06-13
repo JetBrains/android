@@ -18,10 +18,6 @@ MODULE                        : withGradleMetadata
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : org.gradle.sample:library:1.1 (IdeJavaLibraryImpl)
         artifact                      : <ROOT>/repo/org/gradle/sample/library/1.1/library-1.1.jar
@@ -75,8 +71,6 @@ MODULE                        : withGradleMetadata
                 qName                         : :app
                 group                         : withGradleMetadata
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -86,113 +80,117 @@ MODULE                        : withGradleMetadata
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugReverseMetadataValues    : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugWearApp                  : <empty>
-                    debugWearBundling             : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseReverseMetadataValues  : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseWearApp                : <empty>
-                    releaseWearBundling           : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        androidApis                   : <empty>
+                        androidJacocoAnt              : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiElements              : <empty>
+                        - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugImplementation           : <empty>
+                        debugReverseMetadataValues    : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugWearApp                  : <empty>
+                        debugWearBundling             : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiElements            : <empty>
+                        - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseImplementation         : <empty>
+                        releaseReverseMetadataValues  : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        releaseWearApp                : <empty>
+                        releaseWearBundling           : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
+        sourceSetModel                : DefaultGradleSourceSetModel
 MODULE                        : withGradleMetadata.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -259,11 +257,14 @@ MODULE                        : withGradleMetadata.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         applicationId                 : come.example.with.gradle.metadata
         testApplicationId             : come.example.with.gradle.metadata.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : come.example.with.gradle.metadata
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -324,6 +325,7 @@ MODULE                        : withGradleMetadata.app
             Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -377,6 +379,7 @@ MODULE                        : withGradleMetadata.app
             Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -565,7 +568,7 @@ MODULE                        : withGradleMetadata.app
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.gradle.sample:library:1.1@jar
                         module                        : <ROOT>-:app-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : withGradleMetadata.app.androidTest
 MODULE                        : withGradleMetadata.app.main

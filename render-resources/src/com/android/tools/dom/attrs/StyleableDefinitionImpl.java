@@ -15,39 +15,40 @@
  */
 package com.android.tools.dom.attrs;
 
+import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 public final class StyleableDefinitionImpl implements StyleableDefinition {
-  @NotNull private final ResourceReference myStyleable;
-  @NotNull private final List<AttributeDefinition> myAttributes = new ArrayList<>();
+  @NonNull private final ResourceReference myStyleable;
+  @NonNull private final List<AttributeDefinition> myAttributes = new ArrayList<>();
 
-  public StyleableDefinitionImpl(@NotNull ResourceNamespace namespace, @NotNull String name) {
+  public StyleableDefinitionImpl(@NonNull ResourceNamespace namespace, @NonNull String name) {
     myStyleable = ResourceReference.styleable(namespace, name);
   }
 
   @Override
-  @NotNull
+  @NonNull
   public ResourceReference getResourceReference() {
     return myStyleable;
   }
 
   @Override
-  @NotNull
+  @NonNull
   public String getName() {
     return myStyleable.getName();
   }
 
-  public void addAttribute(@NotNull AttributeDefinition attrDef) {
+  public void addAttribute(@NonNull AttributeDefinition attrDef) {
     myAttributes.add(attrDef);
   }
 
   @Override
-  @NotNull
+  @NonNull
   public List<AttributeDefinition> getAttributes() {
     return Collections.unmodifiableList(myAttributes);
   }

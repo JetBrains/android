@@ -81,7 +81,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
   override fun getProperties(
     model: NlPropertiesModel,
     optionalValue: Any?,
-    components: List<NlComponent>
+    components: List<NlComponent>,
   ): PropertiesTable<NlPropertyItem> {
     assert(!EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode)
 
@@ -104,11 +104,10 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     if (systemAttrDefs == null) {
       return PropertiesTable.emptyTable()
     }
-    val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs)
 
-    return DumbService.getInstance(project).runReadActionInSmartMode<
-      PropertiesTable<NlPropertyItem>
-    > {
+    val dumbService = DumbService.getInstance(project)
+    return dumbService.runReadActionInSmartMode<PropertiesTable<NlPropertyItem>> {
+      val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs)
       PropertiesTable.create(generator.generate())
     }
   }
@@ -121,7 +120,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     private val model: NlPropertiesModel,
     private val components: List<NlComponent>,
     private val localAttrDefs: AttributeDefinitions,
-    private val systemAttrDefs: AttributeDefinitions
+    private val systemAttrDefs: AttributeDefinitions,
   ) {
     private val project = facet.module.project
     private val apiLookup = LintIdeClient.getApiLookup(project)
@@ -168,7 +167,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
               null,
               FQCN_AUTO_COMPLETE_TEXT_VIEW,
               model,
-              components
+              components,
             )
           property?.let { properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, it) }
         }
@@ -205,7 +204,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     private fun removeEmptyProperty(
       properties: Table<String, String, NlPropertyItem>,
       namespace: String,
-      name: String
+      name: String,
     ) {
       val property = properties.get(namespace, name) ?: return
       if (property.value == null) {
@@ -216,7 +215,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     private fun loadPropertiesFromDescriptors(
       tag: XmlTag,
       descriptors: Array<XmlAttributeDescriptor>,
-      componentClass: PsiClass?
+      componentClass: PsiClass?,
     ) {
       for (desc in descriptors) {
         val name = desc.name
@@ -256,12 +255,12 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
         loadFromStyleableName(
           psiClass,
           AttributeProcessingUtil.getLayoutStyleablePrimary(psiClass),
-          psiClass
+          psiClass,
         )
         loadFromStyleableName(
           psiClass,
           AttributeProcessingUtil.getLayoutStyleableSecondary(psiClass),
-          psiClass
+          psiClass,
         )
         psiClass = psiClass.superClass
       }
@@ -278,7 +277,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     private fun loadFromStyleableName(
       psiClass: PsiClass,
       styleableName: String?,
-      componentClass: PsiClass?
+      componentClass: PsiClass?,
     ) {
       if (styleableName == null) {
         return
@@ -329,7 +328,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     private fun addPropertyFromAttribute(
       attribute: AttributeDefinition,
       psiClass: PsiClass,
-      componentClass: PsiClass?
+      componentClass: PsiClass?,
     ) {
       val namespace = attribute.resourceReference.namespace.xmlNamespaceUri
       val property =
@@ -340,7 +339,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
           componentClass,
           psiClass.qualifiedName ?: "",
           model,
-          components
+          components,
         ) ?: return
       if (
         ANDROID_URI == namespace &&
@@ -364,7 +363,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
       componentClass: PsiClass?,
       componentName: String,
       model: NlPropertiesModel,
-      components: List<NlComponent>
+      components: List<NlComponent>,
     ): NlPropertyItem? {
       val type = TypeResolver.resolveType(name, attr, componentClass)
       if (type == NlPropertyType.UNKNOWN) {
@@ -386,7 +385,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
             componentName,
             libraryName,
             model,
-            components
+            components,
           )
         } else {
           NlFlagsPropertyGroupItem(
@@ -397,7 +396,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
             componentName,
             libraryName,
             model,
-            components
+            components,
           )
         }
       }
@@ -409,7 +408,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
         componentName,
         libraryName,
         model,
-        components
+        components,
       )
     }
 
@@ -422,7 +421,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     // we just show the attributes those components have in common.
     private fun combine(
       properties: Table<String, String, NlPropertyItem>,
-      combinedProperties: Table<String, String, NlPropertyItem>?
+      combinedProperties: Table<String, String, NlPropertyItem>?,
     ): Table<String, String, NlPropertyItem> {
       if (combinedProperties == null) {
         return properties

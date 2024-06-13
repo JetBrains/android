@@ -21,8 +21,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.SupportLevel
-import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.truth.Truth
 
 object TaskHandlerTestUtils {
@@ -31,11 +29,20 @@ object TaskHandlerTestUtils {
                    transportService: FakeTransportService,
                    timer: FakeTimer,
                    taskType: Common.ProfilerTaskType) {
+   startSession(exposureLevel, AndroidVersion.VersionCodes.Q, profilers, transportService, timer, taskType)
+  }
+
+  fun startSession(exposureLevel: Common.Process.ExposureLevel,
+                   deviceFeatureLevel: Int,
+                   profilers: StudioProfilers,
+                   transportService: FakeTransportService,
+                   timer: FakeTimer,
+                   taskType: Common.ProfilerTaskType) {
     // The following creates and starts a fake debuggable session so that features that requires a debuggable process are supported such as
     // heap dump and java/kotlin allocations.
     profilers.setPreferredProcess(null, FakeTransportService.FAKE_PROCESS.name, null)
     // To support the Native Allocation tracing feature, the feature level of the device must be >= Q.
-    val device = FakeTransportService.FAKE_DEVICE.toBuilder().setFeatureLevel(AndroidVersion.VersionCodes.Q).build()
+    val device = FakeTransportService.FAKE_DEVICE.toBuilder().setApiLevel(deviceFeatureLevel).setFeatureLevel(deviceFeatureLevel).build()
     transportService.addDevice(device)
     val debuggableEvent = FakeTransportService.FAKE_PROCESS.toBuilder()
       .setStartTimestampNs(5)
@@ -43,7 +50,7 @@ object TaskHandlerTestUtils {
       .build()
     transportService.addProcess(device, debuggableEvent)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for the session to auto start and select.
-    profilers.setProcess(device, null, taskType) // Will start a new session on the preferred process
+    profilers.setProcess(device, null, taskType, false) // Will start a new session on the preferred process
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for the session to auto start and select.
     Truth.assertThat(profilers.session.pid).isEqualTo(FakeTransportService.FAKE_PROCESS.pid)
     Truth.assertThat(
@@ -55,23 +62,6 @@ object TaskHandlerTestUtils {
     else if (exposureLevel == Common.Process.ExposureLevel.PROFILEABLE) {
       Truth.assertThat(profilers.selectedSessionSupportLevel).isEqualTo(SupportLevel.PROFILEABLE)
     }
-  }
-
-  private fun stopSession(sessionsManager: SessionsManager, timer: FakeTimer) {
-    sessionsManager.endCurrentSession()
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-  }
-
-  fun startAndStopSession(exposureLevel: Common.Process.ExposureLevel,
-                          profilers: StudioProfilers,
-                          sessionsManager: SessionsManager,
-                          transportService: FakeTransportService,
-                          timer: FakeTimer,
-                          taskType: Common.ProfilerTaskType) {
-    startSession(exposureLevel, profilers, transportService, timer, taskType)
-    Truth.assertThat(sessionsManager.isSessionAlive)
-    stopSession(sessionsManager, timer)
-    Truth.assertThat(!sessionsManager.isSessionAlive)
   }
 
   fun createDevice(versionCode: Int): Common.Device = Common.Device.newBuilder().setFeatureLevel(versionCode).build()

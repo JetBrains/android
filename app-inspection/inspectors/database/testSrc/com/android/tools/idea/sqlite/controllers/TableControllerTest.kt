@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.refEq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
@@ -30,7 +31,6 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
-import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
 import com.android.tools.idea.sqlite.mocks.FakeSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.FakeTableView
@@ -45,15 +45,16 @@ import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
-import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
+import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.sqlite.utils.toViewColumn
@@ -66,134 +67,143 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
-import org.mockito.InOrder
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
-class TableControllerTest : LightPlatformTestCase() {
-  private lateinit var tableView: FakeTableView
-  private lateinit var sqliteResultSet: FakeSqliteResultSet
-  private lateinit var edtExecutor: FutureCallbackExecutor
-  private lateinit var tableController: TableController
+private val authorIdColumn =
+  ResultSetSqliteColumn(
+    "author_id",
+    SqliteAffinity.INTEGER,
+    isNullable = false,
+    inPrimaryKey = true,
+  )
+private val authorNameColumn =
+  ResultSetSqliteColumn("first_name", SqliteAffinity.TEXT, isNullable = true, inPrimaryKey = false)
+private val authorLastColumn =
+  SqliteColumn("last_name", SqliteAffinity.TEXT, isNullable = true, inPrimaryKey = false)
+private val authorsRow1 =
+  SqliteRow(
+    listOf(
+      SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(1)),
+      SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe1")),
+      SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName1")),
+    )
+  )
+private val authorsRow2 =
+  SqliteRow(
+    listOf(
+      SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(2)),
+      SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe2")),
+      SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName2")),
+    )
+  )
 
-  private lateinit var orderVerifier: InOrder
+private val authorsRow4 =
+  SqliteRow(
+    listOf(
+      SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(4)),
+      SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe4")),
+      SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName4")),
+    )
+  )
 
-  private lateinit var sqliteUtil: SqliteTestUtil
-  private lateinit var realDatabaseConnection: DatabaseConnection
-  private lateinit var mockDatabaseConnection: DatabaseConnection
+private val authorsRow5 =
+  SqliteRow(
+    listOf(
+      SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(5)),
+      SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe5")),
+      SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName5")),
+    )
+  )
+
+@RunWith(JUnit4::class)
+@RunsInEdt
+class TableControllerTest {
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val rule = RuleChain(projectRule, disposableRule, EdtRule())
+
+  private val project
+    get() = projectRule.project
+
+  private val disposable
+    get() = disposableRule.disposable
+
+  private val tableView = spy(FakeTableView::class.java)
+  private val sqliteResultSet = FakeSqliteResultSet()
+  private val edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+
+  private val orderVerifier = inOrder(tableView)
+
+  private val sqliteUtil =
+    SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+
+  private val realDatabaseConnection by lazy {
+    pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(
+        disposable,
+        sqliteUtil.createTestSqliteDatabase(),
+        FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
+      )
+    )
+  }
+  private val mockDatabaseConnection = mock(DatabaseConnection::class.java)
   private var customDatabaseConnection: DatabaseConnection? = null
-  private lateinit var databaseRepository: DatabaseRepository
+  private val databaseRepository by lazy { OpenDatabaseRepository(project, edtExecutor) }
 
   private val fileDatabaseId =
     SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file")))
   private val realDatabaseConnectionId = SqliteDatabaseId.fromLiveDatabase("real", 0)
   private val mockDatabaseConnectionId = SqliteDatabaseId.fromLiveDatabase("mock", 1)
 
-  private lateinit var authorIdColumn: ResultSetSqliteColumn
-  private lateinit var authorNameColumn: ResultSetSqliteColumn
-  private lateinit var authorsRow1: SqliteRow
-  private lateinit var authorsRow2: SqliteRow
-  private lateinit var authorsRow4: SqliteRow
-  private lateinit var authorsRow5: SqliteRow
-
   private val sqliteTable = SqliteTable("tableName", emptyList(), null, false)
 
-  override fun setUp() {
-    super.setUp()
-    tableView = spy(FakeTableView::class.java)
-    sqliteResultSet = FakeSqliteResultSet()
-    edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
-    mockDatabaseConnection = mock(DatabaseConnection::class.java)
-    orderVerifier = inOrder(tableView)
-
-    sqliteUtil =
-      SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+  @Before
+  fun setUp() {
     sqliteUtil.setUp()
-
-    val sqliteFile = sqliteUtil.createTestSqliteDatabase()
-    realDatabaseConnection =
-      pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          sqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
-        )
-      )
-
-    authorIdColumn = ResultSetSqliteColumn("author_id", SqliteAffinity.INTEGER, false, true)
-    authorNameColumn = ResultSetSqliteColumn("first_name", SqliteAffinity.TEXT, true, false)
-    val authorLastColumn = SqliteColumn("last_name", SqliteAffinity.TEXT, true, false)
-
-    authorsRow1 =
-      SqliteRow(
-        listOf(
-          SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(1)),
-          SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe1")),
-          SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName1"))
-        )
-      )
-
-    authorsRow2 =
-      SqliteRow(
-        listOf(
-          SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(2)),
-          SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe2")),
-          SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName2"))
-        )
-      )
-
-    authorsRow4 =
-      SqliteRow(
-        listOf(
-          SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(4)),
-          SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe4")),
-          SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName4"))
-        )
-      )
-
-    authorsRow5 =
-      SqliteRow(
-        listOf(
-          SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(5)),
-          SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe5")),
-          SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName5"))
-        )
-      )
-
-    databaseRepository = OpenDatabaseRepository(project, edtExecutor)
-
-    runDispatching {
+    runDispatching(AndroidDispatchers.uiThread) {
       databaseRepository.addDatabaseConnection(realDatabaseConnectionId, realDatabaseConnection)
       databaseRepository.addDatabaseConnection(mockDatabaseConnectionId, mockDatabaseConnection)
       databaseRepository.addDatabaseConnection(fileDatabaseId, mockDatabaseConnection)
     }
   }
 
-  override fun tearDown() {
-    try {
-      pumpEventsAndWaitForFuture(realDatabaseConnection.close())
-      if (customDatabaseConnection != null) {
-        pumpEventsAndWaitForFuture(customDatabaseConnection!!.close())
-      }
-      sqliteUtil.tearDown()
-    } finally {
-      super.tearDown()
+  @After
+  fun tearDown() {
+    pumpEventsAndWaitForFuture(realDatabaseConnection.close())
+    if (customDatabaseConnection != null) {
+      pumpEventsAndWaitForFuture(customDatabaseConnection!!.close())
     }
+    sqliteUtil.tearDown()
   }
 
+  @Test
   fun testSetUp() {
     // Prepare
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -205,9 +215,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -225,11 +235,12 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(3)).setEditable(true)
   }
 
+  @Test
   fun testSetUpTableNameIsNull() {
     // Prepare
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -241,9 +252,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -253,13 +264,14 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(3)).setEditable(false)
   }
 
+  @Test
   fun testRowIdColumnIsNotShownInView() {
     // Prepare
     val sqliteTable = SqliteTable("tableName", emptyList(), RowIdName.ROWID, false)
 
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -271,9 +283,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -288,6 +300,7 @@ class TableControllerTest : LightPlatformTestCase() {
       )
   }
 
+  @Test
   fun testSetUpError() {
     // Prepare
     val mockResultSet = mock(SqliteResultSet::class.java)
@@ -295,7 +308,7 @@ class TableControllerTest : LightPlatformTestCase() {
     whenever(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(throwable))
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(mockResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -307,9 +320,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     val error = pumpEventsAndWaitForFutureException(tableController.setUp())
@@ -323,11 +336,12 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).stopTableLoading()
   }
 
+  @Test
   fun testSetUpIsDisposed() {
     // Prepare
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -339,9 +353,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     Disposer.dispose(tableController)
@@ -351,13 +365,14 @@ class TableControllerTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFutureCancellation(future)
   }
 
+  @Test
   fun testSetUpErrorIsDisposed() {
     // Prepare
     val mockResultSet = mock(SqliteResultSet::class.java)
     whenever(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(Throwable()))
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(mockResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -369,20 +384,21 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act/Assert
     Disposer.dispose(tableController)
     pumpEventsAndWaitForFutureCancellation(tableController.setUp())
   }
 
+  @Test
   fun testRefreshData() {
     // Prepare
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -394,9 +410,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     pumpEventsAndWaitForFuture(tableController.setUp())
 
@@ -415,11 +431,12 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
   }
 
+  @Test
   fun testRefreshDataScheduledOneAtATime() {
     // Prepare
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -431,9 +448,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     pumpEventsAndWaitForFuture(tableController.setUp())
 
@@ -448,11 +465,12 @@ class TableControllerTest : LightPlatformTestCase() {
     assertTrue(future2 != future3)
   }
 
+  @Test
   fun testReloadDataFailsWhenControllerIsDisposed() {
     // Prepare
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -464,9 +482,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     pumpEventsAndWaitForFuture(tableController.setUp())
 
@@ -478,9 +496,10 @@ class TableControllerTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFutureCancellation(future)
   }
 
+  @Test
   fun testSortByColumnShowsLoadingScreen() {
     // Prepare
-    tableController =
+    val tableController =
       TableController(
         project,
         2,
@@ -492,9 +511,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -510,9 +529,10 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).stopTableLoading()
   }
 
+  @Test
   fun testReloadDataAfterSortReturnsSortedData() {
     // Prepare
-    tableController =
+    val tableController =
       TableController(
         project,
         2,
@@ -524,9 +544,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -550,12 +570,13 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).updateRows(emptyList())
   }
 
+  @Test
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnSetup`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(10)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -567,9 +588,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -578,12 +599,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(2)).setFetchNextRowsButtonState(false)
   }
 
+  @Test
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnNext`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(2)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         1,
@@ -595,9 +617,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -610,12 +632,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(3)).setFetchNextRowsButtonState(false)
   }
 
+  @Test
   fun `test Next`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -627,9 +650,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -649,12 +672,13 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).setRowOffset(20)
   }
 
+  @Test
   fun `test Next ShowsLoadingUi`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -666,9 +690,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -680,12 +704,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(2)).stopTableLoading()
   }
 
+  @Test
   fun `test NextBatchOf5`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         5,
@@ -697,9 +722,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -719,12 +744,13 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).setRowOffset(10)
   }
 
+  @Test
   fun `test Next Prev`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -736,9 +762,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -766,12 +792,13 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).setRowOffset(0)
   }
 
+  @Test
   fun `test Prev ShowsLoadingUi`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -783,9 +810,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -797,12 +824,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(2)).stopTableLoading()
   }
 
+  @Test
   fun `test Next Prev Next`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -814,9 +842,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -842,19 +870,20 @@ class TableControllerTest : LightPlatformTestCase() {
           listOf(10, 19),
           listOf(0, 9),
           listOf(10, 19),
-          listOf(20, 29)
+          listOf(20, 29),
         )
         .map { it.toSqliteValues() }
 
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test ChangeBatchSize`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -866,9 +895,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -888,12 +917,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test ChangeBatchSize At End`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(20)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -905,9 +935,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -923,12 +953,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `testChangeBatchSize DisablesPreviousButton`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -940,9 +971,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -957,12 +988,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(4)).setFetchPreviousRowsButtonState(false)
   }
 
+  @Test
   fun `test ChangeBatchSize DisablesNextButton`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(50)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -974,9 +1006,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -991,12 +1023,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(3)).setFetchNextRowsButtonState(false)
   }
 
+  @Test
   fun `test ChangeBatchSize Max Min`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(50)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1008,9 +1041,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1028,12 +1061,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(4)).setFetchNextRowsButtonState(false)
   }
 
+  @Test
   fun `test ChangeBatchSize Next`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1045,9 +1079,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1069,12 +1103,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test ChangeBatchSize Prev`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1086,9 +1121,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1110,12 +1145,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test ChangeBatchSize Prev ChangeBatchSize Prev Next`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1127,9 +1163,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1161,19 +1197,20 @@ class TableControllerTest : LightPlatformTestCase() {
           listOf(18, 27),
           listOf(8, 17),
           listOf(0, 9),
-          listOf(10, 19)
+          listOf(10, 19),
         )
         .map { it.toSqliteValues() }
 
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test First`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1185,9 +1222,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1205,12 +1242,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test First ShowsLoadingUi`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1222,9 +1260,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1236,12 +1274,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(2)).stopTableLoading()
   }
 
+  @Test
   fun `test First ChangeBatchSize`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1253,9 +1292,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1273,12 +1312,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test Last`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(50)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1290,9 +1330,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1305,12 +1345,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test Last ShowsLoadingUi`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(50)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1322,9 +1363,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1336,12 +1377,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(2)).stopTableLoading()
   }
 
+  @Test
   fun `test Last LastPage Not Full`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(61)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1353,9 +1395,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1368,12 +1410,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test Last Prev ChangeBatchSize First`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(50)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1385,9 +1428,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1409,12 +1452,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test InsertAtBeginning Next Prev`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1426,9 +1470,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1446,12 +1490,13 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun `test DeleteAtBeginning Next`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1463,9 +1508,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1480,9 +1525,10 @@ class TableControllerTest : LightPlatformTestCase() {
     assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
+  @Test
   fun testSetUpOnRealDb() {
     // Prepare
-    tableController =
+    val tableController =
       TableController(
         project,
         2,
@@ -1494,9 +1540,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1507,9 +1553,10 @@ class TableControllerTest : LightPlatformTestCase() {
       .updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
   }
 
+  @Test
   fun testSort() {
     // Prepare
-    tableController =
+    val tableController =
       TableController(
         project,
         2,
@@ -1521,9 +1568,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1546,9 +1593,10 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).updateRows(emptyList())
   }
 
+  @Test
   fun testSortOnNewColumn() {
     // Prepare
-    tableController =
+    val tableController =
       TableController(
         project,
         2,
@@ -1560,9 +1608,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1581,9 +1629,10 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).updateRows(emptyList())
   }
 
+  @Test
   fun testSortOnSortedQuery() {
     // Prepare
-    tableController =
+    val tableController =
       TableController(
         project,
         2,
@@ -1595,9 +1644,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1617,30 +1666,36 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
   }
 
+  @Test
   fun testUpdateCellUpdatesView() {
     // Prepare
     val customSqliteTable =
       SqliteTable(
         "tableName",
         listOf(
-          SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
-          SqliteColumn("c1", SqliteAffinity.TEXT, true, false)
+          SqliteColumn("rowid", SqliteAffinity.INTEGER, isNullable = false, inPrimaryKey = false),
+          SqliteColumn("c1", SqliteAffinity.TEXT, true, inPrimaryKey = false),
         ),
         RowIdName.ROWID,
-        false
+        false,
       )
 
     val resultSetCols =
       listOf(
-        ResultSetSqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
-        ResultSetSqliteColumn("c1", SqliteAffinity.TEXT, true, false)
+        ResultSetSqliteColumn(
+          "rowid",
+          SqliteAffinity.INTEGER,
+          isNullable = false,
+          inPrimaryKey = false,
+        ),
+        ResultSetSqliteColumn("c1", SqliteAffinity.TEXT, isNullable = true, inPrimaryKey = false),
       )
 
     whenever(mockDatabaseConnection.execute(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(Unit))
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1652,9 +1707,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     val targetCol = resultSetCols[1]
@@ -1676,12 +1731,13 @@ class TableControllerTest : LightPlatformTestCase() {
           SqliteStatementType.UPDATE,
           "UPDATE tableName SET c1 = ? WHERE rowid = ?",
           listOf("new value", 1).toSqliteValues(),
-          "UPDATE tableName SET c1 = 'new value' WHERE rowid = '1'"
+          "UPDATE tableName SET c1 = 'new value' WHERE rowid = '1'",
         )
       )
     orderVerifier.verify(tableView).stopTableLoading()
   }
 
+  @Test
   fun testUpdateCellOnRealDbIsSuccessfulWith_rowid_() {
     val customSqliteFile =
       sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"))
@@ -1689,10 +1745,11 @@ class TableControllerTest : LightPlatformTestCase() {
       customSqliteFile,
       "tableName",
       "c1",
-      "UPDATE tableName SET c1 = ? WHERE _rowid_ = ?"
+      "UPDATE tableName SET c1 = ? WHERE _rowid_ = ?",
     )
   }
 
+  @Test
   fun testUpdateCellOnRealDbIsSuccessfulWithRowid() {
     val customSqliteFile =
       sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1", "_rowid_"))
@@ -1700,10 +1757,11 @@ class TableControllerTest : LightPlatformTestCase() {
       customSqliteFile,
       "tableName",
       "c1",
-      "UPDATE tableName SET c1 = ? WHERE rowid = ?"
+      "UPDATE tableName SET c1 = ? WHERE rowid = ?",
     )
   }
 
+  @Test
   fun testUpdateCellOnRealDbIsSuccessfulWithOid() {
     val customSqliteFile =
       sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1", "_rowid_", "rowid"))
@@ -1711,10 +1769,11 @@ class TableControllerTest : LightPlatformTestCase() {
       customSqliteFile,
       "tableName",
       "c1",
-      "UPDATE tableName SET c1 = ? WHERE oid = ?"
+      "UPDATE tableName SET c1 = ? WHERE oid = ?",
     )
   }
 
+  @Test
   fun testUpdateCellOnRealDbIsSuccessfulWithPrimaryKey() {
     val customSqliteFile =
       sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"), listOf("pk"), true)
@@ -1722,10 +1781,11 @@ class TableControllerTest : LightPlatformTestCase() {
       customSqliteFile,
       "tableName",
       "c1",
-      "UPDATE tableName SET c1 = ? WHERE pk = ?"
+      "UPDATE tableName SET c1 = ? WHERE pk = ?",
     )
   }
 
+  @Test
   fun testUpdateCellOnRealDbIsSuccessfulWithMultiplePrimaryKeys() {
     val customSqliteFile =
       sqliteUtil.createTestSqliteDatabase(
@@ -1733,46 +1793,48 @@ class TableControllerTest : LightPlatformTestCase() {
         "tableName",
         listOf("c1"),
         listOf("pk1", "pk2"),
-        true
+        true,
       )
     testUpdateWorksOnCustomDatabase(
       customSqliteFile,
       "tableName",
       "c1",
-      "UPDATE tableName SET c1 = ? WHERE pk1 = ? AND pk2 = ?"
+      "UPDATE tableName SET c1 = ? WHERE pk1 = ? AND pk2 = ?",
     )
   }
 
+  @Test
   fun testEscaping() {
     val customSqliteFile =
       sqliteUtil.createTestSqliteDatabase(
         "customDb",
         "table'Name",
         listOf("c`1"),
-        listOf("p\"k1", "p'k2")
+        listOf("p\"k1", "p'k2"),
       )
     testUpdateWorksOnCustomDatabase(
       customSqliteFile,
       "table'Name",
       "c`1",
-      "UPDATE `table'Name` SET `c``1` = ? WHERE `p\"k1` = ? AND `p'k2` = ?"
+      "UPDATE `table'Name` SET `c``1` = ? WHERE `p\"k1` = ? AND `p'k2` = ?",
     )
   }
 
+  @Test
   fun testUpdateCellFailsWhenNoRowIdAndNoPrimaryKey() {
     // Prepare
     val customSqliteFile =
       sqliteUtil.createTestSqliteDatabase(
         "customDb",
         "tableName",
-        listOf("c1", "_rowid_", "rowid", "oid")
+        listOf("c1", "_rowid_", "rowid", "oid"),
       )
     customDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
-          testRootDisposable,
+          disposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
@@ -1790,12 +1852,12 @@ class TableControllerTest : LightPlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable))
         )
       )
-    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).first()
+    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).rows.first()
 
     val originalValue = targetRow.values.first { it.columnName == targetCol.name }.value
     val newValue = SqliteValue.StringValue("test value")
 
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1807,9 +1869,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
@@ -1832,24 +1894,25 @@ class TableControllerTest : LightPlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1)).rows
     val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(originalValue, value)
   }
 
+  @Test
   fun `test TableWithoutPK AlterTableAddAllRowIdCombinations UpdateCell ReportErrorInView`() {
     // Prepare
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (1)",
       )
     customDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
-          testRootDisposable,
+          disposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
@@ -1867,7 +1930,7 @@ class TableControllerTest : LightPlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable))
         )
       )
-    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).first()
+    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).rows.first()
 
     val originalValue = targetRow.values.first { it.columnName == targetCol.name }.value
     val newValue = SqliteValue.StringValue("test value")
@@ -1877,7 +1940,7 @@ class TableControllerTest : LightPlatformTestCase() {
         var table = targetTable
       }
 
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1889,9 +1952,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
@@ -1931,17 +1994,18 @@ class TableControllerTest : LightPlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1)).rows
     val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(originalValue, value)
   }
 
+  @Test
   fun `test AddRows`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(15)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1953,9 +2017,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -1966,12 +2030,13 @@ class TableControllerTest : LightPlatformTestCase() {
       .updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
   }
 
+  @Test
   fun `test AddRows RemoveRows`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(15)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -1983,9 +2048,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -2003,12 +2068,13 @@ class TableControllerTest : LightPlatformTestCase() {
       )
   }
 
+  @Test
   fun `test AddRows UpdateRows`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(20)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2020,9 +2086,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -2036,12 +2102,13 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[1].toCellUpdates())
   }
 
+  @Test
   fun `test AddRows RemoveRows AddRows`() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(15)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2053,9 +2120,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -2081,19 +2148,20 @@ class TableControllerTest : LightPlatformTestCase() {
       )
   }
 
+  @Test
   fun `test ShowTable DropTable RefreshShowsEmptyTable`() {
     // Prepare
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (1)",
       )
     customDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
-          testRootDisposable,
+          disposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
@@ -2109,7 +2177,7 @@ class TableControllerTest : LightPlatformTestCase() {
         var table: SqliteTable? = targetTable
       }
 
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2121,9 +2189,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
@@ -2154,19 +2222,20 @@ class TableControllerTest : LightPlatformTestCase() {
       .reportError(eq("Error retrieving data from table."), any(Throwable::class.java))
   }
 
+  @Test
   fun testRowsDiffWorksWhenColumnsChange() {
     // Prepare
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (42)",
       )
     customDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
-          testRootDisposable,
+          disposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
@@ -2182,7 +2251,7 @@ class TableControllerTest : LightPlatformTestCase() {
         var table: SqliteTable? = targetTable
       }
 
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2194,9 +2263,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
@@ -2235,7 +2304,7 @@ class TableControllerTest : LightPlatformTestCase() {
             SqliteRow(
               listOf(
                 SqliteColumnValue("c1", SqliteValue.StringValue("42")),
-                SqliteColumnValue("c2", SqliteValue.NullValue)
+                SqliteColumnValue("c2", SqliteValue.NullValue),
               )
             )
           )
@@ -2243,19 +2312,20 @@ class TableControllerTest : LightPlatformTestCase() {
       )
   }
 
+  @Test
   fun `test ShowTable DropTable EditTableShowsError`() {
     // Prepare
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT)",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (1)",
       )
     customDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
-          testRootDisposable,
+          disposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
@@ -2272,7 +2342,7 @@ class TableControllerTest : LightPlatformTestCase() {
         var table: SqliteTable? = targetTable
       }
 
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2284,9 +2354,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
@@ -2302,7 +2372,7 @@ class TableControllerTest : LightPlatformTestCase() {
       .updateCellInvoked(
         0,
         targetCol.toResultSetCol().toViewColumn(),
-        SqliteValue.StringValue("test value")
+        SqliteValue.StringValue("test value"),
       )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -2311,11 +2381,12 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verifyNoMoreInteractions()
   }
 
+  @Test
   fun testDisposeCancelsExecution() {
     val executionFuture = SettableFuture.create<SqliteResultSet>()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(executionFuture)
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2327,10 +2398,10 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
 
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     tableController.setUp()
@@ -2340,17 +2411,18 @@ class TableControllerTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFutureCancellation(executionFuture)
   }
 
+  @Test
   fun testCancelRunningStatementAnalytics() {
     // Prepare
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(
       DatabaseInspectorAnalyticsTracker::class.java,
-      mockTrackerService
+      mockTrackerService,
     )
 
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2362,10 +2434,10 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
     tableController.setUp()
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -2375,21 +2447,22 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(mockTrackerService)
       .trackStatementExecutionCanceled(
         AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT,
       )
   }
 
+  @Test
   fun testRefreshDataAnalytics() {
     // Prepare
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(
       DatabaseInspectorAnalyticsTracker::class.java,
-      mockTrackerService
+      mockTrackerService,
     )
 
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2401,10 +2474,10 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
     tableController.setUp()
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -2415,24 +2488,26 @@ class TableControllerTest : LightPlatformTestCase() {
       .trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.TABLE_TARGET)
   }
 
+  @Test
   fun testShowExportToFileDialogInvoked_table() {
     val table = SqliteTable("tableName", mock(), null, false)
     val expectedDialogParams =
       ExportTableDialogParams(
         mockDatabaseConnectionId,
         table.name,
-        Origin.TABLE_CONTENTS_EXPORT_BUTTON
+        Origin.TABLE_CONTENTS_EXPORT_BUTTON,
       )
     testShowExportToFileDialogInvoked({ table }, mock(), expectedDialogParams)
   }
 
+  @Test
   fun testShowExportToFileDialogInvoked_query() {
     val sqliteStatement = SqliteStatement(SqliteStatementType.SELECT, "select * from table1337")
     val expectedDialogParams =
       ExportQueryResultsDialogParams(
         mockDatabaseConnectionId,
         sqliteStatement,
-        Origin.QUERY_RESULTS_EXPORT_BUTTON
+        Origin.QUERY_RESULTS_EXPORT_BUTTON,
       )
     testShowExportToFileDialogInvoked({ null }, sqliteStatement, expectedDialogParams)
   }
@@ -2440,14 +2515,14 @@ class TableControllerTest : LightPlatformTestCase() {
   private fun testShowExportToFileDialogInvoked(
     tableSupplier: () -> SqliteTable?,
     sqliteStatement: SqliteStatement,
-    expectedDialogParams: ExportDialogParams
+    expectedDialogParams: ExportDialogParams,
   ) {
     // Prepare
     val showExportDialog: (ExportDialogParams) -> Unit = mock()
 
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2459,10 +2534,10 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         showExportDialog,
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
     tableController.setUp()
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -2472,27 +2547,30 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(showExportDialog).invoke(expectedDialogParams)
   }
 
+  @Test
   fun testEditCellAnalytics() {
     // Prepare
     val customSqliteTable =
       SqliteTable(
         "tableName",
-        listOf(SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)),
+        listOf(
+          SqliteColumn("rowid", SqliteAffinity.INTEGER, isNullable = false, inPrimaryKey = false)
+        ),
         RowIdName.ROWID,
-        false
+        false,
       )
 
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(
       DatabaseInspectorAnalyticsTracker::class.java,
-      mockTrackerService
+      mockTrackerService,
     )
 
     whenever(mockDatabaseConnection.execute(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(Unit))
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2504,9 +2582,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     val targetCol = customSqliteTable.columns[0]
@@ -2522,17 +2600,18 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(mockTrackerService).trackTableCellEdited()
   }
 
+  @Test
   fun testToggleLiveUpdatesAnalytics() {
     // Prepare
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(
       DatabaseInspectorAnalyticsTracker::class.java,
-      mockTrackerService
+      mockTrackerService,
     )
 
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2544,10 +2623,10 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
     tableController.setUp()
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -2559,12 +2638,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(mockTrackerService).trackLiveUpdatedToggled(false)
   }
 
+  @Test
   fun testNotifyDataMightBeStaleUpdatesTable() {
     // Prepare
     val mockResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(mockResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2576,9 +2656,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
@@ -2597,12 +2677,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(1)).startTableLoading()
   }
 
+  @Test
   fun testToggleLiveUpdatesKeepsTableNotEditable() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2614,9 +2695,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
@@ -2637,19 +2718,20 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(0)).setEditable(true)
   }
 
+  @Test
   fun testViewsAreNotEditable() {
     // Prepare
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT); CREATE VIEW my_view AS SELECT * FROM t1",
-        insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+        insertStatement = "INSERT INTO t1 (c1) VALUES (1)",
       )
     customDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
-          testRootDisposable,
+          disposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
@@ -2665,7 +2747,7 @@ class TableControllerTest : LightPlatformTestCase() {
         var table: SqliteTable? = myView
       }
 
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2677,9 +2759,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
@@ -2687,6 +2769,7 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(0)).setEditable(true)
   }
 
+  @Test
   fun testSetUpFailsWithAppInspectionException() {
     // Prepare
     val mockResultSet = mock(SqliteResultSet::class.java)
@@ -2694,7 +2777,7 @@ class TableControllerTest : LightPlatformTestCase() {
     whenever(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(connectionException))
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(mockResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2706,9 +2789,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     val error = pumpEventsAndWaitForFutureException(tableController.setUp())
@@ -2720,11 +2803,12 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).stopTableLoading()
   }
 
+  @Test
   fun testColumnInformationFromSchema() {
     // Prepare
     val mockResultSet = mock(SqliteResultSet::class.java)
     whenever(mockResultSet.getRowBatch(any(), any()))
-      .thenReturn(Futures.immediateFuture(emptyList()))
+      .thenReturn(Futures.immediateFuture(SqliteQueryResult(emptyList())))
     whenever(mockResultSet.totalRowCount).thenReturn(Futures.immediateFuture(0))
     whenever(mockResultSet.columns)
       .thenReturn(Futures.immediateFuture(listOf(ResultSetSqliteColumn("c1", null, null, null))))
@@ -2733,9 +2817,14 @@ class TableControllerTest : LightPlatformTestCase() {
       .thenReturn(Futures.immediateFuture(mockResultSet))
 
     val table =
-      SqliteTable("t1", listOf(SqliteColumn("c1", SqliteAffinity.TEXT, false, true)), null, false)
+      SqliteTable(
+        "t1",
+        listOf(SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = true)),
+        null,
+        false,
+      )
 
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2747,22 +2836,25 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
-    orderVerifier.verify(tableView).showTableColumns(listOf(ViewColumn("c1", true, false)))
+    orderVerifier
+      .verify(tableView)
+      .showTableColumns(listOf(ViewColumn("c1", inPrimaryKey = true, isNullable = false)))
   }
 
+  @Test
   fun testLiveUpdatesDisabledAndReadOnlyForFileDatabase() {
     // Prepare
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2774,9 +2866,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
@@ -2794,12 +2886,13 @@ class TableControllerTest : LightPlatformTestCase() {
     verify(tableView, times(3)).setEditable(false)
   }
 
+  @Test
   fun testRowCountInputValidation() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet(50)
     whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2811,10 +2904,10 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
     pumpEventsAndWaitForFuture(tableController.setUp())
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
 
     // Act
     tableView.listeners.first().rowCountChanged("0")
@@ -2826,9 +2919,9 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(
         Pair("Row count must be a positive integer.", null),
         Pair("Row count must be a positive integer.", null),
-        Pair("Row count must be a positive integer.", null)
+        Pair("Row count must be a positive integer.", null),
       ),
-      tableView.errorReported
+      tableView.errorReported,
     )
   }
 
@@ -2836,15 +2929,15 @@ class TableControllerTest : LightPlatformTestCase() {
     databaseFile: VirtualFile,
     targetTableName: String,
     targetColumnName: String,
-    expectedSqliteStatement: String
+    expectedSqliteStatement: String,
   ) {
     // Prepare
     customDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
-          testRootDisposable,
+          disposable,
           databaseFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseConnectionWrapper = DatabaseConnectionWrapper(customDatabaseConnection!!)
@@ -2860,7 +2953,7 @@ class TableControllerTest : LightPlatformTestCase() {
 
     val newValue = SqliteValue.StringValue("test value")
 
-    tableController =
+    val tableController =
       TableController(
         project,
         10,
@@ -2872,9 +2965,9 @@ class TableControllerTest : LightPlatformTestCase() {
         {},
         {},
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
-    Disposer.register(testRootDisposable, tableController)
+    Disposer.register(disposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
@@ -2889,11 +2982,11 @@ class TableControllerTest : LightPlatformTestCase() {
         customDatabaseConnection!!.query(
           SqliteStatement(
             SqliteStatementType.SELECT,
-            "SELECT * FROM ${AndroidSqlLexer.getValidName(targetTableName)}"
+            "SELECT * FROM ${AndroidSqlLexer.getValidName(targetTableName)}",
           )
         )
       )
-    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1)).rows
     val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(SqliteValue.StringValue("test value"), value)
     val executedUpdateStatement =
@@ -2907,7 +3000,7 @@ class TableControllerTest : LightPlatformTestCase() {
 
   private fun assertRowSequence(
     invocations: List<List<SqliteRow>>,
-    expectedInvocations: List<List<SqliteValue>>
+    expectedInvocations: List<List<SqliteValue>>,
   ) {
     assertTrue(invocations.size == expectedInvocations.size)
     invocations.forEachIndexed { index, rows ->

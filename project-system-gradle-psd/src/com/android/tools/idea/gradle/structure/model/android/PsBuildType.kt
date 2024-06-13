@@ -87,6 +87,8 @@ open class PsBuildType(
   var consumerProguardFiles by BuildTypeDescriptors.consumerProGuardFiles
   var proguardFiles by BuildTypeDescriptors.proGuardFiles
   var manifestPlaceholders by BuildTypeDescriptors.manifestPlaceholders
+  var enableUnitTestCoverage by BuildTypeDescriptors.enableUnitTestCoverage
+  var enableAndroidTestCoverage by BuildTypeDescriptors.enableAndroidTestCoverage
 
   override val isDeclared: Boolean get() = parsedModel != null
   override val icon: Icon = BUILD_TYPE
@@ -287,9 +289,33 @@ open class PsBuildType(
       parser = ::parseAny
     )
 
+    val enableUnitTestCoverage: SimpleProperty<PsBuildType, Boolean> = property(
+      "Enable Unit Test Coverage",
+      preferredVariableName = { variableName("$name-enable-unit-test-coverage") },
+      defaultValueGetter = { false },
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { enableUnitTestCoverage() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parser = ::parseBoolean,
+      knownValuesGetter = ::booleanValues
+    )
+
+    val enableAndroidTestCoverage: SimpleProperty<PsBuildType, Boolean> = property(
+      "Enable Android Test Coverage",
+      preferredVariableName = { variableName("$name-enable-android-test-coverage") },
+      defaultValueGetter = { false },
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { enableAndroidTestCoverage() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parser = ::parseBoolean,
+      knownValuesGetter = ::booleanValues
+    )
+
     override val properties: Collection<ModelProperty<PsBuildType, *, *, *>> =
-      listOf(applicationIdSuffix, debuggable, jniDebuggable, minifyEnabled, multiDexEnabled,
-             renderscriptDebuggable, renderscriptOptimLevel, signingConfig, testCoverageEnabled, versionNameSuffix, zipAlignEnabled,
-             matchingFallbacks, consumerProGuardFiles, proGuardFiles, manifestPlaceholders)
+      listOf(applicationIdSuffix, debuggable, jniDebuggable, minifyEnabled, multiDexEnabled, renderscriptDebuggable, renderscriptOptimLevel,
+             signingConfig, testCoverageEnabled, versionNameSuffix, zipAlignEnabled, matchingFallbacks, consumerProGuardFiles,
+             proGuardFiles, manifestPlaceholders, enableUnitTestCoverage, enableAndroidTestCoverage)
   }
 }

@@ -68,7 +68,7 @@ class VisualLintServiceTest {
         LongTextAnalyzerInspection(),
         ButtonSizeAnalyzerInspection(),
         WearMarginAnalyzerInspection(),
-        AtfAnalyzerInspection()
+        AtfAnalyzerInspection(),
       )
     projectRule.fixture.enableInspections(*visualLintInspections)
   }
@@ -96,9 +96,8 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
-        dashboardLayout
+        dashboardLayout,
       )
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintService.runVisualLintAnalysis(
@@ -106,7 +105,7 @@ class VisualLintServiceTest {
       ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
       listOf(nlModel),
       emptyMap(),
-      visualLintExecutorService
+      visualLintExecutorService,
     )
     visualLintExecutorService.waitForTasksToComplete()
 
@@ -120,9 +119,8 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
-        atfLayout
+        atfLayout,
       )
     VisualLintService.getInstance(projectRule.project)
       .runVisualLintAnalysis(
@@ -130,7 +128,7 @@ class VisualLintServiceTest {
         ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
         listOf(atfModel),
         emptyMap(),
-        visualLintExecutorService
+        visualLintExecutorService,
       )
     visualLintExecutorService.waitForTasksToComplete()
 
@@ -151,10 +149,9 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         wearLayout,
-        wearConfiguration
+        wearConfiguration,
       )
     VisualLintService.getInstance(projectRule.project)
       .runVisualLintAnalysis(
@@ -162,7 +159,7 @@ class VisualLintServiceTest {
         ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
         listOf(wearModel),
         emptyMap(),
-        visualLintExecutorService
+        visualLintExecutorService,
       )
     visualLintExecutorService.waitForTasksToComplete()
 
@@ -196,16 +193,15 @@ class VisualLintServiceTest {
         module,
         notificationsLayout,
         "_device_class_phone",
-        "Theme.MaterialComponents.DayNight.DarkActionBar"
+        "Theme.MaterialComponents.DayNight.DarkActionBar",
       )
     val phoneModel =
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         notificationsLayout,
-        phoneConfig
+        phoneConfig,
       )
     RenderTestUtil.withRenderTask(facet, notificationsLayout, phoneConfig) { task: RenderTask ->
       task.setDecorations(false)
@@ -216,7 +212,7 @@ class VisualLintServiceTest {
           ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to phoneModel),
-          visualLintExecutorService
+          visualLintExecutorService,
         )
         visualLintExecutorService.waitForTasksToComplete()
         val issues = visualLintIssueModel.issues
@@ -231,16 +227,15 @@ class VisualLintServiceTest {
         module,
         notificationsLayout,
         "_device_class_tablet",
-        "Theme.MaterialComponents.DayNight.DarkActionBar"
+        "Theme.MaterialComponents.DayNight.DarkActionBar",
       )
     val tabletModel =
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         notificationsLayout,
-        tabletConfig
+        tabletConfig,
       )
     RenderTestUtil.withRenderTask(facet, notificationsLayout, tabletConfig) { task: RenderTask ->
       task.setDecorations(false)
@@ -251,7 +246,7 @@ class VisualLintServiceTest {
           ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to tabletModel),
-          visualLintExecutorService
+          visualLintExecutorService,
         )
         visualLintExecutorService.waitForTasksToComplete()
         val issues = visualLintIssueModel.issues
@@ -268,10 +263,9 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        null,
         facet,
         atfLayout,
-        phoneConfig
+        phoneConfig,
       )
     RenderTestUtil.withRenderTask(facet, atfLayout, phoneConfig) { task: RenderTask ->
       task.setDecorations(false)
@@ -284,7 +278,7 @@ class VisualLintServiceTest {
           ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to atfModel),
-          visualLintExecutorService
+          visualLintExecutorService,
         )
         visualLintExecutorService.waitForTasksToComplete()
         val issues = visualLintIssueModel.issues

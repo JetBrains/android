@@ -32,6 +32,7 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.timing.Wait;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,6 +88,7 @@ public class JavaToKotlinConversionTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
+  @Ignore("b/316416680")
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testJavaToKotlinConversion() throws Exception {
@@ -137,15 +139,18 @@ public class JavaToKotlinConversionTest {
     configureKotlinDialogBox.clickOkAndWaitDialogDisappear();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    assertThat(editor.open("build.gradle")
+    assertThat(editor.open("gradle/libs.versions.toml")
                  .getCurrentFileContents()
-      // If created as a Kotlin language, this should be written using version catalogs, but this scenario is created as a Java project
-      // first, then converted to Kotlin project. In that case, kotlin plugin isn't written using version catalogs.
                  .contains("org.jetbrains.kotlin.android"))
       .isTrue();
 
+    assertThat(editor.open("build.gradle")
+                 .getCurrentFileContents()
+                 .contains("libs.plugins.jetbrainsKotlinAndroid"))
+      .isTrue();
+
     //Manually changing the kotlin version to the latest version.
-    ConversionTestUtil.changeKotlinVersion(guiTest, "build.gradle");
+    ConversionTestUtil.changeKotlinVersion(guiTest, "gradle/libs.versions.toml");
 
     //Manually syncing after changing the kotlin version.
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();

@@ -60,7 +60,7 @@ import kotlinx.coroutines.selects.select
 data class ActionContext(
   val action: Action,
   val currentState: AppInsightsState,
-  val lastGoodState: AppInsightsState?
+  val lastGoodState: AppInsightsState?,
 ) {
   companion object {
     fun getDefaultState(defaultFilters: Filters) =
@@ -71,9 +71,9 @@ data class ActionContext(
           defaultFilters,
           LoadingState.Loading,
           LoadingState.Ready(null),
-          LoadingState.Ready(null)
+          LoadingState.Ready(null),
         ),
-        null
+        null,
       )
   }
 }
@@ -171,7 +171,7 @@ class ActionDispatcher(
   private fun fetchNotes(
     connection: Connection,
     state: AppInsightsState,
-    action: Action.FetchNotes
+    action: Action.FetchNotes,
   ): CancellationToken {
     return scope
       .launch {
@@ -198,7 +198,7 @@ class ActionDispatcher(
               HyperlinkListener {
                 val clipboard = Toolkit.getDefaultToolkit().systemClipboard
                 clipboard.setContents(StringSelection(action.note.body), null)
-              }
+              },
             )
             eventEmitter(RollbackAddNoteRequest(action.note.id, result))
             if (result is LoadingState.NetworkFailure) {
@@ -220,7 +220,7 @@ class ActionDispatcher(
           is LoadingState.Failure -> {
             onErrorAction(
               "Unable to delete this note: ${result.cause?.message ?: result.message ?: "Unknown failure."}",
-              null
+              null,
             )
             eventEmitter(RollbackDeleteNoteRequest(action.noteId, result))
             if (result is LoadingState.NetworkFailure) {
@@ -234,7 +234,7 @@ class ActionDispatcher(
 
   private fun fetchDetails(
     state: AppInsightsState,
-    action: Action.FetchDetails
+    action: Action.FetchDetails,
   ): CancellationToken {
     val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     return scope
@@ -244,7 +244,7 @@ class ActionDispatcher(
           eventEmitter(
             IssueDetailsChanged(
               action.id,
-              LoadingState.NetworkFailure("Distribution data is not available")
+              LoadingState.NetworkFailure("Distribution data is not available"),
             )
           )
           return@launch
@@ -252,7 +252,7 @@ class ActionDispatcher(
         eventEmitter(
           IssueDetailsChanged(
             action.id,
-            appInsightsClient.getIssueDetails(action.id, issueRequest, action.variantId)
+            appInsightsClient.getIssueDetails(action.id, issueRequest, action.variantId),
           )
         )
       }
@@ -263,7 +263,7 @@ class ActionDispatcher(
     state: AppInsightsState,
     lastGoodState: AppInsightsState?,
     reason: FetchSource,
-    action: Action.Single
+    action: Action.Single,
   ): CancellationToken {
     val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     val connectionMode = if (reason == FetchSource.REFRESH) ConnectionMode.ONLINE else state.mode
@@ -278,7 +278,7 @@ class ActionDispatcher(
             issueRequest,
             reason,
             connectionMode,
-            state.permission
+            state.permission,
           )
         timeoutJob.cancelAndJoin()
         when (fetchResult) {
@@ -298,7 +298,7 @@ class ActionDispatcher(
 
   private fun fetchIssueVariants(
     state: AppInsightsState,
-    action: Action.FetchIssueVariants
+    action: Action.FetchIssueVariants,
   ): CancellationToken {
     val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     return scope
@@ -330,7 +330,13 @@ class ActionDispatcher(
             )
           } else {
             EventsChanged(
-              appInsightsClient.listEvents(action.id, action.variantId, issueRequest, action.token)
+              appInsightsClient.listEvents(
+                action.id,
+                action.variantId,
+                issueRequest,
+                state.selectedIssue!!.issueDetails.fatality,
+                action.token,
+              )
             )
           }
         )
@@ -342,7 +348,7 @@ class ActionDispatcher(
     scope: CoroutineScope,
     timeout: Long,
     initialValue: U,
-    fold: (U, T) -> U
+    fold: (U, T) -> U,
   ): ReceiveChannel<U> {
     val batchedChannel = Channel<U>()
     scope.launch {
@@ -367,7 +373,7 @@ class ActionDispatcher(
       ActionContext(
         acc.action and actionContext.action,
         actionContext.currentState,
-        actionContext.lastGoodState
+        actionContext.lastGoodState,
       )
     }
 }

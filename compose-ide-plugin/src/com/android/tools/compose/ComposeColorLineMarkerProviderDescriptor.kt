@@ -34,7 +34,6 @@ import com.intellij.util.ui.ColorIcon
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
-import org.jetbrains.kotlin.idea.base.codeInsight.handlers.fixers.range
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -68,7 +67,7 @@ class ComposeColorLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() 
     val iconRenderer = ColorIconRenderer(uElement, color)
     return LineMarkerInfo(
       element,
-      element.range,
+      element.textRange,
       iconRenderer.icon,
       { ComposeBundle.message("compose.color.picker.tooltip") },
       iconRenderer,
@@ -124,10 +123,10 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
               project,
               "Change Color",
               null,
-              { setColorTask.invoke(color) }
+              { setColorTask.invoke(color) },
             )
           },
-          project.disposed
+          project.disposed,
         )
     }
 
@@ -243,7 +242,7 @@ enum class ComposeColorConstructor {
   INT_X4,
   FLOAT_X3,
   FLOAT_X4,
-  FLOAT_X4_COLORSPACE
+  FLOAT_X4_COLORSPACE,
 }
 
 private fun getColorInt(arguments: List<KtValueArgument>): Color? {
@@ -284,7 +283,7 @@ private fun getColorFloatX4(arguments: List<KtValueArgument>): Color? {
  */
 private inline fun <reified T> getNamedValues(
   requestArgumentNames: List<String>,
-  ktValueArgument: List<KtValueArgument>
+  ktValueArgument: List<KtValueArgument>,
 ): Map<String, T>? {
   val namedValues = mutableMapOf<String, T>()
 

@@ -159,7 +159,7 @@ public class AndroidConfigurationProgramRunnerTest {
                                                         }
                                                       });
 
-    UsefulTestCase.assertThrows(RuntimeException.class, "Exception in Runner", () -> execute.get().blockingGet(1000));
+    UsefulTestCase.assertThrows(java.util.concurrent.ExecutionException.class, "Exception in Runner", () -> execute.get().blockingGet(1000));
     assertTrue(Promises.isRejected(execute.get()));
   }
 

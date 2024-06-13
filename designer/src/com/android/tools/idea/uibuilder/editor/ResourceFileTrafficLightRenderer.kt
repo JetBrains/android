@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.editor
 
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.IssueProviderListener
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.isInResourceSubdirectory
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.codeInsight.daemon.impl.ErrorStripeUpdateManager
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
@@ -39,7 +39,7 @@ private val SEVERITY_TO_ICON =
     Pair(SpellCheckerSeveritiesProvider.TYPO, StudioIcons.Common.TYPO_STACK),
     Pair(HighlightSeverity.WEAK_WARNING, StudioIcons.Common.WEAK_WARNING_STACK),
     Pair(HighlightSeverity.WARNING, StudioIcons.Common.WARNING_STACK),
-    Pair(HighlightSeverity.ERROR, StudioIcons.Common.ERROR_STACK)
+    Pair(HighlightSeverity.ERROR, StudioIcons.Common.ERROR_STACK),
   )
 
 /**
@@ -61,7 +61,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
             ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor, file)
           }
         }
-      }
+      },
     )
   }
 
@@ -71,7 +71,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
       return
     }
     errorCountArray.fill(0)
-    val issues = IssuePanelService.getInstance(project).getSharedPanelIssues() ?: return
+    val issues = IssuePanelService.getInstance(project).getSharedPanelIssues()
     issues.forEach {
       val index = severities.indexOf(it.severity)
       if (index > -1) {
@@ -112,16 +112,17 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
   private inner class ResourceFileUIController : DefaultUIController() {
     override fun toggleProblemsView() {
       val issuePanelService = IssuePanelService.getInstance(project)
-      issuePanelService.setSharedIssuePanelVisibility(!issuePanelService.isIssuePanelVisible())
+      if (issuePanelService.isIssuePanelVisible()) {
+        ProblemsView.getToolWindow(project)?.hide()
+      } else {
+        issuePanelService.showSharedIssuePanel()
+      }
     }
   }
 }
 
 class ResourceFileTrafficLightRendererContributor : TrafficLightRendererContributor {
   override fun createRenderer(editor: Editor, file: PsiFile?): TrafficLightRenderer? {
-    if (!StudioFlags.NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES.get()) {
-      return null
-    }
     // Use this customized renderer only for resource files, returning null means that the default
     // renderer will be used.
     return ReadAction.compute<TrafficLightRenderer?, RuntimeException> {

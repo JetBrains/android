@@ -67,7 +67,7 @@ class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) 
           JBUI.scale(borderWidth),
           borderColor,
           transparentBorderColor,
-          useHighQuality = false
+          useHighQuality = false,
         )
       componentsToHighlight.forEach {
         val swingX = Coordinates.getSwingX(screenView, it.x)

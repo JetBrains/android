@@ -237,10 +237,7 @@ class DocumentAppenderTest {
     )
 
     assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesRange))
-      .containsExactly(
-        getRangeForText("efgh\n", red),
-        getRangeForText("ijkl\n", blue),
-      )
+      .containsExactly(getRangeForText("efgh\n", red), getRangeForText("ijkl\n", blue))
   }
 
   @Test
@@ -274,10 +271,7 @@ class DocumentAppenderTest {
     )
 
     assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesKeyRange))
-      .containsExactly(
-        getRangeForText("efgh\n", redKey),
-        getRangeForText("ijkl\n", blueKey),
-      )
+      .containsExactly(getRangeForText("efgh\n", redKey), getRangeForText("ijkl\n", blueKey))
   }
 
   private fun <T> getRangeForText(text: String, data: T): TextAccumulator.Range<T>? {
@@ -290,7 +284,7 @@ class DocumentAppenderTest {
 
   private fun documentAppender(
     document: DocumentEx = this.document,
-    maxDocumentSize: Int = Int.MAX_VALUE
+    maxDocumentSize: Int = Int.MAX_VALUE,
   ) = DocumentAppender(projectRule.project, document, maxDocumentSize)
 }
 

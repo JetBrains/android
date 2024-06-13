@@ -5,8 +5,8 @@
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module-library">
       <library name="ui-animation-tooling-internal">
         <CLASSES>
@@ -24,17 +24,11 @@
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
+     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
@@ -102,5 +96,9 @@
     <orderEntry type="module" module-name="kotlin.highlighting.shared" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.base.util" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.core" />
+    <orderEntry type="module" module-name="intellij.java.impl" />
+    <orderEntry type="module" module-name="intellij.platform.diff.impl" />
+    <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" />
   </component>
 </module>

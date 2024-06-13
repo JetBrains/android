@@ -40,7 +40,7 @@ private class TestScreenViewProvider : ScreenViewProvider {
 
   override fun createPrimarySceneView(
     surface: NlDesignSurface,
-    manager: LayoutlibSceneManager
+    manager: LayoutlibSceneManager,
   ): ScreenView {
     primarySceneViewCreationCount++
     return ScreenView.newBuilder(surface, manager).build()
@@ -61,13 +61,13 @@ class SetColorBlindModeActionTest {
           projectRule.fixture,
           SdkConstants.FD_RES_LAYOUT,
           "model.xml",
-          ComponentDescriptor("LinearLayout")
+          ComponentDescriptor("LinearLayout"),
         )
         .build()
     }
     val myScreenViewProvider = TestScreenViewProvider()
     val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
-    surface.model = model
+    surface.addModelWithoutRender(model).join()
 
     surface.setScreenViewProvider(myScreenViewProvider, false)
 

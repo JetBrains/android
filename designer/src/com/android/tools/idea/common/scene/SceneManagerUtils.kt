@@ -22,12 +22,6 @@ import kotlinx.coroutines.future.await
  *
  * @param onCompleteCallback callback to be executed if the `CompletionStage` completes normally.
  */
-suspend fun SceneManager.render(onCompleteCallback: () -> Unit = {}) {
-  requestRenderAsync()
-    .whenComplete { _, throwable ->
-      if (throwable == null) {
-        onCompleteCallback()
-      }
-    }
-    .await()
+suspend fun SceneManager.render(onCompleteCallback: (Throwable?) -> Unit = {}) {
+  requestRenderAsync().whenComplete { _, throwable -> onCompleteCallback(throwable) }.await()
 }

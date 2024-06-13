@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.ViewBindingTypeDetector
 class AndroidLintViewBindingTypeInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.view.binding.type"),
-    ViewBindingTypeDetector.ISSUE
+    ViewBindingTypeDetector.ISSUE,
   )

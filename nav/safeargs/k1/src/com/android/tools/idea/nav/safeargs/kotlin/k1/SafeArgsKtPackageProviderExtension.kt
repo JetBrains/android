@@ -39,7 +39,7 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
     storageManager: StorageManager,
     trace: BindingTrace,
     moduleInfo: ModuleInfo?,
-    lookupTracker: LookupTracker
+    lookupTracker: LookupTracker,
   ): PackageFragmentProvider? {
     val facet = moduleInfo?.toModule()?.let { AndroidFacet.getInstance(it) } ?: return null
     if (facet.safeArgsMode != SafeArgsMode.KOTLIN) return null
@@ -57,7 +57,7 @@ class SafeArgsSyntheticPackageProvider(
 ) : PackageFragmentProviderOptimized {
   override fun collectPackageFragments(
     fqName: FqName,
-    packageFragments: MutableCollection<PackageFragmentDescriptor>
+    packageFragments: MutableCollection<PackageFragmentDescriptor>,
   ) {
     val descriptors = packageDescriptorProvider[fqName] ?: return
     packageFragments.addAll(descriptors)

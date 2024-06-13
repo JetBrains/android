@@ -41,13 +41,13 @@ class DesignerCommonIssueNodeComparatorTest {
       IssueNode(
         null,
         TestIssue(summary = "ccc", severity = HighlightSeverity.INFORMATION),
-        fileName
+        fileName,
       )
     val node6 =
       IssueNode(
         null,
         TestIssue(summary = "CCC", severity = HighlightSeverity.INFORMATION),
-        fileName
+        fileName,
       )
 
     val comparator =
@@ -72,13 +72,13 @@ class DesignerCommonIssueNodeComparatorTest {
       IssueNode(
         null,
         TestIssue(summary = "xxX", severity = HighlightSeverity.INFORMATION),
-        fileName
+        fileName,
       )
     val node6 =
       IssueNode(
         null,
         TestIssue(summary = "zzZ", severity = HighlightSeverity.INFORMATION),
-        fileName
+        fileName,
       )
 
     val comparator =
@@ -103,13 +103,13 @@ class DesignerCommonIssueNodeComparatorTest {
       IssueNode(
         null,
         TestIssue(summary = "ccc", severity = HighlightSeverity.INFORMATION),
-        fileName
+        fileName,
       )
     val node6 =
       IssueNode(
         null,
         TestIssue(summary = "CCC", severity = HighlightSeverity.INFORMATION),
-        fileName
+        fileName,
       )
 
     val comparator = DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
@@ -133,13 +133,13 @@ class DesignerCommonIssueNodeComparatorTest {
       IssueNode(
         null,
         TestIssue(summary = "ccc", severity = HighlightSeverity.INFORMATION),
-        fileName
+        fileName,
       )
     val node6 =
       IssueNode(
         null,
         TestIssue(summary = "CCC", severity = HighlightSeverity.INFORMATION),
-        fileName
+        fileName,
       )
 
     val comparator =
@@ -183,7 +183,7 @@ class IssueNodeSeverityComparatorTest {
     assertEquals(
       listOf(errorNode, errorNode2, warningNode, warningNode2, informationNode, informationNode2),
       listOf(warningNode, informationNode, informationNode2, errorNode, warningNode2, errorNode2)
-        .sortedWith(IssueNodeSeverityComparator)
+        .sortedWith(IssueNodeSeverityComparator),
     )
   }
 }
@@ -214,7 +214,7 @@ class IssueNodeNameComparatorTest {
 
     assertEquals(
       listOf(nodeA, nodeAUpperCase, nodeB),
-      listOf(nodeAUpperCase, nodeA, nodeB).sortedWith(IssueNodeNameComparator)
+      listOf(nodeAUpperCase, nodeA, nodeB).sortedWith(IssueNodeNameComparator),
     )
   }
 }
@@ -239,7 +239,7 @@ class PreprocessNodeComparatorTest {
     val unsortedList = listOf(nodeA, nodeB, nodeAUpperCase).shuffled()
     assertEquals(
       listOf(nodeAUpperCase, nodeA, nodeB),
-      unsortedList.sortedWith(PreprocessNodeComparator)
+      unsortedList.sortedWith(PreprocessNodeComparator),
     )
   }
 
@@ -259,13 +259,13 @@ class PreprocessNodeComparatorTest {
 
     assertEquals(
       listOf(atfNodeA, atfNodeB, otherNode),
-      unsortedList.sortedWith(PreprocessNodeComparator)
+      unsortedList.sortedWith(PreprocessNodeComparator),
     )
   }
 }
 
 private class TestAtfIssue(override val summary: String) :
-  NlAtfIssue(createIssueValidatorData(), IssueSource.NONE, mock(), null)
+  NlAtfIssue(createIssueValidatorData(), mock(), null)
 
 fun createIssueValidatorData(): ValidatorData.Issue {
   return ValidatorData.Issue.IssueBuilder()

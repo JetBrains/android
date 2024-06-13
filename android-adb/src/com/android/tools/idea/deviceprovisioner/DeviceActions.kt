@@ -16,6 +16,7 @@
 package com.android.tools.idea.deviceprovisioner
 
 import com.android.sdklib.deviceprovisioner.DeviceAction
+import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
@@ -42,6 +43,8 @@ suspend fun runCatchingDeviceActionException(
 ) {
   try {
     block()
+  } catch (e: DeviceActionCanceledException) {
+    logger<DeviceAction>().info(e.message)
   } catch (e: DeviceActionException) {
     logger<DeviceAction>().warn(e)
     withContext(AndroidDispatchers.uiThread) { Messages.showErrorDialog(project, e.message, title) }
@@ -84,6 +87,12 @@ fun <DeviceTemplateT : DeviceTemplate> DeviceTemplateT.launchCatchingDeviceActio
  * component related to the event implementing [DataProvider] and supplying the handle.
  */
 fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
+
+/**
+ * Returns the DeviceTemplate associated with the existing event. Note that this depends on some
+ * component related to the event implementing [DataProvider] and supplying the handle.
+ */
+fun AnActionEvent.deviceTemplate() = DEVICE_TEMPLATE_KEY.getData(dataContext)
 
 /**
  * Returns the [ReservationAction] for [DeviceHandle]; null if the handle does not have

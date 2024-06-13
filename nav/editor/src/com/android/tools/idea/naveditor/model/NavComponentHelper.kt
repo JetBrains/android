@@ -52,6 +52,7 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.D
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_INCLUDE
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.DELETE_NESTED
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
@@ -178,7 +179,7 @@ val NlComponent.includeFile: XmlFile?
     val resources = model.configuration.resourceResolver ?: return null
     val value = resources.findResValue(includeAttribute, false) ?: return null
     val vFile = VfsUtil.findFileByIoFile(File(value.value), true) ?: return null
-    return PsiManager.getInstance(model.project).findFile(vFile) as? XmlFile
+    return runReadAction { PsiManager.getInstance(model.project).findFile(vFile) } as? XmlFile
   }
 
 val NlComponent.includeFileName: String?

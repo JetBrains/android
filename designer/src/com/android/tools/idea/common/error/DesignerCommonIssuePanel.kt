@@ -16,11 +16,18 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSettings
+import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.WeakReferenceDisposableWrapper
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -28,13 +35,17 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TreeSpeedSearch
-import com.intellij.ui.border.CustomLineBorder
+import com.intellij.ui.content.Content
 import com.intellij.ui.tree.AsyncTreeModel
 import com.intellij.ui.tree.RestoreSelectionListener
 import com.intellij.ui.tree.TreeVisitor
@@ -42,15 +53,14 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
-import java.awt.BorderLayout
-import javax.swing.JComponent
-import javax.swing.JPanel
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActions"
 
@@ -61,22 +71,20 @@ private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_d
 val DESIGNER_COMMON_ISSUE_PANEL =
   DataKey.create<DesignerCommonIssuePanel>("DesignerCommonIssuePanel")
 
-/**
- * The issue panel to load the issues from Layout Editor and Layout Validation Tool.
- *
- * @param additionalDataProvider A [DataProvider] used to pass information from the creator of this
- *   panel, that will allow to link the panel with the previews from which it displays the errors.
- */
+/** The issue panel to load the issues from Layout Editor and Layout Validation Tool. */
 class DesignerCommonIssuePanel(
   parentDisposable: Disposable,
   private val project: Project,
-  private val treeModel: DesignerCommonIssueModel,
+  vertical: Boolean,
+  initialPanelName: String,
+  private val tabId: String,
   nodeFactoryProvider: () -> NodeFactory,
-  val issueProvider: DesignerCommonIssueProvider<Any>,
-  private val emptyMessageProvider: () -> String,
-  private val additionalDataProvider: DataProvider? = null
-) : Disposable {
+  issueFilter: DesignerCommonIssueProvider.Filter,
+  private val emptyMessageProvider: suspend () -> String,
+  private val onContentPopulated: (Content) -> Unit = {},
+) : SimpleToolWindowPanel(vertical), ProblemsViewTab, Disposable {
 
+  private val coroutineScope = AndroidCoroutineScope(this)
   private val issueListeners = mutableListOf<IssueListener>()
 
   var sidePanelVisible =
@@ -87,39 +95,19 @@ class DesignerCommonIssuePanel(
       PropertiesComponent.getInstance(project).setValue(KEY_DETAIL_VISIBLE, value)
     }
 
-  private val rootPanel =
-    object : JPanel(BorderLayout()), DataProvider {
-      private fun getDataInBackground(dataId: String, node: DesignerCommonIssueNode): Any? =
-        when (dataId) {
-          CommonDataKeys.NAVIGATABLE.name -> node.getNavigatable()
-          else -> null
-        }
-
-      override fun getData(dataId: String): Any? {
-        if (DESIGNER_COMMON_ISSUE_PANEL.`is`(dataId)) {
-          return this@DesignerCommonIssuePanel
-        }
-        val node = getSelectedNode() ?: return additionalDataProvider?.getData(dataId)
-        if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
-          return DataProvider { getDataInBackground(it, node) }
-        }
-        if (PlatformDataKeys.SELECTED_ITEM.`is`(dataId)) {
-          return node
-        }
-        if (PlatformDataKeys.VIRTUAL_FILE.`is`(dataId)) {
-          return node.getVirtualFile()
-        }
-        return additionalDataProvider?.getData(dataId)
-      }
-    }
-
   private val tree: Tree
   private val splitter: OnePixelSplitter
 
   private val sidePanel: DesignerCommonIssueSidePanel
+  private val treeModel: DesignerCommonIssueModel
+
+  val issueProvider: DesignerCommonIssueProvider<Any>
 
   init {
     Disposer.register(parentDisposable, this)
+    name = initialPanelName
+    issueProvider = DesignToolsIssueProvider(this, project, issueFilter, tabId)
+    treeModel = DesignerCommonIssuePanelModelProvider.getInstance(project).createModel()
     treeModel.root = DesignerCommonIssueRoot(project, issueProvider, nodeFactoryProvider)
     updateIssueOrder()
 
@@ -130,7 +118,7 @@ class DesignerCommonIssuePanel(
     PopupHandler.installPopupMenu(
       tree,
       POPUP_HANDLER_ACTION_ID,
-      "Android.Designer.IssuePanel.TreePopup"
+      "Android.Designer.IssuePanel.TreePopup",
     )
 
     tree.isRootVisible = false
@@ -142,20 +130,21 @@ class DesignerCommonIssuePanel(
 
     val toolbarActionGroup =
       ActionManager.getInstance().getAction(TOOLBAR_ACTIONS_ID) as ActionGroup
-    val toolbar =
-      ActionManager.getInstance().createActionToolbar(javaClass.name, toolbarActionGroup, false)
-    toolbar.targetComponent = rootPanel
-    UIUtil.addBorder(toolbar.component, CustomLineBorder(JBUI.insetsRight(1)))
-    rootPanel.add(toolbar.component, BorderLayout.WEST)
+    ActionManager.getInstance()
+      .createActionToolbar(javaClass.name, toolbarActionGroup, false)
+      .apply {
+        targetComponent = this@DesignerCommonIssuePanel
+        toolbar = component
+      }
 
     sidePanel = DesignerCommonIssueSidePanel(project, this)
 
-    splitter = OnePixelSplitter(false, 0.5f, 0.3f, 0.7f)
+    splitter = OnePixelSplitter(vertical, 0.5f, 0.3f, 0.7f)
     splitter.proportion = 0.5f
     splitter.firstComponent = ScrollPaneFactory.createScrollPane(tree, true)
     splitter.secondComponent = sidePanel
     splitter.setResizeEnabled(true)
-    rootPanel.add(splitter, BorderLayout.CENTER)
+    setContent(splitter)
 
     treeModel.addTreeModelListener(
       object : TreeModelAdapter() {
@@ -198,20 +187,87 @@ class DesignerCommonIssuePanel(
     }
   }
 
+  override fun getName(count: Int): String {
+    return name?.let { createTabName(it, count) } ?: DEFAULT_SHARED_ISSUE_PANEL_TAB_TITLE
+  }
+
+  override fun getTabId() = tabId
+
+  @Suppress("UnstableApiUsage")
+  override fun customizeTabContent(content: Content) {
+    content.tabName = tabId
+    treeModel.addTreeModelListener(
+      object : TreeModelAdapter() {
+        override fun process(event: TreeModelEvent, type: EventType) {
+          val count = issueProvider.getFilteredIssues().distinct().size
+          // This change the ui text, run it in the UI thread.
+          runInEdt {
+            if (project.isDisposed) return@runInEdt
+            content.displayName = getName(count)
+          }
+        }
+      }
+    )
+    onContentPopulated(content)
+  }
+
+  override fun orientationChangedTo(vertical: Boolean) {
+    isVertical = vertical
+    splitter.orientation = vertical
+  }
+
+  override fun selectionChangedTo(selected: Boolean) {
+    if (selected) {
+      updateIssueOrder()
+      updateIssueVisibility()
+      val type =
+        if (tabId == SHARED_ISSUE_PANEL_TAB_ID)
+          UniversalProblemsPanelEvent.ActivatedTab.DESIGN_TOOLS
+        else UniversalProblemsPanelEvent.ActivatedTab.UI_CHECK
+      DesignerCommonIssuePanelUsageTracker.getInstance().trackSelectingTab(type, project)
+    }
+  }
+
+  override fun visibilityChangedTo(visible: Boolean) {
+    if (visible) {
+      updateIssueOrder()
+      updateIssueVisibility()
+    }
+  }
+
+  private fun getDataInBackground(dataId: String, node: DesignerCommonIssueNode): Any? =
+    when (dataId) {
+      CommonDataKeys.NAVIGATABLE.name -> node.getNavigatable()
+      else -> null
+    }
+
+  override fun getData(dataId: String): Any? {
+    if (DESIGNER_COMMON_ISSUE_PANEL.`is`(dataId)) {
+      return this
+    }
+    val node = getSelectedNode() ?: return super.getData(dataId)
+    return when (dataId) {
+      PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { getDataInBackground(it, node) }
+      PlatformDataKeys.SELECTED_ITEM.name -> node
+      PlatformDataKeys.VIRTUAL_FILE.name -> node.getVirtualFile()
+      else -> super.getData(dataId)
+    }
+  }
+
   fun setSelectedNode(visitor: TreeVisitor) {
     TreeUtil.promiseSelect(tree, visitor)
   }
 
   private fun updateEmptyMessageIfNeed() {
     if (issueProvider.getFilteredIssues().isEmpty()) {
-      val newEmptyString = emptyMessageProvider()
-      if (newEmptyString != tree.emptyText.text) {
-        tree.emptyText.text = newEmptyString
+      coroutineScope.launch(workerThread) {
+        val newEmptyString = emptyMessageProvider()
+        if (newEmptyString != tree.emptyText.text) {
+          withContext(uiThread) { tree.emptyText.text = newEmptyString }
+        }
       }
     }
   }
-
-  fun getComponent(): JComponent = rootPanel
 
   private fun updateTree() {
     treeModel.structureChanged(null)
@@ -260,7 +316,10 @@ class DesignerCommonIssuePanel(
   }
 
   fun addIssueSelectionListener(listener: IssueListener, parentDisposable: Disposable) {
-    Disposer.register(parentDisposable) { issueListeners.remove(listener) }
+    Disposer.register(
+      parentDisposable,
+      WeakReferenceDisposableWrapper { issueListeners.remove(listener) },
+    )
     issueListeners.add(listener)
   }
 
@@ -287,7 +346,7 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
 
   private fun compareNode(
     node1: DesignerCommonIssueNode?,
-    node2: DesignerCommonIssueNode?
+    node2: DesignerCommonIssueNode?,
   ): TreeVisitor.Action {
     if (node1 == null || node2 == null) {
       return if (node1 == null && node2 == null) TreeVisitor.Action.INTERRUPT
@@ -308,13 +367,13 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
 
   private fun visitIssuedFileNode(
     node1: IssuedFileNode,
-    node2: IssuedFileNode
+    node2: IssuedFileNode,
   ): TreeVisitor.Action {
     return if (node1.file != node2.file) TreeVisitor.Action.CONTINUE
     else {
       compareNode(
         node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-        node2.parentDescriptor?.element as? DesignerCommonIssueNode
+        node2.parentDescriptor?.element as? DesignerCommonIssueNode,
       )
     }
   }
@@ -324,7 +383,7 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
     else {
       compareNode(
         node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-        node2.parentDescriptor?.element as? DesignerCommonIssueNode
+        node2.parentDescriptor?.element as? DesignerCommonIssueNode,
       )
     }
   }
@@ -337,7 +396,7 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
     val actionAfterComparingParents =
       compareNode(
         node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-        node2.parentDescriptor?.element as? DesignerCommonIssueNode
+        node2.parentDescriptor?.element as? DesignerCommonIssueNode,
       )
     if (actionAfterComparingParents == TreeVisitor.Action.CONTINUE) {
       return TreeVisitor.Action.CONTINUE
@@ -385,4 +444,23 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
     }
     return orders.reversed().joinToString(",")
   }
+}
+
+/**
+ * This should be same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName]
+ * for consistency.
+ */
+@VisibleForTesting
+@NlsContexts.TabTitle
+fun createTabName(name: String, count: Int): String {
+  val padding = (if (count <= 0) 0 else JBUI.scale(8)).toString()
+  val fg = ColorUtil.toHtmlColor(NamedColorUtil.getInactiveTextColor())
+  val number = if (count <= 0) "" else count.toString()
+
+  return "<html><body>" +
+    "<table cellpadding='0' cellspacing='0'><tr>" +
+    "<td><nobr>$name</nobr></td>" +
+    "<td width='$padding'></td>" +
+    "<td><font color='$fg'>$number</font></td>" +
+    "</tr></table></body></html>"
 }

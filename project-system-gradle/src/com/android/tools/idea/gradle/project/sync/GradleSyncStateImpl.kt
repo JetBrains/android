@@ -213,8 +213,8 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
     GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
-    // TODO (b/306638551): temporarily here, to be refactored
-    SyncFailureUsageReporter.getInstance().onSyncStart(rootProjectPath)
+    // TODO (b/306638551): temporarily here, to be refactored. Can be moved to GRADLE_SYNC_TOPIC listener
+    SyncFailureUsageReporter.getInstance().onSyncStart(externalSystemTaskId, project, rootProjectPath)
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED, rootProjectPath)
     reportGradleJdkConfiguration(project, rootProjectPath)
     project.getService(SyncAnalyzerManager::class.java)?.onSyncStarted(externalSystemTaskId)
@@ -276,13 +276,8 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     // Note: we log this as well as message above so the stack trace is present in the logs.
     if (error != null) LOG.warn(error)
 
-    // If we are in use tests also log to stdout to help debugging.
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      println("***** sync error ${if (error == null) message else error.message}")
-    }
-
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE, rootProjectPath)
-    SyncFailureUsageReporter.getInstance().reportFailure(this, rootProjectPath, error)
+    SyncFailureUsageReporter.getInstance().collectProcessedError(externalSystemTaskId, project, rootProjectPath, error)
     syncFinished(LastSyncState.FAILED, rootProjectPath)
     syncPublisher { syncFailed(project, causeMessage, rootProjectPath) }
   }
@@ -454,7 +449,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
    * A helper project level service to keep track of external system sync related tasks and to detect and report any mismatched or
    * unexpected events.
    */
-  @Service
+  @Service(Service.Level.PROJECT)
   class SyncStateUpdaterService : Disposable {
     val runningTasks: ConcurrentMap<ExternalSystemTaskId, Pair<String, Disposable>> = ConcurrentHashMap()
 
@@ -513,7 +508,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       LOG.info("onImportFailed($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       if (syncStateUpdaterService.stopTrackingTask(projectPath!!) != null) {
-        // If `onImportFailed` is called because of `ProcessCancelledException`, it results in `isCancelled == true`, and this is the way
+        // If `onImportFailed` is called because of `ProcessCanceledException`, it results in `isCancelled == true`, and this is the way
         // we detect this case since we don't have access to the exception instance itself here.
         if (ProgressManager.getGlobalProgressIndicator()?.isCanceled == true) {
           ProgressManager.getInstance().executeNonCancelableSection {

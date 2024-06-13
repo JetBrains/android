@@ -25,11 +25,15 @@ import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.JdkConstants
 import com.android.tools.idea.testing.JdkConstants.JDK_11
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
-import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
-import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_17
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
 import com.google.common.truth.Expect
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -57,16 +61,73 @@ class SingleGradleRootSyncUseStudioGradleJdkIntegrationTest {
   fun `Given valid STUDIO_GRADLE_JDK env variable When import project Then sync used its path and the gradle jdk configuration doesn't change`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
-        ideaGradleJdk = JDK_EMBEDDED,
+        ideaGradleJdk = JdkConstants.JDK_EMBEDDED,
         agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
       ),
       environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH)),
-        environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to JDK_11_PATH)
+        jdkTable = listOf(Jdk(JdkConstants.JDK_EMBEDDED, JdkConstants.JDK_EMBEDDED_PATH)),
+        environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to JdkConstants.JDK_11_PATH)
       )
     ) {
       syncWithAssertion(
-        expectedGradleJdkName = JDK_EMBEDDED,
+        expectedGradleJdkName = JdkConstants.JDK_EMBEDDED,
+        expectedProjectJdkName = JdkConstants.JDK_11,
+        expectedProjectJdkPath = JdkConstants.JDK_11_PATH
+      )
+    }
+
+  @Test
+  fun `Given valid STUDIO_GRADLE_JDK env variable and invalid jdkTable entry When import project Then sync used the STUDIO_GRADLE_JDK`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = "invalid jdk",
+      ),
+      environment = TestEnvironment(
+        environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to JDK_17_PATH)
+      )
+    ) {
+      syncWithAssertion(
+        expectedGradleJdkName = "invalid jdk",
+        expectedProjectJdkName = JDK_17,
+        expectedProjectJdkPath = JDK_17_PATH
+      )
+    }
+
+  @Test
+  fun `Given valid STUDIO_GRADLE_JDK and invalid JAVA_HOME env variables When import project Then sync used the STUDIO_GRADLE_JDK`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = USE_JAVA_HOME,
+      ),
+      environment = TestEnvironment(
+        environmentVariables = mapOf(
+          JAVA_HOME to JDK_INVALID_PATH,
+          JDK_LOCATION_ENV_VARIABLE_NAME to JDK_17_PATH
+        )
+      )
+    ) {
+      syncWithAssertion(
+        expectedGradleJdkName = USE_JAVA_HOME,
+        expectedProjectJdkName = JDK_17,
+        expectedProjectJdkPath = JDK_17_PATH
+      )
+    }
+
+  @Test
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
+  fun `Given invalid STUDIO_GRADLE_JDK env variable When import project Then sync used the existing gradle JDK configuration`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = JDK_11,
+        agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH)),
+        environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to JDK_INVALID_PATH)
+      )
+    ) {
+      syncWithAssertion(
+        expectedGradleJdkName = JDK_11,
         expectedProjectJdkName = JDK_11,
         expectedProjectJdkPath = JDK_11_PATH
       )

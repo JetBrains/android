@@ -5,12 +5,12 @@ iml_module(
     name = "app-inspection.inspector.ide",
     srcs = ["src"],
     iml_files = ["app-inspection.inspector.ide.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",

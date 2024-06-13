@@ -30,25 +30,23 @@ import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Snapshot
+import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
-import com.intellij.util.Function
 import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Supplier
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.guava.asListenableFuture
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
-import org.jetbrains.android.facet.AndroidFacet
+import javax.swing.Icon
 
 /**
  * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other
@@ -89,11 +87,12 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
       ?: throw IllegalStateException("Attempt to get device that hasn't been launched yet.")
   }
 
-  override fun getSerial(): String {
-    // The only real use of this is by AndroidDeviceSpecUtil to pass the ADB serial number to gradle
-    // to identify the device (b/234033515), so there's no need to support this for non-running
-    // devices.
-    return runBlocking { launchDeviceTask.get()?.getCompletedOrNull()?.serialNumber ?: "" }
+  override fun getSerial(): String = buildString {
+    append("DeviceProvisionerAndroidDevice pluginId=")
+    append(id.pluginId)
+    if (id.isTemplate) append(" isTemplate=true")
+    append(" identifier=")
+    append(id.identifier)
   }
 
   override fun isVirtual() = properties.isVirtual == true
@@ -103,6 +102,8 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
   override fun getDensity() = properties.density ?: -1
 
   override fun getAbis() = properties.abiList
+
+  override fun getAppPreferredAbi(): String? = properties.preferredAbi
 
   override fun supportsFeature(feature: IDevice.HardwareFeature): Boolean =
     when (feature) {
@@ -114,6 +115,8 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
   override fun getName() = properties.title
 
   override fun isDebuggable() = properties.isDebuggable == true
+
+  override fun getIcon() = properties.icon
 }
 
 class DeviceTemplateAndroidDevice(
@@ -130,27 +133,29 @@ class DeviceTemplateAndroidDevice(
 
   override fun bootDefault(): ListenableFuture<IDevice> = boot {
     val deviceHandle = deviceTemplate.activationAction.activate()
-    val connectedDevice =
-      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitOnline() }
+
+    val deviceState =
+      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitReady() }
         ?: throw IllegalStateException("Device did not start")
-    ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(connectedDevice)
+    ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(deviceState.connectedDevice)
   }
 
   override fun canRun(
     minSdkVersion: AndroidVersion,
     projectTarget: IAndroidTarget,
-    facet: AndroidFacet,
-    getRequiredHardwareFeatures: Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>>?,
-    supportedAbis: MutableSet<Abi>
+    getRequiredHardwareFeatures: Supplier<EnumSet<IDevice.HardwareFeature>>,
+    supportedAbis: MutableSet<Abi>,
   ): LaunchCompatibility {
-    return LaunchCompatibility.canRunOnDevice(
-      minSdkVersion,
-      projectTarget,
-      facet,
-      getRequiredHardwareFeatures,
-      supportedAbis,
-      this
-    )
+
+    val projectLaunchCompatibility =
+      LaunchCompatibility.canRunOnDevice(
+        minSdkVersion,
+        projectTarget,
+        getRequiredHardwareFeatures,
+        supportedAbis,
+        this,
+      )
+    return projectLaunchCompatibility.combine(deviceTemplate.state.error.toLaunchCompatibility())
   }
 }
 
@@ -187,42 +192,46 @@ class DeviceHandleAndroidDevice(
     if (deviceHandle.state.connectedDevice == null) {
       action()
     }
-    val connectedDevice =
-      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitOnline() }
+    val deviceState =
+      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitReady() }
         ?: throw IllegalStateException("Device did not start")
-    return ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(connectedDevice)
+    return ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(deviceState.connectedDevice)
   }
 
   override fun canRun(
     minSdkVersion: AndroidVersion,
     projectTarget: IAndroidTarget,
-    facet: AndroidFacet,
-    getRequiredHardwareFeatures: Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>>?,
-    supportedAbis: MutableSet<Abi>
+    getRequiredHardwareFeatures: Supplier<EnumSet<IDevice.HardwareFeature>>,
+    supportedAbis: MutableSet<Abi>,
   ): LaunchCompatibility {
-    deviceHandle.state.error?.let {
-      when (it.severity) {
-        DeviceError.Severity.ERROR ->
-          return LaunchCompatibility(LaunchCompatibility.State.ERROR, it.message)
-        DeviceError.Severity.WARNING ->
-          return LaunchCompatibility(LaunchCompatibility.State.WARNING, it.message)
-        DeviceError.Severity.INFO -> {}
-      }
-    }
-    return LaunchCompatibility.canRunOnDevice(
-      minSdkVersion,
-      projectTarget,
-      facet,
-      getRequiredHardwareFeatures,
-      supportedAbis,
-      this
-    )
+    val projectLaunchCompatibility =
+      LaunchCompatibility.canRunOnDevice(
+        minSdkVersion,
+        projectTarget,
+        getRequiredHardwareFeatures,
+        supportedAbis,
+        this,
+      )
+    // If the device is running, assume that these errors don't matter.
+    val deviceLaunchCompatibility =
+      deviceHandle.state.error?.takeUnless { isRunning }.toLaunchCompatibility()
+
+    // Favor the project launch compatibility, since handle state tends to be more temporary.
+    return projectLaunchCompatibility.combine(deviceLaunchCompatibility)
   }
 }
 
+private fun DeviceError?.toLaunchCompatibility(): LaunchCompatibility =
+  when (this?.severity) {
+    DeviceError.Severity.ERROR -> LaunchCompatibility(LaunchCompatibility.State.ERROR, message)
+    DeviceError.Severity.WARNING -> LaunchCompatibility(LaunchCompatibility.State.WARNING, message)
+    DeviceError.Severity.INFO,
+    null -> LaunchCompatibility.YES
+  }
+
 private suspend fun DeviceProvisionerAndroidDevice.DdmlibDeviceLookup.findDdmlibDeviceWithTimeout(
   connectedDevice: ConnectedDevice,
-  timeout: Duration = 1.seconds
+  timeout: Duration = 10.seconds,
 ): IDevice {
   return withTimeoutOrNull(timeout) { findDdmlibDevice(connectedDevice) }
     ?: throw IllegalStateException("IDevice not found for ${connectedDevice.serialNumber}")
@@ -242,23 +251,5 @@ suspend inline fun <R> pollUntilPresent(block: () -> R?): R {
   }
 }
 
-/** Returns the DeviceHandle's ConnectedDevice when it reaches the ONLINE state. */
-suspend fun DeviceHandle.awaitOnline(): ConnectedDevice =
-  stateFlow
-    .transformLatest { state ->
-      state.connectedDevice?.let { connectedDevice ->
-        connectedDevice.deviceInfoFlow.first {
-          it.deviceState == com.android.adblib.DeviceState.ONLINE
-        }
-        emit(connectedDevice)
-      }
-    }
-    .first()
-
-/**
- * How long we wait after activate() returns for the device to become connected.
- *
- * TODO: We could try to enforce that the DeviceHandle always waits for connection before returning
- *   instead
- */
-private val activationTimeout = 5.seconds
+/** How long we wait after activate() returns for the device to become ready. */
+private val activationTimeout = 5.minutes

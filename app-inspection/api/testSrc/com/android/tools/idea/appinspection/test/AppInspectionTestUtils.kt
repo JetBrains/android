@@ -42,7 +42,7 @@ val TEST_JAR =
   AppInspectorJar(
     TEST_JAR_PATH.fileName.toString(),
     TEST_JAR_PATH.parent.toString(),
-    TEST_JAR_PATH.parent.toString()
+    TEST_JAR_PATH.parent.toString(),
   )
 
 const val TEST_PROJECT = "test.project"
@@ -52,7 +52,7 @@ const val MIN_VERSION = "0.0.0-dev"
 fun mockMinimumArtifactCoordinate(
   groupId: String,
   artifactId: String,
-  version: String
+  version: String,
 ): MinimumArtifactCoordinate =
   mock(MinimumArtifactCoordinate::class.java).also {
     `when`(it.groupId).thenReturn(groupId)
@@ -77,7 +77,7 @@ object AppInspectionTestUtils {
    */
   fun createPayloadChunks(
     data: ByteArray,
-    chunkSize: Int
+    chunkSize: Int,
   ): List<AppInspection.AppInspectionPayload> {
     val chunks = data.toList().chunked(chunkSize)
     return chunks.map { chunk ->
@@ -90,7 +90,7 @@ object AppInspectionTestUtils {
   /** Creates an [AppInspectionEvent] with the provided [data] and inspector [name]. */
   fun createRawAppInspectionEvent(
     data: ByteArray,
-    name: String = INSPECTOR_ID
+    name: String = INSPECTOR_ID,
   ): AppInspection.AppInspectionEvent =
     AppInspection.AppInspectionEvent.newBuilder()
       .setInspectorId(name)
@@ -106,7 +106,7 @@ object AppInspectionTestUtils {
    */
   fun createRawAppInspectionEvent(
     payloadId: Long,
-    name: String = INSPECTOR_ID
+    name: String = INSPECTOR_ID,
   ): AppInspection.AppInspectionEvent =
     AppInspection.AppInspectionEvent.newBuilder()
       .setInspectorId(name)
@@ -115,7 +115,7 @@ object AppInspectionTestUtils {
 
   fun createFakeProcessDescriptor(
     device: Common.Device = FakeTransportService.FAKE_DEVICE,
-    process: Common.Process = FakeTransportService.FAKE_PROCESS
+    process: Common.Process = FakeTransportService.FAKE_PROCESS,
   ): ProcessDescriptor {
     val stream = Common.Stream.newBuilder().setDevice(device).setStreamId(device.deviceId).build()
     return TransportProcessDescriptor(stream, process)
@@ -125,7 +125,7 @@ object AppInspectionTestUtils {
     descriptor: ProcessDescriptor = createFakeProcessDescriptor(),
     inspectorId: String = INSPECTOR_ID,
     jar: AppInspectorJar = TEST_JAR,
-    project: String = TEST_PROJECT
+    project: String = TEST_PROJECT,
   ) = LaunchParameters(descriptor, inspectorId, jar, project, TEST_COMPATIBILITY)
 
   fun createArtifactCoordinate(groupId: String, artifactId: String, version: String) =

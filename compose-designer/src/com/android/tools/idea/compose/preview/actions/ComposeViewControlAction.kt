@@ -15,60 +15,42 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.idea.compose.preview.ComposePreviewManager
-import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
-import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
-import com.intellij.icons.AllIcons
+import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
+import com.android.tools.idea.preview.actions.ViewControlAction
+import com.android.tools.idea.preview.actions.isPreviewRefreshing
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.icons.copyIcon
 
-// When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
-// multi-choice group, even
-// Presentation.setMultiChoice() sets to false. (See
-// [com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup])
-//
-// We clone the icon here so we can control the multi-choice state of this action ourselves.
 class ComposeViewControlAction(
-  layoutManagers: List<SurfaceLayoutManagerOption>,
+  layoutOptions: List<SurfaceLayoutOption>,
   isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
-  updateMode: (SurfaceLayoutManagerOption, ComposePreviewManager) -> Unit,
-  additionalActionProvider: AnAction? = null
+  additionalActionProvider: AnAction? = null,
 ) :
-  DropDownAction(
-    message("action.scene.view.control.title"),
-    message("action.scene.view.control.description"),
-    copyIcon(AllIcons.Debugger.RestoreLayout, null, true)
+  ViewControlAction(
+    isEnabled = { !isPreviewRefreshing(it.dataContext) },
+    essentialModeDescription = message("action.scene.view.control.essentials.mode.description"),
   ) {
   init {
     if (
-      StudioFlags.COMPOSE_VIEW_FILTER.get() &&
-        !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+      StudioFlags.COMPOSE_VIEW_FILTER.get() && !PreviewEssentialsModeManager.isEssentialsModeEnabled
     ) {
       add(ComposeShowFilterAction())
       addSeparator()
     }
     add(
-      SwitchSurfaceLayoutManagerAction(layoutManagers, isSurfaceLayoutActionEnabled) {
-          selectedOption,
-          previewManager ->
-          PreviewCanvasTracker.getInstance().logSwitchLayout(selectedOption.layoutManager)
-          updateMode(selectedOption, previewManager)
-        }
-        .apply {
-          isPopup = false
-          templatePresentation.isMultiChoice = false
-        }
+      SwitchSurfaceLayoutManagerAction(layoutOptions, isSurfaceLayoutActionEnabled).apply {
+        isPopup = false
+        templatePresentation.isMultiChoice = false
+      }
     )
     if (StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.get()) {
       addSeparator()
@@ -87,16 +69,8 @@ class ComposeViewControlAction(
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = !isPreviewRefreshing(e.dataContext)
     e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
-    e.presentation.description =
-      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
-        message("action.scene.view.control.essentials.mode.description")
-      else message("action.scene.view.control.description")
   }
-
-  // Actions calling isAnyPreviewRefreshing in the update method, must run in BGT
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /**
    * Zoom actions have the icons, which we don't want to display in [ComposeViewControlAction]. We
@@ -107,7 +81,7 @@ class ComposeViewControlAction(
    */
   private inner class WrappedZoomAction(
     private val action: AnAction,
-    private val overwriteText: String? = null
+    private val overwriteText: String? = null,
   ) : AnAction() {
 
     init {

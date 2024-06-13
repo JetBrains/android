@@ -17,14 +17,13 @@ package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
-import com.android.tools.idea.gradle.dsl.api.crashlytics.CrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.intellij.openapi.diagnostic.ControlFlowException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -32,13 +31,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import java.io.File;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+
+import java.util.List;
+import java.util.Set;
 
 public interface GradleBuildModel extends GradleDslContextModel, GradleFileModel, PluginsModel {
   /**
@@ -121,9 +121,6 @@ public interface GradleBuildModel extends GradleDslContextModel, GradleFileModel
   ConfigurationsModel configurations();
 
   @NotNull
-  CrashlyticsModel crashlytics();
-
-  @NotNull
   DependenciesModel dependencies();
 
   @NotNull
@@ -135,9 +132,7 @@ public interface GradleBuildModel extends GradleDslContextModel, GradleFileModel
   @NotNull
   RepositoriesModel repositories();
 
-
-  @NotNull
-  <T extends GradleDslModel> T getModel(Class<T> klass);
+  <T extends GradleDslModel> @NotNull T getModel(Class<T> klass);
 
   /**
    * @return the models for files that are used by this GradleBuildModel.

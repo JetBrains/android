@@ -681,6 +681,25 @@ public class  TestUtils {
     return Paths.get(SystemProperties.getJavaHome());
   }
 
+  @NonNull
+  public static Path getEmbeddedJdk21Path() {
+    if (System.getenv("JDK_21_0") != null) {
+      Path jdkPath = Paths.get(System.getenv("JDK_21_0"));
+      if (Files.isDirectory(jdkPath)) {
+        return jdkPath;
+      }
+      else {
+        Logger.getInstance(TestUtils.class).warn("Ignore env.JDK_21 because it is not a directory: " + jdkPath);
+      }
+    }
+
+    Path jdk21Path = findInDownloadedJdks("corretto-21.");
+    if (jdk21Path != null) return jdk21Path;
+
+    assert Runtime.version().feature() == 21 : "To continue we need to know where JDK_17 is. env.JDK_17_0 didn't work.";
+    return Paths.get(SystemProperties.getJavaHome());
+  }
+
   public static Path getEmbeddedJdk11Path() {
     if (System.getenv("JDK_11_0") != null) {
       Path jdkPath = Paths.get(System.getenv("JDK_11_0"));

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.actions;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
+
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.model.NlComponent;
@@ -38,24 +40,25 @@ import org.jetbrains.annotations.Nullable;
  * Action which navigates to the primary selected XML element
  */
 public class GotoComponentAction extends DumbAwareAction {
-  @NotNull private final DesignSurface<?> mySurface;
-
-  public GotoComponentAction(@NotNull DesignSurface<?> surface) {
+  public GotoComponentAction() {
     super("Go to XML");
-    mySurface = surface;
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
+    DesignSurface<?> surface = e.getData(DESIGN_SURFACE);
+    if (surface == null) {
+      return;
+    }
     InputEvent inputEvent = e.getInputEvent();
     if (inputEvent instanceof MouseEvent) {
-      if (mySurface.getGuiInputHandler().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
+      if (surface.getGuiInputHandler().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
         // We don't want to perform navigation while holding some modifiers on mouse event.
         return;
       }
     }
 
-    FileEditor selectedEditor = FileEditorManager.getInstance(mySurface.getProject()).getSelectedEditor();
+    FileEditor selectedEditor = FileEditorManager.getInstance(surface.getProject()).getSelectedEditor();
     if (selectedEditor instanceof DesignToolsSplitEditor) {
       DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
       if (splitEditor.isDesignMode()) {
@@ -64,9 +67,9 @@ public class GotoComponentAction extends DumbAwareAction {
       }
     }
 
-    SelectionModel selectionModel = mySurface.getSelectionModel();
+    SelectionModel selectionModel = surface.getSelectionModel();
     NlComponent primary = selectionModel.getPrimary();
-    NlModel model = mySurface.getModel();
+    NlModel model = surface.getModel();
 
     NlComponent componentToNavigate = null;
     if (primary != null) {
@@ -80,9 +83,9 @@ public class GotoComponentAction extends DumbAwareAction {
       }
     }
 
-    mySurface.deactivate();
+    surface.deactivate();
     if (model != null && !navigateToXml(componentToNavigate)) {
-      switchTab(model);
+      switchTab(surface, model);
     }
   }
 
@@ -103,9 +106,9 @@ public class GotoComponentAction extends DumbAwareAction {
    *
    * This is to ensure that we can switch tab even if the model is empty
    */
-  private void switchTab(@NotNull NlModel model) {
+  private void switchTab(@NotNull DesignSurface<?> surface, @NotNull NlModel model) {
     // If the xml file is empty, just open the text editor
-    FileEditorManager editorManager = FileEditorManager.getInstance(mySurface.getProject());
+    FileEditorManager editorManager = FileEditorManager.getInstance(surface.getProject());
     editorManager.openTextEditor(
       new OpenFileDescriptor(model.getProject(), model.getVirtualFile(), 0), true);
   }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.state
 
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.actions.ColorStateAction
 import com.android.tools.idea.compose.preview.animation.actions.SwapAction
@@ -26,7 +26,8 @@ import com.intellij.openapi.actionSystem.AnAction
  * [AnimationState] for animations where initial and target states should be selected with a color
  * picker.
  */
-class ColorPickerState(tracker: AnimationTracker, callback: () -> Unit) : AnimationState(callback) {
+class ColorPickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
+  AnimationState(callback) {
 
   private val initialState =
     ColorStateAction(tracker = tracker, onPropertiesUpdated = stateCallback)
@@ -47,7 +48,7 @@ class ColorPickerState(tracker: AnimationTracker, callback: () -> Unit) : Animat
   override fun updateStates(states: Set<Any>) {
     setStates(
       states.firstOrNull().let { ComposeUnit.parseStateUnit(it) as? ComposeUnit.Color },
-      states.lastOrNull().let { ComposeUnit.parseStateUnit(it) as? ComposeUnit.Color }
+      states.lastOrNull().let { ComposeUnit.parseStateUnit(it) as? ComposeUnit.Color },
     )
   }
 
@@ -66,6 +67,6 @@ class ColorPickerState(tracker: AnimationTracker, callback: () -> Unit) : Animat
       },
       initialState,
       ToolbarLabel("to"),
-      targetState
+      targetState,
     )
 }

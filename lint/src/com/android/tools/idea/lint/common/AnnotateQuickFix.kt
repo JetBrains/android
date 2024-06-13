@@ -15,19 +15,28 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.tools.lint.detector.api.ClassContext
+import com.android.tools.lint.detector.api.Location
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
-import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
+import com.intellij.codeInspection.util.IntentionFamilyName
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.ModCommandAction
+import com.intellij.modcommand.Presentation
+import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnonymousClass
 import com.intellij.psi.PsiClassInitializer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.SyntheticElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.idea.util.findAnnotation
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
@@ -41,13 +50,48 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTypeParameter
 
 class AnnotateQuickFix(
-  displayName: String?,
-  familyName: String?,
+  project: Project,
+  private val displayName: String?,
+  private val familyName: String?,
   private val annotationSource: String,
-  private val replace: Boolean
-) : DefaultLintQuickFix(displayName ?: "Annotate", familyName) {
+  private val replace: Boolean,
+  range: Location?,
+) : ModCommandAction {
+  private val rangePointer = LintIdeFixPerformer.getRangePointer(project, range)
 
-  private fun findContainer(element: PsiElement): PsiElement? {
+  override fun getFamilyName(): @IntentionFamilyName String {
+    return familyName ?: "Annotate"
+  }
+
+  override fun getPresentation(context: ActionContext): Presentation? {
+    return if (findPsiTarget(context) != null) {
+      Presentation.of(displayName ?: getFamilyName())
+    } else {
+      null
+    }
+  }
+
+  override fun perform(context: ActionContext): ModCommand {
+    val element = findPsiTarget(context) ?: return ModCommand.nop()
+
+    @Suppress("UnstableApiUsage")
+    return ModCommand.psiUpdate(element) { e, _ -> applyFixFun(e) }
+  }
+
+  fun findPsiTarget(context: ActionContext): PsiElement? {
+    val rangeFile = rangePointer?.element?.containingFile
+    var element: PsiElement = context.file.findElementAt(context.offset)!!
+
+    if (
+      rangeFile != null &&
+      !(rangeFile.containingFile != context.file &&
+        context.file.originalFile == rangeFile.containingFile)) {
+      val range = rangePointer?.range
+      val newStartElement = rangeFile.findElementAt(range!!.startOffset)
+      if (newStartElement != null) {
+        element = newStartElement
+      }
+    }
     return when (element.language) {
       JavaLanguage.INSTANCE -> findJavaAnnotationTarget(element)
       KotlinLanguage.INSTANCE -> findKotlinAnnotationTarget(element)
@@ -55,58 +99,39 @@ class AnnotateQuickFix(
     }
   }
 
-  override fun apply(
-    element: PsiElement,
-    endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
-  ) {
-    val language = element.language
-    val container = findContainer(element) ?: return
-
-    if (!prepareElementForWrite(container)) {
-      return
-    }
-
-    when (language) {
+  fun applyFixFun(element: PsiElement) {
+    when (element.language) {
       JavaLanguage.INSTANCE -> {
-        val owner = container as PsiModifierListOwner
+        val owner = element as PsiModifierListOwner
         val project = element.project
         val factory = JavaPsiFacade.getInstance(project).elementFactory
         val newAnnotation = factory.createAnnotationFromText(annotationSource, element)
         val annotationName = newAnnotation.qualifiedName ?: return
         val annotation = AnnotationUtil.findAnnotation(owner, annotationName)
-        if (annotation != null && annotation.isPhysical && replace) {
+        if (annotation != null && annotation !is SyntheticElement && replace) {
           annotation.replace(newAnnotation)
         } else {
           val attributes = newAnnotation.parameterList.attributes
-          AddAnnotationFix(annotationName, container, attributes)
+          AddAnnotationFix(annotationName, element, attributes)
             .invoke(project, null, element.containingFile)
         }
       }
       KotlinLanguage.INSTANCE -> {
-        if (container !is KtModifierListOwner) return
-        val psiFactory = KtPsiFactory(container)
+        if (element !is KtModifierListOwner) return
+        val psiFactory = KtPsiFactory(element.project, markGenerated = true)
         val annotationEntry = psiFactory.createAnnotationEntry(annotationSource)
-        val fqName =
-          FqName(annotationSource.removePrefix("@").substringAfter(':').substringBefore('('))
-        val existing = container.findAnnotation(fqName)
+        val fqName = annotationSource.removePrefix("@").substringAfter(':').substringBefore('(')
+        val classId = ClassId.fromString(ClassContext.getInternalName(fqName))
+        val existing = element.findAnnotation(classId)
         val addedAnnotation =
-          if (existing != null && existing.isPhysical && replace) {
+          if (existing != null && existing !is SyntheticElement && replace) {
             existing.replace(annotationEntry) as KtAnnotationEntry
           } else {
-            container.addAnnotationEntry(annotationEntry)
+            element.addAnnotationEntry(annotationEntry)
           }
         ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
       }
     }
-  }
-
-  override fun isApplicable(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType
-  ): Boolean {
-    return findContainer(startElement) != null
   }
 }
 

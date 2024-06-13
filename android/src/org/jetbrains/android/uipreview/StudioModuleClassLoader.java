@@ -1,6 +1,6 @@
 package org.jetbrains.android.uipreview;
 
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
+import static com.android.tools.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.findMethodLike;
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 
@@ -12,20 +12,20 @@ import com.android.tools.rendering.classloading.ClassBinaryCacheManager;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsRead;
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite;
+import com.android.tools.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform;
+import com.android.tools.rendering.classloading.CooperativeInterruptTransform;
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
-import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
-import com.android.tools.idea.rendering.classloading.RenderActionAllocationLimiterTransform;
+import com.android.tools.rendering.classloading.PreviewAnimationClockMethodTransform;
+import com.android.tools.rendering.classloading.RenderActionAllocationLimiterTransform;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
-import com.android.tools.idea.rendering.classloading.RequestExecutorTransform;
-import com.android.tools.idea.rendering.classloading.ResourcesCompatTransform;
-import com.android.tools.idea.rendering.classloading.SdkIntReplacer;
+import com.android.tools.rendering.classloading.RequestExecutorTransform;
+import com.android.tools.rendering.classloading.ResourcesCompatTransform;
+import com.android.tools.rendering.classloading.SdkIntReplacer;
 import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
-import com.android.tools.idea.rendering.classloading.VersionClassTransform;
-import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
+import com.android.tools.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
 import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.classloading.ClassTransform;
@@ -84,7 +84,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       "sun.",
       "com.sun.",
       "org.w3c.",
-      "org.xmlss.",
+      "org.xml.",
       "android.",
       "dalvik.",
       "org.apache.",
@@ -239,7 +239,8 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
    * Checks if the given parent {@link ClassLoader} is the same as the given to this {@link StudioModuleClassLoader} at construction
    * time. This class loader adds additional parents to the chain so {@link ClassLoader#getParent()} can not be used directly.
    */
-  boolean isCompatibleParentClassLoader(@Nullable ClassLoader parent) {
+  @Override
+  protected boolean isCompatibleParentClassLoader(@Nullable ClassLoader parent) {
     return getParentAtConstruction() == parent;
   }
 
@@ -252,18 +253,23 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     return myParentAtConstruction;
   }
 
+  @Override
   @NotNull
   public Set<String> getNonProjectLoadedClasses() { return myImpl.getNonProjectLoadedClassNames(); }
 
+  @Override
   @NotNull
   public Set<String> getProjectLoadedClasses() { return myImpl.getProjectLoadedClassNames(); }
 
+  @Override
   @NotNull
   public ClassTransform getProjectClassesTransform() { return myImpl.getProjectTransforms(); }
 
+  @Override
   @NotNull
   public ClassTransform getNonProjectClassesTransform() { return myImpl.getNonProjectTransforms(); }
 
+  @Override
   public boolean areDependenciesUpToDate() {
     Module module = getModule();
     if (module == null) return true;
@@ -381,7 +387,8 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     return isDisposed.get();
   }
 
-  void dispose() {
+  @Override
+  public void dispose() {
     isDisposed.set(true);
     myImpl.dispose();
     ourDisposeService.execute(() -> {

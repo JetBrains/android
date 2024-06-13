@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.example.rubidumconsumer'
-    compileSdkPreview = 'TiramisuPrivacySandbox'
+    compileSdk = 34
 
     defaultConfig {
         applicationId "com.example.rubidumconsumer"
         minSdk = 33
-        targetSdkPreview = 'TiramisuPrivacySandbox'
+        targetSdk = 34
         versionCode 1
         versionName "1.0"
 

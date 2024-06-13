@@ -30,6 +30,7 @@ import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
+import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -53,12 +54,13 @@ class BottomUpDetailsViewTest {
   val disposableRule = DisposableRule()
 
   private lateinit var profilersView: StudioProfilersView
-  private val capture = CpuProfilerUITestUtils.validCapture()
+  private lateinit var capture: CpuCapture
 
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    capture = CpuProfilerUITestUtils.validCapture(profilers)
   }
 
   @Test

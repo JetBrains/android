@@ -41,7 +41,7 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
           component(SdkConstants.LINEAR_LAYOUT)
             .id("@+id/outer")
             .withBounds(0, 0, 100, 100)
-            .children(component(SdkConstants.TEXT_VIEW).withBounds(10, 0, 10, 10))
+            .children(component(SdkConstants.TEXT_VIEW).withBounds(10, 0, 10, 10)),
         )
         .build()
     val surface = LayoutTestUtilities.createScreen(model).surface
@@ -79,7 +79,7 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
         <?xml version="1.0" encoding="utf-8"?>
         <color xmlns:android="http://schemas.android.com/apk/res/android" android:color="#ff0000" />
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val model =
       model(
@@ -87,7 +87,7 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
           component(SdkConstants.LINEAR_LAYOUT)
             .id("@+id/outer")
             .withBounds(0, 0, 100, 100)
-            .children(component(SdkConstants.TEXT_VIEW).withBounds(10, 0, 10, 10))
+            .children(component(SdkConstants.TEXT_VIEW).withBounds(10, 0, 10, 10)),
         )
         .build()
     val surface = LayoutTestUtilities.createScreen(model).surface

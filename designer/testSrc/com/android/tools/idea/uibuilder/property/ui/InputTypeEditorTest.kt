@@ -68,7 +68,7 @@ class InputTypeEditorTest {
         "textVisiblePassword",
         "textWebEditText",
         "textWebEmailAddress",
-        "textWebPassword"
+        "textWebPassword",
       )
       .inOrder()
     assertThat(editor.flagsModel.flags.map { it.name })
@@ -81,7 +81,7 @@ class InputTypeEditorTest {
         "textEnableTextConversionSuggestions",
         "textImeMultiLine",
         "textMultiLine",
-        "textNoSuggestions"
+        "textNoSuggestions",
       )
       .inOrder()
   }
@@ -226,7 +226,7 @@ class InputTypeEditorTest {
       "",
       "",
       model,
-      util.components
+      util.components,
     )
   }
 

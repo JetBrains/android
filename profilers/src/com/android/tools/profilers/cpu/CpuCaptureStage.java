@@ -84,6 +84,7 @@ import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelKt;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.tasks.TaskFinishedState;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -113,6 +114,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.profilers.StringFormattingUtils.formatStringInTitleCase;
 import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getUnitFromTrackName;
 import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getFormattedBatteryDrainName;
+import static com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished;
 
 /**
  * This class holds the models and capture data for the {@code com.android.tools.profilers.cpu.CpuCaptureStageView}.
@@ -282,7 +284,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
                          int captureProcessIdHint) {
     super(profilers);
     myCpuCaptureHandler = new CpuCaptureHandler(
-      profilers.getIdeServices(), captureFile, traceId, configuration, entryPoint, captureProcessNameHint, captureProcessIdHint);
+      profilers, captureFile, traceId, configuration, entryPoint, captureProcessNameHint, captureProcessIdHint);
 
     getMultiSelectionModel().addDependency(this)
       .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, this::onSelectionChanged)
@@ -383,13 +385,14 @@ public class CpuCaptureStage extends Stage<Timeline> {
           myCapture = capture;
           onCaptureParsed(capture);
           setState(State.ANALYZING);
+          trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(), TaskFinishedState.COMPLETED);
         }
       }
       catch (Exception ex) {
         // Logging if an exception happens since setState may trigger various callbacks.
         Logger.getInstance(CpuCaptureStage.class).error(ex);
       }
-    });
+    }, finishedState -> trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(), finishedState));
   }
 
   @Override

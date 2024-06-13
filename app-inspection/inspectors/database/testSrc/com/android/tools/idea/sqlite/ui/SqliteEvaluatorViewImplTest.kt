@@ -23,7 +23,6 @@ import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
@@ -36,6 +35,7 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.testing.runDispatching
 import com.intellij.mock.MockVirtualFile
@@ -116,7 +116,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val evaluatorController =
       sqliteEvaluatorController(
         model,
-        DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+        DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
       )
     evaluatorController.setUp()
 
@@ -192,7 +192,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val evaluatorController =
       sqliteEvaluatorController(
         OpenDatabaseInspectorModel(),
-        DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+        DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
       )
 
     // Act
@@ -210,7 +210,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
         getJdbcDatabaseConnection(
           testRootDisposable,
           sqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
 
@@ -229,7 +229,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFuture(
       controller.showAndExecuteSqlStatement(
         database,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
       )
     )
 
@@ -244,7 +244,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFuture(
       controller.showAndExecuteSqlStatement(
         database,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
       )
     )
 
@@ -309,7 +309,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
         getJdbcDatabaseConnection(
           testRootDisposable,
           sqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
 
@@ -329,7 +329,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFuture(
       controller.showAndExecuteSqlStatement(
         database,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
       )
     )
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
@@ -394,7 +394,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
   private fun sqliteEvaluatorController(
     model: DatabaseInspectorModel = OpenDatabaseInspectorModel(),
     repository: DatabaseRepositoryImpl =
-      DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+      DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
   ): SqliteEvaluatorController {
     return SqliteEvaluatorController(
         project,
@@ -405,7 +405,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
       .also { Disposer.register(testRootDisposable, it) }
   }
@@ -413,7 +413,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
   private fun createAdHocSqliteDatabase(): VirtualFile {
     return sqliteUtil.createAdHocSqliteDatabase(
       createStatement = "CREATE TABLE t1 (c1 INT)",
-      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+      insertStatement = "INSERT INTO t1 (c1) VALUES (42)",
     )
   }
 }

@@ -44,7 +44,7 @@ import kotlin.properties.Delegates
 class ComboBoxPropertyEditorModel(
   property: PropertyItem,
   private val enumSupport: EnumSupport,
-  override val editable: Boolean
+  override val editable: Boolean,
 ) : BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
   /** Object for synchronizing access to [newValues] */
   private val syncNewValues = Object()

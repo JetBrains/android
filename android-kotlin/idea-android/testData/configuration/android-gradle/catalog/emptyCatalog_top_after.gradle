@@ -1,0 +1,14 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.5.+'
+    }
+}
+plugins {
+alias(libs.plugins.jetbrains.kotlin.android) apply false
+}
+repositories {
+    mavenCentral()
+}

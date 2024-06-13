@@ -26,7 +26,6 @@ import com.android.tools.idea.dagger.index.readClassId
 import com.android.tools.idea.dagger.index.writeClassId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
@@ -72,7 +71,7 @@ internal object ProvidesMethodDaggerConcept : DaggerConcept {
   override val daggerElementIdentifiers =
     DaggerElementIdentifiers.of(
       ProvidesMethodIndexValue.identifiers,
-      ProvidesMethodParameterIndexValue.identifiers
+      ProvidesMethodParameterIndexValue.identifiers,
     )
 }
 
@@ -89,7 +88,7 @@ private object ProvidesMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWra
 
     indexEntries.addIndexValue(
       returnTypeSimpleName,
-      ProvidesMethodIndexValue(classId, methodSimpleName)
+      ProvidesMethodIndexValue(classId, methodSimpleName),
     )
 
     for (parameter in wrapper.getParameters()) {
@@ -97,7 +96,7 @@ private object ProvidesMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWra
       val parameterName = parameter.getSimpleName() ?: continue
       indexEntries.addIndexValue(
         parameterSimpleTypeName,
-        ProvidesMethodParameterIndexValue(classId, methodSimpleName, parameterName)
+        ProvidesMethodParameterIndexValue(classId, methodSimpleName, parameterName),
       )
     }
   }
@@ -146,16 +145,16 @@ internal data class ProvidesMethodIndexValue(val classId: ClassId, val methodSim
     internal val identifiers =
       DaggerElementIdentifiers(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods.filter { it.name == methodSimpleName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -164,7 +163,7 @@ internal data class ProvidesMethodIndexValue(val classId: ClassId, val methodSim
 internal data class ProvidesMethodParameterIndexValue(
   val classId: ClassId,
   val methodSimpleName: String,
-  val parameterName: String
+  val parameterName: String,
 ) : IndexValue() {
   override val dataType = Reader.supportedType
 
@@ -211,18 +210,18 @@ internal data class ProvidesMethodParameterIndexValue(
     internal val identifiers =
       DaggerElementIdentifiers(
         ktParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods
-      .filter { it.name == methodSimpleName }
-      .flatMap { it.parameterList.parameters.filter { p -> p.name == parameterName } }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName }
+      ?.flatMap { it.parameterList.parameters.asSequence().filter { p -> p.name == parameterName } }
+      ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }

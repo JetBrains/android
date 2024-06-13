@@ -19,9 +19,11 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:com.intellij.platform.images",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
     ],
 )
 
@@ -51,10 +53,12 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:com.intellij.platform.images[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
     ],
 )

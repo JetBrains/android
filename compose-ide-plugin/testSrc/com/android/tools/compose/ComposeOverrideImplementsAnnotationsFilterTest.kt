@@ -34,7 +34,7 @@ import org.junit.runners.JUnit4
  */
 @RunWith(JUnit4::class)
 class ComposeOverrideImplementsAnnotationsFilterTest {
-  @get:Rule var projectRule = AndroidProjectRule.inMemory()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setup() {
@@ -62,7 +62,7 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
       class Impleme<caret>ntation : Interface {
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val intention =
@@ -115,7 +115,7 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
       class Impleme<caret>ntation : Interface {
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val intention =
@@ -125,7 +125,9 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
       intention.invoke(fixture.project, fixture.editor, file)
     }
 
-    val argumentType = if (KotlinPluginModeProvider.isK2Mode()) "@Composable (() -> Unit)" else "@Composable () -> Unit"
+    val argumentType =
+      if (KotlinPluginModeProvider.isK2Mode()) "@Composable (() -> Unit)"
+      else "@Composable () -> Unit"
     fixture.checkResult(
       // language=kotlin
       """

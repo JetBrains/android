@@ -15,24 +15,34 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.FileUtils.toSystemIndependentPath
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.jetbrains.org.objectweb.asm.Type
 import java.nio.file.Files
 import java.nio.file.Paths
 
-private class TestClass
-private val testClassName = TestClass::class.java.canonicalName
+fun loadClassBytes(c: Class<*>): ByteArray {
+  val className = "${Type.getInternalName(c)}.class"
+  c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
+}
+
+class TestClass
+val testClassName: String = TestClass::class.java.canonicalName
 
 internal class ModuleClassLoaderOverlaysTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  private val projectOverlayModificationCount: Long
+    get() = ModuleClassLoaderOverlays.NotificationManager.getInstance(projectRule.project).modificationFlow.value
+
+  private val moduleOverlayModificationCount: Long
+    get() = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount
 
   @Test
   fun `empty overlay does not return classes`() {
@@ -50,9 +60,11 @@ internal class ModuleClassLoaderOverlaysTest {
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
     assertNotNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
 
-    val modificationCount = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount
+    assertEquals(1, projectOverlayModificationCount)
+    assertEquals(1, moduleOverlayModificationCount)
     ModuleClassLoaderOverlays.getInstance(projectRule.module).invalidateOverlayPaths()
-    assertTrue(modificationCount != ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount)
+    assertEquals(2, projectOverlayModificationCount)
+    assertEquals(2, moduleOverlayModificationCount)
   }
 
   @Test

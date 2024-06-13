@@ -86,7 +86,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
     border = JBUI.Borders.empty(20)
   }
 
-  val tree: CheckboxTree = CheckboxTree(UpgradeAssistantTreeCellRenderer(), null)
+  val tree: CheckboxTree = CheckboxTree(UpgradeAssistantTreeCellRenderer(model.project), null)
 
   init {
     treePanel.apply {

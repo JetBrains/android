@@ -92,15 +92,15 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       listOf(
         AddTable(
           IndexedSqliteTable(tableToAdd, 1),
-          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))
+          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1)),
         )
-      )
+      ),
     )
 
     // Assert
     assertTreeContainsNodes(
       tree,
-      mapOf(Pair(ViewDatabase(databaseId, true), listOf(table1, tableToAdd)))
+      mapOf(Pair(ViewDatabase(databaseId, true), listOf(table1, tableToAdd))),
     )
   }
 
@@ -122,7 +122,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Act
     view.updateDatabaseSchema(
       ViewDatabase(databaseId, true),
-      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 2)), table2))
+      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 2)), table2)),
     )
 
     // Assert
@@ -146,7 +146,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Act
     view.updateDatabaseSchema(
       ViewDatabase(databaseId, true),
-      listOf(RemoveColumns(table1.name, listOf(column2), table2))
+      listOf(RemoveColumns(table1.name, listOf(column2), table2)),
     )
 
     // Assert
@@ -174,9 +174,9 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         RemoveTable(table1.name),
         AddTable(
           IndexedSqliteTable(newTable, 0),
-          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))
-        )
-      )
+          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1)),
+        ),
+      ),
     )
 
     // Assert
@@ -204,8 +204,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       ViewDatabase(databaseId, true),
       listOf(
         RemoveColumns(table1.name, listOf(column2), table1AfterRemove),
-        AddColumns(finalTable.name, listOf(IndexedSqliteColumn(newColumn, 1)), finalTable)
-      )
+        AddColumns(finalTable.name, listOf(IndexedSqliteColumn(newColumn, 1)), finalTable),
+      ),
     )
 
     // Assert
@@ -232,15 +232,15 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       listOf(
         AddTable(
           IndexedSqliteTable(tableToAdd, 0),
-          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))
+          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1)),
         )
-      )
+      ),
     )
 
     // Assert
     assertTreeContainsNodes(
       tree,
-      mapOf(Pair(ViewDatabase(databaseId, true), listOf(tableToAdd, table1)))
+      mapOf(Pair(ViewDatabase(databaseId, true), listOf(tableToAdd, table1))),
     )
   }
 
@@ -262,7 +262,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Act
     view.updateDatabaseSchema(
       ViewDatabase(databaseId, true),
-      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 0)), table2))
+      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 0)), table2)),
     )
 
     // Assert
@@ -300,7 +300,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(databaseId, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -328,7 +328,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(databaseId, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -354,7 +354,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(databaseId, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -393,7 +393,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(databaseId, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -430,7 +430,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(databaseId1, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -442,7 +442,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(databaseId2, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -497,7 +497,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(fileDatabaseId1, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -506,7 +506,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(fileDatabaseId2, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -528,7 +528,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(liveDatabaseId, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -554,7 +554,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(fileDatabaseId1, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -563,7 +563,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(liveDatabaseId, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )
@@ -572,7 +572,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
         DatabaseDiffOperation.AddDatabase(
           ViewDatabase(fileDatabaseId2, true),
           SqliteSchema(emptyList()),
-          0
+          0,
         )
       )
     )

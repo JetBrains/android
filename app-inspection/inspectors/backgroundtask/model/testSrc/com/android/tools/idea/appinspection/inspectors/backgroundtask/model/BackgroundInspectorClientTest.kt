@@ -44,7 +44,7 @@ class BackgroundInspectorClientTest {
 
   private class FakeAppInspectorMessenger(
     override val scope: CoroutineScope,
-    private val singleRawCommandResponse: ByteArray = ByteArray(0)
+    private val singleRawCommandResponse: ByteArray = ByteArray(0),
   ) : AppInspectorMessenger {
     lateinit var rawDataSent: ByteArray
 
@@ -88,7 +88,7 @@ class BackgroundInspectorClientTest {
         backgroundTaskInspectorMessenger,
         WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
         scope,
-        StubBackgroundTaskInspectorTracker()
+        StubBackgroundTaskInspectorTracker(),
       )
     listener = Listener(client)
   }
@@ -208,7 +208,7 @@ class BackgroundInspectorClientTest {
     client.handleEvent(
       EventWrapper(
         EventWrapper.Case.WORK,
-        workScheduleRequestedAtUpdatedEvent.toEvent().toByteArray()
+        workScheduleRequestedAtUpdatedEvent.toEvent().toByteArray(),
       )
     )
     listener.consume { type, entry ->

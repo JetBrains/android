@@ -17,13 +17,12 @@
 package androidx.compose.compiler.plugins.kotlin
 
 import androidx.compose.compiler.plugins.kotlin.analysis.Stability
-import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
 import androidx.compose.compiler.plugins.kotlin.analysis.knownStable
 import androidx.compose.compiler.plugins.kotlin.analysis.knownUnstable
 import androidx.compose.compiler.plugins.kotlin.lower.ComposableFunctionBodyTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.IrSourcePrinterVisitor
 import androidx.compose.compiler.plugins.kotlin.lower.isUnitOrNullableUnit
-import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import java.io.File
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
@@ -32,13 +31,14 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtParameter
-import java.io.File
 
+@JvmDefaultWithCompatibility
 interface FunctionMetrics {
     val isEmpty: Boolean get() = false
     val packageName: FqName
@@ -57,7 +57,7 @@ interface FunctionMetrics {
     fun recordGroup()
     fun recordComposableCall(
         expression: IrCall,
-        paramMeta: List<ComposableFunctionBodyTransformer.ParamMeta>
+        paramMeta: List<ComposableFunctionBodyTransformer.CallArgumentMeta>
     )
     fun recordParameter(
         declaration: IrValueParameter,
@@ -82,6 +82,7 @@ interface FunctionMetrics {
     fun print(out: Appendable, src: IrSourcePrinterVisitor)
 }
 
+@JvmDefaultWithCompatibility
 interface ModuleMetrics {
     val isEmpty get() = false
 
@@ -100,7 +101,7 @@ interface ModuleMetrics {
     )
     fun recordComposableCall(
         expression: IrCall,
-        paramMeta: List<ComposableFunctionBodyTransformer.ParamMeta>
+        paramMeta: List<ComposableFunctionBodyTransformer.CallArgumentMeta>
     )
     fun log(message: String)
     fun Appendable.appendModuleJson()
@@ -119,7 +120,7 @@ object EmptyModuleMetrics : ModuleMetrics {
     override fun recordLambda(composable: Boolean, memoized: Boolean, singleton: Boolean) {}
     override fun recordComposableCall(
         expression: IrCall,
-        paramMeta: List<ComposableFunctionBodyTransformer.ParamMeta>
+        paramMeta: List<ComposableFunctionBodyTransformer.CallArgumentMeta>
     ) {}
     override fun log(message: String) {
         println(message)
@@ -165,7 +166,7 @@ object EmptyFunctionMetrics : FunctionMetrics {
     override fun recordGroup() {}
     override fun recordComposableCall(
         expression: IrCall,
-        paramMeta: List<ComposableFunctionBodyTransformer.ParamMeta>
+        paramMeta: List<ComposableFunctionBodyTransformer.CallArgumentMeta>
     ) {}
     override fun recordParameter(
         declaration: IrValueParameter,
@@ -190,9 +191,8 @@ object EmptyFunctionMetrics : FunctionMetrics {
 
 class ModuleMetricsImpl(
     var name: String,
-    context: IrPluginContext
+    val stabilityOf: (IrType) -> Stability
 ) : ModuleMetrics {
-    val stabilityInferencer = StabilityInferencer(context)
     private var skippableComposables = 0
     private var restartableComposables = 0
     private var readonlyComposables = 0
@@ -232,6 +232,7 @@ class ModuleMetricsImpl(
             knownUnstable() -> "unstable"
             else -> "runtime"
         }
+        @OptIn(UnsafeDuringIrConstructionAPI::class)
         fun print(out: Appendable, src: IrSourcePrinterVisitor) = with(out) {
             append("${stability.simpleHumanReadable()} ")
             append("class ")
@@ -250,7 +251,7 @@ class ModuleMetricsImpl(
                 }
                 if (field.name == KtxNameConventions.STABILITY_FLAG) continue
                 append("  ")
-                val fieldStability = stabilityInferencer.stabilityOf(field.type)
+                val fieldStability = stabilityOf(field.type)
                 append("${fieldStability.simpleHumanReadable()} ")
                 append(if (isVar) "var " else "val ")
                 append(field.name.asString())
@@ -323,7 +324,7 @@ class ModuleMetricsImpl(
 
     override fun recordComposableCall(
         expression: IrCall,
-        paramMeta: List<ComposableFunctionBodyTransformer.ParamMeta>
+        paramMeta: List<ComposableFunctionBodyTransformer.CallArgumentMeta>
     ) {
         for (arg in paramMeta) {
             totalArguments++
@@ -511,7 +512,7 @@ class FunctionMetricsImpl(
 
     override fun recordComposableCall(
         expression: IrCall,
-        paramMeta: List<ComposableFunctionBodyTransformer.ParamMeta>
+        paramMeta: List<ComposableFunctionBodyTransformer.CallArgumentMeta>
     ) {
         calls++
     }

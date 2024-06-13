@@ -19,13 +19,9 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.transport.FailedToStartServerException
 import com.android.tools.idea.transport.TransportDeviceManager
-import com.android.tools.idea.transport.TransportProxy
-import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Transport
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -38,7 +34,7 @@ class TransportErrorListener(
   project: Project,
   private val notificationModel: NotificationModel,
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
-  disposable: Disposable
+  disposable: Disposable,
 ) : TransportDeviceManager.TransportDeviceManagerListener {
 
   private var hasStartServerFailed = false
@@ -51,7 +47,7 @@ class TransportErrorListener(
           TWO_VERSIONS_RUNNING_KEY,
           LayoutInspectorBundle.message(TWO_VERSIONS_RUNNING_KEY),
           Status.Error,
-          emptyList()
+          emptyList(),
         )
         // TODO(b/258453315) log to metrics
       } else {
@@ -73,23 +69,14 @@ class TransportErrorListener(
 
   override fun onStartTransportDaemonServerFail(
     device: Common.Device,
-    exception: FailedToStartServerException
+    exception: FailedToStartServerException,
   ) {
     // this happens if the transport can't start the server on the designated port.
     // for example if multiple versions of Studio are running.
     hasStartServerFailed = true
     layoutInspectorMetrics.logTransportError(
       DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON,
-      device.toDeviceDescriptor()
+      device.toDeviceDescriptor(),
     )
   }
-
-  override fun customizeProxyService(proxy: TransportProxy) {}
-
-  override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {}
-
-  override fun customizeAgentConfig(
-    configBuilder: Agent.AgentConfig.Builder,
-    runConfig: AndroidRunConfigurationBase?
-  ) {}
 }

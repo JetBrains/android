@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.fast
 
+import com.android.tools.compile.fast.CompilationResult
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile

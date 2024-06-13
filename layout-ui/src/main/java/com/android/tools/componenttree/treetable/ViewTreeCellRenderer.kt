@@ -21,11 +21,13 @@ import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.componenttree.api.ViewNodeType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.ExperimentalUI
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER
 import com.intellij.ui.SimpleTextAttributes.STYLE_STRIKEOUT
 import com.intellij.ui.treeStructure.treetable.TreeTableTree
+import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.StartupUiUtil
@@ -62,7 +64,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     expanded: Boolean,
     leaf: Boolean,
     row: Int,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ): Component {
     renderer.reset()
     val node = type.clazz.cast(value) ?: return renderer
@@ -74,7 +76,8 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     renderer.selectedValue = selected
     renderer.focusedValue = hasFocus && selected
 
-    renderer.id = stripId(type.idOf(node))
+    renderer.id =
+      SlowOperations.allowSlowOperations(ThrowableComputable { stripId(type.idOf(node)) })
     renderer.tagName = type.tagNameOf(node).substringAfterLast('.')
     renderer.textValue = type.textValueOf(node)
     renderer.treeIcon = type.iconOf(node)
@@ -205,7 +208,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       text: String?,
       attributes: SimpleTextAttributes,
       metrics: FontMetrics,
-      maxWidth: Int
+      maxWidth: Int,
     ): Boolean {
       var actual = text ?: return true
       var unchanged = true

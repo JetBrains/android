@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
@@ -139,6 +140,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     applyPlugin(plugin, revision.toString(), null)
   }
 
+  override fun addPlugin(plugin: String, classpath: String) {
+    referencesExecutor.addPlugin(plugin, classpath)
+    val buildModel = moduleGradleBuildModel ?: return
+
+    applyPluginToProjectAndModule(plugin, classpath, buildModel)
+  }
 
   override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
     referencesExecutor.applyPluginInModule(plugin, module, revision, minRev)
@@ -151,26 +158,18 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     applyPluginInModule(plugin, module, revision.toString(), null)
   }
 
+  private fun applyPluginToProjectAndModule(plugin: String, classpath: String, buildModel: GradleBuildModel) {
+    val projectModel = projectBuildModel ?: return
+    val dependenciesHelper = DependenciesHelper.withModel(projectModel)
+    dependenciesHelper.addPlugin(plugin, classpath, buildModel)
+  }
+
   private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
     val projectModel = projectBuildModel ?: return
-    val dependenciesHelper = DependenciesHelper(projectModel)
+    val dependenciesHelper = DependenciesHelper.withModel(projectModel)
     if (revision == null) {
       // When the revision is null, just apply the plugin without a revision.
       // Version catalogs don't support the plugins without versions.
-      dependenciesHelper.addPlugin(plugin, buildModel)
-      return
-    }
-
-    // applyFlag is either of false or null in this context because the gradle dsl [PluginsModel#applyPlugin]
-    // takes a nullable Boolean that means:
-    //  - The flag being false means "apply false" is appended at the end of the plugin declaration
-    //  - The flag being null means nothing is appended
-    val (pluginsBlockToModify, applyFlag) = maybeGetPluginsFromSettings()?.let { Pair(it, null) }
-                                            ?: maybeGetPluginsFromProject()?.let { Pair(it, false) }
-                                            ?: Pair(null, false)
-    if (pluginsBlockToModify == null) {
-      // When the revision is specified, but plugins block isn't defined in the settings nor the project level build file,
-      // just apply the plugin without a revision.
       dependenciesHelper.addPlugin(plugin, buildModel)
       return
     }
@@ -179,7 +178,19 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val component = repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
     val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
 
-    dependenciesHelper.addPlugin(plugin, resolvedVersion, applyFlag, pluginsBlockToModify, buildModel)
+    // applyFlag is either of false or null in this context because the gradle dsl [PluginsModel#applyPlugin]
+    // takes a nullable Boolean that means:
+    //  - The flag being false means "apply false" is appended at the end of the plugin declaration
+    //  - The flag being null means nothing is appended
+    maybeGetPluginsFromSettings()?.let {
+      dependenciesHelper.addPlugin(plugin, resolvedVersion, null, it, buildModel)
+    } ?: maybeGetPluginsFromProject()?.let {
+      dependenciesHelper.addPlugin(plugin, resolvedVersion, false, it, buildModel)
+    } ?: run {
+      // When the revision is specified, but plugins block isn't defined in the settings nor the project level build file,
+      // just apply the plugin without a revision.
+      dependenciesHelper.addPlugin(plugin, buildModel)
+    }
   }
 
   override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
@@ -204,16 +215,16 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
     projectBuildModel?.let {
       if (targetDependencyModel == null) {
-        DependenciesHelper(it).addClasspathDependency(toBeAddedDependency.compactNotation())
+        DependenciesHelper.withModel(it).addClasspathDependency(toBeAddedDependency.compactNotation())
       }
     }
   }
 
-  private fun maybeGetPluginsFromSettings(): PluginsModel? {
+  private fun maybeGetPluginsFromSettings(): PluginsBlockModel? {
     return projectSettingsModel?.pluginManagement()?.plugins()?.takeIf { it.psiElement != null }
   }
 
-  private fun maybeGetPluginsFromProject(): PluginsModel? {
+  private fun maybeGetPluginsFromProject(): GradleBuildModel? {
     return projectGradleBuildModel?.takeIf { it.pluginsPsiElement != null }
   }
 
@@ -226,16 +237,18 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val baseFeature = context.moduleTemplateData?.baseFeature
 
     val buildModel = when {
-      moduleDir != null -> {
-        projectBuildModel?.getModuleBuildModel(moduleDir)
-      }
-      baseFeature == null || !toBase -> {
-        moduleGradleBuildModel
-      }
-      else -> {
-        projectBuildModel?.getModuleBuildModel(baseFeature.dir)
-      }
-    } ?: return
+                       moduleDir != null -> {
+                         projectBuildModel?.getModuleBuildModel(moduleDir)
+                       }
+
+                       baseFeature == null || !toBase -> {
+                         moduleGradleBuildModel
+                       }
+
+                       else -> {
+                         projectBuildModel?.getModuleBuildModel(baseFeature.dir)
+                       }
+                     } ?: return
 
     val resolvedMavenCoordinate =
       when {
@@ -248,15 +261,16 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
     val resolvedConfiguration = if (baseFeature != null && toBase && configuration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
-        GRADLE_API_CONFIGURATION
-    } else configuration
+      GRADLE_API_CONFIGURATION
+    }
+    else configuration
 
     projectBuildModel?.let {
-      DependenciesHelper(it).addDependency(resolvedConfiguration,
-                                           resolvedMavenCoordinate,
-                                           listOf(),
-                                           buildModel,
-                                           GroupNameDependencyMatcher(resolvedConfiguration, resolvedMavenCoordinate))
+      DependenciesHelper.withModel(it).addDependency(resolvedConfiguration,
+                                                     resolvedMavenCoordinate,
+                                                     listOf(),
+                                                     buildModel,
+                                                     GroupNameDependencyMatcher(resolvedConfiguration, resolvedMavenCoordinate))
     }
   }
 
@@ -270,11 +284,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // e.g. "implementation" and "androidTestImplementation". This is necessary to apply BOM versions
     // to dependencies in each configuration.
     projectBuildModel?.let {
-      DependenciesHelper(it).addPlatformDependency(configuration,
-                                                   resolvedMavenCoordinate,
-                                                   enforced,
-                                                   buildModel,
-                                                   GroupNameDependencyMatcher(configuration, resolvedMavenCoordinate))
+      DependenciesHelper.withModel(it).addPlatformDependency(configuration,
+                                                             resolvedMavenCoordinate,
+                                                             enforced,
+                                                             buildModel,
+                                                             GroupNameDependencyMatcher(configuration, resolvedMavenCoordinate))
     }
   }
 
@@ -302,6 +316,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       target.exists() -> if (!sourceFile.contentEquals(target)) {
         addFileAlreadyExistWarning(target)
       }
+
       else -> {
         val document = FileDocumentManager.getInstance().getDocument(sourceFile)
         if (document != null) {
@@ -395,7 +410,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     return property.valueAsString() ?: valueIfNotFound
   }
 
-  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) : String {
+  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String): String {
     val mavenDependency = ArtifactDependencySpec.create(mavenCoordinate)
     check(mavenDependency != null) { "$mavenCoordinate is not a valid classpath dependency" }
 
@@ -412,7 +427,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     return valueIfNotFound
   }
 
-  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) : String {
+  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String): String {
     val mavenDependency = ArtifactDependencySpec.create(mavenCoordinate)
     check(mavenDependency != null) { "$mavenCoordinate is not a valid dependency" }
 

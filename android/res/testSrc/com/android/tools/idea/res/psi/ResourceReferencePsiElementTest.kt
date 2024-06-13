@@ -43,7 +43,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     myFixture.addFileToProject(
       "res/values/colors.xml",
       // language=XML
-      """<resources><color name="colorPrimary">#008577</color></resources>"""
+      """<resources><color name="colorPrimary">#008577</color></resources>""",
     )
   }
 
@@ -80,7 +80,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
          }
        }
        """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -124,7 +124,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
          }
        }
        """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -149,7 +149,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
          }
        }
        """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -175,7 +175,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
          }
        }
        """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -201,7 +201,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
          }
        }
        """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -220,7 +220,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
        <resources>
          <color name="foo.bar">#3700B3</color>
        </resources>"""
-        .trimIndent()
+        .trimIndent(),
     )
     val file =
       myFixture.addFileToProject(
@@ -234,7 +234,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
          }
        }
        """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
@@ -271,7 +271,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
                 android:layout_height="match_parent"
                 android:textColor="@color/col${caret}orPrimary"/>
         </LinearLayout>"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val fakePsiElement = myFixture.elementAtCaret as ResourceReferencePsiElement
@@ -295,7 +295,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
               android:layout_height="match_parent"
               android:textColor="@android:color/secondary${caret}_text_dark"/>
       </LinearLayout>"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val fakePsiElement = myFixture.elementAtCaret as ResourceReferencePsiElement
@@ -321,7 +321,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
               android:layout_width="match_parent"
               android:layout_height="match_parent"/>
       </LinearLayout>"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val fakePsiElement = myFixture.elementAtCaret as ResourceReferencePsiElement
@@ -339,7 +339,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
        <resources>
          <attr name="android:text${caret}Style"/>
        </resources>"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret =
@@ -363,7 +363,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
         <resources>
           <string name="Foo">Bar</string>
         </resources>"""
-          .trimMargin()
+          .trimMargin(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     assertThat(file).isInstanceOf(PsiFile::class.java)
@@ -383,7 +383,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
         android:shape="rectangle"
         android:tint="#FF0000">
        </shape>"""
-          .trimMargin()
+          .trimMargin(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     assertThat(file).isInstanceOf(PsiFile::class.java)
@@ -400,7 +400,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
       myFixture.addFileToProject(
         "res/drawable/test file.xml",
         // language=XML
-        """<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"/>"""
+        """<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"/>""",
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     assertThat(file).isInstanceOf(PsiFile::class.java)
@@ -419,7 +419,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
            <item name="android:textStyle"/>
          </style>
        </resources>"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.moveCaret("android:textS|tyle")
@@ -442,7 +442,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
           </declare-styleable>
         </resources>
         """
-        .trimIndent()
+        .trimIndent(),
     )
     val psiFile =
       myFixture.addFileToProject(
@@ -454,7 +454,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
            <item name="layout_behavior"/>
          </style>
        </resources>"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.moveCaret("la|yout_behavior")
@@ -480,7 +480,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
          </style>
         </resources>
         """
-        .trimIndent()
+        .trimIndent(),
     )
     val file =
       myFixture.addFileToProject(
@@ -497,7 +497,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
               android:text="?attr/button_text"/>
       </LinearLayout>
        """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.moveCaret("attr/butto|n_text")
@@ -520,7 +520,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
          }
        }
        """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val resourceLightField = myFixture.elementAtCaret
@@ -545,7 +545,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
               android:layout_height="match_parent"
               android:textColor="@color/col${caret}orPrimary"/>
       </LinearLayout>"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
 
@@ -569,18 +569,18 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
       elementAtCaret,
       "colorPrimary",
       "@color/colorPrimary",
-      "Color Resource"
+      "Color Resource",
     )
     val frameworkElement =
       ResourceReferencePsiElement(
         elementAtCaret,
-        ResourceReference(ResourceNamespace.ANDROID, ResourceType.STRING, "example")
+        ResourceReference(ResourceNamespace.ANDROID, ResourceType.STRING, "example"),
       )
     checkElementDescriptions(
       frameworkElement,
       "example",
       "@android:string/example",
-      "String Resource"
+      "String Resource",
     )
   }
 
@@ -588,7 +588,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     element: ResourceReferencePsiElement,
     expectedShortName: String,
     expectedLongName: String,
-    expectedTypeDescription: String
+    expectedTypeDescription: String,
   ) {
     assertThat(
         ElementDescriptionUtil.getElementDescription(element, UsageViewShortNameLocation.INSTANCE)

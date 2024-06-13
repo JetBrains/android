@@ -32,7 +32,7 @@ data class Metric(val type: MetricType, val value: MetricValue) {
 
 enum class MetricType(val value: String) {
   ERROR_REPORT_COUNT("errorReportCount"),
-  DISTINCT_USER_COUNT("distinctUsers")
+  DISTINCT_USER_COUNT("distinctUsers"),
 }
 
 sealed class MetricValue {

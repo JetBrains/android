@@ -32,10 +32,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
-import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
@@ -52,15 +49,16 @@ import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.rules.TestRule
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
-import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.rules.TestRule
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 
 val MODERN_DEVICE =
   object : DeviceDescriptor {
@@ -93,7 +91,7 @@ fun DeviceDescriptor.createProcess(
   name: String = "com.example",
   pid: Int = 1,
   streamId: Long = 13579,
-  isRunning: Boolean = true
+  isRunning: Boolean = true,
 ): ProcessDescriptor {
   val device = this
   return object : ProcessDescriptor {
@@ -122,18 +120,17 @@ fun LegacyClientProvider(
   getDisposable: () -> Disposable,
   treeLoaderOverride: LegacyTreeLoader? =
     Mockito.mock(LegacyTreeLoader::class.java).also {
-      whenever(it.getAllWindowIds(Mockito.any())).thenReturn(listOf("1"))
-    }
+      whenever(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
+    },
 ) = InspectorClientProvider { params, inspector ->
   LegacyClient(
     params.process,
-    params.isInstantlyAutoConnected,
     inspector.inspectorModel,
     inspector.notificationModel,
     LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
     AndroidCoroutineScope(getDisposable()),
     getDisposable(),
-    treeLoaderOverride
+    treeLoaderOverride,
   )
 }
 
@@ -156,7 +153,7 @@ fun LegacyClientProvider(
 class LayoutInspectorRule(
   private val clientProviders: List<InspectorClientProvider>,
   private val projectRule: AndroidProjectRule,
-  isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
+  isPreferredProcess: (ProcessDescriptor) -> Boolean = { false },
 ) : TestRule {
 
   lateinit var launcher: InspectorClientLauncher
@@ -221,8 +218,6 @@ class LayoutInspectorRule(
   private lateinit var deviceModel: DeviceModel
 
   val adbRule = FakeAdbRule()
-  val adbProperties: AdbDebugViewProperties =
-    FakeShellCommandHandler().apply { adbRule.withDeviceCommandHandler(this) }
   val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   lateinit var inspector: LayoutInspector
@@ -256,7 +251,7 @@ class LayoutInspectorRule(
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString()
+        device.apiLevel.toString(),
       )
     }
   }
@@ -267,7 +262,7 @@ class LayoutInspectorRule(
     val layoutInspectorCoroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
 
     deviceModel = DeviceModel(disposable, processes)
-    inspectorModel = InspectorModel(project)
+    inspectorModel = InspectorModel(project, layoutInspectorCoroutineScope)
     notificationModel = NotificationModel(project)
     launcher =
       InspectorClientLauncher(
@@ -279,7 +274,7 @@ class LayoutInspectorRule(
         notificationModel,
         layoutInspectorCoroutineScope,
         launcherDisposable,
-        executor = launcherExecutor
+        executor = launcherExecutor,
       )
     Disposer.register(projectRule.testRootDisposable, launcherDisposable)
     AndroidFacet.getInstance(projectRule.module)?.let {
@@ -314,16 +309,14 @@ class LayoutInspectorRule(
         layoutInspectorModel = inspectorModel,
         notificationModel = notificationModel,
         treeSettings = treeSettings,
-        executor = MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor(),
       )
     launcher.addClientChangedListener { inspectorClient = it }
 
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
       dataProviderForLayoutInspector(inspector),
-      projectRule.fixture.testRootDisposable
+      projectRule.fixture.testRootDisposable,
     )
-
-    DebugViewAttributes.reset()
   }
 
   fun disconnect() {

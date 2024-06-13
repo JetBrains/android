@@ -34,24 +34,24 @@ interface DatabaseInspectorViewsFactory {
   fun createEvaluatorView(
     project: Project,
     schemaProvider: SchemaProvider,
-    tableView: TableView
+    tableView: TableView,
   ): SqliteEvaluatorView
 
   fun createParametersBindingView(
     project: Project,
-    sqliteStatementText: String
+    sqliteStatementText: String,
   ): ParametersBindingDialogView
 
   fun createExportToFileView(
     project: Project,
     params: ExportDialogParams,
-    analyticsTracker: DatabaseInspectorAnalyticsTracker
+    analyticsTracker: DatabaseInspectorAnalyticsTracker,
   ): ExportToFileDialogView
 
   fun createExportInProgressView(
     project: Project,
     job: Job,
-    taskDispatcher: CoroutineDispatcher
+    taskDispatcher: CoroutineDispatcher,
   ): ExportInProgressView
 
   fun createDatabaseInspectorView(project: Project): DatabaseInspectorView

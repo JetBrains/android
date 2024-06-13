@@ -52,24 +52,28 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.testing.disposable
 import com.android.tools.layoutinspector.BitmapType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TestName
+import com.jetbrains.rd.swing.fillRect
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.GradientPaint
 import java.awt.Graphics2D
 import java.awt.Polygon
+import java.awt.Rectangle
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import javax.imageio.ImageIO
 import kotlin.io.path.pathString
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.junit.rules.TestName
 
 private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
 private const val DIFF_THRESHOLD = 0.2
@@ -87,7 +91,7 @@ class RenderLogicTest {
     val renderLogic: RenderLogic,
     val renderImage: BufferedImage,
     val renderDimension: Dimension,
-    val centerTransform: AffineTransform
+    val centerTransform: AffineTransform,
   )
 
   @Before
@@ -372,7 +376,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -388,7 +392,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
@@ -406,7 +410,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
@@ -425,7 +429,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
@@ -445,7 +449,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
@@ -464,7 +468,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL
+        InspectorModel.FoldOrientation.VERTICAL,
       )
     renderSettings.drawFold = false
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -479,7 +483,7 @@ class RenderLogicTest {
       InspectorModel.FoldInfo(
         97,
         InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.HORIZONTAL
+        InspectorModel.FoldOrientation.HORIZONTAL,
       )
     renderSettings.drawFold = true
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -819,12 +823,14 @@ class RenderLogicTest {
     image: BufferedImage,
     transform: AffineTransform,
     renderLogic: RenderLogic,
-    renderDimension: Dimension
+    renderDimension: Dimension,
   ) {
     val graphics = image.createGraphics()
     // add a gray background
-    graphics.color = Color(250, 250, 250)
-    graphics.fillRect(0, 0, renderDimension.width, renderDimension.height)
+    graphics.fillRect(
+      Rectangle(0, 0, renderDimension.width, renderDimension.height),
+      Color(250, 250, 250),
+    )
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     // add transform to center render in buffered image
     graphics.transform = transform
@@ -843,14 +849,14 @@ class RenderLogicTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
       renderImage,
-      DIFF_THRESHOLD
+      DIFF_THRESHOLD,
     )
   }
 
   /** Re-used to generate all configs starting from an [InspectorModel] and [Dimension]. */
   private fun createPaintConfig(
     inspectorModel: InspectorModel,
-    renderDimension: Dimension
+    renderDimension: Dimension,
   ): TestConfig {
     val renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
     val renderLogic = RenderLogic(renderModel, renderSettings)
@@ -862,7 +868,7 @@ class RenderLogicTest {
         // make the center of the view correspond to the center of the buffered image
         translate(
           -renderModel.model.screenDimension.width / 2.0,
-          -renderModel.model.screenDimension.height / 2.0
+          -renderModel.model.screenDimension.height / 2.0,
         )
       }
 
@@ -873,17 +879,18 @@ class RenderLogicTest {
       renderLogic,
       BufferedImage(renderDimension.width, renderDimension.height, BufferedImage.TYPE_INT_ARGB),
       renderDimension,
-      centerTransform
+      centerTransform,
     )
   }
 
   private fun createPaintBordersConfig(): TestConfig {
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 100, 150) {
-        view(VIEW1, 10, 15, 25, 25) { image() }
-        compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 100, 150) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+          compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+        }
       }
-    }
 
     val renderDimension = Dimension(120, 200)
     return createPaintConfig(inspectorModel, renderDimension)
@@ -897,47 +904,51 @@ class RenderLogicTest {
     val image3 =
       ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image3.png").toFile())
 
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 385, 504) {
-        image(image1)
-        view(VIEW1, 0, 0, 385, 385) { image(image2) }
-        view(VIEW2, 96, 240, 193, 264) { image(image3) }
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 385, 504) {
+          image(image1)
+          view(VIEW1, 0, 0, 385, 385) { image(image2) }
+          view(VIEW2, 96, 240, 193, 264) { image(image3) }
+        }
       }
-    }
 
     val renderDimension = Dimension(500, 710)
     return createPaintConfig(inspectorModel, renderDimension)
   }
 
   private fun createPaintFoldConfig(width: Int, height: Int): TestConfig {
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 20, 40) {
-        view(VIEW1, 3, 3, 14, 14) {
-          view(VIEW2, 6, 6, 8, 8)
-          image()
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 20, 40) {
+          view(VIEW1, 3, 3, 14, 14) {
+            view(VIEW2, 6, 6, 8, 8)
+            image()
+          }
         }
       }
-    }
 
     val renderDimension = Dimension(width, height)
     return createPaintConfig(inspectorModel, renderDimension)
   }
 
   private fun createPaintWithHiddenSystemViews(): TestConfig {
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 100, 150, layout = null) {
-        view(VIEW1, 10, 15, 25, 25, layout = activityMain) { image() }
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 100, 150, layout = null) {
+          view(VIEW1, 10, 15, 25, 25, layout = activityMain) { image() }
+        }
       }
-    }
 
     val renderDimension = Dimension(120, 200)
     return createPaintConfig(inspectorModel, renderDimension)
   }
 
   private fun createPaintMultiWindowConfig(layoutFlag: Int = 0): TestConfig {
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 100, 200) { view(VIEW1, 0, 0, 50, 50) { image() } }
-    }
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 100, 200) { view(VIEW1, 0, 0, 50, 50) { image() } }
+      }
 
     // Second window. Root doesn't overlap with top of first window--verify they're on separate
     // levels in the drawing.
@@ -967,13 +978,14 @@ class RenderLogicTest {
       fillRect(0, 0, 20, 20)
     }
 
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 40, 40) {
-        view(VIEW1, 0, 0, 40, 40) { image(image2) }
-        image(image1)
-        view(VIEW2, 20, 20, 20, 20) { image(image3) }
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 40, 40) {
+          view(VIEW1, 0, 0, 40, 40) { image(image2) }
+          image(image1)
+          view(VIEW2, 20, 20, 20, 20) { image(image3) }
+        }
       }
-    }
 
     val renderDimension = Dimension(120, 140)
     return createPaintConfig(inspectorModel, renderDimension)
@@ -982,13 +994,14 @@ class RenderLogicTest {
   private fun createPaintWithRootImageOnlyConfig(): TestConfig {
     val image1 =
       ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").toFile())
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 327, 450) {
-        image(image1)
-        view(VIEW1, 0, 100, 85, 85)
-        view(VIEW2, 100, 200, 93, 202)
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 327, 450) {
+          image(image1)
+          view(VIEW1, 0, 100, 85, 85)
+          view(VIEW2, 100, 200, 93, 202)
+        }
       }
-    }
 
     val renderDimension = Dimension(350, 450)
     return createPaintConfig(inspectorModel, renderDimension)
@@ -1001,20 +1014,21 @@ class RenderLogicTest {
       fill(Polygon(intArrayOf(0, 180, 220, 40), intArrayOf(40, 0, 180, 220), 4))
     }
 
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 400, 600) {
-        view(
-          VIEW1,
-          50,
-          100,
-          300,
-          300,
-          bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4)
-        ) {
-          image(image1)
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 400, 600) {
+          view(
+            VIEW1,
+            50,
+            100,
+            300,
+            300,
+            bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4),
+          ) {
+            image(image1)
+          }
         }
       }
-    }
 
     val renderDimension = Dimension(400, 600)
     return createPaintConfig(inspectorModel, renderDimension)
@@ -1027,20 +1041,21 @@ class RenderLogicTest {
       fillRect(0, 0, 80, 100)
     }
 
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 100, 100) {
-        view(
-          VIEW1,
-          20,
-          20,
-          60,
-          60,
-          bounds = Polygon(intArrayOf(-20, 80, 80, -20), intArrayOf(-50, -50, 150, 150), 4)
-        ) {
-          image(image1)
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 100, 100) {
+          view(
+            VIEW1,
+            20,
+            20,
+            60,
+            60,
+            bounds = Polygon(intArrayOf(-20, 80, 80, -20), intArrayOf(-50, -50, 150, 150), 4),
+          ) {
+            image(image1)
+          }
         }
       }
-    }
 
     val renderDimension = Dimension(200, 200)
     return createPaintConfig(inspectorModel, renderDimension)
@@ -1059,7 +1074,7 @@ class RenderLogicTest {
         }
         .build()
 
-    val inspectorModel = model {}
+    val inspectorModel = model(projectRule.disposable) {}
     val folderConfiguration =
       FolderConfiguration().apply {
         screenRoundQualifier = ScreenRoundQualifier(ScreenRound.ROUND)
@@ -1079,36 +1094,38 @@ class RenderLogicTest {
         viewLayoutEvent,
         folderConfiguration,
         { false },
-        {}
+        {},
       )
     inspectorModel.update(window, listOf(1L), 2)
-    inspectorModel.windows[1L]?.refreshImages(1.0)
+    runBlocking { inspectorModel.windows[1L]?.refreshImages(1.0) }
 
     val renderDimension = Dimension(454, 454)
     return createPaintConfig(inspectorModel, renderDimension)
   }
 
   private fun createPaintWithChildrenOutsideParentConfig(): TestConfig {
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 20, 40) {
-        view(VIEW1, 0, 0, 20, 40)
-        image()
-        view(VIEW2, -23, 0, 20, 40)
-        view(VIEW3, 0, 0, 20, 40)
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 20, 40) {
+          view(VIEW1, 0, 0, 20, 40)
+          image()
+          view(VIEW2, -23, 0, 20, 40)
+          view(VIEW3, 0, 0, 20, 40)
+        }
       }
-    }
 
     val renderDimension = Dimension(90, 70)
     return createPaintConfig(inspectorModel, renderDimension)
   }
 
   private fun createPaintWithChildAboveSiblingConfig(): TestConfig {
-    val inspectorModel = model {
-      view(ROOT, 0, 0, 20, 40) {
-        view(VIEW1, 0, 0, 20, 20) { view(VIEW2, 0, 0, 20, 40) }
-        view(VIEW3, 0, 20, 20, 20)
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 20, 40) {
+          view(VIEW1, 0, 0, 20, 20) { view(VIEW2, 0, 0, 20, 40) }
+          view(VIEW3, 0, 20, 20, 20)
+        }
       }
-    }
 
     val renderDimension = Dimension(70, 70)
     return createPaintConfig(inspectorModel, renderDimension)

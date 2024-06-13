@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.layout
@@ -26,17 +26,20 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class ActivateComponentAction(
   text: String?,
-  private val mySurface: DesignSurface<*>,
   private val component: NlComponent
 ) : AnAction(text) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = component.isNavigation || component.className != null || component.layout != null
+    if (e.getData(DESIGN_SURFACE) == null) {
+      e.presentation.isEnabled = false
+    } else {
+      e.presentation.isEnabled = component.isNavigation || component.className != null || component.layout != null
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    mySurface.notifyComponentActivate(component)
+    e.getRequiredData(DESIGN_SURFACE).notifyComponentActivate(component)
   }
 }

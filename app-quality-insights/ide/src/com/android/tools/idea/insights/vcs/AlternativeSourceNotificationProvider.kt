@@ -17,11 +17,10 @@ package com.android.tools.idea.insights.vcs
 
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ui.vcs.ContextDataForDiff
-import com.android.tools.idea.insights.ui.vcs.InsightsDiffRequestChain
+import com.android.tools.idea.insights.ui.vcs.InsightsDiffVirtualFile
 import com.android.tools.idea.insights.ui.vcs.goToDiff
 import com.android.tools.idea.insights.vcs.AlternativeSourceNotificationProvider.AppScopeMatchResult
 import com.android.tools.idea.model.AndroidModel
-import com.intellij.diff.editor.ChainDiffVirtualFile
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -66,10 +65,11 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
 
   override fun collectNotificationData(
     project: Project,
-    file: VirtualFile
+    file: VirtualFile,
   ): Function<FileEditor, EditorNotificationPanel?>? {
-    if (file !is ChainDiffVirtualFile) return null
-    val diffRequestContext = (file.chain as? InsightsDiffRequestChain)?.context ?: return null
+    if (file !is InsightsDiffVirtualFile) return null
+
+    val diffRequestContext = file.provider.insightsContext
     val diffContextVFile = diffRequestContext.filePath.virtualFile ?: return null
 
     // Locate other files not in scope (e.g. files from inactive variant src set)
@@ -93,7 +93,7 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
           diffRequestContext,
           fileEditor,
           file,
-          project
+          project,
         )
       } else null
     }
@@ -105,7 +105,7 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
     diffRequestContext: ContextDataForDiff,
     fileEditor: FileEditor,
     file: VirtualFile,
-    project: Project
+    project: Project,
   ): EditorNotificationPanel {
     return object : EditorNotificationPanel(fileEditor, Status.Warning) {
       init {
@@ -144,7 +144,7 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
 
   private fun Connection?.ifMatchesCurrent(
     context: VirtualFile,
-    project: Project
+    project: Project,
   ): AppScopeMatchResult {
     this ?: return AppScopeMatchResult.UNKNOWN
 
@@ -177,7 +177,7 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
   enum class AppScopeMatchResult {
     MATCH,
     MISMATCH,
-    UNKNOWN
+    UNKNOWN,
   }
 
   data class ComboBoxFileElement(val virtualFile: VirtualFile, val project: Project) {

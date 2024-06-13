@@ -89,7 +89,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
   @Test
   fun testAndroidBlockWithApplicationStatementsWithParentheses() {
     isIrrelevantForKotlinScript("no distinction between method calls and application statements")
-    isIrrelevantForDeclarative("no parenthesis assignment")
     runBasicAndroidBlockTest(TestFile.ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES)
   }
 
@@ -109,8 +108,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidApplicationStatements() {
-    isIrrelevantForDeclarative("no parenthesis assignment")
-
     writeToBuildFile(TestFile.ANDROID_APPLICATION_STATEMENTS)
     val android = gradleBuildModel.android()
     assertNotNull(android)
@@ -835,7 +832,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : TestFileName) {
-    skipDeclarativeTemporary()
     writeToBuildFile(TestFile.ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -856,7 +852,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyDottedBuildTypeBlock() {
-    isIrrelevantForDeclarative("no deref in declarative")
     doTestAddAndApplyOneBuildTypeBlock("dotted.buildtype", TestFile.ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
@@ -887,9 +882,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyLanguageKeywordBuildTypeBlock() {
-    if (isDeclarative)
-      doTestAddAndApplyOneBuildTypeBlock("true", TestFile.ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED)
-    else
       doTestAddAndApplyOneBuildTypeBlock("class", TestFile.ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
@@ -1663,7 +1655,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetCompileSdkVersionToReference() {
-    isIrrelevantForDeclarative("no references in declarative")
     writeToBuildFile(TestFile.SET_COMPILE_SDK_VERSION_TO_REFERENCE)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -1895,7 +1886,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testParseNoResConfigsProperty() {
-    isIrrelevantForDeclarative("No ext definitions in declarative")
     writeToBuildFile(TestFile.PARSE_NO_RESCONFIGS_PROPERTY)
 
     val buildModel = gradleBuildModel
@@ -1943,7 +1933,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetProguardFilesToReference() {
-    isIrrelevantForDeclarative("No references in Declarative")
     writeToBuildFile(TestFile.SET_PROGUARD_FILES_TO_REFERENCE)
     val buildModel = gradleBuildModel
     assertEquals("consumerProguardFiles", listOf("quux", "baz"), buildModel.android().defaultConfig().consumerProguardFiles())
@@ -1967,7 +1956,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetProguardFilesToList() {
-    isIrrelevantForDeclarative("No ext for declarative")
     writeToBuildFile(TestFile.SET_PROGUARD_FILES_TO_LIST)
     val buildModel = gradleBuildModel
     assertEquals("consumerProguardFiles", listOf("baz", "quux"), buildModel.android().defaultConfig().consumerProguardFiles())

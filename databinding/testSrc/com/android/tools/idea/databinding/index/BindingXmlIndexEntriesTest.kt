@@ -51,6 +51,9 @@ class BindingXmlIndexEntriesTest {
   private val project
     get() = projectRule.project
 
+  private val module
+    get() = projectRule.module
+
   private val fixture
     get() = projectRule.fixture
 
@@ -76,7 +79,7 @@ class BindingXmlIndexEntriesTest {
           type="Integer"
         />
         """
-          .trimIndent()
+          .trimIndent(),
     )
     assertVariables("variable1" to "String", "added" to "Integer")
   }
@@ -85,7 +88,7 @@ class BindingXmlIndexEntriesTest {
   fun testRenameVariable() {
     updateXml(
       range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
-      xml = "newName"
+      xml = "newName",
     )
     assertVariables("newName" to "String")
   }
@@ -94,7 +97,7 @@ class BindingXmlIndexEntriesTest {
   fun testRenameVariable_prefix() {
     insertXml(
       offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset,
-      xml = "prefix_"
+      xml = "prefix_",
     )
     assertVariables("prefix_variable1" to "String")
   }
@@ -104,7 +107,7 @@ class BindingXmlIndexEntriesTest {
     insertXml(
       offset =
         getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
-      xml = "_suffix"
+      xml = "_suffix",
     )
     assertVariables("variable1_suffix" to "String")
   }
@@ -128,7 +131,7 @@ class BindingXmlIndexEntriesTest {
           type="Integer"
         />
         """
-          .trimIndent()
+          .trimIndent(),
     )
     deleteXml(variableTag.textRange)
     assertVariables("added" to "Integer")
@@ -146,7 +149,7 @@ class BindingXmlIndexEntriesTest {
           type="Integer"
         />
         """
-          .trimIndent()
+          .trimIndent(),
     )
     deleteXml(getVariableTag("added").textRange)
     assertVariables("variable1" to "String")
@@ -156,7 +159,7 @@ class BindingXmlIndexEntriesTest {
   fun testUpdateType() {
     updateXml(
       range = getVariableTag("variable1").getAttribute("type")!!.valueElement!!.valueTextRange,
-      xml = "Float"
+      xml = "Float",
     )
     assertVariables("variable1" to "Float")
   }
@@ -222,7 +225,7 @@ class BindingXmlIndexEntriesTest {
 
   /** Returns the index entry that corresponds to the single layout declared for this test. */
   private fun getIndexEntry(): BindingXmlIndex.Entry {
-    return BindingXmlIndex.getEntriesForLayout(project, "layout_with_data_binding").first()
+    return BindingXmlIndex.getEntriesForLayout(module, "layout_with_data_binding").first()
   }
 
   private fun getVariableTag(name: String): XmlTag {

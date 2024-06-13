@@ -21,10 +21,6 @@ PROJECT                       : MultiFlavor
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-            TEST_COMPILE_MODE             : Android tests
-            TEST_COMPILE_MODE             : Unit tests
-            TEST_COMPILE_MODE             : None
     MODULE                        : MultiFlavor.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MultiFlavor.app
@@ -72,7 +68,6 @@ PROJECT                       : MultiFlavor
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest
                 REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:clean
@@ -80,30 +75,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
-                SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
-                SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MultiFlavor.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MultiFlavor.app
@@ -293,38 +266,13 @@ PROJECT                       : MultiFlavor
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/processFirstAbcSecondAbcDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
-                SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
-                SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebugAndroidTest
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources
+                SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MultiFlavor.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MultiFlavor.app
@@ -458,31 +406,6 @@ PROJECT                       : MultiFlavor
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
-                SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
                 REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:clean
@@ -490,6 +413,8 @@ PROJECT                       : MultiFlavor
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MultiFlavor.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MultiFlavor.app
@@ -644,142 +569,117 @@ PROJECT                       : MultiFlavor
             -                             : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/compileFirstAbcSecondAbcDebugUnitTestJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
-                SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:clean
+                CLEAN                         : :app:createMockableJar
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebugUnitTest
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:clean
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
-                SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
-                BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-                APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+                SOURCE_GEN                    : :app:createMockableJar
+                BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : MultiFlavor.app.main
         Module                        : MultiFlavor.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar!/
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0
             *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar!/
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0
             *CLASSES                      : jar://<M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar!/
         LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3
             *CLASSES                      : jar://<M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar!/
         LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.core:core:1.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.fragment:fragment:1.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.1.0
             *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/2.1.0/lifecycle-common-2.1.0.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.2@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:core:1.3.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:monitor:1.3.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1
             *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
         LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1
@@ -797,7 +697,6 @@ PROJECT                       : MultiFlavor
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest
             REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:clean
@@ -805,27 +704,5 @@ PROJECT                       : MultiFlavor
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
             APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-        TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:compileFirstAbcSecondAbcDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-            APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-        TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileFirstAbcSecondAbcDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-            APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
-        TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug
-            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileFirstAbcSecondAbcDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            BUNDLE                        : :app:bundleFirstAbcSecondAbcDebug
-            APK_FROM_BUNDLE               : :app:extractApksForFirstAbcSecondAbcDebug
+            BASELINE_PROFILE_GEN          : :app:generateFirstAbcSecondAbcDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile

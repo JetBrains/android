@@ -25,6 +25,7 @@
         serviceInterface="com.android.processmonitor.monitor.ProcessNameMonitor"
         serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorService"
     />
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.DeviceCableMonitor"/>
     <postStartupActivity implementation="com.android.tools.idea.adblib.AdbLibApplicationService$MyStartupActivity"/>
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider"/>
     <notificationGroup id="ADB Logs" displayType="NONE"/>
@@ -50,7 +51,7 @@
 
     <group id="android.device.reservation.extend"
            class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction"
-           icon="AllIcons.Actions.Resume"
+           icon="StudioIcons.Emulator.Toolbar.SESSION"
            text="Extend Reservation"
            description="Extend device reservation"
            popup="true">
@@ -58,11 +59,10 @@
       <action id="android.device.reservation.extend.status"
               class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$Status" />
       <separator text="Extend Session" />
+      <action id="android.device.reservation.extend.quarter.hour"
+              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$Extend15MinOrLessAction"/>
       <action id="android.device.reservation.extend.half.hour"
               class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$Extend30MinOrLessAction" />
-      <action id="android.device.reservation.extend.max"
-              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$ExtendMaxDurationAction"
-              description="Reserve device for the maximum 180 minutes duration" />
     </group>
 
     <action id="android.device.reservation.end"

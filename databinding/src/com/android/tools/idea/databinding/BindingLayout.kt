@@ -51,7 +51,7 @@ private constructor(
   private val modulePackage: String,
   val file: VirtualFile,
   val data: BindingXmlData,
-  internal val resource: ResourceItem
+  internal val resource: ResourceItem,
 ) {
 
   companion object {
@@ -94,7 +94,7 @@ private constructor(
     if (data.customBindingName.isNullOrEmpty()) {
       return BindingClassName(
         "$modulePackage.databinding",
-        DataBindingUtil.convertFileNameToJavaClassName(file.name) + "Binding"
+        DataBindingUtil.convertFileNameToJavaClassName(file.name) + "Binding",
       )
     } else {
       val customBindingName = data.customBindingName!!

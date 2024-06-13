@@ -165,7 +165,7 @@ void DisplayManager::OnDisplayChanged(Jni jni, int32_t display_id) {
 VirtualDisplay DisplayManager::CreateVirtualDisplay(
     Jni jni, const char* name, int32_t width, int32_t height, int32_t display_id, ANativeWindow* surface) {
   InitializeStatics(jni);
-  return VirtualDisplay(jni, display_manager_class_.CallStaticObjectMethod(
+  return VirtualDisplay(display_manager_class_.CallStaticObjectMethod(
       jni, create_virtual_display_method_, JString(jni, name).ref(), width, height, display_id, SurfaceToJava(jni, surface).ref()));
 }
 

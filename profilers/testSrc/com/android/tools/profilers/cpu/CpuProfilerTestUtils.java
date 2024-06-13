@@ -70,35 +70,37 @@ public class CpuProfilerTestUtils {
     return TestUtils.resolveWorkspacePath(CPU_TRACES_DIR + filename).toFile();
   }
 
-  public static CpuCapture getValidCapture() throws ExecutionException, InterruptedException {
-    return getCapture(getTraceFile("valid_trace.trace"), TraceType.ART);
+  public static CpuCapture getValidCapture(StudioProfilers profilers) throws ExecutionException, InterruptedException {
+    return getCapture(profilers, getTraceFile("valid_trace.trace"), TraceType.ART);
   }
 
-  public static CpuCapture getCapture(@NotNull String fullFileName) {
+  public static CpuCapture getCapture(StudioProfilers profilers, @NotNull String fullFileName) {
     try {
       File file = TestUtils.resolveWorkspacePath(fullFileName).toFile();
-      return getCapture(file, TraceType.ART);
+      return getCapture(profilers, file, TraceType.ART);
     }
     catch (Exception e) {
       throw new RuntimeException("Failed with exception", e);
     }
   }
 
-  public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile, TraceType profilerType) {
-    CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, 0, "");
+  public static CompletableFuture<CpuCapture> getCaptureFuture(StudioProfilers profilers, File traceFile, TraceType profilerType) {
+    CpuCaptureParser parser = new CpuCaptureParser(profilers);
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, 0, "", x -> {});
   }
 
-  public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile,
+  public static CompletableFuture<CpuCapture> getCaptureFuture(StudioProfilers profilers,
+                                                               File traceFile,
                                                                TraceType profilerType,
                                                                int processIdHint,
                                                                String processNameHint) {
-    CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, processIdHint, processNameHint);
+    CpuCaptureParser parser = new CpuCaptureParser(profilers);
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, processIdHint, processNameHint, x -> {});
   }
 
-  public static CpuCapture getCapture(File traceFile, TraceType profilerType) throws ExecutionException, InterruptedException {
-    return getCaptureFuture(traceFile, profilerType, 0, "").get();
+  public static CpuCapture getCapture(StudioProfilers profilers, File traceFile, TraceType profilerType)
+    throws ExecutionException, InterruptedException {
+    return getCaptureFuture(profilers, traceFile, profilerType, 0, "").get();
   }
 
   /**

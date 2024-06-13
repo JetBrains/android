@@ -10,9 +10,9 @@
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="as-driver.utils" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
   </component>

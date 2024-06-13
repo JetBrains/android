@@ -62,5 +62,5 @@ internal class ParameterNode(
 private fun createOptimizedOutNode(name: String): XNamedValue =
   JavaStackFrame.createMessageNode(
     ComposeBundle.message("recomposition.optimised.variable.message", "\'$name\'"),
-    AllIcons.General.Information
+    AllIcons.General.Information,
   )

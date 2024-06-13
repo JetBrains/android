@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
@@ -49,6 +52,18 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
 
+    // ChangeEditorSplitActions in IntelliJ 2024.1 uses the data provider to find about the editor.
+    // Here, we inject the "open" editor so it finds it during testing.
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
+      {
+        when (it) {
+          PlatformCoreDataKeys.FILE_EDITOR.name -> editor
+          else -> null
+        }
+      },
+      fixture.testRootDisposable,
+    )
+
     // Check we are in design mode before navigation is triggered
     editor.selectDesignMode(false)
     assertTrue(editor.isDesignMode())
@@ -57,7 +72,7 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     )
     assertTrue(
       "The editor was expected to switch to split mode when navigating to source",
-      editor.isSplitMode()
+      editor.isSplitMode(),
     )
   }
 }

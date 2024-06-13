@@ -129,6 +129,11 @@ abstract class AndroidConfigurationProgramRunner(
         catch (e: ExecutionException) {
           promise.setError(e)
         }
+        catch (t: Throwable) {
+          // We can throw Exception which are later ignored by Intellij (e.g.: TimeoutCancellationException). If that
+          // were to happen, we wrap them into something that will not be ignored (ExecutionException).
+          promise.setError(ExecutionException(t))
+        }
       }
 
       override fun onCancel() {

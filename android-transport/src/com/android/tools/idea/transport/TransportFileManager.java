@@ -63,8 +63,6 @@ public final class TransportFileManager implements TransportFileCopier {
 
     @NotNull static final DeployableFile PERFA = new DeployableFile.Builder("perfa.jar").build();
 
-    @NotNull static final DeployableFile PERFA_OKHTTP = new DeployableFile.Builder("perfa_okhttp.dex").build();
-
     @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libjvmtiagent.so")
       .setReleaseDir(androidPluginDir(Constants.JVMTI_AGENT_RELEASE_DIR))
       .setDevDir(androidPluginDir(Constants.JVMTI_AGENT_RELEASE_DIR))
@@ -149,7 +147,6 @@ public final class TransportFileManager implements TransportFileCopier {
     copyFileToDevice(HostFiles.TRANSPORT);
     if (isAtLeastO(myDevice)) {
       copyFileToDevice(HostFiles.PERFA);
-      copyFileToDevice(HostFiles.PERFA_OKHTTP);
       copyFileToDevice(HostFiles.JVMTI_AGENT);
       // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
       // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
@@ -216,7 +213,9 @@ public final class TransportFileManager implements TransportFileCopier {
   private void pushDaemonConfig()
     throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
     Transport.DaemonConfig.Builder configBuilder = Transport.DaemonConfig.newBuilder().setCommon(buildCommonConfig());
-    myMessageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeDaemonConfig(configBuilder);
+    for (TransportConfigContributor extension : TransportConfigContributor.EP_NAME.getExtensions()) {
+      extension.customizeDaemonConfig(configBuilder);
+    }
 
     File configFile = FileUtil.createTempFile(DAEMON_CONFIG_FILE, null, true);
     OutputStream oStream = new FileOutputStream(configFile);
@@ -232,7 +231,9 @@ public final class TransportFileManager implements TransportFileCopier {
   public void pushAgentConfig(@NotNull String configName, @Nullable AndroidRunConfigurationBase runConfig)
     throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
     Agent.AgentConfig.Builder agentConfigBuilder = Agent.AgentConfig.newBuilder().setCommon(buildCommonConfig());
-    myMessageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeAgentConfig(agentConfigBuilder, runConfig);
+    for (TransportConfigContributor extension : TransportConfigContributor.EP_NAME.getExtensions()) {
+      extension.customizeAgentConfig(agentConfigBuilder, runConfig);
+    }
 
     File configFile = FileUtil.createTempFile(configName, null, true);
     OutputStream oStream = new FileOutputStream(configFile);

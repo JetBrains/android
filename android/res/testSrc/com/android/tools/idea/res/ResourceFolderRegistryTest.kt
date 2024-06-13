@@ -41,9 +41,9 @@ class ResourceFolderRegistryTest {
       selectedBuildVariant = "debug",
       createAndroidProjectBuilderForDefaultTestProjectStructure(
           IdeAndroidProjectType.PROJECT_TYPE_APP,
-          "p1.p2"
+          "p1.p2",
         )
-        .withAndroidModuleDependencyList { _ -> listOf(AndroidModuleDependency(":mylib", "debug")) }
+        .withAndroidModuleDependencyList { _ -> listOf(AndroidModuleDependency(":mylib", "debug")) },
     )
 
   private val libModuleBuilder =
@@ -52,8 +52,8 @@ class ResourceFolderRegistryTest {
       selectedBuildVariant = "debug",
       createAndroidProjectBuilderForDefaultTestProjectStructure(
         IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
-        "com.example.mylib"
-      )
+        "com.example.mylib",
+      ),
     )
 
   @get:Rule
@@ -67,7 +67,7 @@ class ResourceFolderRegistryTest {
         },
         JavaModuleModelBuilder.rootModuleBuilder,
         appModuleBuilder,
-        libModuleBuilder
+        libModuleBuilder,
       )
       .initAndroid(true)
 

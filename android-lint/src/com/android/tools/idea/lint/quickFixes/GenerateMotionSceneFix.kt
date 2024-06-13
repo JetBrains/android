@@ -54,7 +54,7 @@ class GenerateMotionSceneFix(val url: ResourceUrl) :
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType
+    contextType: AndroidQuickfixContexts.ContextType,
   ): Boolean {
     val facet = AndroidFacet.getInstance(startElement) ?: return false
     val appResources = StudioResourceRepositoryManager.getAppResources(facet)
@@ -67,7 +67,7 @@ class GenerateMotionSceneFix(val url: ResourceUrl) :
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
+    context: AndroidQuickfixContexts.Context,
   ) {
     val project = startElement.project
     val facet = AndroidFacet.getInstance(startElement) ?: return
@@ -93,7 +93,7 @@ class GenerateMotionSceneFix(val url: ResourceUrl) :
           val error = String.format("Failed to create file: %1\$s", ex.message)
           Messages.showErrorDialog(project, error, "Create MotionScene")
         }
-      }
+      },
     )
   }
 

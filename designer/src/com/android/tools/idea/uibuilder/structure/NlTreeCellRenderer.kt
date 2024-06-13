@@ -72,7 +72,7 @@ class NlTreeCellRenderer(private val myBadgeHandler: NlTreeBadgeHandler) :
     expanded: Boolean,
     leaf: Boolean,
     row: Int,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ): Component {
     primaryLabel.text = null
     primaryLabel.icon = null
@@ -166,7 +166,7 @@ class NlTreeCellRenderer(private val myBadgeHandler: NlTreeBadgeHandler) :
   private fun createTooltipText(
     tagName: String,
     primaryLabelText: String,
-    secondaryLabelText: String
+    secondaryLabelText: String,
   ) =
     """
     <html>

@@ -15,7 +15,8 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.profilers.StudioProfilers
 
 object CpuProfilerUITestUtils {
   const val VALID_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
@@ -24,6 +25,6 @@ object CpuProfilerUITestUtils {
   const val ATRACE_PID1_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/atrace_processid_1.ctrace"
 
   // We use a different path than in "profilers" modules, because resources from "profilers" modules is not accessible from "profilers-ui".
-  fun validCapture() = CpuProfilerTestUtils.getCapture(VALID_TRACE_PATH)
+  fun validCapture(profilers: StudioProfilers) = CpuProfilerTestUtils.getCapture(profilers, VALID_TRACE_PATH)
   fun getTraceContents(path: String) = CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(path).toFile())
 }

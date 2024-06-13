@@ -78,7 +78,7 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
     {"pickFirsts", property, PICK_FIRSTS, VAR},
   }).collect(toModelMap());
 
-  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"dex", DexDslElement.DEX},
     {"jniLibs", JniLibsDslElement.JNI_LIBS},
     {"resources", ResourcesDslElement.RESOURCES},
@@ -90,7 +90,9 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  protected @NotNull ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 
@@ -101,8 +103,7 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
   public static final class PackagingOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
 
     @Override
-    @NotNull
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 

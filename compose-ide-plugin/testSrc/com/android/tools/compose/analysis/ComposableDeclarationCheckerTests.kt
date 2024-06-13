@@ -62,13 +62,13 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       import androidx.compose.runtime.Composable
 
       @Composable fun A() {}
-      val aCallable: () -> Unit = ::<error descr="[UNRESOLVED_REFERENCE] Unresolved reference: A" textAttributesKey="WRONG_REFERENCES_ATTRIBUTES">A</error>
+      val aCallable: () -> Unit = <error descr="[COMPOSABLE_FUNCTION_REFERENCE] Function References of @Composable functions are not currently supported" textAttributesKey="ERRORS_ATTRIBUTES"><error descr="[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected 'kotlin.Function0<kotlin.Unit>', actual 'androidx.compose.runtime.internal.KComposableFunction0<kotlin.Unit>'." textAttributesKey="ERRORS_ATTRIBUTES">::A</error></error>
       val bCallable: @Composable () -> Unit = <error descr="[COMPOSABLE_FUNCTION_REFERENCE] Function References of @Composable functions are not currently supported" textAttributesKey="ERRORS_ATTRIBUTES">::A</error>
       val cCallable = <error descr="[COMPOSABLE_FUNCTION_REFERENCE] Function References of @Composable functions are not currently supported" textAttributesKey="ERRORS_ATTRIBUTES">::A</error>
       fun doSomething(fn: () -> Unit) { print(fn) }
       @Composable fun B(content: @Composable () -> Unit) {
           content()
-          <error descr="[INAPPLICABLE_CANDIDATE] Inapplicable candidate(s): fun doSomething(fn: () -> Unit): Unit" textAttributesKey="ERRORS_ATTRIBUTES">doSomething</error>(::<error descr="[UNRESOLVED_REFERENCE] Unresolved reference: A" textAttributesKey="WRONG_REFERENCES_ATTRIBUTES">A</error>)
+          doSomething(::<error descr="[INAPPLICABLE_CANDIDATE] Inapplicable candidate(s): @Composable() fun A(): Unit" textAttributesKey="ERRORS_ATTRIBUTES">A</error>)
           B(<error descr="[COMPOSABLE_FUNCTION_REFERENCE] Function References of @Composable functions are not currently supported" textAttributesKey="ERRORS_ATTRIBUTES">::A</error>)
       }
         """
@@ -126,7 +126,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       """
           import androidx.compose.runtime.Composable
 
-          <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'top level property without backing field or delegate'">@Composable</error>
+          <error descr="${wrongAnnotationTargetError("top level property without backing field or delegate")}">@Composable</error>
           val bar: Int get() = 123
         """
     )
@@ -144,11 +144,11 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
       var <error descr="[COMPOSABLE_VAR] Composable properties are not able to have backing fields">bam3</error>: Int
           @Composable get() { return 123 }
-          <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'setter'">@Composable</error> set(value) { print(value) }
+          <error descr="${wrongAnnotationTargetError("setter")}">@Composable</error> set(value) { print(value) }
 
       var <error descr="[COMPOSABLE_VAR] Composable properties are not able to have backing fields">bam4</error>: Int
           get() { return 123 }
-          <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'setter'">@Composable</error> set(value) { print(value) }
+          <error descr="${wrongAnnotationTargetError("setter")}">@Composable</error> set(value) { print(value) }
         """
     )
   }
@@ -204,15 +204,15 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       @Composable suspend fun <error descr="[COMPOSABLE_SUSPEND_FUN] Composable function cannot be annotated as suspend">Foo</error>() {}
 
       fun acceptSuspend(fn: suspend () -> Unit) { print(fn) }
-      fun acceptComposableSuspend(fn: <error descr="[AMBIGUOUS_FUNCTION_TYPE_KIND] Multiple functional type conversions are not allowed for a single type. Detected type conversions: [suspend, @Composable]">@Composable suspend () -> Unit</error>) { print(fn.hashCode()) }
+      fun acceptComposableSuspend(fn: <error descr="[AMBIGUOUS_FUNCTION_TYPE_KIND] Multiple function type conversions are prohibited for a single type. Detected type conversions: [suspend, @Composable]">@Composable suspend () -> Unit</error>) { print(fn.hashCode()) }
 
-      val foo: suspend () -> Unit = <error descr="[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/coroutines/SuspendFunction0<kotlin/Unit>, actual androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>">@Composable {}</error>
+      val foo: suspend () -> Unit = <error descr="[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected 'kotlin.coroutines.SuspendFunction0<kotlin.Unit>', actual 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>'.">@Composable {}</error>
       val bar: suspend () -> Unit = {}
       fun Test() {
           val composableLambda = @Composable {}
-          acceptSuspend @Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit> but kotlin/coroutines/SuspendFunction0<kotlin/Unit> was expected">{}</error>
-          acceptComposableSuspend @Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit> but @R|androidx/compose/runtime/Composable|()  kotlin/Function0<kotlin/Unit> was expected">{}</error>
-          acceptComposableSuspend(<error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit> but @R|androidx/compose/runtime/Composable|()  kotlin/Function0<kotlin/Unit> was expected">composableLambda</error>)
+          acceptSuspend @Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', but 'kotlin.coroutines.SuspendFunction0<kotlin.Unit>' was expected.">{}</error>
+          acceptComposableSuspend @Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', but '@Composable() kotlin.Function0<kotlin.Unit>' was expected.">{}</error>
+          acceptComposableSuspend(<error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', but '@Composable() kotlin.Function0<kotlin.Unit>' was expected.">composableLambda</error>)
           acceptSuspend(<error descr="Expecting ')'"><error descr="Expecting an expression"><</error></error><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">!COMPOSABLE_SUSPEND_FUN, TYPE_MISMATCH!>@Composable suspend fun()</error> { }<error descr="Unexpected tokens (use ';' to separate expressions on the same line)">)</error>
       }
         """
@@ -274,7 +274,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       object FakeFoo : Foo {
           <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [fun composableFunction(param: Boolean): Boolean, @Composable() fun composableFunction(param: Boolean): Boolean]">override fun composableFunction(param: Boolean)</error> = true
           <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun nonComposableFunction(param: Boolean): Boolean, fun nonComposableFunction(param: Boolean): Boolean]">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
-          override val nonComposableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() get(): Boolean, get(): Boolean]">@Composable get()</error> = true
+          override val nonComposableProperty: Boolean get() = true
       }
 
       interface Bar {
@@ -287,7 +287,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
       object FakeBar : Bar {
           <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [fun composableFunction(param: Boolean): Boolean, @Composable() fun composableFunction(param: Boolean): Boolean]">override fun composableFunction(param: Boolean)</error> = true
-          override val composableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [get(): Boolean, @Composable() get(): Boolean]">get()</error> = true
+          override val composableProperty: Boolean get() = true
           <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun nonComposableFunction(param: Boolean): Boolean, fun nonComposableFunction(param: Boolean): Boolean]">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
           override val nonComposableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() get(): Boolean, get(): Boolean]">@Composable get()</error> = true
       }
@@ -367,7 +367,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       """
             import androidx.compose.runtime.Composable
             interface A {
-                @Composable fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Abstract Composable functions cannot have parameters with default values">0</error>)
+                @Composable fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Overridable Composable functions with default values are not currently supported">0</error>)
             }
         """
     )
@@ -379,7 +379,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       """
             import androidx.compose.runtime.Composable
             abstract class A {
-                @Composable abstract fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Abstract Composable functions cannot have parameters with default values">0</error>)
+                @Composable abstract fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Overridable Composable functions with default values are not currently supported">0</error>)
             }
         """
     )
@@ -434,8 +434,8 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
                     fun compose(content: () -> Unit)
                 }
 
-                <error descr="[ABSTRACT_MEMBER_NOT_IMPLEMENTED] Class Impl is not abstract and does not implement abstract member compose" textAttributesKey="ERRORS_ATTRIBUTES">class Impl</error> : Base {
-                    <error descr="[NOTHING_TO_OVERRIDE] 'compose' overrides nothing" textAttributesKey="ERRORS_ATTRIBUTES">override</error> fun compose(content: @Composable () -> Unit) {}
+                <error descr="[ABSTRACT_MEMBER_NOT_IMPLEMENTED] Class 'Impl' is not abstract and does not implement abstract member 'compose'." textAttributesKey="ERRORS_ATTRIBUTES">class Impl</error> : Base {
+                    <error descr="[NOTHING_TO_OVERRIDE] 'compose' overrides nothing." textAttributesKey="ERRORS_ATTRIBUTES">override</error> fun compose(content: @Composable () -> Unit) {}
                 }
             """
       )
@@ -515,11 +515,15 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
         "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
       else
         "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun invoke(): Unit, fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
+    val mixingFunctionalKindsInSupertypes =
+      if (!KotlinPluginModeProvider.isK2Mode()) "() -> Unit, @Composable (Int) -> Unit"
+      else
+        "<error descr=\"[MIXING_FUNCTIONAL_KINDS_IN_SUPERTYPES] Mixing supertypes of different functional kinds ([Function, @Composable]) is not allowed.\" textAttributesKey=\"ERRORS_ATTRIBUTES\">() -> Unit, @Composable (Int) -> Unit</error>"
     doTest(
       """
                 import androidx.compose.runtime.Composable
 
-                class Impl : () -> Unit, @Composable (Int) -> Unit {
+                class Impl : $mixingFunctionalKindsInSupertypes {
                     $functionDeclarationWithError
                     @Composable override fun invoke(p0: Int) {}
                 }

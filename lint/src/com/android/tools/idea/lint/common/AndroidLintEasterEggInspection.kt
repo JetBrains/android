@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.CommentDetector
 class AndroidLintEasterEggInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.easter.egg"),
-    CommentDetector.EASTER_EGG
+    CommentDetector.EASTER_EGG,
   )

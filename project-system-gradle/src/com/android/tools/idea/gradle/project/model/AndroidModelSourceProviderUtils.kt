@@ -17,24 +17,30 @@
 
 package com.android.tools.idea.gradle.project.model
 
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.IAndroidTarget
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.IAndroidTarget
+import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
-import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.ANDROID_TEST
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.MAIN
+import com.android.tools.idea.gradle.project.model.ArtifactSelector.SCREENSHOT_TEST
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.TEST_FIXTURES
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.UNIT_TEST
+import com.android.tools.idea.projectsystem.CommonTestType
+import com.android.tools.idea.projectsystem.TestComponentType
 import com.intellij.util.containers.addIfNotNull
+import kotlinx.collections.immutable.toImmutableMap
 
 /**
  * Usage: with(selector) {
@@ -45,9 +51,10 @@ import com.intellij.util.containers.addIfNotNull
  */
 private enum class ArtifactSelector(val selector: IdeVariantCore.() -> IdeBaseArtifactCore?, val artifactName: String) {
   MAIN({ mainArtifact }, ARTIFACT_NAME_MAIN),
-  UNIT_TEST({ unitTestArtifact }, ARTIFACT_NAME_UNIT_TEST),
-  ANDROID_TEST({ androidTestArtifact }, ARTIFACT_NAME_ANDROID_TEST),
-  TEST_FIXTURES({ testFixturesArtifact }, ARTIFACT_NAME_TEST_FIXTURES);
+  UNIT_TEST({ hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST } }, ARTIFACT_NAME_UNIT_TEST),
+  ANDROID_TEST({ deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } }, ARTIFACT_NAME_ANDROID_TEST),
+  TEST_FIXTURES({ testFixturesArtifact }, ARTIFACT_NAME_TEST_FIXTURES),
+  SCREENSHOT_TEST({ hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST } }, ARTIFACT_NAME_SCREENSHOT_TEST);
 
   fun IdeVariantCore.selectArtifact(): IdeBaseArtifactCore? = selector()
   fun IdeSourceProviderContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
@@ -61,8 +68,9 @@ private enum class ArtifactSelector(val selector: IdeVariantCore.() -> IdeBaseAr
 
 private fun GradleAndroidModelData.collectMainSourceProviders(variant: IdeVariantCore) = collectCurrentProvidersFor(variant, MAIN)
 private fun GradleAndroidModelData.collectUnitTestSourceProviders(variant: IdeVariantCore) = collectCurrentProvidersFor(variant, UNIT_TEST)
+private fun GradleAndroidModelData.collectScreenshotTestSourceProviders(variant: IdeVariantCore) = collectCurrentProvidersFor(variant, SCREENSHOT_TEST)
 private fun GradleAndroidModelData.collectAndroidTestSourceProviders(variant: IdeVariantCore) =
-  if (variant.androidTestArtifact != null) collectCurrentProvidersFor(variant, ANDROID_TEST)
+  if (variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } != null) collectCurrentProvidersFor(variant, ANDROID_TEST)
   else emptyList()
 private fun GradleAndroidModelData.collectTestFixturesSourceProviders(variant: IdeVariantCore) =
   if (variant.testFixturesArtifact != null) collectCurrentProvidersFor(variant, TEST_FIXTURES)
@@ -70,6 +78,7 @@ private fun GradleAndroidModelData.collectTestFixturesSourceProviders(variant: I
 
 private fun GradleAndroidModelData.collectAllSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(MAIN)
 private fun GradleAndroidModelData.collectAllUnitTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(UNIT_TEST)
+private fun GradleAndroidModelData.collectAllScreenshotTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(SCREENSHOT_TEST)
 private fun GradleAndroidModelData.collectAllAndroidTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(ANDROID_TEST)
 private fun GradleAndroidModelData.collectAllTestFixturesSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(TEST_FIXTURES)
 
@@ -127,18 +136,32 @@ fun convertVersion(
 
 val GradleAndroidModelData.activeSourceProviders: List<IdeSourceProvider>
   get() = collectMainSourceProviders(selectedVariantCore)
-val GradleAndroidModelData.unitTestSourceProviders: List<IdeSourceProvider>
-  get() = collectUnitTestSourceProviders(selectedVariantCore)
-val GradleAndroidModelData.androidTestSourceProviders: List<IdeSourceProvider>
-  get() = collectAndroidTestSourceProviders(selectedVariantCore)
+val GradleAndroidModelData.hostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>>
+  get() =
+    mutableMapOf<TestComponentType, List<IdeSourceProvider>>(CommonTestType.UNIT_TEST to collectUnitTestSourceProviders(selectedVariantCore))
+      .apply {
+        val screenshotTestSources = collectScreenshotTestSourceProviders(selectedVariantCore)
+        if (screenshotTestSources.isNotEmpty()) {
+          this[CommonTestType.SCREENSHOT_TEST] = screenshotTestSources
+        }
+      }.toImmutableMap()
+val GradleAndroidModelData.deviceTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>>
+  get() = mapOf(CommonTestType.ANDROID_TEST to collectAndroidTestSourceProviders(selectedVariantCore))
 val GradleAndroidModelData.testFixturesSourceProviders: List<IdeSourceProvider>
   get() = collectTestFixturesSourceProviders(selectedVariantCore)
 
 val GradleAndroidModelData.allSourceProviders: List<IdeSourceProvider>
   get() = collectAllSourceProviders()
-val GradleAndroidModelData.allUnitTestSourceProviders: List<IdeSourceProvider>
-  get() = collectAllUnitTestSourceProviders()
-val GradleAndroidModelData.allAndroidTestSourceProviders: List<IdeSourceProvider>
-  get() = collectAllAndroidTestSourceProviders()
+val GradleAndroidModelData.allHostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>>
+  get() =
+    mutableMapOf<TestComponentType, List<IdeSourceProvider>>(CommonTestType.UNIT_TEST to collectAllUnitTestSourceProviders())
+      .apply {
+        val screenshotTestSources = collectAllScreenshotTestSourceProviders()
+        if (screenshotTestSources.isNotEmpty()) {
+          this[CommonTestType.SCREENSHOT_TEST] = screenshotTestSources
+        }
+      }.toImmutableMap()
+val GradleAndroidModelData.allDeviceSourceProviders: Map<TestComponentType, List<IdeSourceProvider>>
+  get() = mapOf(CommonTestType.ANDROID_TEST to collectAllAndroidTestSourceProviders())
 val GradleAndroidModelData.allTestFixturesSourceProviders: List<IdeSourceProvider>
   get() = collectAllTestFixturesSourceProviders()

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.layoutlib;
 
-import com.intellij.DynamicBundle;
 import com.android.annotations.NonNull;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.text.MessageFormat;
 import java.util.Locale;
+
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.util.ResourceBundle;
 
 /**
@@ -33,7 +33,7 @@ public final class LayoutlibBundle {
   private static ResourceBundle getBundle() {
     ResourceBundle bundle = ourBundle != null ? ourBundle.get() : null;
     if (bundle == null) {
-      bundle = DynamicBundle.getResourceBundle(LayoutlibBundle.class.getClassLoader(), BUNDLE_NAME);
+      bundle = ResourceBundle.getBundle(BUNDLE_NAME);
       ourBundle = new SoftReference<>(bundle);
     }
     return bundle;

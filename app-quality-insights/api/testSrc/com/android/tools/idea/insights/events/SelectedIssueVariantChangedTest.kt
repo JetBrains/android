@@ -41,7 +41,7 @@ class SelectedIssueVariantChangedTest {
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
-        LoadingState.Ready(Selection(ISSUE_VARIANT, listOf(ISSUE_VARIANT, ISSUE_VARIANT2)))
+        LoadingState.Ready(Selection(ISSUE_VARIANT, listOf(ISSUE_VARIANT, ISSUE_VARIANT2))),
       )
 
     val transition =
@@ -71,7 +71,7 @@ class SelectedIssueVariantChangedTest {
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
-        LoadingState.Ready(Selection(ISSUE_VARIANT, listOf(ISSUE_VARIANT, ISSUE_VARIANT2)))
+        LoadingState.Ready(Selection(ISSUE_VARIANT, listOf(ISSUE_VARIANT, ISSUE_VARIANT2))),
       )
 
     val transition =
@@ -97,7 +97,7 @@ class SelectedIssueVariantChangedTest {
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
-        LoadingState.Ready(Selection(ISSUE_VARIANT, listOf(ISSUE_VARIANT, ISSUE_VARIANT2)))
+        LoadingState.Ready(Selection(ISSUE_VARIANT, listOf(ISSUE_VARIANT, ISSUE_VARIANT2))),
       )
 
     val transition =

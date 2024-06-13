@@ -31,7 +31,7 @@ interface DaggerIndexFieldWrapper : DaggerIndexAnnotatedWrapper {
 
 internal class KtPropertyWrapper(
   private val ktProperty: KtProperty,
-  private val importHelper: KotlinImportHelper
+  private val importHelper: KotlinImportHelper,
 ) : DaggerIndexAnnotatedKotlinWrapper(ktProperty, importHelper), DaggerIndexFieldWrapper {
   override fun getSimpleName() = ktProperty.name!!
 
@@ -44,7 +44,7 @@ internal class KtPropertyWrapper(
 
 internal class PsiFieldWrapper(
   private val psiField: PsiField,
-  private val importHelper: JavaImportHelper
+  private val importHelper: JavaImportHelper,
 ) : DaggerIndexAnnotatedJavaWrapper(psiField, importHelper), DaggerIndexFieldWrapper {
   override fun getSimpleName() = psiField.name
 

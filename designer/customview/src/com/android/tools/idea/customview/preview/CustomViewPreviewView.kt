@@ -18,7 +18,6 @@ package com.android.tools.idea.customview.preview
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -27,7 +26,6 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
@@ -37,7 +35,6 @@ internal class CustomViewPreviewView(
   surfaceBuilder: NlDesignSurface.Builder,
   parentDisposable: Disposable,
   project: Project,
-  psiFile: PsiFile,
 ) {
   internal val surface = surfaceBuilder.build().apply { name = "Custom View" }
 
@@ -78,8 +75,5 @@ internal class CustomViewPreviewView(
         override fun getData(dataId: String): Any? =
           if (DESIGN_SURFACE.`is`(dataId)) surface else null
       }
-      .apply {
-        IssuePanelService.getInstance(project).registerFileToSurface(psiFile.virtualFile, surface)
-        init(editorPanel, surface, listOf(), false)
-      }
+      .apply { init(editorPanel, surface, listOf(), false) }
 }

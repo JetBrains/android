@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals.ui
 
+import com.android.testutils.delayUntilCondition
 import com.android.testutils.time.FakeClock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
@@ -25,6 +26,7 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.DetailedIssueStats
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE1_DETAILS
@@ -41,7 +43,6 @@ import com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.dateFormatter
 import com.android.tools.idea.insights.ui.shortenEventId
-import com.android.tools.idea.insights.waitForCondition
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_CONNECTION_2
 import com.android.tools.idea.vitals.TEST_CONNECTION_3
@@ -55,6 +56,7 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBTabbedPane
 import icons.StudioIcons
 import java.awt.Dimension
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
@@ -114,19 +116,19 @@ class VitalsTabTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         detailsState = LoadingState.Ready(ISSUE1_DETAILS),
         eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
-        connectionsState = listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3)
+        connectionsState = listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3),
       )
 
       val fakeUi = FakeUi(tab)
 
       // Wait for the stacktrace to render. It's a good indicator for when the UI is ready to be
       // checked.
-      waitForCondition(5000) {
+      delayUntilCondition(200) {
         val consoleView = fakeUi.findComponent<ConsoleViewImpl>()!!
         consoleView.text.trim() ==
           """
@@ -138,7 +140,7 @@ class VitalsTabTest {
       }
       // Also wait for the details panel to have some content. It should come quickly after the
       // above check.
-      waitForCondition {
+      delayUntilCondition(200) {
         // Make sure each DistributionPanel has a JProgressBar
         fakeUi.findAllComponents<DistributionPanel>().all {
           it.findDescendant<JProgressBar>() != null
@@ -157,7 +159,7 @@ class VitalsTabTest {
           "All visibility",
           "All versions",
           "All devices",
-          "All operating systems"
+          "All operating systems",
         )
       fakeUi
         .findToolbar()
@@ -180,7 +182,9 @@ class VitalsTabTest {
       val detailsPanelHeader = fakeUi.findComponent<DetailsPanelHeader>()!!
       // Set header to a large size so the title label don't get truncated.
       detailsPanelHeader.size = Dimension(500, 500)
-      waitForCondition { detailsPanelHeader.titleLabel.text == "<html>crash.<B>Crash</B></html>" }
+      delayUntilCondition(200) {
+        detailsPanelHeader.titleLabel.text == "<html>crash.<B>Crash</B></html>"
+      }
       assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("50,000,000")
       assertThat(detailsPanelHeader.usersCountLabel.text).isEqualTo("3,000")
 
@@ -210,7 +214,7 @@ class VitalsTabTest {
           .containsExactly(
             "Google Pixel 4a",
             "Android 3.1 (API 12)",
-            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime)
+            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime),
           )
         assertThat(findAllComponents<HyperlinkLabel>().filter { it.isVisible }.map { it.text })
           .containsExactly("74081e5f")
@@ -220,10 +224,10 @@ class VitalsTabTest {
       val tabbedPane = fakeUi.findComponent<JBTabbedPane>()!!
       assertThat(tabbedPane.tabCount).isEqualTo(1)
       assertThat(tabbedPane.getTitleAt(0)).isEqualTo("Stack trace")
-      assertThat(tabbedPane.getComponentAt(0)).isInstanceOf(ConsoleViewImpl::class.java)
+      assertThat(tabbedPane.getComponentAtIdx(0)).isInstanceOf(ConsoleViewImpl::class.java)
 
       // Stack trace
-      val consoleView = tabbedPane.getComponentAt(0) as ConsoleViewImpl
+      val consoleView = tabbedPane.getComponentAtIdx(0) as ConsoleViewImpl
       assertThat(consoleView.text.trim())
         .isEqualTo(
           """
@@ -257,17 +261,17 @@ class VitalsTabTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         detailsState =
           LoadingState.Ready(
             DetailedIssueStats(IssueStats(null, emptyList()), IssueStats(null, emptyList()))
-          )
+          ),
       )
 
       with(fakeUi.findComponent<DistributionsContainerPanel>()!!.emptyText) {
-        waitForCondition { text == "Detailed stats unavailable." }
+        delayUntilCondition(200) { text == "Detailed stats unavailable." }
         assertThat(isStatusVisible).isTrue()
       }
     }
@@ -284,16 +288,18 @@ class VitalsTabTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         detailsState =
           LoadingState.Ready(
             DetailedIssueStats(IssueStats(null, emptyList()), ISSUE1_DETAILS.osStats)
-          )
+          ),
       )
 
-      waitForCondition { fakeUi.findComponent<JLabel> { it.text == "No data available" } != null }
+      delayUntilCondition(200) {
+        fakeUi.findComponent<JLabel> { it.text == "No data available" } != null
+      }
       fakeUi
         .findAllComponents<DistributionPanel>()[1]
         .assertContent(ISSUE1_DETAILS.osStats, "Android version")
@@ -311,18 +317,51 @@ class VitalsTabTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
         detailsState =
           LoadingState.Ready(
             DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
-          )
+          ),
       )
 
-      waitForCondition { fakeUi.findComponent<JLabel> { it.text == "No data available" } != null }
+      delayUntilCondition(200) {
+        fakeUi.findComponent<JLabel> { it.text == "No data available" } != null
+      }
       fakeUi
         .findAllComponents<DistributionPanel>()[0]
         .assertContent(ISSUE1_DETAILS.deviceStats, "device")
     }
+
+  @Test
+  fun `missing sample event does not cause crash when shown`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val tab = createTab()
+      val fakeUi = FakeUi(tab)
+      controllerRule.consumeInitialState(
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1.copy(sampleEvent = Event())),
+            listOf(DEFAULT_FETCHED_VERSIONS),
+            listOf(DEFAULT_FETCHED_DEVICES),
+            listOf(DEFAULT_FETCHED_OSES),
+            DEFAULT_FETCHED_PERMISSIONS,
+          )
+        ),
+        detailsState =
+          LoadingState.Ready(
+            DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
+          ),
+      )
+
+      delayUntilCondition(200) {
+        fakeUi.findComponent<JLabel> {
+          it.icon == StudioIcons.LayoutEditor.Toolbar.ANDROID_API && it.text == "unknown"
+        } != null
+      }
+    }
+
+  private fun JBTabbedPane.getComponentAtIdx(idx: Int) =
+    (getComponentAt(idx) as JComponent).components.last()
 }

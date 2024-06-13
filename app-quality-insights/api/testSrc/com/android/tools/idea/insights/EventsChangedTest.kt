@@ -29,7 +29,7 @@ class EventsChangedTest {
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Loading
+        LoadingState.Loading,
       )
     val event = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("event1")), "")))
     val transition = event.transition(currentState, TestAppInsightsTracker, TEST_KEY)
@@ -46,7 +46,7 @@ class EventsChangedTest {
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Loading,
-        currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("event1")), 0, ""))
+        currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("event1")), 0, "")),
       )
     val event = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("event2")), "")))
     val transition = event.transition(currentState, TestAppInsightsTracker, TEST_KEY)

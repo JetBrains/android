@@ -19,6 +19,7 @@ import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.createNlModelForCompose
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
 import com.android.tools.preview.SingleComposePreviewElementInstance
@@ -32,23 +33,21 @@ class OverlapAnalyzerComposeTest {
   @Test
   fun testTextOverlap() {
     val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
+          visualLintPreviewFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
           ),
-          customViewInfoParser = accessibilityBasedHierarchyParser
+          customViewInfoParser = accessibilityBasedHierarchyParser,
         )
-        .get()!!
-    val file = renderResult.sourceFile.virtualFile
-    val nlModel =
-      createNlModelForCompose(
-        projectRule.fixture.testRootDisposable,
-        facet,
-        file,
-      )
-    val issues = OverlapAnalyzer.findIssues(renderResult, nlModel)
+        .get()
+    val file = renderResult.lightVirtualFile
+    val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
+    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("TextView is covered by Composable", issues[0].message)
   }
@@ -56,23 +55,21 @@ class OverlapAnalyzerComposeTest {
   @Test
   fun testNoOverlap() {
     val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
+          visualLintPreviewFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.NoVisualLintErrorPreview"
           ),
-          customViewInfoParser = accessibilityBasedHierarchyParser
+          customViewInfoParser = accessibilityBasedHierarchyParser,
         )
-        .get()!!
-    val file = renderResult.sourceFile.virtualFile
-    val nlModel =
-      createNlModelForCompose(
-        projectRule.fixture.testRootDisposable,
-        facet,
-        file,
-      )
-    val issues = OverlapAnalyzer.findIssues(renderResult, nlModel)
+        .get()
+    val file = renderResult.lightVirtualFile
+    val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
+    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel)
     Assert.assertEquals(0, issues.size)
   }
 }

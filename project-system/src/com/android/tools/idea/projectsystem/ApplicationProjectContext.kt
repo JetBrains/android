@@ -52,8 +52,8 @@ interface ApplicationProjectContextProvider: Token {
 
     @JvmStatic
     fun AndroidProjectSystem.getApplicationProjectContext(client: Client): ApplicationProjectContext? =
-      getApplicationProjectContextProvider().getApplicationProjectContextProvider(client)
+      getApplicationProjectContextProvider().getApplicationProjectContext(client)
   }
 
-  fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext?
+  fun getApplicationProjectContext(client: Client): ApplicationProjectContext?
 }

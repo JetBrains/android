@@ -26,15 +26,15 @@ import com.intellij.openapi.project.Project
  * therefore it allows to have several representations for a single source code file.
  */
 internal class SourceCodeEditorWithMultiRepresentationPreview(
-  private val project: Project,
+  project: Project,
   textEditor: TextEditor,
-  preview: SourceCodePreview
+  preview: SourceCodePreview,
 ) :
   TextEditorWithMultiRepresentationPreview<SourceCodePreview>(
     project,
     textEditor,
     preview,
-    "Source Code Editor With Preview"
+    "Source Code Editor With Preview",
   ) {
   override fun getState(
     level: FileEditorStateLevel
@@ -43,7 +43,7 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(
       super.getState(level),
       textEditor.getState(level),
       preview.getState(level),
-      if (isPureTextEditor) null else layout
+      if (isPureTextEditor) null else layout,
     )
 
   override fun setState(state: FileEditorState) {

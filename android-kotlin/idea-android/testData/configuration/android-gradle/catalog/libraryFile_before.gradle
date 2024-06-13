@@ -1,0 +1,29 @@
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    target = 'android-16'
+    sourceSets {
+        main {
+            manifest {
+                srcFile 'AndroidManifest.xml'
+            }
+            java {
+                srcDir 'src'
+            }
+            res {
+                srcDir 'res'
+            }
+            assets {
+                srcDir 'assets'
+            }
+            resources {
+                srcDir 'src'
+            }
+            aidl {
+                srcDir 'src'
+            }
+        }
+    }
+}

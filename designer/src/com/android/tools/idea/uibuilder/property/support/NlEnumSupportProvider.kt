@@ -91,7 +91,7 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
       "34sp",
       "48sp",
       "60sp",
-      "96sp"
+      "96sp",
     )
   }
 
@@ -109,7 +109,7 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
 
   private fun provideEnumSupportFromViewHandler(
     name: String,
-    components: List<NlComponent>
+    components: List<NlComponent>,
   ): EnumSupport? {
     val isLayoutProperty = name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)
     val attrComponents = if (isLayoutProperty) getParentComponents(components) else components

@@ -39,7 +39,7 @@ interface PTableCellRenderer {
     depth: Int,
     isSelected: Boolean,
     hasFocus: Boolean,
-    isExpanded: Boolean
+    isExpanded: Boolean,
   ): JComponent?
 }
 
@@ -52,7 +52,7 @@ class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
     depth: Int,
     isSelected: Boolean,
     hasFocus: Boolean,
-    isExpanded: Boolean
+    isExpanded: Boolean,
   ): JComponent? {
     clear()
     setPaintFocusBorder(hasFocus)
@@ -82,7 +82,7 @@ class DefaultPTableCellRendererProvider : PTableCellRendererProvider {
   override fun invoke(
     table: PTable,
     property: PTableItem,
-    column: PTableColumn
+    column: PTableColumn,
   ): PTableCellRenderer {
     return renderer
   }

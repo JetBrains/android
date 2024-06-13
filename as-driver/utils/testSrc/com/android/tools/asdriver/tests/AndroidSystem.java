@@ -15,7 +15,9 @@
  */
 package com.android.tools.asdriver.tests;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
+import com.android.tools.asdriver.tests.AndroidStudioInstallation.AndroidStudioFlavor;
+import com.android.tools.perflogger.Benchmark;
 import com.android.utils.PathUtils;
 import com.google.common.base.Preconditions;
 import com.intellij.openapi.util.SystemInfo;
@@ -28,6 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,18 +99,35 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     return sdk;
   }
 
+  public static AndroidSystem testDebugStandard(Display display, AndroidStudioFlavor androidStudioFlavor) {
+    try {
+      AndroidSystem system = basic(display, Files.createTempDirectory("root"));
+
+      system.install = AndroidStudioInstallation.fromZip(system.fileSystem, androidStudioFlavor);
+      system.install.createFirstRunXml();
+      system.install.setNewUi();
+      system.install.createGeneralPropertiesXml();
+
+      return system;
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   /**
    * Creates a standard system with a default temp folder
    * that contains a preinstalled version of android studio
    * from the distribution zips. The SDK is set up pointing
    * to the standard prebuilts one.
    */
-  public static AndroidSystem standard(AndroidStudioInstallation.AndroidStudioFlavor androidStudioFlavor) {
+  public static AndroidSystem standard(AndroidStudioFlavor androidStudioFlavor) {
     try {
       AndroidSystem system = basic(Files.createTempDirectory("root"));
 
       system.install = AndroidStudioInstallation.fromZip(system.fileSystem, androidStudioFlavor);
       system.install.createFirstRunXml();
+      system.install.setNewUi();
       system.install.createGeneralPropertiesXml();
 
       return system;
@@ -118,7 +138,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public static AndroidSystem standard() {
-    return standard(AndroidStudioInstallation.AndroidStudioFlavor.FOR_EXTERNAL_USERS);
+    return standard(AndroidStudioFlavor.FOR_EXTERNAL_USERS);
   }
 
   /**
@@ -138,10 +158,14 @@ public class AndroidSystem implements AutoCloseable, TestRule {
    * Creates a system that contains only the sdk installed.
    */
   public static AndroidSystem basic(Path root) throws IOException {
+    return basic(Display.createDefault(), root);
+  }
+
+  public static AndroidSystem basic(Display display, Path root) throws IOException {
     TestFileSystem fileSystem = new TestFileSystem(root);
     AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
 
-    AndroidSystem system = new AndroidSystem(fileSystem, Display.createDefault(), sdk);
+    AndroidSystem system = new AndroidSystem(fileSystem, display, sdk);
 
     sdk.install(system.env);
 
@@ -199,6 +223,15 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     try (AndroidStudio studio = runStudio(project)) {
       callback.accept(studio);
       MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics(studio, install, memoryDashboardName);
+    }
+  }
+
+  public void runStudio(@NotNull final AndroidProject project,
+                        @NotNull Benchmark benchmark,
+                        Consumer<AndroidStudio> callback) throws Exception{
+    try (AndroidStudio studio = runStudio(project)) {
+      callback.accept(studio);
+      studio.addBenchmark(benchmark);
     }
   }
 
@@ -269,11 +302,19 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public Adb runAdb() throws IOException {
-    return Adb.start(sdk, fileSystem.getHome());
+    return Adb.start(sdk, getAdbEnv());
   }
 
   public Adb runAdb(boolean startServer, String... args) throws IOException {
-    return Adb.start(sdk, fileSystem.getHome(), startServer, args);
+    return Adb.start(sdk, getAdbEnv(), startServer, args);
+  }
+
+  private Map<String, String> getAdbEnv() throws IOException {
+    Map<String, String> env = new HashMap<>();
+    env.put("HOME", fileSystem.getHome().toString());
+    env.put("TMPDIR", Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_server_session_output").toString());
+    env.put("ADB_TRACE", "1");
+    return env;
   }
 
   public void runAdb(Consumer<Adb> callback) throws IOException {

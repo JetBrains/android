@@ -16,75 +16,120 @@
 
 package androidx.compose.compiler.plugins.kotlin
 
+import androidx.compose.compiler.plugins.kotlin.analysis.FqNameMatcher
+import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
+import androidx.compose.compiler.plugins.kotlin.k1.ComposeDescriptorSerializerContext
 import androidx.compose.compiler.plugins.kotlin.lower.ClassStabilityTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.ComposableFunInterfaceLowering
 import androidx.compose.compiler.plugins.kotlin.lower.ComposableFunctionBodyTransformer
-import androidx.compose.compiler.plugins.kotlin.lower.ComposableTargetAnnotationsTransformer
+import androidx.compose.compiler.plugins.kotlin.lower.ComposableLambdaAnnotator
 import androidx.compose.compiler.plugins.kotlin.lower.ComposableSymbolRemapper
+import androidx.compose.compiler.plugins.kotlin.lower.ComposableTargetAnnotationsTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.ComposerIntrinsicTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.ComposerLambdaMemoization
 import androidx.compose.compiler.plugins.kotlin.lower.ComposerParamTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.CopyDefaultValuesFromExpectLowering
+import androidx.compose.compiler.plugins.kotlin.lower.DurableFunctionKeyTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.DurableKeyVisitor
 import androidx.compose.compiler.plugins.kotlin.lower.KlibAssignableParamTransformer
-import androidx.compose.compiler.plugins.kotlin.lower.DurableFunctionKeyTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.LiveLiteralTransformer
+import androidx.compose.compiler.plugins.kotlin.lower.WrapJsComposableLambdaLowering
 import androidx.compose.compiler.plugins.kotlin.lower.decoys.CreateDecoysTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.decoys.RecordDecoySignaturesTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.decoys.SubstituteDecoyCallsTransformer
+import androidx.compose.compiler.plugins.kotlin.lower.hiddenfromobjc.AddHiddenFromObjCLowering
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
 import org.jetbrains.kotlin.backend.common.serialization.signature.PublicIdSignatureComputer
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.config.IrVerificationMode
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsGlobalDeclarationTable
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.platform.isJs
+import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.platform.jvm.isJvm
-import org.jetbrains.kotlin.resolve.DelegatingBindingTrace
+import org.jetbrains.kotlin.platform.konan.isNative
 
 class ComposeIrGenerationExtension(
     @Suppress("unused") private val liveLiteralsEnabled: Boolean = false,
     @Suppress("unused") private val liveLiteralsV2Enabled: Boolean = false,
     private val generateFunctionKeyMetaClasses: Boolean = false,
     private val sourceInformationEnabled: Boolean = true,
-    private val intrinsicRememberEnabled: Boolean = true,
+    private val traceMarkersEnabled: Boolean = true,
     private val decoysEnabled: Boolean = false,
     private val metricsDestination: String? = null,
-    private val reportsDestination: String? = null
+    private val reportsDestination: String? = null,
+    private val irVerificationMode: IrVerificationMode = IrVerificationMode.NONE,
+    private val useK2: Boolean = false,
+    private val stableTypeMatchers: Set<FqNameMatcher> = emptySet(),
+    private val moduleMetricsFactory: ((StabilityInferencer) -> ModuleMetrics)? = null,
+    private val descriptorSerializerContext: ComposeDescriptorSerializerContext? = null,
+    private val featureFlags: FeatureFlags,
+    private val skipIfRuntimeNotFound: Boolean = false,
+    private val messageCollector: MessageCollector? = null,
 ) : IrGenerationExtension {
     var metrics: ModuleMetrics = EmptyModuleMetrics
+        private set
+
     override fun generate(
         moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext
     ) {
         val isKlibTarget = !pluginContext.platform.isJvm()
-        VersionChecker(pluginContext).check()
+        if (VersionChecker(pluginContext, messageCollector).check(skipIfRuntimeNotFound) == VersionCheckerResult.NOT_FOUND) {
+            return
+        }
 
-        // TODO: refactor transformers to work with just BackendContext
-        val bindingTrace = DelegatingBindingTrace(
-            pluginContext.bindingContext,
-            "trace in " +
-                "ComposeIrGenerationExtension"
+        val stabilityInferencer = StabilityInferencer(
+            pluginContext.moduleDescriptor,
+            stableTypeMatchers,
         )
+
+        // Input check.  This should always pass, else something is horribly wrong upstream.
+        // Necessary because oftentimes the issue is upstream (compiler bug, prior plugin, etc)
+        validateIr(moduleFragment, pluginContext.irBuiltIns, irVerificationMode)
 
         // create a symbol remapper to be used across all transforms
         val symbolRemapper = ComposableSymbolRemapper()
 
-        if (metricsDestination != null || reportsDestination != null) {
-            metrics = ModuleMetricsImpl(
-                moduleFragment.name.asString(),
-                pluginContext
-            )
+        if (useK2) {
+            moduleFragment.acceptVoid(ComposableLambdaAnnotator(pluginContext))
+        }
+
+        if (moduleMetricsFactory != null) {
+            metrics = moduleMetricsFactory.invoke(stabilityInferencer)
+        } else if (metricsDestination != null || reportsDestination != null) {
+            metrics = ModuleMetricsImpl(moduleFragment.name.asString()) {
+                stabilityInferencer.stabilityOf(it)
+            }
+        }
+
+        if (pluginContext.platform.isNative()) {
+            AddHiddenFromObjCLowering(
+                pluginContext,
+                symbolRemapper,
+                metrics,
+                descriptorSerializerContext?.hideFromObjCDeclarationsSet,
+                stabilityInferencer,
+                featureFlags,
+            ).lower(moduleFragment)
         }
 
         ClassStabilityTransformer(
+            useK2,
             pluginContext,
             symbolRemapper,
-            bindingTrace,
-            metrics
+            metrics,
+            stabilityInferencer,
+            classStabilityInferredCollection = descriptorSerializerContext
+                ?.classStabilityInferredCollection?.takeIf {
+                    !pluginContext.platform.isJvm()
+                },
+            featureFlags,
         ).lower(moduleFragment)
 
         LiveLiteralTransformer(
@@ -93,8 +138,9 @@ class ComposeIrGenerationExtension(
             DurableKeyVisitor(),
             pluginContext,
             symbolRemapper,
-            bindingTrace,
-            metrics
+            metrics,
+            stabilityInferencer,
+            featureFlags,
         ).lower(moduleFragment)
 
         ComposableFunInterfaceLowering(pluginContext).lower(moduleFragment)
@@ -102,8 +148,9 @@ class ComposeIrGenerationExtension(
         val functionKeyTransformer = DurableFunctionKeyTransformer(
             pluginContext,
             symbolRemapper,
-            bindingTrace,
-            metrics
+            metrics,
+            stabilityInferencer,
+            featureFlags,
         )
 
         functionKeyTransformer.lower(moduleFragment)
@@ -112,11 +159,14 @@ class ComposeIrGenerationExtension(
         ComposerLambdaMemoization(
             pluginContext,
             symbolRemapper,
-            bindingTrace,
-            metrics
+            metrics,
+            stabilityInferencer,
+            featureFlags,
         ).lower(moduleFragment)
 
-        CopyDefaultValuesFromExpectLowering().lower(moduleFragment)
+        if (!useK2) {
+            CopyDefaultValuesFromExpectLowering(pluginContext).lower(moduleFragment)
+        }
 
         val mangler = when {
             pluginContext.platform.isJs() -> JsManglerIr
@@ -138,17 +188,19 @@ class ComposeIrGenerationExtension(
             CreateDecoysTransformer(
                 pluginContext,
                 symbolRemapper,
-                bindingTrace,
                 idSignatureBuilder,
+                stabilityInferencer,
                 metrics,
+                featureFlags,
             ).lower(moduleFragment)
 
             SubstituteDecoyCallsTransformer(
                 pluginContext,
                 symbolRemapper,
-                bindingTrace,
                 idSignatureBuilder,
+                stabilityInferencer,
                 metrics,
+                featureFlags,
             ).lower(moduleFragment)
         }
 
@@ -158,16 +210,18 @@ class ComposeIrGenerationExtension(
         ComposerParamTransformer(
             pluginContext,
             symbolRemapper,
-            bindingTrace,
+            stabilityInferencer,
             decoysEnabled,
             metrics,
+            featureFlags,
         ).lower(moduleFragment)
 
         ComposableTargetAnnotationsTransformer(
             pluginContext,
             symbolRemapper,
-            bindingTrace,
-            metrics
+            metrics,
+            stabilityInferencer,
+            featureFlags,
         ).lower(moduleFragment)
 
         // transform calls to the currentComposer to just use the local parameter from the
@@ -177,10 +231,11 @@ class ComposeIrGenerationExtension(
         ComposableFunctionBodyTransformer(
             pluginContext,
             symbolRemapper,
-            bindingTrace,
             metrics,
+            stabilityInferencer,
             sourceInformationEnabled,
-            intrinsicRememberEnabled
+            traceMarkersEnabled,
+            featureFlags,
         ).lower(moduleFragment)
 
         if (decoysEnabled) {
@@ -191,10 +246,11 @@ class ComposeIrGenerationExtension(
             RecordDecoySignaturesTransformer(
                 pluginContext,
                 symbolRemapper,
-                bindingTrace,
                 idSignatureBuilder,
                 metrics,
-                mangler!!
+                mangler!!,
+                stabilityInferencer,
+                featureFlags,
             ).lower(moduleFragment)
         }
 
@@ -202,8 +258,21 @@ class ComposeIrGenerationExtension(
             KlibAssignableParamTransformer(
                 pluginContext,
                 symbolRemapper,
-                bindingTrace,
                 metrics,
+                stabilityInferencer,
+                featureFlags,
+            ).lower(moduleFragment)
+        }
+
+        if (pluginContext.platform.isJs() || pluginContext.platform.isWasm()) {
+            WrapJsComposableLambdaLowering(
+                pluginContext,
+                symbolRemapper,
+                metrics,
+                idSignatureBuilder,
+                stabilityInferencer,
+                decoysEnabled,
+                featureFlags,
             ).lower(moduleFragment)
         }
 
@@ -219,5 +288,8 @@ class ComposeIrGenerationExtension(
         if (reportsDestination != null) {
             metrics.saveReportsTo(reportsDestination)
         }
+
+        // Verify that our transformations didn't break something
+        validateIr(moduleFragment, pluginContext.irBuiltIns, irVerificationMode)
     }
 }

@@ -16,8 +16,6 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.Pannable
-import com.android.tools.adtui.Zoomable
-import com.android.tools.adtui.common.SwingCoordinate
 import com.intellij.openapi.actionSystem.DataProvider
 
 /**
@@ -28,14 +26,8 @@ import com.intellij.openapi.actionSystem.DataProvider
  * directly to the [Scene]s. [DataProvider] is only required to support [Pannable] delegating.
  *
  * TODO(b/228294269): Consider expanding this to generic [InteractionHandler] use. This interface
- *   should be just a pure combination of other interfaces. The methods should be moved to a
- *   different interface. This interface should not extend [DataProvider]. This is only done so
- *   because of [Pannable] can be obtained with [PANNABLE_KEY].
+ *   should not extend [DataProvider]. This is only done so because of [Pannable] can be obtained
+ *   with [PANNABLE_KEY].
  */
-interface InteractableScenesSurface : Pannable, DataProvider, ScenesOwner {
-
-  /** Informs [this] that a mouse hover is happening at position ([x], [y]). */
-  fun onHover(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
-
-  val zoomable: Zoomable
-}
+interface InteractableScenesSurface :
+  Pannable, DataProvider, ScenesOwner, HoverableSurface, ZoomControllableSurface

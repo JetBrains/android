@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
+import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP
 import com.android.tools.idea.streaming.device.FoldingState
 import com.android.tools.idea.streaming.device.RequestDeviceStateMessage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -34,12 +35,12 @@ internal data class DeviceFoldingAction(val foldingState: FoldingState) : Abstra
   override fun isEnabled(event: AnActionEvent): Boolean {
     val controller = getDeviceController(event) ?: return false
     return super.isEnabled(event) && controller.supportedFoldingStates.isNotEmpty() &&
-           (!foldingState.flags.contains(FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP) ||
+           (PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP !in foldingState.systemProperties ||
             foldingState.id == controller.currentFoldingState?.id)
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    if (foldingState.flags.contains(FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP)) {
+    if (PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP in foldingState.systemProperties) {
       return
     }
     val controller = getDeviceController(event) ?: return

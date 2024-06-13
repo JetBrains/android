@@ -26,7 +26,7 @@ import org.jetbrains.annotations.VisibleForTesting
 
 internal class ConnectionDataDetailsView(
   private val inspectorView: NetworkInspectorView,
-  private val usageTracker: NetworkInspectorTracker
+  private val usageTracker: NetworkInspectorTracker,
 ) : CommonTabbedPane() {
 
   @VisibleForTesting val tabs = mutableListOf<TabContent>()

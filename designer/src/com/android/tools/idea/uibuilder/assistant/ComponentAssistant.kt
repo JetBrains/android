@@ -28,7 +28,7 @@ interface ComponentAssistantFactory {
     /** The component that triggered the assistant */
     val component: NlComponent,
     /** Method to be called by the assistant panel if it wants the panel to be closed */
-    val doClose: (cancel: Boolean) -> Unit
+    val doClose: (cancel: Boolean) -> Unit,
   ) {
     /** Callback that will be called when the panel closes */
     var onClose: (cancelled: Boolean) -> Unit = {}

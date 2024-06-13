@@ -22,9 +22,14 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.common.surface.organization.SceneViewHeader
+import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
+import com.android.tools.idea.common.surface.organization.paintLines
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
+import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
@@ -34,7 +39,9 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Rectangle
+import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.launch
 
 /**
  * A [JPanel] responsible for displaying [SceneView]s provided by the [sceneViewProvider].
@@ -54,7 +61,7 @@ internal class SceneViewPanel(
   private val actionManagerProvider: () -> ActionManager<*>,
   private val disposable: Disposable,
   private val shouldRenderErrorsPanel: () -> Boolean,
-  layoutManager: PositionableContentLayoutManager
+  layoutManager: PositionableContentLayoutManager,
 ) : JPanel(layoutManager) {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size. If the size of
@@ -88,7 +95,31 @@ internal class SceneViewPanel(
         .toList()
 
     toRemove.forEach { remove(it) }
+    // Remove components from groups.
+    groups.forEach { group -> group.value.removeIf { toRemove.contains(it) } }
+    groups.filter { it.value.isEmpty() }.forEach { groups.remove(it.key) }
     invalidate()
+  }
+
+  val groups = mutableMapOf<String, MutableList<JComponent>>()
+
+  private val scope = AndroidCoroutineScope(disposable)
+
+  init {
+    (layoutManager as? NlDesignSurfacePositionableContentLayoutManager)?.let {
+      scope.launch(uiThread) {
+        it.currentLayout.collect { layoutOption ->
+          if (layoutOption.organizationEnabled) {
+            // TODO(b/289994157) Add headers if layout supports it
+          } else {
+            // Remove existing groups.
+            val headers = components.filterIsInstance<SceneViewHeader>()
+            headers.forEach { remove(it) }
+            groups.clear()
+          }
+        }
+      }
+    }
   }
 
   @UiThread
@@ -101,6 +132,14 @@ internal class SceneViewPanel(
 
     // Invalidate the current components
     removeAll()
+
+    // Headers to be added.
+    val headers =
+      if (organizationIsEnabled()) designSurfaceSceneViews.createOrganizationHeaders(this)
+      else mutableMapOf()
+
+    groups.clear()
+
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
       val toolbarActions = actionManagerProvider().sceneViewContextToolbarActions
       val bottomBar = actionManagerProvider().getSceneViewBottomBar(sceneView)
@@ -111,22 +150,10 @@ internal class SceneViewPanel(
       val rightBar = actionManagerProvider().getSceneViewRightBar(sceneView)
 
       val errorsPanel =
-        if (shouldRenderErrorsPanel())
-          SceneViewErrorsPanel {
-            when {
-              // If the flag COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR is enabled and  there is a valid
-              // image, never display the error panel.
-              sceneView.hasValidImage() && StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.get() ->
-                SceneViewErrorsPanel.Style.HIDDEN
-              sceneView.hasRenderErrors() -> SceneViewErrorsPanel.Style.SOLID
-              else -> SceneViewErrorsPanel.Style.HIDDEN
-            }
-          }
-        else null
+        if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView) else null
 
       val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView)
-
-      add(
+      val peerPanel =
         SceneViewPeerPanel(
             sceneView,
             labelPanel,
@@ -138,9 +165,25 @@ internal class SceneViewPanel(
             errorsPanel,
           )
           .also { it.alignmentX = sceneViewAlignment }
-      )
+
+      // Add header to layout and store information about created group.
+      sceneView.scene.sceneManager.model.organizationGroup?.let { organizationGroup ->
+        headers.remove(organizationGroup)?.let {
+          add(it)
+          groups.putIfAbsent(organizationGroup, mutableListOf())
+        }
+        groups[organizationGroup]?.add(peerPanel)
+      }
+      add(peerPanel)
     }
   }
+
+  /** @return true if layout supports organization. */
+  private fun organizationIsEnabled() =
+    (layout as? NlDesignSurfacePositionableContentLayoutManager)
+      ?.currentLayout
+      ?.value
+      ?.organizationEnabled == true
 
   override fun doLayout() {
     revalidateSceneViews()
@@ -155,6 +198,8 @@ internal class SceneViewPanel(
       return
     }
 
+    groups.values.paintLines(graphics.create() as Graphics2D)
+
     val g2d = graphics.create() as Graphics2D
     try {
       // The visible area in the editor
@@ -163,8 +208,7 @@ internal class SceneViewPanel(
       // A Dimension used to avoid reallocating new objects just to obtain the PositionableContent
       // dimensions
       val reusableDimension = Dimension()
-      val positionables: Collection<PositionableContent> =
-        sceneViewPeerPanels.map { it.positionableAdapter }
+      val positionables = positionableContent
       val horizontalTopScanLines = positionables.findAllScanlines { it.y }
       val horizontalBottomScanLines =
         positionables.findAllScanlines { it.y + it.getScaledContentSize(reusableDimension).height }
@@ -194,8 +238,7 @@ internal class SceneViewPanel(
             if (renderErrorPanel) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.height
             else size.height
         // This finds the maximum allowed area for the screen views to paint into. See more details
-        // in the
-        // ScanlineUtils.kt documentation.
+        // in the ScanlineUtils.kt documentation.
         @SwingCoordinate
         var minX = findSmallerScanline(verticalRightScanLines, positionable.x, viewportBounds.x)
         @SwingCoordinate
@@ -205,17 +248,13 @@ internal class SceneViewPanel(
         var maxY = findLargerScanline(horizontalTopScanLines, bottom, viewportBottom)
 
         // Now, (minX, minY) (maxX, maxY) describes the box that a PositionableContent could paint
-        // into without painting
-        // on top of another PositionableContent render. We use this box to paint the components
-        // that are outside of the
-        // rendering area.
+        // into without painting on top of another PositionableContent render. We use this box to
+        // paint the components that are outside of the rendering area.
         // However, now we need to avoid there "out of bounds" components from being on top of each
-        // other.
-        // To do that, we simply find the middle point, except on the corners of the surface. For
-        // example, the
-        // first PositionableContent on the left, does not have any other PositionableContent that
-        // could paint on its left side so we
-        // do not need to find the middle point in those cases.
+        // other. To do that, we simply find the middle point, except on the corners of the surface.
+        // For example, the first PositionableContent on the left, does not have any other
+        // PositionableContent that could paint on its left side so we do not need to find the
+        // middle point in those cases.
         minX = if (minX > viewportBounds.x) (minX + positionable.x) / 2 else viewportBounds.x
         maxX = if (maxX < viewportRight) (maxX + right) / 2 else viewportRight
         minY = if (minY > viewportBounds.y) (minY + positionable.y) / 2 else viewportBounds.y
@@ -265,23 +304,19 @@ internal class SceneViewPanel(
 
   /**
    * Find the predicted rectangle of the [sceneView] when layout manager re-layout the content with
-   * the given [content] and [availableSize].
+   * the given [availableSize].
    */
-  fun findMeasuredSceneViewRectangle(
-    sceneView: SceneView,
-    content: Collection<PositionableContent>,
-    availableSize: Dimension
-  ): Rectangle? {
+  fun findMeasuredSceneViewRectangle(sceneView: SceneView, availableSize: Dimension): Rectangle? {
     val panel =
       components.filterIsInstance<SceneViewPeerPanel>().firstOrNull { sceneView == it.sceneView }
         ?: return null
 
-    val layoutManager = layout as PositionableContentLayoutManager ?: return null
+    val layoutManager = layout as PositionableContentLayoutManager
     val positions =
       layoutManager.getMeasuredPositionableContentPosition(
-        content,
+        positionableContent,
         availableSize.width,
-        availableSize.height
+        availableSize.height,
       )
     val position = positions[panel.positionableAdapter] ?: return null
     return panel.bounds.apply { location = position }

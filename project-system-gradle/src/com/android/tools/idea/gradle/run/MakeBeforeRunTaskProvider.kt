@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -69,6 +68,8 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfileWithCompileBeforeLaunchOption
 import com.intellij.execution.junit.JUnitConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -81,6 +82,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.concurrency.AppExecutorUtil
 import icons.StudioIcons
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
@@ -91,6 +93,7 @@ import java.io.Writer
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Properties
+import java.util.concurrent.TimeUnit
 import javax.swing.Icon
 
 /**
@@ -245,7 +248,16 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     // the android run config context
     val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
     val targetDevices = deviceFutures?.devices ?: emptyList()
-    val targetDeviceSpec = createSpec(targetDevices)
+    val targetDeviceSpec = createSpec(targetDevices) { title, message ->
+      val notification = NotificationGroupManager
+        .getInstance()
+        .getNotificationGroup("Deploy")
+        .createNotification(message, NotificationType.INFORMATION)
+        .setTitle(title)
+        .setImportant(false)
+      notification.notify(env.project)
+      AppExecutorUtil.getAppScheduledExecutorService().schedule({ notification.expire() }, 5, TimeUnit.SECONDS)
+    }
 
     // Some configurations (e.g. native attach) don't require a build while running the configuration
     if (configuration is RunProfileWithCompileBeforeLaunchOption &&
@@ -477,20 +489,18 @@ private fun build(
 
     return doBuild(tasks, BuildMode.DEFAULT_BUILD_MODE)
   }
-  val testCompileType = configuration?.testCompileType ?: TestCompileType.NONE
   return when {
-    testCompileType === TestCompileType.UNIT_TESTS ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.UNIT_TESTS).asMap(), BuildMode.COMPILE_JAVA)
     // Use the "select apks from bundle" task if using a "AndroidRunConfigurationBase".
     // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
 
     // NOTE: MakeBeforeRunTask is configured on unit-test and AndroidrunConfigurationBase run configurations only. Therefore,
-    //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
+    //       since this is not about unit tests compilation it is safe to assume that configuration is
     //       AndroidRunConfigurationBase.
+    // Um, except that AndroidWearConfiguration now exists.
     useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, testCompileType).asMap(), BuildMode.APK_FROM_BUNDLE)
+      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, expandModules = true).asMap(), BuildMode.APK_FROM_BUNDLE)
     else ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType).asMap(), BuildMode.ASSEMBLE)
+      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, expandModules = true).asMap(), BuildMode.ASSEMBLE)
   }
 }
 

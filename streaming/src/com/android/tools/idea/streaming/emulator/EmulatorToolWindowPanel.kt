@@ -20,6 +20,7 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
@@ -189,29 +190,20 @@ internal class EmulatorToolWindowPanel(
     displayPanels[primaryDisplayPanel.displayId] = primaryDisplayPanel
     val emulatorView = primaryDisplayPanel.displayView
     primaryDisplayView = emulatorView
-    mainToolbar.targetComponent = emulatorView
-    secondaryToolbar.targetComponent = emulatorView
-    emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
-      mainToolbar.updateActionsImmediately()
-      secondaryToolbar.updateActionsImmediately()
-    }
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
     emulatorView.addDisplayConfigurationListener(displayConfigurator)
     emulatorView.addPostureListener(object: PostureListener {
       override fun postureChanged(posture: PostureDescriptor) {
         EventQueue.invokeLater {
-          mainToolbar.updateActionsImmediately()
+          mainToolbar.updateActionsAsync()
         }
       }
     })
     emulator.addConnectionStateListener(this)
 
     val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdFolder)
-    if (multiDisplayState == null) {
-      centerPanel.addToCenter(primaryDisplayPanel)
-    }
-    else {
+    if (multiDisplayState?.isInitialized() == true) {
       try {
         displayConfigurator.buildLayout(multiDisplayState)
       }
@@ -220,6 +212,16 @@ internal class EmulatorToolWindowPanel(
         // Corrupted multi-display state. Start with a single display.
         centerPanel.addToCenter(primaryDisplayPanel)
       }
+    }
+    else {
+      centerPanel.addToCenter(primaryDisplayPanel)
+    }
+
+    mainToolbar.targetComponent = emulatorView
+    secondaryToolbar.targetComponent = emulatorView
+    emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
+      mainToolbar.updateActionsAsync()
+      secondaryToolbar.updateActionsAsync()
     }
 
     val uiState = savedUiState as EmulatorUiState? ?: EmulatorUiState()
@@ -246,10 +248,12 @@ internal class EmulatorToolWindowPanel(
    * Destroys content of the emulator panel and returns its state for later recreation.
    */
   override fun destroyContent(): EmulatorUiState {
+    val uiState = EmulatorUiState()
+    val disposable = contentDisposable ?: return uiState
+    contentDisposable = null
+
     multiDisplayStateUpdater.run()
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
-
-    val uiState = EmulatorUiState()
 
     for (panel in displayPanels.values) {
       uiState.zoomScrollState[panel.displayId] = panel.zoomScrollState
@@ -271,8 +275,7 @@ internal class EmulatorToolWindowPanel(
 
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", focusOwnerListener)
     emulator.removeConnectionStateListener(this)
-    contentDisposable?.let { Disposer.dispose(it) }
-    contentDisposable = null
+    Disposer.dispose(disposable)
 
     centerPanel.removeAll()
     displayPanels.clear()
@@ -282,6 +285,10 @@ internal class EmulatorToolWindowPanel(
     clipboardSynchronizer = null
     lastUiState = uiState
     return uiState
+  }
+
+  fun updateMainToolbar() {
+    mainToolbar.updateActionsAsync()
   }
 
   override fun getData(dataId: String): Any? {
@@ -321,7 +328,12 @@ internal class EmulatorToolWindowPanel(
     fun refreshDisplayConfiguration() {
       emulator.getDisplayConfigurations(object : EmptyStreamObserver<DisplayConfigurations>() {
         override fun onNext(response: DisplayConfigurations) {
-          LOG.debug("Display configurations: " + shortDebugString(response))
+          if (StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+            LOG.info("Display configurations: " + shortDebugString(response))
+          }
+          else {
+            LOG.debug("Display configurations: " + shortDebugString(response))
+          }
           EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             displayConfigurationReceived(response.displaysList)
           }
@@ -349,8 +361,8 @@ internal class EmulatorToolWindowPanel(
       val rootPanel = buildLayout(layoutRoot, newDisplays)
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
-      mainToolbar.updateActionsImmediately()
-      secondaryToolbar.updateActionsImmediately()
+      mainToolbar.updateActionsAsync()
+      secondaryToolbar.updateActionsAsync()
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
@@ -398,8 +410,8 @@ internal class EmulatorToolWindowPanel(
     }
 
     private fun setRootPanel(rootPanel: JPanel) {
-      mainToolbar.updateActionsImmediately() // Rotation buttons are hidden in multi-display mode.
-      secondaryToolbar.updateActionsImmediately()
+      mainToolbar.updateActionsAsync() // Rotation buttons are hidden in multi-display mode.
+      secondaryToolbar.updateActionsAsync()
       centerPanel.removeAll()
       centerPanel.addToCenter(rootPanel)
       centerPanel.validate()
@@ -441,13 +453,15 @@ internal class EmulatorToolWindowPanel(
    */
   class MultiDisplayState() {
 
+    lateinit var displayDescriptors: MutableList<DisplayDescriptor>
+    lateinit var panelState: PanelState
+
     constructor(displayDescriptors: MutableList<DisplayDescriptor>, panelState: PanelState) : this() {
       this.displayDescriptors = displayDescriptors
       this.panelState = panelState
     }
 
-    lateinit var displayDescriptors: MutableList<DisplayDescriptor>
-    lateinit var panelState: PanelState
+    fun isInitialized(): Boolean = ::displayDescriptors.isInitialized && ::panelState.isInitialized
 
     override fun equals(other: Any?): Boolean {
       if (this === other) return true

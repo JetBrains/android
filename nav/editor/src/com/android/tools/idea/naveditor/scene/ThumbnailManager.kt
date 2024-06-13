@@ -24,6 +24,7 @@ import com.android.tools.idea.res.MemoryTrackingMultiResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
+import com.android.tools.res.CacheableResourceRepository
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
@@ -63,7 +64,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?>?>()
   private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
-  private var myResourceRepository: ModificationTracker? = StudioResourceRepositoryManager.getAppResources(facet).apply {
+  private var myResourceRepository: CacheableResourceRepository? = StudioResourceRepositoryManager.getAppResources(facet).apply {
     (this as? MemoryTrackingMultiResourceRepository)?.let { Disposer.register(it, { myResourceRepository = null }) }
   }
 

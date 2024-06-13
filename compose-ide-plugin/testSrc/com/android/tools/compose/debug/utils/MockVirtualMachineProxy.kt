@@ -24,7 +24,7 @@ import com.sun.jdi.VirtualMachine
 
 class MockVirtualMachineProxy(
   debugProcessImpl: DebugProcessImpl,
-  referencesByName: Map<String, ReferenceType>
+  referencesByName: Map<String, ReferenceType>,
 ) : VirtualMachineProxyImpl(debugProcessImpl, MockVirtualMachine(referencesByName)) {
   override fun allClasses(): List<ReferenceType> = virtualMachine.allClasses()
 

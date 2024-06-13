@@ -1,6 +1,4 @@
-addivya@google.com
-arifs@google.com
-emrekultursay@google.com
+include platform/tools/base:/owners/profilers_OWNERS
+
 jgielzak@google.com
-shukang@google.com
-ydbeis@google.com
+

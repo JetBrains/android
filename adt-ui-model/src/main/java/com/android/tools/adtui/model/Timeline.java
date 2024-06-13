@@ -61,18 +61,13 @@ public interface Timeline {
   void resetZoom();
 
   /**
-   * Calculates a zoom within the current data bounds. If a zoom extends beyond data max the left over is applied to the view minimum.
-   *
-   * @param deltaUs the amount of time request to change the view by.
-   * @param ratio a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the full delta to the min while 0 applies
-   *                the full delta to the max.
-   */
-  void zoom(double deltaUs, double ratio);
-
-  /**
    * Set view range to the given range.
    */
   void frameViewToRange(Range targetRange);
+
+  void handleMouseWheelZoom(double count, double anchor);
+
+  void handleMouseWheelPan(double count);
 
   /**
    * Pan view range based on the given value.

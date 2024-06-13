@@ -52,7 +52,7 @@ interface CodeOutOfDateTracker : ModificationTracker {
     fun create(
       module: Module?,
       parentDisposable: Disposable,
-      needsRefreshCallback: () -> Unit
+      needsRefreshCallback: () -> Unit,
     ): CodeOutOfDateTracker =
       module?.let { CodeOutOfDateTrackerImpl(it, parentDisposable, needsRefreshCallback) }
         ?: NopCodeOutOfDateTrackerImpl
@@ -179,7 +179,7 @@ constructor(module: Module, parentDisposable: Disposable, needsRefreshCallback: 
           buildFailed()
         }
       },
-      parentDisposable = buildDisposable
+      parentDisposable = buildDisposable,
     )
 
     module.androidFacet?.let { facet ->

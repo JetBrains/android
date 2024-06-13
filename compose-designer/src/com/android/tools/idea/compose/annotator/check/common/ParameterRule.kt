@@ -65,7 +65,7 @@ internal abstract class ParameterRule {
       name: String,
       expectedType: ExpectedValueType,
       defaultValue: String,
-      valueCheck: (String) -> Boolean
+      valueCheck: (String) -> Boolean,
     ): ParameterRule =
       object : ParameterRule() {
         override val name: String = name

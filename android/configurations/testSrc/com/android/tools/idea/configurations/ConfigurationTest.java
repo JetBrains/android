@@ -358,11 +358,11 @@ public class ConfigurationTest extends AndroidTestCase {
     VirtualFile file1 = myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
 
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = manager.getConfiguration(file1);
+    ConfigurationForFile configuration = manager.getConfiguration(file1);
     configuration.setActivity("Activity");
     configuration.setDisplayName("DisplayName");
 
-    Configuration clone = configuration.clone();
+    ConfigurationForFile clone = configuration.clone();
 
     configuration.setActivity("Activity2");
     configuration.setDisplayName("DisplayName2");

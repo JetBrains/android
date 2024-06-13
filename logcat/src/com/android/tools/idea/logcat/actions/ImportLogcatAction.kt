@@ -28,7 +28,7 @@ internal class ImportLogcatAction :
   DumbAwareAction(
     LogcatBundle.message("logcat.import.log.action.text"),
     null,
-    AllIcons.ToolbarDecorator.Import
+    AllIcons.ToolbarDecorator.Import,
   ) {
 
   override fun actionPerformed(e: AnActionEvent) {

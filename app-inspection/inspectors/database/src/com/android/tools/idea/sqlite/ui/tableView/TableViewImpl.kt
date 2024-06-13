@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
@@ -33,6 +34,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -42,8 +44,8 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBUI.CurrentTheme.Banner.WARNING_BACKGROUND
 import icons.StudioIcons
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -72,6 +74,9 @@ import javax.swing.KeyStroke
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
+import org.jetbrains.annotations.TestOnly
+
+private const val MAX_CELL_TEXT = 200
 
 /** Abstraction on the UI component used to display tables. */
 class TableViewImpl : TableView {
@@ -83,10 +88,11 @@ class TableViewImpl : TableView {
 
   private var columns: List<ViewColumn>? = null
 
-  private val rootPanel = JPanel(BorderLayout())
+  private val rootPanel = JPanel(null).apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
   override val component: JComponent = rootPanel
 
   private val readOnlyLabel = JLabel("Results are read-only")
+  private val isForcedBanner = IsForcedConnectionBanner()
 
   private val firstRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_START)
   private val lastRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_END)
@@ -103,7 +109,7 @@ class TableViewImpl : TableView {
 
   private val exportButton = CommonButton(AllIcons.ToolbarDecorator.Export)
 
-  private val table = JBTable()
+  private val table = MyTable()
   private val tableScrollPane = JBScrollPane(table)
 
   private val progressBar = JProgressBar()
@@ -132,8 +138,10 @@ class TableViewImpl : TableView {
   init {
     val tableActionsPanel = JPanel().also { it.layout = BoxLayout(it, BoxLayout.X_AXIS) }
 
-    rootPanel.add(tableActionsPanel, BorderLayout.NORTH)
-    rootPanel.add(centerPanel, BorderLayout.CENTER)
+    isForcedBanner.isVisible = false
+    rootPanel.add(isForcedBanner)
+    rootPanel.add(tableActionsPanel)
+    rootPanel.add(centerPanel)
 
     centerPanel.background = primaryContentBackground
 
@@ -142,7 +150,7 @@ class TableViewImpl : TableView {
       JBUI.Borders.merge(
         BorderFactory.createEmptyBorder(2, 0, 2, 0),
         IdeBorderFactory.createBorder(SideBorder.BOTTOM),
-        true
+        true,
       )
 
     val pagingControlsPanel = createPagingControlsPanel()
@@ -251,7 +259,7 @@ class TableViewImpl : TableView {
     progressBarPanel.add(progressBar, BorderLayout.NORTH)
     progressBarPanel.isOpaque = false
 
-    // add the table first, otherwise the "resise column" is not shown when hovering the table's
+    // add the table first, otherwise the "resize column" is not shown when hovering the table's
     // header
     layeredPane.add(tablePanel)
     layeredPane.add(progressBarPanel)
@@ -444,6 +452,10 @@ class TableViewImpl : TableView {
     listeners.remove(listener)
   }
 
+  override fun updateIsForcedBanner(show: Boolean) {
+    isForcedBanner.isVisible = show
+  }
+
   private fun setControlButtonsEnabled(enabled: Boolean) {
     liveUpdatesCheckBox.isEnabled = liveUpdatesEnabled && enabled
     refreshButton.isEnabled = refreshEnabled && enabled
@@ -472,6 +484,8 @@ class TableViewImpl : TableView {
   private fun setUpPopUp() {
     val setNullAction =
       object : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
         override fun actionPerformed(e: AnActionEvent) {
           val rowIndex = table.selectedRow
           val columnIndex = table.selectedColumn
@@ -500,6 +514,8 @@ class TableViewImpl : TableView {
 
     val copyToClipboardAction =
       object : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
         override fun actionPerformed(e: AnActionEvent) {
           val row = table.selectedRow
           val column = table.selectedColumn
@@ -522,18 +538,18 @@ class TableViewImpl : TableView {
         KeyboardShortcut(
           KeyStroke.getKeyStroke(
             KeyEvent.VK_N,
-            InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK
+            InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK,
           ),
-          null
+          null,
         )
       ),
-      table
+      table,
     )
 
     PopupHandler.installPopupMenu(
       table,
       DefaultActionGroup(copyToClipboardAction, setNullAction),
-      "SqliteTablePopup"
+      "SqliteTablePopup",
     )
   }
 
@@ -544,7 +560,7 @@ class TableViewImpl : TableView {
       selected: Boolean,
       focused: Boolean,
       viewRowIndex: Int,
-      viewColumnIndex: Int
+      viewColumnIndex: Int,
     ): Component {
       val columnNameLabel = DefaultTableCellRenderer()
       val sortIcon = DefaultTableCellRenderer()
@@ -556,7 +572,7 @@ class TableViewImpl : TableView {
       } else {
         val columns = (table.model as MyTableModel).columns
         val inPk = columns[viewColumnIndex - 1].inPrimaryKey
-        if (inPk != null && inPk) {
+        if (inPk) {
           columnNameLabel.icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
           columnNameLabel.iconTextGap = 8
         } else {
@@ -585,6 +601,17 @@ class TableViewImpl : TableView {
     }
   }
 
+  private class MyTable : JBTable() {
+    override fun getToolTipText(event: MouseEvent): String? {
+      val row = rowAtPoint(event.point)
+      val col = columnAtPoint(event.point)
+      return when {
+        row < 0 || col < 0 -> null
+        else -> getValueAt(row, col)?.toString()?.takeIf { it.length > MAX_CELL_TEXT }
+      }
+    }
+  }
+
   private class MyColoredTableCellRenderer : ColoredTableCellRenderer() {
     override fun customizeCellRenderer(
       table: JTable,
@@ -592,12 +619,12 @@ class TableViewImpl : TableView {
       selected: Boolean,
       focused: Boolean,
       viewRowIndex: Int,
-      viewColumnIndex: Int
+      viewColumnIndex: Int,
     ) {
       if (value == null) {
         append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
       } else {
-        append(StringUtil.shortenPathWithEllipsis(value as String, 200, true))
+        append(StringUtil.shortenPathWithEllipsis(value.toString(), MAX_CELL_TEXT))
       }
     }
   }
@@ -719,6 +746,19 @@ class TableViewImpl : TableView {
       fun fromSqliteRow(sqliteRow: SqliteRow): MyRow {
         return MyRow(sqliteRow.values.map { it.value }.toMutableList())
       }
+    }
+  }
+
+  private class IsForcedConnectionBanner : EditorNotificationPanel(WARNING_BACKGROUND) {
+    init {
+      text =
+        "Non-native connection. This database has not yet been opened by the app so it may contain an outdated schema."
+      minimumSize = preferredSize
+      border =
+        BorderFactory.createCompoundBorder(
+          JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
+          border,
+        )
     }
   }
 }

@@ -57,7 +57,7 @@ class DaggerDataIndexerTest {
         """
       package com.example // comment with 'dagger' to ensure indexer runs
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -97,7 +97,7 @@ class DaggerDataIndexerTest {
       package com.example // comment with 'dagger' to ensure indexer runs
       class CoffeeMaker() {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -109,7 +109,7 @@ class DaggerDataIndexerTest {
                 if (wrapper.getIsConstructor() && wrapper.getSimpleName() == "CoffeeMaker")
                   indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
-            ),
+            )
         )
       )
 
@@ -128,7 +128,7 @@ class DaggerDataIndexerTest {
         constructor(arg1: Int) {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -144,7 +144,7 @@ class DaggerDataIndexerTest {
                 )
                   indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
-            ),
+            )
         )
       )
 
@@ -163,7 +163,7 @@ class DaggerDataIndexerTest {
         fun foo() {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -175,7 +175,7 @@ class DaggerDataIndexerTest {
                 if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo")
                   indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
-            ),
+            )
         )
       )
 
@@ -193,7 +193,7 @@ class DaggerDataIndexerTest {
 
       fun foo() {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -205,7 +205,7 @@ class DaggerDataIndexerTest {
                 if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo")
                   indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
-            ),
+            )
         )
       )
 
@@ -224,7 +224,7 @@ class DaggerDataIndexerTest {
         val foo: Int = 0
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -236,7 +236,7 @@ class DaggerDataIndexerTest {
                 if (wrapper.getSimpleName() == "foo")
                   indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
-            ),
+            )
         )
       )
 
@@ -255,7 +255,7 @@ class DaggerDataIndexerTest {
         class CoffeeFilter
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -271,7 +271,7 @@ class DaggerDataIndexerTest {
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
               }
-            ),
+            )
         )
       )
 
@@ -291,7 +291,7 @@ class DaggerDataIndexerTest {
         interface CoffeeFilter
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -307,7 +307,7 @@ class DaggerDataIndexerTest {
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
               }
-            ),
+            )
         )
       )
 
@@ -327,7 +327,7 @@ class DaggerDataIndexerTest {
         object CoffeeFilter
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -343,7 +343,7 @@ class DaggerDataIndexerTest {
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
               }
-            ),
+            )
         )
       )
 
@@ -361,7 +361,7 @@ class DaggerDataIndexerTest {
       package com.example // dagger
       class Foo
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val fileContentWithInject =
@@ -372,7 +372,7 @@ class DaggerDataIndexerTest {
       package com.example // inject
       class Foo
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val fileContentWithNoKnownToken =
@@ -383,7 +383,7 @@ class DaggerDataIndexerTest {
       package com.example
       class Foo
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -412,7 +412,7 @@ class DaggerDataIndexerTest {
         """
       package com.example; // comment with 'dagger' to ensure indexer runs
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -454,7 +454,7 @@ class DaggerDataIndexerTest {
         public CoffeeMaker() {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -466,7 +466,7 @@ class DaggerDataIndexerTest {
                 if (wrapper.getIsConstructor() && wrapper.getSimpleName() == "CoffeeMaker")
                   indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
-            ),
+            )
         )
       )
 
@@ -485,7 +485,7 @@ class DaggerDataIndexerTest {
         public void foo() {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -497,7 +497,7 @@ class DaggerDataIndexerTest {
                 if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo")
                   indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
-            ),
+            )
         )
       )
 
@@ -516,7 +516,7 @@ class DaggerDataIndexerTest {
         public int foo;
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -528,7 +528,7 @@ class DaggerDataIndexerTest {
                 if (wrapper.getSimpleName() == "foo")
                   indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
-            ),
+            )
         )
       )
 
@@ -549,7 +549,7 @@ class DaggerDataIndexerTest {
         public class CoffeeFilter {}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =
@@ -565,7 +565,7 @@ class DaggerDataIndexerTest {
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
               }
-            ),
+            )
         )
       )
 
@@ -583,7 +583,7 @@ class DaggerDataIndexerTest {
       package com.example; // dagger
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val fileContentWithInject =
@@ -594,7 +594,7 @@ class DaggerDataIndexerTest {
       package com.example; // inject
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val fileContentWithNoKnownToken =
@@ -605,7 +605,7 @@ class DaggerDataIndexerTest {
       package com.example;
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val indexer =

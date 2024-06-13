@@ -16,17 +16,18 @@
 
 package com.android.tools.idea.ui.screenshot
 
+import com.android.ProgressManagerAdapter
 import com.android.adblib.DeviceSelector
 import com.android.adblib.INFINITE_DURATION
 import com.android.adblib.shellAsText
 import com.android.adblib.shellCommand
 import com.android.adblib.utils.ByteArrayShellCollector
 import com.android.annotations.concurrency.WorkerThread
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.android.tools.idea.ui.screenshot.ScreenshotAction.ScreenshotOptions
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -42,7 +43,7 @@ class AdbScreenCapScreenshotSupplier(
   project: Project,
   private val serialNumber: String,
   private val screenshotOptions: ScreenshotOptions,
-) : ScreenshotSupplier, Disposable {
+) : ScreenshotSupplier {
   private val coroutineScope = AndroidCoroutineScope(this)
   private val adbLibService = AdbLibService.getInstance(project)
   private val deviceDisplayInfoRegex = Regex("\\s(DisplayDeviceInfo\\W.*)")
@@ -69,10 +70,13 @@ class AdbScreenCapScreenshotSupplier(
 
     return runBlocking {
       val dumpsysOutput = dumpsysJob.await()
+      ProgressManagerAdapter.checkCanceled()
       val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
       val pmOutput = pmJob.await()
+      ProgressManagerAdapter.checkCanceled()
       val deviceType = extractDeviceType(pmOutput)
       val screenshotBytes = screenshotJob.await()
+      ProgressManagerAdapter.checkCanceled()
 
       @Suppress("BlockingMethodInNonBlockingContext") // Reading from memory is not blocking.
       val image = ImageIO.read(ByteArrayInputStream(screenshotBytes.stdout))
@@ -85,7 +89,7 @@ class AdbScreenCapScreenshotSupplier(
     when {
       pmOutput.contains("feature:android.software.leanback") -> DeviceType.TV
       pmOutput.contains("feature:android.hardware.type.watch") -> DeviceType.WEAR
-      else -> DeviceType.PHONE
+      else -> DeviceType.HANDHELD
     }
 
   /**

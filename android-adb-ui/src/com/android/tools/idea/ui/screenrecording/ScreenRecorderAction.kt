@@ -22,7 +22,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.prefs.AndroidLocationsException
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
-import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.sdk.AndroidSdks
@@ -92,7 +92,7 @@ class ScreenRecorderAction : DumbAwareAction(
 
   @UiThread
   private fun startRecordingAsync(params: Parameters, useEmulatorRecording: Boolean, project: Project) {
-    val adbSession: AdbSession = AdbLibService.getSession(project)
+    val adbSession: AdbSession = AdbLibApplicationService.instance.session
     val manager: AvdManager? = getVirtualDeviceManager()
     val serialNumber = params.serialNumber
     val avdName = params.avdId

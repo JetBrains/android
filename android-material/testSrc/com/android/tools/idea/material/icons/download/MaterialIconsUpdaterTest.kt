@@ -23,12 +23,15 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.SdkUtils
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Pair
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.util.download.DownloadableFileService
 import com.intellij.util.download.FileDownloader
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,8 +40,8 @@ import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.createTempDirectory
-import kotlin.io.path.writeText
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 
 private const val HOST = "my.host.com"
@@ -152,11 +155,11 @@ class MaterialIconsUpdaterTest {
       MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testDownloadedMetadataFile), thisLogger())
     }
 
-    updateIconsAtDir(
+    assertTrue(updateIconsAtDir(
       existingMetadata = loadExistingMetadata(),
       newMetadata = loadTestDownloadedMetadata(),
       targetDir = downloadDir
-    )
+    ))
 
     // Downloaded version of Icon 1 forces a specific file name and deletes the existing XML file
     assertThat(existingIcon1).doesNotExist()
@@ -174,12 +177,13 @@ class MaterialIconsUpdaterTest {
     val expectedMetadataContent = testDownloadedMetadataFile.readText().toExpectedJsonFormat()
     assertEquals(expectedMetadataContent, existingMetadataFile.readText())
 
-    // Calling updateIconsAtDir again will remove any unused Icons from the current metadata
-    updateIconsAtDir(
+    // Calling updateIconsAtDir again will remove any unused Icons from the current metadata.
+    // Because the metadata is already up to date, updateIconsAtDir will return false.
+    assertFalse(updateIconsAtDir(
       existingMetadata = loadExistingMetadata(),
       newMetadata = loadTestDownloadedMetadata(),
       targetDir = downloadDir
-    )
+    ))
 
     // Icon 2 should be deleted now, since it's not in use by the current metadata
     assertThat(existingIcon1.parent).exists()

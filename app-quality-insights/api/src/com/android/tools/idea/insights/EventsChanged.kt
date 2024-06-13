@@ -25,7 +25,7 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     if (eventPage is LoadingState.Failure) {
       Logger.getInstance(this::class.java).warn("Failed to load events: $eventPage")
@@ -55,7 +55,7 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
               }
             }
         ),
-      action = Action.NONE
+      action = Action.NONE,
     )
   }
 }

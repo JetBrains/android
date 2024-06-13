@@ -32,10 +32,10 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.extensions.PluginId;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.execution.GradleTaskExecutionMeasuringExtension;
 import org.jetbrains.plugins.gradle.service.project.GradleOperationHelperExtension;
-import java.util.List;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -45,7 +45,7 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
   // Note: this code runs quite early during Android Studio startup and directly affects app startup performance.
   // Any heavy work should be moved to a background thread and/or moved to a later phase.
   @Override
-  public void appFrameCreated(@NotNull List<String> commandLineArgs) {
+  public void appFrameCreated(@NotNull List<String> arguments) {
     checkInstallPath();
 
     if (ConfigImportHelper.isConfigImported()) {
@@ -59,29 +59,6 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
     useIdeGooglePlaySdkIndexInGradleDetector();
   }
 
-  private static void migrateAgpUpgradeAssistantSettingForNewIdeVersion() {
-    // Recreate AGP Upgrade Assistant notification settings for the application if notifications are disabled
-    PropertiesComponent properties = PropertiesComponent.getInstance();
-    String propertyKey = "recommended.upgrade.do.not.show.again";
-    if (properties.isValueSet(propertyKey)) {
-      if (properties.getBoolean(propertyKey, false)) {
-        ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
-          String groupId = "Android Gradle Upgrade Notification";
-          NotificationsConfiguration.getNotificationsConfiguration()
-            .changeSettings(groupId, NotificationDisplayType.NONE, /* do not log */ false, /* silence */ false);
-        });
-      }
-      properties.unsetValue(propertyKey);
-    }
-  }
-
-  private static void cleanProjectJdkTableForNewIdeVersion() {
-    // Recreate JDKs since they can be invalid when changing Java versions (b/185562147)
-    IdeInfo ideInfo = IdeInfo.getInstance();
-    if (ideInfo.isAndroidStudio() || ideInfo.isGameTools()) {
-      ApplicationManager.getApplication().invokeLaterOnWriteThread(IdeSdks.getInstance()::recreateProjectJdkTable);
-    }
-  }
 
   /**
    * The definition of <tt>jar:</tt> scheme URLs uses the sequence <tt>!/</tt> as a separator between the inner URL pointing to a jar
@@ -122,7 +99,40 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
     return group;
   }
 
-  private void useIdeGooglePlaySdkIndexInGradleDetector() {
+  private static void cleanProjectJdkTableForNewIdeVersion() {
+    IdeInfo ideInfo = IdeInfo.getInstance();
+    if (ideInfo.isAndroidStudio() || ideInfo.isGameTools()) {
+      // In older versions of Android Studio, we cleaned and recreated the Project Jdk Table here because
+      // otherwise a change in the bundled version of the JDK (among other possibilities) would lead to
+      // red symbols in Gradle build files (b/185562147).
+      //
+      // We now check the project Jdk used for Gradle during Gradle sync, fixing it if it does not exist, and
+      // also recreate the table in the UI for the Gradle JVM drop-down, so this cleanup step at application
+      // initialization is somewhat less necessary.  There are other JDK drop-downs in the system, though (for
+      // example, choosing a JVM for unit-test Run Configurations) so a clean project Jdk table is better than
+      // not.
+      ApplicationManager.getApplication().invokeLater(IdeSdks.getInstance()::recreateProjectJdkTable);
+    }
+  }
+
+  private static void migrateAgpUpgradeAssistantSettingForNewIdeVersion() {
+    // If the user previously set the application-wide custom setting to not see AGP Upgrade Assistant notifications, migrate that
+    // preference to the new, more standard, setting in the NotificationsConfiguration.
+    PropertiesComponent properties = PropertiesComponent.getInstance();
+    String propertyKey = "recommended.upgrade.do.not.show.again";
+    if (properties.isValueSet(propertyKey)) {
+      if (properties.getBoolean(propertyKey, false)) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          String groupId = "Android Gradle Upgrade Notification";
+          NotificationsConfiguration.getNotificationsConfiguration()
+            .changeSettings(groupId, NotificationDisplayType.NONE, /* do not log */ false, /* silence */ false);
+        });
+      }
+      properties.unsetValue(propertyKey);
+    }
+  }
+
+  private static void useIdeGooglePlaySdkIndexInGradleDetector() {
     GradleDetector.setPlaySdkIndexFactory((path, client) -> {
       IdeGooglePlaySdkIndex playIndex = IdeGooglePlaySdkIndex.INSTANCE;
       playIndex.initializeAndSetFlags();

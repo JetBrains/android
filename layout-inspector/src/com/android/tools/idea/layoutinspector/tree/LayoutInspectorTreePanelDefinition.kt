@@ -28,7 +28,7 @@ class LayoutInspectorTreePanelDefinition(
   overrideSide: Boolean = false,
   overrideSplit: Boolean = false,
   showGearAction: Boolean = true,
-  showHideAction: Boolean = true
+  showHideAction: Boolean = true,
 ) :
   ToolWindowDefinition<LayoutInspector>(
     "Component Tree",
@@ -44,5 +44,5 @@ class LayoutInspectorTreePanelDefinition(
     showHideAction,
     overrideSide,
     overrideSplit,
-    { LayoutInspectorTreePanel(it) }
+    { LayoutInspectorTreePanel(it) },
   )

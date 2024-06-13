@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.ent
 
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol.WakeLockAcquired.Level
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.getTopExternalClassSimpleName
 
@@ -29,7 +30,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
   enum class State {
     ACQUIRED,
     RELEASED,
-    UNSPECIFIED
+    UNSPECIFIED,
   }
 
   private var _className = ""
@@ -53,35 +54,34 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
   override val callstacks = mutableListOf<BackgroundTaskCallStack>()
   override val retries = 0
 
-  var acquired: BackgroundTaskInspectorProtocol.Event? = null
-  var released: BackgroundTaskInspectorProtocol.Event? = null
+  var tag = ""
+  var level: Level = Level.UNRECOGNIZED
+  var events = mutableListOf<BackgroundTaskInspectorProtocol.Event>()
 
   override fun consume(eventWrapper: EventWrapper) {
-    val backgroundTaskEvent = eventWrapper.backgroundTaskEvent
+    val event = eventWrapper.backgroundTaskEvent
     val timestamp = eventWrapper.backgroundTaskEvent.timestamp
-    when (backgroundTaskEvent.backgroundTaskEvent.metadataCase) {
+    when (event.backgroundTaskEvent.metadataCase) {
       BackgroundTaskEvent.MetadataCase.WAKE_LOCK_ACQUIRED -> {
         _isValid = true
-        acquired = backgroundTaskEvent
+        events.add(event)
         _className =
           getTopExternalClassSimpleName(
-            backgroundTaskEvent.backgroundTaskEvent.stacktrace,
-            "android.os.PowerManager\$WakeLock"
+            event.backgroundTaskEvent.stacktrace,
+            "android.os.PowerManager\$WakeLock",
           ) ?: "WakeLock $id"
         _status = State.ACQUIRED
         _startTime = timestamp
-        tags.add(acquired!!.backgroundTaskEvent.wakeLockAcquired.tag)
+        level = event.backgroundTaskEvent.wakeLockAcquired.level
+        tag = event.backgroundTaskEvent.wakeLockAcquired.tag
+        tags.add(tag)
         callstacks.clear()
-        callstacks.add(
-          BackgroundTaskCallStack(timestamp, backgroundTaskEvent.backgroundTaskEvent.stacktrace)
-        )
+        callstacks.add(BackgroundTaskCallStack(timestamp, event.backgroundTaskEvent.stacktrace))
       }
       BackgroundTaskEvent.MetadataCase.WAKE_LOCK_RELEASED -> {
-        released = backgroundTaskEvent
+        events.add(event)
         _status = State.RELEASED
-        callstacks.add(
-          BackgroundTaskCallStack(timestamp, backgroundTaskEvent.backgroundTaskEvent.stacktrace)
-        )
+        callstacks.add(BackgroundTaskCallStack(timestamp, event.backgroundTaskEvent.stacktrace))
       }
       else -> {}
     }

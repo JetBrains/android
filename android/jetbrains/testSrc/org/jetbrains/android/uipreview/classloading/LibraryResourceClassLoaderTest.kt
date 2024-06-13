@@ -22,7 +22,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
-import com.android.tools.res.ids.TestResourceIdManager
+import com.android.tools.idea.res.TestResourceIdManager
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.After
 import org.junit.Assert.assertEquals

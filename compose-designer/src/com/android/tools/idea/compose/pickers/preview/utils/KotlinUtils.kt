@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 internal fun ResolvedCall<*>.addNewValueArgument(
   newValueArgument: KtValueArgument,
-  psiFactory: KtPsiFactory
+  psiFactory: KtPsiFactory,
 ): KtValueArgument {
   if (call.valueArgumentList == null) {
     call.callElement.add(psiFactory.createCallArguments("()"))
@@ -37,7 +37,7 @@ internal fun ResolvedCall<*>.addNewValueArgument(
 
 internal fun KtCallElement.addNewValueArgument(
   newValueArgument: KtValueArgument,
-  psiFactory: KtPsiFactory
+  psiFactory: KtPsiFactory,
 ): KtValueArgument {
   if (valueArguments.isEmpty()) add(psiFactory.createCallArguments("()"))
   return valueArgumentList!!.addArgument(newValueArgument)

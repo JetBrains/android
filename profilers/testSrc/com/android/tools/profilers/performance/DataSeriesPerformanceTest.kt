@@ -36,7 +36,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.CpuThreadStateDataSeries
 import com.android.tools.profilers.cpu.CpuUsage
-import com.android.tools.profilers.energy.EnergyUsage
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
@@ -103,7 +102,6 @@ class DataSeriesPerformanceTest {
                                       CpuThreadStateDataSeries(client.transportClient, session.streamId, session.pid, 1, null)),
                                  Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
                                  Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
-                                 Pair("Energy-Usage", EnergyUsage.buildDataSeries(client.transportClient, session)),
                                  Pair("Memory-Allocation",
                                       AllocStatsDataSeries(studioProfilers) { sample -> sample.javaAllocationCount.toLong() }),
                                  Pair("Memory-LiveAllocation", TestLiveAllocationSeries(studioProfilers, session))

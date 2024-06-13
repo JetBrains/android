@@ -28,6 +28,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -169,6 +170,11 @@ public class OverlayMenuAction extends DropDownAction {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setVisible(myOverlayConfiguration.isOverlayPresent());
     }
@@ -240,6 +246,11 @@ public class OverlayMenuAction extends DropDownAction {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent e) {
       e.getPresentation().setVisible(myOverlayConfiguration.isOverlayPresent());
     }
@@ -301,6 +312,11 @@ public class OverlayMenuAction extends DropDownAction {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void update(AnActionEvent e) {
       e.getPresentation()
         .setVisible(!myOverlayConfiguration.getAllOverlays().isEmpty());
@@ -339,6 +355,11 @@ public class OverlayMenuAction extends DropDownAction {
       super("Cancel Overlay", "Disable current overlay", CLEAR_OVERLAY);
       myOverlayConfiguration = overlayConfiguration;
       myRepaint = repaint;
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
 
     @Override

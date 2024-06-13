@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.uibuilder.visual.analytics.trackLayoutValidationToggleIssuePanel
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -35,21 +36,24 @@ class IssuePanelToggleAction :
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    val issuePanelService = e.project?.let { IssuePanelService.getInstance(it) } ?: return
-    issuePanelService.setSharedIssuePanelVisibility(state) {
-      issuePanelService.focusIssuePanelIfVisible()
-      // Track as Layout Validation Too event.
-      e.getData(DESIGN_SURFACE)?.let { trackLayoutValidationToggleIssuePanel(it, state) }
+    e.getData(DESIGN_SURFACE)?.let { trackLayoutValidationToggleIssuePanel(it, state) }
+    val project = e.project ?: return
+    if (!state) {
+      ProblemsView.getToolWindow(project)?.hide()
+      return
     }
+    val issuePanelService = IssuePanelService.getInstance(project)
+    issuePanelService.showSharedIssuePanel(focus = true)
   }
 
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.getData(PlatformDataKeys.PROJECT)?.let { project ->
       e.presentation.isVisible =
-        IssuePanelService.getInstance(project).getSharedPanelIssues()?.size != 0
+        IssuePanelService.getInstance(project).getSharedPanelIssues().isNotEmpty()
     }
   }
 
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  // IssuePanelService.getSharedPanelIssues() needs to be called in EDT
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 }

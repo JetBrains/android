@@ -26,11 +26,13 @@ import com.android.test.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
@@ -99,7 +101,6 @@ import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.SKIPPE
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSourceSet
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.toWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.ResolvedLibraryTableBuilder
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntriesPerSourceSet
@@ -202,8 +203,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
-import org.jetbrains.kotlin.idea.core.script.configuration.ScriptingSupport
-import org.jetbrains.kotlin.idea.core.script.configuration.listener.ScriptChangeListener
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
@@ -366,8 +365,8 @@ interface AndroidProjectStubBuilder {
 
   val testApplicationId: String
   fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl
-  fun androidTestArtifact(variant: String, applicationId: String?): IdeAndroidArtifactCoreImpl?
-  fun unitTestArtifact(variant: String): IdeJavaArtifactCoreImpl?
+  fun deviceTestArtifacts(variant: String, applicationId: String?): List<IdeAndroidArtifactCoreImpl>
+  fun hostTestArtifacts(variant: String): List<IdeJavaArtifactCoreImpl>
   fun testFixturesArtifact(variant: String): IdeAndroidArtifactCoreImpl?
   val androidProject: IdeAndroidProjectImpl
   val variants: List<IdeVariantCoreImpl>
@@ -377,6 +376,7 @@ interface AndroidProjectStubBuilder {
   val includeBuildConfigSources: Boolean
   val internedModels: InternedModels
   val defaultVariantName: String?
+  val includeShadersSources: Boolean
 }
 
 /**
@@ -404,6 +404,8 @@ data class AndroidProjectBuilder(
     { buildAndroidTestSourceProviderContainerStub() },
   val unitTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl? =
     { buildUnitTestSourceProviderContainerStub() },
+  val screenshotTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl? =
+    { buildScreenshotTestSourceProviderContainerStub() },
   val testFixturesSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl? =
     { buildTestFixturesSourceProviderContainerStub() },
   val debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildDebugSourceProviderStub() },
@@ -426,10 +428,10 @@ data class AndroidProjectBuilder(
     { dimension -> buildProductFlavorContainersStub(dimension) },
   val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl =
     { variant -> buildMainArtifactStub(variant) },
-  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String, applicationId: String?) -> IdeAndroidArtifactCoreImpl? =
-    { variant, applicationId -> buildAndroidTestArtifactStub(variant, applicationId) },
-  val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactCoreImpl? =
-    { variant -> buildUnitTestArtifactStub(variant) },
+  val deviceTestArtifactsStub: AndroidProjectStubBuilder.(variant: String, applicationId: String?) -> List<IdeAndroidArtifactCoreImpl> =
+    { variant, applicationId -> listOf(buildAndroidTestArtifactStub(variant, applicationId)) },
+  val hostTestArtifactsStub: AndroidProjectStubBuilder.(variant: String) -> List<IdeJavaArtifactCoreImpl> =
+    { variant -> listOf(buildUnitTestArtifactStub(variant)) },
   val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl? =
     { variant -> null },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
@@ -443,6 +445,7 @@ data class AndroidProjectBuilder(
   val includeAidlSources: AndroidProjectStubBuilder.() -> Boolean = { false },
   val includeBuildConfigSources: AndroidProjectStubBuilder.() -> Boolean = { false },
   val defaultVariantName: AndroidProjectStubBuilder.() -> String? = { null },
+  val includeShadersSources: AndroidProjectStubBuilder.() -> Boolean = { false },
 ) {
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
@@ -473,6 +476,9 @@ data class AndroidProjectBuilder(
 
   fun withUnitTestSourceProvider(unitTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl?) =
     copy(unitTestSourceProvider = unitTestSourceProvider)
+
+  fun withScreenshotTestSourceProvider(screenshotTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl?) =
+    copy(screenshotTestSourceProvider = screenshotTestSourceProvider)
 
   fun withDebugSourceProvider(debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl?) =
     copy(debugSourceProvider = debugSourceProvider)
@@ -510,11 +516,11 @@ data class AndroidProjectBuilder(
   fun withMainArtifactStub(mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl) =
     copy(mainArtifactStub = mainArtifactStub)
 
-  fun withAndroidTestArtifactStub(androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String, applicationId: String?) -> IdeAndroidArtifactCoreImpl) =
-    copy(androidTestArtifactStub = androidTestArtifactStub)
+  fun withDeviceTestArtifactsStub(deviceTestArtifactsStub: AndroidProjectStubBuilder.(variant: String, applicationId: String?) -> List<IdeAndroidArtifactCoreImpl>) =
+    copy(deviceTestArtifactsStub = deviceTestArtifactsStub)
 
-  fun withUnitTestArtifactStub(unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactCoreImpl) =
-    copy(unitTestArtifactStub = unitTestArtifactStub)
+  fun withHostTestArtifactsStub(hostTestArtifactsStub: AndroidProjectStubBuilder.(variant: String) -> List<IdeJavaArtifactCoreImpl>) =
+    copy(hostTestArtifactsStub = hostTestArtifactsStub)
 
   fun withAndroidModuleDependencyList(androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency>) =
     copy(androidModuleDependencyList = androidModuleDependencyList)
@@ -591,10 +597,10 @@ data class AndroidProjectBuilder(
           javaLibraryDependencyList(variant)
 
         override fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl = mainArtifactStub(variant)
-        override fun androidTestArtifact(variant: String, applicationId: String?): IdeAndroidArtifactCoreImpl? = androidTestArtifactStub(
+        override fun deviceTestArtifacts(variant: String, applicationId: String?): List<IdeAndroidArtifactCoreImpl> = deviceTestArtifactsStub(
           variant, applicationId)
 
-        override fun unitTestArtifact(variant: String): IdeJavaArtifactCoreImpl? = unitTestArtifactStub(variant)
+        override fun hostTestArtifacts(variant: String): List<IdeJavaArtifactCoreImpl> = hostTestArtifactsStub(variant)
         override fun testFixturesArtifact(variant: String): IdeAndroidArtifactCoreImpl? = testFixturesArtifactStub(variant)
         override val variants: List<IdeVariantCoreImpl> = variants()
         override val androidProject: IdeAndroidProjectImpl = androidProject()
@@ -604,6 +610,7 @@ data class AndroidProjectBuilder(
         override val includeBuildConfigSources: Boolean get() = includeBuildConfigSources()
         override val internedModels: InternedModels get() = internedModels
         override val defaultVariantName: String? get() = defaultVariantName()
+        override val includeShadersSources: Boolean get() = includeShadersSources()
       }
       return AndroidProjectModels(
         androidProject = builder.androidProject,
@@ -626,6 +633,7 @@ fun createAndroidProjectBuilderForDefaultTestProjectStructure(
     mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
     androidTestSourceProvider = { null },
     unitTestSourceProvider = { null },
+    screenshotTestSourceProvider = { null },
     releaseSourceProvider = { null }
   )
 
@@ -650,46 +658,53 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
 }
 
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildAndroidTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
   IdeExtraSourceProviderImpl(
     artifactName = ARTIFACT_NAME_ANDROID_TEST,
     sourceProvider = sourceProvider(
-      ARTIFACT_NAME_ANDROID_TEST, moduleBasePath.resolve("src/androidTest"), includeRenderScriptSources, includeAidlSources))
+      ARTIFACT_NAME_ANDROID_TEST, moduleBasePath.resolve("src/androidTest"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
 
 fun AndroidProjectStubBuilder.buildTestFixturesSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
   IdeExtraSourceProviderImpl(
     artifactName = ARTIFACT_NAME_TEST_FIXTURES,
     sourceProvider = sourceProvider(
-      ARTIFACT_NAME_TEST_FIXTURES, moduleBasePath.resolve("src/testFixtures"), includeRenderScriptSources, includeAidlSources))
+      ARTIFACT_NAME_TEST_FIXTURES, moduleBasePath.resolve("src/testFixtures"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
 
 fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
   IdeExtraSourceProviderImpl(
     artifactName = ARTIFACT_NAME_UNIT_TEST,
     sourceProvider = sourceProvider(
-      ARTIFACT_NAME_UNIT_TEST, moduleBasePath.resolve("src/test"), includeRenderScriptSources, includeAidlSources))
+      ARTIFACT_NAME_UNIT_TEST, moduleBasePath.resolve("src/test"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
+
+fun AndroidProjectStubBuilder.buildScreenshotTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
+  IdeExtraSourceProviderImpl(
+    artifactName = ARTIFACT_NAME_SCREENSHOT_TEST,
+    sourceProvider = sourceProvider(
+      ARTIFACT_NAME_SCREENSHOT_TEST, moduleBasePath.resolve("src/screenshotTest"), includeRenderScriptSources, includeAidlSources))
 
 fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("debug", moduleBasePath.resolve("src/debug"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider("debug", moduleBasePath.resolve("src/debug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildAndroidTestDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("androidTestDebug", moduleBasePath.resolve("src/androidTestDebug"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider("androidTestDebug", moduleBasePath.resolve("src/androidTestDebug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildTestDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("testDebug", moduleBasePath.resolve("src/testDebug"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider("testDebug", moduleBasePath.resolve("src/testDebug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("release", moduleBasePath.resolve("src/release"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider("release", moduleBasePath.resolve("src/release"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.sourceProvider(name: String): IdeSourceProviderImpl =
-  sourceProvider(name, moduleBasePath.resolve("src/$name"), includeRenderScriptSources, includeAidlSources)
+  sourceProvider(name, moduleBasePath.resolve("src/$name"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 private fun sourceProvider(
   name: String,
   rootDir: File,
   includeRenderScriptSources: Boolean = false,
-  includeAidlSources: Boolean = false
+  includeAidlSources: Boolean = false,
+  includeShadersSources: Boolean = false,
 ): IdeSourceProviderImpl {
   return IdeSourceProviderImpl(
     myName = name,
@@ -704,7 +719,7 @@ private fun sourceProvider(
     myAssetsDirectories = listOf("assets"),
     myJniLibsDirectories = listOf("jniLibs"),
     myMlModelsDirectories = listOf(),
-    myShadersDirectories = listOf("shaders"),
+    myShadersDirectories = if (includeShadersSources) listOf("shaders") else listOf(),
     myCustomSourceDirectories = listOf(/*IdeCustomSourceDirectoryImpl("custom", rootDir, "custom")*/),
     myBaselineProfileDirectories = listOf("baselineProfiles"),
   )
@@ -717,6 +732,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     transitiveRClasses = true,
     usesCompose = false,
     mlModelBindingEnabled = mlModelBindingEnabled,
+    androidResourcesEnabled = true,
     unifiedTestPlatformEnabled = true,
     useAndroidX = false,
   )
@@ -765,6 +781,7 @@ fun AndroidProjectStubBuilder.buildDebugBuildTypeStub(): IdeBuildTypeContainerIm
         multiDexEnabled = null,
         isDebuggable = true,
         isJniDebuggable = true,
+        isPseudoLocalesEnabled = false,
         isRenderscriptDebuggable = true,
         renderscriptOptimLevel = 1,
         isMinifyEnabled = false,
@@ -793,6 +810,7 @@ fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub(): IdeBuildTypeContainer
         multiDexEnabled = null,
         isDebuggable = false,
         isJniDebuggable = false,
+        isPseudoLocalesEnabled = false,
         isRenderscriptDebuggable = false,
         renderscriptOptimLevel = 1,
         isMinifyEnabled = true,
@@ -985,6 +1003,46 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
   )
 }
 
+fun AndroidProjectStubBuilder.buildScreenshotTestArtifactStub(
+  variant: String,
+  dependencies: IdeDependenciesCoreImpl = buildDependenciesStub(
+    dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
+                   listOf(
+                     IdeDependencyCoreImpl(
+                       IdePreResolvedModuleLibraryImpl(
+                         buildId = buildId,
+                         projectPath = gradleProjectPath,
+                         variant = variant,
+                         lintJar = null,
+                         sourceSet = IdeModuleWellKnownSourceSet.MAIN
+                       ).let {internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} },
+                       dependencies = listOf()
+                     )
+                   )
+  ),
+  mockablePlatformJar: File? = null
+): IdeJavaArtifactCoreImpl {
+  return IdeJavaArtifactCoreImpl(
+    name = IdeArtifactName.SCREENSHOT_TEST,
+    compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("screenshotTestSources"),
+    assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("screenshotTest"),
+    classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}ScreenshotTest/classes")),
+    variantSourceProvider = null,
+    multiFlavorSourceProvider = null,
+    ideSetupTaskNames = listOf("ideScreenshotTestSetupTask1", "ideScreenshotTestSetupTask2"),
+    generatedSourceFolders = listOf(
+      buildPath.resolve("generated/ap_generated_sources/${variant}ScreenshotTest/out"),
+    ),
+    isTestArtifact = true,
+    compileClasspathCore = dependencies,
+    runtimeClasspathCore = dependencies,
+    unresolvedDependencies = emptyList(),
+    mockablePlatformJar = mockablePlatformJar,
+    generatedClassPaths = emptyMap(),
+    bytecodeTransforms = null
+  )
+}
+
 private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDependencies: List<AndroidModuleDependency>) =
   androidModuleDependencies.map {
     IdeDependencyCoreImpl(
@@ -1082,8 +1140,8 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
           variant,
           variant,
           mainArtifact,
-          unitTestArtifact(variant),
-          androidTestArtifact(variant, applicationId = testApplicationId),
+          hostTestArtifacts(variant),
+          deviceTestArtifacts(variant, applicationId = testApplicationId),
           testFixturesArtifact(variant),
           buildType.name,
           flavorNames,
@@ -1162,7 +1220,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
       IdeBasicVariantImpl(
         name = it.name,
         it.mainArtifact.applicationId,
-        it.androidTestArtifact?.applicationId
+        it.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.applicationId,
+        it.buildType,
       )
     },
     flavorDimensions = this.flavorDimensions.orEmpty(),
@@ -1195,7 +1254,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     lintChecksJars = listOf(),
     isKaptEnabled = false,
     desugarLibraryConfigFiles = listOf(),
-    defaultVariantName = defaultVariantName
+    defaultVariantName = defaultVariantName,
+    lintJar = null
   )
 }
 
@@ -1236,7 +1296,7 @@ fun AndroidProjectStubBuilder.buildDependenciesStub(
 ): IdeDependenciesCoreImpl = IdeDependenciesCoreDirect(dependencies)
 
 /**
- * Sets up [project] as a one module project configured in the same way sync would conigure it from the same model.
+ * Sets up [project] as a one module project configured in the same way sync would configure it from the same model.
  */
 fun setupTestProjectFromAndroidModel(
   project: Project,
@@ -1682,10 +1742,9 @@ private fun createAndroidModuleDataNode(
 
   val selectedVariant = gradleAndroidModel.selectedVariantCore
   selectedVariant.mainArtifact.setup()
-  selectedVariant.androidTestArtifact?.setup()
-  selectedVariant.unitTestArtifact?.setup()
+  selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.setup()
+  selectedVariant.hostTestArtifacts.forEach { it.setup() }
   selectedVariant.testFixturesArtifact?.setup()
-
   return moduleDataNode
 }
 
@@ -2012,6 +2071,12 @@ fun Project.getTextForFile(relativePath: String): String {
 fun Module.fileUnderGradleRoot(path: @SystemIndependent String): VirtualFile? =
   VirtualFileManager.getInstance().findFileByUrl("${FilePaths.pathToIdeaUrl(File(AndroidProjectRootUtil.getModuleDirPath(this)!!))}/$path")
 
+/**
+ * Finds a file by a given path under the most reasonable location for the given facet in tests.
+ */
+fun AndroidFacet.virtualFile(path: @SystemIndependent String): VirtualFile =
+  module.fileUnderGradleRoot(path) ?: error("$path not found under $this")
+
 interface IntegrationTestEnvironment {
 
   /**
@@ -2179,13 +2244,7 @@ private fun <T> openPreparedProject(
               save()
             }
           }
-
-          @Suppress("UnstableApiUsage")
-          if (options.disableKtsRelatedIndexing) {
-            ScriptingSupport.EPN.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
-            ScriptChangeListener.LISTENER.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
-          }
-          project.messageBus.connect(disposable).let {
+          project.messageBus.connect(project).let {
             options.subscribe(it)
 
             if (options.reportProjectSizeUsage) {
@@ -2199,7 +2258,7 @@ private fun <T> openPreparedProject(
           if (outputHandler != null || syncExceptionHandler != null) {
             injectSyncOutputDumper(project, project, options.outputHandler ?: {}, options.syncExceptionHandler ?: {})
           }
-          fixDummySyncViewManager(project, disposable, options.syncViewEventHandler)
+          fixDummySyncViewManager(project, project, options.syncViewEventHandler)
         }
 
         // NOTE: `::afterCreate` is passed to both `withAfterCreate` and `openOrImport` because, unfortunately, `openOrImport` does not
@@ -2420,14 +2479,26 @@ fun injectBuildOutputDumpingBuildViewManager(
   disposable: Disposable,
   eventHandler: (BuildEvent) -> Unit = {}
 ) {
+  val listeners = CopyOnWriteArrayList<BuildProgressListener>()
   project.replaceService(
     BuildViewManager::class.java,
     object : BuildViewManager(project) {
+
+      override fun addListener(listener: BuildProgressListener, disposable: Disposable) {
+        listeners.add(listener)
+        Disposer.register(disposable) {
+          listeners.remove(listener)
+        }
+      }
+
       override fun onEvent(buildId: Any, event: BuildEvent) {
         if (event is MessageEvent) {
           println(event.result.details)
         }
         eventHandler(event)
+        listeners.forEach {
+          it.onEvent(buildId, event)
+        }
       }
     },
     disposable

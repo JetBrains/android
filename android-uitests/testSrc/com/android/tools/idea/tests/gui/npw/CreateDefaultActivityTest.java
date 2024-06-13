@@ -45,7 +45,7 @@ public class CreateDefaultActivityTest {
   private static final String DEFAULT_ACTIVITY_NAME = "MainActivity";
   private static final String DEFAULT_LAYOUT_NAME = "activity_main";
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private EditorFixture myEditor;
   private NewActivityWizardFixture myDialog;

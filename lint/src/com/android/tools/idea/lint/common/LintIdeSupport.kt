@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
@@ -85,6 +87,7 @@ abstract class LintIdeSupport {
   open fun getSeverityOverrides(module: Module): Map<String, Int>? = null
 
   open fun askForAttributeValue(attributeName: String, context: PsiElement): String? = null
+
   /** Whether or not the given file should be annotated on the fly in the editor */
   open fun canAnnotate(file: PsiFile, module: Module): Boolean {
     val fileType = file.fileType
@@ -92,7 +95,9 @@ abstract class LintIdeSupport {
       fileType === JavaFileType.INSTANCE ||
         fileType === KotlinFileType.INSTANCE ||
         fileType === PropertiesFileType.INSTANCE ||
-        fileType === TomlFileType
+        fileType === TomlFileType ||
+        (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() &&
+          file.name.endsWith(EXT_GRADLE_DECLARATIVE))
     ) {
       return true
     }
@@ -119,7 +124,7 @@ abstract class LintIdeSupport {
   open fun createProject(
     client: LintIdeClient,
     files: List<VirtualFile>?,
-    vararg modules: Module
+    vararg modules: Module,
   ): List<com.android.tools.lint.detector.api.Project> {
     return LintIdeProject.create(client, files, *modules)
   }
@@ -127,9 +132,10 @@ abstract class LintIdeSupport {
   open fun createProjectForSingleFile(
     client: LintIdeClient,
     file: VirtualFile?,
-    module: Module
+    module: Module,
   ): Pair<
-    com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project
+    com.android.tools.lint.detector.api.Project,
+    com.android.tools.lint.detector.api.Project,
   > {
     return LintIdeProject.createForSingleFile(client, file, module)
   }
@@ -137,7 +143,7 @@ abstract class LintIdeSupport {
   /** Creates a lint client */
   open fun createClient(
     project: Project,
-    lintResult: LintResult = LintIgnoredResult()
+    lintResult: LintResult = LintIgnoredResult(),
   ): LintIdeClient {
     return LintIdeClient(project, lintResult)
   }
@@ -176,6 +182,7 @@ abstract class LintIdeSupport {
   open fun requestFeedbackFix(issue: Issue): LocalQuickFix = error("Not supported")
 
   open fun requestFeedbackIntentionAction(issue: Issue): IntentionAction = error("Not supported")
+
   // Editor session
   open fun logSession(lint: LintDriver, lintResult: LintEditorResult) {}
 
@@ -189,7 +196,7 @@ abstract class LintIdeSupport {
   open fun ensureNamespaceImported(
     file: XmlFile,
     namespaceUri: String,
-    suggestedPrefix: String?
+    suggestedPrefix: String?,
   ): String = ""
 }
 

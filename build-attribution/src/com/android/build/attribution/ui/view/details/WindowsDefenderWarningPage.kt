@@ -61,7 +61,6 @@ class WindowsDefenderWarningPage(
 
   val autoExcludeLink: ActionLink
   val autoExclusionLine = JPanel(HorizontalLayout(0)).apply {
-    isVisible = data.canRunExclusionScript
     val (preLink, link, postLink) =
       Triple("You can ", "automatically check and exclude missing paths", " (note: Windows will ask for administrative privileges).")
     autoExcludeLink = ActionLink(link) {

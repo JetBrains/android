@@ -64,10 +64,10 @@ internal class DisplayModeActionGroup : DefaultActionGroup(), DumbAware {
     if (hasDisplayModes) {
       presentation.isEnabled = isEmulatorConnected(event)
       presentation.icon = when (getCurrentDisplayMode(event)) {
-        DisplayModeValue.DESKTOP -> StudioIcons.Emulator.Menu.MODE_DESKTOP
-        DisplayModeValue.FOLDABLE -> StudioIcons.Emulator.Menu.MODE_FOLDABLE
-        DisplayModeValue.PHONE -> StudioIcons.Emulator.Menu.MODE_PHONE
-        DisplayModeValue.TABLET -> StudioIcons.Emulator.Menu.MODE_TABLET
+        DisplayModeValue.DESKTOP -> StudioIcons.Emulator.Toolbar.RESIZE_DESKTOP
+        DisplayModeValue.FOLDABLE -> StudioIcons.Emulator.Toolbar.RESIZE_FOLDABLE
+        DisplayModeValue.PHONE -> StudioIcons.Emulator.Toolbar.RESIZE_PHONE
+        DisplayModeValue.TABLET -> StudioIcons.Emulator.Toolbar.RESIZE_TABLET
         else -> AllIcons.Toolbar.Unknown
       }
     }

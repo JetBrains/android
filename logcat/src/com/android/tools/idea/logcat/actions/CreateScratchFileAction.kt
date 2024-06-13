@@ -85,8 +85,7 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
     @Suppress("unused") // Not used explicitly but `EmbeddedLanguage.values() is used
     JSON(JsonLanguage.INSTANCE, '{', '}', { isJson(it) }),
     @Suppress("unused") // Not used explicitly but `EmbeddedLanguage.values() is used
-    XML(XMLLanguage.INSTANCE, '<', '>', { isXml(it) }),
-    ;
+    XML(XMLLanguage.INSTANCE, '<', '>', { isXml(it) });
 
     fun findInText(text: String): EmbeddedData? {
       val start = text.indexOf(startChar)

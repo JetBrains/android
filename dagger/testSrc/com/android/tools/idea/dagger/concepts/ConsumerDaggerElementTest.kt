@@ -63,7 +63,7 @@ class ConsumerDaggerElementTest {
 
           class Bar @Inject constructor(foo: Foo) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -77,7 +77,7 @@ class ConsumerDaggerElementTest {
 
     assertThat(consumerDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
       )
   }
 
@@ -105,7 +105,7 @@ class ConsumerDaggerElementTest {
             consumerOfProviderLazyFoo: Provider<Lazy<Foo>>,
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -170,7 +170,7 @@ class ConsumerDaggerElementTest {
             consumerOfProviderLazyFoo: MyProviderLazyFoo,
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -249,7 +249,7 @@ class ConsumerDaggerElementTest {
             consumerOfMyNullableFoo: MyNullableFoo,
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -282,11 +282,7 @@ class ConsumerDaggerElementTest {
       .containsExactly(
         DaggerRelatedElement(provideFooDaggerElement, "Providers", "navigate.to.provider"),
         DaggerRelatedElement(provideNullableFooDaggerElement, "Providers", "navigate.to.provider"),
-        DaggerRelatedElement(
-          provideMyNullableFooDaggerElement,
-          "Providers",
-          "navigate.to.provider"
-        ),
+        DaggerRelatedElement(provideMyNullableFooDaggerElement, "Providers", "navigate.to.provider"),
       )
 
     assertThat(consumerOfNullableFooDaggerElement.getRelatedDaggerElements())
@@ -309,7 +305,7 @@ class ConsumerDaggerElementTest {
         public static <T> Optional<T> empty() { return null; }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -321,7 +317,7 @@ class ConsumerDaggerElementTest {
         public static <T> Optional<T> absent() { return null; }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // This is not a realistic Dagger file and would not compile, since there are multiple
@@ -374,7 +370,7 @@ class ConsumerDaggerElementTest {
             consumerOfJavaOptionalLazyFoo: JavaOptional<Lazy<Foo>>,
           ) {}
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -411,7 +407,7 @@ class ConsumerDaggerElementTest {
         DaggerRelatedElement(
           provideJavaOptionalFooDaggerElement,
           "Providers",
-          "navigate.to.provider"
+          "navigate.to.provider",
         ),
       )
 
@@ -421,22 +417,18 @@ class ConsumerDaggerElementTest {
         DaggerRelatedElement(
           provideGuavaOptionalFooDaggerElement,
           "Providers",
-          "navigate.to.provider"
+          "navigate.to.provider",
         ),
       )
 
     assertThat(consumerOfMyOptionalFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(
-          provideMyOptionalFooDaggerElement,
-          "Providers",
-          "navigate.to.provider"
-        ),
+        DaggerRelatedElement(provideMyOptionalFooDaggerElement, "Providers", "navigate.to.provider")
       )
 
     assertThat(consumerOfFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(provideFooDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(provideFooDaggerElement, "Providers", "navigate.to.provider")
       )
 
     assertThat(consumerOfJavaOptionalLazyFooDaggerElement.getRelatedDaggerElements())
@@ -504,7 +496,7 @@ class ConsumerDaggerElementTest {
             }
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -540,7 +532,7 @@ class ConsumerDaggerElementTest {
         DaggerRelatedElement(
           provideUnqualifiedIntDaggerElement,
           "Providers",
-          "navigate.to.provider"
+          "navigate.to.provider",
         )
       )
 
@@ -559,7 +551,7 @@ class ConsumerDaggerElementTest {
         DaggerRelatedElement(
           provideUnqualifiedBarDaggerElement,
           "Providers",
-          "navigate.to.provider"
+          "navigate.to.provider",
         )
       )
 
@@ -588,7 +580,7 @@ class ConsumerDaggerElementTest {
         public operator fun invoke(): R
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.openFileInEditor(
@@ -605,7 +597,7 @@ class ConsumerDaggerElementTest {
             arg: () -> String
           )
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -629,7 +621,7 @@ class ConsumerDaggerElementTest {
             public MyJavaConsumer(Function0<String> arg) {}
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -654,7 +646,7 @@ class ConsumerDaggerElementTest {
             fun getFunctionType(): () -> String = { "hello" }
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -663,13 +655,9 @@ class ConsumerDaggerElementTest {
       ProviderDaggerElement(myFixture.findParentElement<KtFunction>("fun getFunction|Type()"))
 
     assertThat(kotlinConsumer.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(providerElement, "Providers", "navigate.to.provider"),
-      )
+      .containsExactly(DaggerRelatedElement(providerElement, "Providers", "navigate.to.provider"))
 
     assertThat(javaConsumer.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(providerElement, "Providers", "navigate.to.provider"),
-      )
+      .containsExactly(DaggerRelatedElement(providerElement, "Providers", "navigate.to.provider"))
   }
 }

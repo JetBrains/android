@@ -50,7 +50,7 @@ open class ParameterItem(
   viewId: Long,
   lookup: ViewNodeAndResourceLookup,
   val rootId: Long,
-  var index: Int
+  var index: Int,
 ) :
   InspectorPropertyItem(
     parameterNamespaceOf(section),
@@ -60,7 +60,7 @@ open class ParameterItem(
     section,
     null,
     viewId,
-    lookup
+    lookup,
   ) {
 
   open fun clone(): ParameterItem =
@@ -78,7 +78,7 @@ class ParameterGroupItem(
   rootId: Long,
   index: Int,
   var reference: ParameterReference?,
-  override var children: MutableList<ParameterItem>
+  override var children: MutableList<ParameterItem>,
 ) : ParameterItem(name, type, value, section, viewId, lookup, rootId, index), PTableGroupItem {
 
   override fun clone(): ParameterGroupItem =
@@ -92,7 +92,7 @@ class ParameterGroupItem(
         rootId,
         index,
         reference,
-        mutableListOf()
+        mutableListOf(),
       )
       .apply { addClonedChildrenFrom(this@ParameterGroupItem.children) }
 
@@ -178,7 +178,7 @@ class ParameterReference(
   val anchorHash: Int,
   val kind: ParameterKind,
   val parameterIndex: Int,
-  val indices: IntArray
+  val indices: IntArray,
 )
 
 /** The parameter kind a [ParameterReference] points to. */

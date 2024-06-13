@@ -421,10 +421,6 @@ public class AndroidLintIdeProject extends LintIdeProject {
     return dir;
   }
 
-  public static boolean hasAndroidModule(@NonNull com.intellij.openapi.project.Project project) {
-    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
-  }
-
   @Nullable
   private static AndroidFacet findAndroidFacetInProject(@NonNull com.intellij.openapi.project.Project project) {
     @NotNull List<AndroidFacet> androidFacetsInRandomOrder = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);

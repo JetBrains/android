@@ -313,7 +313,7 @@ internal object BuiltinViewHandlerProvider : ViewHandlerProvider {
       BasicViewHandlerProvider,
       PreferencesViewHandlerProvider,
       AndroidxViewHandlerProvider,
-      FlexboxViewHandlerProvider
+      FlexboxViewHandlerProvider,
     )
 
   override fun findHandler(viewTag: String): ViewHandler? =

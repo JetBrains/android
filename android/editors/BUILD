@@ -26,7 +26,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -38,9 +39,9 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties[test]",
+        "@intellij//:com.intellij.properties[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
+        "@intellij//:org.jetbrains.kotlin[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )

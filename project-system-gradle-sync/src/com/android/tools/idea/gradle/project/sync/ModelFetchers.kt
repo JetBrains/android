@@ -32,6 +32,7 @@ import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.utils.appendCapitalized
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
@@ -102,6 +103,7 @@ internal fun getClasspathConfigForProject(
  */
 internal fun BuildController.findVariantDependenciesV2Model(
   project: BasicGradleProject,
+  modelVersions: ModelVersions,
   variantName: String,
   useNewDependencyGraphModel: Boolean,
   classpathConfig: ClasspathParameterConfig
@@ -117,11 +119,11 @@ internal fun BuildController.findVariantDependenciesV2Model(
 
   return if (useNewDependencyGraphModel) {
     findModel(VariantDependenciesAdjacencyList::class.java, classpathConfig)?.let {
-      VariantDependenciesCompat.AdjacencyList(it)
+      VariantDependenciesCompat.AdjacencyList(it, modelVersions)
     }
   } else {
     findModel(VariantDependencies::class.java, classpathConfig)?.let {
-      VariantDependenciesCompat.GraphItemList(it)
+      VariantDependenciesCompat.GraphItemList(it, modelVersions)
     }
   }
 }
@@ -179,7 +181,7 @@ internal fun BuildController.findNativeModuleModel(
   }
 }
 
-private val androidArtifactSuffixes = listOf("", "unitTest", "androidTest")
+private val androidArtifactSuffixes = listOf("", "unitTest", "androidTest", "screenshotTest")
 
 /** Kotlin related models that are fetched when importing Android projects. */
 internal data class AllKotlinModels(val kotlinModel: KotlinGradleModel?, val kaptModel: KaptGradleModel?)
@@ -196,22 +198,55 @@ internal fun BuildController.findKotlinModelsForAndroidProject(root: Model, vari
 
 sealed class VariantDependenciesCompat(
   val mainArtifact: ArtifactDependenciesCompat,
-  val androidTestArtifact: ArtifactDependenciesCompat?,
-  val unitTestArtifact: ArtifactDependenciesCompat?,
+  val deviceTestArtifacts: Map<IdeArtifactName, ArtifactDependenciesCompat>,
+  val hostTestArtifacts: Map<IdeArtifactName, ArtifactDependenciesCompat>,
   val testFixturesArtifact: ArtifactDependenciesCompat?,
   val libraries: Map<String, Library>,
 ) {
-  class AdjacencyList(variantDependencies: VariantDependenciesAdjacencyList) : VariantDependenciesCompat(
+  class AdjacencyList(variantDependencies: VariantDependenciesAdjacencyList, modelVersions: ModelVersions) : VariantDependenciesCompat(
     ArtifactDependenciesCompat.AdjacencyList(variantDependencies.mainArtifact),
-    variantDependencies.androidTestArtifact?.let { ArtifactDependenciesCompat.AdjacencyList(it) },
-    variantDependencies.unitTestArtifact?.let { ArtifactDependenciesCompat.AdjacencyList(it) },
+    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+      variantDependencies.deviceTestArtifacts.map { (k, v) ->
+        convertArtifactName(k) to ArtifactDependenciesCompat.AdjacencyList(v)
+      }.toMap()
+    } else {
+      variantDependencies.androidTestArtifact?.let {
+        mapOf(IdeArtifactName.ANDROID_TEST to ArtifactDependenciesCompat.AdjacencyList(it))
+                                                   } ?: emptyMap()
+    },
+    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+      variantDependencies.hostTestArtifacts.map { (k, v) ->
+        convertArtifactName(k) to ArtifactDependenciesCompat.AdjacencyList(v)
+      }.toMap()
+    } else {
+      variantDependencies.unitTestArtifact?.let {
+        mapOf( IdeArtifactName.UNIT_TEST to ArtifactDependenciesCompat.AdjacencyList(it))
+      }?: emptyMap()
+    },
     variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.AdjacencyList(it) },
     variantDependencies.libraries
   )
-  class GraphItemList(variantDependencies: VariantDependencies) : VariantDependenciesCompat(
+  class GraphItemList(variantDependencies: VariantDependencies, modelVersions: ModelVersions) : VariantDependenciesCompat(
     ArtifactDependenciesCompat.GraphItemList(variantDependencies.mainArtifact),
-    variantDependencies.androidTestArtifact?.let { ArtifactDependenciesCompat.GraphItemList(it) },
-    variantDependencies.unitTestArtifact?.let { ArtifactDependenciesCompat.GraphItemList(it) },
+    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+      variantDependencies.deviceTestArtifacts.map { (k, v) ->
+        convertArtifactName(k) to ArtifactDependenciesCompat.GraphItemList(v)
+      }.toMap()
+    } else {
+      variantDependencies.androidTestArtifact?.let {
+        mapOf(IdeArtifactName.ANDROID_TEST to ArtifactDependenciesCompat.GraphItemList(it))
+      } ?: emptyMap()
+
+    },
+    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+      variantDependencies.hostTestArtifacts.map { (k, v) ->
+        convertArtifactName(k) to ArtifactDependenciesCompat.GraphItemList(v)
+      }.toMap()
+    } else {
+      variantDependencies.unitTestArtifact?.let {
+        mapOf( IdeArtifactName.UNIT_TEST to ArtifactDependenciesCompat.GraphItemList(it))
+      }?: emptyMap()
+    },
     variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.GraphItemList(it) },
     variantDependencies.libraries,
   )

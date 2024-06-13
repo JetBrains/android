@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.logcat.util.waitForCondition
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.filters.CompositeFilter
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.Result
 import com.intellij.execution.filters.HyperlinkInfo
+import com.intellij.execution.filters.UrlFilter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -34,19 +39,21 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
-/** Tests for [EditorHyperlinkDetector] */
+/** Tests for [editorHyperlinkDetector] */
 @RunsInEdt
 class EditorHyperlinkDetectorTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
+  private val disposableRule = DisposableRule()
 
   @get:Rule
   val rule =
     RuleChain(
       projectRule,
       logcatEditorRule,
-      ApplicationServiceRule(IssueExplainer::class.java, TestIssueExplainer),
-      EdtRule()
+      ApplicationServiceRule(StudioBot::class.java, TestStudioBot),
+      disposableRule,
+      EdtRule(),
     )
 
   private val project
@@ -62,19 +69,20 @@ class EditorHyperlinkDetectorTest {
    */
   @Test
   fun usesCorrectFilters_withoutStudioBot() {
-    TestIssueExplainer.available = false
+    TestStudioBot.available = false
     val expectedFilters =
       ConsoleViewUtil.computeConsoleFilters(
         project,
         /* consoleView= */ null,
-        GlobalSearchScope.allScope(project)
+        GlobalSearchScope.allScope(project),
       )
 
-    val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
+    val hyperlinkDetector = editorHyperlinkDetector(editor)
 
-    val filter = hyperlinkDetector.filter.delegate as CompositeFilter
-    assertThat(filter.filters.map { it::class })
-      .containsExactlyElementsIn(expectedFilters.map { it::class } + SimpleFileLinkFilter::class)
+    val expected = expectedFilters.map { it::class } + SimpleFileLinkFilter::class
+    waitForCondition {
+      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected)
+    }
   }
 
   /**
@@ -84,21 +92,21 @@ class EditorHyperlinkDetectorTest {
    */
   @Test
   fun usesCorrectFilters_withStudioBot() {
-    TestIssueExplainer.available = true
+    TestStudioBot.available = true
     val expectedFilters =
       ConsoleViewUtil.computeConsoleFilters(
         project,
         /* consoleView= */ null,
-        GlobalSearchScope.allScope(project)
+        GlobalSearchScope.allScope(project),
       )
 
-    val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
+    val hyperlinkDetector = editorHyperlinkDetector(editor)
 
-    val filter = hyperlinkDetector.filter.delegate as CompositeFilter
-    assertThat(filter.filters.map { it::class })
-      .containsExactlyElementsIn(
-        expectedFilters.map { it::class } + SimpleFileLinkFilter::class + StudioBotFilter::class
-      )
+    val expected =
+      expectedFilters.map { it::class } + SimpleFileLinkFilter::class + StudioBotFilter::class
+    waitForCondition {
+      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected)
+    }
   }
 
   /**
@@ -111,8 +119,9 @@ class EditorHyperlinkDetectorTest {
     editor.document.setText("http://www.google.com")
     val hyperlinkSupport = EditorHyperlinkSupport.get(editor)
 
-    EditorHyperlinkDetector(project, editor)
-      .detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
+    val detector = editorHyperlinkDetector(editor)
+    waitForCondition { detector.filter.compositeFilter.filters.any { it is UrlFilter } }
+    detector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
 
     hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
     assertThat(
@@ -127,8 +136,8 @@ class EditorHyperlinkDetectorTest {
   fun detectHyperlinks_usesAllFilters() {
     editor.document.setText("Foo Bar")
     val hyperlinkSupport = EditorHyperlinkSupport.get(editor)
-    val editorHyperlinkDetector = EditorHyperlinkDetector(project, editor)
-    val filters = (editorHyperlinkDetector.filter.delegate as CompositeFilter)
+    val editorHyperlinkDetector = editorHyperlinkDetector(editor)
+    val filters = (editorHyperlinkDetector.filter.compositeFilter)
     filters.addFilter(TestFilter("Foo"))
     filters.addFilter(TestFilter("Bar"))
 
@@ -145,7 +154,7 @@ class EditorHyperlinkDetectorTest {
 
   @Test
   fun detectHyperlinks_passesSdk() {
-    val editorHyperlinkDetector = EditorHyperlinkDetector(project, editor)
+    val editorHyperlinkDetector = editorHyperlinkDetector(editor)
 
     editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = 23)
 
@@ -167,9 +176,20 @@ class EditorHyperlinkDetectorTest {
     }
   }
 
-  private object TestIssueExplainer : IssueExplainer() {
+  private object TestStudioBot : StudioBot.StubStudioBot() {
     var available = true
 
     override fun isAvailable(): Boolean = available
+
+    override fun isContextAllowed(project: Project): Boolean = true
   }
+
+  private fun editorHyperlinkDetector(editor: EditorEx) =
+    EditorHyperlinkDetector(
+      project,
+      editor,
+      disposableRule.disposable,
+      ModalityState.any(),
+      MoreExecutors.newDirectExecutorService(),
+    )
 }

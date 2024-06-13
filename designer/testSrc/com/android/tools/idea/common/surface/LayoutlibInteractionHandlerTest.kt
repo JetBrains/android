@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.tools.adtui.Zoomable
+import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
@@ -40,33 +41,8 @@ private class TestInteractableSurface(private val sceneView: SceneView? = null) 
     hoverCounter++
   }
 
-  override val zoomable: Zoomable
-    get() =
-      object : ZoomController {
-        override var scale: Double = 1.0
-
-        override fun setScale(scale: Double, x: Int, y: Int): Boolean {
-          this.scale = scale
-          return true
-        }
-
-        override fun zoomToFit() = true
-
-        override val screenScalingFactor: Double = 1.0
-
-        override fun zoom(type: ZoomType): Boolean {
-          zoomCounter++
-          return true
-        }
-
-        override fun canZoomIn() = true
-
-        override fun canZoomOut() = true
-
-        override fun canZoomToFit() = true
-
-        override fun canZoomToActual() = true
-      }
+  override val zoomController: ZoomController
+    get() = createZoomControllerFake { zoomCounter++ }
 
   override var isPanning = false
   override val isPannable = true

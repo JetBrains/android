@@ -30,10 +30,11 @@ import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.scale
@@ -56,7 +57,7 @@ private const val NONE_VALUE = "None"
  */
 class ImageViewAssistant(
   private val context: ComponentAssistantFactory.Context,
-  private val imageHandler: ImageViewHandler
+  private val imageHandler: ImageViewHandler,
 ) {
   private val nlComponent = context.component
 
@@ -118,17 +119,19 @@ class ImageViewAssistant(
     // Get SampleData drawables in background thread, then, update the widget on the EDT
     sampleDataLoaded =
       CompletableFuture.supplyAsync(
-          {
+        {
+          val sampleDataItems =
             StudioResourceRepositoryManager.getAppResources(nlComponent.model.facet)
               .getSampleDataOfType(IMAGE)
               .toList()
-          },
-          AppExecutorUtil.getAppExecutorService()
-        )
-        .whenCompleteAsync(
-          { sampleDataItems, _ -> populateWidget(sampleDataItems) },
-          EdtExecutorService.getScheduledExecutorInstance()
-        )
+
+          ApplicationManager.getApplication()
+            .invokeAndWait({ populateWidget(sampleDataItems) }, ModalityState.nonModal())
+
+          sampleDataItems
+        },
+        AppExecutorUtil.getAppExecutorService(),
+      )
   }
 
   private fun isSampleValueAll(value: String?) = value?.endsWith(']')?.not() ?: false
@@ -168,7 +171,7 @@ class ImageViewAssistant(
         nlComponent.model.facet.module,
         DefaultListModel<ResourceValue>(),
         IMAGE_SIZE,
-        ITEM_COUNT.toLong()
+        ITEM_COUNT.toLong(),
       )
       .apply {
         isOpaque = false
@@ -260,7 +263,7 @@ class ImageViewAssistant(
         showColorStateLists = true,
         showSampleData = true,
         showThemeAttributes = true,
-        file = virtualFile
+        file = virtualFile,
       )
 
     if (dialog.showAndGet()) {

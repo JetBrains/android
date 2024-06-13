@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 public class ThreadSamplingReportContributor implements DiagnosticReportContributor {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.diagnostics.ThreadSamplingReportContributor");
   private static final int MAX_REPORT_LENGTH_BYTES = 200_000;
+  public static final int DEBUGDATA_MAX_LIST_ENTRIES = 1_000;
 
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
   private final ThreadMXBean myThreadMXBean = ManagementFactory.getThreadMXBean();
@@ -196,11 +197,19 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
         debugSb.append("sampleCount=" + sampleCount + "\n");
 
         // No more than first 1000 entries
-        debugSb.append("samplingOffsetsMs=" + samplingOffsetsMs.intStream().limit(1000) + "\n");
-        debugSb.append("samplingTimeMs=" + samplingOffsetsMs.intStream().limit(1000) + "\n");
+        debugSb.append("samplingOffsetsMs=" + limitList(samplingOffsetsMs, DEBUGDATA_MAX_LIST_ENTRIES) + "\n");
+        debugSb.append("samplingTimeMs=" + limitList(samplingTimeMs, DEBUGDATA_MAX_LIST_ENTRIES) + "\n");
       }
       debugReport = debugSb.toString();
     }
+  }
+
+  @NotNull
+  private static IntList limitList(@NotNull IntList list, int limit) {
+    if (list.size() < limit)
+      return list;
+    else
+      return list.subList(0, limit);
   }
 
   @NotNull

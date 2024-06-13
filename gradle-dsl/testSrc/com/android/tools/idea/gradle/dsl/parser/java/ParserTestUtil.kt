@@ -34,15 +34,6 @@ private fun color(code: Int): String {
   return "\u001B[${code}m"
 }
 
-fun GradleFileModel.print() {
-  val element = GradleFileModelImpl::class.java.getDeclaredField("myGradleDslFile").let {
-    it.isAccessible = true
-    return@let it.get(this)
-  }
-  assert(element is GradleDslElement)
-  (element as GradleDslElement).print()
-}
-
 fun GradleDslElement.print() {
   val builder = StringBuilder()
   printElement(builder, INDENT)

@@ -18,7 +18,7 @@ package com.android.tools.idea.preview.lifecycle
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.scopeDisposable
-import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -52,7 +52,7 @@ private constructor(
   private val onResumeActivate: CoroutineScope.() -> Unit,
   private val onDeactivate: () -> Unit,
   private val onDelayedDeactivate: () -> Unit,
-  private val scheduleDelayed: (Disposable, () -> Unit) -> Unit
+  private val scheduleDelayed: (Disposable, () -> Unit) -> Unit,
 ) {
 
   /**
@@ -73,7 +73,7 @@ private constructor(
     onInitActivate: CoroutineScope.() -> Unit,
     onResumeActivate: CoroutineScope.() -> Unit,
     onDeactivate: () -> Unit,
-    onDelayedDeactivate: () -> Unit
+    onDelayedDeactivate: () -> Unit,
   ) : this(
     parentScope,
     onInitActivate,
@@ -81,7 +81,7 @@ private constructor(
     onDeactivate,
     onDelayedDeactivate,
     project.getService(PreviewDeactivationProjectService::class.java).deactivationQueue::
-      addDelayedAction
+      addDelayedAction,
   )
 
   private val scopeDisposable = parentScope.scopeDisposable()
@@ -148,8 +148,8 @@ private constructor(
 
       onDeactivate()
 
-      if (EssentialsMode.isEnabled()) {
-        // When on power saving mode, deactivate immediately to free resources.
+      if (PreviewEssentialsModeManager.isEssentialsModeEnabled) {
+        // When in essentials mode, deactivate immediately to free resources.
         onDelayedDeactivate()
       } else {
         scheduleDelayed(scopeDisposable, this::delayedDeactivate)
@@ -167,7 +167,7 @@ private constructor(
       onResumeActivate: CoroutineScope.() -> Unit = {},
       onDeactivate: () -> Unit = {},
       onDelayedDeactivate: () -> Unit = {},
-      scheduleDelayed: (Disposable, () -> Unit) -> Unit = { _, _ -> }
+      scheduleDelayed: (Disposable, () -> Unit) -> Unit = { _, _ -> },
     ): PreviewLifecycleManager =
       PreviewLifecycleManager(
         parentScope,
@@ -175,7 +175,7 @@ private constructor(
         onResumeActivate,
         onDeactivate,
         onDelayedDeactivate,
-        scheduleDelayed
+        scheduleDelayed,
       )
   }
 }

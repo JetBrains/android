@@ -46,7 +46,7 @@ class LogcatFoldLinesLikeThisActionTest {
       bar
       """
         .trimIndent(),
-      caret = 0
+      caret = 0,
     )
     val event = TestActionEvent.createTestEvent()
 
@@ -66,7 +66,7 @@ class LogcatFoldLinesLikeThisActionTest {
       """
         .trimIndent(),
       caret = 0,
-      selectionEnd = 2
+      selectionEnd = 2,
     )
     val event = TestActionEvent.createTestEvent()
 
@@ -86,7 +86,7 @@ class LogcatFoldLinesLikeThisActionTest {
       """
         .trimIndent(),
       caret = 0,
-      selectionEnd = 5
+      selectionEnd = 5,
     )
     val event = TestActionEvent.createTestEvent()
 

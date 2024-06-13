@@ -15,46 +15,48 @@
  */
 package com.android.tools.idea.adb;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.options.ConfigurableUi;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBIntSpinner;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private JPanel myPanel;
   private JBLabel myExistingAdbServerPortLabel;
-  private JBCheckBox myUseLibusbBackendCheckbox;
-  private JBCheckBox myEnableAdbMdnsCheckBox;
   private JBIntSpinner myExistingAdbServerPortSpinner;
   private JRadioButton myAutomaticallyStartAndManageServerRadioButton;
   private JRadioButton myUseExistingManuallyManagedServerRadioButton;
+  private JComboBox<String> myAdbServerUsbBackend;
+  private HyperlinkLabel myAdbServerUsbBackendLabel;
+  private JComboBox myAdbServerMdnsBackend;
+  private HyperlinkLabel myAdbServerMdnsBackendLabel;
+  private HyperlinkLabel myAdbServerLifecycleLabel;
 
   @Override
   public boolean isModified(@NotNull AdbOptionsService settings) {
-    return myUseLibusbBackendCheckbox.isSelected() != settings.shouldUseLibusb()
-           || myEnableAdbMdnsCheckBox.isSelected() != settings.shouldUseMdnsOpenScreen()
+    return getAdbServerUsbBackend() != settings.getAdbServerUsbBackend()
+           || getAdbServerMdnsBackend() != settings.getAdbServerMdnsBackend()
            || myUseExistingManuallyManagedServerRadioButton.isSelected() != settings.shouldUseUserManagedAdb()
            || getUserManagedAdbPortNumber() != settings.getUserManagedAdbPort();
   }
 
   @Override
   public void reset(@NotNull AdbOptionsService settings) {
-    myUseLibusbBackendCheckbox.setSelected(settings.shouldUseLibusb());
+    setAdbServerUsbBackend(settings.getAdbServerUsbBackend());
     if (settings.shouldUseUserManagedAdb()) {
       myUseExistingManuallyManagedServerRadioButton.setSelected(true);
     }
     else {
       myAutomaticallyStartAndManageServerRadioButton.setSelected(true);
     }
-    myEnableAdbMdnsCheckBox.setSelected(settings.shouldUseMdnsOpenScreen());
+    setAdbServerMdnsBackend(settings.getAdbServerMdnsBackend());
     myExistingAdbServerPortSpinner.setValue(settings.getUserManagedAdbPort());
     setPortNumberUiEnabled(settings.shouldUseUserManagedAdb());
   }
@@ -62,9 +64,9 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   @Override
   public void apply(@NotNull AdbOptionsService settings) throws ConfigurationException {
     settings.getOptionsUpdater()
-      .setUseLibusb(myUseLibusbBackendCheckbox.isSelected())
+      .setAdbServerUsbBackend(getAdbServerUsbBackend())
       .setUseUserManagedAdb(myUseExistingManuallyManagedServerRadioButton.isSelected())
-      .setUseMdnsOpenScreen(myEnableAdbMdnsCheckBox.isSelected())
+      .setAdbServerMdnsBackend(getAdbServerMdnsBackend())
       .setUserManagedAdbPort(getUserManagedAdbPortNumber())
       .commit();
   }
@@ -72,14 +74,16 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   @NotNull
   @Override
   public JComponent getComponent() {
-    if (!hasUseLibusbBackendCheckbox()) {
-      myPanel.remove(myUseLibusbBackendCheckbox);
-    }
-    if (!hasAdbServerLifecycleManagementComponents()) {
-      myPanel.remove(myExistingAdbServerPortSpinner);
-      myPanel.remove(myAutomaticallyStartAndManageServerRadioButton);
-      myPanel.remove(myUseExistingManuallyManagedServerRadioButton);
-    }
+    myAdbServerUsbBackend.setModel(new DefaultComboBoxModel(AdbServerUsbBackend.values()));
+    myAdbServerUsbBackendLabel.setHyperlinkText("ADB server USB backend (", "See support list", ")");
+    myAdbServerUsbBackendLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#backends");
+    myAdbServerUsbBackendLabel.setIcon(null);
+
+    myAdbServerMdnsBackend.setModel(new DefaultComboBoxModel(AdbServerMdnsBackend.values()));
+    myAdbServerMdnsBackendLabel.setHyperlinkText("ADB server mDNS backend (", "See support list", ")");
+    myAdbServerMdnsBackendLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#mdnsBackends");
+    myAdbServerMdnsBackendLabel.setIcon(null);
+
     return myPanel;
   }
 
@@ -92,6 +96,8 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myAutomaticallyStartAndManageServerRadioButton.addActionListener(event -> setPortNumberUiEnabled(false));
     myUseExistingManuallyManagedServerRadioButton = new JRadioButton();
     myUseExistingManuallyManagedServerRadioButton.addActionListener(event -> setPortNumberUiEnabled(true));
+    myAdbServerUsbBackend = new com.intellij.openapi.ui.ComboBox<>();
+    myAdbServerMdnsBackend = new com.intellij.openapi.ui.ComboBox<>();
   }
 
   private void setPortNumberUiEnabled(boolean enabled) {
@@ -104,32 +110,19 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   }
 
 
-  @TestOnly
-  void setAdbMdnsEnabled(boolean value) {
-    myEnableAdbMdnsCheckBox.setSelected(value);
+  void setAdbServerMdnsBackend(AdbServerMdnsBackend backend) {
+    myAdbServerMdnsBackend.setSelectedItem(backend);
   }
 
-  @TestOnly
-  boolean isAdbMdnsEnabled() {
-    return myEnableAdbMdnsCheckBox.isSelected();
+  AdbServerMdnsBackend getAdbServerMdnsBackend() {
+    return AdbServerMdnsBackend.fromDisplayText(myAdbServerMdnsBackend.getSelectedItem().toString());
   }
 
-  @TestOnly
-  void setLibusbEnabled(boolean value) {
-    myUseLibusbBackendCheckbox.setSelected(value);
+  void setAdbServerUsbBackend(AdbServerUsbBackend backend) {
+    myAdbServerUsbBackend.setSelectedItem(backend);
   }
 
-  @TestOnly
-  boolean isLibusbEnabled() {
-    return myUseLibusbBackendCheckbox.isSelected();
-  }
-
-  private static boolean hasUseLibusbBackendCheckbox() {
-    // Currently, the libusb backend is only supported on Mac & Linux.
-    return SystemInfo.isMac || SystemInfo.isLinux;
-  }
-
-  private static boolean hasAdbServerLifecycleManagementComponents() {
-    return StudioFlags.ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE.get();
+  AdbServerUsbBackend getAdbServerUsbBackend() {
+    return AdbServerUsbBackend.fromDisplayText(myAdbServerUsbBackend.getSelectedItem().toString());
   }
 }

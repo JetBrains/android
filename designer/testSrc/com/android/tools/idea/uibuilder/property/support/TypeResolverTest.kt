@@ -53,6 +53,7 @@ import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiClass
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.Test
 
 class TypeResolverTest {
@@ -106,6 +107,8 @@ class TypeResolverTest {
       .isEqualTo(NlPropertyType.DIMENSION)
     assertThat(TypeResolver.resolveType(ATTR_STATE_LIST_ANIMATOR, null, null))
       .isEqualTo(NlPropertyType.ANIMATOR)
+    assertThat(TypeResolver.resolveType(NavigationSchema.ATTR_POP_ENTER_ANIM, null, null))
+      .isEqualTo(NlPropertyType.ANIMATOR)
   }
 
   @Test
@@ -129,7 +132,7 @@ class TypeResolverTest {
       createPsiClass(
         PreferenceClasses.CLASS_EDIT_TEXT_PREFERENCE,
         PreferenceClasses.CLASS_DIALOG_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE
+        PreferenceClasses.CLASS_PREFERENCE,
       )
     assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, editTextPreference))
       .isEqualTo(NlPropertyType.STRING)
@@ -138,7 +141,7 @@ class TypeResolverTest {
       createPsiClass(
         PreferenceClasses.CLASS_LIST_PREFERENCE,
         PreferenceClasses.CLASS_DIALOG_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE
+        PreferenceClasses.CLASS_PREFERENCE,
       )
     assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, listPreference))
       .isEqualTo(NlPropertyType.STRING)
@@ -147,7 +150,7 @@ class TypeResolverTest {
       createPsiClass(
         PreferenceClasses.CLASS_MULTI_SELECT_LIST_PREFERENCE,
         PreferenceClasses.CLASS_DIALOG_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE
+        PreferenceClasses.CLASS_PREFERENCE,
       )
     assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, multiSelectListPreference))
       .isEqualTo(NlPropertyType.STRING_ARRAY)
@@ -156,7 +159,7 @@ class TypeResolverTest {
       createPsiClass(
         PreferenceClasses.CLASS_MULTI_CHECK_PREFERENCE,
         PreferenceClasses.CLASS_DIALOG_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE
+        PreferenceClasses.CLASS_PREFERENCE,
       )
     assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, multiCheckListPreference))
       .isEqualTo(NlPropertyType.STRING)
@@ -164,7 +167,7 @@ class TypeResolverTest {
     val ringtonePreference =
       createPsiClass(
         PreferenceClasses.CLASS_RINGTONE_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE
+        PreferenceClasses.CLASS_PREFERENCE,
       )
     assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, ringtonePreference))
       .isEqualTo(NlPropertyType.STRING)
@@ -172,7 +175,7 @@ class TypeResolverTest {
     val seekBarPreference =
       createPsiClass(
         PreferenceClasses.CLASS_SEEK_BAR_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE
+        PreferenceClasses.CLASS_PREFERENCE,
       )
     assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, seekBarPreference))
       .isEqualTo(NlPropertyType.INTEGER)
@@ -181,7 +184,7 @@ class TypeResolverTest {
       createPsiClass(
         PreferenceClasses.CLASS_CHECK_BOX_PREFERENCE,
         PreferenceClasses.CLASS_TWO_STATE_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE
+        PreferenceClasses.CLASS_PREFERENCE,
       )
     assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, checkBoxPreference))
       .isEqualTo(NlPropertyType.THREE_STATE_BOOLEAN)
@@ -190,7 +193,7 @@ class TypeResolverTest {
       createPsiClass(
         PreferenceClasses.CLASS_SWITCH_PREFERENCE,
         PreferenceClasses.CLASS_TWO_STATE_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE
+        PreferenceClasses.CLASS_PREFERENCE,
       )
     assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, switchPreference))
       .isEqualTo(NlPropertyType.THREE_STATE_BOOLEAN)
@@ -199,7 +202,7 @@ class TypeResolverTest {
       createPsiClass(
         PreferenceClasses.CLASS_PREFERENCE_CATEGORY,
         PreferenceClasses.CLASS_PREFERENCE_GROUP,
-        PreferenceClasses.CLASS_PREFERENCE
+        PreferenceClasses.CLASS_PREFERENCE,
       )
     assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, dialogPreference))
       .isEqualTo(NlPropertyType.UNKNOWN)

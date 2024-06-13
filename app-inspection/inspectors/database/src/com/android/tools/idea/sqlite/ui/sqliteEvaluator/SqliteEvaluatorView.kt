@@ -68,7 +68,7 @@ interface SqliteEvaluatorView {
     /** Invoked when a database is selected in the combobox */
     fun onDatabaseSelected(databaseId: SqliteDatabaseId) {}
 
-    /** Method invoked when an sql statement needs to be evaluated. */
+    /** Method invoked when a sql statement needs to be evaluated. */
     fun evaluateCurrentStatement() {}
 
     /** Called when the sqlite statement changes */

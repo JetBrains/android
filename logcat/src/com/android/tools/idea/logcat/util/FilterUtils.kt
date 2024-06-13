@@ -30,7 +30,7 @@ import com.intellij.openapi.project.Project
 internal fun toggleFilterTerm(
   logcatFilterParser: LogcatFilterParser,
   filter: String,
-  term: String
+  term: String,
 ): String? {
   val newFilter =
     when {
@@ -45,7 +45,7 @@ internal fun toggleFilterTerm(
 
 internal fun getDefaultFilter(
   project: Project,
-  androidProjectDetector: AndroidProjectDetector
+  androidProjectDetector: AndroidProjectDetector,
 ): String {
   val logcatSettings = AndroidLogcatSettings.getInstance()
   val filter =

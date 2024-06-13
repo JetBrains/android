@@ -75,12 +75,13 @@ public abstract class RootPathTreePrinter {
                                         boolean isLastChild,
                                         int depth,
                                         short visitedEssentialNominatedNodeTypesMask) {
-    writer.accept(constructRootPathLine(node, prefix, isOnlyChild, isLastChild));
+    writer.accept(constructRootPathLine(node, prefix, isOnlyChild, isLastChild, visitedEssentialNominatedNodeTypesMask));
 
-    for (Integer type : ESSENTIAL_NOMINATED_NODE_TYPES) {
-      if (node.selfSizes[exceededClusterId][type] != null) {
-        visitedEssentialNominatedNodeTypesMask |= 1 << type;
-      }
+    if (node.isDisposedButReferenced) {
+      visitedEssentialNominatedNodeTypesMask |= 1 << DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE;
+    }
+    if (node.isLoadedWithNominatedLoader) {
+      visitedEssentialNominatedNodeTypesMask |= 1 << OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE;
     }
 
     short finalVisitedEssentialNominatedNodeTypesMask = visitedEssentialNominatedNodeTypesMask;
@@ -128,21 +129,28 @@ public abstract class RootPathTreePrinter {
   protected String constructRootPathLine(@NotNull final RootPathTreeNode node,
                                          @NotNull final String prefix,
                                          boolean isOnlyChild,
-                                         boolean isLastChild) {
-    return padStart(HeapTraverseUtil.getObjectsStatsPresentation(node.instancesStatistics[exceededClusterId][nominatedNodeTypeId],
-                                                                 MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.OPTIMAL_UNITS),
-                    20, ' ') +
+                                         boolean isLastChild,
+                                         short visitedEssentialNominatedNodeTypesMask) {
+    return padStart(
+      HeapTraverseUtil.getObjectsSizePresentation(node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getTotalSizeInBytes(),
+                                                  MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.OPTIMAL_UNITS), 6,
+      ' ') +
+           padStart(
+             HeapTraverseUtil.getObjectsCountPresentation(
+               node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount(),
+               MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.OPTIMAL_UNITS), 11,
+             ' ') +
            ' ' + (node.selfSizes[exceededClusterId][nominatedNodeTypeId] != null ? '*' : ' ') +
            ' ' + (node.isRepeated ? "(rep)" : "     ") +
            transformPrefix(prefix, isOnlyChild, isLastChild) +
-           node.getPresentation(exceededClusterId, nominatedNodeTypeId);
+           node.getPresentation(exceededClusterId, nominatedNodeTypeId, visitedEssentialNominatedNodeTypesMask);
   }
 
   static class RootPathTreeNominatedTypePrinter extends RootPathTreePrinter {
     @NotNull
     protected final ObjectsStatistics totalNominatedTypeStatistics;
     @NotNull
-    private final Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree = new HashMap<>();
+    protected final Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree = new HashMap<>();
     @NotNull
     private final Comparator<RootPathTreeNode> childrenOrderingComparator;
 
@@ -218,7 +226,8 @@ public abstract class RootPathTreePrinter {
     protected String constructRootPathLine(@NotNull final RootPathTreeNode node,
                                            @NotNull final String prefix,
                                            boolean isOnlyChild,
-                                           boolean isLastChild) {
+                                           boolean isLastChild,
+                                           short visitedEssentialNominatedNodeTypesMask) {
       ObjectsStatistics nominatedObjectsInTheSubtree = nominatedObjectsStatsInTheNodeSubtree.get(node);
       String percentString =
         padStart(
@@ -232,17 +241,22 @@ public abstract class RootPathTreePrinter {
              percentString +
              '/' +
              padStart(HeapReportUtils.INSTANCE.toShortStringAsSize(nominatedObjectsInTheSubtree.getTotalSizeInBytes()), 6, ' ') +
-             ']' + super.constructRootPathLine(node, prefix, isOnlyChild, isLastChild);
+             ']' + super.constructRootPathLine(node, prefix, isOnlyChild, isLastChild, visitedEssentialNominatedNodeTypesMask);
     }
   }
 
   static class RootPathTreeDisposedObjectsPrinter extends RootPathTreeNominatedTypePrinter {
 
+    @NotNull
+    private final HeapSnapshotStatistics.DisposedObjectsInfo disposedObjectsInfo;
+
     RootPathTreeDisposedObjectsPrinter(@NotNull final ObjectsStatistics totalNominatedTypeStatistics,
                                        @NotNull final ExtendedReportStatistics extendedReportStatistics,
-                                       @NotNull final ExceededClusterStatistics exceededClusterStatistics) {
+                                       @NotNull final ExceededClusterStatistics exceededClusterStatistics,
+                                       @NotNull final HeapSnapshotStatistics.DisposedObjectsInfo disposedObjectsInfo) {
       super(totalNominatedTypeStatistics, extendedReportStatistics, exceededClusterStatistics,
             DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE);
+      this.disposedObjectsInfo = disposedObjectsInfo;
     }
 
     @Override
@@ -252,6 +266,30 @@ public abstract class RootPathTreePrinter {
       }
       writer.accept("================= DISPOSED OBJECTS ================");
       printPathTreeForComponentAndNominatedType(writer);
+    }
+
+    @NotNull
+    @Override
+    protected String constructRootPathLine(@NotNull final RootPathTreeNode node,
+                                           @NotNull final String prefix,
+                                           boolean isOnlyChild,
+                                           boolean isLastChild,
+                                           short visitedEssentialNominatedNodeTypesMask) {
+      if (node.isDisposedButReferenced) {
+        ObjectsStatistics nominatedObjectsInTheSubtree = node.instancesStatistics[exceededClusterId][nominatedNodeTypeId];
+
+        if (nominatedObjectsInTheSubtree.getTotalSizeInBytes() >= 1_000_000) {
+          disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast1mb++;
+        }
+        if (nominatedObjectsInTheSubtree.getTotalSizeInBytes() >= 10_000_000) {
+          disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast10mb++;
+        }
+        if (nominatedObjectsInTheSubtree.getTotalSizeInBytes() >= 100_000_000) {
+          disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast100mb++;
+        }
+      }
+
+      return super.constructRootPathLine(node, prefix, isOnlyChild, isLastChild, visitedEssentialNominatedNodeTypesMask);
     }
   }
 
@@ -289,7 +327,7 @@ public abstract class RootPathTreePrinter {
 
   static class RootPathTreeSummaryPrinter extends RootPathTreePrinter {
     private final Comparator<RootPathTreeNode> childrenOrderingComparator;
-    private static final long SUMMARY_SUBTREE_MAX_DEPTH = 40;
+    private static final long SUMMARY_SUBTREE_MAX_DEPTH = 50;
     private final long summaryRequiredSubtreeSize;
 
     RootPathTreeSummaryPrinter(@NotNull final ExtendedReportStatistics extendedReportStatistics,
@@ -305,15 +343,6 @@ public abstract class RootPathTreePrinter {
 
     @Override
     boolean shouldPrintNodeSubtree(@NotNull RootPathTreeNode node, int depth, short visitedEssentialNominatedNodeTypesMask) {
-      for (Integer type : ESSENTIAL_NOMINATED_NODE_TYPES) {
-        if (node.instancesStatistics[exceededClusterId][type] != null &&
-            node.instancesStatistics[exceededClusterId][type].getObjectsCount() > 0) {
-          if ((visitedEssentialNominatedNodeTypesMask & (1 << type)) == 0) {
-            return true;
-          }
-        }
-      }
-
       return node.instancesStatistics[exceededClusterId][nominatedNodeTypeId] != null &&
              node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount() > 0 &&
              node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getTotalSizeInBytes() >

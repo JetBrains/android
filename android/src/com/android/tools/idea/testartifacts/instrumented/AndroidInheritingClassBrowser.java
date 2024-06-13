@@ -20,7 +20,6 @@ import com.intellij.CommonBundle;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
-import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.JavaPsiFacade;
@@ -29,6 +28,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import javax.swing.JComponent;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidTreeClassChooserFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,15 +55,12 @@ public class AndroidInheritingClassBrowser<T extends JComponent> extends Android
       Messages.showErrorDialog(project, AndroidBundle.message("cant.find.class.error", myBaseClassName), CommonBundle.getErrorTitle());
       return null;
     }
-    return TreeClassChooserFactory.getInstance(project).createInheritanceClassChooser(
-      myDialogTitle, scope, baseClass, initialSelection, new ClassFilter() {
-      @Override
-      public boolean isAccepted(PsiClass aClass) {
+    return AndroidTreeClassChooserFactory.INSTANCE.createInheritanceClassChooser(
+      project, myDialogTitle, scope, baseClass, initialSelection, aClass -> {
         if (aClass.getManager().areElementsEquivalent(aClass, baseClass)) {
           return false;
         }
         return classFilter.isAccepted(aClass);
-      }
-    });
+      });
   }
 }

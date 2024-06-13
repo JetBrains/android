@@ -15,30 +15,39 @@
  */
 package com.android.tools.profilers.taskbased.common.buttons
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.OPEN_PROFILER_TASK
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.START_PROFILER_TASK
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.ProfilingProcessStartingPoint
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun StartTaskButton(isEnabled: Boolean, onClick: () -> Unit) {
+fun StartTaskButton(selectedTaskType: ProfilerTaskType,
+                    selectedDevice: ProfilerDeviceSelection?,
+                    selectedProcess: Common.Process,
+                    profilingProcessStartingPoint: ProfilingProcessStartingPoint,
+                    canStartTask: (ProfilerTaskType, ProfilerDeviceSelection?, Common.Process, ProfilingProcessStartingPoint) -> Boolean,
+                    onClick: () -> Unit) {
+  val isEnabled = canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint)
   EnterTaskButton(START_PROFILER_TASK, isEnabled, onClick)
 }
 
 @Composable
-fun OpenTaskButton(isEnabled: Boolean, onClick: () -> Unit) {
+fun OpenTaskButton(selectedTaskType: ProfilerTaskType, selectedRecording: SessionItem?, onClick: () -> Unit) {
+  val isEnabled = selectedRecording != null && selectedTaskType != ProfilerTaskType.UNSPECIFIED
   EnterTaskButton(OPEN_PROFILER_TASK, isEnabled, onClick)
 }
 
 @Composable
 private fun EnterTaskButton(text: String, isEnabled: Boolean, onClick: () -> Unit) {
   DefaultButton(onClick = onClick, enabled = isEnabled, modifier = Modifier.testTag("EnterTaskButton")) {
-    Text(text = text, fontSize = 20.sp, lineHeight = 21.sp, modifier = Modifier.padding(vertical = 5.dp))
+    Text(text = text)
   }
 }

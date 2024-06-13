@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -35,12 +36,13 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Rectangle
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Rule
+import org.junit.Test
 
 class ResourceLookupTest {
 
@@ -59,7 +61,7 @@ class ResourceLookupTest {
       process,
       fontScaleFromConfig = 1.0f,
       mainDisplayOrientation = 90,
-      screenSize = Dimension(1440, 3120)
+      screenSize = Dimension(1440, 3120),
     )
     assertThat(resourceLookup.resolver).isNotNull()
     assertThat(resourceLookup.displayOrientation).isEqualTo(90)
@@ -78,17 +80,18 @@ class ResourceLookupTest {
       process,
       fontScaleFromConfig = 1.0f,
       mainDisplayOrientation = 90,
-      screenSize = Dimension(1440, 3120)
+      screenSize = Dimension(1440, 3120),
     )
     assertThat(resourceLookup.resolver).isNotNull()
   }
 
   @Test
-  fun testSingleColorIcon() {
+  fun testSingleColorIcon() = runBlocking {
     val title = ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, "Hello Folks", 0)
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup = ResourceLookup(projectRule.project)
+        override val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
 
         override fun get(id: Long): ViewNode = title
 
@@ -104,9 +107,9 @@ class ResourceLookupTest {
         PropertySection.DECLARED,
         null,
         title.drawId,
-        context
+        context,
       )
-    val icon = context.resourceLookup.resolveAsIcon(property, title)
+    val icon = context.resourceLookup.resolveAsIcon(property.value, title)
     assertThat(icon)
       .isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
   }

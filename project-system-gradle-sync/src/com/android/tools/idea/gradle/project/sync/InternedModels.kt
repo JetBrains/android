@@ -50,19 +50,17 @@ data class LibraryIdentity private constructor(val key: Any) {
   companion object {
     @VisibleForTesting
     fun fromLibrary(library: Library): LibraryIdentity = LibraryIdentity(run {
-      checkNotNull(library.libraryInfo) {
-        "Use IDE model as key for project dependencies"
-      }
-      library.toAddressAndArtifactPath()
+      library.libraryInfo?.let {
+        "${it.group}:${it.name}:${it.version}${library.artifact?.absolutePath ?: ""}"
+      } ?: library.projectInfo?.let {
+        it.displayName
+      } ?: error("Use IDE model as key for project dependencies")
     })
 
     internal fun fromFile(file: File) = LibraryIdentity(file.path.toString())
 
     @VisibleForTesting
     fun fromIdeModel(library: IdeUnresolvedLibrary) = LibraryIdentity(library)
-
-    private fun Library.toAddressAndArtifactPath() =
-      "${libraryInfo!!.group}:${libraryInfo!!.name}:${libraryInfo!!.version}${artifact?.absolutePath ?: ""}"
   }
 
   /**

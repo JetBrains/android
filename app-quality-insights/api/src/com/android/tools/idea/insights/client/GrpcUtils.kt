@@ -65,7 +65,7 @@ suspend fun <T> retryRpc(
   backoffMultiplier: Float = GRPC_BACKOFF_MULTIPLIER,
   retryableStatusCodes: List<Status.Code> = listOf(Status.Code.UNAVAILABLE),
   timeout: Long = GRPC_TIMEOUT_MILLIS,
-  rpcCall: suspend () -> T
+  rpcCall: suspend () -> T,
 ) =
   withTimeout(timeout) {
     var currentDelay: Long = initialBackoff
@@ -95,7 +95,7 @@ private const val SUGGEST_FOR_UNAUTHORIZED = "Please log back in."
 
 suspend fun <T> runGrpcCatching(
   notFoundFallbackValue: LoadingState.Done<T>,
-  block: suspend () -> LoadingState.Done<T>
+  block: suspend () -> LoadingState.Done<T>,
 ): LoadingState.Done<T> =
   withContext(Dispatchers.IO) {
     try {

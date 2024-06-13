@@ -302,7 +302,7 @@ class TreeTableDropTargetHandlerTest {
 
   private fun tryNormalDrop(
     action: DnDAction,
-    deleteOriginOfInternalMove: Boolean = false
+    deleteOriginOfInternalMove: Boolean = false,
   ): List<Any> {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
@@ -353,7 +353,7 @@ class TreeTableDropTargetHandlerTest {
       TreeTableDropTargetHandler(
         table,
         false,
-        draggedItems
+        draggedItems,
       ) // We are dragging item5 to just before itself
     val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2))
     handler.update(event)
@@ -378,7 +378,7 @@ class TreeTableDropTargetHandlerTest {
       TreeTableDropTargetHandler(
         table,
         false,
-        draggedItems
+        draggedItems,
       ) // We are dragging item5 to just before itself
     val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2))
     handler.update(event)
@@ -397,7 +397,7 @@ class TreeTableDropTargetHandlerTest {
       TreeTableDropTargetHandler(
         table,
         false,
-        draggedItems
+        draggedItems,
       ) // We are dragging item5 to just before itself
     val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2), action = DnDAction.COPY)
     handler.update(event)
@@ -421,7 +421,7 @@ class TreeTableDropTargetHandlerTest {
     table: TreeTableImpl,
     handler: TreeTableDropTargetHandler,
     expectedReceiverRow: Int,
-    expectedInsertionRow: Int
+    expectedInsertionRow: Int,
   ) {
     val g: Graphics = mock()
     val g2: Graphics2D = mock()
@@ -434,7 +434,7 @@ class TreeTableDropTargetHandlerTest {
       verify(g2)
         .setRenderingHint(
           eq(RenderingHints.KEY_ANTIALIASING),
-          eq(RenderingHints.VALUE_ANTIALIAS_ON)
+          eq(RenderingHints.VALUE_ANTIALIAS_ON),
         )
       verify(g2).drawRect(maxOf(0, rb.x - 2), rb.y, rb.width + 2, rb.height)
       verify(g2).drawLine(rb.x + 6, ib.y + ib.height, ib.x + ib.width, ib.y + ib.height)
@@ -451,7 +451,7 @@ class TreeTableDropTargetHandlerTest {
     insertion: Item.Insertion,
     before: Any?,
     action: DnDAction,
-    dragged: List<Any>
+    dragged: List<Any>,
   ) {
     assertThat(insertion.before).isSameAs(before)
     assertThat(insertion.isMove).isEqualTo(action == DnDAction.MOVE)

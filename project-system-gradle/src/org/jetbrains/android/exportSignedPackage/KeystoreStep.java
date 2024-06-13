@@ -47,6 +47,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
+import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -156,7 +157,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     return isBundle ? "Bundle" + MODULE_PROPERTY : "Apk" + MODULE_PROPERTY;
   }
 
-  private boolean isGradleValid(@NotNull String targetType) {
+  private boolean isGradleValid(@NotNull TargetType targetType) {
     // all gradle versions are valid unless targetType is bundle
     if (!targetType.equals(ExportSignedPackageWizard.BUNDLE)) {
       return true;

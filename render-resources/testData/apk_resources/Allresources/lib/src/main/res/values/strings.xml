@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">All resources</string>
+    <string name="my_qualifier"></string>
+    <string-array name="planets_array">
+        <item>Mercury</item>
+        <item>Venus</item>
+        <item>Earth</item>
+        <item>Mars</item>
+    </string-array>
+    <plurals name="numberOfSongsAvailable">
+        <item quantity="one">%d song found.</item>
+        <item quantity="other">%d songs found.</item>
+    </plurals>
+</resources>

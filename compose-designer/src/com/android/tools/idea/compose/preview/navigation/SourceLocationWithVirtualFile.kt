@@ -32,7 +32,7 @@ import kotlin.math.absoluteValue
 internal class SourceLocationWithVirtualFile(
   internal val virtualFile: VirtualFile,
   override val lineNumber: Int,
-  override val packageHash: Int
+  override val packageHash: Int,
 ) : SourceLocation {
   override val fileName: String
     get() = virtualFile.name
@@ -64,7 +64,7 @@ private fun matchesPackage(file: PsiClassOwner, packageHash: Int): Boolean =
 internal fun SourceLocation.asSourceLocationWithVirtualFile(
   module: Module,
   scope: GlobalSearchScope =
-    GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
+    GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false),
 ): SourceLocationWithVirtualFile? {
   if (isEmpty()) return null
 

@@ -111,66 +111,6 @@ class AddDynamicFeatureTest {
   }
 
   /**
-   * Verifies that user is able to add a Dynamic Feature Module through the new module wizard.
-   *
-   * <pre>
-   * Test steps:
-   * 1. Import simple application project
-   * 2. Go to File -> New module to open the new module dialog wizard.
-   * 3. Select Dynamic Feature Module and press next.
-   * 4. In the Module Configuration step, select "app" as the Base application module and name the Module "MyDynamicFeature"
-   * 5. In the Dynamic Delivery step, name the Delivery ""My Dynamic Feature Title" and un-tick the check box for Fusing.
-   * 6. Set delivery mode to "install time" and click Finish.
-   * Verify:
-   * 1. The new Dynamic Feature Module is shown in the project explorer pane (MyDynamicFeature).
-   * 2. Open the Dynamic Feature Module manifest and check that "dist:onDemand" and
-   * "dist:fusing include" are set to false.
-   * 3. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
-   * new string was added for the dynamic feature title with value "My Dynamic Feature Title"
-   * </pre>
-   */
-  @Test
-  fun addDynamicModuleWithConditionalDelivery_includeAtInstallTime() {
-    val ideFrame = guiTest.importSimpleApplication()
-
-    createDynamicModule(ideFrame, Kotlin, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
-
-    guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
-      assertThat(this).contains("""<dist:delivery>""")
-      assertThat(this).contains("""<dist:install-time />""")
-      assertThat(this).doesNotContain("""<dist:on-demand />""")
-      assertThat(this).contains("""</dist:delivery>""")
-      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
-    }
-
-    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
-      assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
-    }
-  }
-
-  /**
-   * Same as above, but sets the delivery mode to "on-demand only".
-   */
-  @Test
-  fun addDynamicModuleWithConditionalDelivery_installOnDemandOnly() {
-    val ideFrame = guiTest.importSimpleApplication()
-
-    createDynamicModule(ideFrame, Java, DownloadInstallKind.ON_DEMAND_ONLY)
-
-    guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
-      assertThat(this).contains("""<dist:delivery>""")
-      assertThat(this).doesNotContain("""<dist:install-time />""")
-      assertThat(this).contains("""<dist:on-demand />""")
-      assertThat(this).contains("""</dist:delivery>""")
-      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
-    }
-
-    guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
-      assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
-    }
-  }
-
-  /**
    * Same as above, but sets the delivery mode to "include at install time with conditions" without specifying device feature conditions.
    */
   @Test

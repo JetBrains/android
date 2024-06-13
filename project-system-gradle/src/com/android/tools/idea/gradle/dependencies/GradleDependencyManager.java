@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dependencies;
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.calculateAddDependencyPolicy;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
-import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 
@@ -48,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -194,14 +192,14 @@ public class GradleDependencyManager {
         && dependency.getExplicitSingletonVersion() == null
         // The only library in groupId=SUPPORT_LIB_GROUP_ID which doesn't follow the normal version numbering scheme
         && !dependency.getName().equals("multidex")) {
-      return Optional.of(new Dependency(group, dependency.getName(), RichVersion.Companion.parse(declaredAppCompatVersion), null, null));
+      return Optional.of(new Dependency(group, dependency.getName(), RichVersion.parse(declaredAppCompatVersion), null, null));
     }
 
     if (resolvedComponent == null) {
       return Optional.of(dependency);
     }
     else {
-      return Optional.of(new Dependency(resolvedComponent.getGroup(), resolvedComponent.getName(), RichVersion.Companion.require(resolvedComponent.getVersion()), null, null));
+      return Optional.of(new Dependency(resolvedComponent.getGroup(), resolvedComponent.getName(), RichVersion.require(resolvedComponent.getVersion()), null, null));
     }
   }
 
@@ -274,11 +272,8 @@ public class GradleDependencyManager {
                                                                           @NotNull List<Dependency> dependencies) {
     List<Pair<String, Dependency>> addedCoordinates = new ArrayList<>();
 
-    GradleVersionCatalogLibraries libraries = catalogModel.libraryDeclarations();
-    Set<String> names = libraries.getAllAliases();
     for (Dependency dependency : dependencies) {
-      String alias = DependenciesHelper.addCatalogLibrary(catalogModel, dependency);
-      names.add(alias);
+      String alias = CatalogDependenciesInserter.addCatalogLibrary(catalogModel, dependency);
       addedCoordinates.add(new Pair<>(alias, dependency));
     }
     return addedCoordinates;
@@ -321,8 +316,8 @@ public class GradleDependencyManager {
           addDependenciesToBuildFile(buildModel, module, missing, nameMapper);
         });
       case VERSION_CATALOG -> {
-        GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
-        GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
+        ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+        GradleVersionCatalogModel catalogModel = DependenciesHelper.getDefaultCatalogModel(projectBuildModel);
         if (catalogModel == null) {
           LOG.warn("Version Catalog model is null but VERSION_CATALOG policy in effect");
           return addDependenciesInTransaction(module, dependencies, AddDependencyPolicy.BUILD_FILE, nameMapper);
@@ -415,7 +410,7 @@ public class GradleDependencyManager {
 
             if (m.isVersionCatalogDependency()) {
               // Trying update catalog once dependency is a reference to a catalog declaration
-              successfulUpdate = DependenciesHelper.updateCatalogLibrary(catalogsModel, m, richVersion);
+              successfulUpdate = CatalogDependenciesInserter.updateCatalogLibrary(catalogsModel, m, richVersion);
             }
             if (!successfulUpdate) {
               // Update directly in build file if there is no catalog or update there was unsuccessful

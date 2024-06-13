@@ -15,82 +15,61 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.tools.idea.gradle.declarative.DeclarativeFileType
 import com.android.tools.lint.detector.api.Issue
-import com.intellij.codeInsight.intention.FileModifier.SafeFieldForPreview
-import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Iconable
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.ModCommandAction
+import com.intellij.modcommand.Presentation
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.jetbrains.plugins.groovy.GroovyFileType
 import org.toml.lang.psi.TomlFileType
-import javax.swing.Icon
 
 /** Intention for adding a `@SuppressLint` annotation on the given element for the given id */
 class SuppressLintIntentionAction(
   private val id: String,
   element: PsiElement,
-  @SafeFieldForPreview private val issue: Issue? = null
-) : IntentionAction, Iconable {
+  private val issue: Issue? = null,
+) : ModCommandAction {
   private val label = SuppressLintQuickFix.displayName(element, id)
 
   constructor(issue: Issue, element: PsiElement) : this(issue.id, element)
-
-  override fun getIcon(@Iconable.IconFlags flags: Int): Icon {
-    return AllIcons.Actions.Cancel
-  }
-
-  override fun getText(): String = label
 
   override fun getFamilyName(): String {
     return "Suppress"
   }
 
-  override fun isAvailable(project: Project, editor: Editor, file: PsiFile): Boolean {
-    val type = file.fileType
-    return type === JavaFileType.INSTANCE ||
-      type === XmlFileType.INSTANCE ||
-      type === GroovyFileType.GROOVY_FILE_TYPE ||
-      type === GradleFileType ||
-      type === KotlinFileType.INSTANCE ||
-      file is PsiBinaryFile ||
-      type === TomlFileType
+  override fun perform(context: ActionContext): ModCommand {
+    val file = context.file
+    val target = file.findElementAt(context.offset) ?: file
+    val result = SuppressLintQuickFix(id, target).applyFix(target, context)
+
+    if (issue != null && !IntentionPreviewUtils.isIntentionPreviewActive()) {
+      LintIdeSupport.get().logQuickFixInvocation(context.project, issue, label)
+    }
+    return result
   }
 
-  @Throws(IncorrectOperationException::class)
-  override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
-    if (file == null) {
-      return
-    }
-
-    if (editor != null) {
-      val elementOffset = editor.caretModel.offset
-      val element = file.findElementAt(elementOffset) ?: return
-
-      val fix = SuppressLintQuickFix(id, element)
-      fix.applyFix(element)
-    } else {
-      // For example, an icon file
-      SuppressLintQuickFix(id, file).applyFix(file)
-    }
-
-    if (issue != null && !IntentionPreviewUtils.isPreviewElement(file)) {
-      LintIdeSupport.get().logQuickFixInvocation(project, issue, text)
-    }
+  override fun getPresentation(context: ActionContext): Presentation? {
+    val type = context.file.fileType
+    return if (
+      type === JavaFileType.INSTANCE ||
+        type === XmlFileType.INSTANCE ||
+        type === GroovyFileType.GROOVY_FILE_TYPE ||
+        type === GradleFileType ||
+        type === KotlinFileType.INSTANCE ||
+        context.file is PsiBinaryFile ||
+        type === TomlFileType ||
+        type === DeclarativeFileType.INSTANCE
+    )
+      Presentation.of(label).withIcon(AllIcons.Actions.Cancel)
+    else null
   }
-
-  override fun startInWriteAction(): Boolean {
-    return true
-  }
-
-  override fun toString(): String = text
 }

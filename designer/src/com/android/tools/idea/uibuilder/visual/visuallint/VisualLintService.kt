@@ -99,7 +99,7 @@ class VisualLintService(val project: Project) : Disposable {
       BottomAppBarAnalyzer,
       TextFieldSizeAnalyzer,
       LongTextAnalyzer,
-      ButtonSizeAnalyzer
+      ButtonSizeAnalyzer,
     )
   private val wearAnalyzers = listOf(WearMarginAnalyzer)
 
@@ -126,7 +126,7 @@ class VisualLintService(val project: Project) : Disposable {
             .filterNot { it in ignoredTypes }
             .forEach { VisualLintUsageTracker.getInstance().trackRuleStatusChanged(it, true) }
         }
-      }
+      },
     )
     // We pass the VisualLintService as the IssueModel parent disposable. We need to initialize it
     // only in the end of this constructor to
@@ -155,14 +155,14 @@ class VisualLintService(val project: Project) : Disposable {
     parentDisposable: Disposable,
     issueProvider: VisualLintIssueProvider,
     modelsForBackgroundRun: List<NlModel>,
-    renderResultsForAnalysis: Map<RenderResult, NlModel>
+    renderResultsForAnalysis: Map<RenderResult, NlModel>,
   ) {
     runVisualLintAnalysis(
       parentDisposable,
       issueProvider,
       modelsForBackgroundRun,
       renderResultsForAnalysis,
-      visualLintExecutorService
+      visualLintExecutorService,
     )
   }
 
@@ -172,7 +172,7 @@ class VisualLintService(val project: Project) : Disposable {
     issueProvider: VisualLintIssueProvider,
     modelsForBackgroundRun: List<NlModel>,
     renderResultsForAnalysis: Map<RenderResult, NlModel>,
-    executorService: ExecutorService
+    executorService: ExecutorService,
   ) {
     CompletableFuture.runAsync(
       {
@@ -192,10 +192,10 @@ class VisualLintService(val project: Project) : Disposable {
         runOnPreviewVisualLinting(
           renderResultsForAnalysis,
           issueProvider,
-          visualLintBaseConfigIssues
+          visualLintBaseConfigIssues,
         )
       },
-      executorService
+      executorService,
     )
   }
 
@@ -203,7 +203,7 @@ class VisualLintService(val project: Project) : Disposable {
   private fun runBackgroundVisualLinting(
     baseModel: NlModel,
     issueProvider: VisualLintIssueProvider,
-    visualLintBaseConfigIssues: VisualLintBaseConfigIssues
+    visualLintBaseConfigIssues: VisualLintBaseConfigIssues,
   ) {
     val listener =
       object : ModelListener {
@@ -239,7 +239,7 @@ class VisualLintService(val project: Project) : Disposable {
                     result,
                     model,
                     visualLintBaseConfigIssues,
-                    true
+                    true,
                   )
                 }
               } finally {
@@ -247,7 +247,7 @@ class VisualLintService(val project: Project) : Disposable {
                 latch.countDown()
               }
             },
-            visualLintAnalyzerExecutorService
+            visualLintAnalyzerExecutorService,
           )
       }
       hasTimedOut.set(!latch.await(visualLintTimeout, TimeUnit.SECONDS))
@@ -264,7 +264,7 @@ class VisualLintService(val project: Project) : Disposable {
   private fun runOnPreviewVisualLinting(
     renderResultsForAnalysis: Map<RenderResult, NlModel>,
     issueProvider: VisualLintIssueProvider,
-    visualLintBaseConfigIssues: VisualLintBaseConfigIssues
+    visualLintBaseConfigIssues: VisualLintBaseConfigIssues,
   ) {
     val latch = CountDownLatch(renderResultsForAnalysis.size)
     val hasTimedOut = AtomicBoolean(false)
@@ -276,7 +276,7 @@ class VisualLintService(val project: Project) : Disposable {
           }
           latch.countDown()
         },
-        visualLintAnalyzerExecutorService
+        visualLintAnalyzerExecutorService,
       )
     }
     hasTimedOut.set(!latch.await(visualLintTimeout, TimeUnit.SECONDS))
@@ -295,7 +295,7 @@ class VisualLintService(val project: Project) : Disposable {
     result: RenderResult,
     model: NlModel,
     baseConfigIssues: VisualLintBaseConfigIssues,
-    runningInBackground: Boolean = false
+    runningInBackground: Boolean = false,
   ) {
     runAnalyzers(targetIssueProvider, basicAnalyzers, result, model, runningInBackground)
     if (HardwareConfigHelper.isWear(model.configuration.device)) {
@@ -317,7 +317,7 @@ class VisualLintService(val project: Project) : Disposable {
     analyzers: List<VisualLintAnalyzer>,
     result: RenderResult,
     model: NlModel,
-    runningInBackground: Boolean
+    runningInBackground: Boolean,
   ) {
     analyzers
       .filter { !ignoredTypes.contains(it.type) }
@@ -363,7 +363,7 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
           "Error inflating view for visual lint on background. No RenderTask Created.",
           null,
           null,
-          null
+          null,
         )
         return@thenCompose CompletableFuture.failedFuture(IllegalArgumentException())
       }
@@ -377,7 +377,7 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
             "Error inflating views for visual lint on background",
             exception,
             null,
-            null
+            null,
           )
         }
         newTask.dispose()
@@ -395,5 +395,5 @@ class VisualLintIssueModel(parentDisposable: Disposable, project: Project) :
 enum class VisualLintMode {
   DISABLED,
   RUN_ON_PREVIEW_ONLY,
-  RUN_IN_BACKGROUND
+  RUN_IN_BACKGROUND,
 }

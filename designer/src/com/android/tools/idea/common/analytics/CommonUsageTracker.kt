@@ -43,10 +43,10 @@ interface CommonUsageTracker {
     val loggingType: LayoutEditorEventType,
 
     /** Method to obtain the duration from [RenderResult]. */
-    val durationProvider: Function<RenderResult, Long>
+    val durationProvider: Function<RenderResult, Long>,
   ) {
     INFLATE(10, LayoutEditorEventType.INFLATE_ONLY, { it.stats.inflateDurationMs }),
-    RENDER(1, LayoutEditorEventType.RENDER_ONLY, { it.stats.renderDurationMs })
+    RENDER(1, LayoutEditorEventType.RENDER_ONLY, { it.stats.renderDurationMs }),
   }
 
   /**
@@ -64,7 +64,7 @@ interface CommonUsageTracker {
   fun logRenderResult(
     trigger: LayoutEditorRenderResult.Trigger?,
     result: RenderResult,
-    resultType: RenderResultType
+    resultType: RenderResultType,
   )
 
   /**
@@ -76,7 +76,7 @@ interface CommonUsageTracker {
    */
   fun logStudioEvent(
     eventType: LayoutEditorEventType,
-    consumer: Consumer<LayoutEditorEvent.Builder>?
+    consumer: Consumer<LayoutEditorEvent.Builder>?,
   )
 
   companion object {
@@ -87,7 +87,7 @@ interface CommonUsageTracker {
         { executor, surface, eventLogger ->
           CommonUsageTrackerImpl(executor, surface, eventLogger)
         },
-        NOP_TRACKER
+        NOP_TRACKER,
       )
 
     fun getInstance(surface: DesignSurface<*>?): CommonUsageTracker {

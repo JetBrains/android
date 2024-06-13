@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -33,7 +32,7 @@ class FilterGroupAction(renderModelProvider: () -> RenderModel?) :
   DropDownAction(
     "Filter",
     "View Options for Component Tree",
-    StudioIcons.Common.VISIBILITY_INLINE
+    StudioIcons.Common.VISIBILITY_INLINE,
   ) {
   init {
     add(SystemNodeFilterAction(renderModelProvider))
@@ -62,7 +61,7 @@ class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?
       if (selectedNode != null && !selectedNode.isInComponentTree(treeSettings)) {
         model.setSelection(
           selectedNode.findClosestUnfilteredNode(treeSettings),
-          SelectionOrigin.COMPONENT_TREE
+          SelectionOrigin.COMPONENT_TREE,
         )
       }
       val hoveredNode = model.hoveredNode
@@ -153,8 +152,7 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible =
-      isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
-        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get()
+      isActionActive(event, Capability.SUPPORTS_COMPOSE) && inLiveMode(event)
     event.presentation.isEnabled =
       isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     event.presentation.text =
@@ -165,8 +163,12 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
 
 fun isActionActive(event: AnActionEvent, vararg capabilities: Capability): Boolean =
   LayoutInspector.get(event)?.currentClient?.let { client ->
-    !client
-      .isConnected || // If not running, default to visible so user can modify selection when next
-      // client is connected
-      capabilities.all { client.capabilities.contains(it) }
+    // If not running, default to visible so user can modify selection when next client is connected
+    !client.isConnected || capabilities.all { client.capabilities.contains(it) }
+  } ?: true
+
+fun inLiveMode(event: AnActionEvent): Boolean =
+  // If not running, default to visible so user can modify selection when next client is connected
+  LayoutInspector.get(event)?.currentClient?.let { client ->
+    client.inLiveMode || !client.isConnected
   } ?: true

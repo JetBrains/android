@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.transport.manager.StreamQueryUtils;
@@ -46,16 +47,18 @@ import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfiler;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
-import com.android.tools.profilers.energy.EnergyProfiler;
-import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection;
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection;
 import com.android.tools.profilers.tasks.ProfilerTaskLauncher;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.TaskTypeMappingUtils;
 import com.android.tools.profilers.tasks.args.TaskArgs;
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler;
 import com.google.common.annotations.VisibleForTesting;
@@ -71,6 +74,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -83,9 +87,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
@@ -152,6 +156,22 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   private final Runnable myOpenTaskTab;
 
+  @NotNull
+  private final Function0<List<ToolbarDeviceSelection>> myToolbarDeviceSelectionsFetcher;
+
+  /**
+   * Callback to fetch the selected run configuration's package name. In the Task-Based UX, this is invoked at each tick in the update
+   * method and used to set the preferred process name.
+   *
+   * Note: This callback will be set to null by test-only constructors to prevent test environments from invoking it and overwriting the
+   * preferred process set by the test. A non-null value will be set on tool window initialization in production.
+   */
+  @Nullable
+  private final Function0<String> myPreferredProcessNameFetcher;
+
+  @Nullable
+  private ToolbarDeviceSelection myLastToolbarDeviceSelection = null;
+
   /**
    * Processes from devices come from the latest update, and are filtered to include only ALIVE ones and {@code myProcess}.
    */
@@ -164,6 +184,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private Map<Long, Common.Stream> myStreamIdToStreams;
 
+  /**
+   * Data model for the Task-Based UX's home tab.
+   */
+  @NotNull
+  private final TaskHomeTabModel myTaskHomeTabModel;
+
+  @NotNull
   private final Map<ProfilerTaskType, ProfilerTaskHandler> myTaskHandlers;
 
   @NotNull private final SessionsManager mySessionsManager;
@@ -196,7 +223,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private AxisComponentModel myViewAxis;
 
-  private long myRefreshDevices;
+  private long myRefreshDevicesAndPreferredProcessName;
 
   private long myEventPollingInternvalNs;
 
@@ -223,7 +250,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
-    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {});
+    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new, null);
   }
 
   /**
@@ -237,8 +264,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                          @NotNull IdeProfilerServices ideServices,
                          @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
-                         @NotNull Runnable openTaskTab) {
-    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab);
+                         @NotNull Runnable openTaskTab,
+                         @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
+                         @Nullable Function0<String> preferredProcessNameFetcher) {
+    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab,
+         toolbarDeviceSelectionsFetcher, preferredProcessNameFetcher);
   }
 
   private StudioProfilers(@NotNull ProfilerClient client,
@@ -246,7 +276,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                           @NotNull StopwatchTimer timer,
                           @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
                           @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
-                          @NotNull Runnable openTaskTab) {
+                          @NotNull Runnable openTaskTab,
+                          @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
+                          @Nullable Function0<String> preferredProcessNameFetcher) {
     myClient = client;
     myIdeServices = ideServices;
     myStage = createDefaultStage();
@@ -254,9 +286,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     mySessionChangeListener = new HashMap<>();
     myDeviceToStreamIds = new HashMap<>();
     myStreamIdToStreams = new HashMap<>();
+    myTaskHomeTabModel = new TaskHomeTabModel(this);
     myTaskHandlers = taskHandlers;
     myCreateTaskTab = createTaskTab;
     myOpenTaskTab = openTaskTab;
+    myToolbarDeviceSelectionsFetcher = toolbarDeviceSelectionsFetcher;
+    myPreferredProcessNameFetcher = preferredProcessNameFetcher;
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -271,9 +306,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     profilersBuilder.add(new CpuProfiler(this));
     profilersBuilder.add(new MemoryProfiler(this));
-    if (myIdeServices.getFeatureConfig().isEnergyProfilerEnabled()) {
-      profilersBuilder.add(new EnergyProfiler(this));
-    }
     myProfilers = profilersBuilder.build();
 
     myTimeline = new StreamingTimeline(myUpdater);
@@ -303,11 +335,20 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           TimeRequest.newBuilder().setStreamId(mySelectedSession.getStreamId()).build());
 
         myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
-        if (startupCpuProfilingStarted()) {
-          setStage(new CpuProfilerStage(this, CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING));
+        boolean isTaskBasedUXEnabled = getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+
+        if (isTaskBasedUXEnabled) {
+          if (startupProfilingStarted()) {
+            getTaskHomeTabModel().resetSelectionStateOnTaskEnter();
+          }
         }
-        else if (startupMemoryProfilingStarted()) {
-          setStage(new MainMemoryProfilerStage(this));
+        else {
+          if (startupCpuProfilingStarted()) {
+            setStage(new CpuProfilerStage(this, CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING));
+          }
+          else if (startupMemoryProfilingStarted()) {
+            setStage(new MainMemoryProfilerStage(this));
+          }
         }
       }
       else {
@@ -371,6 +412,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return Lists.newArrayList(myProcesses.keySet());
   }
 
+  @NotNull
+  public TaskHomeTabModel getTaskHomeTabModel() {
+    return myTaskHomeTabModel;
+  }
+
   /**
    * Tells the profiler to select and profile the device+process combo of the same name next time it
    * is detected.
@@ -384,7 +430,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public void setPreferredProcess(@Nullable String deviceName,
                                   @Nullable String processName,
                                   @Nullable Predicate<Common.Process> processFilter) {
-    myIdeServices.getFeatureTracker().trackAutoProfilingRequested();
+
+    boolean processNameChanged = !Objects.equals(myPreference.processName, processName);
 
     myPreference = new Preference(
       deviceName,
@@ -393,17 +440,30 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     );
 
     // Checks whether we can switch immediately if the device is already there.
-    setAutoProfilingEnabled(true);
+    if (!getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      myIdeServices.getFeatureTracker().trackAutoProfilingRequested();
+      setAutoProfilingEnabled(true);
+    }
 
     changed(ProfilerAspect.PREFERRED_PROCESS);
+
+    if (processNameChanged) {
+      changed(ProfilerAspect.PREFERRED_PROCESS_NAME);
+    }
   }
 
   public void setPreferredProcessName(@Nullable String processName) {
+    if (Objects.equals(myPreference.processName, processName)) {
+      return;
+    }
+
     myPreference = new Preference(
       myPreference.deviceName,
       processName,
       myPreference.processFilter
     );
+
+    changed(ProfilerAspect.PREFERRED_PROCESS_NAME);
   }
 
   @Nullable
@@ -417,6 +477,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void setAutoProfilingEnabled(boolean enabled) {
     myAutoProfilingEnabled = enabled;
+
+    if (enabled && getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      getLogger().warn("Auto profiling should not be enabled or used when the Task-Based UX is enabled.");
+    }
     // Do nothing. Let update() take care of which process should be selected.
     // If setProcess() is called now, it may be confused if the process start/end events don't arrive immediately.
     // For example, if the user ends a session (which will set myProcess null), then click the Run button.
@@ -425,7 +489,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // the event stream shows it is still alive, and it's "new" in the perspective of StudioProfilers.
   }
 
-  @TestOnly
   public boolean getAutoProfilingEnabled() {
     return myAutoProfilingEnabled;
   }
@@ -458,6 +521,48 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }).collect(Collectors.toList());
   }
 
+  /**
+   * Reads main toolbar's device dropdown selections and updates the respective device state model with such selection data.
+   */
+  private void readMainToolbarDeviceSelection() {
+    if (IdeInfo.isGameTool()) {
+      return;
+    }
+    List<ToolbarDeviceSelection> toolbarDeviceSelections = myToolbarDeviceSelectionsFetcher.invoke();
+    int toolbarSelectedDevicesCount = toolbarDeviceSelections.size();
+
+    // In the case where only one device is selected, and it is a new selection, the selected device state is updated.
+    if (toolbarSelectedDevicesCount == 1) {
+      ToolbarDeviceSelection toolbarDeviceSelection = toolbarDeviceSelections.get(0);
+
+      ProfilerDeviceSelection currentlySelectedDevice = myTaskHomeTabModel.getSelectedDevice();
+
+      String toolbarSelectionName = toolbarDeviceSelection.getName();
+      String toolbarSelectionSerial = toolbarDeviceSelection.getSerial();
+      // The following cases cover all cases of detecting a new, unique selection made. This is because (1) Studio does not allow
+      // duplicate AVD names, and (2) if there is a device created with the same name a physical device, the serial number is used to
+      // differentiate. To avoid the same device being selected repeatedly, the last toolbar device selection is stored and compared
+      // against the current toolbar selection.
+      if (currentlySelectedDevice == null ||
+          // Use toolbar selection if its name differs from the current selection
+          (!currentlySelectedDevice.getName().equals(toolbarSelectionName) ||
+           // OR if names match but serial numbers differ
+           !currentlySelectedDevice.getDevice().getSerial().equals(toolbarSelectionSerial) ||
+          // OR if the toolbar selection isn't the same as the last stored one to avoid repeated selection of the same device.
+          !Objects.equals(myLastToolbarDeviceSelection, toolbarDeviceSelection))) {
+        myTaskHomeTabModel.getProcessListModel().onDeviceSelection(toolbarDeviceSelection);
+        myLastToolbarDeviceSelection = toolbarDeviceSelection;
+      }
+    }
+    else {
+      // The call to onDeviceSelection made if there is only one device selected will set ProcessListModel.selectedDeviceCount to a value
+      // of 1. Because no ProcessListModel device selection occurs when zero or multiple devices are selected, the number of selected
+      // devices are set here. This data allows the user to be notified when there is zero or multiple devices selected.
+      myTaskHomeTabModel.getProcessListModel().setSelectedDevicesCount(toolbarSelectedDevicesCount);
+      myTaskHomeTabModel.getProcessListModel().resetDeviceSelection();
+    }
+  }
+
   private void startProfileableDiscoveryIfApplicable(Collection<Common.Device> previousDevices,
                                                      Collection<Common.Device> currentDevices) {
     Set<Common.Device> newDevices = Sets.difference(filterOnlineDevices(currentDevices),
@@ -488,13 +593,20 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       myEventPollingInternvalNs = 0;
     }
 
-    myRefreshDevices += elapsedNs;
-    if (myRefreshDevices < TimeUnit.SECONDS.toNanos(1)) {
+    myRefreshDevicesAndPreferredProcessName += elapsedNs;
+    if (myRefreshDevicesAndPreferredProcessName < TimeUnit.SECONDS.toNanos(1)) {
       return;
     }
-    myRefreshDevices = 0;
+    myRefreshDevicesAndPreferredProcessName = 0;
+
+    if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() && myPreferredProcessNameFetcher != null) {
+      String preferredProcessName = myPreferredProcessNameFetcher.invoke();
+      setPreferredProcessName(preferredProcessName);
+    }
 
     try {
+      readMainToolbarDeviceSelection();
+
       Map<Common.Device, List<Common.Process>> newProcesses = new HashMap<>();
       List<Common.Device> devices = getUpToDateDevices();
       startProfileableDiscoveryIfApplicable(myProcesses.keySet(), devices);
@@ -518,8 +630,25 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         // The following call to setProcess will start a session on profiler start and on process selection change, but Task-Based UX does
         // not auto start a session on profiler start or on process change. Thus, we disable the call to setProcess if the Task-Based UX
         // is enabled.
-        if (!getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+        boolean isTaskBasedUXEnabled = getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+        if (!isTaskBasedUXEnabled) {
           setProcess(findPreferredDevice(), null);
+        }
+
+        if (isTaskBasedUXEnabled) {
+          TaskHomeTabModel.SelectionStateOnTaskEnter selectionStateOnTaskEnter = getTaskHomeTabModel().getSelectionStateOnTaskEnter();
+          if (selectionStateOnTaskEnter != null) {
+            boolean isProfilingFromProcessStart =
+            selectionStateOnTaskEnter.getProfilingProcessStartingPoint() == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START;
+            ProfilerTaskType selectedTaskType = selectionStateOnTaskEnter.getSelectedStartupTaskType();
+            // The check for a non-null preferred device makes sure the preferred device is alive and detected. It is imperative for startup
+            // scenarios, although this condition may be true in non-startup scenarios too. It's worth noting that repeated calls to
+            // setProcess with the same parameters are harmless, as setProcess prevents starting a session/task with the same device and
+            // process combination when facilitating a startup task.
+            if (findPreferredDevice() != null && isProfilingFromProcessStart && selectedTaskType != ProfilerTaskType.UNSPECIFIED) {
+              setProcess(findPreferredDevice(), null, TaskTypeMappingUtils.convertTaskType(selectedTaskType), true);
+            }
+          }
         }
 
         // These need to be fired every time the process list changes so that the device/process dropdown always reflects the latest.
@@ -573,7 +702,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     Set<Common.Device> onlineDevices = filterOnlineDevices(devices);
 
     // We have a preferred device, try not to select anything else.
-    if (myAutoProfilingEnabled && myPreference.deviceName != null) {
+    if ((getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() || myAutoProfilingEnabled) && myPreference.deviceName != null) {
       for (Common.Device device : onlineDevices) {
         if (myPreference.deviceName.equals(buildDeviceName(device))) {
           return device;
@@ -602,7 +731,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process) {
-    setProcess(device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK);
+    setProcess(device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK, false);
   }
 
   /**
@@ -613,7 +742,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    *                  If it is null, a process will be determined automatically by heuristics.
    * @param taskType  the type of task to pass into beginSession so that the created session has a respective task type.
    */
-  public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process, @NotNull Common.ProfilerTaskType taskType) {
+  public void setProcess(@Nullable Common.Device device,
+                         @Nullable Common.Process process,
+                         @NotNull Common.ProfilerTaskType taskType,
+                         boolean isStartupTask) {
     if (device != null) {
       // Device can be not null in the following scenarios:
       // 1. User explicitly sets a device from the dropdown.
@@ -650,9 +782,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       setAutoProfilingEnabled(false);
     }
 
-    // If the process changes OR the process was set in via Task initiation in the Task-Based UX, we end the current session and begin
-    // a new one.
-    if (!Objects.equals(process, myProcess) || getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+    // If the process changes OR the process was set in via a non-startup task initiation in the Task-Based UX, we end the current session
+    // and begin a new one. In regard to startup tasks, a change in process to end the current session and begin a new one.
+    if (!Objects.equals(process, myProcess) || (!isStartupTask && getIdeServices().getFeatureConfig().isTaskBasedUxEnabled())) {
       // First make sure to end the previous session.
       mySessionsManager.endCurrentSession();
 
@@ -662,7 +794,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
-        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess, taskType);
+        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess, taskType, isStartupTask);
       }
     }
   }
@@ -722,9 +854,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // ProfilerAspect.AGENT aspect is done purposefully; these two synchronous operations serve as setup for the tasks to record new data
     // or load past recording (non-imported) data successfully.
     if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-      ProfilerTaskType selectedTaskType = mySessionsManager.getSelectedSessionProfilerTaskType();
+      ProfilerTaskType selectedTaskType = mySessionsManager.getCurrentTaskType();
       Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
-      ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, getTaskHandlers(), getSession(), sessionIdToSessionItems, myCreateTaskTab);
+      boolean isStartupTask = mySessionsManager.isCurrentTaskStartup();
+      ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, isStartupTask, getTaskHandlers(), getSession(), sessionIdToSessionItems,
+                                              myCreateTaskTab, myIdeServices);
     }
   }
 
@@ -752,6 +886,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
       }
     }
+  }
+
+  private boolean startupProfilingStarted() {
+    return startupCpuProfilingStarted() || startupMemoryProfilingStarted();
   }
 
   private boolean startupMemoryProfilingStarted() {
@@ -790,7 +928,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     // Prefer the project's app if available.
-    if (myAutoProfilingEnabled && myPreference.processName != null) {
+    if ((getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() || myAutoProfilingEnabled) && myPreference.processName != null) {
       for (Common.Process process : processes) {
         if (process.getName().equals(myPreference.processName) &&
             process.getState() == Common.Process.State.ALIVE &&
@@ -1013,16 +1151,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     ImmutableList.Builder<Class<? extends Stage>> listBuilder = ImmutableList.builder();
     listBuilder.add(CpuProfilerStage.class);
     listBuilder.add(MainMemoryProfilerStage.class);
-    // Show the energy stage in the list only when the session has JVMTI enabled or the device is above O.
-    boolean hasSession = mySelectedSession.getSessionId() != 0;
-    boolean isEnergyStageEnabled = hasSession ? mySessionsManager.getSelectedSessionMetaData().getJvmtiEnabled()
-                                              : myDevice != null && myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
     boolean isPowerProfilerDisabled =
       getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() == PowerProfilerDisplayMode.HIDE;
-
-    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled && isPowerProfilerDisabled) {
-      listBuilder.add(EnergyProfilerStage.class);
-    }
 
     // Show the custom event stage in the dropdown list of profiling options when enabled
     if (getIdeServices().getFeatureConfig().isCustomEventVisualizationEnabled()) {
@@ -1107,7 +1237,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * This method avoid negative timestamps which may be counter-intuitive.
    */
   public static Pair<Long, Long> computeImportedFileStartEndTimestampsNs(File file) {
-    long hash = Hashing.sha256().hashString(file.getAbsolutePath(), StandardCharsets.UTF_8).asLong();
+    long hash = normalizeHash(Hashing.sha256().hashString(file.getAbsolutePath(), StandardCharsets.UTF_8).asLong());
     // Avoid Long.MAX_VALUE which as the end timestamp means ongoing in transport pipeline.
     if (hash == Long.MAX_VALUE || hash == Long.MIN_VALUE || hash == Long.MIN_VALUE + 1) {
       hash /= 2;
@@ -1116,11 +1246,34 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (hash < 0) {
       hash = -hash;
     }
-    long rangeNs = TimeUnit.MICROSECONDS.toNanos(1);
+
+    // An IEEE 754 64 bit floating point number (which has 52 bits, plus 1 implied) can exactly represent integers with an absolute value
+    // of less than or equal to 2^53. The largest hash is 2 ^ 63 - 1, in nanoseconds, which is 2 ^ 60 in microseconds. So we need a range
+    // that's larger than 2 ^ (60 - 53) to guarantee the range's start and end are different in microseconds of double type. 1 second is
+    // 10 ^ 6 microsecond that can satisfy this condition.
+    // For example, 9060106487899244232L and 9060106487899245232L in nanoseconds (different by 1000) will be converted to the same
+    // microseconds in double type number 9.060106487899244E15.
+    long rangeNs = TimeUnit.SECONDS.toNanos(1);
+
     // Make sure (hash + rangeNs) as the end timestamp doesn't overflow.
     if (hash >= Long.MAX_VALUE - rangeNs) {
       hash -= rangeNs;
     }
     return new Pair<>(hash, hash + rangeNs);
+  }
+
+  /***
+   * This method will eliminate errors in the system due to possible loss of precision during conversion.
+   *
+   * Profilers code converts the range's start and end timestamps between nanoseconds as long and microseconds as double. The conversion
+   * may lose precision. For example, 9097726376199135381L will be converted to 9.097726376199136E15, which will then be converted to
+   * 9097726376199136000L. As the start timestamp is used as both the range's start and the import event timestamp, the loss of precision
+   * may cause the event fall out of range (the event's timestamp isn't being converted). (see details in b/311035879).
+   * @param originalHash
+   * @return long
+   */
+  private static long normalizeHash(long originalHash) {
+    double hashMs = TimeUnit.NANOSECONDS.toMicros(originalHash);
+    return TimeUnit.MICROSECONDS.toNanos((long)hashMs);
   }
 }

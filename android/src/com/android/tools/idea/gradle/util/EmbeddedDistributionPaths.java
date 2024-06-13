@@ -20,13 +20,16 @@ import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 import com.android.annotations.concurrency.Slow;
+import com.android.ide.common.gradle.Module;
 import com.android.ide.common.repository.AgpVersion;
+import com.android.ide.common.repository.MavenRepositories;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.downloads.AndroidProfilerDownloader;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.plugin.AgpVersions;
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -40,6 +43,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +55,7 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public List<File> findAndroidStudioLocalMavenRepoPaths() {
-    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode() && StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get().isBlank()) {
       return ImmutableList.of();
     }
     return doFindAndroidStudioLocalMavenRepoPaths();
@@ -61,29 +65,41 @@ public class EmbeddedDistributionPaths {
   public List<File> getNewProjectLocalMavenRepos(AgpVersion agpVersion) {
     // Only include the local repositories if the supplied version is not available in gmaven
     // but is available in the local development repos
-    if (AgpVersions.INSTANCE.onlyAvailableInDevelopmentOfflineRepo(agpVersion)) {
+    if (onlyAvailableInDevelopmentOfflineRepo(agpVersion)) {
       return doFindAndroidStudioLocalMavenRepoPaths();
     }
     return ImmutableList.of();
+  }
+
+  private static final Module AGP_PLUGIN_MARKER_MODULE = new Module("com.android.application", "com.android.application.gradle.plugin");
+  private boolean onlyAvailableInDevelopmentOfflineRepo(AgpVersion agpVersion) {
+    List<File> localMavenRepoPaths = findAndroidStudioLocalMavenRepoPaths();
+    List<AgpVersion> localVersions = localMavenRepoPaths
+      .stream()
+      .flatMap(p -> MavenRepositories.getAllVersions(p.toPath(), AGP_PLUGIN_MARKER_MODULE).stream())
+      .map(v -> AgpVersion.tryParse(v.toString()))
+      .filter(Objects::nonNull)
+      .toList();
+    return localVersions.contains(agpVersion) && !IdeGoogleMavenRepository.INSTANCE.getAgpVersions().contains(agpVersion);
   }
 
   @VisibleForTesting
   @NotNull
   static List<File> doFindAndroidStudioLocalMavenRepoPaths() {
     List<File> repoPaths = new ArrayList<>();
-    // Add prebuilt offline repo
+
+    List<String> studioFlagOfflineRepos = Splitter.on(File.pathSeparatorChar).omitEmptyStrings().splitToList(StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get());
+    for (String offlineRepo : studioFlagOfflineRepos) {
+      validateAndAdd(offlineRepo, repoPaths);
+    }
+
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
+      return repoPaths;
+    }
+
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
-      try {
-        Path customRepoPath = Paths.get(studioCustomRepo).toRealPath();
-        if (!Files.isDirectory(customRepoPath)) {
-          throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
-        }
-        repoPaths.add(customRepoPath.toFile());
-      }
-      catch (IOException e) {
-        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable", e);
-      }
+      validateAndAdd(studioCustomRepo, repoPaths);
     }
 
     if (StudioPathManager.isRunningFromSources()) {
@@ -102,6 +118,20 @@ public class EmbeddedDistributionPaths {
     }
 
     return ImmutableList.copyOf(repoPaths);
+  }
+
+  private static void validateAndAdd(String studioCustomRepo, List<File> repoPaths) {
+    try {
+      Path customRepoPath = Paths.get(studioCustomRepo).toRealPath();
+      if (!Files.isDirectory(customRepoPath)) {
+        Logger.getInstance(EmbeddedDistributionPaths.class).error("Invalid maven repo path: " + studioCustomRepo + " is not a directory.");
+        return;
+      }
+      repoPaths.add(customRepoPath.toFile());
+    }
+    catch (IOException e) {
+      Logger.getInstance(EmbeddedDistributionPaths.class).error("Invalid maven repo path: " + studioCustomRepo, e);
+    }
   }
 
   /**
@@ -241,7 +271,7 @@ public class EmbeddedDistributionPaths {
   public static Path getJdkRootPathFromSourcesRoot(String embeddedJdkPath) {
     Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot(embeddedJdkPath);
     if (SystemInfo.isWindows) {
-      if (embeddedJdkPath.endsWith("jdk")) { // our prebuilt JDK 1.8: has distinct win32/win64.  In practice we will want win64 always.
+      if (embeddedJdkPath.endsWith("jdk8")) { // our prebuilt JDK 1.8: has distinct win32/win64.  In practice we will want win64 always.
         jdkRootPath = jdkRootPath.resolve("win64");
       }
       else {

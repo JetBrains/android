@@ -8,5 +8,6 @@ android {
     renderScript = true
     buildConfig = true
     aidl = true
+    shaders = true
   }
 }

@@ -36,7 +36,7 @@ import javax.swing.JPanel
  */
 class ComposePreviewSettingsEditor(
   private val project: Project,
-  private val config: ComposePreviewRunConfiguration
+  private val config: ComposePreviewRunConfiguration,
 ) : SettingsEditor<ComposePreviewRunConfiguration>() {
   private val panel: JPanel
   private val debuggerTab: AndroidDebuggerPanel?
@@ -62,17 +62,17 @@ class ComposePreviewSettingsEditor(
       LabeledComponent.create(
         modulesComboBox,
         message("run.configuration.module.label"),
-        BorderLayout.WEST
+        BorderLayout.WEST,
       ),
-      TabularLayout.Constraint(0, 0)
+      TabularLayout.Constraint(0, 0),
     )
     tab.add(
       LabeledComponent.create(
         composableField,
         message("run.configuration.composable.label"),
-        BorderLayout.WEST
+        BorderLayout.WEST,
       ),
-      TabularLayout.Constraint(1, 0, 2)
+      TabularLayout.Constraint(1, 0, 2),
     )
     return tab
   }

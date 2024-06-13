@@ -125,7 +125,7 @@ public class MoreFontsDialog extends DialogWrapper {
     myFontList.setName("Font list");
     myFontDetailList.setMinimumSize(new Dimension(MIN_FONT_PREVIEW_WIDTH, MIN_FONT_PREVIEW_HEIGHT));
     myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    ProjectFonts projectFonts = showExistingFonts ? new ProjectFonts(myResourceRepository) : null;
+    ProjectFonts projectFonts = showExistingFonts ? new ProjectFonts(StudioDownloadableFontCacheService.getInstance(), myResourceRepository) : null;
     myModel = new FontListModel(projectFonts, showExistingFonts);
     myModel.setRepopulateListener(this::repopulated);
     myDetailModel = new DefaultListModel<>();
@@ -406,7 +406,7 @@ public class MoreFontsDialog extends DialogWrapper {
 
 
     private FontFamilyRenderer() {
-      myFontService = DownloadableFontCacheService.getInstance();
+      myFontService = StudioDownloadableFontCacheService.getInstance();
       myTitle = new HeaderLabel();
       myTitle.setBorder(JBUI.Borders.empty(0, 35, 0, 5));
 
@@ -510,7 +510,7 @@ public class MoreFontsDialog extends DialogWrapper {
     private final DownloadableFontCacheService myFontService;
 
     private FontDetailRenderer() {
-      myFontService = DownloadableFontCacheService.getInstance();
+      myFontService = StudioDownloadableFontCacheService.getInstance();
     }
 
     @Override
@@ -550,7 +550,7 @@ public class MoreFontsDialog extends DialogWrapper {
     private boolean myShowFrameworkFonts;
 
     private FontListModel(@Nullable ProjectFonts projectFonts, @NotNull Boolean showFrameworkFonts) {
-      myFontService = DownloadableFontCacheService.getInstance();
+      myFontService = StudioDownloadableFontCacheService.getInstance();
       myProjectFonts = projectFonts;
       myComparator = new SpeedSearchComparator();
       myFilteredList = new ArrayList<>();

@@ -118,9 +118,9 @@ public class KotlinMigrationTestGeneratorTest extends AndroidTestCase {
                  "\n" +
                  "    @Rule\n" +
                  "    val migrationTestHelper: MigrationTestHelper = MigrationTestHelper(\n" +
-                 "            InstrumentationRegistry.getInstrumentation(),\n" +
-                 "            AppDatabase::class.java.canonicalName,\n" +
-                 "            FrameworkSQLiteOpenHelperFactory())\n" +
+                 "        InstrumentationRegistry.getInstrumentation(),\n" +
+                 "        AppDatabase::class.java.canonicalName,\n" +
+                 "        FrameworkSQLiteOpenHelperFactory()\n    )\n" +
                  "\n" +
                  "    @Test\n" +
                  "    @Throws(IOException::class)\n" +
@@ -132,7 +132,11 @@ public class KotlinMigrationTestGeneratorTest extends AndroidTestCase {
                  "        // Prepare for the next version.\n" +
                  "        db.close()\n" +
                  "        // Re-open the database with version 2 and provide Migration_1_2 as the migration process.\n" +
-                 "        db = migrationTestHelper.runMigrationsAndValidate(TEST_APP_DATABASE, 2, true, Migration_1_2())\n" +
+                 "        db = migrationTestHelper.runMigrationsAndValidate(\n" +
+                 "            TEST_APP_DATABASE,\n" +
+                 "            2,\n" +
+                 "            true,\n" +
+                 "            Migration_1_2()\n        )\n" +
                  "        // MigrationTestHelper automatically verifies the schema changes, but you need to validate that the data was migrated properly.\n" +
                  "        Assert.fail(\"TODO: Verify data after migration is correct\")\n" +
                  "    }\n" +

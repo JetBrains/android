@@ -92,7 +92,7 @@ class ChainStyleViewActionTest : SceneTest() {
   private fun verifyApplicable(
     list: List<NlComponent>,
     action: ChainStyleViewAction,
-    expected: Boolean
+    expected: Boolean,
   ) {
     val mockViewEditor = mock(ViewEditor::class.java)
     whenever(mockViewEditor.scene).thenReturn(myScene)
@@ -141,7 +141,7 @@ class ChainStyleViewActionTest : SceneTest() {
       mockHandler,
       button0,
       mutableListOf(button0, button1, button2),
-      0
+      0,
     )
 
     myScreen
@@ -216,8 +216,8 @@ class ChainStyleViewActionTest : SceneTest() {
             .height("20dp")
             .withAttribute("app:layout_constraintTop_toTopOf", "parent")
             .withAttribute("app:layout_constraintBottom_toBottomOf", "parent")
-            .withAttribute("app:layout_constraintLeft_toLeftOf", "parent")
-        )
+            .withAttribute("app:layout_constraintLeft_toLeftOf", "parent"),
+        ),
     )
   }
 }

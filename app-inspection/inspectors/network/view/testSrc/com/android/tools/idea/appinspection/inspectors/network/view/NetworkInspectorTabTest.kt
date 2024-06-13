@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNav
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClientImpl
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
+import com.android.tools.idea.appinspection.inspectors.network.view.utils.findComponentWithUniqueName
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.Executors
@@ -37,50 +38,54 @@ import studio.network.inspection.NetworkInspectorProtocol
 class NetworkInspectorTabTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @Test
-  fun pressActionButtons() = runBlocking {
-    val scope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
-    val timer = FakeTimer()
-    timer.start()
-    val services =
-      TestNetworkInspectorServices(
-        FakeCodeNavigationProvider(),
-        timer,
-        NetworkInspectorClientImpl(
-          object : AppInspectorMessenger {
-            override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-              return NetworkInspectorProtocol.Response.newBuilder()
-                .apply {
-                  startInspectionResponse =
-                    NetworkInspectorProtocol.StartInspectionResponse.newBuilder()
-                      .apply { timestamp = 12345 }
-                      .build()
-                }
-                .build()
-                .toByteArray()
-            }
+  private val scope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+  private val timer = FakeTimer().apply { start() }
 
-            override val eventFlow = emptyFlow<ByteArray>()
-            override val scope = scope
+  private val services =
+    TestNetworkInspectorServices(
+      FakeCodeNavigationProvider(),
+      timer,
+      NetworkInspectorClientImpl(
+        object : AppInspectorMessenger {
+          override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+            return NetworkInspectorProtocol.Response.newBuilder()
+              .apply {
+                startInspectionResponse =
+                  NetworkInspectorProtocol.StartInspectionResponse.newBuilder()
+                    .apply { timestamp = 12345 }
+                    .build()
+              }
+              .build()
+              .toByteArray()
           }
-        )
-      )
+
+          override val eventFlow = emptyFlow<ByteArray>()
+          override val scope = this@NetworkInspectorTabTest.scope
+        }
+      ),
+    )
+
+  @Test
+  fun pressActionButtons(): Unit = runBlocking {
+    val dataSource = FakeNetworkInspectorDataSource(listOf(), listOf())
     val tab =
       NetworkInspectorTab(
         projectRule.project,
         FakeUiComponentsProvider(),
-        FakeNetworkInspectorDataSource(),
+        dataSource,
         services,
         scope,
-        projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable,
       )
 
     tab.launchJob.join()
 
-    val zoomOut = tab.actionsToolBar.getComponent(0) as CommonButton
-    val zoomIn = tab.actionsToolBar.getComponent(1) as CommonButton
-    val resetZoom = tab.actionsToolBar.getComponent(2) as CommonButton
-    val zoomToSelection = tab.actionsToolBar.getComponent(3) as CommonButton
+    val clearData = findComponentWithUniqueName(tab.actionsToolBar, "Clear data") as CommonButton
+    val zoomOut = findComponentWithUniqueName(tab.actionsToolBar, "Zoom out") as CommonButton
+    val zoomIn = findComponentWithUniqueName(tab.actionsToolBar, "Zoom in") as CommonButton
+    val resetZoom = findComponentWithUniqueName(tab.actionsToolBar, "Reset zoom") as CommonButton
+    val zoomToSelection =
+      findComponentWithUniqueName(tab.actionsToolBar, "Zoom to selection") as CommonButton
 
     tab.model.timeline.dataRange.set(0.0, 10.0)
     tab.model.timeline.selectionRange.set(0.0, 4.0)
@@ -104,5 +109,37 @@ class NetworkInspectorTabTest {
     resetZoom.doClick()
     timer.step()
     assertThat(tab.model.timeline.viewRange.length).isGreaterThan(defaultViewRange.length)
+
+    clearData.doClick()
+    assertThat(tab.model.timeline.dataRange.isEmpty).isTrue()
+    assertThat(tab.model.timeline.viewRange.isEmpty).isTrue()
+    assertThat(tab.model.timeline.selectionRange.isEmpty).isTrue()
+    assertThat(dataSource.resetCalledCount).isEqualTo(1)
+  }
+
+  @Test
+  fun zoomToSelection_enableState() = runBlocking {
+    val tab =
+      NetworkInspectorTab(
+        projectRule.project,
+        FakeUiComponentsProvider(),
+        FakeNetworkInspectorDataSource(),
+        services,
+        scope,
+        projectRule.fixture.testRootDisposable,
+      )
+
+    tab.launchJob.join()
+
+    val zoomToSelection =
+      findComponentWithUniqueName(tab.actionsToolBar, "Zoom to selection") as CommonButton
+
+    assertThat(zoomToSelection.isEnabled).isFalse()
+
+    tab.model.timeline.dataRange.set(0.0, 10.0)
+    assertThat(zoomToSelection.isEnabled).isFalse()
+
+    tab.model.timeline.selectionRange.set(0.0, 4.0)
+    assertThat(zoomToSelection.isEnabled).isTrue()
   }
 }

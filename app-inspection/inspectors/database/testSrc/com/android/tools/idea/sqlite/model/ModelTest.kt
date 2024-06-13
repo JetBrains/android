@@ -104,7 +104,7 @@ class ModelTest : TestCase() {
     assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.TIME_WITH_TIMEZONE))
     assertEquals(
       SqliteAffinity.NUMERIC,
-      SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP_WITH_TIMEZONE)
+      SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP_WITH_TIMEZONE),
     )
   }
 
@@ -128,7 +128,7 @@ class ModelTest : TestCase() {
     val databaseIdSdCard =
       SqliteDatabaseId.fromLiveDatabase(
         "/storage/emulated/0/com.example.package/databases/db-file",
-        0
+        0,
       )
 
     assertEquals("db-file", databaseIdSdCard.name)

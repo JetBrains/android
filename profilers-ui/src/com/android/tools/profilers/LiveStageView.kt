@@ -40,6 +40,8 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
   StageView<LiveStage>(profilersView, liveStage) {
 
   val binder: ViewBinder<StudioProfilersView, LiveDataModel, LiveDataView<out LiveDataModel>> = ViewBinder()
+  private val stopRecordingButton: CommonButton
+  private val liveStageToolbarItems: MutableList<JComponent>
 
   init {
     binder.bind(
@@ -61,6 +63,9 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
       -> UserEventTooltipView(stageView.component, tooltip)
     }
 
+    stopRecordingButton = createStopRecordingButton()
+    liveStageToolbarItems =  createLiveStageToolbarItems()
+
     tooltipPanel.layout = FlowLayout(FlowLayout.LEFT, 0, 0)
     val myTooltipComponent = RangeTooltipComponent(
       stage.timeline,
@@ -73,12 +78,7 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     val topPanel = JPanel(topPanelLayout)
     topPanel.background = ProfilerColors.DEFAULT_STAGE_BACKGROUND
 
-    val messagePanel = JPanel(TabularLayout("*"))
-    val messageBasedOnSupportLevel = getMessageBasedOnSupportLevel()
-    messagePanel.add(messageBasedOnSupportLevel, TabularLayout.Constraint(0, 0))
-
     topPanelLayout.setRowSizing(0, "Fit-")
-    topPanel.add(messagePanel, TabularLayout.Constraint(0, 0))
 
     if (liveStage.eventMonitor.isPresent) {
       liveStage.eventMonitor.let { eventMonitor ->
@@ -111,12 +111,45 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     component.add(topPanel, BorderLayout.CENTER)
   }
 
-  private fun getStopRecordingButton(): CommonButton {
-    return CommonButton(StudioIcons.Profiler.Toolbar.STOP_RECORDING).apply {
-      toolTipText = "Stop Recording"
-      addActionListener { stage.studioProfilers.sessionsManager.endCurrentSession() }
+  private val isLiveRecordingOngoing get() = stage.studioProfilers.sessionsManager.isSessionAlive
+
+  private fun onStopRecordingClick() {
+    stage.studioProfilers.sessionsManager.endCurrentSession()
+    stopRecordingButton.isVisible = false
+
+    // Live model icons in toolbar is set to invisible on stop recording button click
+    liveStageToolbarItems.forEach{ it.isVisible = false }
+  }
+
+  private fun createStopRecordingButton(): CommonButton {
+    val button = CommonButton(
+      if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+        StudioIcons.Profiler.Toolbar.STOP_SESSION
+      }
+      else {
+        StudioIcons.Profiler.Toolbar.STOP_RECORDING
+      }
+    ).apply {
+      toolTipText = Companion.stopRecordingTooltip
+      addActionListener {
+        onStopRecordingClick()
+      }
       putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, true)
     }
+    button.isVisible = isLiveRecordingOngoing
+    return button
+  }
+
+  private fun createLiveStageToolbarItems(): ArrayList<JComponent> {
+    val liveModelToolbarItems: ArrayList<JComponent> = ArrayList()
+    if (!isLiveRecordingOngoing) {
+      return liveModelToolbarItems
+    }
+    for (liveDataModel in stage.liveModels) {
+      val liveDataView: LiveDataView<out LiveDataModel> = binder.build(profilersView, liveDataModel)
+      liveDataView.toolbar?.let { liveModelToolbarItems.add(it) }
+    }
+    return liveModelToolbarItems
   }
 
   private fun rowSizeString(view: LiveDataView<LiveDataModel>): String {
@@ -125,36 +158,30 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
   }
 
   override fun getToolbar(): JComponent {
-    val liveDataViewsToolBar: MutableList<JComponent> = ArrayList()
-    for (liveDataModel in stage.liveModels) {
-      val view: LiveDataView<out LiveDataModel> = binder.build(profilersView, liveDataModel)
-      view.toolbar?.let {liveDataViewsToolBar.add(it)}
-    }
     val panel = JPanel(BorderLayout())
     val toolbar = JPanel(ProfilerLayout.createToolbarLayout())
     toolbar.removeAll()
-    liveDataViewsToolBar.forEach{toolbar.add(it)}
-    toolbar.add(getStopRecordingButton())
+    liveStageToolbarItems.forEach{toolbar.add(it)}
+    toolbar.add(stopRecordingButton)
     panel.add(toolbar, BorderLayout.WEST)
     return panel
   }
 
-  private fun getMessageBasedOnSupportLevel() = getMessage(stage.studioProfilers)
-
   companion object {
     private const val showDebuggableMessage = "debuggable.monitor.message"
     private const val showProfileableMessage = "profileable.monitor.message"
+    private const val stopRecordingTooltip = "Stop Recording"
     fun getMessage(studioProfiler: StudioProfilers): JComponent {
       return when (studioProfiler.selectedSessionSupportLevel) {
         SupportLevel.DEBUGGABLE -> DismissibleMessage.of(studioProfiler,
                                                          showDebuggableMessage,
-                                                         "Profiling with complete data. This does not represent app performance in production." +
-                                                         " Consider profiling with low overhead.",
+                                                         "Profiling as debuggable. This does not represent app performance in production." +
+                                                         " Consider profiling as profileable.",
                                                          SupportLevel.DOC_LINK)
 
         SupportLevel.PROFILEABLE -> DismissibleMessage.of(studioProfiler,
                                                           showProfileableMessage,
-                                                          "Profiling with low overhead. Certain profiler features will be unavailable in this mode.",
+                                                          "Profiling as profileable. Certain profiler features will be unavailable in this mode.",
                                                           SupportLevel.DOC_LINK)
 
         else -> {

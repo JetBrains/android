@@ -70,7 +70,7 @@ class DirectionsClassKtDescriptorsTest {
               android:label="Fragment2" />
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -92,7 +92,7 @@ class DirectionsClassKtDescriptorsTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val directionsClassMetadata =
@@ -165,7 +165,7 @@ class DirectionsClassKtDescriptorsTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -187,7 +187,7 @@ class DirectionsClassKtDescriptorsTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val directionsClassMetadata =
@@ -244,7 +244,7 @@ class DirectionsClassKtDescriptorsTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -266,7 +266,7 @@ class DirectionsClassKtDescriptorsTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val directionsClassMetadata =
@@ -328,7 +328,7 @@ class DirectionsClassKtDescriptorsTest {
           </navigation>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -350,7 +350,7 @@ class DirectionsClassKtDescriptorsTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val directionsClassMetadata =
@@ -369,7 +369,7 @@ class DirectionsClassKtDescriptorsTest {
         .containsExactly(
           "actionFragment2ToIncludedGraph(): androidx.navigation.NavDirections",
           "actionToIncludedGraph(): androidx.navigation.NavDirections",
-          "actionInnerNavigationToIncludedGraph(): androidx.navigation.NavDirections"
+          "actionInnerNavigationToIncludedGraph(): androidx.navigation.NavDirections",
         )
       assertThat(directionsClass.functions).isEmpty()
     }
@@ -381,7 +381,7 @@ class DirectionsClassKtDescriptorsTest {
       assertThat(directionsClass.companionObject!!.functions.map { it.toString() })
         .containsExactly(
           "actionToIncludedGraph(): androidx.navigation.NavDirections",
-          "actionInnerNavigationToIncludedGraph(): androidx.navigation.NavDirections"
+          "actionInnerNavigationToIncludedGraph(): androidx.navigation.NavDirections",
         )
       assertThat(directionsClass.functions).isEmpty()
     }
@@ -425,7 +425,7 @@ class DirectionsClassKtDescriptorsTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -447,7 +447,7 @@ class DirectionsClassKtDescriptorsTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val directionsClassMetadata =

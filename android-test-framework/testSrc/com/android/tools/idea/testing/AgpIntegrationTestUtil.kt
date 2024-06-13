@@ -49,6 +49,9 @@ object AgpIntegrationTestUtil {
           )
         }
       }
+      runInEdtAndWait {
+        AndroidGradleTests.waitForCreateRunConfigurations(project)
+      }
       AndroidTestBase.refreshProjectFiles()
     }
   }

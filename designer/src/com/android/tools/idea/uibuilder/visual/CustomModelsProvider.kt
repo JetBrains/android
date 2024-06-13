@@ -31,7 +31,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.xmlb.annotations.Transient
 import java.util.WeakHashMap
@@ -39,7 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet
 
 data class CustomConfigurationSet(
   var title: String = "Custom",
-  var customConfigAttributes: List<CustomConfigurationAttribute> = emptyList()
+  var customConfigAttributes: List<CustomConfigurationAttribute> = emptyList(),
 ) {
   @Transient
   fun addConfigAttribute(attribute: CustomConfigurationAttribute) {
@@ -73,7 +72,7 @@ data class CustomConfigurationAttribute(
   var localeString: String? = null,
   var theme: String? = null,
   var uiMode: UiMode? = null,
-  var nightMode: NightMode? = null
+  var nightMode: NightMode? = null,
 )
 
 private object CustomModelDataContext : DataContext {
@@ -91,7 +90,7 @@ private object CustomModelDataContext : DataContext {
 class CustomModelsProvider(
   val customId: String,
   val customConfigSet: CustomConfigurationSet,
-  private val configurationSetListener: ConfigurationSetListener
+  private val configurationSetListener: ConfigurationSetListener,
 ) : VisualizationModelsProvider {
 
   /**
@@ -123,7 +122,7 @@ class CustomModelsProvider(
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -154,7 +153,7 @@ class CustomModelsProvider(
           config.device,
           config.deviceState?.name,
           config.locale,
-          config.target
+          config.target,
         ) ?: currentFile
 
       val model =
@@ -165,7 +164,6 @@ class CustomModelsProvider(
           .build()
       model.modelDisplayName = customConfig.name
       models.add(model)
-      Disposer.register(model, config)
       configurationToConfigurationAttributesMap[config] = attributes
     }
     return models
@@ -173,7 +171,7 @@ class CustomModelsProvider(
 }
 
 private fun CustomConfigurationAttribute.toNamedConfiguration(
-  defaultConfig: Configuration
+  defaultConfig: ConfigurationForFile
 ): NamedConfiguration? {
   val settings = defaultConfig.settings
   val id = deviceId ?: return null
@@ -190,7 +188,7 @@ private fun CustomConfigurationAttribute.toNamedConfiguration(
     state.orientation = orientation
   }
 
-  val newConfig = ConfigurationForFile.create(defaultConfig, defaultConfig.file!!)
+  val newConfig = ConfigurationForFile.create(defaultConfig, defaultConfig.file)
   newConfig.setEffectiveDevice(device, state)
   newConfig.target = target
   newConfig.locale = if (localeString != null) Locale.create(localeString!!) else settings.locale

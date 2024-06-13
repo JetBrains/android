@@ -20,13 +20,12 @@ import com.android.tools.idea.insights.DeviceType
 import com.google.play.developer.reporting.DeviceModelSummary
 
 fun Device.Companion.fromProto(proto: DeviceModelSummary): Device {
+  val brand = proto.deviceId.buildBrand
+  val model = proto.deviceId.buildDevice
   return Device(
-    manufacturer = proto.deviceId.buildBrand, // e.g. xiaomi
-    model = proto.deviceId.buildDevice, // e.g. cereus
-    displayName =
-      proto
-        .marketingName // TODO: it seems I don't see any value here, not sure if it's still WIP on
-    // the server side.
+    manufacturer = brand, // e.g. xiaomi
+    model = model, // e.g. cereus
+    displayName = createFullDisplayName(brand, model, proto.marketingName),
   )
 }
 
@@ -42,8 +41,8 @@ fun Device.Companion.fromDimensions(dimensions: List<Dimension>): Device {
         manufacturer = (it.value as DimensionValue.StringValue).value
       }
       DimensionType.DEVICE_MODEL -> {
-        deviceModel = (it.value as DimensionValue.StringValue).value
-        displayName = it.displayValue
+        deviceModel = extractDeviceModel((it.value as DimensionValue.StringValue).value)
+        displayName = extractMarketingName(manufacturer, deviceModel, it.displayValue)
       }
       DimensionType.DEVICE_TYPE -> {
         deviceType = it.displayValue
@@ -56,6 +55,29 @@ fun Device.Companion.fromDimensions(dimensions: List<Dimension>): Device {
     manufacturer = manufacturer,
     model = deviceModel,
     displayName = displayName,
-    deviceType = DeviceType(deviceType)
+    deviceType = DeviceType(deviceType),
   )
+}
+
+private fun extractDeviceModel(value: String) = value.split('/').getOrElse(1) { value }
+
+private fun extractMarketingName(manufacturer: String, model: String, value: String): String {
+  val regex = Regex("^$manufacturer $model \\((.*)\\)$")
+  val result = regex.matchEntire(value)
+  return result?.groupValues?.getOrNull(1) ?: value
+}
+
+/**
+ * Constructs the full display name of a device using the manufacturer and marketing name.
+ *
+ * For cases where the marketing name's first word is the manufacturer name, we omit the
+ * manufacturer in the final output and use only the marketing name.
+ */
+private fun createFullDisplayName(manufacturer: String, model: String, value: String): String {
+  val marketingName = extractMarketingName(manufacturer, model, value)
+  return if (marketingName.startsWith(manufacturer, true)) {
+    marketingName
+  } else {
+    "$manufacturer $marketingName"
+  }
 }

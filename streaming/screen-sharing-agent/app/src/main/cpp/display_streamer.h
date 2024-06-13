@@ -28,6 +28,7 @@
 #include "common.h"
 #include "geom.h"
 #include "jvm.h"
+#include "socket_writer.h"
 #include "video_packet_header.h"
 
 namespace screensharing {
@@ -71,14 +72,14 @@ public:
   // Sets the maximum resolution of the display video stream.
   void SetMaxVideoResolution(Size max_video_resolution);
   // Returns the cached version of DisplayInfo.
-  DisplayInfo GetDisplayInfo();
+  [[nodiscard]] DisplayInfo GetDisplayInfo();
 
-  const CodecInfo* codec_info() const { return codec_info_; }
-  int32_t bit_rate() const { return bit_rate_; }
+  [[nodiscard]] const CodecInfo* codec_info() const { return codec_info_; }
+  [[nodiscard]] int32_t bit_rate() const { return bit_rate_; }
 
 private:
   struct DisplayRotationWatcher : public WindowManager::RotationWatcher {
-    DisplayRotationWatcher(DisplayStreamer* display_streamer);
+    explicit DisplayRotationWatcher(DisplayStreamer* display_streamer);
 
     void OnRotationChanged(int rotation) override;
 
@@ -90,33 +91,44 @@ private:
 
   void Run();
   // Returns true if the streaming should continue, otherwise false.
-  bool ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
+  bool ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
+  void CreateCodec();
+  // Deletes the codec if it was created. The codec should not be running when this method is called. Safe to call multiple times.
+  void DeleteCodec();
+  void StartCodecUnlocked();  // REQUIRES(mutex_)
+  // Stops the codec before deleting if it is running. Safe to call multiple times.
   void StopCodec();
   void StopCodecUnlocked();  // REQUIRES(mutex_)
   bool IsCodecRunning();
   // Returns true if the bit rate was deduced, false if it already reached allowed minimum.
   bool ReduceBitRate();
+  // Deletes the underlying OS display if the virtual_display_ or display_token_ refer to it.
+  // Safe to call multiple times.
+  void ReleaseVirtualDisplay(Jni jni);
 
-  virtual void OnDisplayAdded(int32_t display_id);
-  virtual void OnDisplayRemoved(int32_t display_id);
-  virtual void OnDisplayChanged(int32_t display_id);
+  void OnDisplayAdded(int32_t display_id) override;
+  void OnDisplayRemoved(int32_t display_id) override;
+  void OnDisplayChanged(int32_t display_id) override;
 
   std::thread thread_;
   DisplayRotationWatcher display_rotation_watcher_;
   int display_id_;
   const CodecInfo* codec_info_ = nullptr;  // Not owned.
-  int socket_fd_;
+  SocketWriter writer_;
   int64_t presentation_timestamp_offset_ = 0;
   int32_t bit_rate_;
   bool bit_rate_reduced_ = false;
   int32_t consequent_deque_error_count_ = 0;
   std::atomic_bool streamer_stopped_ = true;
+  VirtualDisplay virtual_display_;
+  JObject display_token_;
 
-  std::mutex mutex_;
+  AMediaCodec* codec_ = nullptr;
+  std::recursive_mutex mutex_;
   DisplayInfo display_info_;  // GUARDED_BY(mutex_)
   Size max_video_resolution_;  // GUARDED_BY(mutex_)
   int32_t video_orientation_;  // GUARDED_BY(mutex_)
-  AMediaCodec* running_codec_ = nullptr;  // GUARDED_BY(mutex_)
+  bool codec_running_ = false;  // GUARDED_BY(mutex_)
   bool codec_stop_pending_ = false;  // GUARDED_BY(mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(DisplayStreamer);

@@ -17,18 +17,16 @@
 #include "virtual_display.h"
 
 #include "jvm.h"
-#include "log.h"
 #include "surface.h"
 
 namespace screensharing {
 
 using namespace std;
 
-VirtualDisplay::VirtualDisplay(Jni jni, JObject&& virtual_display)
-    : jni_(jni),
-      virtual_display_(std::move(virtual_display)) {
-  JClass virtual_display_class = virtual_display_.GetClass();
+VirtualDisplay::VirtualDisplay(JObject&& virtual_display)
+    : JObject(std::move(virtual_display)) {
   if (set_surface_method_ == nullptr) {
+    JClass virtual_display_class = GetClass();
     set_surface_method_ = virtual_display_class.GetMethod("setSurface", "(Landroid/view/Surface;)V");
     resize_method_ = virtual_display_class.GetMethod("resize", "(III)V");
     release_method_ = virtual_display_class.GetMethod("release", "()V");
@@ -36,22 +34,35 @@ VirtualDisplay::VirtualDisplay(Jni jni, JObject&& virtual_display)
 }
 
 VirtualDisplay::~VirtualDisplay() {
-  Release();
+  ReleaseDisplay();
 }
 
-void VirtualDisplay::Release() {
-  if (virtual_display_.IsNotNull()) {
-    virtual_display_.CallVoidMethod(release_method_);
-    virtual_display_.Release();
+VirtualDisplay& VirtualDisplay::operator=(VirtualDisplay&& other) {
+  ReleaseDisplay();
+  JObject::operator=(static_cast<JObject&&>(other));
+  return *this;
+}
+
+void VirtualDisplay::ReleaseDisplay() {
+  if (IsNotNull()) {
+    CallVoidMethod(GetJni(), release_method_);
+    Release();
+  }
+}
+
+void VirtualDisplay::ReleaseDisplay(Jni jni) {
+  if (IsNotNull()) {
+    CallVoidMethod(jni, release_method_);
+    Release();
   }
 }
 
 void VirtualDisplay::Resize(int32_t width, int32_t height, int32_t density_dpi) {
-  virtual_display_.CallVoidMethod(resize_method_, width, height, density_dpi);
+  CallVoidMethod(resize_method_, width, height, density_dpi);
 }
 
 void VirtualDisplay::SetSurface(ANativeWindow* surface) {
-  virtual_display_.CallVoidMethod(set_surface_method_, SurfaceToJava(jni_, surface).ref());
+  CallVoidMethod(set_surface_method_, SurfaceToJava(GetJni(), surface).ref());
 }
 
 jmethodID VirtualDisplay::set_surface_method_ = nullptr;

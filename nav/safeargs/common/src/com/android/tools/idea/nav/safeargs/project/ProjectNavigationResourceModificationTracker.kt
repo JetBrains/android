@@ -33,7 +33,7 @@ class ProjectNavigationResourceModificationTracker(project: Project) :
       .connect(this)
       .subscribe(
         NAVIGATION_RESOURCES_CHANGED,
-        NavigationResourcesChangeListener { navigationChanged() }
+        NavigationResourcesChangeListener { navigationChanged() },
       )
   }
 

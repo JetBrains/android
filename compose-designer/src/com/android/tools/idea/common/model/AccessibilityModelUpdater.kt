@@ -33,7 +33,7 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
   override fun updateFromTagSnapshot(
     model: NlModel,
     newRoot: XmlTag?,
-    roots: MutableList<NlModel.TagSnapshotTreeNode>
+    roots: MutableList<NlModel.TagSnapshotTreeNode>,
   ) {
     var currentRootComponent = model.components.firstOrNull()
     if (newRoot != null) {
@@ -62,7 +62,7 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
       val composeViewInfos =
         parseViewInfo(
           rootViewInfo = viewInfo,
-          logger = Logger.getInstance(AccessibilityModelUpdater::class.java)
+          logger = Logger.getInstance(AccessibilityModelUpdater::class.java),
         )
       createTree(it, composeViewInfos, viewInfo.children, model, viewInfo.left, viewInfo.top)
     }
@@ -74,7 +74,7 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
     viewInfos: List<ViewInfo>,
     model: NlModel,
     rootGlobalX: Int,
-    rootGlobalY: Int
+    rootGlobalY: Int,
   ) {
     for (viewInfo in viewInfos) {
       val childComponent = NlComponent(model, viewInfo.getAccessibilitySourceId())

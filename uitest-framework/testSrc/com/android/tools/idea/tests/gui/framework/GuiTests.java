@@ -55,6 +55,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
@@ -259,6 +260,13 @@ public final class GuiTests {
   @NotNull
   public static File getFailedTestScreenshotDirPath() throws IOException {
     File dirPath = new File(getGuiTestRootDirPath(), "failures");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
+  public static File getFailedTestDiagnosticsDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "diagnostics");
     ensureExists(dirPath);
     return dirPath;
   }
@@ -644,6 +652,7 @@ public final class GuiTests {
   public static void waitForProjectIndexingToFinish(@NotNull Project project, @NotNull Wait indexing) {
     AtomicBoolean isProjectIndexed = new AtomicBoolean();
     DumbService.getInstance(project).smartInvokeLater(() -> isProjectIndexed.set(true));
+    IndexingTestUtil.waitUntilIndexesAreReady(project);
 
     try {
       indexing.expecting("Project indexing to finish")
@@ -659,7 +668,28 @@ public final class GuiTests {
   public static void waitForProjectIndexingToFinish(@NotNull Project project) {
     // Bazel wipes all Android Studio Caches between tests and all JDK and Android SDK libraries are re-indexed (about 50K files)
     // Usually this take 20-30 secs, but depends heavily on the machine and its load
-    waitForProjectIndexingToFinish(project, Wait.seconds(240));
+    waitForProjectIndexingToFinish(project, Wait.seconds(300));
+  }
+
+  public static void waitForIndexingDependenciesToFinish(@NotNull Project project, @NotNull Wait indexing) {
+    AtomicBoolean isDependenciesIndexed = new AtomicBoolean();
+    DumbService.getInstance(project).smartInvokeLater(() -> isDependenciesIndexed.set(true));
+
+    try {
+      indexing.expecting("Project indexing to finish")
+        .until(isDependenciesIndexed::get);
+    }
+    catch (WaitTimedOutError e) {
+      PerformanceWatcher.getInstance().dumpThreads("waiting-indexing", true);
+      LOG.error("Timeout out waiting project dependencies indexing to finish" + ThreadDumper.dumpThreadsToString());
+      throw e;
+    }
+  }
+
+  public static void waitForIndexingDependenciesToFinish(@NotNull Project project) {
+    // Bazel wipes all Android Studio Caches between tests and all JDK and Android SDK libraries are re-indexed (about 50K files)
+    // Usually this take 20-30 secs, but depends heavily on the machine and its load
+    waitForIndexingDependenciesToFinish(project, Wait.seconds(120));
   }
 
   public static void takeScreenshot(@NotNull Robot robot, @NotNull String name) {

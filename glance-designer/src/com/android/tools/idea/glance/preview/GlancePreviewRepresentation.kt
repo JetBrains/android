@@ -18,35 +18,41 @@ package com.android.tools.idea.glance.preview
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.actions.CommonPreviewActionManager
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
-import com.android.tools.preview.MethodPreviewElement
+import com.android.tools.preview.PreviewElement
+import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
 
 private val GLANCE_APPWIDGET_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /** A [PreviewRepresentation] for glance [PreviewElement]s */
-internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
+internal class GlancePreviewRepresentation(
   adapterViewFqcn: String,
   psiFile: PsiFile,
-  previewProvider: PreviewElementProvider<T>,
-  previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>,
+  previewProviderConstructor:
+    (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<PsiGlancePreviewElement>,
+  previewElementModelAdapterDelegate: PreviewElementModelAdapter<PsiGlancePreviewElement, NlModel>,
 ) :
-  CommonPreviewRepresentation<T>(
+  CommonPreviewRepresentation<PsiGlancePreviewElement>(
     adapterViewFqcn,
     psiFile,
-    previewProvider,
+    previewProviderConstructor,
     previewElementModelAdapterDelegate,
     ::CommonNlDesignSurfacePreviewView,
     ::GlancePreviewViewModel,
     NlDesignSurface.Builder::configureDesignSurface,
-    useCustomInflater = false
+    renderingTopic = RenderAsyncActionExecutor.RenderingTopic.GLANCE_PREVIEW,
+    useCustomInflater = false,
   )
 
 private fun NlDesignSurface.Builder.configureDesignSurface() {
-  setActionManagerProvider(::GlancePreviewActionManager)
+  setActionManagerProvider(::CommonPreviewActionManager)
   setSupportedActions(GLANCE_APPWIDGET_SUPPORTED_ACTIONS)
   setScreenViewProvider(GLANCE_SCREEN_VIEW_PROVIDER, false)
 }

@@ -65,6 +65,27 @@ import javax.swing.JPanel
 
 private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
 
+class FileEditorInspectorClient(
+  private val model: InspectorModel,
+  private val snapshotLoader: SnapshotLoader,
+  override val stats: SessionStatistics,
+) : InspectorClient by DisconnectedClient {
+  override val provider: PropertiesProvider
+    get() = snapshotLoader.propertiesProvider
+
+  override val capabilities: Set<InspectorClient.Capability>
+    get() =
+      mutableSetOf<InspectorClient.Capability>().apply {
+        if (model.pictureType == AndroidWindow.ImageType.SKP) {
+          add(InspectorClient.Capability.SUPPORTS_SKP)
+        }
+        addAll(snapshotLoader.capabilities)
+      }
+
+  override val process = snapshotLoader.processDescriptor
+  override val isConnected = true
+}
+
 class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
   UserDataHolderBase(), FileEditor {
   private var metrics: LayoutInspectorSessionMetrics? = null
@@ -75,7 +96,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
   override fun dispose() {
     metrics?.logEvent(
       DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA,
-      stats
+      stats,
     )
   }
 
@@ -103,34 +124,12 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
 
       // TODO: error handling
       snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
-      val model = InspectorModel(project)
+      val layoutInspectorCoroutineScope = AndroidCoroutineScope(this)
+      val model = InspectorModel(project, layoutInspectorCoroutineScope)
       stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
       metadata =
         snapshotLoader?.loadFile(path, model, notificationModel, stats) ?: throw Exception()
-      val client =
-        object : InspectorClient by DisconnectedClient {
-          override val provider: PropertiesProvider
-            get() = snapshotLoader.propertiesProvider
-
-          override val capabilities: Set<InspectorClient.Capability>
-            get() =
-              mutableSetOf<InspectorClient.Capability>().apply {
-                if (model.pictureType == AndroidWindow.ImageType.SKP) {
-                  add(InspectorClient.Capability.SUPPORTS_SKP)
-                }
-                addAll(snapshotLoader.capabilities)
-              }
-
-          override val process = snapshotLoader.processDescriptor
-
-          override val stats: SessionStatistics
-            get() = this@LayoutInspectorFileEditor.stats
-
-          override val isConnected
-            get() = true
-        }
-
-      val layoutInspectorCoroutineScope = AndroidCoroutineScope(this)
+      val client = FileEditorInspectorClient(model, snapshotLoader, stats)
 
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings(client.capabilities)
@@ -142,7 +141,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
           client,
           model,
           notificationModel,
-          treeSettings
+          treeSettings,
         )
       val deviceViewPanel =
         DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = workbench)
@@ -151,7 +150,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         deviceViewPanel,
         layoutInspector,
         listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
-        false
+        false,
       )
 
       metadata.loadDuration = System.currentTimeMillis() - startTime
@@ -168,7 +167,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         LayoutInspectorSessionMetrics(
           project,
           snapshotLoader.processDescriptor,
-          snapshotMetadata = metadata
+          snapshotMetadata = metadata,
         )
       metrics?.logEvent(SNAPSHOT_LOADED, stats)
     } catch (exception: Exception) {

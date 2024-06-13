@@ -34,6 +34,7 @@ import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -151,7 +152,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myItemList = new ItemList(myDependencyManager);
     myAddToDesignAction = new AddToDesignAction();
     myFavoriteAction = new FavoriteAction();
-    myAndroidDocAction = new ComponentHelpAction(project, this::getSelectedTagName);
+    myAndroidDocAction = new ComponentHelpAction(this::getSelectedTagName);
     myMaterialDocAction = new MaterialDocAction();
     myActionGroup = createPopupActionGroup();
 
@@ -447,7 +448,8 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private static Module getModule(@Nullable DesignSurface<?> designSurface) {
     Configuration configuration =
       designSurface != null && designSurface.getLayoutType().isEditable() ? designSurface.getConfiguration() : null;
-    return configuration != null ? configuration.getModule() : null;
+    ConfigurationManager manager = configuration != null ? ConfigurationManager.getFromConfiguration(configuration) : null;
+    return manager != null ? manager.getModule() : null;
   }
 
   @Override
@@ -591,6 +593,10 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void update(@NotNull AnActionEvent event) {
       event.getPresentation().setEnabled(addComponentToModel(true /* checkOnly */));
     }
@@ -647,6 +653,11 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public boolean isSelected(@NotNull AnActionEvent event) {
       Palette.Item item = myItemList.getSelectedValue();
       return item != null && myDataModel.isFavoriteItem(item);
@@ -679,6 +690,11 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (!reference.isEmpty()) {
         BrowserUtil.browse(reference);
       }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
 
     @Override

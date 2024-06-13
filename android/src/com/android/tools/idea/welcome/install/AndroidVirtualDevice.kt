@@ -17,11 +17,11 @@ package com.android.tools.idea.welcome.install
 
 import com.android.SdkConstants
 import com.android.repository.api.RemotePackage
-import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
@@ -31,31 +31,27 @@ import com.android.sdklib.internal.avd.HardwareProperties
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.meta.DetailsTypes
+import com.android.tools.analytics.CommonMetricsData.osArchitecture
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.avdmanager.AvdOptionsModel
-import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService
 import com.android.tools.idea.avdmanager.SystemImageDescription
+import com.android.tools.idea.avdmanager.ui.AvdOptionsModel
+import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Objects
-import com.google.common.collect.ImmutableSet
+import com.google.wireless.android.sdk.stats.ProductDetails
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
-import java.nio.file.Path
-import com.google.wireless.android.sdk.stats.ProductDetails
-
-import com.android.tools.analytics.CommonMetricsData.osArchitecture
 import com.intellij.util.system.CpuArch
-
+import org.jetbrains.annotations.VisibleForTesting
+import java.nio.file.Path
 
 /**
  * Logic for setting up Android virtual device
  */
-class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
+class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
   "Android Virtual Device",
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
   installUpdates
@@ -79,9 +75,14 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
     return SystemImageDescription(systemImages.iterator().next())
   }
 
-  @VisibleForTesting
+  fun isAvdCreationNeeded(sdkHandler: AndroidSdkHandler): Boolean {
+    val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
+    return avdManager.getAvds(true).isEmpty()
+  }
+
   @Throws(WizardException::class)
-  fun createAvd(connection: AvdManagerConnection, sdkHandler: AndroidSdkHandler): AvdInfo? {
+  fun createAvd(sdkHandler: AndroidSdkHandler): AvdInfo? {
+    val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
     val d = getDevice(sdkHandler.location!!)
     val systemImageDescription = getSystemImageDescription(sdkHandler)
     val cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString()
@@ -89,18 +90,19 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
       ?.let { defaultHardwareSkin ->
         DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get()
       }
-    val displayName = connection.uniquifyDisplayName(d.displayName + " " + systemImageDescription.version + " " + systemImageDescription.abiType)
-    val internalName = AvdWizardUtils.cleanAvdName(connection, displayName, true)
-    val abi = Abi.getEnum(systemImageDescription.abiType)
+
+    val displayName = avdManager.getDefaultDeviceDisplayName(d, systemImageDescription.version)
+    val internalName = AvdWizardUtils.cleanAvdName(avdManager, displayName, true)
+    val abi = Abi.getEnum(systemImageDescription.primaryAbiType)
     val useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription)
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
-    val settings = getAvdSettings(internalName, d)
+    val settings = getAvdSettings(displayName, internalName, d)
     if (useRanchu) {
       settings[AvdWizardUtils.CPU_CORES_KEY] =  "1".takeUnless { supportsSmp } ?: AvdWizardUtils.getMaxCpuCores().toString()
     }
-    return connection.createOrUpdateAvd(
+    return avdManager.createOrUpdateAvd(
       null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize,
-      hardwareSkinPath, settings, true
+      hardwareSkinPath, settings, null, true
     )
   }
 
@@ -137,12 +139,12 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
   }
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
-    myProgressStep.progressIndicator.isIndeterminate = true
-    myProgressStep.progressIndicator.text = "Creating Android virtual device"
-    installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
     try {
-      val avd = createAvd(AvdManagerConnection.getAvdManagerConnection(sdkHandler), sdkHandler)
-                ?: throw WizardException("Unable to create Android virtual device")
+      myProgressStep.progressIndicator.isIndeterminate = true
+      myProgressStep.progressIndicator.text = "Creating Android virtual device"
+      installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
+      val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
+      val avd = createAvd(sdkHandler) ?: throw WizardException("Unable to create Android virtual device")
       val successMessage = "Android virtual device ${avd.name} was successfully created\n"
       installContext.print(successMessage, ConsoleViewContentType.SYSTEM_OUTPUT)
     }
@@ -167,7 +169,7 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
     val connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler!!)
     val avds = connection.getAvds(false)
     for (avd in avds) {
-      if (avd.abiType == desired.abiType && avd.androidVersion == desired.version) {
+      if (avd.abiType == desired.primaryAbiType && avd.androidVersion == desired.version) {
         // We have a similar avd already installed. Deselect by default.
         return false
       }
@@ -177,32 +179,27 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
 
   companion object {
     val LOG = Logger.getInstance(AndroidVirtualDevice::class.java)
-    private const val DEFAULT_DEVICE_ID = "pixel_3a"
-    private val ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis", "Google APIs")
+    private const val DEFAULT_DEVICE_ID = "pixel_fold"
+    private val ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis_playstore", "Google Play")
     private val ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google LLC")
-    private val DEFAULT_RAM_SIZE = Storage(1536, Storage.Unit.MiB)
-    private val DEFAULT_HEAP_SIZE = Storage(256, Storage.Unit.MiB)
-    private val ENABLED_HARDWARE: Set<String> = ImmutableSet
-      .of(HardwareProperties.HW_ACCELEROMETER, HardwareProperties.HW_AUDIO_INPUT, HardwareProperties.HW_BATTERY,
-          HardwareProperties.HW_GPS, HardwareProperties.HW_KEYBOARD, HardwareProperties.HW_ORIENTATION_SENSOR,
-          HardwareProperties.HW_PROXIMITY_SENSOR, HardwareProperties.HW_SDCARD,
-          AvdManager.AVD_INI_GPU_EMULATION)
-    private val DISABLED_HARDWARE: Set<String> = setOf(
+    private val DEFAULT_RAM_SIZE = Storage(2, Storage.Unit.GiB)
+    private val DEFAULT_HEAP_SIZE = Storage(336, Storage.Unit.MiB)
+    private val ENABLED_HARDWARE = setOf(
+        HardwareProperties.HW_ACCELEROMETER, HardwareProperties.HW_AUDIO_INPUT, HardwareProperties.HW_BATTERY,
+        HardwareProperties.HW_GPS, HardwareProperties.HW_KEYBOARD, HardwareProperties.HW_ORIENTATION_SENSOR,
+        HardwareProperties.HW_PROXIMITY_SENSOR, HardwareProperties.HW_SDCARD,
+        AvdManager.AVD_INI_GPU_EMULATION)
+    private val DISABLED_HARDWARE = setOf(
       HardwareProperties.HW_DPAD, HardwareProperties.HW_MAINKEYS, HardwareProperties.HW_TRACKBALL, AvdManager.AVD_INI_SNAPSHOT_PRESENT
     )
 
     @Throws(WizardException::class)
     private fun getDevice(sdkPath: Path): Device {
-      val devices = DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices
-      for (device in devices) {
-        if (Objects.equal(device.id, DEFAULT_DEVICE_ID)) {
-          return device
-        }
-      }
-      throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
+      return DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices.find { it.id == DEFAULT_DEVICE_ID } ?:
+          throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
     }
 
-    private fun getAvdSettings(internalName: String, device: Device): MutableMap<String, String> {
+    private fun getAvdSettings(displayName: String, internalName: String, device: Device): MutableMap<String, String> {
       val result: MutableMap<String, String> = hashMapOf()
       result[AvdManager.AVD_INI_GPU_MODE] = GpuMode.AUTO.gpuSetting
       for (key in ENABLED_HARDWARE) {
@@ -211,26 +208,24 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
       for (key in DISABLED_HARDWARE) {
         result[key] = HardwareProperties.BOOLEAN_NO
       }
-      for (key in ImmutableSet.of(AvdManager.AVD_INI_CAMERA_BACK,
-                                  AvdManager.AVD_INI_CAMERA_FRONT)) {
-        result[key] = "emulated"
-      }
+      result[AvdManager.AVD_INI_CAMERA_BACK] = "virtualscene"
+      result[AvdManager.AVD_INI_CAMERA_FRONT] = "emulated"
       result[AvdManager.AVD_INI_DEVICE_NAME] = device.id
       result[AvdManager.AVD_INI_DEVICE_MANUFACTURER] = device.manufacturer
       result[AvdWizardUtils.AVD_INI_NETWORK_LATENCY] = EmulatedProperties.DEFAULT_NETWORK_LATENCY.asParameter
       result[AvdWizardUtils.AVD_INI_NETWORK_SPEED] = EmulatedProperties.DEFAULT_NETWORK_SPEED.asParameter
       result[AvdManager.AVD_INI_AVD_ID] = internalName
-      result[AvdManager.AVD_INI_DISPLAY_NAME] = internalName
-      result[AvdManagerConnection.AVD_INI_HW_LCD_DENSITY] = Density.XXHIGH.dpiValue.toString()
-      setStorageSizeKey(result, AvdManager.AVD_INI_RAM_SIZE, DEFAULT_RAM_SIZE, true)
+      result[AvdManager.AVD_INI_DISPLAY_NAME] = displayName
+      setStorageSizeKey(result, AvdManager.AVD_INI_RAM_SIZE, DEFAULT_RAM_SIZE, false)
+      setStorageSizeKey(result, AvdManager.AVD_INI_DATA_PARTITION_SIZE, DEFAULT_RAM_SIZE, false)
       setStorageSizeKey(result, AvdManager.AVD_INI_VM_HEAP_SIZE, DEFAULT_HEAP_SIZE, true)
-      setStorageSizeKey(result, AvdManager.AVD_INI_DATA_PARTITION_SIZE, EmulatedProperties.DEFAULT_INTERNAL_STORAGE, false)
+      val hardwareProperties = DeviceManager.getHardwareProperties(device)
+      result.putAll(hardwareProperties)
+
       return result
     }
 
-    private fun setStorageSizeKey(
-      result: MutableMap<String, String>, key: String, size: Storage, convertToMb: Boolean
-    ) {
+    private fun setStorageSizeKey(result: MutableMap<String, String>, key: String, size: Storage, convertToMb: Boolean) {
       result[key] = AvdOptionsModel.toIniString(size, convertToMb)
     }
   }

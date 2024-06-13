@@ -59,14 +59,14 @@ class VisualizationFormVisualLintHandlerTest {
           VisualLintErrorType.BOUNDS,
           listOf(fakeNlComponent),
           issueProvider,
-          "bounds"
+          "bounds",
         ),
         createTestVisualLintRenderIssue(
           VisualLintErrorType.OVERLAP,
           listOf(fakeNlComponent),
           issueProvider,
-          "overlap"
-        )
+          "overlap",
+        ),
       )
     handlerIssueProvider.addAllIssues(localIssues)
     issueModel.updateErrorsList()
@@ -84,7 +84,7 @@ class VisualizationFormVisualLintHandlerTest {
       VisualizationFormVisualLintHandler(
         rule.testRootDisposable,
         rule.project,
-        IssueModel(rule.projectRule.testRootDisposable, rule.project)
+        IssueModel(rule.projectRule.testRootDisposable, rule.project),
       )
 
     val service = VisualLintService.getInstance(rule.project)

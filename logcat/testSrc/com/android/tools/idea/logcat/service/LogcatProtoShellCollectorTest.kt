@@ -111,7 +111,7 @@ class LogcatProtoShellCollectorTest {
   private fun testFromFile(
     filename: String,
     expectedCount: Int,
-    bufferSize: Int = random.nextInt(10, 1000)
+    bufferSize: Int = random.nextInt(10, 1000),
   ): Unit = runBlocking {
     val bytes = TestResources.getFile(filename).readBytes()
     val buffers = bytes.asIterable().chunked(bufferSize) { ByteBuffer.wrap(it.toByteArray()) }
@@ -130,16 +130,15 @@ private suspend fun Flow<List<LogcatMessage>>.countMessages(): Int {
   return count
 }
 
-private fun LogcatProtoShellCollector.loadMessageFromFile(
-  filename: String,
-): List<LogcatMessage> = runBlocking {
-  val buffer = ByteBuffer.wrap(TestResources.getFile(filename).readBytes())
-  val messages = flow { collectStdout(this, buffer) }.toList().flatten()
-  messages.map {
-    val timestamp = it.header.timestamp
-    val millis = timestamp.getLong(ChronoField.MILLI_OF_SECOND)
-    val roundedTimestamp =
-      Instant.ofEpochSecond(timestamp.epochSecond, TimeUnit.MILLISECONDS.toNanos(millis))
-    it.copy(it.header.copy(timestamp = roundedTimestamp))
+private fun LogcatProtoShellCollector.loadMessageFromFile(filename: String): List<LogcatMessage> =
+  runBlocking {
+    val buffer = ByteBuffer.wrap(TestResources.getFile(filename).readBytes())
+    val messages = flow { collectStdout(this, buffer) }.toList().flatten()
+    messages.map {
+      val timestamp = it.header.timestamp
+      val millis = timestamp.getLong(ChronoField.MILLI_OF_SECOND)
+      val roundedTimestamp =
+        Instant.ofEpochSecond(timestamp.epochSecond, TimeUnit.MILLISECONDS.toNanos(millis))
+      it.copy(it.header.copy(timestamp = roundedTimestamp))
+    }
   }
-}

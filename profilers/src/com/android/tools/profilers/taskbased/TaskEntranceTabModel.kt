@@ -16,22 +16,18 @@
 package com.android.tools.profilers.taskbased
 
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.taskbased.tasks.TaskGridModel
+import com.android.tools.profilers.taskbased.task.TaskGridModel
 
 /**
  * This class is to be extended by tab UI models allowing the user to select and enter a Profiler task.
  */
 abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
-  val taskGridModel: TaskGridModel = TaskGridModel()
+  val taskGridModel: TaskGridModel = TaskGridModel(::updateProfilingProcessStartingPointDropdown)
 
   val selectedTaskType get() = taskGridModel.selectedTaskType.value
   val taskHandlers get() = profilers.taskHandlers
 
-  /**
-   * Returns whether the Profiler task button should be enabled or not. This usually means that a valid task is selected along with a valid
-   * process or recording to enter the task with.
-   */
-  abstract val isEnterTaskButtonEnabled : Boolean
+  open fun updateProfilingProcessStartingPointDropdown() {}
 
   /**
    * Handles click of start or open Profiler task button.

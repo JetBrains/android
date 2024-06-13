@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.WearPasswordInputDetector
 class AndroidLintWearPasswordInputInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.wear.password.input"),
-    WearPasswordInputDetector.ISSUE
+    WearPasswordInputDetector.ISSUE,
   )

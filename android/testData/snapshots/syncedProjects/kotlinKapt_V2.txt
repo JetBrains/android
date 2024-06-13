@@ -21,10 +21,6 @@ PROJECT                       : MainActivity
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-            TEST_COMPILE_MODE             : Android tests
-            TEST_COMPILE_MODE             : Unit tests
-            TEST_COMPILE_MODE             : None
     MODULE                        : MainActivity.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -72,7 +68,6 @@ PROJECT                       : MainActivity
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
                 ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:assembleLocalDebugUnitTest
                 REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:assembleLocalDebugUnitTest, :app:clean
@@ -80,30 +75,8 @@ PROJECT                       : MainActivity
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
                 BUNDLE                        : :app:bundleLocalDebug
                 APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
-                SOURCE_GEN                    : :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug
-                REBUILD                       : :app:assembleLocalDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugSources
-                SOURCE_GEN                    : :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+                BASELINE_PROFILE_GEN          : :app:generateLocalDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MainActivity.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -148,42 +121,20 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.9
+            LanguageLevel                 : 2.0
             MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -278,6 +229,7 @@ PROJECT                       : MainActivity
             LibraryLevel                  : module
             IsModuleLevel                 : true
             Scope                         : Test
+            IsExported                    : true
             LIBRARY                       : Gradle: kaptGeneratedClasses
                 *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
         LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
@@ -287,8 +239,6 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -311,38 +261,13 @@ PROJECT                       : MainActivity
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebugAndroidTest/processLocalDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/local/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:assembleLocalDebugUnitTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:assembleLocalDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources, :app:compileLocalDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
-                SOURCE_GEN                    : :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug
-                REBUILD                       : :app:assembleLocalDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugSources
-                SOURCE_GEN                    : :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+                CLEAN                         : :app:generateLocalDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleLocalDebugAndroidTest
+                REBUILD                       : :app:assembleLocalDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileLocalDebugAndroidTestSources
+                SOURCE_GEN                    : :app:generateLocalDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :app:generateLocalDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MainActivity.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -385,42 +310,20 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.9
+            LanguageLevel                 : 2.0
             MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -486,9 +389,9 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: kaptGeneratedClasses [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
+            IsExported                    : true
             LIBRARY                       : Gradle: kaptGeneratedClasses
                 *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebug [-]
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -504,31 +407,6 @@ PROJECT                       : MainActivity
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/processLocalDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/local/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:assembleLocalDebugUnitTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:assembleLocalDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources, :app:compileLocalDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
-                SOURCE_GEN                    : :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateLocalDebugSources
                 ASSEMBLE                      : :app:assembleLocalDebug
                 REBUILD                       : :app:assembleLocalDebug, :app:clean
@@ -536,6 +414,8 @@ PROJECT                       : MainActivity
                 SOURCE_GEN                    : :app:generateLocalDebugSources
                 BUNDLE                        : :app:bundleLocalDebug
                 APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+                BASELINE_PROFILE_GEN          : :app:generateLocalDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MainActivity.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -576,42 +456,20 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.9
+            LanguageLevel                 : 2.0
             MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -686,11 +544,10 @@ PROJECT                       : MainActivity
             LibraryLevel                  : module
             IsModuleLevel                 : true
             Scope                         : Test
+            IsExported                    : true
             LIBRARY                       : Gradle: kaptGeneratedClasses
                 *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -712,38 +569,13 @@ PROJECT                       : MainActivity
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugUnitTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/processLocalDebugResources/R.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:assembleLocalDebugUnitTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:assembleLocalDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources, :app:compileLocalDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugAndroidTestSources, :app:compileLocalDebugSources
-                SOURCE_GEN                    : :app:generateLocalDebugAndroidTestSources, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest
-                REBUILD                       : :app:assembleLocalDebug, :app:assembleLocalDebugUnitTest, :app:clean
+                CLEAN                         : :app:createMockableJar
+                ASSEMBLE                      : :app:assembleLocalDebugUnitTest
+                REBUILD                       : :app:assembleLocalDebugUnitTest, :app:clean
                 COMPILE_JAVA                  : :app:compileLocalDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateLocalDebugSources
-                ASSEMBLE                      : :app:assembleLocalDebug
-                REBUILD                       : :app:assembleLocalDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileLocalDebugSources
-                SOURCE_GEN                    : :app:generateLocalDebugSources
-                BUNDLE                        : :app:bundleLocalDebug
-                APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+                SOURCE_GEN                    : :app:createMockableJar
+                BASELINE_PROFILE_GEN          : :app:generateLocalDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : MainActivity.javaLib
         ExternalModuleGroup           : MainActivity
         ExternalModuleVersion         : unspecified
@@ -767,22 +599,9 @@ PROJECT                       : MainActivity
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
                 REBUILD                       : :javaLib:assemble, :javaLib:clean, :javaLib:testClasses
                 COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :javaLib:assemble
-                REBUILD                       : :javaLib:assemble, :javaLib:clean
-                COMPILE_JAVA                  : :javaLib:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
-                REBUILD                       : :javaLib:assemble, :javaLib:clean, :javaLib:testClasses
-                COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :javaLib:assemble
-                REBUILD                       : :javaLib:assemble, :javaLib:clean
-                COMPILE_JAVA                  : :javaLib:compileJava
     MODULE                        : MainActivity.javaLib.main
         ExternalModuleGroup           : MainActivity
         ExternalModuleType            : sourceSet
@@ -799,10 +618,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -814,10 +633,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.9
+            LanguageLevel                 : 2.0
             MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -854,22 +673,9 @@ PROJECT                       : MainActivity
             -                             : file://<PROJECT>/javaLib/build/tmp/kapt3/classes/main
             -                             : file://<PROJECT>/javaLib/build/resources/main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
                 REBUILD                       : :javaLib:assemble, :javaLib:clean, :javaLib:testClasses
                 COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :javaLib:assemble
-                REBUILD                       : :javaLib:assemble, :javaLib:clean
-                COMPILE_JAVA                  : :javaLib:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
-                REBUILD                       : :javaLib:assemble, :javaLib:clean, :javaLib:testClasses
-                COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :javaLib:assemble
-                REBUILD                       : :javaLib:assemble, :javaLib:clean
-                COMPILE_JAVA                  : :javaLib:compileJava
     MODULE                        : MainActivity.javaLib.test
         ExternalModuleGroup           : MainActivity
         ExternalModuleType            : sourceSet
@@ -888,10 +694,10 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -903,10 +709,10 @@ PROJECT                       : MainActivity
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.9
+            LanguageLevel                 : 2.0
             MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -939,22 +745,9 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : MainActivity.javaLib.main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
                 REBUILD                       : :javaLib:assemble, :javaLib:clean, :javaLib:testClasses
                 COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :javaLib:assemble
-                REBUILD                       : :javaLib:assemble, :javaLib:clean
-                COMPILE_JAVA                  : :javaLib:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :javaLib:assemble, :javaLib:testClasses
-                REBUILD                       : :javaLib:assemble, :javaLib:clean, :javaLib:testClasses
-                COMPILE_JAVA                  : :javaLib:compileJava, :javaLib:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :javaLib:assemble
-                REBUILD                       : :javaLib:assemble, :javaLib:clean
-                COMPILE_JAVA                  : :javaLib:compileJava
     MODULE                        : MainActivity.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.lib
@@ -1002,30 +795,13 @@ PROJECT                       : MainActivity
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
                 COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : MainActivity.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.lib
@@ -1068,42 +844,20 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.9
+            LanguageLevel                 : 2.0
             MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -1194,8 +948,6 @@ PROJECT                       : MainActivity
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -1207,30 +959,13 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : MainActivity.lib.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:assembleDebugAndroidTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : MainActivity.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.lib
@@ -1271,42 +1006,20 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.9
+            LanguageLevel                 : 2.0
             MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -1367,7 +1080,6 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             LibraryLevel                  : module
@@ -1375,30 +1087,13 @@ PROJECT                       : MainActivity
             LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
                 *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:assembleDebug, :lib:clean
                 COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : MainActivity.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.lib
@@ -1439,42 +1134,20 @@ PROJECT                       : MainActivity
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.9
+            LanguageLevel                 : 2.0
             MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
-                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+                apiVersion                    : 2.0
+                languageVersion               : 2.0
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -1562,8 +1235,6 @@ PROJECT                       : MainActivity
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -1575,30 +1246,13 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : MainActivity.lib.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
+                CLEAN                         : :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebugUnitTest, :lib:clean
                 COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                SOURCE_GEN                    : :lib:createMockableJar
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : MainActivity.app.main
@@ -1607,125 +1261,125 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/annotations.zip!/
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0
             *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar!/
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.collection:collection:1.0.0
             *CLASSES                      : jar://<M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar!/
         LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.core:core-ktx:1.0.1@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.core:core:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.core:core:1.0.1@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/annotations.zip!/
         LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.documentfile:documentfile:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.fragment:fragment:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0
             *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.print:print:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.2@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:core:1.3.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:monitor:1.3.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1
             *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
         LIBRARY                       : Gradle: com.google.dagger:dagger:2.6
@@ -1744,8 +1398,6 @@ PROJECT                       : MainActivity
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
@@ -1753,7 +1405,6 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateLocalDebugAndroidTestSources, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
             REBUILD                       : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:clean, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
@@ -1761,27 +1412,5 @@ PROJECT                       : MainActivity
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateLocalDebugAndroidTestSources, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleLocalDebug
             APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-        TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>::app:generateLocalDebugAndroidTestSources, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::javaLib:assemble, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileLocalDebugAndroidTestSources, <PROJECT>::app:compileLocalDebugSources, <PROJECT>::javaLib:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateLocalDebugAndroidTestSources, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            BUNDLE                        : :app:bundleLocalDebug
-            APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-        TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:clean, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileLocalDebugUnitTestSources, <PROJECT>::javaLib:compileJava, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
-            BUNDLE                        : :app:bundleLocalDebug
-            APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
-        TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::javaLib:assemble, <PROJECT>::lib:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:clean, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileLocalDebugSources, <PROJECT>::javaLib:compileJava, <PROJECT>::lib:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:generateDebugSources
-            BUNDLE                        : :app:bundleLocalDebug
-            APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
+            BASELINE_PROFILE_GEN          : :app:generateLocalDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile

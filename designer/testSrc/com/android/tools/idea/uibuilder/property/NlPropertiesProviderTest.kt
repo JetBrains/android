@@ -75,7 +75,7 @@ private fun PropertiesTable<NlPropertyItem>.contains(namespace: String, name: St
 
 private fun PropertiesTable<NlPropertyItem>.doesNotContain(
   namespace: String,
-  name: String
+  name: String,
 ): Boolean {
   return !this.contains(namespace, name)
 }
@@ -243,7 +243,7 @@ class NlPropertiesProviderTest {
       createComponents(
         component(LIST_PREFERENCE).viewObjectClassName(FQCN_LINEAR_LAYOUT),
         PREFERENCE_SCREEN,
-        FD_RES_XML
+        FD_RES_XML,
       )
     val properties = runReadAction { provider.getProperties(model, null, components) }
 
@@ -294,13 +294,13 @@ class NlPropertiesProviderTest {
   private fun createComponents(
     descriptor: ComponentDescriptor,
     parentTag: String = SdkConstants.LINEAR_LAYOUT,
-    resourceFolder: String = SdkConstants.FD_RES_LAYOUT
+    resourceFolder: String = SdkConstants.FD_RES_LAYOUT,
   ): List<NlComponent> {
     return createComponents(
       projectRule,
       descriptor,
       parentTag = parentTag,
-      resourceFolder = resourceFolder
+      resourceFolder = resourceFolder,
     )
   }
 

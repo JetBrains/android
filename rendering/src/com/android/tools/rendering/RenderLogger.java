@@ -168,7 +168,7 @@ public class RenderLogger implements IRenderLogger {
     @Nullable Project project,
     @Nullable Object credential,
     boolean logFramework,
-    @NotNull RenderProblem.RunnableFixFactory fixFactory,
+    @NotNull RenderProblem.ActionFixFactory fixFactory,
     @NotNull Supplier<HtmlLinkManager> linkManagerFactory) {
     myProjectBasePath = project == null ? null : project.getBasePath();
     myCredential = credential;
@@ -188,7 +188,7 @@ public class RenderLogger implements IRenderLogger {
    * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
    */
   public RenderLogger(@Nullable Project project) {
-    this(project, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY, () -> HtmlLinkManager.NOOP_LINK_MANAGER);
+    this(project, null, false, RenderProblem.NOOP_ACTION_FIX_FACTORY, () -> HtmlLinkManager.NOOP_LINK_MANAGER);
   }
 
   @VisibleForTesting

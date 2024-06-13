@@ -34,6 +34,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockProjectEx
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -49,6 +50,8 @@ import org.mockito.Mockito
 import org.mockito.Mockito.spy
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.SwingUtilities
+import kotlin.test.assertEquals
 
 @RunWith(Parameterized::class)
 class CpuProfilingConfigurationsDialogTest(private val deviceLevel: Int) {
@@ -86,6 +89,34 @@ class CpuProfilingConfigurationsDialogTest(private val deviceLevel: Int) {
     featureTracker = FakeFeatureTracker()
     myIdeServices.enableTaskBasedUx(true)
     configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+  }
+
+  @Test
+  fun testApplyButtonNotAvailableForTaskBasedUx() {
+    val a = SwingUtilities.invokeAndWait {
+      myIdeServices.enableTaskBasedUx(true)
+      val cpuProfilingConfigurationsDialog = CpuProfilingConfigurationsDialog(project, deviceLevel, model, {}, featureTracker,
+                                                                              myIdeServices)
+      try {
+        assertEquals(3, cpuProfilingConfigurationsDialog.createActions().size) // ok, cancel, help
+      } finally {
+        Disposer.dispose(cpuProfilingConfigurationsDialog.disposable)
+      }
+    }
+  }
+
+  @Test
+  fun testApplyButtonAvailableForNonTaskBasedUx() {
+    SwingUtilities.invokeAndWait {
+      myIdeServices.enableTaskBasedUx(false)
+      val cpuProfilingConfigurationsDialog = CpuProfilingConfigurationsDialog(project, deviceLevel, model, {}, featureTracker,
+                                                                              myIdeServices)
+      try {
+        assertEquals(4, cpuProfilingConfigurationsDialog.createActions().size) // ok, cancel, apply, help
+      } finally {
+        Disposer.dispose(cpuProfilingConfigurationsDialog.disposable)
+      }
+    }
   }
 
   @Test

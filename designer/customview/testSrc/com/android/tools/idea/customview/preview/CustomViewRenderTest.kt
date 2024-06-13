@@ -52,7 +52,7 @@ class CustomViewRenderTest {
       buildError?.printStackTrace()
       Assert.assertTrue(
         "The project must compile correctly for the test to pass",
-        isBuildSuccessful
+        isBuildSuccessful,
       )
     }
 
@@ -66,7 +66,7 @@ class CustomViewRenderTest {
       getXmlLayout(
         "com.example.myapplication.BroadcastManagerCustomView",
         shrinkWidth = false,
-        shrinkHeight = false
+        shrinkHeight = false,
       )
     val customPreviewXml =
       CustomViewLightVirtualFile("custom_preview.xml", fileContent) { virtualFile }
@@ -78,7 +78,7 @@ class CustomViewRenderTest {
 
     Assert.assertTrue(
       "Valid result image is expected to be bigger than 10x10. It's ${image.width}x${image.height}",
-      image.width > 10 && image.height > 10
+      image.width > 10 && image.height > 10,
     )
     Assert.assertNotNull(image.copy)
 

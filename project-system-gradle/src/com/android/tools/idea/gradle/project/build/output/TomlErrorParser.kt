@@ -22,6 +22,7 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
@@ -33,12 +34,10 @@ import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
 import java.nio.file.Paths
 import java.util.function.Consumer
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 class TomlErrorParser : BuildOutputParser {
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-    if (!line.startsWith("FAILURE: Build failed with an exception.")) return false
+    if (!line.startsWith(BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE)) return false
 
     // First skip to what went wrong line.
     if (!reader.readLine().isNullOrBlank()) return false
@@ -62,8 +61,10 @@ class TomlErrorParser : BuildOutputParser {
       val problemLine = reader.readLine() ?: return false
       val catalogName = PROBLEM_LINE_PATTERN.matchEntire(problemLine)?.groupValues?.get(1) ?: return false
       description.appendLine(problemLine)
-      val event = extractIssueInformation(catalogName, description, reader)
-      return event != null.also { event?.let { messageConsumer.accept(it) } }
+      val event = extractIssueInformation(catalogName, description, reader) ?: return false
+      messageConsumer.accept(event)
+      BuildOutputParserUtils.consumeRestOfOutput(reader)
+      return true
     } else if (firstDescriptionLine.endsWith("Invalid catalog definition:")) {
       val description = StringBuilder().appendLine("Invalid catalog definition.")
       val problemLine = reader.readLine() ?: return false
@@ -72,8 +73,10 @@ class TomlErrorParser : BuildOutputParser {
       val tomlTableName = TYPE_NAMING_PARSING[type] ?: return false
       val event = extractAliasInformation(
         catalog, tomlTableName, alias, description, reader
-      )
-      return event != null.also { event?.let { messageConsumer.accept(it) } }
+      ) ?: return false
+      messageConsumer.accept(event)
+      BuildOutputParserUtils.consumeRestOfOutput(reader)
+      return true
     }
     return false
   }
@@ -87,25 +90,32 @@ class TomlErrorParser : BuildOutputParser {
     while (true) {
       val descriptionLine = reader.readLine() ?: return null
       if (descriptionLine.startsWith("> Invalid catalog definition")) break
-      description.appendln(descriptionLine)
+      description.appendLine(descriptionLine)
     }
 
     val buildIssue = object : BuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = "Invalid TOML catalog definition."
+      override val title: String = BUILD_ISSUE_TITLE
+
+      private fun computeNavigatable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
+        val fileDescriptor = OpenFileDescriptor(project, virtualFile)
+        val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
+        val element = psiFile.childrenOfType<TomlTable>()
+                        .filter { it.header.key?.text == type }
+                        .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
+                        .find { it.key.text == alias } ?: return fileDescriptor
+        val document = psiFile.viewProvider.document ?: return fileDescriptor
+        val lineNumber = document.getLineNumber(element.textOffset)
+        val columnNumber = element.textOffset - document.getLineStartOffset(lineNumber)
+        return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
+      }
 
       override fun getNavigatable(project: Project): Navigatable? {
         val file = project.findCatalogFile(catalog) ?: return null
-        val psiFile = PsiManager.getInstance(project).findFile(file) ?: return null
-        val element = psiFile.childrenOfType<TomlTable>()
-          .filter { it.header.key?.text == type }
-          .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
-          .find { it.key.text == alias } ?: return null
-        val document = psiFile.viewProvider.document
-        val lineNumber = document.getLineNumber(element.textOffset)
-        val column = element.textOffset - document.getLineStartOffset(lineNumber)
-        return OpenFileDescriptor(project, file, lineNumber, column)
+        return runReadAction {
+          computeNavigatable(project, file)
+        }
       }
     }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
@@ -127,13 +137,13 @@ class TomlErrorParser : BuildOutputParser {
           absolutePath = file
         }
       }
-      description.appendln(descriptionLine)
+      description.appendLine(descriptionLine)
     }
 
     val buildIssue = object : BuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = "Invalid TOML catalog definition."
+      override val title: String = BUILD_ISSUE_TITLE
 
       override fun getNavigatable(project: Project): Navigatable? {
         val tomlFile = when {
@@ -151,6 +161,7 @@ class TomlErrorParser : BuildOutputParser {
     baseDir?.findChild("gradle")?.findChild("$catalog.versions.toml")
 
   companion object {
+    const val BUILD_ISSUE_TITLE: String = "Invalid TOML catalog definition."
     val PROBLEM_LINE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), parsing failed with [0-9]+ error(?:s)?.".toRegex()
     val PROBLEM_ALIAS_PATTERN: Regex =  "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
     val REASON_POSITION_PATTERN: Regex = "\\s+Reason: At line ([0-9]+), column ([0-9]+):.*".toRegex()

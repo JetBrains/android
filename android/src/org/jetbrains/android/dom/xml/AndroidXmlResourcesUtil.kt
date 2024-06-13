@@ -45,7 +45,7 @@ object AndroidXmlResourcesUtil {
       "Key" to "Keyboard_Key",
       XmlResourceDomFileDescription.DEVICE_ADMIN_TAG_NAME to "DeviceAdmin",
       XmlResourceDomFileDescription.ACCOUNT_AUTHENTICATOR_TAG_NAME to "AccountAuthenticator",
-      "header" to "PreferenceHeader"
+      "header" to "PreferenceHeader",
     )
 
   @JvmField
@@ -90,11 +90,11 @@ object AndroidXmlResourcesUtil {
   enum class PreferenceSource(val qualifiedBaseClass: String, val qualifiedGroupClass: String) {
     ANDROIDX(
       PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.newName(),
-      PreferenceAndroidX.CLASS_PREFERENCE_GROUP_ANDROIDX.newName()
+      PreferenceAndroidX.CLASS_PREFERENCE_GROUP_ANDROIDX.newName(),
     ),
     SUPPORT(
       PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.oldName(),
-      PreferenceAndroidX.CLASS_PREFERENCE_GROUP_ANDROIDX.oldName()
+      PreferenceAndroidX.CLASS_PREFERENCE_GROUP_ANDROIDX.oldName(),
     ),
     FRAMEWORK(PreferenceClasses.CLASS_PREFERENCE, PreferenceClasses.CLASS_PREFERENCE_GROUP);
 

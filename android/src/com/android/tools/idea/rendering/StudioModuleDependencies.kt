@@ -23,10 +23,10 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.module.ModuleDependencies
+import com.android.tools.module.ViewClass
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
 import java.io.IOException
 
 /** Studio specific implementation of [ModuleDependencies]. */
@@ -47,9 +47,9 @@ class StudioModuleDependencies(private val module: Module) : ModuleDependencies 
         }
       ).filterNotNull().distinct().toList()
 
-  override fun findPsiClassInModuleAndDependencies(fqcn: String): PsiClass? {
+  override fun findViewClass(fqcn: String): ViewClass? {
     val facade = JavaPsiFacade.getInstance(module.project)
-    return facade.findClass(fqcn, module.getModuleWithDependenciesAndLibrariesScope(false))
+    return facade.findClass(fqcn, module.getModuleWithDependenciesAndLibrariesScope(false))?.let { PsiClassViewClass(it) }
   }
 }
 

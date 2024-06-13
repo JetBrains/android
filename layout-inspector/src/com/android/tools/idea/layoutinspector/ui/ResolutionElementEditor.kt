@@ -52,7 +52,7 @@ private const val LINK_BORDER = 2
 class ResolutionElementEditor(
   private val model: ResolutionStackModel,
   @get:VisibleForTesting val editorModel: PropertyEditorModel,
-  editor: JComponent
+  editor: JComponent,
 ) : JPanel(BorderLayout()) {
 
   private val linkPanel = JPanel()
@@ -82,10 +82,7 @@ class ResolutionElementEditor(
 
   private fun updateFromModel() {
     val property = editorModel.property as InspectorPropertyItem
-    val context = property.lookup
-    val view = context[property.viewId]
-    val resourceLookup = property.lookup.resourceLookup
-    val locations = view?.let { resourceLookup.findFileLocations(property, it) } ?: listOf()
+    val locations = property.sourceLocations
     val classLocation = (property as? InspectorGroupPropertyItem)?.classLocation
     val hideLinkPanel =
       (locations.isEmpty() && classLocation == null) ||
@@ -117,7 +114,7 @@ class ResolutionElementEditor(
     private val property: InspectorPropertyItem,
     locations: List<SourceLocation>,
     private val isSelected: Boolean,
-    isOverridden: Boolean
+    isOverridden: Boolean,
   ) : JPanel(BorderLayout()) {
 
     private val extraPanel = JPanel()
@@ -205,8 +202,7 @@ class ResolutionElementEditor(
       if (property is PTableGroupItem) {
         return true
       }
-      val view = property.lookup[property.viewId] ?: return false
-      return property.lookup.resourceLookup.findFileLocations(property, view, max = 1).isNotEmpty()
+      return property.sourceLocations.isNotEmpty()
     }
   }
 
@@ -221,7 +217,7 @@ class ResolutionElementEditor(
   private class SourceLocationLink(
     private val location: SourceLocation,
     isSelected: Boolean,
-    isOverridden: Boolean
+    isOverridden: Boolean,
   ) : JBLabel() {
 
     init {

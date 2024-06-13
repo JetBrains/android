@@ -16,7 +16,7 @@
 package com.android.tools.sdk
 
 import com.android.repository.api.ProgressIndicatorAdapter
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.environment.Logger
 
 /** Copy of [StudioLoggerProgressIndicator]. */
 internal class LoggerProgressIndicator(c: Class<*>) : ProgressIndicatorAdapter() {

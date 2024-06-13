@@ -49,7 +49,7 @@ class ItemNodeType : ViewNodeType<Item>() {
     data: Transferable,
     before: Any?,
     isMove: Boolean,
-    draggedFromTree: List<Any>
+    draggedFromTree: List<Any>,
   ): Boolean {
     if (!node.acceptInsert) {
       return false

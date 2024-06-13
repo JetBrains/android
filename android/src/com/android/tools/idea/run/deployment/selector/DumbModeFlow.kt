@@ -21,28 +21,31 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
 
 internal enum class DumbModeStatus {
   DUMB_MODE,
-  SMART_MODE
+  SMART_MODE,
 }
 
-internal fun dumbModeFlow(project: Project): Flow<DumbModeStatus> = callbackFlow {
-  val connection = project.messageBus.connect()
-  connection.subscribe(
-    DumbService.DUMB_MODE,
-    object : DumbService.DumbModeListener {
-      override fun enteredDumbMode() {
-        trySendBlocking(DumbModeStatus.DUMB_MODE)
-      }
+internal fun dumbModeFlow(project: Project): Flow<DumbModeStatus> =
+  callbackFlow {
+      val connection = project.messageBus.connect()
+      connection.subscribe(
+        DumbService.DUMB_MODE,
+        object : DumbService.DumbModeListener {
+          override fun enteredDumbMode() {
+            trySendBlocking(DumbModeStatus.DUMB_MODE)
+          }
 
-      override fun exitDumbMode() {
-        trySendBlocking(DumbModeStatus.SMART_MODE)
-      }
+          override fun exitDumbMode() {
+            trySendBlocking(DumbModeStatus.SMART_MODE)
+          }
+        },
+      )
+      trySendBlocking(
+        if (DumbService.isDumb(project)) DumbModeStatus.DUMB_MODE else DumbModeStatus.SMART_MODE
+      )
+      awaitClose { connection.disconnect() }
     }
-  )
-  trySendBlocking(
-    if (DumbService.isDumb(project)) DumbModeStatus.DUMB_MODE else DumbModeStatus.SMART_MODE
-  )
-  awaitClose { connection.disconnect() }
-}
+    .conflate()

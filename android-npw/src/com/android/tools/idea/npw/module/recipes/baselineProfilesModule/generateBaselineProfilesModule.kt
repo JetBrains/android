@@ -47,15 +47,16 @@ const val MACROBENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val BENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val RUN_CONFIGURATION_NAME = "Generate Baseline Profile"
 const val PROFILE_INSTALLER_MIN_REV = "1.3.1"
-const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.2"
-const val MACROBENCHMARK_MIN_REV = "1.2.2"
+const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.3"
+const val MACROBENCHMARK_MIN_REV = "1.2.3"
 
 fun RecipeExecutor.generateBaselineProfilesModule(
   newModule: ModuleTemplateData,
   useGradleKts: Boolean,
   targetModule: Module,
   useGmd: Boolean,
-  useVersionCatalog: Boolean = true
+  useVersionCatalog: Boolean = true,
+  useConfigurationCaching: Boolean = true
 ) {
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
 
@@ -70,6 +71,10 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
   val gmdSpec = if (useGmd) GmdSpec(GMD_DEVICE, GMD_API, GMD_SYSTEM_IMAGE_SOURCE) else null
+
+  if (useConfigurationCaching) {
+    append("org.gradle.configuration-cache=true", newModule.projectTemplateData.rootDir.resolve("gradle.properties"))
+  }
 
   val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
 

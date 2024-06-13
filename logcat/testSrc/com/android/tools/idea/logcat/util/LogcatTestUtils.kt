@@ -55,7 +55,7 @@ internal fun MessageProcessor.onIdle(run: () -> Unit) {
   awaitQuiescence(
     AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
     TIMEOUT_SEC,
-    TimeUnit.SECONDS
+    TimeUnit.SECONDS,
   )
   runInEdtAndWait { run() }
 }

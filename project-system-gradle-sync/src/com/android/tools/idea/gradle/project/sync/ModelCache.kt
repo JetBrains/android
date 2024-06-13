@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.Version
 import com.android.build.OutputFile
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.Library
@@ -35,6 +34,7 @@ import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -63,7 +63,7 @@ interface ModelCache {
       androidProject: IdeAndroidProjectImpl,
       variant: Variant,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-      modelVersion: AgpVersion?,
+      modelVersions: ModelVersions,
       androidModuleId: ModuleId
     ): ModelResult<IdeVariantWithPostProcessor>
 
@@ -113,7 +113,7 @@ interface ModelCache {
       buildId: BuildId,
       basicProject: BasicAndroidProject,
       project: com.android.builder.model.v2.models.AndroidProject,
-      androidVersion: Versions,
+      androidVersion: ModelVersions,
       androidDsl: AndroidDsl,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
@@ -128,12 +128,16 @@ interface ModelCache {
     const val LOCAL_JARS = "__local_jars__"
 
     @JvmStatic
-    fun createForTests(useV2BuilderModels: Boolean): ModelCache {
+    fun createForTests(useV2BuilderModels: Boolean, agpVersion: AgpVersion): ModelCache {
       val internedModels = InternedModels(null)
       return if (useV2BuilderModels) {
         modelCacheV2Impl(
           internedModels,
-          AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION),
+          ModelVersions(
+            agp = agpVersion,
+            modelVersion = ModelVersion(Int.MAX_VALUE, Int.MAX_VALUE, "Fake model for tests"),
+            minimumModelConsumer = null,
+            ),
           syncTestMode = SyncTestMode.PRODUCTION,
           false,
         )
@@ -172,8 +176,8 @@ typealias IdeVariantWithPostProcessor = IdeModelWithPostProcessor<IdeVariantCore
 val IdeVariantWithPostProcessor.variant: IdeVariantCoreImpl get() = model
 val IdeVariantWithPostProcessor.name: String get() = variant.name
 val IdeVariantWithPostProcessor.mainArtifact: IdeAndroidArtifactCoreImpl get() = variant.mainArtifact
-val IdeVariantWithPostProcessor.unitTestArtifact: IdeJavaArtifactCoreImpl? get() = variant.unitTestArtifact
-val IdeVariantWithPostProcessor.androidTestArtifact: IdeAndroidArtifactCoreImpl? get() = variant.androidTestArtifact
+val IdeVariantWithPostProcessor.hostTestArtifacts: List<IdeJavaArtifactCoreImpl> get() = variant.hostTestArtifacts
+val IdeVariantWithPostProcessor.deviceTestArtifacts: List<IdeAndroidArtifactCoreImpl> get() = variant.deviceTestArtifacts
 val IdeVariantWithPostProcessor.testFixturesArtifact: IdeAndroidArtifactCoreImpl? get() = variant.testFixturesArtifact
 
 @VisibleForTesting
@@ -199,14 +203,12 @@ fun getDefaultVariant(variantNames: Collection<String>): String? {
   return sortedNames.first()
 }
 
-internal val AgpVersion.agpModelIncludesApplicationId: Boolean
-   get() = isAtLeast(7, 4, 0, "alpha", 4, false)
-
 internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
   ARTIFACT_NAME_MAIN -> IdeArtifactName.MAIN
   ARTIFACT_NAME_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
   ARTIFACT_NAME_UNIT_TEST -> IdeArtifactName.UNIT_TEST
   ARTIFACT_NAME_TEST_FIXTURES -> IdeArtifactName.TEST_FIXTURES
+  ARTIFACT_NAME_SCREENSHOT_TEST -> IdeArtifactName.SCREENSHOT_TEST
   else -> error("Invalid android artifact name: $name")
 }
 

@@ -90,7 +90,7 @@ class SafeArgsIconsRenderingTest {
         }
       """
           .trimIndent(),
-        fixture.project
+        fixture.project,
       )
     }
 
@@ -145,7 +145,7 @@ class SafeArgsIconsRenderingTest {
         }
       """
           .trimIndent(),
-        fixture.project
+        fixture.project,
       )
     }
 
@@ -188,7 +188,7 @@ class SafeArgsIconsRenderingTest {
         // completions.
         "arg1" to KotlinIcons.FIELD_VAL,
         "copy" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
-        "toBundle" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function)
+        "toBundle" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
       )
 
     // directions class only has companion object

@@ -20,7 +20,7 @@ class DeviceManager2ToolWindowFactoryTest {
 
     Assert.assertEquals(
       toolWindow.librarySearchClass,
-      AndroidEnvironmentChecker::class.qualifiedName
+      AndroidEnvironmentChecker::class.qualifiedName,
     )
   }
 }

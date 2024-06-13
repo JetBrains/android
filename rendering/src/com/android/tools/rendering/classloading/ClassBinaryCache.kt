@@ -52,7 +52,7 @@ interface ClassBinaryCache {
           fqcn: String,
           transformationId: String,
           libraryPath: String,
-          data: ByteArray
+          data: ByteArray,
         ) {}
 
         override fun setDependencies(paths: Collection<String>) {}

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android.productFlavors;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -35,14 +36,16 @@ public class ExternalNativeBuildOptionsDslElement extends GradleDslBlockElement 
                                        ExternalNativeBuildOptionsDslElement::new,
                                        ExternalNativeBuildOptionsDslElementSchema::new);
 
-  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"cmake", CMakeOptionsDslElement.CMAKE_OPTIONS},
     {"ndkBuild", NdkBuildOptionsDslElement.NDK_BUILD_OPTIONS},
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 
@@ -51,9 +54,8 @@ public class ExternalNativeBuildOptionsDslElement extends GradleDslBlockElement 
   }
 
   public static final class ExternalNativeBuildOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 

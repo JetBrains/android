@@ -25,7 +25,7 @@ import org.jetbrains.uast.UExpression
 /** [AnnotationAttributesProvider] implementation based on [UAnnotation]. */
 internal class UastAnnotationAttributesProvider(
   private val annotation: UAnnotation,
-  private val defaultValues: Map<String, String?>
+  private val defaultValues: Map<String, String?>,
 ) : AnnotationAttributesProvider {
 
   override fun <T> getAttributeValue(attributeName: String): T? {

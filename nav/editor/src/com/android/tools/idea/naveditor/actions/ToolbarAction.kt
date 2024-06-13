@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -26,7 +27,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import javax.swing.Icon
 import javax.swing.JComponent
 
-abstract class ToolbarAction(protected val surface: NavDesignSurface, description: String, icon: Icon) :
+abstract class ToolbarAction(description: String, icon: Icon) :
   IconWithTextAction("", description, icon) {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -38,16 +39,11 @@ abstract class ToolbarAction(protected val surface: NavDesignSurface, descriptio
     return super.createCustomComponent(presentation, place)
   }
 
-  protected abstract fun isEnabled(): Boolean
+  protected abstract fun isEnabled(surface: NavDesignSurface): Boolean
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    buttonPresentation?.isEnabled = isEnabled()
-  }
-
-  protected fun supportsSubtag(component: NlComponent, subtag: Class<out AndroidDomElement>): Boolean {
-    val model = surface.model ?: return false
-    val schema = NavigationSchema.get(model.module)
-    return schema.getDestinationSubtags(component.tagName).containsKey(subtag)
+    val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface
+    buttonPresentation?.isEnabled = surface?.let { isEnabled(it) } ?: false
   }
 }

@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
@@ -40,6 +41,7 @@ import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.CodeShrinker
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
@@ -57,11 +59,13 @@ import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
 import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getScreenshotTestModule
 import com.android.tools.idea.projectsystem.getTestFixturesModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.getUnitTestModule
 import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isScreenshotTestModule
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.rendering.StudioModuleDependencies
@@ -266,9 +270,13 @@ class GradleModuleSystem(
 
     return when (scope) {
       DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.compileClasspath
-      DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.compileClasspath
-      DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.compileClasspath
+      DependencyScopeType.ANDROID_TEST ->
+        gradleModel.selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath
+      DependencyScopeType.UNIT_TEST ->
+        gradleModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.compileClasspath
       DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariant.testFixturesArtifact?.compileClasspath
+      DependencyScopeType.SCREENSHOT_TEST ->
+        gradleModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }?.compileClasspath
     }
   }
 
@@ -284,9 +292,10 @@ class GradleModuleSystem(
       val selectedVariant = gradleModel.selectedVariant
       val artifact = when (scope) {
         DependencyScopeType.MAIN -> selectedVariant.mainArtifact
-        DependencyScopeType.ANDROID_TEST -> selectedVariant.androidTestArtifact
-        DependencyScopeType.UNIT_TEST -> selectedVariant.unitTestArtifact
+        DependencyScopeType.ANDROID_TEST -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
+        DependencyScopeType.UNIT_TEST -> selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }
         DependencyScopeType.TEST_FIXTURES -> selectedVariant.testFixturesArtifact
+        DependencyScopeType.SCREENSHOT_TEST -> selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
       }
       if (artifact != null) yield(artifact.runtimeClasspath)
 
@@ -353,7 +362,8 @@ class GradleModuleSystem(
     val moduleRootDir = AndroidProjectRootUtil.getModuleDirPath(module)?.let { File(it) }
     val sourceProviders = module.androidFacet?.sourceProviders ?: return listOf()
     val selectedSourceProviders = targetDirectory?.let { sourceProviders.getForFile(targetDirectory) }
-      ?: (sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders + sourceProviders.currentAndroidTestSourceProviders)
+      ?: (sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders +
+          sourceProviders.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST].orEmpty())
     return sourceProviders.buildNamedModuleTemplatesFor(moduleRootDir, selectedSourceProviders)
   }
 
@@ -438,7 +448,7 @@ class GradleModuleSystem(
     val gradleAndroidModel = GradleAndroidModel.get(facet)
     val variant = gradleAndroidModel?.selectedVariant ?: return null
     // Only report a test package if the selected variant actually has corresponding androidTest components
-    if (variant.androidTestArtifact == null) return null
+    if (variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } == null) return null
     return gradleAndroidModel.androidProject.testNamespace ?: variant.deprecatedPreMergedTestApplicationId ?: run {
       // That's how older versions of AGP that do not include testNamespace directly in the model work:
       // in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
@@ -451,7 +461,8 @@ class GradleModuleSystem(
   override fun getApplicationIdProvider(): ApplicationIdProvider {
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
     val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find GradleAndroidModel. Module: ${module.name}")
-    val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule()
+    val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule() ||
+      androidFacet.module.isScreenshotTestModule()
     return GradleApplicationIdProvider.create(
       androidFacet, forTests, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant
     )
@@ -463,11 +474,13 @@ class GradleModuleSystem(
     val androidTestModule = if (type == AndroidModuleSystem.Type.TYPE_TEST) module.getMainModule() else module.getAndroidTestModule()
     val unitTestModule = module.getUnitTestModule()
     val fixturesModule = module.getTestFixturesModule()
+    val screenshotTestModule = module.getScreenshotTestModule()
     return when (scopeType) {
       ScopeType.MAIN -> mainModule?.getModuleWithDependenciesAndLibrariesScope(false)
       ScopeType.UNIT_TEST -> unitTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.ANDROID_TEST -> androidTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(false)
+      ScopeType.SCREENSHOT_TEST -> screenshotTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
     } ?: GlobalSearchScope.EMPTY_SCOPE
   }
 
@@ -534,10 +547,14 @@ class GradleModuleSystem(
       null -> null
     }
 
+  override val supportsAndroidResources: Boolean
+    get() = readFromAgpFlags { it.androidResourcesEnabled } ?: true
+
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
 
   override fun getTestLibrariesInUse(): TestLibraries? {
-    val androidTestArtifact = GradleAndroidModel.get(module)?.selectedVariant?.androidTestArtifact ?: return null
+    val androidTestArtifact =
+      GradleAndroidModel.get(module)?.selectedVariant?.deviceTestArtifacts?.find { it.name == IdeArtifactName.ANDROID_TEST } ?: return null
     return TestLibraries.newBuilder().also { recordTestLibraries(it, androidTestArtifact) }.build()
   }
 

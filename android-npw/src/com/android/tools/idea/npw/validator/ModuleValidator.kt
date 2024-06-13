@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.validator
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.ui.validation.validators.PathValidator

@@ -18,16 +18,17 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actions.AbstractToggleUseSoftWrapsAction
 import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces
+import com.intellij.ui.border.CustomLineBorder
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.util.preferredWidth
 import java.awt.Component
@@ -36,7 +37,11 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JSeparator
 
 /** Defines the name of a tab and the component to show for that tab. */
 data class TabbedPaneDefinition(val name: String, val component: JComponent)
@@ -51,7 +56,7 @@ data class TabbedPaneDefinition(val name: String, val component: JComponent)
 class DetailsTabbedPane(
   name: String,
   definitions: List<TabbedPaneDefinition>,
-  stackTraceConsole: StackTraceConsole
+  stackTraceConsole: StackTraceConsole,
 ) {
   val component: JComponent
 
@@ -70,7 +75,7 @@ class DetailsTabbedPane(
             gridy = 0
             anchor = GridBagConstraints.FIRST_LINE_END
             weightx = 0.1
-          }
+          },
         )
         add(
           tabbedPane,
@@ -82,12 +87,18 @@ class DetailsTabbedPane(
             anchor = GridBagConstraints.FIRST_LINE_START
             weightx = 0.9
             weighty = 1.0
-          }
+          },
         )
       }
     tabbedPane.tabComponentInsets = null
     definitions.forEachIndexed { index, definition ->
-      tabbedPane.insertTab(definition.name, null, definition.component, null, index)
+      tabbedPane.insertTab(
+        definition.name,
+        null,
+        createPanelWithBlankSpaceAtTop(definition.component),
+        null,
+        index,
+      )
     }
 
     // On fold/un-fold of code blocks, resize tab panel accordingly.
@@ -116,7 +127,7 @@ class DetailsTabbedPane(
   private fun createToolbar(
     editor: Editor,
     targetComponent: JComponent,
-    place: String
+    place: String,
   ): JComponent {
     val wrapAction =
       object : AbstractToggleUseSoftWrapsAction(SoftWrapAppliancePlaces.CONSOLE, false) {
@@ -131,7 +142,7 @@ class DetailsTabbedPane(
     val toolbar =
       ActionManager.getInstance().createActionToolbar(place, DefaultActionGroup(wrapAction), true)
     toolbar.targetComponent = targetComponent
-    toolbar.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+    toolbar.layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
     toolbar.setReservePlaceAutoPopupIcon(false)
     toolbar.component.isOpaque = false
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
@@ -140,4 +151,13 @@ class DetailsTabbedPane(
 
   private fun calculatePreferredTabbedPaneSize(tabbedPane: JBTabbedPane, component: Component) =
     Dimension(tabbedPane.preferredWidth, component.preferredSize.height + component.bounds.y)
+
+  private fun createPanelWithBlankSpaceAtTop(comp: JComponent) =
+    JPanel().apply {
+      background = primaryContentBackground
+      border = CustomLineBorder(JSeparator().foreground, 1, 0, 0, 0)
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      add(Box.createVerticalStrut(8))
+      add(comp)
+    }
 }

@@ -36,6 +36,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeCoreBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -234,6 +235,13 @@ public final class StudioFlagsDialog extends DialogWrapper {
           namePanel.add(id);
           flagPanel.add(namePanel);
           flagPanel.add(description);
+          if (flag.getDefaultValueDescription() != null) {
+            JBLabel defaultValueDescription = new JBLabel(flag.getDefaultValueDescription());
+            defaultValueDescription.setIcon(AllIcons.General.BalloonInformation);
+            defaultValueDescription.setOpaque(true);
+            flagPanel.add(defaultValueDescription);
+          }
+
           flagPanel.add(flagEditorPanel);
           groupPanel.add(flagPanel);
 

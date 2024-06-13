@@ -64,7 +64,7 @@ public class FailureRetentionDslElement extends GradleDslBlockElement {
 
   public FailureRetentionDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  };
+  }
 
   public static final class FailureRetentionDslElementSchema extends GradlePropertiesDslElementSchema {
     @NotNull

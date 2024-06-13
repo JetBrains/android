@@ -24,12 +24,14 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
@@ -39,6 +41,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Sho
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.parameterNamespaceOf
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
+import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
@@ -48,6 +51,8 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableGroupItem
@@ -57,6 +62,8 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.psi.PsiClass
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -65,8 +72,6 @@ import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.TimeUnit
 
 /** Timeout used in this test. While debugging, you may want to extend the timeout */
 private const val TIMEOUT = 3L
@@ -87,7 +92,7 @@ class AppInspectionPropertiesProviderTest {
           getClientSettings = { inspectorClientSettings }
         )
       ),
-      projectRule
+      projectRule,
     ) {
       it.name == MODERN_PROCESS.name
     }
@@ -108,7 +113,7 @@ class AppInspectionPropertiesProviderTest {
     // mode.
     inspectionRule.composeInspector.listenWhen({ it.hasGetComposablesCommand() }) { command ->
       assertThat(command.getComposablesCommand.extractAllParameters)
-        .isEqualTo(!inspectorClientSettings.isCapturingModeOn)
+        .isEqualTo(!inspectorClientSettings.inLiveMode)
     }
 
     inspectorState =
@@ -125,7 +130,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun canQueryPropertiesForViewsWithResourceResolver() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch =
@@ -178,14 +183,14 @@ class AppInspectionPropertiesProviderTest {
           "id",
           PropertyType.RESOURCE,
           "@com.example:id/fab",
-          source = layout("activity_main")
+          source = layout("activity_main"),
         )
         assertProperty(
           "src",
           PropertyType.DRAWABLE,
           "@drawable/?",
           source = layout("activity_main"),
-          classLocation = "android.graphics.drawable.VectorDrawable"
+          classLocation = "android.graphics.drawable.VectorDrawable",
         )
         assertProperty(
           "stateListAnimator",
@@ -193,7 +198,7 @@ class AppInspectionPropertiesProviderTest {
           "@animator/?",
           source = layout("activity_main"),
           resolutionStack = listOf(ResStackItem(style("Widget.Material.Button"), null)),
-          classLocation = "android.animation.StateListAnimator"
+          classLocation = "android.animation.StateListAnimator",
         )
       }
     }
@@ -215,7 +220,7 @@ class AppInspectionPropertiesProviderTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     AndroidModel.set(facet, TestAndroidModel(applicationId = "com.nonmatching.app"))
 
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch =
@@ -246,19 +251,19 @@ class AppInspectionPropertiesProviderTest {
           "id",
           PropertyType.RESOURCE,
           "@com.example:id/fab",
-          source = layout("activity_main")
+          source = layout("activity_main"),
         )
         assertProperty(
           "src",
           PropertyType.DRAWABLE,
           "@drawable/?",
-          source = layout("activity_main")
+          source = layout("activity_main"),
         )
         assertProperty(
           "stateListAnimator",
           PropertyType.ANIMATOR,
           "@animator/?",
-          source = layout("activity_main")
+          source = layout("activity_main"),
         )
       }
     }
@@ -266,7 +271,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun syntheticPropertiesAlwaysAdded() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch =
@@ -298,35 +303,35 @@ class AppInspectionPropertiesProviderTest {
           PropertyType.STRING,
           "androidx.constraintlayout.widget.ConstraintLayout",
           group = PropertySection.VIEW,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
         assertProperty(
           "x",
           PropertyType.DIMENSION,
           "0px",
           group = PropertySection.DIMENSION,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
         assertProperty(
           "y",
           PropertyType.DIMENSION,
           "0px",
           group = PropertySection.DIMENSION,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
         assertProperty(
           "width",
           PropertyType.DIMENSION,
           "0px",
           group = PropertySection.DIMENSION,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
         assertProperty(
           "height",
           PropertyType.DIMENSION,
           "0px",
           group = PropertySection.DIMENSION,
-          namespace = NAMESPACE_INTERNAL
+          namespace = NAMESPACE_INTERNAL,
         )
       }
     }
@@ -334,11 +339,11 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun propertiesAreCachedUntilNextLayoutEvent() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
-    val modelUpdatedSignal =
-      ArrayBlockingQueue<Unit>(2) // We should get no more than two updates before continuing
+    // We should get no more than two updates before continuing
+    val modelUpdatedSignal = ArrayBlockingQueue<Unit>(2)
     inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedSignal.offer(Unit)
     }
@@ -393,7 +398,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun snapshotModeSendsAllPropertiesAtOnce() {
-    inspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
+    inspectorClientSettings.inLiveMode = false // i.e. snapshot mode
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -429,7 +434,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun canQueryParametersForComposables() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch =
@@ -503,7 +508,7 @@ class AppInspectionPropertiesProviderTest {
             groupItem.children[0],
             "stringProperty",
             PropertyType.STRING,
-            "stringValue"
+            "stringValue",
           )
           assertParameter(groupItem.children[1], "intProperty", PropertyType.INT32, "812")
           assertParameter(groupItem.children[2], "lines", PropertyType.STRING, "MyLineClass")
@@ -624,7 +629,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun parametersAreCachedUntilNextLayoutEvent() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedSignal =
@@ -674,7 +679,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun snapshotModeSendsAllParametersAtOnce() {
-    inspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
+    inspectorClientSettings.inLiveMode = false // i.e. snapshot mode
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -706,6 +711,97 @@ class AppInspectionPropertiesProviderTest {
         assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       }
     }
+  }
+
+  @Test
+  fun testPropertiesModelNotifications() {
+    projectRule.fixture.addFileToProject(
+      "src/java/com/google/android/material/textview/MaterialTextView.java",
+      """
+        package com.google.android.material.textview;
+        public class MaterialTextView extends android.widget.TextView {}
+      """
+        .trimIndent(),
+    )
+    val propertiesModel = InspectorPropertiesModel(inspectorRule.disposable)
+    propertiesModel.layoutInspector = inspectorRule.inspector
+
+    var generatedCount = 0
+    var valuesChanged = 0
+    propertiesModel.addListener(
+      object : PropertiesModelListener<InspectorPropertyItem> {
+        override fun propertiesGenerated(model: PropertiesModel<InspectorPropertyItem>) {
+          generatedCount++
+        }
+
+        override fun propertyValuesChanged(model: PropertiesModel<InspectorPropertyItem>) {
+          valuesChanged++
+        }
+      }
+    )
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 2 }
+    assertThat(valuesChanged).isEqualTo(0)
+
+    val targetNode = inspectorRule.inspectorModel[3]!!
+    inspectorRule.inspectorModel.setSelection(targetNode, SelectionOrigin.COMPONENT_TREE)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 3 }
+    assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Next"))
+    assertThat(propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true"))
+    assertThat(propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "1.0"))
+    assertThat(propertiesModel.properties.assertProperty("width", PropertyType.DIMENSION, "200px"))
+
+    inspectorState.changePropertyValue(rootId = 1, viewId = targetNode.drawId, "text")
+    inspectorState.changePropertyValue(rootId = 1, viewId = targetNode.drawId, "alpha")
+    inspectorState.changePropertyValue(rootId = 1, viewId = targetNode.drawId, "width")
+
+    inspectorState.triggerLayoutCapture(rootId = 1)
+
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) {
+      propertiesModel.properties[ANDROID_URI, "text"].value == "secondaryValue" && valuesChanged > 0
+    }
+    assertThat(propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true"))
+    assertThat(propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "4.0"))
+    assertThat(propertiesModel.properties.assertProperty("width", PropertyType.DIMENSION, "500px"))
+
+    // Verify that we did not fire a properties generated notification after the original
+    assertThat(generatedCount).isEqualTo(3)
+    assertThat(valuesChanged).isEqualTo(1)
+  }
+
+  @Test
+  fun testSwitchBetweenSimilarNodes() {
+    val propertiesModel = InspectorPropertiesModel(inspectorRule.disposable)
+    propertiesModel.layoutInspector = inspectorRule.inspector
+
+    var generatedCount = 0
+    var valuesChanged = 0
+    propertiesModel.addListener(
+      object : PropertiesModelListener<InspectorPropertyItem> {
+        override fun propertiesGenerated(model: PropertiesModel<InspectorPropertyItem>) {
+          generatedCount++
+        }
+
+        override fun propertyValuesChanged(model: PropertiesModel<InspectorPropertyItem>) {
+          valuesChanged++
+        }
+      }
+    )
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 2 }
+    assertThat(valuesChanged).isEqualTo(0)
+
+    val text1 = inspectorRule.inspectorModel[3]!!
+    val text2 = inspectorRule.inspectorModel[11]!!
+    inspectorRule.inspectorModel.setSelection(text1, SelectionOrigin.COMPONENT_TREE)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 3 }
+    assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Next"))
+
+    inspectorRule.inspectorModel.setSelection(text2, SelectionOrigin.COMPONENT_TREE)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 4 }
+    assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Previous"))
   }
 
   private fun layout(name: String, namespace: String = APP_NAMESPACE): ResourceReference =
@@ -741,7 +837,7 @@ class AppInspectionPropertiesProviderTest {
       group,
       namespace,
       classLocation,
-      resolutionStack
+      resolutionStack,
     )
 
   private fun assertParameter(
@@ -795,7 +891,7 @@ class AppInspectionPropertiesProviderTest {
     val view: ViewNode,
     val table: PropertiesTable<InspectorPropertyItem>,
     val model: InspectorModel,
-    val cache: ComposeParametersCache?
+    val cache: ComposeParametersCache?,
   ) {
 
     init {

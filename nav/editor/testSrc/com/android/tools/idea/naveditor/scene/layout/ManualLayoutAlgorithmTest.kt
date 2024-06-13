@@ -21,7 +21,6 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.editor.NavEditor
-import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.flatten
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
@@ -143,12 +142,12 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
       }
     }
     var surface = NavDesignSurface(project, myRootDisposable)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     var component = surface.scene!!.getSceneComponent("fragment1")!!
     component.setPosition(100, 200)
     var algorithm = createAlgorithm(model)
     algorithm.save(component)
-    PlatformTestUtil.saveProject(project)
+    PlatformTestUtil.saveProject(project, true)
 
     assertTrue(
       LocalFileSystem.getInstance().findFileByPath(project.basePath!! + "/.idea/navEditor.xml")!!
@@ -164,7 +163,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     }
 
     surface = NavDesignSurface(project, myRootDisposable)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     component = surface.scene!!.getSceneComponent("fragment1")!!
     algorithm = createAlgorithm(model)
     algorithm.layout(listOf(component))
@@ -181,7 +180,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     }
     var algorithm = createAlgorithm(model)
     var surface = NavDesignSurface(project, testRootDisposable)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val nullIdComponent = surface.scene!!.getSceneComponent("fragment1")!!
     WriteCommandAction.runWriteCommandAction(project) { nullIdComponent.nlComponent.setAndroidAttribute(ATTR_ID, null) }
     nullIdComponent.setPosition(100, 200)
@@ -200,7 +199,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
       }
     }
     surface = NavDesignSurface(project, testRootDisposable)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     component = surface.scene!!.getSceneComponent("fragment2")!!
     algorithm = createAlgorithm(model)
     algorithm.layout(listOf(component))
@@ -256,7 +255,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
       override fun getDocuments() = arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile)!!)
     }
     val surface = NavDesignSurface(project, myRootDisposable)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val component = surface.scene!!.getSceneComponent("fragment1")!!
     component.setPosition(100, 200)
     val algorithm = createAlgorithm(model)
@@ -311,8 +310,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
   }
 
   private fun createAlgorithm(model: SyncNlModel, positions: ManualLayoutAlgorithm.LayoutPositions? = null): ManualLayoutAlgorithm {
-    val sceneManager = NavSceneManager(model, model.surface as NavDesignSurface)
-    return if (positions == null) ManualLayoutAlgorithm(myModule, sceneManager)
-    else ManualLayoutAlgorithm(positions, myModule, sceneManager)
+    return if (positions == null) ManualLayoutAlgorithm(myModule)
+    else ManualLayoutAlgorithm(positions, myModule)
   }
 }

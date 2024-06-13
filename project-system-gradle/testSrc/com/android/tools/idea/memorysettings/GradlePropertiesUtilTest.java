@@ -21,7 +21,6 @@ import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.setDaem
 
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
 
 public class GradlePropertiesUtilTest extends HeavyPlatformTestCase {

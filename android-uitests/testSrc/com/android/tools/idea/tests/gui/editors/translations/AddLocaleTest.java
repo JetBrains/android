@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.editors.translations;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -23,21 +26,18 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPane
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AddLocaleTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /**
    * Verifies that the Translations plugin editor can be invoked.
@@ -60,15 +60,17 @@ public class AddLocaleTest {
   @RunIn(TestGroup.FAT_BAZEL)
   public void addNewLocale() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
 
     // Open Translations Editor window.
     EditorFixture editor = ideFrame.getEditor();
     FileSystem fileSystem = FileSystems.getDefault();
     Path myStringsXmlPath = fileSystem.getPath("app", "src", "main", "res", "values", "strings.xml");
     EditorNotificationPanelFixture notificationPanel =
-      editor.open(myStringsXmlPath, EditorFixture.Tab.EDITOR)
+      editor.open(myStringsXmlPath)
             .awaitNotification("Edit translations for all locales in the translations editor.");
     notificationPanel.performAction("Open editor");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     editor.getTranslationsEditor().finishLoading();
 
     TranslationsEditorFixture translationsEditor = ideFrame.getEditor().getTranslationsEditor();

@@ -19,6 +19,11 @@ android {
     ndk {
       abiFilters = ['abiFilter5']
       abiFilters 'abiFilter7'
+      cFlags '-DcFlags'
+      jobs 12
+      ldLibs 'ldLibs8', 'ldLibs10'
+      moduleName 'myModule'
+      stl 'stlport'
     }
   }
 }

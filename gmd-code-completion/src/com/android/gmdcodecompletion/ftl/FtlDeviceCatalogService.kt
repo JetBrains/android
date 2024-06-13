@@ -15,18 +15,21 @@
  */
 package com.android.gmdcodecompletion.ftl
 
+import com.android.gmdcodecompletion.AndroidDeviceInfo
 import com.android.gmdcodecompletion.FTL_DEVICE_CATALOG_UPDATE_FREQUENCY
 import com.android.gmdcodecompletion.GmdDeviceCatalogService
 import com.android.gmdcodecompletion.isFtlPluginEnabled
+import com.google.gct.testing.launcher.CloudAuthenticator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import com.intellij.openapi.components.StoragePathMacros
+import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.Calendar
 import kotlin.concurrent.withLock
 
@@ -37,16 +40,50 @@ import kotlin.concurrent.withLock
  */
 @State(
   name = "FtlDeviceCatalogService",
-  storages = [Storage(value = StoragePathMacros.CACHE_FILE, roamingType = RoamingType.DISABLED)],
+  storages = [Storage(value = "FtlDeviceCatalogService.xml", roamingType = RoamingType.DISABLED)],
 )
 @Service(Service.Level.APP)
 class FtlDeviceCatalogService : GmdDeviceCatalogService<FtlDeviceCatalogState>(FtlDeviceCatalogState(), "FtlDeviceCatalogService") {
   companion object {
     @JvmStatic
     fun getInstance(): FtlDeviceCatalogService = ApplicationManager.getApplication().getService(FtlDeviceCatalogService::class.java)!!
-  }
 
-  override var myDeviceCatalogState: FtlDeviceCatalogState = FtlDeviceCatalogState()
+    @VisibleForTesting
+    fun syncDeviceCatalog(): FtlDeviceCatalog {
+      val deviceCatalog = FtlDeviceCatalog()
+      val remoteCatalog = service<CloudAuthenticator>().androidDeviceCatalog ?: return deviceCatalog
+      if (remoteCatalog.isEmpty()) return deviceCatalog
+      remoteCatalog.models?.forEach { androidModel ->
+        val versionIds = androidModel.supportedVersionIds ?: emptyList()
+
+        if (versionIds.isNotEmpty() && androidModel.id != null) {
+          deviceCatalog.devices[androidModel.id] =
+            AndroidDeviceInfo(
+              deviceName = androidModel.name ?: "",
+              supportedApis = versionIds.mapNotNull { it.toIntOrNull() },
+              brand = androidModel.brand ?: "",
+              formFactor = androidModel["formFactor"]?.toString() ?: "",
+              deviceForm = androidModel.form ?: "",
+            )
+        }
+      }
+      deviceCatalog.apiLevels.addAll(remoteCatalog.versions?.mapNotNull { it.apiLevel } ?: emptyList())
+      deviceCatalog.orientation.addAll(
+        remoteCatalog.runtimeConfiguration?.orientations?.mapNotNull { it.id } ?: emptyList()
+      )
+      remoteCatalog.runtimeConfiguration?.locales?.mapNotNull { locale ->
+        if (locale.id != null && locale.id != "") {
+          deviceCatalog.locale[locale.id] =
+            FtlDeviceCatalog.LocaleInfo(languageName = locale.name ?: "", region = locale.region ?: "")
+        }
+      }
+      deviceCatalog.isEmptyCatalog = deviceCatalog.devices.isEmpty() &&
+                                     deviceCatalog.apiLevels.isEmpty() &&
+                                     deviceCatalog.orientation.isEmpty() &&
+                                     deviceCatalog.locale.isEmpty()
+      return deviceCatalog
+    }
+  }
 
   /**
    * Return false if FTL plugin is not enabled to NOT run updateDeviceCatalogTaskAction
@@ -60,11 +97,11 @@ class FtlDeviceCatalogService : GmdDeviceCatalogService<FtlDeviceCatalogState>(F
 
     myLock.withLock {
       indicator.text = "Checking cache freshness"
-      if (myDeviceCatalogState.isCacheFresh()) return
+      if (this.state.isCacheFresh()) return
       indicator.text = "Fetching device catalog from FTL Server"
       val calendar = Calendar.getInstance() // Specify the number of days that device catalog should be updated
       calendar.add(Calendar.DATE, FTL_DEVICE_CATALOG_UPDATE_FREQUENCY)
-      myDeviceCatalogState = FtlDeviceCatalogState(calendar.time, FtlDeviceCatalog().syncDeviceCatalog())
+      this.state = FtlDeviceCatalogState(calendar.time, syncDeviceCatalog())
     }
 
     indicator.text = "FTL device catalog cache updated"

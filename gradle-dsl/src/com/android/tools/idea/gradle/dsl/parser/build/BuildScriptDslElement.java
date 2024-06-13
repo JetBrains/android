@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.build;
 
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -32,16 +34,29 @@ public class BuildScriptDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<BuildScriptDslElement> BUILDSCRIPT =
     new PropertiesElementDescription<>("buildscript", BuildScriptDslElement.class, BuildScriptDslElement::new);
 
-  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"dependencies", DependenciesDslElement.DEPENDENCIES},
     {"repositories", RepositoriesDslElement.REPOSITORIES},
     {"ext", ExtDslElement.EXT}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> DECLARATIVE_CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"dependencies", DependenciesDslElement.DEPENDENCIES},
+    {"repositories", RepositoriesDslElement.REPOSITORIES},
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
-    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
+    if (kind == DECLARATIVE) {
+      return DECLARATIVE_CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+    else {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
   }
 
   public BuildScriptDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {

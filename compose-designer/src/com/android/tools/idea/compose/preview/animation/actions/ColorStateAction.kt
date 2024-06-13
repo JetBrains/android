@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.colorButtonOffset
+import com.android.tools.idea.preview.animation.InspectorLayout.colorButtonOffset
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -38,8 +38,8 @@ private val DEFAULT_COLOR: Color = JBColor.WHITE
 /** [AnAction] displaying the color state. It opens a color picker to select it. */
 class ColorStateAction(
   defaultState: ComposeUnit.Color = ComposeUnit.Color.create(DEFAULT_COLOR),
-  val tracker: AnimationTracker,
-  private val onPropertiesUpdated: () -> Unit
+  val tracker: ComposeAnimationTracker,
+  private val onPropertiesUpdated: () -> Unit,
 ) : CustomComponentAction, AnAction() {
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
@@ -49,7 +49,7 @@ class ColorStateAction(
         this,
         PresentationFactory().getPresentation(this),
         ActionPlaces.TOOLBAR,
-        ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
       ) {
 
       override fun paintComponent(g: Graphics) {
@@ -59,7 +59,7 @@ class ColorStateAction(
           colorButtonOffset,
           colorButtonOffset,
           width - 2 * colorButtonOffset,
-          height - 2 * colorButtonOffset
+          height - 2 * colorButtonOffset,
         )
       }
     }
@@ -77,7 +77,7 @@ class ColorStateAction(
         state = ComposeUnit.Color.create(it)
         onPropertiesUpdated()
       },
-      colorResourcePickedCallback = {}
+      colorResourcePickedCallback = {},
     )
     tracker.openPicker()
   }

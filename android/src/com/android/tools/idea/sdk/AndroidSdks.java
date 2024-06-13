@@ -28,7 +28,7 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.refreshAndFindChild;
@@ -183,7 +183,8 @@ public class AndroidSdks {
 
   @NotNull
   public List<Sdk> getAllAndroidSdks() {
-    return ReadAction.compute(() -> ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance()));
+    return ReadAction.nonBlocking(() -> ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance()))
+      .executeSynchronously();
   }
 
   @Nullable
@@ -284,7 +285,7 @@ public class AndroidSdks {
       // TODO move this method to Jdks.
       attachJdkAnnotations(sdkModificator);
     }
-    WriteAction.run(() -> sdkModificator.commitChanges());
+    WriteAction.run(sdkModificator::commitChanges);
   }
 
   public void findAndSetPlatformSources(@NotNull IAndroidTarget target, @NotNull SdkModificator sdkModificator) {
@@ -502,7 +503,7 @@ public class AndroidSdks {
     for (VirtualFile library : libraries) {
       sdkModificator.addRoot(library, CLASSES);
     }
-    WriteAction.run(() -> sdkModificator.commitChanges());
+    WriteAction.run(sdkModificator::commitChanges);
   }
 
   public boolean isInAndroidSdk(@NonNull PsiElement element) {

@@ -104,7 +104,7 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel, context: Edit
 class FlagPropertyPanel(
   private val editorModel: FlagPropertyEditorModel,
   private val restoreFocusTo: JComponent,
-  windowHeight: Int
+  windowHeight: Int,
 ) : AdtSecondaryPanel(VerticalLayout(2)) {
   var balloon: Balloon? = null
   val searchField = SearchTextField()
@@ -170,7 +170,7 @@ class FlagPropertyPanel(
       ScrollPaneFactory.createScrollPane(
         component,
         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
       )
     scrollPane.border = JBUI.Borders.empty()
     scrollPane.addComponentListener(

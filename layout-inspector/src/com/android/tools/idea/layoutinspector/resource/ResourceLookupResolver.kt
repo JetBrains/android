@@ -126,7 +126,7 @@ fun mapReference(facet: AndroidFacet?, reference: ResourceReference?): ResourceR
     ResourceReference(
       mapNamespace(facet, reference.namespace),
       reference.resourceType,
-      reference.name
+      reference.name,
     )
 
 /** Find a [Navigatable] given a [PsiElement]. */
@@ -141,7 +141,7 @@ class ResourceLookupResolver(
   private val project: Project,
   private val appFacet: AndroidFacet,
   private val folderConfiguration: FolderConfiguration,
-  private val resolver: ResourceResolver
+  private val resolver: ResourceResolver,
 ) {
   private val projectResources = StudioResourceRepositoryManager.getProjectResources(appFacet)
   private val androidResourceNamespaceResolver =
@@ -169,7 +169,7 @@ class ResourceLookupResolver(
   fun findAttributeValue(
     property: InspectorPropertyItem,
     view: ViewNode,
-    source: ResourceReference
+    source: ResourceReference,
   ): String? {
     return when (source.resourceType) {
       ResourceType.LAYOUT -> findAttributeValueFromViewTag(property, view, source)
@@ -191,12 +191,15 @@ class ResourceLookupResolver(
     property: InspectorPropertyItem,
     view: ViewNode,
     source: ResourceReference?,
-    max: Int
-  ): List<SourceLocation> {
-    return when (source?.resourceType) {
-      ResourceType.LAYOUT -> findFileLocationsFromViewTag(property, view, source, max)
-      ResourceType.STYLE -> findFileLocationsFromStyle(property, source, max)
-      else -> emptyList()
+    sourceLocations: MutableList<SourceLocation>,
+    max: Int,
+  ) {
+    sourceLocations.clear()
+    when (source?.resourceType) {
+      ResourceType.LAYOUT ->
+        findFileLocationsFromViewTag(property, view, source, sourceLocations, max)
+      ResourceType.STYLE -> findFileLocationsFromStyle(property, source, sourceLocations, max)
+      else -> {}
     }
   }
 
@@ -207,8 +210,8 @@ class ResourceLookupResolver(
   }
 
   /** Resolve this drawable property as an icon. */
-  fun resolveAsIcon(property: InspectorPropertyItem, view: ViewNode): Icon? {
-    val url = property.value?.let { ResourceUrl.parse(it) } ?: return null
+  fun resolveAsIcon(value: String?, view: ViewNode): Icon? {
+    val url = value?.let { ResourceUrl.parse(it) } ?: return null
     val tag = findViewTagInFile(view, view.layout) ?: return null
     val (namespace, namespaceResolver) = getNamespacesContext(tag)
     val reference = url.resolve(namespace, namespaceResolver) ?: return null
@@ -234,12 +237,12 @@ class ResourceLookupResolver(
           findAttributeDefinition(
             psiClass,
             AttributeProcessingUtil.getLayoutStyleablePrimary(psiClass),
-            attributeName
+            attributeName,
           )
             ?: findAttributeDefinition(
               psiClass,
               AttributeProcessingUtil.getLayoutStyleableSecondary(psiClass),
-              attributeName
+              attributeName,
             )
         else findAttributeDefinition(psiClass, psiClass.name, attributeName)
 
@@ -254,7 +257,7 @@ class ResourceLookupResolver(
   private fun findAttributeDefinition(
     psiClass: PsiClass,
     styleableName: String?,
-    attributeName: String
+    attributeName: String,
   ): AttributeDefinition? {
     val styleable = styleableName ?: return null
     val namespace = findNamespaceFromPsiClass(psiClass) ?: return null
@@ -281,23 +284,30 @@ class ResourceLookupResolver(
     property: InspectorPropertyItem,
     view: ViewNode,
     layout: ResourceReference,
-    max: Int
-  ): List<SourceLocation> {
+    sourceLocations: MutableList<SourceLocation>,
+    max: Int,
+  ) {
     val xmlAttributeValue =
       findLayoutAttribute(property, view, layout)?.valueElement
-        ?: return findApproximateLocation(layout)
-    val location = createFileLocation(xmlAttributeValue) ?: return findApproximateLocation(layout)
+        ?: return addApproximateLocation(layout, sourceLocations)
+    val location =
+      createFileLocation(xmlAttributeValue)
+        ?: return addApproximateLocation(layout, sourceLocations)
     val resValue = dereferenceRawAttributeValue(xmlAttributeValue)
-    if (max <= 1 || resValue == null) {
-      return listOf(location)
+    sourceLocations.add(location)
+    if (resValue != null) {
+      addValueReference(resValue, sourceLocations, max - 1)
     }
-    val result = mutableListOf<SourceLocation>()
-    result.add(location)
-    addValueReference(resValue, result, max - 1)
-    return result
   }
 
-  private fun findApproximateLocation(layout: ResourceReference): List<SourceLocation> {
+  private fun addApproximateLocation(
+    layout: ResourceReference,
+    sourceLocations: MutableList<SourceLocation>,
+  ) {
+    sourceLocations.add(findApproximateLocation(layout))
+  }
+
+  private fun findApproximateLocation(layout: ResourceReference): SourceLocation {
     val reference = mapReference(layout) ?: return unknownLocation()
     val layoutValue = resolver.getUnresolvedResource(reference)
     val file = resolver.resolveLayout(layoutValue) ?: return unknownLocation()
@@ -305,37 +315,33 @@ class ResourceLookupResolver(
       (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return unknownLocation()
     val element = xmlFile.rootTag ?: xmlFile
     val navigatable = findNavigatable(element)
-    return listOf(SourceLocation("${file.name}:?", navigatable))
+    return SourceLocation("${file.name}:?", navigatable)
   }
 
-  private fun unknownLocation(): List<SourceLocation> {
-    return listOf(SourceLocation("unknown:?", null))
+  private fun unknownLocation(): SourceLocation {
+    return SourceLocation("unknown:?", null)
   }
 
   private fun findFileLocationsFromStyle(
     property: InspectorPropertyItem,
     style: ResourceReference,
-    max: Int
-  ): List<SourceLocation> {
-    val reference = mapReference(style) ?: return emptyList()
+    sourceLocations: MutableList<SourceLocation>,
+    max: Int,
+  ) {
+    val reference = mapReference(style) ?: return
     val attr = attr(property)
-    val styleValue = resolver.getStyle(reference) ?: return emptyList()
-    val value = styleValue.getItem(attr) ?: return emptyList()
-    val tag = convertStyleItemValueToXmlTag(styleValue, value) ?: return emptyList()
-    val location = createFileLocation(tag) ?: return emptyList()
-    if (max <= 1 || value.reference == null) {
-      return listOf(location)
-    }
-    val result = mutableListOf<SourceLocation>()
-    result.add(location)
-    dereference(value)?.let { addValueReference(it, result, max - 1) }
-    return result
+    val styleValue = resolver.getStyle(reference) ?: return
+    val value = styleValue.getItem(attr) ?: return
+    val tag = convertStyleItemValueToXmlTag(styleValue, value) ?: return
+    val location = createFileLocation(tag) ?: return
+    sourceLocations.add(location)
+    dereference(value)?.let { addValueReference(it, sourceLocations, max - 1) }
   }
 
   private fun findAttributeValueFromViewTag(
     property: InspectorPropertyItem,
     view: ViewNode,
-    layout: ResourceReference
+    layout: ResourceReference,
   ): String? {
     val xmlAttributeValue = findLayoutAttribute(property, view, layout)?.valueElement ?: return null
     val resValue = dereferenceRawAttributeValue(xmlAttributeValue) ?: return xmlAttributeValue.value
@@ -345,7 +351,7 @@ class ResourceLookupResolver(
   private fun findAttributeValueFromStyle(
     property: InspectorPropertyItem,
     view: ViewNode,
-    style: ResourceReference
+    style: ResourceReference,
   ): String? {
     val reference = mapReference(style) ?: return null
     val styleValue = resolver.getStyle(reference) ?: return null
@@ -368,7 +374,7 @@ class ResourceLookupResolver(
   private fun resolveValue(
     property: InspectorPropertyItem,
     view: ViewNode,
-    resValue: ResourceValue
+    resValue: ResourceValue,
   ): String? {
     if (property.type == COLOR) {
       resolver.resolveColor(resValue, project)?.let {
@@ -377,7 +383,7 @@ class ResourceLookupResolver(
     }
     return toString(
       generateSequence(resValue) { dereference(it) }.take(MAX_RESOURCE_INDIRECTION).last(),
-      view
+      view,
     )
   }
 
@@ -439,7 +445,7 @@ class ResourceLookupResolver(
 
           override fun prefixToUri(namespacePrefix: String): String? =
             tag.getNamespaceByPrefix(namespacePrefix).nullize()
-        }
+        },
       )
     } ?: androidNamespaceContext
   }
@@ -475,7 +481,7 @@ class ResourceLookupResolver(
 
   private fun findItemInTheme(
     theme: StyleResourceValue,
-    attr: ResourceReference
+    attr: ResourceReference,
   ): StyleItemResourceValueWithStyleReference? {
     var style = theme
     for (depth in 0 until MAX_RESOURCE_INDIRECTION) {
@@ -492,14 +498,16 @@ class ResourceLookupResolver(
   private fun addValueReference(
     resourceValue: ResourceValue,
     result: MutableList<SourceLocation>,
-    max: Int
+    max: Int,
   ) {
-    val tag = convertToXmlTag(resourceValue) ?: return
-    val location = createFileLocation(tag) ?: return
-    result.add(location)
-    if (max > 1) {
-      val nextValue = dereference(resourceValue) ?: return
-      addValueReference(nextValue, result, max - 1)
+    var nextResourceValue: ResourceValue? = resourceValue
+    var count = 0
+    while (nextResourceValue != null && count < max) {
+      val tag = convertToXmlTag(nextResourceValue) ?: return
+      val location = createFileLocation(tag) ?: return
+      result.add(location)
+      count++
+      nextResourceValue = dereference(nextResourceValue)
     }
   }
 
@@ -524,7 +532,7 @@ class ResourceLookupResolver(
 
   private fun convertStyleItemValueToXmlTag(
     style: StyleResourceValue,
-    item: StyleItemResourceValue
+    item: StyleItemResourceValue,
   ): XmlTag? {
     // TODO: Unfortunately style items are not ResourceItems. For now lookup the item in the XmlTag
     // of the style.
@@ -584,7 +592,7 @@ class ResourceLookupResolver(
   private fun findLayoutAttribute(
     property: InspectorPropertyItem,
     view: ViewNode,
-    layout: ResourceReference
+    layout: ResourceReference,
   ): XmlAttribute? {
     val tag = findViewTagInFile(view, layout, isViewLayout = false)
     val attrNamespace =
@@ -597,7 +605,7 @@ class ResourceLookupResolver(
   private fun findViewTagInFile(
     view: ViewNode,
     layout: ResourceReference?,
-    isViewLayout: Boolean = true
+    isViewLayout: Boolean = true,
   ): XmlTag? {
     if (isViewLayout) {
       view.tag?.let {

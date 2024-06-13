@@ -26,6 +26,7 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RESIZABLE_CONFIG;
+import static com.android.sdklib.internal.avd.AvdManager.USER_SETTINGS_INI_PREFERRED_ABI;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_HEIGHT;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_WIDTH;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_X_OFFSET;
@@ -40,6 +41,7 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -61,7 +63,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -115,6 +117,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String g31Path = "system-images;android-31;google_apis;x86_64";
     FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mSdkRoot.resolve("mySysImg"));
     SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    g31Details.getAbis().add(Abi.X86_64.toString());
     g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     g31Package.setTypeDetails((TypeDetails)g31Details);
     InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -146,6 +149,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       hardwareProperties,
+      null,
       false);
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1080");
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2092");
@@ -157,12 +161,12 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("1840-0-0-1840");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("1080-0-0-1840");
     assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
     assertThat(hardwareProperties.get(AVD_INI_RESIZABLE_CONFIG)).
-      isEqualTo("phone-0-1080-2340-420, foldable-1-2208-1840-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
+      isEqualTo("phone-0-1080-2400-420, foldable-1-2208-1840-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
   }
 
   public void testFoldableAvds() {
@@ -172,6 +176,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String g31Path = "system-images;android-31;google_apis;x86_64";
     FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mSdkRoot.resolve("mySysImg"));
     SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    g31Details.getAbis().add(Abi.X86_64.toString());
     g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     g31Package.setTypeDetails((TypeDetails)g31Details);
     InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -205,6 +210,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       hardwareProperties,
+      null,
       false);
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("884");
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2208");
@@ -235,6 +241,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       hardwareProperties,
+      null,
       false);
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1148");
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2480");
@@ -265,6 +272,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       hardwareProperties,
+      null,
       false);
     assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
@@ -285,6 +293,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       mAvdFolder,
       getName(),
       mSystemImage,
+      null,
       null,
       null,
       null,
@@ -341,6 +350,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String q1Path = "system-images;android-q1;google_apis;x86";
     FakeLocalPackage q1Package = new FakeLocalPackage(q1Path, mSdkRoot.resolve("mySysImg1"));
     SysImgDetailsType q1Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    q1Details.getAbis().add(Abi.X86.toString());
     q1Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q1Package.setTypeDetails((TypeDetails)q1Details);
     InMemoryFileSystems.recordExistingFile(q1Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -349,6 +359,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String q2Path = "system-images;android-q2;google_apis;x86";
     FakeLocalPackage q2Package = new FakeLocalPackage(q2Path, mSdkRoot.resolve("mySysImg2"));
     SysImgDetailsType q2Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    q2Details.getAbis().add(Abi.X86.toString());
     q2Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2Package.setTypeDetails((TypeDetails)q2Details);
     InMemoryFileSystems.recordExistingFile(q2Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -359,6 +370,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String q2_64Path = "system-images;android-q2-64;google_apis;x86";
     FakeLocalPackage q2_64Package = new FakeLocalPackage(q2_64Path, mSdkRoot.resolve("mySysImg3"));
     SysImgDetailsType q2_64Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    q2_64Details.getAbis().add(Abi.X86.toString());
     q2_64Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2_64Package.setTypeDetails((TypeDetails)q2_64Details);
     InMemoryFileSystems.recordExistingFile(q2_64Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -409,6 +421,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       mSystemImage,
       skinFolder,
       "skinName",
+      null,
       null,
       null,
       null,
@@ -473,6 +486,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       null,
+      null,
       false,
       true,
       false);
@@ -489,27 +503,70 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     }
   }
 
-  public void testNewEmulatorCommandHasWorkingDirectory() {
-    AvdInfo avd = mAvdManager.createAvd(
-      mAvdFolder,
-      getName(),
-      mSystemImage,
+  public void testUserSettings() throws Exception {
+    MockLog log = new MockLog();
+
+    RepositoryPackages packages = new RepositoryPackages();
+
+    // google api31 image
+    String g31Path = "system-images;android-31;google_apis;x86_64";
+    FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mSdkRoot.resolve("mySysImg"));
+    SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
+    g31Details.getAbis().add(Abi.X86_64.toString());
+    g31Package.setTypeDetails((TypeDetails)g31Details);
+    InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(ImmutableList.of(g31Package));
+    FakeRepoManager mgr = new FakeRepoManager(mSdkRoot, packages);
+    AndroidSdkHandler sdkHandler =
+      new AndroidSdkHandler(mSdkRoot, mAvdFolder, mgr);
+    FakeProgressIndicator progress = new FakeProgressIndicator();
+    SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
+
+    ISystemImage g31Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(g31Path, progress)).getLocation());
+    assert g31Image != null;
+    SystemImageDescription g31ImageDescription = new SystemImageDescription(g31Image);
+
+    DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
+    Device device = devMgr.getDevice("medium_phone", "Generic");
+    Files.createDirectories(mSdkRoot.resolve("mySysImg").resolve("data"));
+
+    Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
+
+    AvdInfo info = mAvdManagerConnection.createOrUpdateAvd(
       null,
-      null,
-      null,
-      null,
-      null,
+      "testPhone",
+      device,
+      g31ImageDescription,
+      ScreenOrientation.PORTRAIT,
       false,
-      false,
+      null,
+      null,
+      hardwareProperties,
+      null,
       false);
-    assertNotNull("Could not create AVD", avd);
-    Path emulator = Paths.get("sdk/emulator/emulator.exe");
 
-    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(emulator, avd);
-    GeneralCommandLine command = builder.build();
+    assertThat(info).isNotNull();
+    assertThat(info.getUserSettings().get(USER_SETTINGS_INI_PREFERRED_ABI)).isNull();
 
-    assertEquals(emulator.toString(), command.getExePath());
-    assertEquals("Emulator command should have a working directory. See IDEA-231313.", emulator.getParent().toFile(), command.getWorkDirectory());
+    Map<String, String> userSettings = new HashMap<>();
+    userSettings.put(USER_SETTINGS_INI_PREFERRED_ABI, Abi.X86_64.toString());
+    info = mAvdManagerConnection.createOrUpdateAvd(
+      null,
+      "test7p6Foldable",
+      device,
+      g31ImageDescription,
+      ScreenOrientation.PORTRAIT,
+      false,
+      null,
+      null,
+      hardwareProperties,
+      userSettings,
+      false);
+    assertThat(info).isNotNull();
+    assertThat(info.getUserSettings().get(USER_SETTINGS_INI_PREFERRED_ABI)).isEqualTo(Abi.X86_64.toString());
   }
 
   private static void recordGoogleApisSysImg23(Path sdkRoot) {

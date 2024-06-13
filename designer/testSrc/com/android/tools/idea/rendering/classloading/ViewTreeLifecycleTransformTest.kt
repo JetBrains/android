@@ -16,7 +16,8 @@
 package com.android.tools.idea.rendering.classloading
 
 import com.android.test.testutils.TestUtils
-import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
+import com.android.tools.rendering.classloading.NopClassLocator
+import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.toClassTransform
@@ -102,7 +103,7 @@ class ViewTreeLifecycleTransformTest {
             )
           )
         ),
-        NopClassLocator
-      )
+        NopClassLocator,
+      ),
     )
 }

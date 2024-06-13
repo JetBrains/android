@@ -39,7 +39,7 @@ class VitalsDetailsStateTest {
         ConnectionMode.ONLINE,
         emptySet(),
         emptySet(),
-        VisibilityType.ALL
+        VisibilityType.ALL,
       )
     assertThat(state.toConsoleUrl()).isEqualTo("https://url.for-crash.com?days=7")
 
@@ -54,10 +54,10 @@ class VitalsDetailsStateTest {
         setOf(
           OperatingSystemInfo("os1", "os1"),
           OperatingSystemInfo("os2", "os2"),
-          OperatingSystemInfo("os3", "os3")
+          OperatingSystemInfo("os3", "os3"),
         ),
         setOf(Device("Google", "Google/Pixel 5"), Device("Samsung", "Samsung/A32")),
-        VisibilityType.USER_PERCEIVED
+        VisibilityType.USER_PERCEIVED,
       )
 
     assertThat(state.toConsoleUrl())

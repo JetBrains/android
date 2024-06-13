@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons.LayoutEditor.Toolbar.TOOLS_ATTRIBUTE_OFF
@@ -33,8 +34,9 @@ object DisableToolsVisibilityAndPositionInPreviewAction :
   ToggleAction(
     "Toggle tools visibility and position",
     "Disable or Enable 'tools:visibility' and 'tools:layout_editor_absoluteX/Y' attributes in the Layout preview.",
-    TOOLS_ATTRIBUTE_ON
+    TOOLS_ATTRIBUTE_ON,
   ) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)

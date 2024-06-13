@@ -10,12 +10,12 @@ iml_module(
         "gen",
     ],
     iml_files = ["intellij.android.lang-databinding.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -52,10 +52,11 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
-        "//tools/adt/idea/databinding:intellij.android.databinding[module]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle[test]",
+        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module, test]",
+        "//tools/adt/idea/databinding:intellij.android.databinding[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -63,7 +64,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
 )
 

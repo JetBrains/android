@@ -25,6 +25,7 @@ import com.android.utils.FileUtils;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.registry.EarlyAccessRegistryManager;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -310,6 +311,19 @@ public class AndroidStudioInstallation {
       "  </component>\n" +
       "</application>\n";
     Files.writeString(dest, firstRunContents, StandardCharsets.UTF_8);
+  }
+
+  public void setNewUi() throws IOException {
+    Path dest = configDir.resolve(EarlyAccessRegistryManager.fileName);
+    System.out.println("Creating " + dest);
+    Files.createDirectories(dest.getParent());
+    String contents =
+      "ide.experimental.ui\n" +
+      "true\n" +
+      "ide.experimental.ui.inter.font\n" +
+      "false\n" +
+      "idea.plugins.compatible.build";
+    Files.writeString(dest, contents, StandardCharsets.UTF_8);
   }
 
   public void createGeneralPropertiesXml() throws IOException {

@@ -184,6 +184,9 @@ class KotlinModelConverter {
     mlModelBindingEnabled = booleanFlagValuesList.first {
       it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING
     }.value,
+    androidResourcesEnabled = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.BUILD_FEATURE_ANDROID_RESOURCES
+    }.value,
     unifiedTestPlatformEnabled = booleanFlagValuesList.first {
       it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM
     }.value,
@@ -458,10 +461,12 @@ class KotlinModelConverter {
         IdeBasicVariantImpl(
           name = kotlinMultiplatformAndroidVariantName,
           applicationId = null,
-          testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace
+          testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace,
+          buildType = null,
         )
       ),
-      defaultVariantName = kotlinMultiplatformAndroidVariantName
+      defaultVariantName = kotlinMultiplatformAndroidVariantName,
+      lintJar = null
     )
 
     val mainArtifact = IdeAndroidArtifactCoreImpl(
@@ -565,8 +570,8 @@ class KotlinModelConverter {
       name = kotlinMultiplatformAndroidVariantName,
       displayName = kotlinMultiplatformAndroidVariantName,
       mainArtifact = mainArtifact,
-      unitTestArtifact = unitTestArtifact,
-      androidTestArtifact = androidTestArtifact,
+      hostTestArtifacts = listOfNotNull(unitTestArtifact),
+      deviceTestArtifacts = listOfNotNull(androidTestArtifact),
       testFixturesArtifact = null,
       buildType = "", // TODO(b/288062702): figure out what will this affect
       productFlavors = emptyList(),

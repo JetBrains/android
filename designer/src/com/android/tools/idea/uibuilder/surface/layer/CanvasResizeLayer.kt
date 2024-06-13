@@ -41,7 +41,7 @@ class CanvasResizeLayer(private val screenView: ScreenView, private val repaint:
         screenView.x + size.width,
         screenView.y + size.height,
         NlConstants.RESIZING_HOVERING_SIZE,
-        NlConstants.RESIZING_HOVERING_SIZE
+        NlConstants.RESIZING_HOVERING_SIZE,
       )
     isHovering = resizeZone.contains(x, y)
     if (isHovering != oldHovering) {
@@ -61,13 +61,13 @@ class CanvasResizeLayer(private val screenView: ScreenView, private val repaint:
       x + size.width + NlConstants.BOUNDS_RECT_DELTA,
       y + size.height + 4,
       x + size.width + 4,
-      y + size.height + NlConstants.BOUNDS_RECT_DELTA
+      y + size.height + NlConstants.BOUNDS_RECT_DELTA,
     )
     graphics.drawLine(
       x + size.width + NlConstants.BOUNDS_RECT_DELTA,
       y + size.height + 12,
       x + size.width + 12,
-      y + size.height + NlConstants.BOUNDS_RECT_DELTA
+      y + size.height + NlConstants.BOUNDS_RECT_DELTA,
     )
     graphics.dispose()
   }

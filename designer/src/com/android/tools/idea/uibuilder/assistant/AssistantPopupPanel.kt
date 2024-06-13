@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.assistant
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -35,7 +35,7 @@ private val CONTENT_BORDER = JBUI.Borders.empty(6, SIDE_PADDING, 12, SIDE_PADDIN
 open class AssistantPopupPanel
 @JvmOverloads
 constructor(title: String = "Design-time View Attributes", val content: JComponent? = null) :
-  AdtSecondaryPanel(VerticalFlowLayout(0, 0)) {
+  AdtSecondaryPanel() {
 
   private val titleLabel =
     JLabel(title, SwingConstants.LEADING).apply {
@@ -43,7 +43,7 @@ constructor(title: String = "Design-time View Attributes", val content: JCompone
         JBUI.Borders.merge(
           JBUI.Borders.empty(8, SIDE_PADDING, 8, SIDE_PADDING),
           JBUI.Borders.customLine(com.android.tools.adtui.common.border, 0, 0, 1, 0),
-          true
+          true,
         )
       font = font.deriveFont(JBUI.scaleFontSize(10f))
       isOpaque = false
@@ -59,7 +59,10 @@ constructor(title: String = "Design-time View Attributes", val content: JCompone
     }
 
   init {
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
     isOpaque = false
+    titleLabel.alignmentX = Component.LEFT_ALIGNMENT
+    contentWrapper.alignmentX = Component.LEFT_ALIGNMENT
     add(titleLabel)
     add(contentWrapper)
     minimumSize = JBUI.size(250, 10)

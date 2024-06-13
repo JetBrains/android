@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,15 +26,22 @@ import org.jetbrains.annotations.Nullable;
  * Project import logic used by UI elements
  */
 public final class ProjectImportUtil {
-  private static final String[] GRADLE_SUPPORTED_FILES =
-    new String[]{SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_BUILD_GRADLE_KTS, SdkConstants.FN_SETTINGS_GRADLE,
-      SdkConstants.FN_SETTINGS_GRADLE_KTS};
+  private static final String[] GRADLE_SUPPORTED_FILES = new String[] {
+    SdkConstants.FN_BUILD_GRADLE,
+    SdkConstants.FN_BUILD_GRADLE_KTS,
+    SdkConstants.FN_SETTINGS_GRADLE,
+    SdkConstants.FN_SETTINGS_GRADLE_KTS,
+  };
 
   private ProjectImportUtil() {
     // Do not instantiate
   }
 
   public static VirtualFile findGradleTarget(@NotNull VirtualFile file) {
+    if (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+      String[] declarativeFiles = new String[]{SdkConstants.FN_BUILD_GRADLE_DECLARATIVE, SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE};
+      return findMatch(file, ArrayUtils.addAll(GRADLE_SUPPORTED_FILES, declarativeFiles));
+    }
     return findMatch(file, GRADLE_SUPPORTED_FILES);
   }
 

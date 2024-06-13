@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter.Companion.toGradleSyncIssueType
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -33,5 +34,17 @@ class SyncIssueUsageReporterTest : AndroidGradleTestCase() {
         .named("SyncIssue.${syncIssue.name}.toGradleSyncIssueType()")
         .isNotNull()
     }
+  }
+
+  /**
+   * Test that SyncIssues and IdeSyncIssues match.
+   */
+  @Test
+  fun testSyncIssuesMatchIdeSyncIssues() {
+    val syncIssues =
+      SyncIssue::class.java.fields.filter { it.name.startsWith("TYPE_") }.map { Pair(it.name, it.getInt(SyncIssue::class.java)) }
+    val ideSyncIssues =
+      IdeSyncIssue::class.java.fields.filter { it.name.startsWith("TYPE_") }.map { Pair(it.name, it.getInt(IdeSyncIssue::class.java)) }
+    assertThat(syncIssues).containsExactlyElementsIn(ideSyncIssues)
   }
 }

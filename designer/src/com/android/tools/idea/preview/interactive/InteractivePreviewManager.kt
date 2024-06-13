@@ -28,10 +28,10 @@ import java.time.Duration
 
 class InteractivePreviewManager(
   private val surface: DesignSurface<*>,
-  fpsLimit: Int,
+  initialFpsLimit: Int,
   private val interactiveScenesProvider: () -> Collection<InteractiveSceneManager>,
   private val usageTrackerProvider: () -> InteractivePreviewUsageTracker,
-  private val delegateInteractionHandler: DelegateInteractionHandler
+  private val delegateInteractionHandler: DelegateInteractionHandler,
 ) : Disposable {
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
@@ -39,7 +39,7 @@ class InteractivePreviewManager(
   private val originalInteractionHandler = delegateInteractionHandler.delegate
   private val interactiveInteractionHandler = LayoutlibInteractionHandler(surface)
 
-  var fpsLimit = fpsLimit
+  var fpsLimit = initialFpsLimit
     set(value) {
       field = value
       fpsCounter.resetAndStart()
@@ -50,10 +50,10 @@ class InteractivePreviewManager(
         {
           if (!RenderService.isBusy() && fpsCounter.getFps() <= fpsLimit) {
             fpsCounter.incrementFrameCounter()
-            interactiveScenesProvider().forEach { it.executeCallbacksAndRequestRender(null) }
+            interactiveScenesProvider().forEach { it.executeCallbacksAndRequestRender() }
           }
         },
-        Duration.ofMillis(5)
+        Duration.ofMillis(5),
       )
       .also { Disposer.register(this, it) }
 

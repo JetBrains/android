@@ -6,9 +6,10 @@ import android.os.Parcelable
 
 class MyData(val number: Int, val text: String, flag: Boolean) : Parcelable {
     constructor(parcel: Parcel) : this(
-            parcel.readInt(),
-            parcel.readString(),
-            TODO("flag")) {
+        parcel.readInt(),
+        parcel.readString(),
+        TODO("flag")
+    ) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

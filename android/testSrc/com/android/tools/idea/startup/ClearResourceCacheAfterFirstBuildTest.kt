@@ -21,7 +21,9 @@ import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import org.junit.*
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -35,6 +37,7 @@ class ClearResourceCacheAfterFirstBuildTest {
   private lateinit var clearResourceCacheAfterFirstBuild: ClearResourceCacheAfterFirstBuild
   private lateinit var onCacheClean: TestRunnable
   private lateinit var onSourceGenerationError: TestRunnable
+  private lateinit var mockDisposable: Disposable
 
   private class TestRunnable(private val toRun: () -> Unit) : Runnable {
     private var hasRun = false
@@ -66,6 +69,13 @@ class ClearResourceCacheAfterFirstBuildTest {
       assertWithMessage("onSourceGenerationError callback was called after resource cache was cleared")
           .that(clearResourceCacheAfterFirstBuild.isCacheClean()).isFalse()
     }
+
+    mockDisposable = Disposer.newDisposable()
+  }
+
+  @After
+  fun after() {
+    Disposer.dispose(mockDisposable)
   }
 
   @Test
@@ -83,7 +93,7 @@ class ClearResourceCacheAfterFirstBuildTest {
   fun runWhenResourceCacheClean_cacheAlreadyCleared() {
     projectSystem.emulateSync(SyncResult.SUCCESS)
 
-    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
+    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
 
     onCacheClean.assertHasRun()
     onSourceGenerationError.assertHasNotRun()
@@ -94,7 +104,7 @@ class ClearResourceCacheAfterFirstBuildTest {
     projectSystem.emulateSync(SyncResult.FAILURE)
     projectSystem.emulateSync(SyncResult.SUCCESS)
 
-    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
+    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
 
     // Ignore errors as long as the resource cache has been cleared once.
     onCacheClean.assertHasRun()
@@ -105,14 +115,14 @@ class ClearResourceCacheAfterFirstBuildTest {
   fun runWhenResourceCacheClean_errorAlreadyOccurredButCacheNotCleared() {
     projectSystem.emulateSync(SyncResult.FAILURE)
 
-    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
+    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
     onCacheClean.assertHasNotRun()
     onSourceGenerationError.assertHasRun()
   }
 
   @Test
   fun runWhenResourceCacheClean_waits() {
-    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
+    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
     onCacheClean.assertHasNotRun()
     onSourceGenerationError.assertHasNotRun()
   }
@@ -120,7 +130,7 @@ class ClearResourceCacheAfterFirstBuildTest {
   @Test
   fun runWhenResourceCacheClean_errorAlreadyOccurredAndThenCacheClean() {
     projectSystem.emulateSync(SyncResult.FAILURE)
-    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
+    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
     projectSystem.emulateSync(SyncResult.SUCCESS)
 
     onCacheClean.assertHasRun()
@@ -128,7 +138,7 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun runWhenResourceCacheClean_cacheClearedLater() {
-    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
+    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
 
     projectSystem.emulateSync(SyncResult.SUCCESS)
     onCacheClean.assertHasRun()
@@ -137,7 +147,7 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun runWhenResourceCacheClean_errorLater() {
-    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
+    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
 
     projectSystem.emulateSync(SyncResult.FAILURE)
     onCacheClean.assertHasNotRun()
@@ -146,7 +156,7 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun runWhenResourceCacheClean_errorLaterAndThenCacheClean() {
-    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
+    clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
     projectSystem.emulateSync(SyncResult.FAILURE)
     projectSystem.emulateSync(SyncResult.SUCCESS)
 

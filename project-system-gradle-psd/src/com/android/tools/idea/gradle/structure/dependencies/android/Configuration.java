@@ -29,6 +29,8 @@ class Configuration {
   static final Configuration TEST_FIXTURES = new Configuration("Android Test Fixtures",
                                                               IdeArtifactName.TEST_FIXTURES);
 
+  // TODO(karimai): add support for ScreenshotTest configurations.
+
   @NotNull private final String myName;
   @Nullable private final IdeArtifactName myArtifactName;
 

@@ -16,6 +16,7 @@
 package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.components.JBLabel
@@ -34,7 +35,20 @@ import kotlin.reflect.KProperty
 interface IconTableComponent : TableComponent {
   var baseIcon: Icon?
   var iconColor: Color?
+
+  /**
+   * The icon setter that should already be present on the Swing component. This is declared on the
+   * interface so that IconTableComponent methods can call it.
+   */
   fun setIcon(icon: Icon?)
+
+  /**
+   * Updates the icon in response to a change in [baseIcon] or [iconColor]. (May be overridden to
+   * update additional properties as needed.)
+   */
+  fun updateIcon() {
+    setIcon(baseIcon?.applyColor(iconColor))
+  }
 }
 
 fun IconTableComponent.updateIconColor(presentation: TablePresentation) {
@@ -57,10 +71,6 @@ class IconTableComponentProperty<T>(initialValue: T) {
   }
 }
 
-internal fun IconTableComponent.updateIcon() {
-  setIcon(baseIcon?.applyColor(iconColor))
-}
-
 internal fun Icon.applyColor(color: Color?): Icon =
   when {
     this is ColorableIcon -> applyColor(color)
@@ -80,7 +90,7 @@ class IconLabel(initialBaseIcon: Icon?) : JBLabel(initialBaseIcon), IconTableCom
 
   override fun updateTablePresentation(
     manager: TablePresentationManager,
-    presentation: TablePresentation
+    presentation: TablePresentation,
   ) {
     manager.defaultApplyPresentation(this, presentation)
     updateIconColor(presentation)
@@ -91,6 +101,7 @@ class IconLabel(initialBaseIcon: Icon?) : JBLabel(initialBaseIcon), IconTableCom
 open class IconButton(initialBaseIcon: Icon?) : JButton(), IconTableComponent {
   override var baseIcon by IconTableComponentProperty(initialBaseIcon)
   override var iconColor: Color? by IconTableComponentProperty(null)
+
   private var rowSelected: Boolean = false
     set(value) {
       field = value
@@ -108,11 +119,16 @@ open class IconButton(initialBaseIcon: Icon?) : JButton(), IconTableComponent {
 
   override fun updateTablePresentation(
     manager: TablePresentationManager,
-    presentation: TablePresentation
+    presentation: TablePresentation,
   ) {
     manager.defaultApplyPresentation(this, presentation)
     updateIconColor(presentation)
     rowSelected = presentation.rowSelected
+  }
+
+  override fun updateIcon() {
+    super.updateIcon()
+    disabledIcon = baseIcon?.let { IconLoader.getDisabledIcon(it) }
   }
 
   fun updateBorder() {
@@ -155,6 +171,7 @@ class ColorableAnimatedSpinnerIcon : AnimatedIcon.Default(), ColorableIcon {
     val frame = this
     return object : Frame {
       override fun getIcon() = ColoredIconGenerator.generateColoredIcon(frame.icon, color)
+
       override fun getDelay() = frame.delay
     }
   }

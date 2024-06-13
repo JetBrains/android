@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
-import static com.android.SdkConstants.FN_DECLARATIVE_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE_TOML;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
@@ -46,7 +46,7 @@ import static org.junit.Assume.assumeTrue;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -80,6 +80,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.OpenProjectTaskBuilder;
 import com.intellij.util.io.PathKt;
 import java.io.File;
 import java.io.IOException;
@@ -116,7 +117,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
   @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
-  @NotNull private static final String DECLARATIVE_LANGUAGE = "Toml";
+  @NotNull private static final String GRADLE_DECLARATIVE_LANGUAGE = "Declarative";
   protected String myTestDataRelativePath;
   protected String myTestDataResolvedPath;
 
@@ -143,21 +144,17 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   @Parameters(name = "{1}")
   public static Collection languageExtensions() {
     return Arrays.asList(new Object[][]{
-      {".gradle", GROOVY_LANGUAGE}
-      ,
-      {".gradle.kts", KOTLIN_LANGUAGE}
-      ,
-      {".gradle.toml", DECLARATIVE_LANGUAGE}
+      {".gradle", GROOVY_LANGUAGE},
+      {".gradle.kts", KOTLIN_LANGUAGE},
+      {".gradle.dcl", GRADLE_DECLARATIVE_LANGUAGE}
     });
   }
 
-  protected boolean isGroovy() {
-    return myLanguageName.equals(GROOVY_LANGUAGE);
-  }
+  protected boolean isGroovy() { return myLanguageName.equals(GROOVY_LANGUAGE); }
 
   protected boolean isKotlinScript() { return myLanguageName.equals(KOTLIN_LANGUAGE); }
 
-  protected boolean isDeclarative() { return myLanguageName.equals(DECLARATIVE_LANGUAGE); }
+  protected boolean isGradleDeclarative() { return myLanguageName.equals(GRADLE_DECLARATIVE_LANGUAGE); }
 
   protected void isIrrelevantForGroovy(String reason) {
     assumeFalse("test irrelevant for Groovy: " + reason, isGroovy());
@@ -167,15 +164,8 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     assumeFalse("test irrelevant for KotlinScript: " + reason, isKotlinScript());
   }
 
-  protected void isIrrelevantForDeclarative(String reason) {
-    assumeFalse("test irrelevant for Declarative: " + reason, isDeclarative());
-  }
-
-  /**
-   * This is a marker that test case is not yet ready for declarative
-   */
-  protected void skipDeclarativeTemporary() {
-    assumeFalse("Test is not yet support Declarative build", isDeclarative());
+  protected void skipGradleDeclarativeTemporary() {
+    assumeFalse("Test does not yet support Gradle Declarative build", isGradleDeclarative());
   }
 
   /**
@@ -223,9 +213,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   @Before
   public void before() throws Exception {
-    if(isDeclarative())
-      assumeTrue("'Studio declarative support' flag is false - so test does not know/care about declarative build",
-                 Registry.is("android.gradle.declarative.plugin.studio.support"));
+    // ignore Gradle declarative test cases
 
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
@@ -286,14 +274,11 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   private String getSettingsFileName() {
     if (isGroovy()) {
       return FN_SETTINGS_GRADLE;
-    }
-    else if (isDeclarative()) {
-      return FN_SETTINGS_GRADLE_TOML;
-    }
-    else if (isKotlinScript()) {
+    } else if (isKotlinScript()) {
       return FN_SETTINGS_GRADLE_KTS;
-    }
-    else {
+    } else if (isGradleDeclarative()) {
+      return FN_SETTINGS_GRADLE_DECLARATIVE;
+    } else {
       throw new IllegalStateException("Unrecognized language name:" + myLanguageName);
     }
   }
@@ -302,16 +287,20 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   private String getBuildFileName() {
     if (isGroovy()) {
       return FN_BUILD_GRADLE;
-    }
-    else if (isDeclarative()) {
-      return FN_DECLARATIVE_BUILD_GRADLE;
-    }
-    else if (isKotlinScript()) {
+    } else if (isKotlinScript()) {
       return FN_BUILD_GRADLE_KTS;
-    }
-    else {
+    } else if (isGradleDeclarative()) {
+      return FN_BUILD_GRADLE_DECLARATIVE;
+    } else {
       throw new IllegalStateException("Unrecognized language name:" + myLanguageName);
     }
+  }
+
+  @Override
+  protected @NotNull OpenProjectTaskBuilder getOpenProjectOptions() {
+    // Implementors of this test class tend to produce a lot of short-lived projects; disabling post-startup activities
+    // means that we don't have to wait for those activities to finish before ending each test case.
+    return super.getOpenProjectOptions().runPostStartUpActivities(false);
   }
 
   @Override
@@ -341,7 +330,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     throws IOException {
     final File testFile = testFileName.toFile(myTestDataResolvedPath, myTestDataExtension);
 
-    if(!testFile.exists()) skipDeclarativeTemporary(); // skip test if no file and in declarative mode
+    if(!testFile.exists()) skipGradleDeclarativeTemporary(); // skip test if no file and in declarative mode
 
     VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
 
@@ -387,6 +376,13 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected void removeVersionCatalogFile() throws IOException {
     runWriteAction(() -> {
       myVersionCatalogFile.delete(this);
+      return null;
+    });
+  }
+
+  protected void removeSettingsFile() throws IOException {
+    runWriteAction(() -> {
+      mySettingsFile.delete(this);
       return null;
     });
   }

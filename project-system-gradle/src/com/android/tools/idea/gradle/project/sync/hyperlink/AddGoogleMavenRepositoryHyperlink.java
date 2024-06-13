@@ -56,7 +56,7 @@ public class AddGoogleMavenRepositoryHyperlink extends SyncIssueNotificationHype
   }
 
   @Override
-  protected void execute(@NotNull Project project) {
+  public void execute(@NotNull Project project) {
     List<VirtualFile> files = myBuildFiles;
     if (files.isEmpty()) {
       files.addAll(getBuildFileForPlugin(project));

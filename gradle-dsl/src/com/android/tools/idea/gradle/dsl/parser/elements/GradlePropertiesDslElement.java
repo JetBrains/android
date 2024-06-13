@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
@@ -380,12 +381,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @NotNull
-  private static final ImmutableMap<String,PropertiesElementDescription> NO_CHILD_PROPERTIES_ELEMENTS = ImmutableMap.of();
+  private static final ImmutableMap<String,PropertiesElementDescription<?>> NO_CHILD_PROPERTIES_ELEMENTS = ImmutableMap.of();
 
   public static final class EmptyGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return NO_CHILD_PROPERTIES_ELEMENTS;
     }
 
@@ -401,14 +401,17 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * maintaining a String-to-Description map, and looking up the given name.  This works for most blocks, but is not suitable for
    * NamedDomainObject containers, where the child properties can have arbitrary user-supplied names.
    *
-   * In principle this map could vary by external Dsl language (Groovy, KotlinScript).  In practice at least at present all properties
-   * elements have the same name in both.
+   * Groovy, KotlinScript have the same set of description but Gradle's Declarative Configuration Language/"dcl" format has elements
+   * named differently. This is true for root DSL elements (android, dependencies etx) to avoid interference between declarative and
+   * traditional DSLs in declarative - experimental phase.
    *
    * @return a map of external names to descriptions of the corresponding properties element.
    */
-  @NotNull
-  protected Map<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
-    return NO_CHILD_PROPERTIES_ELEMENTS;
+  @SuppressWarnings("rawtypes")
+  public @NotNull Map<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
+    return GradleBlockModelMap.getElementMap(this.getClass(), kind);
   }
 
   /**
@@ -417,8 +420,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * element exists in the Dsl.
    */
   @Nullable
-  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
-    return getChildPropertiesElementsDescriptionMap().get(name);
+  public PropertiesElementDescription getChildPropertiesElementDescription(GradleDslNameConverter converter, String name) {
+    return getChildPropertiesElementsDescriptionMap(converter.getKind()).get(name);
   }
 
   @NotNull

@@ -15,16 +15,16 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace.TraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuUsageData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
-import com.android.tools.profiler.proto.Trace.TraceInfo;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

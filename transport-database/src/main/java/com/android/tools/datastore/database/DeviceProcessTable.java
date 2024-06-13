@@ -15,12 +15,12 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
 import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
 import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

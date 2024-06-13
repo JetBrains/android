@@ -71,11 +71,7 @@ class SessionItem(
   override val isOngoing
     get() = SessionsManager.isSessionAlive(activeSession)
 
-  /**
-   * The MEMORY_CAPTURE and CPU_CAPTURE session types are indicative of imported memory and CPU sessions respectively.
-   */
-  override val canExport = sessionMetaData.type == SessionMetaData.SessionType.MEMORY_CAPTURE
-                           || sessionMetaData.type == SessionMetaData.SessionType.CPU_CAPTURE
+  override val canExport get() = childArtifacts.size == 1 && isImported()
 
   override fun export(outputStream: OutputStream) {
     assert(canExport)
@@ -161,6 +157,12 @@ class SessionItem(
   }
 
   fun containsExactlyOneArtifact() = childArtifacts.size == 1
+
+  /**
+   * The MEMORY_CAPTURE and CPU_CAPTURE session types are indicative of imported memory and CPU sessions respectively.
+   */
+  fun isImported() = sessionMetaData.type == SessionMetaData.SessionType.CPU_CAPTURE
+                     || sessionMetaData.type == SessionMetaData.SessionType.MEMORY_CAPTURE
 
   companion object {
     private const val SESSION_INITIALIZING = "Starting..."

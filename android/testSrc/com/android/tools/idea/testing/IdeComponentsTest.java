@@ -29,7 +29,7 @@ public class IdeComponentsTest extends HeavyPlatformTestCase {
 
   public void testReplaceApplicationService() {
     SdkSync originalSdkSync = SdkSync.getInstance();
-    try (AutoCloseDisposable scope = new AutoCloseDisposable()){
+    try (AutoCloseDisposable scope = new AutoCloseDisposable()) {
       SdkSync mockSdkSync = mock(SdkSync.class);
       new IdeComponents(myProject, scope).replaceApplicationService(SdkSync.class, mockSdkSync);
       assertSame(mockSdkSync, SdkSync.getInstance());
@@ -41,7 +41,7 @@ public class IdeComponentsTest extends HeavyPlatformTestCase {
 
   public void testReplaceProjectService() {
     GradleSettings originalSettings = GradleSettings.getInstance(getProject());
-    try (AutoCloseDisposable scope = new AutoCloseDisposable()){
+    try (AutoCloseDisposable scope = new AutoCloseDisposable()) {
       GradleSettings mockSettings = mock(GradleSettings.class);
       new IdeComponents(getProject(), scope).replaceProjectService(GradleSettings.class, mockSettings);
       assertSame(mockSettings, GradleSettings.getInstance(getProject()));

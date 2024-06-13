@@ -16,38 +16,31 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.sun.management.GcInfo
 import java.lang.management.ManagementFactory
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.management.NotificationEmitter
 import javax.management.openmbean.CompositeData
 
-@Service
-private class GcPauseWatcher {
-  init {
-    ManagementFactory.getGarbageCollectorMXBeans().forEach { bean ->
-      (bean as NotificationEmitter).addNotificationListener(
-        { notification, _ ->
-          val data = notification.userData as CompositeData
-          val duration = GcInfo.from(data.get("gcInfo") as CompositeData).duration
-          AndroidStudioSystemHealthMonitor.recordGcPauseTime(bean.name, duration)
-         }, null, null)
-    }
-  }
+private val initialized = AtomicBoolean()
 
-  companion object {
-    fun getInstance() : GcPauseWatcher {
-      return ApplicationManager.getApplication().getService(GcPauseWatcher::class.java)
-    }
-  }
+/** Collects GC-pause statistics. */
+class GcPauseWatcher : ProjectActivity {
 
-  private class Initializer : StartupActivity.Background {
-    override fun runActivity(project: Project) {
-      // Access the application instance to trigger its initialization
-      getInstance()
+  override suspend fun execute(project: Project) {
+    // Note: IntelliJ strongly discourages running code during IDE startup,
+    // so instead we initialize these GC listeners during first project open.
+    if (initialized.compareAndSet(false, true)) {
+      ManagementFactory.getGarbageCollectorMXBeans().forEach { bean ->
+        (bean as NotificationEmitter).addNotificationListener(
+          { notification, _ ->
+            val data = notification.userData as CompositeData
+            val duration = GcInfo.from(data.get("gcInfo") as CompositeData).duration
+            AndroidStudioSystemHealthMonitor.recordGcPauseTime(bean.name, duration)
+           }, null, null)
+      }
     }
   }
 }

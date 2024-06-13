@@ -92,7 +92,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
   override fun createChildTargets(
     parentComponent: SceneComponent,
-    childComponent: SceneComponent
+    childComponent: SceneComponent,
   ): MutableList<Target> {
     val listBuilder = ImmutableList.builder<Target>()
 
@@ -105,7 +105,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
         CoordinatorResizeTarget(ResizeBaseTarget.Type.BOTTOM),
         CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
         CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT),
-        CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM),
       )
     }
 

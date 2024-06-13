@@ -40,7 +40,7 @@ class CreateSampleDataDirectoryTest {
         SimpleDataContext.builder()
           .add(LangDataKeys.MODULE_CONTEXT_ARRAY, arrayOf(projectRule.module))
           .build(),
-        createAction
+        createAction,
       )
 
     createAction.actionPerformed(event)

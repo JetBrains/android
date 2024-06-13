@@ -23,7 +23,7 @@ class LogcatEventTest {
     RuleChain(
       ApplicationRule(),
       ApplicationServiceRule(TempFileFactory::class.java, TestTempFileFactory()),
-      TestLoggerRule()
+      TestLoggerRule(),
     )
 
   private val channel = Channel<LogcatEvent>()

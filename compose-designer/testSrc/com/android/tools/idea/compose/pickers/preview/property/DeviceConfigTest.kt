@@ -155,17 +155,17 @@ internal class DeviceConfigTest {
         dimUnit = DimUnit.dp,
         dpi = 300,
         shape = Shape.Round,
-        chinSize = 40f
+        chinSize = 40f,
       )
     assertEquals(
       "spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp",
-      config.deviceSpec()
+      config.deviceSpec(),
     )
 
     // Orientation change is reflected as a parameter with the DeviceSpec Language
     assertEquals(
       "spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp,orientation=landscape",
-      config.toMutableConfig().apply { orientation = Orientation.landscape }.deviceSpec()
+      config.toMutableConfig().apply { orientation = Orientation.landscape }.deviceSpec(),
     )
 
     // Implied Orientation of width/height is not reflected in spec
@@ -183,7 +183,7 @@ internal class DeviceConfigTest {
         dimUnit = DimUnit.dp,
         dpi = 420,
         shape = Shape.Round,
-        chinSize = 40f
+        chinSize = 40f,
       )
     assertEquals("spec:width=100dp,height=200dp,isRound=true,chinSize=40dp", config.deviceSpec())
 
@@ -195,7 +195,7 @@ internal class DeviceConfigTest {
         dimUnit = DimUnit.dp,
         dpi = 420,
         shape = Shape.Round,
-        chinSize = 0f
+        chinSize = 0f,
       )
     assertEquals("spec:width=100dp,height=200dp,isRound=true", config.deviceSpec())
 
@@ -207,14 +207,14 @@ internal class DeviceConfigTest {
         dimUnit = DimUnit.dp,
         dpi = 420,
         shape = Shape.Normal,
-        chinSize = 40f
+        chinSize = 40f,
       )
     assertEquals("spec:width=100dp,height=200dp", config.deviceSpec())
 
     // For DeviceSpec Language, one decimal for floating point supported
     assertEquals(
       "spec:width=123.5dp,height=567.9dp",
-      DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec()
+      DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec(),
     )
   }
 
@@ -223,28 +223,28 @@ internal class DeviceConfigTest {
     assertEquals(
       "_device_class_phone",
       parseDeviceSpec("spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420")!!
-        .deviceId
+        .deviceId,
     )
     assertEquals(
       "_device_class_foldable",
       parseDeviceSpec(
           "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420"
         )!!
-        .deviceId
+        .deviceId,
     )
     assertEquals(
       "_device_class_tablet",
       parseDeviceSpec(
           "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240"
         )!!
-        .deviceId
+        .deviceId,
     )
     assertEquals(
       "_device_class_desktop",
       parseDeviceSpec(
           "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160"
         )!!
-        .deviceId
+        .deviceId,
     )
   }
 }

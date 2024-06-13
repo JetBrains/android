@@ -11,19 +11,8 @@ import shutil
 import json
 import xml.etree.ElementTree as ET
 import intellij
-
-# A list of files excluded from the compile classpath.
-HIDDEN = [
-    # kotlinc-lib.jar contains kotlin-stdlib and kotlin-reflect from the Kotlin compiler.
-    # We prefer compiling against the IntelliJ version of kotlin-stdlib
-    # because IntelliJ has a hack in PluginClassLoader.mustBeLoadedByPlatform()
-    # which circumvents the normal classloader delegation hierarchy in order to
-    # prioritize its own version of kotlin-stdlib at runtime.
-    "/plugins/Kotlin/lib/kotlinc-lib.jar",
-    # This annotation jar is nonexistent, despite being referenced by product-info.json.
-    # Probably this happens because BaseIdeaProperties.copyAdditionalFiles() moves this jar.
-    "/lib/annotations-java5.jar",
-]
+import mkspec
+from collections import defaultdict
 
 ALL = "all"
 LINUX = "linux"
@@ -39,120 +28,6 @@ HOME_PATHS = {
     MAC_ARM: "/darwin_aarch64/android-studio/Contents",
     WIN: "/windows/android-studio",
 }
-
-def read_product_info(sdk, platform):
-  path = "/Resources/product-info.json" if platform in [MAC, MAC_ARM] else "/product-info.json"
-  product_info = sdk + HOME_PATHS[platform] + path
-  with open(product_info) as f:
-    return json.load(f)
-
-
-def list_sdk_jars(sdk):
-  sets = {}
-  for platform in PLATFORMS:
-    # Extract the runtime classpath from product-info.json.
-    product_info = read_product_info(sdk, platform)
-    (launch_config,) = product_info["launch"]
-    jars = ["/lib/" + jar for jar in launch_config["bootClassPathJarNames"]]
-    # Java plugin sdk are included as part of the platform as there are references to it.
-    idea_home = sdk + HOME_PATHS[platform]
-    jars += ["/plugins/java/lib/" + jar for jar in os.listdir(idea_home + "/plugins/java/lib/") if jar.endswith(".jar")]
-    jars = [jar for jar in jars if jar not in HIDDEN]
-    sets[platform] = set(jars)
-
-  sets[ALL] = sets[WIN] & sets[MAC] & sets[MAC_ARM] & sets[LINUX]
-  sets[LINUX] = sets[LINUX] - sets[ALL]
-  sets[WIN] = sets[WIN] - sets[ALL]
-  sets[MAC] = sets[MAC] - sets[ALL]
-  sets[MAC_ARM] = sets[MAC_ARM] - sets[ALL]
-
-  sdk_jars = {}
-  for platform in [ALL] + PLATFORMS:
-    sdk_jars[platform] = sorted(sets[platform])
-
-  return sdk_jars
-
-
-def list_plugin_jars(sdk):
-  all = {}
-  for platform in PLATFORMS:
-    idea_home = sdk + HOME_PATHS[platform]
-    all[platform] = {}
-    for plugin in os.listdir(idea_home + "/plugins"):
-      if plugin == "java":
-        # The plugin java is added as part of the platform
-        continue
-      path = "/plugins/" + plugin + "/lib/"
-      jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
-      jars = [jar for jar in jars if jar not in HIDDEN]
-      all[platform][plugin] = set(jars)
-
-  plugins = sorted(set(all[MAC].keys()) | set(all[WIN].keys()) | set(all[LINUX].keys()))
-  plugin_jars = {}
-  plugin_jars[ALL] = {}
-  plugin_jars[MAC] = {}
-  plugin_jars[MAC_ARM] = {}
-  plugin_jars[WIN] = {}
-  plugin_jars[LINUX] = {}
-  for p in plugins:
-    if p in all[LINUX] and p in all[MAC] and p in all[MAC_ARM] and p in all[WIN]:
-      common = all[LINUX][p] & all[MAC][p] & all[MAC_ARM][p] & all[WIN][p]
-    else:
-      common = set()
-    plugin_jars[ALL][p] = sorted(common)
-    plugin_jars[MAC][p] = sorted(all[MAC][p] - common) if p in all[MAC] else []
-    plugin_jars[MAC_ARM][p] = sorted(all[MAC_ARM][p] - common) if p in all[MAC_ARM] else []
-    plugin_jars[WIN][p] = sorted(all[WIN][p] - common) if p in all[WIN] else []
-    plugin_jars[LINUX][p] = sorted(all[LINUX][p] - common) if p in all[LINUX] else []
-
-  return plugin_jars
-
-
-def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars, mac_bundle_name):
-
-  suffix = {
-    ALL: "",
-    MAC: "_darwin",
-    MAC_ARM: "_darwin_aarch64",
-    WIN: "_windows",
-    LINUX: "_linux",
-  }
-
-  sdk_versions = {}
-  for platform in [LINUX, WIN, MAC, MAC_ARM]:
-    sdk_version = intellij.extract_sdk_version(
-      f'{workspace}{sdk_rel}{HOME_PATHS[platform]}/lib/resources.jar')
-    sdk_versions[platform] = sdk_version
-  if len(set(sdk_versions.values())) > 1:
-    raise ValueError(f'Major and minor versions differ between OS platforms! {sdk_versions}')
-  sdk_version = sdk_versions[LINUX]
-
-  with open(workspace + sdk_rel + "/spec.bzl", "w") as file:
-    name = version.replace("-", "").replace(".", "_")
-    file.write("# Auto-generated file, do not edit manually.\n")
-    file.write(name  + " = struct(\n" )
-    file.write(f'    major_version = "{sdk_version.major}",\n')
-    file.write(f'    minor_version = "{sdk_version.minor}",\n')
-
-    for platform in [ALL] + PLATFORMS:
-      file.write(f"    jars{suffix[platform]} = [\n")
-      for jar in sdk_jars[platform]:
-        file.write("        \"" + jar + "\",\n")
-      file.write("    ],\n")
-
-    for platform in [ALL] + PLATFORMS:
-      file.write(f"    plugin_jars{suffix[platform]} = {{\n")
-      for plugin, jars in plugin_jars[platform].items():
-        if jars:
-          file.write("        \"" + plugin + "\": [\n")
-          for jar in jars:
-            file.write("            \"" + os.path.basename(jar) + "\",\n")
-          file.write("        ],\n")
-      file.write("    },\n")
-
-    file.write(f"    mac_bundle_name = \"{mac_bundle_name}\",\n")
-    file.write(")\n")
-
 
 # When running in --existing_version mode, the mac bundle name must be extracted
 # from the preexisting spec.bzl file (since the original mac bundle artifact
@@ -198,12 +73,16 @@ def gen_platform_module(iml_file, libs):
     file.write(xml)
 
 
-def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
+def write_xml_files(workspace, sdk, ides):
   project_dir = os.path.join(workspace, "tools/adt/idea")
   rel_workspace = os.path.relpath(workspace, project_dir)
 
   # Add all jars, IJ will ignore the ones that don't exist
-  all_jars = sdk_jars[ALL] + sorted(set(sdk_jars[MAC] + sdk_jars[MAC_ARM] + sdk_jars[WIN] + sdk_jars[LINUX]))
+  all_jars = ides[LINUX].platform_jars & ides[MAC].platform_jars & ides[MAC_ARM].platform_jars & ides[WIN].platform_jars
+  sdk_jars = {platform: ides[platform].platform_jars - all_jars for platform in PLATFORMS}
+  sdk_jars[ALL] = all_jars
+
+  all_jars = sorted(sdk_jars[ALL]) + sorted(sdk_jars[MAC] | sdk_jars[MAC_ARM] | sdk_jars[WIN] | sdk_jars[LINUX])
   paths = [rel_workspace + sdk + "/$SDK_PLATFORM$" + j for j in all_jars]
   gen_lib(project_dir, "studio-sdk", paths, [workspace + sdk + "/android-studio-sources.zip"])
 
@@ -212,12 +91,17 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 
-  for plugin, jars in plugin_jars[ALL].items():
-    add = sorted(set(plugin_jars[WIN][plugin] + plugin_jars[MAC][plugin] + plugin_jars[MAC_ARM][plugin] + plugin_jars[LINUX][plugin]))
-    paths = [ rel_workspace + sdk + f"/$SDK_PLATFORM$" + j for j in jars + add]
+  all_plugin_ids = set.union(*[set(ide.plugin_jars.keys()) for ide in ides.values()])
+  common_plugins_with_jars = set()
+  for plugin in all_plugin_ids:
+    sets = [ide.plugin_jars[plugin] if plugin in ide.plugin_jars else set() for ide in ides.values()]
+    if set.intersection(*sets):
+      common_plugins_with_jars.add(plugin)
+    jars = sorted(set.union(*sets))
+    paths = [ rel_workspace + sdk + f"/$SDK_PLATFORM$" + j for j in jars]
     gen_lib(project_dir, "studio-plugin-" + plugin, paths, [workspace + sdk + "/android-studio-sources.zip"])
 
-  common_platform_libs = ["studio-sdk"] + [f"studio-plugin-{plugin}" for plugin, jars in plugin_jars[ALL].items() if jars]
+  common_platform_libs = ["studio-sdk"] + [f"studio-plugin-{plugin}" for plugin in sorted(common_plugins_with_jars)]
   gen_platform_module(f"{project_dir}/studio/studio-sdk-all-plugins.iml", common_platform_libs)
 
   updater_jar = rel_workspace + sdk + "/updater-full.jar"
@@ -231,18 +115,19 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
 def update_files(workspace, version, mac_bundle_name):
   sdk = "/prebuilts/studio/intellij-sdk/" + version
 
-  sdk_jars = list_sdk_jars(workspace + sdk)
-  plugin_jars = list_plugin_jars(workspace + sdk)
+  ides = {}
+  for platform in PLATFORMS:
+    ides[platform] = intellij.IntelliJ.create(platform, f'{workspace}{sdk}/{platform}/android-studio')
 
-  write_xml_files(workspace, sdk, sdk_jars, plugin_jars)
-  write_spec_file(workspace, sdk, version, sdk_jars, plugin_jars, mac_bundle_name)
+  write_xml_files(workspace, sdk, ides)
+  mkspec.write_spec_file(workspace + sdk + "/spec.bzl", mac_bundle_name, ides)
 
 
 def check_artifacts(dir):
   files = sorted(os.listdir(dir))
   if not files:
     sys.exit("There are no artifacts in " + dir)
-  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.x64-no-jdk.zip|.mac.aarch64-no-jdk.zip|-no-jbr.tar.gz|-no-jbr.win.zip)$")
+  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.x64-no-jdk.zip|.mac.aarch64-no-jdk.zip|-no-jbr.tar.gz|-no-jbr.win.zip)(.spdx.json)?$")
   files = [file for file in files if regex.match(file) or file == "updater-full.jar"]
   if not files:
     sys.exit("No artifacts found in " + dir)
@@ -252,10 +137,14 @@ def check_artifacts(dir):
   bid = match.group(3)
   expected = [
       "android-studio-%s.%s.%s-no-jbr.tar.gz" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s-no-jbr.tar.gz.spdx.json" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s-no-jbr.win.zip" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s-no-jbr.win.zip.spdx.json" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s-sources.zip" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.mac.aarch64-no-jdk.zip" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s.mac.aarch64-no-jdk.zip.spdx.json" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.mac.x64-no-jdk.zip" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s.mac.x64-no-jdk.zip.spdx.json" % (version_major, version_minor, bid),
       "updater-full.jar",
   ]
   if files != expected:
@@ -270,7 +159,7 @@ def check_artifacts(dir):
   if len(manifests) == 1:
     manifest = os.path.basename(manifests[0])
 
-  return "AI", files[0], files[1], files[2], files[3], files[4], files[5], manifest
+  return "AI", *files, manifest
 
 
 def download(workspace, bid):
@@ -292,7 +181,16 @@ sudo apt install android-fetch-artifact""")
     sys.exit("--bid argument needs to be set to download")
   dir = tempfile.mkdtemp(prefix="studio_sdk", suffix=bid)
 
-  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.x64-no-jdk.zip", "android-studio-*.mac.aarch64-no-jdk.zip", "android-studio-*-no-jbr.tar.gz", "android-studio-*-no-jbr.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
+  artifacts = [
+    "android-studio-*-sources.zip",
+    "android-studio-*.mac.x64-no-jdk.zip", "android-studio-*.mac.x64-no-jdk.zip.spdx.json",
+    "android-studio-*.mac.aarch64-no-jdk.zip", "android-studio-*.mac.aarch64-no-jdk.zip.spdx.json",
+    "android-studio-*-no-jbr.tar.gz", "android-studio-*-no-jbr.tar.gz.spdx.json",
+    "android-studio-*-no-jbr.win.zip", "android-studio-*-no-jbr.win.zip.spdx.json",
+    "updater-full.jar",
+    "manifest_%s.xml" % bid,
+  ]
+  for artifact in artifacts:
     os.system(
         "%s %s --bid %s --target IntelliJ '%s' %s"
         % (fetch_artifact, auth_flag, bid, artifact, dir))
@@ -306,7 +204,7 @@ def write_metadata(path, data):
       file.write(k + ": " + str(v) + "\n")
 
 def extract(workspace, dir, delete_after, metadata):
-  version, linux, win, sources, mac_arm, mac, updater, manifest = check_artifacts(dir)
+  version, linux, linux_sbom, win, win_sbom, sources, mac_arm, mac_arm_sbom, mac, mac_sbom, updater, manifest = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
   if os.path.exists(path):
@@ -315,6 +213,12 @@ def extract(workspace, dir, delete_after, metadata):
   os.mkdir(path)
   shutil.copyfile(dir + "/" + sources, path + "/android-studio-sources.zip")
   shutil.copyfile(dir + "/" + updater, path + "/updater-full.jar")
+
+  os.mkdir(path + "/sbom")
+  shutil.copyfile(dir + "/" + linux_sbom, path + "/sbom/linux.spdx.json")
+  shutil.copyfile(dir + "/" + mac_sbom, path + "/sbom/darwin.spdx.json")
+  shutil.copyfile(dir + "/" + mac_arm_sbom, path + "/sbom/darwin_aarch64.spdx.json")
+  shutil.copyfile(dir + "/" + win_sbom, path + "/sbom/windows.spdx.json")
 
   print("Unzipping mac distribution...")
   # Call to unzip to preserve mac symlinks
@@ -343,9 +247,15 @@ def extract(workspace, dir, delete_after, metadata):
   print("Patching app.jar to work around b/267679210")
   for platform in PLATFORMS:
     app_jar_path = path + HOME_PATHS[platform] + "/lib/app.jar"
-    os.system(f"jar xf {app_jar_path} __index__")
-    os.system(f"jar uf {app_jar_path} __index__")
-    os.remove("__index__")
+    os.system(f"unzip {app_jar_path} __index__ -d {workspace}")
+    os.system(f"jar uf {app_jar_path} -C {workspace} __index__")
+    os.remove(f"{workspace}/__index__")
+
+  # TODO(b/328622823): IntelliJ normally loads plugins by consulting plugin-classpath.txt, but
+  # this does not work for Android Studio because plugin-classpath.txt is missing our Android
+  # plugins (which we bundle later during the Bazel build).
+  for platform in PLATFORMS:
+    os.remove(path + HOME_PATHS[platform] + "/plugins/plugin-classpath.txt")
 
   if manifest:
     xml = ET.parse(dir + "/" + manifest)
@@ -404,9 +314,15 @@ if __name__ == "__main__":
       action="store_true",
       dest="debug_download",
       help="Keeps the downloaded artifacts for debugging")
-  workspace = os.path.join(
-      os.path.dirname(os.path.realpath(__file__)), "../../../..")
+  parser.add_argument(
+      "--workspace",
+      default="../../../..",
+      dest="workspace",
+      help="The workspace where to save all files")
+
   args = parser.parse_args()
+  workspace = os.path.join(os.path.dirname(os.path.realpath(__file__)), args.workspace)
+
   options = [opt for opt in [args.version, args.download, args.path] if opt]
   if len(options) != 1:
     print("You must specify only one option")

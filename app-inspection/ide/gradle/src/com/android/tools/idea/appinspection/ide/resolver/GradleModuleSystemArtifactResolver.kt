@@ -32,7 +32,7 @@ import java.nio.file.Path
  */
 class GradleModuleSystemArtifactResolver(
   private val fileService: FileService,
-  private val moduleSystemArtifactFinder: GradleModuleSystemArtifactFinder
+  private val moduleSystemArtifactFinder: GradleModuleSystemArtifactFinder,
 ) : ArtifactResolver {
   override suspend fun resolveArtifact(artifactCoordinate: RunningArtifactCoordinate): Path =
     withContext(AndroidDispatchers.diskIoThread) {
@@ -40,13 +40,13 @@ class GradleModuleSystemArtifactResolver(
         moduleSystemArtifactFinder.findLibrary(artifactCoordinate)
           ?: throw AppInspectionArtifactNotFoundException(
             "Artifact $artifactCoordinate could not be found in module system.",
-            artifactCoordinate
+            artifactCoordinate,
           )
       val extractedPath = extractZipIfNeeded(fileService.createRandomTempDir(), libraryPath)
       extractedPath.resolveExistsOrNull(INSPECTOR_JAR)
         ?: throw AppInspectionArtifactNotFoundException(
           "inspector jar could not be found in $libraryPath",
-          artifactCoordinate
+          artifactCoordinate,
         )
     }
 }

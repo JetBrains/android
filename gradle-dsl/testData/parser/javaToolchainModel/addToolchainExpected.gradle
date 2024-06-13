@@ -1,0 +1,7 @@
+java {
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+  toolchain {
+    languageVersion JavaLanguageVersion.of(17)
+  }
+}

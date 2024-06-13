@@ -38,9 +38,11 @@
         "pair-over-wifi.svg": "studio/icons/avd/pair-over-wifi.svg",
         "run.svg": "studio/icons/avd/run.svg",
         "stop.svg": "studio/icons/avd/stop.svg",
+        "start-mirror.svg": "studio/icons/avd/start-mirror.svg",
         "start-reservation.svg": "studio/icons/avd/start-reservation.svg",
         "status-available-low.svg": "studio/icons/avd/status-available-low.svg",
-        "status-available-moderate.svg": "studio/icons/avd/status-available-moderate.svg"
+        "status-available-moderate.svg": "studio/icons/avd/status-available-moderate.svg",
+        "stop-mirror.svg": "studio/icons/avd/stop-mirror.svg"
       },
       "common": {
         "add.svg": "studio/icons/common/add.svg",
@@ -65,6 +67,8 @@
         "link.svg": "studio/icons/common/link.svg",
         "list-view.svg": "studio/icons/common/list-view.svg",
         "locked-inline.svg": "studio/icons/common/locked-inline.svg",
+        "login.svg": "studio/icons/common/login.svg",
+        "logout.svg": "studio/icons/common/logout.svg",
         "missing.svg": "studio/icons/common/missing.svg",
         "navigate-to-source.svg": "studio/icons/common/navigate-to-source.svg",
         "overflow.svg": "studio/icons/common/overflow.svg",
@@ -140,6 +144,11 @@
       "device-explorer": {
         "database-folder.svg": "studio/icons/device-explorer/database-folder.svg",
         "device-paired.svg": "studio/icons/device-explorer/device-paired.svg",
+        "firebase-device-car.svg": "studio/icons/device-explorer/firebase-device-car.svg",
+        "firebase-device-desktop.svg": "studio/icons/device-explorer/firebase-device-desktop.svg",
+        "firebase-device-phone.svg": "studio/icons/device-explorer/firebase-device-phone.svg",
+        "firebase-device-tv.svg": "studio/icons/device-explorer/firebase-device-tv.svg",
+        "firebase-device-wear.svg": "studio/icons/device-explorer/firebase-device-wear.svg",
         "multiple-devices.svg": "studio/icons/device-explorer/multiple-devices.svg",
         "physical-device-car.svg": "studio/icons/device-explorer/physical-device-car.svg",
         "physical-device-phone.svg": "studio/icons/device-explorer/physical-device-phone.svg",
@@ -178,15 +187,21 @@
         },
         "toolbar": {
           "back.svg": "studio/icons/emulator/toolbar/back.svg",
+          "device-settings.svg": "studio/icons/emulator/toolbar/device-settings.svg",
           "fold.svg": "studio/icons/emulator/toolbar/fold.svg",
           "hardware-input.svg": "studio/icons/emulator/toolbar/hardware-input.svg",
           "home.svg": "studio/icons/emulator/toolbar/home.svg",
           "overview.svg": "studio/icons/emulator/toolbar/overview.svg",
           "power.svg": "studio/icons/emulator/toolbar/power.svg",
           "power-menu.svg": "studio/icons/emulator/toolbar/power-menu.svg",
+          "resize-desktop.svg": "studio/icons/emulator/toolbar/resize-desktop.svg",
+          "resize-foldable.svg": "studio/icons/emulator/toolbar/resize-foldable.svg",
+          "resize-phone.svg": "studio/icons/emulator/toolbar/resize-phone.svg",
+          "resize-tablet.svg": "studio/icons/emulator/toolbar/resize-tablet.svg",
           "rotate-left.svg": "studio/icons/emulator/toolbar/rotate-left.svg",
           "rotate-right.svg": "studio/icons/emulator/toolbar/rotate-right.svg",
           "screenshot.svg": "studio/icons/emulator/toolbar/screenshot.svg",
+          "session.svg": "studio/icons/emulator/toolbar/session.svg",
           "snapshots.svg": "studio/icons/emulator/toolbar/snapshots.svg",
           "volume-down.svg": "studio/icons/emulator/toolbar/volume-down.svg",
           "volume-up.svg": "studio/icons/emulator/toolbar/volume-up.svg"
@@ -194,9 +209,20 @@
         "wear": {
           "button-1.svg": "studio/icons/emulator/wear/button-1.svg",
           "button-2.svg": "studio/icons/emulator/wear/button-2.svg",
+          "health-services.svg": "studio/icons/emulator/wear/health-services.svg",
           "palm.svg": "studio/icons/emulator/wear/palm.svg",
           "tilt.svg": "studio/icons/emulator/wear/tilt.svg"
         }
+      },
+      "gutter-icons": {
+        "app-quality-insights.svg": "studio/icons/gutter-icons/app-quality-insights.svg",
+        "composable-function.svg": "studio/icons/gutter-icons/composable-function.svg",
+        "dependency-consumer.svg": "studio/icons/gutter-icons/dependency-consumer.svg",
+        "dependency-provider.svg": "studio/icons/gutter-icons/dependency-provider.svg",
+        "issue.svg": "studio/icons/gutter-icons/issue.svg",
+        "preview-settings.svg": "studio/icons/gutter-icons/preview-settings.svg",
+        "resource-picker.svg": "studio/icons/gutter-icons/resource-picker.svg",
+        "run-on-device.svg": "studio/icons/gutter-icons/run-on-device.svg"
       },
       "layout-editor": {
         "extras": {
@@ -653,7 +679,41 @@
           "record.svg": "studio/icons/profiler/toolbar/record.svg",
           "select-entire-range.svg": "studio/icons/profiler/toolbar/select-entire-range.svg",
           "stop-recording.svg": "studio/icons/profiler/toolbar/stop-recording.svg",
-          "stop-session.svg": "studio/icons/profiler/toolbar/stop-session.svg"
+          "stop-session.svg": "studio/icons/profiler/toolbar/stop-session.svg",
+          "upload.svg": "studio/icons/profiler/toolbar/upload.svg"
+        },
+        "memoryleakstask": {
+          "leaking-maybe.svg": "studio/icons/profiler/memoryleakstask/leaking-maybe.svg",
+          "leaking-no.svg": "studio/icons/profiler/memoryleakstask/leaking-no.svg",
+          "leaking-yes.svg": "studio/icons/profiler/memoryleakstask/leaking-yes.svg"
+        },
+        "tasks": {
+          "app-startup-insights.svg": "studio/icons/profiler/tasks/app-startup-insights.svg",
+          "callstack-sample.svg": "studio/icons/profiler/tasks/callstack-sample.svg",
+          "find-memory-leaks.svg": "studio/icons/profiler/tasks/find-memory-leaks.svg",
+          "heap-dump.svg": "studio/icons/profiler/tasks/heap-dump.svg",
+          "improve-energy-use.svg": "studio/icons/profiler/tasks/improve-energy-use.svg",
+          "java-kotlin-allocations.svg": "studio/icons/profiler/tasks/java-kotlin-allocations.svg",
+          "java-kotlin-method-trace.svg": "studio/icons/profiler/tasks/java-kotlin-method-trace.svg",
+          "live-view.svg": "studio/icons/profiler/tasks/live-view.svg",
+          "native-allocations.svg": "studio/icons/profiler/tasks/native-allocations.svg",
+          "reduce-jank.svg": "studio/icons/profiler/tasks/reduce-jank.svg",
+          "system-trace.svg": "studio/icons/profiler/tasks/system-trace.svg",
+          "view-power-consumption.svg": "studio/icons/profiler/tasks/view-power-consumption.svg"
+        },
+        "taskslarge": {
+          "app-startup-insights-large.svg": "studio/icons/profiler/taskslarge/app-startup-insights-large.svg",
+          "callstack-sample-large.svg": "studio/icons/profiler/taskslarge/callstack-sample-large.svg",
+          "find-memory-leaks-large.svg": "studio/icons/profiler/taskslarge/find-memory-leaks-large.svg",
+          "heap-dump-large.svg": "studio/icons/profiler/taskslarge/heap-dump-large.svg",
+          "improve-energy-use-large.svg": "studio/icons/profiler/taskslarge/improve-energy-use-large.svg",
+          "java-kotlin-allocations-large.svg": "studio/icons/profiler/taskslarge/java-kotlin-allocations-large.svg",
+          "java-kotlin-method-trace-large.svg": "studio/icons/profiler/taskslarge/java-kotlin-method-trace-large.svg",
+          "live-view-large.svg": "studio/icons/profiler/taskslarge/live-view-large.svg",
+          "native-allocations-large.svg": "studio/icons/profiler/taskslarge/native-allocations-large.svg",
+          "reduce-jank-large.svg": "studio/icons/profiler/taskslarge/reduce-jank-large.svg",
+          "system-trace-large.svg": "studio/icons/profiler/taskslarge/system-trace-large.svg",
+          "view-power-consumption-large.svg": "studio/icons/profiler/taskslarge/view-power-consumption-large.svg"
         }
       },
       "shell": {
@@ -731,6 +791,10 @@
           "profiler-detailed.svg": "studio/icons/shell/toolbar/profiler-detailed.svg",
           "profiler-low-overhead.svg": "studio/icons/shell/toolbar/profiler-low-overhead.svg"
         }
+      },
+      "studio-bot": {
+        "ask.svg": "studio/icons/studio-bot/ask.svg",
+        "logo.svg": "studio/icons/studio-bot/logo.svg"
       },
       "test": {
         "record-espresso-test.svg": "studio/icons/test/record-espresso-test.svg",

@@ -16,18 +16,8 @@
 <idea-plugin>
   <actions>
     <action id="android.device.wear.whs" class="com.android.tools.idea.wearwhs.action.OpenWearHealthServicesPanelAction"
-            icon="StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR" text="Wear Health Services" description="Open Wear Health Services panel">
-      <add-to-group group-id="Streaming"/>
+            icon="StudioIcons.Emulator.Wear.HEALTH_SERVICES" text="Wear Health Services" description="Open Wear Health Services panel">
+      <add-to-group group-id="android.emulator.wear.health.services"/>
     </action>
-    <reference ref="android.device.wear.whs">
-      <add-to-group group-id="android.device.wear.whs.placeholder"/>
-    </reference>
   </actions>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <toolWindow id="Wear Health Services"
-                anchor="right"
-                icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS"
-                factoryClass="com.android.tools.idea.wearwhs.widget.WearHealthServicesToolWindowFactory"/>
-  </extensions>
 </idea-plugin>

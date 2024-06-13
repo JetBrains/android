@@ -105,7 +105,7 @@ class BackgroundTaskTreeTableView(
   client: BackgroundTaskInspectorClient,
   selectionModel: EntrySelectionModel,
   scope: CoroutineScope,
-  uiDispatcher: CoroutineDispatcher
+  uiDispatcher: CoroutineDispatcher,
 ) {
   val component: JComponent
   val treeModel = BackgroundTaskTreeModel(client, scope, uiDispatcher)
@@ -234,7 +234,7 @@ class BackgroundTaskTreeTableView(
               expanded: Boolean,
               leaf: Boolean,
               row: Int,
-              hasFocus: Boolean
+              hasFocus: Boolean,
             ) {
               when (val data = (value as DefaultMutableTreeNode).userObject) {
                 is BackgroundTaskEntry -> {
@@ -264,7 +264,7 @@ class BackgroundTaskTreeTableView(
               expanded: Boolean,
               leaf: Boolean,
               row: Int,
-              hasFocus: Boolean
+              hasFocus: Boolean,
             ) {
               when (val data = (value as DefaultMutableTreeNode).userObject) {
                 is BackgroundTaskEntry -> {
@@ -295,7 +295,7 @@ class BackgroundTaskTreeTableView(
               expanded: Boolean,
               leaf: Boolean,
               row: Int,
-              hasFocus: Boolean
+              hasFocus: Boolean,
             ) {
               when (val data = (value as DefaultMutableTreeNode).userObject) {
                 is BackgroundTaskEntry -> {
@@ -321,7 +321,7 @@ class BackgroundTaskTreeTableView(
               expanded: Boolean,
               leaf: Boolean,
               row: Int,
-              hasFocus: Boolean
+              hasFocus: Boolean,
             ) {
               when (val data = (value as DefaultMutableTreeNode).userObject) {
                 is WorkEntry,

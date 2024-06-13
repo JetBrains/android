@@ -31,8 +31,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnClick;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateTransition;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -45,7 +43,6 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -73,6 +70,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class MotionEditor extends JPanel {
   public final static boolean DEBUG = false;
+  private final static MTag[] EMPTY_MTAG = new MTag[0];
   private final JPanel mMainPanel;
   private CardLayout mErrorSwitchCard;
   public Track myTrack = new Track();
@@ -104,7 +102,11 @@ public class MotionEditor extends JPanel {
 
     @Override
     public void update(@org.jetbrains.annotations.NotNull AnActionEvent e) {
-      MTag[] mtags = getMeModel().motionScene.getChildTags("ConstraintSet");
+      MeModel model = getMeModel();
+      MTag[] mtags = model != null
+                     ? model.motionScene.getChildTags("ConstraintSet")
+                     : EMPTY_MTAG;
+
       e.getPresentation().setEnabled(mtags.length >= 2);
     }
   };
@@ -116,7 +118,11 @@ public class MotionEditor extends JPanel {
 
     @Override
     public void update(@org.jetbrains.annotations.NotNull AnActionEvent e) {
-      MTag[] mtags = getMeModel().motionScene.getChildTags("Transition");
+      MeModel model = getMeModel();
+      MTag[] mtags = model != null
+                     ? model.motionScene.getChildTags("Transition")
+                     : EMPTY_MTAG;
+
       e.getPresentation().setEnabled(mtags.length >= 1);
     }
   };

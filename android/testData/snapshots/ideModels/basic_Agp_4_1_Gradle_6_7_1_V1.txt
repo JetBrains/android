@@ -45,7 +45,6 @@ MODULE                        : project
         HomePath                      : <ANDROID_SDK>
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
             CLEAN                         : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
             ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
             REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
@@ -53,525 +52,501 @@ MODULE                        : project
             SOURCE_GEN                    : :createMockableJar, :generateDebugAndroidTestSources, :generateDebugSources
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
-        TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : :generateDebugAndroidTestSources, :generateDebugSources
-            ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-            REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :clean
-            COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
-            SOURCE_GEN                    : :generateDebugAndroidTestSources, :generateDebugSources
-            BUNDLE                        : :bundleDebug
-            APK_FROM_BUNDLE               : :extractApksForDebug
-        TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : :createMockableJar, :generateDebugSources
-            ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-            REBUILD                       : :assembleDebug, :assembleDebugUnitTest, :clean
-            COMPILE_JAVA                  : :compileDebugUnitTestSources
-            SOURCE_GEN                    : :createMockableJar, :generateDebugSources
-            BUNDLE                        : :bundleDebug
-            APK_FROM_BUNDLE               : :extractApksForDebug
-        TEST_COMPILE_MODE             : None
-            CLEAN                         : :generateDebugSources
-            ASSEMBLE                      : :assembleDebug
-            REBUILD                       : :assembleDebug, :clean
-            COMPILE_JAVA                  : :compileDebugSources
-            SOURCE_GEN                    : :generateDebugSources
-            BUNDLE                        : :bundleDebug
-            APK_FROM_BUNDLE               : :extractApksForDebug
 LIBRARY_TABLE
     - library                     : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/aidl [-]
         artifact                      : <M2>/android/arch/core/runtime/1.1.1/runtime-1.1.1.aar
         artifactAddress               : android.arch.core:runtime:1.1.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
         component                     : android.arch.core:runtime:1.1.1
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/R.txt
     - library                     : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/aidl [-]
         artifact                      : <M2>/android/arch/lifecycle/livedata-core/1.1.1/livedata-core-1.1.1.aar
         artifactAddress               : android.arch.lifecycle:livedata-core:1.1.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/classes.jar
         component                     : android.arch.lifecycle:livedata-core:1.1.1
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/R.txt
     - library                     : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/aidl [-]
         artifact                      : <M2>/android/arch/lifecycle/livedata/1.1.1/livedata-1.1.1.aar
         artifactAddress               : android.arch.lifecycle:livedata:1.1.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/classes.jar
         component                     : android.arch.lifecycle:livedata:1.1.1
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/R.txt
     - library                     : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/aidl [-]
         artifact                      : <M2>/android/arch/lifecycle/runtime/1.1.1/runtime-1.1.1.aar
         artifactAddress               : android.arch.lifecycle:runtime:1.1.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
         component                     : android.arch.lifecycle:runtime:1.1.1
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/R.txt
     - library                     : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/aidl [-]
         artifact                      : <M2>/android/arch/lifecycle/viewmodel/1.1.1/viewmodel-1.1.1.aar
         artifactAddress               : android.arch.lifecycle:viewmodel:1.1.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/classes.jar
         component                     : android.arch.lifecycle:viewmodel:1.1.1
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/R.txt
     - library                     : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/asynclayoutinflater/28.0.0/asynclayoutinflater-28.0.0.aar
         artifactAddress               : com.android.support:asynclayoutinflater:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/classes.jar
         component                     : com.android.support:asynclayoutinflater:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/R.txt
     - library                     : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/coordinatorlayout/28.0.0/coordinatorlayout-28.0.0.aar
         artifactAddress               : com.android.support:coordinatorlayout:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/classes.jar
         component                     : com.android.support:coordinatorlayout:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/res
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/R.txt
     - library                     : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/cursoradapter/28.0.0/cursoradapter-28.0.0.aar
         artifactAddress               : com.android.support:cursoradapter:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/classes.jar
         component                     : com.android.support:cursoradapter:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/R.txt
     - library                     : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/customview/28.0.0/customview-28.0.0.aar
         artifactAddress               : com.android.support:customview:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/classes.jar
         component                     : com.android.support:customview:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/R.txt
     - library                     : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/documentfile/28.0.0/documentfile-28.0.0.aar
         artifactAddress               : com.android.support:documentfile:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/classes.jar
         component                     : com.android.support:documentfile:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/R.txt
     - library                     : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/drawerlayout/28.0.0/drawerlayout-28.0.0.aar
         artifactAddress               : com.android.support:drawerlayout:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/classes.jar
         component                     : com.android.support:drawerlayout:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/R.txt
     - library                     : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/interpolator/28.0.0/interpolator-28.0.0.aar
         artifactAddress               : com.android.support:interpolator:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/classes.jar
         component                     : com.android.support:interpolator:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/R.txt
     - library                     : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/loader/28.0.0/loader-28.0.0.aar
         artifactAddress               : com.android.support:loader:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/classes.jar
         component                     : com.android.support:loader:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/R.txt
     - library                     : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/localbroadcastmanager/28.0.0/localbroadcastmanager-28.0.0.aar
         artifactAddress               : com.android.support:localbroadcastmanager:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/classes.jar
         component                     : com.android.support:localbroadcastmanager:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/R.txt
     - library                     : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/print/28.0.0/print-28.0.0.aar
         artifactAddress               : com.android.support:print:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/classes.jar
         component                     : com.android.support:print:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/R.txt
     - library                     : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/slidingpanelayout/28.0.0/slidingpanelayout-28.0.0.aar
         artifactAddress               : com.android.support:slidingpanelayout:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/classes.jar
         component                     : com.android.support:slidingpanelayout:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/R.txt
     - library                     : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/aidl
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/aidl
         artifact                      : <M2>/com/android/support/support-compat/28.0.0/support-compat-28.0.0.aar
         artifactAddress               : com.android.support:support-compat:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/classes.jar
         component                     : com.android.support:support-compat:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/res
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/R.txt
     - library                     : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/support-core-ui/28.0.0/support-core-ui-28.0.0.aar
         artifactAddress               : com.android.support:support-core-ui:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/classes.jar
         component                     : com.android.support:support-core-ui:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/R.txt
     - library                     : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/support-core-utils/28.0.0/support-core-utils-28.0.0.aar
         artifactAddress               : com.android.support:support-core-utils:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/classes.jar
         component                     : com.android.support:support-core-utils:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/R.txt
     - library                     : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/support-fragment/28.0.0/support-fragment-28.0.0.aar
         artifactAddress               : com.android.support:support-fragment:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/classes.jar
         component                     : com.android.support:support-fragment:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/R.txt
     - library                     : com.android.support:support-media-compat:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/aidl
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/aidl
         artifact                      : <M2>/com/android/support/support-media-compat/28.0.0/support-media-compat-28.0.0.aar
         artifactAddress               : com.android.support:support-media-compat:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/jars/classes.jar
         component                     : com.android.support:support-media-compat:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/res
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-media-compat-28.0.0/R.txt
     - library                     : com.android.support:support-v13:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/support-v13/28.0.0/support-v13-28.0.0.aar
         artifactAddress               : com.android.support:support-v13:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/jars/classes.jar
         component                     : com.android.support:support-v13:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v13-28.0.0/R.txt
     - library                     : com.android.support:support-v4:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/support-v4/28.0.0/support-v4-28.0.0.aar
         artifactAddress               : com.android.support:support-v4:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/jars/classes.jar
         component                     : com.android.support:support-v4:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-v4-28.0.0/R.txt
     - library                     : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/swiperefreshlayout/28.0.0/swiperefreshlayout-28.0.0.aar
         artifactAddress               : com.android.support:swiperefreshlayout:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/classes.jar
         component                     : com.android.support:swiperefreshlayout:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/R.txt
     - library                     : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/aidl
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/aidl
         artifact                      : <M2>/com/android/support/versionedparcelable/28.0.0/versionedparcelable-28.0.0.aar
         artifactAddress               : com.android.support:versionedparcelable:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/classes.jar
         component                     : com.android.support:versionedparcelable:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/R.txt
     - library                     : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/aidl [-]
         artifact                      : <M2>/com/android/support/viewpager/28.0.0/viewpager-28.0.0.aar
         artifactAddress               : com.android.support:viewpager:28.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/classes.jar
         component                     : com.android.support:viewpager:28.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/lint.jar [-]
-        manifest                      : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/lint.jar [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/R.txt
     - library                     : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.core:common:1.1.1@jar
@@ -676,11 +651,14 @@ MODULE                        : project
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : debug
         applicationId                 : com.android.tests.basic.debug
         testApplicationId             : com.android.tests.basic.debug.test
+        buildType                     : debug
     - basicVariant:               : release
         applicationId                 : com.android.tests.basic
+        buildType                     : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -753,6 +731,7 @@ MODULE                        : project
                 foo                           : (string, foo, foo2)
             IsDebuggable                  : true
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -800,6 +779,7 @@ MODULE                        : project
             Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -1146,15 +1126,13 @@ MODULE                        : project
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         module                        : <ROOT>-:-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     externalProject               : project (DefaultExternalProject)
         path                          : : [-]
         identityPath                  : : [-]
         name                          : project
         qName                         : project
         version                       : unspecified
-        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
@@ -1164,125 +1142,128 @@ MODULE                        : project
             testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                 qName                         : :testReleaseUnitTest
         externalSystemId              : GRADLE
-        artifactsByConfiguration
-            _internal_aapt2_binary        : <empty>
-            androidApis                   : <empty>
-            androidJacocoAnt              : <empty>
-            androidTestAnnotationProcessor          : <empty>
-            androidTestApi                : <empty>
-            androidTestApk                : <empty>
-            androidTestCompile            : <empty>
-            androidTestCompileOnly        : <empty>
-            androidTestDebugAnnotationProcessor     : <empty>
-            androidTestDebugApi           : <empty>
-            androidTestDebugApk           : <empty>
-            androidTestDebugCompile       : <empty>
-            androidTestDebugCompileOnly   : <empty>
-            androidTestDebugImplementation          : <empty>
-            androidTestDebugProvided      : <empty>
-            androidTestDebugRuntimeOnly   : <empty>
-            androidTestDebugWearApp       : <empty>
-            androidTestImplementation     : <empty>
-            androidTestProvided           : <empty>
-            androidTestReleaseAnnotationProcessor   : <empty>
-            androidTestReleaseApi         : <empty>
-            androidTestReleaseApk         : <empty>
-            androidTestReleaseCompile     : <empty>
-            androidTestReleaseCompileOnly : <empty>
-            androidTestReleaseImplementation        : <empty>
-            androidTestReleaseProvided    : <empty>
-            androidTestReleaseRuntimeOnly : <empty>
-            androidTestReleaseWearApp     : <empty>
-            androidTestRuntimeOnly        : <empty>
-            androidTestUtil               : <empty>
-            androidTestWearApp            : <empty>
-            annotationProcessor           : <empty>
-            api                           : <empty>
-            apk                           : <empty>
-            archives                      : <empty>
-            compile                       : <empty>
-            compileOnly                   : <empty>
-            coreLibraryDesugaring         : <empty>
-            - debugAabPublication         : <ROOT>/build/outputs/bundle/debug/project-debug.aab [-]
-            debugAndroidTestAnnotationProcessorClasspath      : <empty>
-            debugAndroidTestCompileClasspath        : <empty>
-            debugAndroidTestRuntimeClasspath        : <empty>
-            debugAnnotationProcessor      : <empty>
-            debugAnnotationProcessorClasspath       : <empty>
-            debugApi                      : <empty>
-            debugApiElements              : <empty>
-            debugApk                      : <empty>
-            - debugApkPublication         : <ROOT>/build/outputs/apk-zips/debug/apks.zip [-]
-            debugCompile                  : <empty>
-            debugCompileClasspath         : <empty>
-            debugCompileOnly              : <empty>
-            debugImplementation           : <empty>
-            debugProvided                 : <empty>
-            debugReverseMetadataValues    : <empty>
-            debugRuntimeClasspath         : <empty>
-            debugRuntimeElements          : <empty>
-            debugRuntimeOnly              : <empty>
-            debugUnitTestAnnotationProcessorClasspath         : <empty>
-            debugUnitTestCompileClasspath : <empty>
-            debugUnitTestRuntimeClasspath : <empty>
-            debugWearApp                  : <empty>
-            debugWearBundling             : <empty>
-            default                       : <empty>
-            implementation                : <empty>
-            lintChecks                    : <empty>
-            lintClassPath                 : <empty>
-            lintPublish                   : <empty>
-            provided                      : <empty>
-            - releaseAabPublication       : <ROOT>/build/outputs/bundle/release/project-release.aab [-]
-            releaseAnnotationProcessor    : <empty>
-            releaseAnnotationProcessorClasspath     : <empty>
-            releaseApi                    : <empty>
-            releaseApiElements            : <empty>
-            releaseApk                    : <empty>
-            - releaseApkPublication       : <ROOT>/build/outputs/apk-zips/release/apks.zip [-]
-            releaseCompile                : <empty>
-            releaseCompileClasspath       : <empty>
-            releaseCompileOnly            : <empty>
-            releaseImplementation         : <empty>
-            releaseProvided               : <empty>
-            releaseReverseMetadataValues  : <empty>
-            releaseRuntimeClasspath       : <empty>
-            releaseRuntimeElements        : <empty>
-            releaseRuntimeOnly            : <empty>
-            releaseUnitTestAnnotationProcessorClasspath       : <empty>
-            releaseUnitTestCompileClasspath         : <empty>
-            releaseUnitTestRuntimeClasspath         : <empty>
-            releaseWearApp                : <empty>
-            releaseWearBundling           : <empty>
-            runtimeOnly                   : <empty>
-            testAnnotationProcessor       : <empty>
-            testApi                       : <empty>
-            testApk                       : <empty>
-            testCompile                   : <empty>
-            testCompileOnly               : <empty>
-            testDebugAnnotationProcessor  : <empty>
-            testDebugApi                  : <empty>
-            testDebugApk                  : <empty>
-            testDebugCompile              : <empty>
-            testDebugCompileOnly          : <empty>
-            testDebugImplementation       : <empty>
-            testDebugProvided             : <empty>
-            testDebugRuntimeOnly          : <empty>
-            testDebugWearApp              : <empty>
-            testImplementation            : <empty>
-            testProvided                  : <empty>
-            testReleaseAnnotationProcessor          : <empty>
-            testReleaseApi                : <empty>
-            testReleaseApk                : <empty>
-            testReleaseCompile            : <empty>
-            testReleaseCompileOnly        : <empty>
-            testReleaseImplementation     : <empty>
-            testReleaseProvided           : <empty>
-            testReleaseRuntimeOnly        : <empty>
-            testReleaseWearApp            : <empty>
-            testRuntimeOnly               : <empty>
-            testWearApp                   : <empty>
-            wearApp                       : <empty>
+        sourceSetModel                : DefaultGradleSourceSetModel
+            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+            configurationArtifacts
+                _internal_aapt2_binary        : <empty>
+                androidApis                   : <empty>
+                androidJacocoAnt              : <empty>
+                androidTestAnnotationProcessor          : <empty>
+                androidTestApi                : <empty>
+                androidTestApk                : <empty>
+                androidTestCompile            : <empty>
+                androidTestCompileOnly        : <empty>
+                androidTestDebugAnnotationProcessor     : <empty>
+                androidTestDebugApi           : <empty>
+                androidTestDebugApk           : <empty>
+                androidTestDebugCompile       : <empty>
+                androidTestDebugCompileOnly   : <empty>
+                androidTestDebugImplementation          : <empty>
+                androidTestDebugProvided      : <empty>
+                androidTestDebugRuntimeOnly   : <empty>
+                androidTestDebugWearApp       : <empty>
+                androidTestImplementation     : <empty>
+                androidTestProvided           : <empty>
+                androidTestReleaseAnnotationProcessor   : <empty>
+                androidTestReleaseApi         : <empty>
+                androidTestReleaseApk         : <empty>
+                androidTestReleaseCompile     : <empty>
+                androidTestReleaseCompileOnly : <empty>
+                androidTestReleaseImplementation        : <empty>
+                androidTestReleaseProvided    : <empty>
+                androidTestReleaseRuntimeOnly : <empty>
+                androidTestReleaseWearApp     : <empty>
+                androidTestRuntimeOnly        : <empty>
+                androidTestUtil               : <empty>
+                androidTestWearApp            : <empty>
+                annotationProcessor           : <empty>
+                api                           : <empty>
+                apk                           : <empty>
+                archives                      : <empty>
+                compile                       : <empty>
+                compileOnly                   : <empty>
+                coreLibraryDesugaring         : <empty>
+                - debugAabPublication         : <ROOT>/build/outputs/bundle/debug/project-debug.aab [-]
+                debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                debugAndroidTestCompileClasspath        : <empty>
+                debugAndroidTestRuntimeClasspath        : <empty>
+                debugAnnotationProcessor      : <empty>
+                debugAnnotationProcessorClasspath       : <empty>
+                debugApi                      : <empty>
+                debugApiElements              : <empty>
+                debugApk                      : <empty>
+                - debugApkPublication         : <ROOT>/build/outputs/apk-zips/debug/apks.zip [-]
+                debugCompile                  : <empty>
+                debugCompileClasspath         : <empty>
+                debugCompileOnly              : <empty>
+                debugImplementation           : <empty>
+                debugProvided                 : <empty>
+                debugReverseMetadataValues    : <empty>
+                debugRuntimeClasspath         : <empty>
+                debugRuntimeElements          : <empty>
+                debugRuntimeOnly              : <empty>
+                debugUnitTestAnnotationProcessorClasspath         : <empty>
+                debugUnitTestCompileClasspath : <empty>
+                debugUnitTestRuntimeClasspath : <empty>
+                debugWearApp                  : <empty>
+                debugWearBundling             : <empty>
+                default                       : <empty>
+                implementation                : <empty>
+                lintChecks                    : <empty>
+                lintClassPath                 : <empty>
+                lintPublish                   : <empty>
+                provided                      : <empty>
+                - releaseAabPublication       : <ROOT>/build/outputs/bundle/release/project-release.aab [-]
+                releaseAnnotationProcessor    : <empty>
+                releaseAnnotationProcessorClasspath     : <empty>
+                releaseApi                    : <empty>
+                releaseApiElements            : <empty>
+                releaseApk                    : <empty>
+                - releaseApkPublication       : <ROOT>/build/outputs/apk-zips/release/apks.zip [-]
+                releaseCompile                : <empty>
+                releaseCompileClasspath       : <empty>
+                releaseCompileOnly            : <empty>
+                releaseImplementation         : <empty>
+                releaseProvided               : <empty>
+                releaseReverseMetadataValues  : <empty>
+                releaseRuntimeClasspath       : <empty>
+                releaseRuntimeElements        : <empty>
+                releaseRuntimeOnly            : <empty>
+                releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                releaseUnitTestCompileClasspath         : <empty>
+                releaseUnitTestRuntimeClasspath         : <empty>
+                releaseWearApp                : <empty>
+                releaseWearBundling           : <empty>
+                runtimeOnly                   : <empty>
+                testAnnotationProcessor       : <empty>
+                testApi                       : <empty>
+                testApk                       : <empty>
+                testCompile                   : <empty>
+                testCompileOnly               : <empty>
+                testDebugAnnotationProcessor  : <empty>
+                testDebugApi                  : <empty>
+                testDebugApk                  : <empty>
+                testDebugCompile              : <empty>
+                testDebugCompileOnly          : <empty>
+                testDebugImplementation       : <empty>
+                testDebugProvided             : <empty>
+                testDebugRuntimeOnly          : <empty>
+                testDebugWearApp              : <empty>
+                testImplementation            : <empty>
+                testProvided                  : <empty>
+                testReleaseAnnotationProcessor          : <empty>
+                testReleaseApi                : <empty>
+                testReleaseApk                : <empty>
+                testReleaseCompile            : <empty>
+                testReleaseCompileOnly        : <empty>
+                testReleaseImplementation     : <empty>
+                testReleaseProvided           : <empty>
+                testReleaseRuntimeOnly        : <empty>
+                testReleaseWearApp            : <empty>
+                testRuntimeOnly               : <empty>
+                testWearApp                   : <empty>
+                wearApp                       : <empty>
 MODULE                        : project.androidTest
 MODULE                        : project.main
 MODULE                        : project.unitTest

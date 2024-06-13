@@ -46,7 +46,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class RefactoringFlowTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /**
    * Verifies user can link project with Kotlin.
@@ -99,6 +99,7 @@ public class RefactoringFlowTest {
       .enterText("\n// create a person object.\nperson = new Person();\n\npassPersonObject(person);\n}\nprivate void passPersonObject(Person person) {\nperson.setAge(5);\n");
 
     editor.moveBetween("Pers", "on person");
+    editor.moveBetween("Pers", "on person"); //To reduce flakiness
 
     guiTest.robot().waitForIdle();
     //Doing Invoking menu path twice to display refactor dialog box

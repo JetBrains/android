@@ -27,6 +27,7 @@ import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.delayUntilCondition
 import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
@@ -41,6 +42,7 @@ import com.android.tools.idea.uibuilder.property.NlIdPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.lint.detector.api.Incident
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.intellij.codeHighlighting.HighlightDisplayLevel
@@ -51,6 +53,7 @@ import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.function.Predicate
+import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -61,7 +64,7 @@ open class SupportTestUtil
 private constructor(
   facet: AndroidFacet,
   val fixture: CodeInsightTestFixture,
-  val components: MutableList<NlComponent>
+  val components: MutableList<NlComponent>,
 ) {
   private var updates = 0
   private val queue =
@@ -80,22 +83,22 @@ private constructor(
     parentTag: String = "",
     resourceFolder: String = FD_RES_LAYOUT,
     fileName: String = DEFAULT_FILENAME,
-    activityName: String = ""
+    activityName: String = "",
   ) : this(
     facet,
     fixture,
     createComponents(facet, fixture, activityName, parentTag, resourceFolder, fileName, *tags)
-      .toMutableList()
+      .toMutableList(),
   )
 
   private constructor(
     facet: AndroidFacet,
     fixture: CodeInsightTestFixture,
-    component: ComponentDescriptor
+    component: ComponentDescriptor,
   ) : this(
     facet,
     fixture,
-    createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component).toMutableList()
+    createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component).toMutableList(),
   )
 
   constructor(
@@ -104,7 +107,7 @@ private constructor(
     parentTag: String = "",
     resourceFolder: String = FD_RES_LAYOUT,
     fileName: String = DEFAULT_FILENAME,
-    activityName: String = ""
+    activityName: String = "",
   ) : this(
     AndroidFacet.getInstance(projectRule.module)!!,
     projectRule.fixture,
@@ -112,12 +115,12 @@ private constructor(
     parentTag = parentTag,
     resourceFolder = resourceFolder,
     fileName = fileName,
-    activityName = activityName
+    activityName = activityName,
   )
 
   constructor(
     projectRule: AndroidProjectRule,
-    component: ComponentDescriptor
+    component: ComponentDescriptor,
   ) : this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, component)
 
   init {
@@ -138,7 +141,7 @@ private constructor(
   fun waitForPropertiesUpdate(
     updatesToWaitFor: Int,
     timeout: Long = 10,
-    unit: TimeUnit = TimeUnit.SECONDS
+    unit: TimeUnit = TimeUnit.SECONDS,
   ) {
     val stop = System.currentTimeMillis() + unit.toMillis(timeout)
     while (updates < updatesToWaitFor && System.currentTimeMillis() < stop) {
@@ -150,7 +153,12 @@ private constructor(
     }
   }
 
-  fun makeProperty(namespace: String, name: String, type: NlPropertyType): NlPropertyItem {
+  suspend fun makePropertySuspend(
+    namespace: String,
+    name: String,
+    type: NlPropertyType,
+    initializeResolver: Boolean = true,
+  ): NlPropertyItem {
     val definition = findDefinition(namespace, name)
     return when {
       definition == null -> NlPropertyItem(namespace, name, type, null, "", "", model, components)
@@ -163,16 +171,31 @@ private constructor(
           "",
           "",
           model,
-          components
+          components,
         )
       else -> makeProperty(namespace, definition, type)
+    }.also {
+      if (initializeResolver) {
+        delayUntilCondition(10) {
+          // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
+          // asynchronously.
+          it.resolver != null
+        }
+      }
     }
   }
 
   fun makeProperty(
     namespace: String,
+    name: String,
+    type: NlPropertyType,
+    initializeResolver: Boolean = true,
+  ): NlPropertyItem = runBlocking { makePropertySuspend(namespace, name, type, initializeResolver) }
+
+  fun makeProperty(
+    namespace: String,
     definition: AttributeDefinition,
-    type: NlPropertyType
+    type: NlPropertyType,
   ): NlPropertyItem {
     return NlPropertyItem(namespace, definition.name, type, definition, "", "", model, components)
   }
@@ -186,7 +209,7 @@ private constructor(
       "",
       "",
       model,
-      components
+      components,
     )
   }
 
@@ -239,13 +262,14 @@ private constructor(
     lintModel.addIssue(
       component,
       AttributeKey(component, property.namespace, property.name),
+      Incident(),
       mock(),
       message,
       mock(),
       level,
       mock(),
       mock(),
-      mock()
+      mock(),
     )
   }
 
@@ -305,7 +329,7 @@ private constructor(
       fixture: CodeInsightTestFixture,
       resourceFolder: String,
       fileName: String,
-      descriptor: ComponentDescriptor
+      descriptor: ComponentDescriptor,
     ): List<NlComponent> {
       val model =
         NlModelBuilderUtil.model(facet, fixture, resourceFolder, fileName, descriptor).build()
@@ -320,7 +344,7 @@ private constructor(
       parentTag: String,
       resourceFolder: String,
       fileName: String,
-      vararg tags: String
+      vararg tags: String,
     ): List<NlComponent> {
       val descriptor =
         if (tags.size == 1 && parentTag.isEmpty()) fromSingleTag(activityName, tags[0])
@@ -347,7 +371,7 @@ private constructor(
       activityName: String,
       parentTag: String,
       resourceFolder: String,
-      vararg tags: String
+      vararg tags: String,
     ): ComponentDescriptor {
       if (parentTag.isEmpty()) throw IllegalArgumentException("parentTag must be supplied")
       val descriptor = ComponentDescriptor(parentTag).withBounds(0, 0, 1000, 1000)

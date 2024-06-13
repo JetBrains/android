@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
+import com.android.tools.idea.sqlite.model.SqliteQueryResult
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
@@ -25,7 +26,7 @@ import java.util.concurrent.Executor
 class PagedJdbcSqliteResultSet(
   taskExecutor: Executor,
   connection: Connection,
-  private val sqliteStatement: SqliteStatement
+  private val sqliteStatement: SqliteStatement,
 ) : JdbcSqliteResultSet(taskExecutor, connection, sqliteStatement) {
   override val totalRowCount: ListenableFuture<Int>
     get() =
@@ -35,7 +36,7 @@ class PagedJdbcSqliteResultSet(
         count
       }
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<SqliteQueryResult> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
     return getRowBatch(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize)) {
       resultSet,

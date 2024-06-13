@@ -27,19 +27,22 @@ import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixtu
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBList;
+import java.awt.event.KeyEvent;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class QuickFixForJniTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private static final String JAVA_FILE = "app/src/main/java/com/example/hellojni/HelloJni.java";
 
@@ -84,8 +87,12 @@ public class QuickFixForJniTest {
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
-      .clickButton("Analyze");
+    ideFrame.waitAndInvokeMenuPath("Code", "Inspect Code...");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    InspectCodeDialogFixture inspectCodeDialog = InspectCodeDialogFixture.find(ideFrame);
+    inspectCodeDialog.clickAnalyze();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame.requestFocusIfLost();
 
     List<String> errors = editor.getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(1);
@@ -101,8 +108,8 @@ public class QuickFixForJniTest {
           return list.getClass().getName().equals("com.intellij.ui.popup.list.ListPopupImpl$MyList");
         }
       });
-    JListFixture quickFixPopupFixture = new JListFixture(guiTest.robot(), quickFixPopup);
-    quickFixPopupFixture.clickItem("Create JNI function for printFromJNI");
+
+    clickOnItemInPopup(quickFixPopup, "Create JNI function for printFromJNI");
 
     // Create fixture for the second popup
     JBList nativeSourcePopup = GuiTests.waitUntilShowingAndEnabled(guiTest.robot(),
@@ -132,5 +139,20 @@ public class QuickFixForJniTest {
     editor = ideFrame.getEditor().open(JAVA_FILE);
     errors = editor.getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(0);
+  }
+
+  private void clickOnItemInPopup(JBList quickFixPopup, String popupToBeSelected) {
+    JListFixture quickFixPopupFixture = new JListFixture(guiTest.robot(), quickFixPopup);
+    //Get the index of item in the JBList model:
+    int indexOfExpectedString = Arrays.stream(quickFixPopupFixture.contents()).toList().indexOf(popupToBeSelected);
+    if (indexOfExpectedString == -1) {
+      Assert.fail("Expected pop-up '" + popupToBeSelected + "' is not displayed"); //Fail the test if item not found in the pop-up
+    }
+    //Navigate to the item in the pup-up using keyboard
+    for(int i = 0; i < indexOfExpectedString; i++) {
+      guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DOWN);
+    }
+    quickFixPopupFixture.requireSelectedItems(popupToBeSelected); //Verify the item before clicking on it
+    quickFixPopupFixture.clickItem(popupToBeSelected);
   }
 }

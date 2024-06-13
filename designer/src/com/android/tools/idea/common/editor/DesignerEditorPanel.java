@@ -25,7 +25,6 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.DesignerDataKeys;
-import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.lint.ModelLintIssueAnnotator;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -191,7 +190,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     mySurface.getAnalyticsManager().setEditorModeWithoutTracking(myState);
     onStateChange();
 
-    IssuePanelService.getInstance(project).registerFileToSurface(file, mySurface);
     add(myWorkBench);
 
     myToolWindowDefinitions = toolWindowDefinitions;
@@ -238,7 +236,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     if (currentState != State.DEACTIVATED && !myIsModelInitializated.getAndSet(true)) {
       // We might have delayed some initialization until the surface was not in the DEACTIVATED state. Run it now.
-      ClearResourceCacheAfterFirstBuild.getInstance(myProject).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
+      ClearResourceCacheAfterFirstBuild.getInstance(myProject).runWhenResourceCacheClean(this::initNeleModel, this::buildError, this);
     }
   }
 

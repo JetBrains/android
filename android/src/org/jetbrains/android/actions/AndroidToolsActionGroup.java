@@ -16,15 +16,14 @@
 package org.jetbrains.android.actions;
 
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,7 +45,7 @@ public class AndroidToolsActionGroup extends DefaultActionGroup implements DumbA
   }
 
   @VisibleForTesting
-  boolean shouldBeVisible(Project project) {
-    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) || IdeSdks.getInstance().hasConfiguredAndroidSdk();
+  boolean shouldBeVisible(@NotNull Project project) {
+    return CommonAndroidUtil.getInstance().isAndroidProject(project) || IdeSdks.getInstance().hasConfiguredAndroidSdk();
   }
 }

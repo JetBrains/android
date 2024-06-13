@@ -19,8 +19,12 @@ import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.testFramework.TestActionEvent;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -31,11 +35,9 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.*;
 
 public class ComponentHelpActionTest extends AndroidTestCase {
-  @Mock
   private DataContext myDataContext;
   @Mock
   private BrowserLauncher myBrowserLauncher;
-  @Mock
   private AnActionEvent myEvent;
   private ComponentHelpAction myAction;
   private String myTagName;
@@ -44,8 +46,18 @@ public class ComponentHelpActionTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-    when(myEvent.getDataContext()).thenReturn(myDataContext);
-    myAction = new ComponentHelpAction(getProject(), () -> myTagName);
+    myDataContext = new DataContext() {
+      @Override
+      public @Nullable Object getData(@NotNull String dataId) {
+        if (dataId.equals(CommonDataKeys.PROJECT.getName())) {
+          return getProject();
+        } else {
+          return null;
+        }
+      }
+    };
+    myEvent = TestActionEvent.createTestEvent(myDataContext);
+    myAction = new ComponentHelpAction(() -> myTagName);
     registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
   }
 

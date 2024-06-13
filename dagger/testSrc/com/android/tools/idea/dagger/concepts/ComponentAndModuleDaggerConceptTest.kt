@@ -82,7 +82,7 @@ class ComponentAndModuleDaggerConceptTest {
         )
         interface CoffeeShop {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
@@ -102,7 +102,7 @@ class ComponentAndModuleDaggerConceptTest {
         "FilterComponent",
         expectedDependencyIndexValue,
         "SteamerComponent",
-        expectedDependencyIndexValue
+        expectedDependencyIndexValue,
       )
   }
 
@@ -120,7 +120,7 @@ class ComponentAndModuleDaggerConceptTest {
         @Component
         interface CoffeeShop {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
@@ -146,7 +146,7 @@ class ComponentAndModuleDaggerConceptTest {
         )
         interface CoffeeShop {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
@@ -172,7 +172,7 @@ class ComponentAndModuleDaggerConceptTest {
         )
         class CoffeeShop {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
@@ -192,7 +192,7 @@ class ComponentAndModuleDaggerConceptTest {
         "FilterComponent",
         expectedDependencyIndexValue,
         "SteamerComponent",
-        expectedDependencyIndexValue
+        expectedDependencyIndexValue,
       )
   }
 
@@ -213,7 +213,7 @@ class ComponentAndModuleDaggerConceptTest {
         )
         object CoffeeShop {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtClassOrObject = myFixture.findParentElement("Coffee|Shop")
@@ -233,7 +233,7 @@ class ComponentAndModuleDaggerConceptTest {
         "FilterComponent",
         expectedDependencyIndexValue,
         "SteamerComponent",
-        expectedDependencyIndexValue
+        expectedDependencyIndexValue,
       )
   }
 
@@ -254,7 +254,7 @@ class ComponentAndModuleDaggerConceptTest {
           ONE
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     assertThat(ComponentAndModuleDaggerConcept.indexers.runIndexerOn(psiFile)).isEmpty()
@@ -277,7 +277,7 @@ class ComponentAndModuleDaggerConceptTest {
           ONE
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     assertThat(ComponentAndModuleDaggerConcept.indexers.runIndexerOn(psiFile)).isEmpty()
@@ -299,7 +299,7 @@ class ComponentAndModuleDaggerConceptTest {
         )
         interface CoffeeShop {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
@@ -313,7 +313,7 @@ class ComponentAndModuleDaggerConceptTest {
         "DripCoffeeModule",
         expectedIndexValue,
         "FrenchPressCoffeeModule",
-        expectedIndexValue
+        expectedIndexValue,
       )
   }
 
@@ -334,7 +334,7 @@ class ComponentAndModuleDaggerConceptTest {
         )
         interface CoffeeShop {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
@@ -354,7 +354,7 @@ class ComponentAndModuleDaggerConceptTest {
         "FilterComponent",
         expectedSubcomponentsIndexValue,
         "SteamerComponent",
-        expectedSubcomponentsIndexValue
+        expectedSubcomponentsIndexValue,
       )
   }
 
@@ -409,14 +409,14 @@ class ComponentAndModuleDaggerConceptTest {
       @Component
       interface DependencyComponent
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val components =
       listOf(
         "CoffeeShopComponentInterface",
         "CoffeeShopComponentClass",
-        "CoffeeShopComponentObject"
+        "CoffeeShopComponentObject",
       )
     for (component in components) {
       val componentElement = myFixture.findParentElement<KtClassOrObject>("|$component")
@@ -463,7 +463,7 @@ class ComponentAndModuleDaggerConceptTest {
       @Module
       interface CoffeeShopModule
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val subcomponentClass: KtClass =
@@ -501,7 +501,7 @@ class ComponentAndModuleDaggerConceptTest {
       @Module
       interface CoffeeShopIncludedModule
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val moduleClass: KtClass = myFixture.findParentElement("interface CoffeeShop|Module")
@@ -547,7 +547,7 @@ class ComponentAndModuleDaggerConceptTest {
       @Component
       public interface DependencyComponent {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val componentClass: PsiClass = myFixture.findParentElement("interface CoffeeShop|Component")
@@ -587,7 +587,7 @@ class ComponentAndModuleDaggerConceptTest {
       @Module
       public interface CoffeeShopModule {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val subcomponentClass: PsiClass =
@@ -625,7 +625,7 @@ class ComponentAndModuleDaggerConceptTest {
       @Module
       public interface CoffeeShopIncludedModule {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val moduleClass: PsiClass = myFixture.findParentElement("interface CoffeeShop|Module")
@@ -675,7 +675,7 @@ class ComponentAndModuleDaggerConceptTest {
       @Module
       interface CoffeeShopModule
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val componentInterfaceDaggerElement =
@@ -727,7 +727,7 @@ class ComponentAndModuleDaggerConceptTest {
         ONE
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertThat(
@@ -768,7 +768,7 @@ class ComponentAndModuleDaggerConceptTest {
       @Module
       public interface CoffeeShopModule {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val componentDaggerElement =
@@ -808,7 +808,7 @@ class ComponentAndModuleDaggerConceptTest {
         ONE
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertThat(
@@ -851,7 +851,7 @@ class ComponentAndModuleDaggerConceptTest {
       interface CoffeeShopSubcomponent
       interface NotASubcomponent
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val componentPsiElement: KtClass = myFixture.findParentElement("interface CoffeeShop|Component")
@@ -868,12 +868,12 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           ModuleDaggerElement(coffeeShopModuleElement),
           "Modules included",
-          "navigate.to.included.module"
+          "navigate.to.included.module",
         ),
         DaggerRelatedElement(
           SubcomponentDaggerElement(coffeeShopSubcomponentElement),
           "Subcomponents",
-          "navigate.to.subcomponent"
+          "navigate.to.subcomponent",
         ),
       )
   }
@@ -903,7 +903,7 @@ class ComponentAndModuleDaggerConceptTest {
       public interface CoffeeShopSubcomponent {}
       public interface NotASubcomponent {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val componentPsiElement: PsiClass =
@@ -921,12 +921,12 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           ModuleDaggerElement(coffeeShopModuleElement),
           "Modules included",
-          "navigate.to.included.module"
+          "navigate.to.included.module",
         ),
         DaggerRelatedElement(
           SubcomponentDaggerElement(coffeeShopSubcomponentElement),
           "Subcomponents",
-          "navigate.to.subcomponent"
+          "navigate.to.subcomponent",
         ),
       )
   }
@@ -954,7 +954,7 @@ class ComponentAndModuleDaggerConceptTest {
       @Subcomponent
       public interface CoffeeShopSubcomponent {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val componentDaggerElement =
@@ -973,9 +973,9 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           moduleDaggerElement,
           "Modules included",
-          "navigate.to.included.module"
+          "navigate.to.included.module",
         ),
-        DaggerRelatedElement(subcomponentDaggerElement, "Subcomponents", "navigate.to.subcomponent")
+        DaggerRelatedElement(subcomponentDaggerElement, "Subcomponents", "navigate.to.subcomponent"),
       )
   }
 
@@ -1012,7 +1012,7 @@ class ComponentAndModuleDaggerConceptTest {
           @Component
           interface IncludedComponent
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -1034,12 +1034,12 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           myModuleDaggerElement,
           "Modules included",
-          "navigate.to.included.module"
+          "navigate.to.included.module",
         ),
         DaggerRelatedElement(
           mySubcomponentDaggerElement,
           "Subcomponents",
-          "navigate.to.subcomponent"
+          "navigate.to.subcomponent",
         ),
       )
 
@@ -1048,8 +1048,8 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           topLevelComponentDaggerElement,
           "Parent components",
-          "navigate.to.parent.component"
-        ),
+          "navigate.to.parent.component",
+        )
       )
   }
 
@@ -1086,7 +1086,7 @@ class ComponentAndModuleDaggerConceptTest {
           @Component
           class IncludedComponent
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -1114,12 +1114,12 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           myModuleDaggerElement,
           "Modules included",
-          "navigate.to.included.module"
+          "navigate.to.included.module",
         ),
         DaggerRelatedElement(
           mySubcomponentDaggerElement,
           "Subcomponents",
-          "navigate.to.subcomponent"
+          "navigate.to.subcomponent",
         ),
       )
 
@@ -1128,8 +1128,8 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           topLevelComponentDaggerElement,
           "Parent components",
-          "navigate.to.parent.component"
-        ),
+          "navigate.to.parent.component",
+        )
       )
   }
 
@@ -1166,7 +1166,7 @@ class ComponentAndModuleDaggerConceptTest {
           @Component
           object IncludedComponent
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -1194,12 +1194,12 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           myModuleDaggerElement,
           "Modules included",
-          "navigate.to.included.module"
+          "navigate.to.included.module",
         ),
         DaggerRelatedElement(
           mySubcomponentDaggerElement,
           "Subcomponents",
-          "navigate.to.subcomponent"
+          "navigate.to.subcomponent",
         ),
       )
 
@@ -1208,8 +1208,8 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           topLevelComponentDaggerElement,
           "Parent components",
-          "navigate.to.parent.component"
-        ),
+          "navigate.to.parent.component",
+        )
       )
   }
 
@@ -1247,7 +1247,7 @@ class ComponentAndModuleDaggerConceptTest {
           @Module
           interface MyModule
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -1269,17 +1269,17 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           myComponentDaggerElement,
           "Included in components",
-          "navigate.to.component.that.include"
+          "navigate.to.component.that.include",
         ),
         DaggerRelatedElement(
           mySubcomponentDaggerElement,
           "Included in subcomponents",
-          "navigate.to.subcomponent.that.include"
+          "navigate.to.subcomponent.that.include",
         ),
         DaggerRelatedElement(
           myContainingModuleDaggerElement,
           "Included in modules",
-          "navigate.to.module.that.include"
+          "navigate.to.module.that.include",
         ),
       )
   }
@@ -1323,7 +1323,7 @@ class ComponentAndModuleDaggerConceptTest {
           @Subcomponent
           interface MyIncludedSubcomponent
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -1347,17 +1347,17 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           myComponentDaggerElement,
           "Parent components",
-          "navigate.to.parent.component"
+          "navigate.to.parent.component",
         ),
         DaggerRelatedElement(
           myIncludedModuleDaggerElement,
           "Modules included",
-          "navigate.to.included.module"
+          "navigate.to.included.module",
         ),
         DaggerRelatedElement(
           myIncludedSubcomponentDaggerElement,
           "Subcomponents",
-          "navigate.to.subcomponent"
+          "navigate.to.subcomponent",
         ),
       )
 
@@ -1366,8 +1366,8 @@ class ComponentAndModuleDaggerConceptTest {
         DaggerRelatedElement(
           mySubcomponentDaggerElement,
           "Parent components",
-          "navigate.to.parent.component"
-        ),
+          "navigate.to.parent.component",
+        )
       )
   }
 

@@ -23,8 +23,8 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
 import com.intellij.openapi.ui.popup.Balloon
-import com.intellij.openapi.ui.popup.JBPopupAdapter
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.UIUtil
@@ -33,46 +33,54 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon, protected var buttonPresentation: Presentation? = null) :
+abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon) :
     IconWithTextAction("", description, icon), Toggleable {
   protected val BACKGROUND_COLOR: Color = UIUtil.getListBackground()
-  var balloon: Balloon? = null
+  protected var balloonHasDisplayedAndClosed = false
+  private var balloon: Balloon? = null
+  private var button: JComponent? = null
+
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    button = super.createCustomComponent(presentation, place)
+    return button!!
+  }
 
   override fun actionPerformed(e: AnActionEvent) {
     if (isBalloonVisible()) {
-      e.presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, false)
-      balloon?.hide()
+      hideBalloon()
     }
     else {
-      e.presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, true)
-      show(e.inputEvent!!.source as JComponent)
+      val showComponent =
+        e.inputEvent?.source as? JComponent
+        ?: button
+        ?: return
+      show(showComponent)
     }
   }
 
   @VisibleForTesting
   fun isBalloonVisible() = balloon?.wasFadedOut() == false
 
+  fun hideBalloon() = balloon?.hide()
+
   fun show(component: JComponent) {
-    val balloonBuilder = JBPopupFactory.getInstance()
+    balloon = JBPopupFactory.getInstance()
       .createBalloonBuilder(mainPanel)
       .setShadow(true)
       .setHideOnAction(false)
       .setBlockClicksThroughBalloon(true)
       .setAnimationCycle(200)
       .setRequestFocus(true)  // Note that this seems non-functional, since it requests focus before the balloon is shown
-    balloonBuilder.setBorderColor(secondaryPanelBackground)
-    balloonBuilder.setFillColor(BACKGROUND_COLOR)
-    balloon = balloonBuilder.createBalloon().also {
-      it.addListener(object : JBPopupAdapter() {
-        override fun onClosed(event: LightweightWindowEvent) {
-          val presentation = buttonPresentation
-          if (presentation != null) {
-            presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, false)
+      .setBorderColor(secondaryPanelBackground)
+      .setFillColor(BACKGROUND_COLOR)
+      .createBalloon().also {
+        it.addListener(object : JBPopupListener {
+          override fun onClosed(event: LightweightWindowEvent) {
+            balloon = null
           }
-        }
-      })
-      it.show(RelativePoint.getSouthOf(component), Balloon.Position.below)
-    }
+        })
+        it.show(RelativePoint.getSouthOf(component), Balloon.Position.below)
+      }
   }
 
   abstract val mainPanel: JPanel

@@ -53,7 +53,7 @@ class MotionLayoutSpringModel(propertiesModel: MotionLayoutAttributesModel) :
       val supportsSpring =
         onSwipeProp.getOrNull(
           SdkConstants.AUTO_URI,
-          MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING
+          MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING,
         ) != null
       return@run if (supportsSpring) {
         arrayOf(SpringMode.NORMAL, SpringMode.SPRING_WITH_DAMP_CONSTANT)
@@ -118,7 +118,7 @@ class MotionLayoutSpringModel(propertiesModel: MotionLayoutAttributesModel) :
         SpringParameter.THRESHOLD ->
           swipeProp.getOrNull(
             SdkConstants.AUTO_URI,
-            MotionSceneAttrs.OnSwipe.ATTR_SPRING_STOP_THRESHOLD
+            MotionSceneAttrs.OnSwipe.ATTR_SPRING_STOP_THRESHOLD,
           )
         SpringParameter.STIFFNESS ->
           swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_STIFFNESS)

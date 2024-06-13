@@ -22,6 +22,7 @@ import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
+import com.android.tools.idea.deviceprovisioner.DEVICE_TEMPLATE_KEY
 import com.intellij.openapi.actionSystem.DataKey
 import javax.swing.Icon
 
@@ -100,9 +101,9 @@ internal data class DeviceRowData(
         androidVersion = properties.androidVersion,
         abi = properties.primaryAbi,
         status = Status.OFFLINE,
-        error = null,
+        error = template.state.error,
         handleType = HandleType.REMOTE,
-        wearPairingId = properties.wearPairingId,
+        wearPairingId = null,
         pairingStatus = emptyList(),
       )
     }
@@ -131,6 +132,7 @@ internal fun provideRowData(dataId: String, row: DeviceRowData): Any? =
   when {
     DEVICE_ROW_DATA_KEY.`is`(dataId) -> row
     DEVICE_HANDLE_KEY.`is`(dataId) -> row.handle
+    DEVICE_TEMPLATE_KEY.`is`(dataId) -> row.template
     else -> null
   }
 

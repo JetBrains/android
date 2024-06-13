@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include <inttypes.h>
-
+#include <cinttypes>
 #include <map>
 #include <memory>
 #include <vector>
 
 #include <android/input.h>
 
+#include "accessors/device_state_manager.h"
 #include "accessors/display_info.h"
 #include "base128_input_stream.h"
 #include "base128_output_stream.h"
@@ -295,6 +295,42 @@ private:
   DISALLOW_COPY_AND_ASSIGN(StopVideoStreamMessage);
 };
 
+// Starts audio stream if it was stopped, otherwise has no effect.
+class StartAudioStreamMessage : ControlMessage {
+public:
+  StartAudioStreamMessage()
+      : ControlMessage(TYPE) {
+  }
+  virtual ~StartAudioStreamMessage() {};
+
+  static constexpr int TYPE = 8;
+
+private:
+  friend class ControlMessage;
+
+  static StartAudioStreamMessage* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(StartAudioStreamMessage);
+};
+
+// Stops audio stream if it was started, otherwise has no effect.
+class StopAudioStreamMessage : ControlMessage {
+public:
+  StopAudioStreamMessage()
+      : ControlMessage(TYPE) {
+  }
+  virtual ~StopAudioStreamMessage() {};
+
+  static constexpr int TYPE = 9;
+
+private:
+  friend class ControlMessage;
+
+  static StopAudioStreamMessage* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(StopAudioStreamMessage);
+};
+
 // Sets contents of the clipboard and requests notifications of clipboard changes.
 class StartClipboardSyncMessage : ControlMessage {
 public:
@@ -308,7 +344,7 @@ public:
   const std::string& text() const { return text_; }
   int max_synced_length() const { return max_synced_length_; }
 
-  static constexpr int TYPE = 8;
+  static constexpr int TYPE = 10;
 
 private:
   friend class ControlMessage;
@@ -329,7 +365,7 @@ public:
   }
   virtual ~StopClipboardSyncMessage() {};
 
-  static constexpr int TYPE = 9;
+  static constexpr int TYPE = 11;
 
 private:
   friend class ControlMessage;
@@ -340,28 +376,28 @@ private:
 };
 
 // Requests a device state (folding pose) change. A DeviceStateNotification message will be sent
-// when and if the device state actually changes. If state is equal to PHYSICAL_STATE, the device
+// when and if the device state actually changes. If device_state_id is equal to PHYSICAL_STATE, the device
 // will return to its actual physical state.
 class RequestDeviceStateMessage : ControlMessage {
 public:
-  RequestDeviceStateMessage(int state)
+  explicit RequestDeviceStateMessage(int device_state_id)
       : ControlMessage(TYPE),
-        state_(state) {
+        device_state_id_(device_state_id) {
   }
-  virtual ~RequestDeviceStateMessage() = default;
+  ~RequestDeviceStateMessage() override = default;
 
-  int state() const { return state_; }
+  [[nodiscard]] int state_id() const { return device_state_id_; }
 
   static constexpr int PHYSICAL_STATE = -1;
 
-  static constexpr int TYPE = 10;
+  static constexpr int TYPE = 12;
 
 private:
   friend class ControlMessage;
 
   static RequestDeviceStateMessage* Deserialize(Base128InputStream& stream);
 
-  int state_;
+  int device_state_id_;
 
   DISALLOW_COPY_AND_ASSIGN(RequestDeviceStateMessage);
 };
@@ -374,7 +410,7 @@ public:
   }
   virtual ~DisplayConfigurationRequest() {};
 
-  static constexpr int TYPE = 11;
+  static constexpr int TYPE = 13;
 
 private:
   friend class ControlMessage;
@@ -403,7 +439,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 12;
+  static constexpr int TYPE = 14;
 
 private:
   friend class ControlMessage;
@@ -426,7 +462,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 13;
+  static constexpr int TYPE = 15;
 
 private:
   friend class ControlMessage;
@@ -453,7 +489,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 14;
+  static constexpr int TYPE = 16;
 
 private:
   friend class ControlMessage;
@@ -466,26 +502,25 @@ private:
 // Notification of supported device states.
 class SupportedDeviceStatesNotification : ControlMessage {
 public:
-  SupportedDeviceStatesNotification(const std::string& text)
+  explicit SupportedDeviceStatesNotification(const std::vector<DeviceState>& device_states, int32_t device_state_id)
       : ControlMessage(TYPE),
-        text_(text) {
+        device_states_(device_states),
+        device_state_id_(device_state_id) {
   }
-  SupportedDeviceStatesNotification(std::string&& text)
-      : ControlMessage(TYPE),
-        text_(text) {
-  }
-  virtual ~SupportedDeviceStatesNotification() = default;
+  ~SupportedDeviceStatesNotification() override = default;
 
-  const std::string& text() const { return text_; }
+  [[nodiscard]] const std::vector<DeviceState>& device_states() const { return device_states_; }
+  [[nodiscard]] int32_t device_state_id() const { return device_state_id_; }
 
-  virtual void Serialize(Base128OutputStream& stream) const;
+  void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 15;
+  static constexpr int TYPE = 17;
 
 private:
   friend class ControlMessage;
 
-  std::string text_;
+  const std::vector<DeviceState>& device_states_;
+  int32_t device_state_id_;
 
   DISALLOW_COPY_AND_ASSIGN(SupportedDeviceStatesNotification);
 };
@@ -494,22 +529,22 @@ private:
 // sharing agent starts on a foldable device.
 class DeviceStateNotification : ControlMessage {
 public:
-  DeviceStateNotification(int32_t device_state)
+  explicit DeviceStateNotification(int32_t device_state_id)
       : ControlMessage(TYPE),
-        device_state_(device_state) {
+        device_state_id_(device_state_id) {
   }
-  virtual ~DeviceStateNotification() = default;
+  ~DeviceStateNotification() override = default;
 
-  int32_t device_state() const { return device_state_; }
+  [[nodiscard]] int32_t device_state_id() const { return device_state_id_; }
 
-  virtual void Serialize(Base128OutputStream& stream) const;
+  void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 16;
+  static constexpr int TYPE = 18;
 
 private:
   friend class ControlMessage;
 
-  int32_t device_state_;
+  int32_t device_state_id_;
 
   DISALLOW_COPY_AND_ASSIGN(DeviceStateNotification);
 };
@@ -527,7 +562,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 17;
+  static constexpr int TYPE = 19;
 
 private:
   friend class ControlMessage;
@@ -550,7 +585,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 18;
+  static constexpr int TYPE = 20;
 
 private:
   friend class ControlMessage;
@@ -570,7 +605,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 19;
+  static constexpr int TYPE = 21;
 
 private:
   friend class ControlMessage;
@@ -590,21 +625,129 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
+  void copy(UiSettingsResponse* result) const {
+    result->set_dark_mode(dark_mode_);
+    result->set_gesture_overlay_installed(gesture_overlay_installed_);
+    result->set_gesture_navigation(gesture_navigation_);
+    result->set_foreground_application_id(foreground_application_id_);
+    result->set_app_locale(app_locale_);
+    result->set_talkback_installed(talkback_installed_);
+    result->set_talkback_on(talkback_on_);
+    result->set_select_to_speak_on(select_to_speak_on_);
+    result->set_font_size(font_size_);
+    result->set_density(density_);
+  }
+
   void set_dark_mode(bool dark_mode) {
     dark_mode_ = dark_mode;
   }
 
-  static constexpr int TYPE = 20;
+  bool dark_mode() {
+    return dark_mode_;
+  }
+
+  void set_gesture_overlay_installed(bool gesture_overlay_installed) {
+    gesture_overlay_installed_ = gesture_overlay_installed;
+  }
+
+  bool gesture_overlay_installed() {
+    return gesture_overlay_installed_;
+  }
+
+  void set_gesture_navigation(bool gesture_navigation) {
+    gesture_navigation_ = gesture_navigation;
+  }
+
+  bool gesture_navigation() {
+    return gesture_navigation_;
+  }
+
+  void set_foreground_application_id(const std::string& foreground_application_id) {
+    foreground_application_id_ = foreground_application_id;
+  }
+
+  std::string foreground_application_id() const {
+    return foreground_application_id_;
+  }
+
+  void set_app_locale(const std::string& app_locale) {
+    app_locale_ = app_locale;
+  }
+
+  std::string app_locale() const {
+    return app_locale_;
+  }
+
+  void set_talkback_installed(bool installed) {
+    talkback_installed_ = installed;
+  }
+
+  bool talkback_installed() {
+    return talkback_installed_;
+  }
+
+  void set_talkback_on(bool on) {
+    talkback_on_ = on;
+  }
+
+  bool talkback_on() {
+    return talkback_on_;
+  }
+
+  void set_select_to_speak_on(bool on) {
+    select_to_speak_on_ = on;
+  }
+
+  bool select_to_speak_on() {
+    return select_to_speak_on_;
+  }
+
+  void set_font_size_settable(bool settable) {
+    font_size_settable_ = settable;
+  }
+
+  void set_font_size(int32_t font_size) {
+    font_size_ = font_size;
+  }
+
+  int32_t font_size() {
+    return font_size_;
+  }
+
+  void set_density_settable(bool settable) {
+    density_settable_ = settable;
+  }
+
+  void set_density(int32_t density) {
+    density_ = density;
+  }
+
+  int32_t density() {
+    return density_;
+  }
+
+  static constexpr int TYPE = 22;
 
 private:
   friend class ControlMessage;
 
   bool dark_mode_;
+  bool gesture_overlay_installed_;
+  bool gesture_navigation_;
+  std::string foreground_application_id_;
+  std::string app_locale_;
+  bool talkback_installed_;
+  bool talkback_on_;
+  bool select_to_speak_on_;
+  bool font_size_settable_;
+  int32_t font_size_;
+  bool density_settable_;
+  int32_t density_;
 
   DISALLOW_COPY_AND_ASSIGN(UiSettingsResponse);
 };
 
-// Changes the DarkMode setting on the device.
+// Changes the Dark Mode setting on the device.
 class SetDarkModeMessage : ControlMessage {
 public:
   SetDarkModeMessage(bool dark_mode)
@@ -619,7 +762,7 @@ public:
     return dark_mode_;
   }
 
-  static constexpr int TYPE = 21;
+  static constexpr int TYPE = 23;
 
 private:
   friend class ControlMessage;
@@ -629,6 +772,176 @@ private:
   bool dark_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(SetDarkModeMessage);
+};
+
+// Changes the Font Size setting on the device.
+// The font_size is specified as a percentage of the normal font.
+// A value of 100 is the normal size.
+class SetFontSizeMessage : ControlMessage {
+public:
+  SetFontSizeMessage(int32_t font_size)
+      : ControlMessage(TYPE),
+        font_size_(font_size) {
+  }
+  virtual ~SetFontSizeMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  int32_t font_size() const {
+    return font_size_;
+  }
+
+  static constexpr int TYPE = 24;
+
+private:
+  friend class ControlMessage;
+
+  static SetFontSizeMessage* Deserialize(Base128InputStream& stream);
+
+  int32_t font_size_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetFontSizeMessage);
+};
+
+// Changes the Screen Density setting on the device.
+class SetScreenDensityMessage : ControlMessage {
+public:
+  SetScreenDensityMessage(int32_t density)
+      : ControlMessage(TYPE),
+        density_(density) {
+  }
+  virtual ~SetScreenDensityMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  int32_t density() const {
+    return density_;
+  }
+
+  static constexpr int TYPE = 25;
+
+private:
+  friend class ControlMessage;
+
+  static SetScreenDensityMessage* Deserialize(Base128InputStream& stream);
+
+  int32_t density_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetScreenDensityMessage);
+};
+
+// Turns TalkBack on or off on the device.
+class SetTalkBackMessage : ControlMessage {
+public:
+  SetTalkBackMessage(bool on)
+      : ControlMessage(TYPE),
+        talkback_on_(on) {
+  }
+  virtual ~SetTalkBackMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  bool talkback_on() const {
+    return talkback_on_;
+  }
+
+  static constexpr int TYPE = 26;
+
+private:
+  friend class ControlMessage;
+
+  static SetTalkBackMessage* Deserialize(Base128InputStream& stream);
+
+  bool talkback_on_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetTalkBackMessage);
+};
+
+// Turns Select to Speak on or off on the device.
+class SetSelectToSpeakMessage : ControlMessage {
+public:
+  SetSelectToSpeakMessage(bool on)
+      : ControlMessage(TYPE),
+        select_to_speak_on_(on) {
+  }
+  virtual ~SetSelectToSpeakMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  bool select_to_speak_on() const {
+    return select_to_speak_on_;
+  }
+
+  static constexpr int TYPE = 27;
+
+private:
+  friend class ControlMessage;
+
+  static SetSelectToSpeakMessage* Deserialize(Base128InputStream& stream);
+
+  bool select_to_speak_on_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetSelectToSpeakMessage);
+};
+
+// Changes the locale of the application identified by application_id.
+class SetAppLanguageMessage : ControlMessage {
+public:
+  SetAppLanguageMessage(const std::string& application_id, const std::string& locale)
+      : ControlMessage(TYPE),
+        application_id_(application_id),
+        locale_(locale) {
+  }
+  virtual ~SetAppLanguageMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  const std::string& application_id() const {
+    return application_id_;
+  }
+
+  const std::string& locale() const {
+    return locale_;
+  }
+
+  static constexpr int TYPE = 28;
+
+private:
+  friend class ControlMessage;
+
+  static SetAppLanguageMessage* Deserialize(Base128InputStream& stream);
+
+  std::string application_id_;
+  std::string locale_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetAppLanguageMessage);
+};
+
+// Turns Gesture navigation on or off on the device.
+class SetGestureNavigationMessage : ControlMessage {
+public:
+  SetGestureNavigationMessage(bool on)
+      : ControlMessage(TYPE),
+        gesture_navigation_(on) {
+  }
+  virtual ~SetGestureNavigationMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  bool gesture_navigation() const {
+    return gesture_navigation_;
+  }
+
+  static constexpr int TYPE = 29;
+
+private:
+  friend class ControlMessage;
+
+  static SetGestureNavigationMessage* Deserialize(Base128InputStream& stream);
+
+  bool gesture_navigation_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetGestureNavigationMessage);
 };
 
 }  // namespace screensharing

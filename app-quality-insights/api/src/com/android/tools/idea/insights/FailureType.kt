@@ -46,11 +46,11 @@ enum class FailureType {
 fun convertSeverityList(
   fatalities: List<FailureType>
 ): AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter {
-  if (fatalities.size < 1 || fatalities.size > 2) {
+  if (fatalities.isEmpty() || fatalities.size > 3) {
     return AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter
       .UNKNOWN_SEVERITY
   }
-  if (fatalities.size == 2) {
+  if (fatalities.size == 3) {
     return AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.ALL
   }
   return when (fatalities[0]) {

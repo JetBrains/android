@@ -27,39 +27,31 @@ import com.intellij.openapi.project.Project
 
 class DefaultUiComponentsProvider(
   private val project: Project,
-  private val parentDisposable: Disposable
+  private val parentDisposable: Disposable,
 ) : UiComponentsProvider {
   override fun createDataViewer(
     bytes: ByteArray,
     contentType: ContentType,
     styleHint: DataViewer.Style,
-    formatted: Boolean
+    formatted: Boolean,
   ): DataViewer {
     return when {
-      contentType.isSupportedImageType -> {
-        IntellijImageDataViewer.createImageViewer(bytes) ?: IntellijDataViewer.createInvalidViewer()
-      }
-      styleHint == DataViewer.Style.RAW -> {
-        if (contentType.isSupportedTextType) IntellijDataViewer.createRawTextViewer(bytes)
-        else IntellijDataViewer.createInvalidViewer()
-      }
-      styleHint == DataViewer.Style.PRETTY -> {
+      contentType.isSupportedImageType -> IntellijImageDataViewer(bytes, parentDisposable)
+      !contentType.isSupportedTextType -> IntellijDataViewer.createInvalidViewer()
+      styleHint == DataViewer.Style.RAW -> IntellijDataViewer.createRawTextViewer(bytes)
+      styleHint == DataViewer.Style.PRETTY ->
         IntellijDataViewer.createPrettyViewerIfPossible(
           project,
           bytes,
           contentType.fileType,
           formatted,
-          parentDisposable
+          parentDisposable,
         )
-      }
-      else -> {
-        // This shouldn't ever happen.
-        throw RuntimeException("DataViewer style is invalid.")
-      }
+      else -> throw RuntimeException("DataViewer style is invalid.")
     }
   }
 
   override fun createStackGroup(): StackTraceGroup {
-    return IntelliJStackTraceGroup(project)
+    return IntelliJStackTraceGroup(project, parentDisposable)
   }
 }

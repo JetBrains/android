@@ -60,8 +60,8 @@ class LogcatFormatDialogTest {
       HeadlessDialogRule(),
       ApplicationServiceRule(
         AndroidLogcatFormattingOptions::class.java,
-        AndroidLogcatFormattingOptions()
-      )
+        AndroidLogcatFormattingOptions(),
+      ),
     )
 
   @After
@@ -140,7 +140,7 @@ class LogcatFormatDialogTest {
         initialFormatting = STANDARD,
         applyAction = { standardOptions, _, _ ->
           options.timestampFormat = standardOptions.timestampFormat
-        }
+        },
       )
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -221,7 +221,7 @@ class LogcatFormatDialogTest {
         initialFormatting = STANDARD,
         applyAction = { standardOptions, _, _ ->
           options.processThreadFormat = standardOptions.processThreadFormat
-        }
+        },
       )
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -308,7 +308,7 @@ class LogcatFormatDialogTest {
     val dialog =
       logcatFormatDialogNew(
         initialFormatting = STANDARD,
-        applyAction = { standardOptions, _, _ -> options.tagFormat = standardOptions.tagFormat }
+        applyAction = { standardOptions, _, _ -> options.tagFormat = standardOptions.tagFormat },
       )
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -397,7 +397,7 @@ class LogcatFormatDialogTest {
         initialFormatting = STANDARD,
         applyAction = { standardOptions, _, _ ->
           options.appNameFormat = standardOptions.appNameFormat
-        }
+        },
       )
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -446,7 +446,7 @@ class LogcatFormatDialogTest {
     val dialog =
       logcatFormatDialogNew(
         initialFormatting = STANDARD,
-        applyAction = { standardOptions, _, _ -> options.levelFormat = standardOptions.levelFormat }
+        applyAction = { standardOptions, _, _ -> options.levelFormat = standardOptions.levelFormat },
       )
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -722,7 +722,7 @@ class LogcatFormatDialogTest {
       logcatFormatDialogNew(
         COMPACT,
         STANDARD,
-        applyAction = { _, _, defaultStyle -> style = defaultStyle }
+        applyAction = { _, _, defaultStyle -> style = defaultStyle },
       )
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       val ui = FakeUi(it.rootPane)
@@ -750,7 +750,7 @@ class LogcatFormatDialogTest {
         applyAction = { standardOptions, compactOptions, _ ->
           standard = standardOptions
           compact = compactOptions
-        }
+        },
       )
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {

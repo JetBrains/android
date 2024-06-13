@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class SelectAllAction(private val surface: DesignSurface<*>) : AnAction("Select All") {
+class SelectAllAction : AnAction("Select All") {
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getData(DESIGN_SURFACE) ?: return
     surface.selectionModel.setSelection(surface.selectableComponents)
     surface.repaint()
   }

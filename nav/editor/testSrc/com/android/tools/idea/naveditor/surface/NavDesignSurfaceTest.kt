@@ -50,13 +50,14 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.indexing.UnindexedFilesScanner
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.mockito.Mockito
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.anyInt
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doCallRealMethod
 import org.mockito.Mockito.mock
@@ -92,7 +93,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       }
     }
     TestNavUsageTracker.create(model).use { tracker ->
-      surface.model = model
+      PlatformTestUtil.waitForFuture(surface.setModel(model))
 
       val expectedEvent = NavLogEvent(NavEditorEvent.NavEditorEventType.OPEN_FILE, tracker)
         .withNavigationContents()
@@ -102,7 +103,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
   }
 
-  private fun <T> any(): T = Mockito.any() as T
+  private fun <T> any(): T = ArgumentMatchers.any() as T
 
   fun testComponentActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
@@ -112,7 +113,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         fragment("fragment2", layout = "fragment_blank", name = "mytest.navtest.BlankFragment")
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
@@ -133,7 +134,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         fragment("fragment2", name = "mytest.navtest.BlankFragment")
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
@@ -155,7 +156,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         }
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     TestNavUsageTracker.create(model).use { tracker ->
       assertEquals(model.components[0], surface.currentNavigation)
       val subnav = model.find("subnav")!!
@@ -172,7 +173,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         include("navigation")
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.find("nav")!!)
       val editorManager = FileEditorManager.getInstance(project)
@@ -191,7 +192,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         }
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val modelListener = mock(ModelListener::class.java)
     val surfaceListener = mock(DesignSurfaceListener::class.java)
     model.addListener(modelListener)
@@ -259,7 +260,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     surface.scene!!.getSceneComponent(f2)!!.setPosition(100, 100)
     surface.scene!!.getSceneComponent(f3)!!.setPosition(200, 200)
     (surface.sceneManager as NavSceneManager).layout(false)
-    surface.zoomToFit()
+    surface.zoomController.zoomToFit()
 
     // Scroll pane is centered at 500, 500 so the values below are the absolute positions of the new locations
     verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, 488, 514)
@@ -362,7 +363,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
 
     val root = model.components[0]
     assertEquals(root, surface.currentNavigation)
@@ -407,7 +408,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
 
     var root = model.components[0]
     assertEquals(root, surface.currentNavigation)
@@ -456,7 +457,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     NavigationSchema.createIfNecessary(myModule)
     val editor = mock(DesignerEditorPanel::class.java)
     val surface = NavDesignSurface(project, editor, project)
-    surface.model = model("nav.xml") { navigation() }
+    PlatformTestUtil.waitForFuture(surface.setModel(model("nav.xml") { navigation() }))
     @Suppress("UNCHECKED_CAST")
     val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface<*>>
     whenever(editor.workBench).thenReturn(workbench)
@@ -565,7 +566,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   fun testActivateAddNavigator() {
     NavigationSchema.createIfNecessary(myModule)
     val surface = NavDesignSurface(project, mock(DesignerEditorPanel::class.java), project)
-    surface.model = model("nav.xml") { navigation() }
+    PlatformTestUtil.waitForFuture(surface.setModel(model("nav.xml") { navigation() }))
 
     addClass("import androidx.navigation.*;\n" +
              "@Navigator.Name(\"activity_sub\")\n" +
@@ -613,7 +614,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
 
     val root = model.find("root")!!
     val fragment1 = model.find("fragment1")!!
@@ -634,25 +635,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     testCurrentNavigation(surface, root, fragment1, nested1)
     testCurrentNavigation(surface, nested1, fragment2, nested2)
     testCurrentNavigation(surface, nested1, fragment2, nested2, fragment1)
-  }
-
-  fun testCanZoomToFit() {
-    val sceneManager = mock(NavSceneManager::class.java)
-    whenever(sceneManager.isEmpty).thenReturn(true)
-
-    val surface = mock(NavDesignSurface::class.java)
-    whenever(surface.sceneManager).thenReturn(sceneManager)
-    doCallRealMethod().whenever(surface).canZoomToFit()
-
-    whenever(surface.fitScale).thenReturn(1.5)
-    whenever(surface.scale).thenReturn(1.0)
-    assertFalse(surface.canZoomToFit())
-
-    whenever(sceneManager.isEmpty).thenReturn(false)
-    assertTrue(surface.canZoomToFit())
-
-    whenever(surface.scale).thenReturn(1.5)
-    assertFalse(surface.canZoomToFit())
   }
 
   private fun testCurrentNavigation(surface: NavDesignSurface, expected: NlComponent, vararg select: NlComponent) {

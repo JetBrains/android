@@ -33,33 +33,33 @@ enum class Delimiter(val delimiter: Char) {
   TAB('	'),
   COMMA(','),
   VERTICAL_BAR('|'),
-  SPACE(' ')
+  SPACE(' '),
 }
 
 /** All the information needed to perform an export operation */
 sealed class ExportRequest(
   open val srcDatabase: SqliteDatabaseId,
   open val format: ExportFormat,
-  open val dstPath: Path
+  open val dstPath: Path,
 ) {
   data class ExportDatabaseRequest(
     override val srcDatabase: SqliteDatabaseId,
     override val format: ExportFormat,
-    override val dstPath: Path
+    override val dstPath: Path,
   ) : ExportRequest(srcDatabase, format, dstPath)
 
   data class ExportTableRequest(
     override val srcDatabase: SqliteDatabaseId,
     val srcTable: String,
     override val format: ExportFormat,
-    override val dstPath: Path
+    override val dstPath: Path,
   ) : ExportRequest(srcDatabase, format, dstPath)
 
   data class ExportQueryResultsRequest(
     override val srcDatabase: SqliteDatabaseId,
     val srcQuery: SqliteStatement,
     override val format: ExportFormat,
-    override val dstPath: Path
+    override val dstPath: Path,
   ) : ExportRequest(srcDatabase, format, dstPath)
 }
 
@@ -71,25 +71,25 @@ sealed class ExportRequest(
  */
 sealed class ExportDialogParams(
   open val srcDatabase: SqliteDatabaseId,
-  open val actionOrigin: Origin
+  open val actionOrigin: Origin,
 ) {
   /** @param actionOrigin see [ExportDialogParams.actionOrigin] */
   data class ExportDatabaseDialogParams(
     override val srcDatabase: SqliteDatabaseId,
-    override val actionOrigin: Origin
+    override val actionOrigin: Origin,
   ) : ExportDialogParams(srcDatabase, actionOrigin)
 
   /** @param actionOrigin see [ExportDialogParams.actionOrigin] */
   data class ExportTableDialogParams(
     override val srcDatabase: SqliteDatabaseId,
     val srcTable: String,
-    override val actionOrigin: Origin
+    override val actionOrigin: Origin,
   ) : ExportDialogParams(srcDatabase, actionOrigin)
 
   /** @param actionOrigin see [ExportDialogParams.actionOrigin] */
   data class ExportQueryResultsDialogParams(
     override val srcDatabase: SqliteDatabaseId,
     val query: SqliteStatement,
-    override val actionOrigin: Origin
+    override val actionOrigin: Origin,
   ) : ExportDialogParams(srcDatabase, actionOrigin)
 }

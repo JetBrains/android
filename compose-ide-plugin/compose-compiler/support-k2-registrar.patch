@@ -1,0 +1,38 @@
+diff --git META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+new file mode 100644
+index 0000000..275b295
+--- /dev/null
++++ META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+@@ -0,0 +1 @@
++androidx.compose.compiler.plugins.kotlin.ComposePluginRegistrarForK2
+diff --git androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
+index 581b526..dc070b3 100644
+--- androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
++++ androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
+@@ -259,6 +259,26 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
+     }
+ }
+ 
++// Android Studio (b/316022748): K2 requires the new registrar interface.
++@OptIn(ExperimentalCompilerApi::class)
++class ComposePluginRegistrarForK2 : org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar() {
++    override val supportsK2: Boolean
++        get() = true
++
++    override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
++        // Workaround only for K2 plugin registrar.
++        if (!configuration.languageVersionSettings.languageVersion.usesK2) return
++
++        if (ComposePluginRegistrar.checkCompilerVersion(configuration)) {
++            DescriptorSerializerPlugin.registerExtension(ClassStabilityFieldSerializationPlugin())
++            FirExtensionRegistrarAdapter.registerExtension(ComposeFirExtensionRegistrar())
++            IrGenerationExtension.registerExtension(
++                ComposePluginRegistrar.createComposeIrExtension(configuration)
++            )
++        }
++    }
++}
++
+ @Suppress("DEPRECATION") // CompilerPluginRegistrar does not expose project (or disposable) causing
+                          // memory leaks, see: https://youtrack.jetbrains.com/issue/KT-60952
+ @OptIn(ExperimentalCompilerApi::class)

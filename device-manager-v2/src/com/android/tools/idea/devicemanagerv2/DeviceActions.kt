@@ -17,16 +17,29 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.idea.deviceprovisioner.deviceHandle
+import com.android.tools.idea.deviceprovisioner.deviceTemplate
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.jetbrains.android.refactoring.project
 import java.awt.Component
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.android.refactoring.project
 
 /** Updates the AnActionEvent's presentation from the given DeviceAction's presentation. */
-fun AnActionEvent.updateFromDeviceAction(deviceActionProperty: DeviceHandle.() -> DeviceAction?) {
-  val handle = deviceHandle()
-  when (val deviceAction = handle?.deviceActionProperty()) {
+fun AnActionEvent.updateFromDeviceAction(deviceActionProperty: DeviceHandle.() -> DeviceAction?) =
+  updateFromDeviceAction(deviceHandle(), deviceActionProperty)
+
+/** Updates the AnActionEvent's presentation from the given DeviceAction's presentation. */
+fun AnActionEvent.updateFromDeviceTemplateAction(
+  deviceActionProperty: DeviceTemplate.() -> DeviceAction?
+) = updateFromDeviceAction(deviceTemplate(), deviceActionProperty)
+
+private fun <T> AnActionEvent.updateFromDeviceAction(
+  handleOrTemplate: T?,
+  deviceActionProperty: T.() -> DeviceAction?,
+) {
+  when (val deviceAction = handleOrTemplate?.deviceActionProperty()) {
     null -> presentation.isEnabledAndVisible = false
     else -> {
       val actionPresentation = deviceAction.presentation.value
@@ -59,6 +72,9 @@ fun AnActionEvent.updateFromDeviceActionOrDeactivateAction(
 internal fun AnActionEvent.deviceRowData() = DEVICE_ROW_DATA_KEY.getData(dataContext)
 
 internal fun AnActionEvent.deviceManagerPanel() = DEVICE_MANAGER_PANEL_KEY.getData(dataContext)
+
+internal fun AnActionEvent.deviceManagerCoroutineScope(): CoroutineScope? =
+  DEVICE_MANAGER_COROUTINE_SCOPE_KEY.getData(dataContext)
 
 internal fun DeviceAction?.isEnabled() = this?.presentation?.value?.enabled == true
 

@@ -21,6 +21,8 @@ android {
       useProguard false
       versionNameSuffix = "abc"
       zipAlignEnabled true
+      enableUnitTestCoverage = true
+      enableAndroidTestCoverage = true
     }
   }
 }
@@ -45,5 +47,7 @@ android.buildTypes.xyz {
   useProguard true
   versionNameSuffix = "abc-1"
   zipAlignEnabled = false
+  enableUnitTestCoverage false
+  enableAndroidTestCoverage false
 }
 android.buildTypes.xyz.applicationIdSuffix = "mySuffix-3"

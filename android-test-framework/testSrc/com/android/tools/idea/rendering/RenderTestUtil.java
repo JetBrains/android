@@ -74,7 +74,7 @@ public class RenderTestUtil {
   private static final float MAX_PERCENT_DIFFERENT = 1.0f;
 
   /**
-   * Method to be called before every render test case. If you are using JUnit 4, use the {@link RenderTest} instead.
+   * Method to be called before every render test case. If you are using JUnit 4, use the {@link RenderTestRule} instead.
    */
   public static void beforeRenderTestCase() {
     RenderService.shutdownRenderExecutor(5);
@@ -82,7 +82,7 @@ public class RenderTestUtil {
   }
 
   /**
-   * Method to be called before every after test case. If you are using JUnit 4, use the {@link RenderTest} instead.
+   * Method to be called before every after test case. If you are using JUnit 4, use the {@link RenderTestRule} instead.
    */
   public static void afterRenderTestCase() {
     RenderLogger.resetFidelityErrorsFilters();

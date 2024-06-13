@@ -15,10 +15,10 @@
  */
 package com.android.tools.fonts;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.fonts.*;
 import com.google.common.primitives.Ints;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,11 +35,11 @@ public class SystemFonts {
 
   private final Map<String, FontFamily> myFonts;
 
-  public SystemFonts(@NotNull FontLoader fontLoader) {
+  public SystemFonts(@NonNull FontLoader fontLoader) {
     myFonts = createFonts(fontLoader);
   }
 
-  @NotNull
+  @NonNull
   public Collection<FontFamily> getFontFamilies() {
     return myFonts.values();
   }
@@ -49,7 +49,7 @@ public class SystemFonts {
     return myFonts.get(name);
   }
 
-  private static Map<String, FontFamily> createFonts(@NotNull FontLoader fontLoader) {
+  private static Map<String, FontFamily> createFonts(@NonNull FontLoader fontLoader) {
     Map<String, FontFamily> fonts = new TreeMap<>();
     for (String fontName : AVAILABLE_FAMILIES) {
       FontFamily family = createFont(fontLoader, fontName);
@@ -61,7 +61,7 @@ public class SystemFonts {
   }
 
   @Nullable
-  private static FontFamily createFont(@NotNull FontLoader fontLoader, @NotNull String systemFontName) {
+  private static FontFamily createFont(@NonNull FontLoader fontLoader, @NonNull String systemFontName) {
     switch (systemFontName) {
       case "sans-serif-thin":
         return findFont(fontLoader, systemFontName, "Roboto", DEFAULT_WIDTH, 100, 400);
@@ -98,9 +98,9 @@ public class SystemFonts {
   }
 
   @Nullable
-  private static FontFamily findFont(@NotNull FontLoader fontLoader,
-                                     @NotNull String systemFontName,
-                                     @NotNull String name,
+  private static FontFamily findFont(@NonNull FontLoader fontLoader,
+                                     @NonNull String systemFontName,
+                                     @NonNull String name,
                                      int width,
                                      int... weights) {
     FontFamily family = fontLoader.findFont(FontProvider.GOOGLE_PROVIDER, name);

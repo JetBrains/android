@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -143,17 +144,17 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
           ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
       )
 
-      if (Registry.`is`("android.gradle.declarative.plugin.studio.support")) {
-        yieldIfNotNull(
-          projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_TOML)
-            ?.describe("Declarative Project Settings", BUILD_WIDE_ORDER_BASE)
-        )
-      }
-
       yieldIfNotNull(
         projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_KTS)
           ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
       )
+
+      if (GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+        yieldIfNotNull(
+          projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE)
+            ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
+        )
+      }
 
       projectRootFolder.findChild("gradle")?.takeIf { it.isDirectory }?.let { gradle ->
         gradle.children.filter { !it.isDirectory && it.name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML) }.forEach {
@@ -187,7 +188,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
         (
           !child.name.endsWith(SdkConstants.EXT_GRADLE) &&
             !child.name.endsWith(SdkConstants.EXT_GRADLE_KTS) &&
-            !child.isDeclarativeBuildFile() &&
+            !child.isGradleDeclarativeBuildFile() &&
             child.fileType !== proguardFileType
           )
       ) {
@@ -205,8 +206,8 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     return files
   }
 
-  private fun VirtualFile.isDeclarativeBuildFile() =
-    Registry.`is`("android.gradle.declarative.plugin.studio.support") && name.endsWith(SdkConstants.EXT_GRADLE_TOML)
+  private fun VirtualFile.isGradleDeclarativeBuildFile() =
+    Registry.`is`("android.gradle.declarative.plugin.studio.support") && name.endsWith(SdkConstants.EXT_GRADLE_DECLARATIVE)
 
   private val proguardFileType: FileType = FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
 }

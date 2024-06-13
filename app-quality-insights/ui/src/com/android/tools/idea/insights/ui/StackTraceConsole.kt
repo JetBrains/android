@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.vcs.CONNECTION_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
@@ -36,7 +37,10 @@ import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.laf.isDefaultForTheme
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.ex.EditorEx
@@ -46,6 +50,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.unscramble.AnalyzeStacktraceUtil
+import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -62,13 +67,13 @@ data class StackTraceConsoleState(
   val connection: Connection? = null,
   val mode: ConnectionMode? = null,
   val issue: AppInsightsIssue? = null,
-  val event: Event? = null
+  val event: Event? = null,
 )
 
 class StackTraceConsole(
   controller: AppInsightsProjectLevelController,
   private val project: Project,
-  private val tracker: AppInsightsTracker
+  private val tracker: AppInsightsTracker,
 ) : Disposable {
 
   private val resolvedInfoCache =
@@ -94,7 +99,7 @@ class StackTraceConsole(
     Disposer.register(this, consoleView)
     stackTraceConsoleState
       .filterNot { it.issue == null || it.event == null }
-      .onEach { printStack(it.event!!, it.connection, consoleView) }
+      .onEach { printStack(it.issue!!, it.event!!, it.connection, consoleView) }
       .flowOn(AndroidDispatchers.uiThread)
       .launchIn(scope)
 
@@ -102,8 +107,24 @@ class StackTraceConsole(
       .connect(this)
       .subscribe(
         PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() }
+        ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() },
       )
+    consoleView.editor.setBorder(JBUI.Borders.empty())
+    updateUI()
+  }
+
+  fun updateUI() {
+    (consoleView?.editor as? EditorEx)?.apply {
+      if (
+        EditorColorsManager.getInstance()
+          .globalScheme
+          .isDefaultForTheme(LafManager.getInstance().currentUIThemeLookAndFeel)
+      ) {
+        backgroundColor = primaryContentBackground
+      } else {
+        backgroundColor = EditorColorsManager.getInstance().globalScheme.defaultBackground
+      }
+    }
   }
 
   private fun clearResolvedInfoCacheAndRehighlight() {
@@ -114,13 +135,22 @@ class StackTraceConsole(
     }
   }
 
-  private fun printStack(event: Event, connection: Connection?, consoleView: ConsoleViewImpl) {
+  private fun printStack(
+    issue: AppInsightsIssue,
+    event: Event,
+    connection: Connection?,
+    consoleView: ConsoleViewImpl,
+  ) {
     if (event == currentEvent) {
       return
     }
+    var startOfOtherThreads = 0
     synchronized(CONSOLE_LOCK) {
       currentEvent = null
-      consoleView.clear()
+      // ConsoleViewImpl.clear() clears non-deferred text asynchonously, causing a race condition
+      // when setting the new text below, so here we manually flush and then set the text to empty.
+      consoleView.flushDeferredText()
+      consoleView.editor.document.setText("")
       consoleView.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, event.appVcsInfo)
       consoleView.putClientProperty(CONNECTION_OF_SELECTED_CRASH, connection)
 
@@ -131,7 +161,7 @@ class StackTraceConsole(
       for (stack in event.stacktraceGroup.exceptions) {
         consoleView.print(
           "${stack.rawExceptionMessage}\n",
-          stack.stacktrace.blames.getConsoleViewContentType()
+          stack.stacktrace.blames.getConsoleViewContentType(),
         )
         val startOffset = consoleView.contentSize
         for (frame in stack.stacktrace.frames) {
@@ -140,6 +170,9 @@ class StackTraceConsole(
         }
         val endOffset = consoleView.contentSize - 1 // TODO: -2 on windows?
         currentEvent = event
+        if (stack.stacktrace.blames == Blames.BLAMED) {
+          startOfOtherThreads = consoleView.contentSize
+        }
 
         consoleView.performWhenNoDeferredOutput {
           consoleView.editor.foldingModel.runBatchFoldingOperation {
@@ -151,7 +184,7 @@ class StackTraceConsole(
                 consoleView.editor.foldingModel.addFoldRegion(
                   startOffset,
                   endOffset,
-                  "    <${stack.stacktrace.frames.size} frames>"
+                  "    <${stack.stacktrace.frames.size} frames>",
                 )
               if (stack.stacktrace.blames == Blames.NOT_BLAMED) {
                 region?.isExpanded = false
@@ -161,6 +194,26 @@ class StackTraceConsole(
         }
       }
     }
+
+    if (issue.issueDetails.fatality == FailureType.ANR) {
+      consoleView.performWhenNoDeferredOutput {
+        consoleView.editor.foldingModel.runBatchFoldingOperation {
+          synchronized(CONSOLE_LOCK) {
+            if (event != currentEvent) {
+              return@synchronized
+            }
+            val region =
+              consoleView.editor.foldingModel.addFoldRegion(
+                startOfOtherThreads,
+                consoleView.contentSize,
+                "    Show all ${event.stacktraceGroup.exceptions.size} threads",
+              )
+            region?.isExpanded = false
+          }
+        }
+      }
+    }
+
     // TODO: ensure the editor component always resizes correctly after update.
     consoleView.performWhenNoDeferredOutput {
       synchronized(CONSOLE_LOCK) {
@@ -183,7 +236,6 @@ class StackTraceConsole(
       InsightsAttachInlayDiffLinkFilter(resolvedInfoCache, consoleView, tracker)
     )
     (consoleView.editor as EditorEx).apply {
-      backgroundColor = primaryContentBackground
       contentComponent.isFocusCycleRoot = false
       contentComponent.isFocusable = true
       setVerticalScrollbarVisible(false)
@@ -203,7 +255,7 @@ class ListenerForTracking(
   private val consoleView: ConsoleViewImpl,
   private val tracker: AppInsightsTracker,
   private val project: Project,
-  private val stackTraceConsoleState: StateFlow<StackTraceConsoleState>
+  private val stackTraceConsoleState: StateFlow<StackTraceConsoleState>,
 ) : EditorMouseListener {
   override fun mouseReleased(event: EditorMouseEvent) {
     val hyperlinkInfo = consoleView.hyperlinks.getHyperlinkInfoByEvent(event) ?: return

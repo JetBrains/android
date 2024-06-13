@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb
 
 import com.android.adblib.AdbSession
+import com.android.adblib.ConnectedDevice
 import com.android.adblib.adbLogger
 import com.android.adblib.tools.debugging.JdwpSessionPipeline
 import com.android.adblib.tools.debugging.SharedJdwpSessionMonitor
@@ -28,6 +29,7 @@ import com.android.adblib.tools.debugging.utils.SynchronizedSendChannel
 import com.android.adblib.tools.debugging.utils.logIOCompletionErrors
 import com.android.adblib.tools.debugging.utils.receiveAll
 import com.android.adblib.utils.ResizableBuffer
+import com.android.adblib.withPrefix
 import com.android.jdwpscache.SCacheResponse
 import com.android.jdwpscache.SuspendingSCache
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -36,12 +38,17 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 internal class StudioAdbLibSCacheJdwpSessionPipeline(
-  session: AdbSession,
+  private val device: ConnectedDevice,
+  pid: Int,
   scacheLogger: StudioSCacheLogger,
   private val sessionMonitor: SharedJdwpSessionMonitor?,
   private val debuggerPipeline: JdwpSessionPipeline,
 ) : JdwpSessionPipeline {
-  private val logger = adbLogger(session)
+
+  private val logger = adbLogger(session).withPrefix("$session - $device - pid=$pid - ")
+
+  private val session: AdbSession
+    get() = device.session
 
   /**
    * The actual SCache implementation.
@@ -107,6 +114,7 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
   }
 
   private suspend fun forwardSendChannelToDebugger() {
+    logger.debug { "Forwarding packets from 'send' channel to scache" }
     val workBuffer = ResizableBuffer()
     // Note: 'receiveAll' is a terminal operator, throws exception when completed or cancelled
     sendChannelImpl.receiveAll { packet ->
@@ -118,6 +126,7 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
   }
 
   private suspend fun forwardDebuggerToReceiveChannel() {
+    logger.debug { "Forwarding packets from debugger pipeline to scache" }
     val workBuffer = ResizableBuffer()
     // Note: Throws an EOFException exception when channel is closed
     debuggerPipeline.receiveChannel.receiveAll { packet ->

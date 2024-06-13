@@ -50,7 +50,7 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
     NONE,
     CONSTRAINT_LAYOUT,
     MOTION_LAYOUT,
-    FULL
+    FULL,
   }
 
   private val ONLY_FULL: Boolean = true // for now redirect to a single help content

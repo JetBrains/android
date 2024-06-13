@@ -13,24 +13,6 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.model.ext;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BIG_DECIMAL;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTERPOLATED;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.MAP;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.UNKNOWN;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.DEFAULT_TRANSFORM;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.findOriginalElement;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isElementModified;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isFakeElementModified;
-import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
-
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
@@ -39,20 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
-import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
@@ -62,18 +31,19 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   private static final Logger LOG = Logger.getInstance(GradlePropertyModelImpl.class);

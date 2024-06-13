@@ -17,14 +17,25 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <registryKey key="ide.slow.operations.assertion.generic" defaultValue="false" description="Flag for generic activities and code in `SlowOperations#allowSlowOperations`"/>
     <applicationInitializedListener id="Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.AndroidStudioInitializer" />
     <actionConfigurationCustomizer id="Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.AndroidStudioActionCustomizer"/>
-    <applicationInitializedListener implementation="com.android.tools.idea.startup.AndroidSdkInitializer" order="last"/>
     <applicationInitializedListener implementation="com.android.tools.idea.instrumentation.threading.ThreadingChecker" />
+    <applicationService serviceInterface="com.intellij.platform.ide.customization.ExternalProductResourceUrls"
+                        serviceImplementation="com.android.tools.idea.AndroidStudioResourceUrls"
+                        overrides="true"/>
 
     <applicationService serviceInterface="com.intellij.openapi.updateSettings.UpdateStrategyCustomization"
                         serviceImplementation="com.android.tools.idea.AndroidStudioUpdateStrategyCustomization"
                         overrides="true"/>
+
+    <!--suppress PluginXmlValidity (this service is intentionally registered outside the module of the interface class) -->
+    <applicationService serviceInterface="com.intellij.analytics.AndroidStudioAnalytics"
+                        serviceImplementation="com.android.tools.idea.startup.AndroidStudioAnalyticsImpl"/>
+
+    <!--suppress PluginXmlValidity (this service is intentionally registered outside the module of the interface class) -->
+    <applicationService serviceInterface="com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter$EventsListener"
+                        serviceImplementation="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor$MyEventsListener"/>
 
     <!-- overrides UTM-tracking implementation included from JavaIdePlugin.xml: -->
     <applicationService serviceImplementation="com.intellij.openapi.application.IdeUrlTrackingParametersProvider"
@@ -45,10 +56,10 @@
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter"/>
     <applicationInitializedListener id="Startup.StartLowMemoryReporter"
                                     implementation="com.android.tools.idea.stats.LowMemoryReporter$OnStartup"/>
-    <backgroundPostStartupActivity implementation="com.android.tools.idea.stats.GcPauseWatcher$Initializer" />
-    <backgroundPostStartupActivity implementation="com.android.tools.idea.serverflags.ServerFlagDownloader$Initializer" />
-    <backgroundPostStartupActivity implementation="com.android.tools.idea.diagnostics.WindowsCRuntimeChecker" os="windows" />
-    <backgroundPostStartupActivity implementation="com.android.tools.idea.diagnostics.DiagnosticsReportCleaner" />
+    <postStartupActivity implementation="com.android.tools.idea.stats.GcPauseWatcher" />
+    <postStartupActivity implementation="com.android.tools.idea.serverflags.ServerFlagDownloader$Initializer" />
+    <postStartupActivity implementation="com.android.tools.idea.diagnostics.WindowsCRuntimeChecker" os="windows" />
+    <postStartupActivity implementation="com.android.tools.idea.diagnostics.DiagnosticsReportCleaner" />
     <defender.config implementation="com.android.tools.idea.diagnostics.windows.AndroidWindowsDefenderCheckerExt"/>
     <defaultToolWindowLayout
       id="AndroidStudioDefaultToolWindowLayoutExtension"
@@ -58,6 +69,7 @@
     <applicationService serviceInterface="com.intellij.diagnostic.LowMemoryNotifier" preload="true" overrides="true"
                         serviceImplementation="com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier"/>
     <execution.applicationRunLineMarkerHider implementation="com.android.tools.idea.run.AndroidRunMarkerHider"/>
+    <postStartupActivity implementation="com.android.tools.idea.project.LibraryToolWindowInitializer"/>
 
     <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService"/>
 
@@ -149,8 +161,12 @@
             class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction"
             icon="AllIcons.ToolbarDecorator.Import"
             overrides="true"/>
+    <!--
+    For historical reasons, our "ReportProblem" action has text "Submit Feedback" instead of "Submit a Bug Report" as in IntelliJ.
+    This could be changed, but then we need to update DAC too: https://developer.android.com/studio/report-bugs.
+    -->
     <action
-        id="SendFeedback"
+        id="ReportProblem"
         class="com.android.tools.idea.actions.SendFeedbackAction"
         overrides="true"
         text="Submit _Feedback"
@@ -183,6 +199,8 @@
                         headlessImplementation="com.android.tools.idea.sdk.StudioJdkConfigurator"
     />
 
+    <ApplicationLoadListener implementation="com.intellij.android.safemode.SafeMode"/>
+
     <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
 
     <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"
@@ -214,6 +232,8 @@
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
               topic="com.intellij.openapi.project.ProjectCloseListener"/>
+    <listener class="com.android.tools.idea.stats.AndroidStudioUsageTracker$UsageTrackerAppLifecycleListener"
+              topic="com.intellij.ide.AppLifecycleListener"/>
     <listener class="com.android.tools.idea.stats.ToolWindowTrackerService$Companion$LazyListener"
               topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
     <listener class="com.android.tools.idea.navigator.ProjectViewListener"
@@ -221,4 +241,10 @@
               activeInTestMode="false"
               topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
   </applicationListeners>
+  <projectListeners>
+    <listener class="com.android.tools.idea.navigator.ProjectViewListener"
+              activeInHeadlessMode="false"
+              activeInTestMode="false"
+              topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
+  </projectListeners>
 </idea-plugin>

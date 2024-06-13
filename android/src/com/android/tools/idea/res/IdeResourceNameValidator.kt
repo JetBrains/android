@@ -41,7 +41,7 @@ private constructor(
   /** Describes the kind of input that is to be validated. */
   private val inputType: InputType,
   /** Set of existing NORMALIZED names to check for conflicts with. */
-  private val existing: Set<String>? = null
+  private val existing: Set<String>? = null,
 ) : InputValidatorEx {
 
   companion object {
@@ -59,12 +59,12 @@ private constructor(
     @JvmOverloads
     fun forResourceName(
       type: ResourceType,
-      existing: ResourceRepository? = null
+      existing: ResourceRepository? = null,
     ): IdeResourceNameValidator {
       val resourceNames = getExistingNames(existing, type)
       return IdeResourceNameValidator(
         InputType.ValueName(type),
-        resourceNames.mapTo(HashSet(), ValueResourceNameValidator::normalizeName)
+        resourceNames.mapTo(HashSet(), ValueResourceNameValidator::normalizeName),
       )
     }
 
@@ -94,7 +94,7 @@ private constructor(
     fun forFilename(
       type: ResourceFolderType,
       implicitExtension: String? = null,
-      existing: ResourceRepository? = null
+      existing: ResourceRepository? = null,
     ): IdeResourceNameValidator {
       require(implicitExtension == null || implicitExtension[0] == '.')
       val resourceType = ResourceType.fromFolderName(type.getName())
@@ -126,7 +126,7 @@ private constructor(
             else inputString
           FileResourceNameValidator.getErrorTextForNameWithoutExtension(
             inputWithoutExtension,
-            inputType.type
+            inputType.type,
           )
         }
       }

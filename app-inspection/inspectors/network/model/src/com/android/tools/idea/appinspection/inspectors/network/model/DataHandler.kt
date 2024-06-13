@@ -178,6 +178,13 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
   fun getGrpcDataForRange(range: Range) =
     synchronized(grpcDataMap) { grpcDataMap.values.filter { it.intersectsRange(range) } }
 
+  fun reset() {
+    speedData.clear()
+    activeConnections.clear()
+    synchronized(httpDataMap) { httpDataMap.clear() }
+    synchronized(grpcDataMap) { grpcDataMap.clear() }
+  }
+
   private fun shouldUpdateTimeline(event: Event): Boolean {
     val endedConnections = findEndedConnections(event)
     val isActive = hasActiveConnection(event)
@@ -204,7 +211,7 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
         headerAdded = interception.headerAdded,
         headerReplaced = interception.headerReplaced,
         bodyReplaced = interception.bodyReplaced,
-        bodyModified = interception.bodyModified
+        bodyModified = interception.bodyModified,
       )
     }
   }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
+<issues format="6" by="lint 8.4.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.4.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -8,7 +8,7 @@
         errorLine2="                                                                 ~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="329"
+            line="323"
             column="66"/>
     </issue>
 
@@ -1814,28 +1814,6 @@
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
             line="394"
             column="23"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
-        errorLine1="    navActionManager?.addDestinationMenu?.show()"
-        errorLine2="                                          ~~~~">
-        <location
-            file="src/com/android/tools/idea/naveditor/scene/targets/EmptyDesignerTarget.kt"
-            line="82"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
-        errorLine1="  open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }"
-        errorLine2="                                        ~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
-            line="81"
-            column="41"/>
     </issue>
 
     <issue

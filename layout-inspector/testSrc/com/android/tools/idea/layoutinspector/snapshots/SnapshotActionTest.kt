@@ -43,12 +43,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.util.io.write
 import com.intellij.util.ui.UIUtil
+import java.awt.Component
+import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.doAnswer
-import java.awt.Component
-import java.nio.file.Path
 
 class SnapshotActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
@@ -117,7 +117,7 @@ class SnapshotActionTest {
       object : FileChooserFactoryImpl() {
         override fun createSaveFileDialog(
           descriptor: FileSaverDescriptor,
-          project: Project?
+          project: Project?,
         ): FileSaverDialog {
           return object : FileSaverDialog {
             override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper? {

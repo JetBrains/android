@@ -25,6 +25,7 @@ import com.android.tools.apk.analyzer.internal.ApkDiffParser;
 import com.android.tools.apk.analyzer.internal.ApkEntry;
 import com.android.tools.apk.analyzer.internal.ApkFileByFileDiffParser;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.FutureCallBackAdapter;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -39,8 +40,7 @@ import com.intellij.util.Function;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -55,9 +55,9 @@ import org.jetbrains.ide.PooledThreadExecutor;
 public class ApkDiffPanel {
 
   private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
-  private ListenableFuture<DefaultMutableTreeNode> myFbfTreeStructureFuture;
 
   private JPanel myContainer;
+  @SuppressWarnings("unused") // used by the .form file
   private JComponent myColumnTreePane;
   private JCheckBox myCalculateFileByFileCheckBox;
 
@@ -67,47 +67,64 @@ public class ApkDiffPanel {
   private Tree myTree;
   private DefaultTreeModel myTreeModel;
 
+  private final AtomicReference<DefaultMutableTreeNode> myFbfDiffTreeNode = new AtomicReference<>(null);
+
   private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
   private static final int TEXT_RENDERER_VERT_PADDING = 4;
 
-  public ApkDiffPanel(VirtualFile oldApk, VirtualFile newApk) {
+  public ApkDiffPanel(@NotNull VirtualFile oldApk, @NotNull VirtualFile newApk) {
     myOldApk = oldApk;
     myNewApk = newApk;
 
-    myCalculateFileByFileCheckBox.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent e) {
-        if (myCalculateFileByFileCheckBox.isSelected()){
-          myCalculateFileByFileCheckBox.setEnabled(false);
-          constructFbfTree();
-        } else {
-          constructDiffTree();
-        }
+    myCalculateFileByFileCheckBox.addItemListener(e -> {
+      if (myCalculateFileByFileCheckBox.isSelected()) {
+        myCalculateFileByFileCheckBox.setEnabled(false);
+        constructFbfTree();
+      } else {
+        constructDiffTree();
       }
     });
 
     constructDiffTree();
-
   }
 
-  private void constructFbfTree(){
-    if (myFbfTreeStructureFuture == null) {
-      myFbfTreeStructureFuture = ourExecutorService.submit(() -> {
-        try (ArchiveContext archiveContext1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
-             ArchiveContext archiveContext2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
-          return ApkFileByFileDiffParser.createTreeNode(archiveContext1, archiveContext2);
-        }
-      });
+  private void constructFbfTree() {
+    DefaultMutableTreeNode node = myFbfDiffTreeNode.get();
+    if (node != null) {
+      setRootNode(node);
+      myCalculateFileByFileCheckBox.setEnabled(true);
+      return;
     }
 
-    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
-      @Override
-      public void onSuccess(DefaultMutableTreeNode result) {
-        setRootNode(result);
-        myCalculateFileByFileCheckBox.setEnabled(true);
+    FileByFileProgressDialog dialog = new FileByFileProgressDialog();
+    ListenableFuture<DefaultMutableTreeNode> future = ourExecutorService.submit(() -> {
+      Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+      try (ArchiveContext context1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
+           ArchiveContext context2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
+        return ApkFileByFileDiffParser.createTreeNode(context1, context2, dialog::onUpdate);
       }
-    };
-    Futures.addCallback(myFbfTreeStructureFuture, setRootNode, EdtExecutorService.getInstance());
+      finally {
+        dialog.closeDialog();
+      }
+    });
+
+    Futures.addCallback(
+      future,
+      new FutureCallback<>() {
+        @Override
+        public void onSuccess(DefaultMutableTreeNode result) {
+          myFbfDiffTreeNode.set(result);
+          setRootNode(result);
+          myCalculateFileByFileCheckBox.setEnabled(true);
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+          myCalculateFileByFileCheckBox.setEnabled(true);
+          myCalculateFileByFileCheckBox.setSelected(false);
+        }
+      }, EdtExecutorService.getInstance());
+    dialog.showDialog(() -> future.cancel(true));
   }
 
   private void constructDiffTree(){
@@ -118,7 +135,7 @@ public class ApkDiffPanel {
         return ApkDiffParser.createTreeNode(archiveContext1, archiveContext2);
       }
     });
-    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
+    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(DefaultMutableTreeNode result) {
         setRootNode(result);
@@ -135,16 +152,13 @@ public class ApkDiffPanel {
     myTree.setRootVisible(true); // show root node only when showing LoadingNode
     myTree.setPaintBusy(true);
 
-    Convertor<TreePath, String> convertor = new Convertor<TreePath, String>() {
-      @Override
-      public String convert(TreePath path) {
-        ApkEntry e = ApkEntry.fromNode(path.getLastPathComponent());
-        if (e == null) {
-          return null;
-        }
-
-        return e.getPath().toString();
+    Convertor<TreePath, String> convertor = path -> {
+      ApkEntry e = ApkEntry.fromNode(path.getLastPathComponent());
+      if (e == null) {
+        return null;
       }
+
+      return e.getPath().toString();
     };
 
     TreeSpeedSearch.installOn(myTree, true, convertor);
@@ -201,7 +215,7 @@ public class ApkDiffPanel {
 
   // Duplicated from ApkViewPanel.SizeRenderer until the diff entries are unified into the ArchiveEntry data class.
   public static class SizeRenderer extends ColoredTreeCellRenderer {
-    private Function<ApkEntry, Long> mySizeMapper;
+    private final Function<ApkEntry, Long> mySizeMapper;
 
     public SizeRenderer(Function<ApkEntry, Long> sizeMapper) {
       mySizeMapper = sizeMapper;
@@ -229,7 +243,7 @@ public class ApkDiffPanel {
 
   static class NameRenderer extends ColoredTreeCellRenderer {
 
-    NameRenderer() {}
+    NameRenderer() { }
 
     @Override
     public void customizeCellRenderer(@NotNull JTree tree,

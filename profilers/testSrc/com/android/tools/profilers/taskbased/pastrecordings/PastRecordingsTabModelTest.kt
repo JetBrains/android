@@ -19,17 +19,23 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.selections.recordings.RecordingListModelTest
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import perfetto.protos.PerfettoConfig.TraceConfig
 
 class PastRecordingsTabModelTest {
   private val myTimer = FakeTimer()
@@ -49,6 +55,8 @@ class PastRecordingsTabModelTest {
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     pastRecordingsTabModel = PastRecordingsTabModel(myProfilers)
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
+    taskHandlers.forEach{ (type, handler)  -> myProfilers.addTaskHandler(type, handler) }
     ideProfilerServices.enableTaskBasedUx(true)
   }
 
@@ -100,6 +108,41 @@ class PastRecordingsTabModelTest {
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(systemTraceArtifact))
     pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
 
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+  }
+
+  @Test
+  fun `test task is auto-selected if it is the only supported task for a selected recording`() {
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+    val session = Common.Session.getDefaultInstance()
+    val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()
+    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, session, 1L, 1L, perfettoConfig)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(systemTraceArtifact))
+    pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
+    // System trace recordings have only one supported task, and thus the task gets auto-selected on recording selection.
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+  }
+
+  @Test
+  fun `test task type and recording selection resets after recording deletion`() {
+    pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.SYSTEM_TRACE)
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = Utils.debuggableProcess { pid = 10; deviceId = 1 }
+    RecordingListModelTest.startAndStopSession(device, process, Common.ProfilerTaskType.SYSTEM_TRACE, myManager)
+    val recordingListModel = pastRecordingsTabModel.recordingListModel
+    // Select the recording.
+    val recording = recordingListModel.recordingList.value.first()
+    recordingListModel.onRecordingSelection(recording)
+    Truth.assertThat(recordingListModel.selectedRecording.value).isEqualTo(recording)
+
+    // Perform deletion of selected recording.
+    recordingListModel.doDeleteSelectedRecording()
+
+    // Make sure task type and recording selection have been reset.
+    Truth.assertThat(recordingListModel.selectedRecording.value).isEqualTo(null)
     Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
   }
 }

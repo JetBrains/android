@@ -79,7 +79,7 @@ interface AppInspectionApiServices {
       streamManager: TransportStreamManager,
       scope: CoroutineScope,
       dispatcher: CoroutineDispatcher,
-      createJarCopier: JarCopierCreator
+      createJarCopier: JarCopierCreator,
     ): AppInspectionApiServices {
       val targetManager = AppInspectionTargetManager(client, scope)
       val processNotifier = AppInspectionProcessDiscovery(streamManager, scope)
@@ -100,7 +100,7 @@ suspend fun AppInspectionApiServices.checkVersion(
   project: String,
   process: ProcessDescriptor,
   artifactCoordinate: MinimumArtifactCoordinate,
-  expectedClassNames: List<String> = emptyList()
+  expectedClassNames: List<String> = emptyList(),
 ): LibraryCompatibilityInfo? {
   val coordinateAnyVersion = artifactCoordinate.toAny()
   return attachToProcess(process, project)

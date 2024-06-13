@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -67,11 +68,11 @@ open class ComposePreviewRunConfigurationProducer :
   public final override fun setupConfigurationFromContext(
     configuration: ComposePreviewRunConfiguration,
     context: ConfigurationContext,
-    sourceElement: Ref<PsiElement>
+    sourceElement: Ref<PsiElement>,
   ): Boolean {
     if (suppressAndroidPlugin()) return false
 
-    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return false
+    if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return false
     val module = context.module ?: context.location?.module ?: return false
     configuration.setLaunchActivity(COMPOSE_PREVIEW_ACTIVITY_FQN, true)
     context.containingComposePreviewFunction()?.let { ktNamedFunction ->
@@ -108,9 +109,9 @@ open class ComposePreviewRunConfigurationProducer :
 
   final override fun isConfigurationFromContext(
     configuration: ComposePreviewRunConfiguration,
-    context: ConfigurationContext
+    context: ConfigurationContext,
   ): Boolean {
-    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return false
+    if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return false
     context.containingComposePreviewFunction()?.let {
       val createdFromContext = configuration.composableMethodFqn == it.composePreviewFunctionFqn()
       if (createdFromContext) {
@@ -130,7 +131,7 @@ open class ComposePreviewRunConfigurationProducer :
  */
 private fun updateConfigurationTriggerToGutterIfNeeded(
   configuration: ComposePreviewRunConfiguration,
-  context: ConfigurationContext
+  context: ConfigurationContext,
 ) {
   if (PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(context.dataContext) is EditorGutter) {
     configuration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER

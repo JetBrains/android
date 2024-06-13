@@ -142,7 +142,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
   override fun buildVisitor(
     holder: ProblemsHolder,
     isOnTheFly: Boolean,
-    session: LocalInspectionToolSession
+    session: LocalInspectionToolSession,
   ): PsiElementVisitor {
     if (suppressAndroidPlugin()) return PsiElementVisitor.EMPTY_VISITOR
 
@@ -207,7 +207,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
             expression.children.firstOrNull() ?: expression,
             message("inspection.animation.no.label.parameter.set.description", animationType),
             ProblemHighlightType.WEAK_WARNING,
-            AddLabelFieldQuickFix(expression)
+            AddLabelFieldQuickFix(expression),
           )
         }
       }
@@ -275,7 +275,7 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
   override fun buildVisitor(
     holder: ProblemsHolder,
     isOnTheFly: Boolean,
-    session: LocalInspectionToolSession
+    session: LocalInspectionToolSession,
   ): PsiElementVisitor {
     if (suppressAndroidPlugin()) return PsiElementVisitor.EMPTY_VISITOR
 
@@ -356,7 +356,7 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
             expression,
             message("inspection.animation.no.label.parameter.set.description", animationType),
             ProblemHighlightType.WEAK_WARNING,
-            AddLabelFieldQuickFix(expression)
+            AddLabelFieldQuickFix(expression),
           )
         }
       }
@@ -384,7 +384,7 @@ private class AddLabelFieldQuickFix(animation: KtCallExpression) :
     project: Project,
     file: PsiFile,
     startElement: PsiElement,
-    endElement: PsiElement
+    endElement: PsiElement,
   ) {
     val psiFactory = KtPsiFactory(project)
     val statementText = "$LABEL_PARAMETER = \"\""

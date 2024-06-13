@@ -127,7 +127,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
       PsiClass aClass = pointer.getElement();
 
       if (aClass != null) {
-        if (!isUpToDate(aClass, key, apiLevel, classMapKey)) {
+        if (!isUpToDate(myModule, aClass, key, apiLevel, classMapKey)) {
           shouldRebuildInitialMap = true;
           break;
         }
@@ -152,11 +152,12 @@ class TagToClassMapperImpl implements TagToClassMapper {
     return result;
   }
 
-  private static boolean isUpToDate(@NotNull PsiClass aClass,
+  private static boolean isUpToDate(@NotNull Module module,
+                                    @NotNull PsiClass aClass,
                                     @NotNull String tagName,
                                     int apiLevel,
                                     @Nullable String classMapKey) {
-    return ArrayUtil.contains(tagName, getTagNamesByClass(aClass, apiLevel, classMapKey));
+    return ArrayUtil.contains(tagName, getTagNamesByClass(module, aClass, apiLevel, classMapKey));
   }
 
   private boolean isClassMapUpToDate(@NotNull Map<String, SmartPsiElementPointer<PsiClass>> classMap) {
@@ -165,7 +166,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
       SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
       PsiClass aClass = pointer.getElement();
       if (aClass != null) {
-        if (!isUpToDate(aClass, key, apiLevel, key)) {
+        if (!isUpToDate(myModule, aClass, key, apiLevel, key)) {
           return false;
         }
       }
@@ -234,13 +235,13 @@ class TagToClassMapperImpl implements TagToClassMapper {
 
     int api = getMinApiLevel();
 
-    String[] baseClassTagNames = getTagNamesByClass(baseClass, api, className);
+    String[] baseClassTagNames = getTagNamesByClass(myModule, baseClass, api, className);
     for (String tagName : baseClassTagNames) {
       map.put(tagName, baseClass);
     }
     try {
       ClassInheritorsSearch.search(baseClass, scope, true).forEach(c -> {
-        String[] tagNames = getTagNamesByClass(c, api, className);
+        String[] tagNames = getTagNamesByClass(myModule, c, api, className);
         for (String tagName : tagNames) {
           map.put(tagName, c);
         }

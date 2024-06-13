@@ -35,7 +35,7 @@ class LiveDatabaseConnection(
   parentDisposable: Disposable,
   private val messenger: DatabaseInspectorMessenger,
   private val id: Int,
-  private val taskExecutor: Executor
+  private val taskExecutor: Executor,
 ) : DatabaseConnection {
 
   init {
@@ -77,6 +77,6 @@ class LiveDatabaseConnection(
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     val queryCommand = buildQueryCommand(sqliteStatement, id)
     val responseFuture = messenger.sendCommandAsync(queryCommand)
-    return responseFuture.transform(taskExecutor) { Unit }
+    return responseFuture.transform(taskExecutor) {}
   }
 }

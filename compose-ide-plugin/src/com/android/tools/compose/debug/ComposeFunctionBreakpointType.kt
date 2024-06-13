@@ -16,6 +16,7 @@
 package com.android.tools.compose.debug
 
 import com.android.tools.compose.ComposeBundle
+import com.android.tools.compose.isComposableFunction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.xdebugger.breakpoints.XBreakpoint
@@ -37,24 +38,24 @@ import org.jetbrains.kotlin.psi.KtPsiUtil
 internal class ComposeFunctionBreakpointType :
   KotlinFunctionBreakpointType(
     "compose-function",
-    ComposeBundle.message("compose.breakpoint.description")
+    ComposeBundle.message("compose.breakpoint.description"),
   ) {
 
   override fun createJavaBreakpoint(
     project: Project,
-    breakpoint: XBreakpoint<JavaMethodBreakpointProperties>
+    breakpoint: XBreakpoint<JavaMethodBreakpointProperties>,
   ): KotlinFunctionBreakpoint = ComposeFunctionBreakpoint(project, breakpoint)
 
   override fun isFunctionBreakpointApplicable(
     file: VirtualFile,
     line: Int,
-    project: Project
+    project: Project,
   ): Boolean =
     isBreakpointApplicable(file, line, project) { element ->
       when (element) {
         is KtFunction ->
           ApplicabilityResult.maybe(
-            !KtPsiUtil.isLocal(element) && !element.isInlineOnly() && element.isComposable()
+            !KtPsiUtil.isLocal(element) && !element.isInlineOnly() && element.isComposableFunction()
           )
         else -> ApplicabilityResult.UNKNOWN
       }

@@ -32,6 +32,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -58,6 +59,11 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
     super("Show Bytecode", "Show Bytecode", AllIcons.Toolwindows.Documentation);
     myTree = tree;
     myProguardMapSupplier = proguardMapSupplier;
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

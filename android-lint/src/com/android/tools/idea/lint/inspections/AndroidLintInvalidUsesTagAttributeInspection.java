@@ -17,43 +17,10 @@ package com.android.tools.idea.lint.inspections;
 
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.common.ReplaceStringQuickFix;
 import com.android.tools.lint.checks.AndroidAutoDetector;
-import com.android.tools.lint.detector.api.LintFix;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintInvalidUsesTagAttributeInspection extends AndroidLintInspectionBase {
   public AndroidLintInvalidUsesTagAttributeInspection() {
     super(AndroidLintBundle.message("android.lint.inspections.invalid.uses.tag.attribute"), AndroidAutoDetector.INVALID_USES_TAG_ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    final XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class);
-    XmlAttributeValue attributeValue = attribute == null ? null : attribute.getValueElement();
-    if (attributeValue != null && attributeValue.getTextLength() != 0) {
-      String value = StringUtil.unquoteString(attributeValue.getText());
-      String regexp = "(" + value + ")";
-      String[] suggestions = AndroidAutoDetector.getAllowedAutomotiveAppTypes();
-      List<LintIdeQuickFix> fixes = Lists.newArrayListWithExpectedSize(suggestions.length);
-      for (String suggestion : suggestions) {
-        fixes.add(new ReplaceStringQuickFix("Replace with \"" + suggestion + "\"", null, regexp, suggestion));
-      }
-      return fixes.toArray(LintIdeQuickFix.EMPTY_ARRAY);
-    }
-    else {
-      return super.getQuickFixes(startElement, endElement, message, fixData);
-    }
   }
 }

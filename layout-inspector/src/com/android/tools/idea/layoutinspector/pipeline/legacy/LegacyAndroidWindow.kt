@@ -28,10 +28,10 @@ import javax.imageio.ImageIO
 class LegacyAndroidWindow(
   private val client: LegacyClient,
   root: ViewNode,
-  private val windowName: String
+  private val windowName: String,
 ) : AndroidWindow(root, windowName, ImageType.BITMAP_AS_REQUESTED) {
 
-  override fun refreshImages(scale: Double) {
+  override suspend fun refreshImages(scale: Double) {
     val image =
       client.latestScreenshots[windowName]?.let { pngBytes ->
         ImageIO.read(ByteArrayInputStream(pngBytes))?.let {

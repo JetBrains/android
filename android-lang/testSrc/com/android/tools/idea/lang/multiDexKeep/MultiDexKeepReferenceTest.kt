@@ -16,7 +16,6 @@
 package com.android.tools.idea.lang.multiDexKeep
 
 import com.android.tools.idea.testing.caret
-import com.android.tools.tests.AdtTestProjectDescriptors
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiClass
 import com.intellij.testFramework.PsiTestUtil
@@ -24,12 +23,6 @@ import org.jetbrains.android.AndroidTestCase
 
 class MultiDexKeepReferenceTest : AndroidTestCase() {
   override fun setUp() {
-    // These tests check if classes listed in multidex keep file are indeed kept.
-    // Inputs are .class files, and thus technically neither java nor kotlin.
-    // But using kotlin descriptor includes Kotlin stdlib, hence java instead.
-    // TODO(b/300170256): Remove this once 2023.3 merges
-    myProjectDescriptor = AdtTestProjectDescriptors.java()
-
     super.setUp()
     PsiTestUtil.addLibrary(myModule, "mylib", "", myFixture.testDataPath + "/maven/myjar/myjar-1.0.jar")
 

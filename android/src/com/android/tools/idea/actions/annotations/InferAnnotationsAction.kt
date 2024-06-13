@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
@@ -30,7 +31,6 @@ import com.intellij.analysis.AnalysisUIOptions
 import com.intellij.analysis.BaseAnalysisAction
 import com.intellij.analysis.BaseAnalysisActionDialog
 import com.intellij.codeInsight.FileModificationService
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.history.LocalHistory
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
@@ -69,7 +69,6 @@ import com.intellij.usages.UsageViewPresentation
 import com.intellij.util.Processor
 import com.intellij.util.SequentialModalProgressTask
 import com.intellij.util.SequentialTask
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.psi.KtFile
 import javax.swing.JComponent
@@ -92,7 +91,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
     val project = event.project
     if (project == null || StudioFlags.INFER_ANNOTATIONS_REFACTORING_ENABLED.get().not() ||
       // don't show this action in IDEA in non-android projects
-      !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+      !CommonAndroidUtil.getInstance().isAndroidProject(project)
     ) {
       event.presentation.isEnabledAndVisible = false
       return

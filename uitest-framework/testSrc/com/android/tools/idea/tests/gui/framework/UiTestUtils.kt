@@ -55,9 +55,9 @@ fun actAndWaitFor(
   fun getDetails() =
     try {
       buildString {
-        appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
-        appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
-        appendln("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
+        appendLine("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
+        appendLine("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
+        appendLine("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
       }
     }
     catch (t: Throwable) {
@@ -178,7 +178,7 @@ private fun oneFullSync(
     }
     while (shouldContinue())
     if (!done) {
-      println("Awaited event has not been received within $SYNC_KEY_TIMEOUT_SEC sec. Giving up...\n\n${TraceUtils.getCurrentStack()}");
+      println("Awaited event has not been received within $SYNC_KEY_TIMEOUT_SEC sec. Giving up...\n\n${TraceUtils.currentStack}");
     }
   }
 

@@ -36,7 +36,7 @@ import org.jetbrains.annotations.VisibleForTesting
 /** A dialog box that allows adding and editing header rules. */
 class HeaderRuleDialog(
   transformation: RuleData.TransformationRuleData?,
-  private val saveAction: (RuleData.TransformationRuleData) -> Unit
+  private val saveAction: (RuleData.TransformationRuleData) -> Unit,
 ) : DialogWrapper(false) {
 
   @VisibleForTesting
@@ -83,7 +83,7 @@ class HeaderRuleDialog(
   private fun createFieldEnabledCheckBox(
     name: String,
     textField: JBTextField,
-    regexCheckBox: JBCheckBox?
+    regexCheckBox: JBCheckBox?,
   ) =
     JBCheckBox(name).apply {
       val changeAction: (e: ItemEvent) -> Unit = {
@@ -126,7 +126,7 @@ class HeaderRuleDialog(
         createCategoryPanel(
           null,
           JBLabel("New header name:") to newAddedNameLabel,
-          JBLabel("Value:") to newAddedValueLabel
+          JBLabel("Value:") to newAddedValueLabel,
         )
       )
     }
@@ -141,20 +141,20 @@ class HeaderRuleDialog(
           findNameCheckBox to
             findNameTextField.withRegexCheckBoxAndInfoIcon(
               findNameRegexCheckBox,
-              "Header name matching is case insensitive. Regex that selects for case will have the case selection ignored"
+              "Header name matching is case insensitive. Regex that selects for case will have the case selection ignored",
             ),
           findValueCheckBox to
             findValueTextField.withRegexCheckBoxAndInfoIcon(
               findValueRegexCheckBox,
-              "Header value match is case sensitive"
-            )
+              "Header value match is case sensitive",
+            ),
         )
       )
       add(
         createCategoryPanel(
           "Replace with",
           replaceNameCheckBox to newReplacedNameTextField,
-          replaceValueCheckBox to newReplacedValueTextField
+          replaceValueCheckBox to newReplacedValueTextField,
         )
       )
     }
@@ -223,7 +223,7 @@ class HeaderRuleDialog(
           if (findValueCheckBox.isSelected) findValueTextField.text else null,
           findValueRegexCheckBox.isSelected,
           if (replaceNameCheckBox.isSelected) newReplacedNameTextField.text else null,
-          if (replaceValueCheckBox.isSelected) newReplacedValueTextField.text else null
+          if (replaceValueCheckBox.isSelected) newReplacedValueTextField.text else null,
         )
       )
     }
@@ -238,7 +238,7 @@ class HeaderRuleDialog(
           isEnabled = false
           toolTipText = infoIconText
         },
-        TabularLayout.Constraint(0, 4)
+        TabularLayout.Constraint(0, 4),
       )
     }
 }
@@ -259,7 +259,7 @@ class EmptyFieldDocumentFilter(val updateOkAction: () -> Unit) : DocumentFilter(
     offset: Int,
     length: Int,
     text: String,
-    attrs: AttributeSet?
+    attrs: AttributeSet?,
   ) {
     super.replace(fb, offset, length, text, attrs)
     if (!isDocumentEmpty(fb)) updateOkAction()

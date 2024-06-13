@@ -35,7 +35,7 @@ class TabComponents(
   disposable: Disposable,
   val tabContentPanel: JComponent,
   val tabContentPanelContainer: Container,
-  val displayView: AbstractDisplayView
+  val displayView: AbstractDisplayView,
 ) : Disposable {
   init {
     Disposer.register(disposable, this)

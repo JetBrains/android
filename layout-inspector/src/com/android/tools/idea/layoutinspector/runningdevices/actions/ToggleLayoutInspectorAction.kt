@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
-import com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.settings.STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -44,10 +46,12 @@ class ToggleLayoutInspectorAction :
   ToggleAction(
     "Toggle Layout Inspector",
     "Toggles Layout Inspection on and off for this device.",
-    StudioIcons.Shell.ToolWindows.CAPTURES
+    StudioIcons.Shell.ToolWindows.CAPTURES,
   ),
   TooltipDescriptionProvider,
   TooltipLinkProvider {
+
+  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
   override fun isSelected(e: AnActionEvent): Boolean {
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
@@ -77,15 +81,19 @@ class ToggleLayoutInspectorAction :
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    val isEnabled = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    e.presentation.isVisible = isEnabled
 
     val project = e.project ?: return
-    RunningDevicesStateObserver.getInstance(project).update(isEnabled)
+    val deviceId = DEVICE_ID_KEY.getData(e.dataContext) ?: return
+    val isEnabled = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    e.presentation.isVisible =
+      isEnabled && LayoutInspectorManager.getInstance(project).isSupported(deviceId)
 
     val displayView = DISPLAY_VIEW_KEY.getData(e.dataContext)
     val apiLevel = runCatching { displayView?.apiLevel }.getOrNull()
-    if (apiLevel == null) {
+    val serialNumber = runCatching { displayView?.deviceSerialNumber }.getOrNull()
+    val isEmulator = displayView is EmulatorView
+
+    if (apiLevel == null || serialNumber == null) {
       e.presentation.isEnabled = false
     } else if (apiLevel < EMBEDDED_LAYOUT_INSPECTOR_MIN_API) {
       // We decided to always have Live Updates ON in Embedded Layout Inspector.

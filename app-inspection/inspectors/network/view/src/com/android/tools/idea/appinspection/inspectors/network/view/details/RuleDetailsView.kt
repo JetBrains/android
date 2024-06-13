@@ -92,7 +92,7 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
         JBLabel("Name:") to
           createTextField(rule.name, "Enter rule name", "nameTextField") { text ->
             rule.name = text
-          }
+          },
       )
     )
 
@@ -117,12 +117,12 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
     val findCodeWarningLabel =
       createWarningLabel(
         "Status code should be an integer between 100 and 599",
-        "findCodeWarningLabel"
+        "findCodeWarningLabel",
       )
     val newCodeWarningLabel =
       createWarningLabel(
         "Status code should be an integer between 100 and 599",
-        "newCodeWarningLabel"
+        "newCodeWarningLabel",
       )
     val newCodeTextField =
       createTextField(statusCodeData.newCode, "500", "newCodeTextField") {
@@ -283,13 +283,13 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
       JLabel("Port:") to portPanel,
       JLabel("Path:") to pathTextField,
       JLabel("Query:") to queryTextField,
-      JLabel("Method:") to methodComboBox
+      JLabel("Method:") to methodComboBox,
     )
   }
 
   private fun createRulesTable(
     model: ListTableModel<RuleData.TransformationRuleData>,
-    name: String
+    name: String,
   ): JComponent {
     val table = TableView(model)
     table.registerTabKeyAction { table.transferFocus() }
@@ -384,7 +384,7 @@ private class ClearWarningLabelDocumentFilter(private val warningLabel: JLabel) 
     offset: Int,
     length: Int,
     text: String?,
-    attrs: AttributeSet?
+    attrs: AttributeSet?,
   ) {
     warningLabel.isVisible = false
     super.replace(fb, offset, length, text, attrs)
@@ -410,7 +410,7 @@ private fun validateIntegerInput(
   text: String,
   isEmptyValid: Boolean,
   lowerBound: Int = Int.MIN_VALUE,
-  upperBound: Int = Int.MAX_VALUE
+  upperBound: Int = Int.MAX_VALUE,
 ): Boolean {
   if (text.isEmpty()) return isEmptyValid
   val intInput = text.toIntOrNull() ?: return false

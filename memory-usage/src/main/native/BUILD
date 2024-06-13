@@ -121,21 +121,17 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-genrule(
+# bazel run :update_liblightweight_heap_traverse
+sh_binary(
     name = "update_liblightweight_heap_traverse",
-    srcs = [
-        ":liblightweight_heap_traverse",
-        "//tools/base/repository:find_workspace",
-    ],
-    outs = ["unused_out"],
-    cmd = "touch $(location unused_out) && cp $(location liblightweight_heap_traverse) " +
-          "`cat $(location //tools/base/repository:find_workspace)`/tools/adt/idea/memory-usage/src/main/native/" +
-          select({
-              "@platforms//os:linux": "linux",
-              ":macos": "mac",
-              ":macos_arm": "mac_arm",
-              "@platforms//os:windows": "win",
-          }),
-    local = True,
-    tags = ["manual"],
+    srcs = ["//tools/base/bazel/shell:workspace-cp.sh"],
+    args = [
+        "$(execpath liblightweight_heap_traverse)",
+    ] + select({
+        "@platforms//os:linux": ["tools/adt/idea/memory-usage/src/main/native/linux"],
+        ":macos": ["tools/adt/idea/memory-usage/src/main/native/mac"],
+        ":macos_arm": ["tools/adt/idea/memory-usage/src/main/native/mac_arm"],
+        "@platforms//os:windows": ["tools/adt/idea/memory-usage/src/main/native/win"],
+    }),
+    data = [":liblightweight_heap_traverse"],
 )

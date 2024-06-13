@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.taskbased.tabs.home.processlist
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -25,34 +24,35 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.ProcessUtils.isProfileable
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_SEPARATOR_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.table.leftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.rightAlignedColumnText
+import icons.StudioIconsCompose
+import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
+import org.jetbrains.jewel.foundation.lazy.SelectionMode
+import org.jetbrains.jewel.foundation.lazy.items
+import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
 @Composable
-private fun ProcessListRow(selectedProcess: Common.Process,
-                   onProcessSelection: (Common.Process) -> Unit,
-                   process: Common.Process) {
+private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Process, isPreferredProcess: Boolean) {
   val processName = process.name
   val pid = process.pid
 
@@ -68,21 +68,29 @@ private fun ProcessListRow(selectedProcess: Common.Process,
         if (process == selectedProcess)
           TABLE_ROW_SELECTION_BACKGROUND_COLOR
         else
-          TABLE_ROW_BACKGROUND_COLOR
+          Color.Transparent
       )
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
-      .selectable(
-        selected = process == selectedProcess,
-        onClick = {
-          val newSelectedDeviceProcess = if (process != selectedProcess) process else Common.Process.getDefaultInstance()
-          onProcessSelection(newSelectedDeviceProcess)
-        })
       .testTag("ProcessListRow")
   ) {
-    leftAlignedColumnText(processName, rowScope = this)
-    rightAlignedColumnText(text = pid.toString(), colWidth = TaskBasedUxDimensions.PID_COL_WIDTH_DP)
-    rightAlignedColumnText(text = if (process.isProfileable()) "Profileable" else "Debuggable",
-                           colWidth = TaskBasedUxDimensions.MANIFEST_CONFIG_COL_WIDTH_DP)
+
+    val isRunning = process.state == Common.Process.State.ALIVE
+    val pidText = if (isRunning) pid.toString() else ""
+    val configurationText =
+      if (isRunning)
+        (if (process.isProfileable()) TaskBasedUxStrings.PROFILEABLE_PROCESS_TITLE else TaskBasedUxStrings.DEBUGGABLE_PROCESS_TITLE)
+      else TaskBasedUxStrings.DEAD_PROCESS_TITLE
+    // The android head icon to indicate the preferred process
+    if (isPreferredProcess) {
+      val androidHeadIconPainter by StudioIconsCompose.Common.AndroidHead().getPainter()
+      leftAlignedColumnText(processName, androidHeadIconPainter, rowScope = this)
+    }
+    else {
+      leftAlignedColumnText(processName, rowScope = this)
+    }
+
+    rightAlignedColumnText(text = pidText, colWidth = TaskBasedUxDimensions.PID_COL_WIDTH_DP)
+    rightAlignedColumnText(text = configurationText, colWidth = TaskBasedUxDimensions.MANIFEST_CONFIG_COL_WIDTH_DP)
   }
 }
 
@@ -103,28 +111,36 @@ private fun ProcessListHeader() {
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ProcessTable(processList: List<Common.Process>,
                  selectedProcess: Common.Process,
+                 preferredProcessName: String?,
                  onProcessSelection: (Common.Process) -> Unit) {
-  val listState = rememberLazyListState()
+  val listState = rememberSelectableLazyListState()
 
-  Box(modifier = Modifier.fillMaxSize().background(TABLE_ROW_BACKGROUND_COLOR)) {
-    LazyColumn(
-      state = listState
+  Box(modifier = Modifier.fillMaxSize()) {
+    SelectableLazyColumn (
+      state = listState,
+      selectionMode = SelectionMode.Single,
+      onSelectedIndexesChanged = {
+        // The - 1 is to account for the sticky header.
+        if (it.isNotEmpty() && processList[it.first() - 1] != selectedProcess) {
+          val newSelectedDeviceProcess = processList[it.first() - 1]
+          onProcessSelection(newSelectedDeviceProcess)
+        }
+      }
     ) {
-      stickyHeader {
+      stickyHeader(key = Integer.MAX_VALUE) {
         ProcessListHeader()
         Divider(color = TABLE_SEPARATOR_COLOR, modifier = Modifier.fillMaxWidth(), thickness = 1.dp, orientation = Orientation.Horizontal)
       }
-      items(items = processList) { process ->
-        ProcessListRow(selectedProcess = selectedProcess, onProcessSelection = onProcessSelection, process = process)
+      items(items = processList, key = { it }) { process ->
+        ProcessListRow(selectedProcess = selectedProcess, process = process, isPreferredProcess = (process.name == preferredProcessName))
       }
     }
 
     VerticalScrollbar(
-      adapter = rememberScrollbarAdapter(listState),
+      adapter = rememberScrollbarAdapter(listState.lazyListState),
       modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
     )
   }

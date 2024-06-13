@@ -35,6 +35,7 @@ import com.android.tools.idea.common.editor.SplitEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.io.TestFileUtils;
+import com.android.tools.idea.profilers.performance.TimeUnit;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.VisualizationFixture;
@@ -224,6 +225,13 @@ public class EditorFixture {
    */
   public void waitForFileToActivate() {
     Wait.seconds(10).expecting("File editor is active").until(() -> getCurrentFile() != null);
+  }
+
+  /**
+   * Wait for the editor to become active.
+   */
+  public void waitForFileToActivate(long secondsToWait) {
+    Wait.seconds(secondsToWait).expecting("File editor is active").until(() -> getCurrentFile() != null);
   }
 
   /**
@@ -535,7 +543,15 @@ public class EditorFixture {
         }
       });
 
-    selectEditorTab(tab);
+    // Wait for the requested file tab is opened.
+    if(tab != Tab.DEFAULT){
+      waitForFileOpen
+        .expecting("selected tab '" + tab.myTabName +"' to be opened")
+        .until(() -> {
+          selectEditorTab(tab);
+          return getSelectedTab() == tab.myTabName;
+        });
+    }
 
     waitForFileOpen
       .expecting("file '" + file.getPath() + "' to be opened and loaded")
@@ -823,10 +839,10 @@ public class EditorFixture {
   @NotNull
   public VisualizationFixture getVisualizationTool() {
     if (!isVisualizationToolShowing()) {
-      myFrame.invokeMenuPath("View", "Tool Windows", VisualizationToolWindowFactory.TOOL_WINDOW_ID);
+      myFrame.waitAndInvokeMenuPath("View", "Tool Windows", VisualizationToolWindowFactory.TOOL_WINDOW_ID);
     }
-
-    Wait.seconds(30).expecting("Visualization window to be visible").until(() -> isVisualizationToolShowing());
+    GuiTests.waitForBackgroundTasks(myFrame.robot());
+    Wait.seconds(60).expecting("Visualization window to be visible").until(() -> isVisualizationToolShowing());
 
     return new VisualizationFixture(myFrame.getProject(), myFrame.robot());
   }

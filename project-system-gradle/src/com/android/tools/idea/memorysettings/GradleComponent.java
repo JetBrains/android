@@ -30,9 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
 import org.jetbrains.plugins.gradle.internal.daemon.DaemonsUi;
-import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 
 public class GradleComponent extends BuildSystemComponent {
   private JPanel myPanel;

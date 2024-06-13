@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -51,7 +50,7 @@ class ModuleModelTest : AndroidGradleTestCase() {
     val modulesToCompile = arrayOf(module)
 
     val invocationResult = invokeGradle(project) {
-      it.compileJava(modulesToCompile, TestCompileType.UNIT_TESTS)
+      it.compileJava(modulesToCompile)
     }
     TestCase.assertTrue(invocationResult.isBuildSuccessful)
   }

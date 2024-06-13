@@ -34,7 +34,7 @@ class DataHandlerTest {
         "url",
         "method",
         listOf(httpHeader("field", "1")),
-        "trace"
+        "trace",
       )
     )
     var expected =
@@ -302,7 +302,7 @@ class DataHandlerTest {
         "service",
         "method",
         listOf(grpcMetadata("request-field-1", "1")),
-        "trace"
+        "trace",
       )
     )
     var expected: GrpcData =
@@ -327,7 +327,7 @@ class DataHandlerTest {
         12.secondsInNanos,
         "request-bytes".toByteString(),
         "request-type",
-        "request-text"
+        "request-text",
       )
     )
     expected =
@@ -336,7 +336,7 @@ class DataHandlerTest {
         requestCompleteTimeUs = 12000000,
         requestPayload = "request-bytes".toByteString(),
         requestType = "request-type",
-        requestPayloadText = "request-text"
+        requestPayloadText = "request-text",
       )
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
 
@@ -345,7 +345,7 @@ class DataHandlerTest {
         id,
         13.secondsInNanos,
         "address",
-        listOf(grpcMetadata("request-field-2", "2"))
+        listOf(grpcMetadata("request-field-2", "2")),
       )
     )
     expected =
@@ -353,7 +353,7 @@ class DataHandlerTest {
         updateTimeUs = 13000000,
         responseStartTimeUs = 13000000,
         address = "address",
-        requestHeaders = mapOf("request-field-1" to listOf("1"), "request-field-2" to listOf("2"))
+        requestHeaders = mapOf("request-field-1" to listOf("1"), "request-field-2" to listOf("2")),
       )
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
 
@@ -373,7 +373,7 @@ class DataHandlerTest {
         14.secondsInNanos,
         "response-bytes".toByteString(),
         "response-type",
-        "response-text"
+        "response-text",
       )
     )
     expected =
@@ -382,7 +382,7 @@ class DataHandlerTest {
         responseCompleteTimeUs = 14000000,
         responsePayload = "response-bytes".toByteString(),
         responseType = "response-type",
-        responsePayloadText = "response-text"
+        responsePayloadText = "response-text",
       )
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
 
@@ -392,7 +392,7 @@ class DataHandlerTest {
         15.secondsInNanos,
         "status",
         "error",
-        listOf(grpcMetadata("trailer-field", "foo"))
+        listOf(grpcMetadata("trailer-field", "foo")),
       )
     )
     expected =

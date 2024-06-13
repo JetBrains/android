@@ -43,7 +43,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
 ) {
   val (projectData, srcOut, _, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = moduleData
   val apis = moduleData.apis
-  val (buildApi, targetApi, minApi, appCompatVersion) = apis
+  val (buildApi, targetApi, minApi, _) = apis
   val useAndroidX = moduleData.projectTemplateData.androidXSupport
   val language = projectData.language
   val name = moduleData.name
@@ -63,13 +63,13 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     buildGradle(
       projectData.agpVersion,
       useGradleKts,
-      false,
-      true,
+      isLibraryProject = false,
+      isDynamicFeature = true,
       applicationId = moduleData.namespace,
-      buildApi.apiString,
-      minApi.apiString,
-      targetApi.apiString,
-      useAndroidX,
+      buildApiString = buildApi.apiString,
+      minApi = minApi.apiString,
+      targetApi = targetApi.apiString,
+      useAndroidX = useAndroidX,
       baseFeatureName = baseFeature.name,
       formFactorNames = projectData.includedFormFactorNames,
       useVersionCatalog = useVersionCatalog
@@ -84,7 +84,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   addLocalTests(packageName, localTestOut, language)
   addInstrumentedTests(packageName, useAndroidX, false, instrumentedTestOut, language)
   addTestDependencies()
-  addDependency("com.android.support:support-annotations:${appCompatVersion}.+", "androidTestImplementation")
 
   addDynamicFeature(moduleData.name, baseFeature.dir)
   if (isInstantModule) {

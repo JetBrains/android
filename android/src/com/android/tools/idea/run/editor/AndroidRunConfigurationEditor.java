@@ -31,13 +31,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.SwingHelper;
-import com.intellij.util.ui.UIUtil;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,7 +42,6 @@ import java.util.function.Function;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,9 +61,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   // Misc. options tab
   private JCheckBox myClearLogCheckBox;
   private JCheckBox myShowLogcatCheckBox;
-  private JCheckBox myEnableLayoutInspectionWithoutActivityRestart;
-  private JEditorPane myActivityRestartDescription;
-
   private JComponent anchor;
 
   private final ConfigurationModuleSelector myModuleSelector;
@@ -76,8 +68,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   private AndroidDebuggerPanel myAndroidDebuggerPanel;
   private final AndroidProfilersPanel myAndroidProfilersPanel;
-
-  public static final String LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART = "Layout Inspection Without Activity Restart";
 
   public AndroidRunConfigurationEditor(Project project,
                                        Predicate<Module> moduleValidator,
@@ -135,10 +125,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     Disposer.register(this, myConfigurationSpecificEditor);
     myConfigurationSpecificPanel.add(myConfigurationSpecificEditor.getComponent());
 
-    myActivityRestartDescription.setBorder(JBUI.Borders.emptyLeft(24));
-    myActivityRestartDescription.setForeground(UIUtil.getContextHelpForeground());
-    myActivityRestartDescription.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
-
     myShowLogcatCheckBox.setVisible(showLogcatCheckbox);
 
     checkValidationResults(config.validate(null, this::fireEditorStateChanged));
@@ -181,8 +167,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
     myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
-    myEnableLayoutInspectionWithoutActivityRestart.setSelected(configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART);
-    myEnableLayoutInspectionWithoutActivityRestart.setName(LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART);
 
     myConfigurationSpecificEditor.resetFrom(configuration);
 
@@ -202,7 +186,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
     configuration.SHOW_LOGCAT_AUTOMATICALLY = myShowLogcatCheckBox.isSelected();
-    configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART = myEnableLayoutInspectionWithoutActivityRestart.isSelected();
 
     myConfigurationSpecificEditor.applyTo(configuration);
 
@@ -240,16 +223,5 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   @VisibleForTesting
   DeploymentTargetOptions getDeploymentTargetOptions() {
     return myDeploymentTargetOptions;
-  }
-
-  private void createUIComponents() {
-    myActivityRestartDescription =
-      SwingHelper.createHtmlViewer(true, null, UIUtil.getPanelBackground(), UIUtil.getContextHelpForeground());
-    myActivityRestartDescription.setText(
-      "<html>Enabling this option sets a required global flag on the device at deploy time. This avoids having to later restart the " +
-      "activity in order to enable the flag when connecting to the Layout Inspector.<br/>" +
-      "An alternative is to activate \"Enable view attribute inspection\" in the developer options on the device. " +
-      "<a href=\"https://developer.android.com/r/studio-ui/layout-inspector-activity-restart\">Learn more</a><br/></html>");
-    myActivityRestartDescription.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
   }
 }

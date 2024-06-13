@@ -87,8 +87,8 @@ class AppInspectorConnectionTest {
               createInspectorResponse =
                 createCreateInspectorResponse(
                   AppInspection.AppInspectionResponse.Status.ERROR,
-                  AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR
-                )
+                  AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR,
+                ),
             )
         )
 
@@ -113,7 +113,7 @@ class AppInspectorConnectionTest {
             TestAppInspectorCommandHandler(
               timer,
               rawInspectorResponse =
-                createRawResponse(AppInspection.AppInspectionResponse.Status.ERROR, "error")
+                createRawResponse(AppInspection.AppInspectionResponse.Status.ERROR, "error"),
             )
         )
 
@@ -144,7 +144,7 @@ class AppInspectorConnectionTest {
           commandHandler =
             TestAppInspectorCommandHandler(
               timer,
-              rawInspectorResponse = createRawResponse(payloadId)
+              rawInspectorResponse = createRawResponse(payloadId),
             )
         )
 
@@ -153,7 +153,7 @@ class AppInspectorConnectionTest {
       // Also, choose a chunk size smaller than the payload itself, to ensure chunking works
       appInspectionRule.addAppInspectionPayload(
         payloadId,
-        createPayloadChunks("TestResponse".toByteArray(), 2)
+        createPayloadChunks("TestResponse".toByteArray(), 2),
       )
       assertThat(appInspectionRule.transport.queryAllPayloads())
         .hasSize(6) // "TestResponse" broken up into chunk size 2
@@ -195,15 +195,15 @@ class AppInspectorConnectionTest {
       // Send the payloads first
       appInspectionRule.addAppInspectionPayload(
         payloadId1,
-        createPayloadChunks(data1, 5)
+        createPayloadChunks(data1, 5),
       ) // 26 chunks
       appInspectionRule.addAppInspectionPayload(
         payloadId2,
-        createPayloadChunks(data2, 2)
+        createPayloadChunks(data2, 2),
       ) // 128 chunks
       appInspectionRule.addAppInspectionPayload(
         payloadId3,
-        createPayloadChunks(data3, 999)
+        createPayloadChunks(data3, 999),
       ) // 1 chunk
 
       // Send payload events out of order, just to stress test that payloads can be queried anytime
@@ -254,7 +254,7 @@ class AppInspectorConnectionTest {
           override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
             sendRawCommandCalled.complete(Unit)
           }
-        }
+        },
       )
 
       val disposedDeferred = CompletableDeferred<Unit>()
@@ -349,7 +349,7 @@ class AppInspectorConnectionTest {
               override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
                 readyDeferred.complete(Unit)
               }
-            }
+            },
         )
 
       supervisorScope {
@@ -453,7 +453,7 @@ class AppInspectorConnectionTest {
               cancelCompletedDeferred.complete(Unit)
             }
           }
-        }
+        },
       )
 
       val sendJob = launch { client.sendRawCommand(ByteString.copyFromUtf8("Blah").toByteArray()) }
@@ -474,7 +474,7 @@ class AppInspectorConnectionTest {
           override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
             sendRawCommandCalled.complete(Unit)
           }
-        }
+        },
       )
 
       launch(start = CoroutineStart.UNDISPATCHED) {
@@ -493,7 +493,7 @@ class AppInspectorConnectionTest {
       sendRawCommandCalled.join()
       transportService.setCommandHandler(
         Commands.Command.CommandType.APP_INSPECTION,
-        TestAppInspectorCommandHandler(timer)
+        TestAppInspectorCommandHandler(timer),
       )
       appInspectionRule.scope.cancel()
 
@@ -524,7 +524,7 @@ class AppInspectorConnectionTest {
           override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
             sendRawCommandCalled.complete(Unit)
           }
-        }
+        },
       )
 
       val sendJob = launch {
@@ -539,7 +539,7 @@ class AppInspectorConnectionTest {
       sendRawCommandCalled.join()
       transportService.setCommandHandler(
         Commands.Command.CommandType.APP_INSPECTION,
-        TestAppInspectorCommandHandler(timer)
+        TestAppInspectorCommandHandler(timer),
       )
       client.scope.cancel()
       sendJob.cancelAndJoin()

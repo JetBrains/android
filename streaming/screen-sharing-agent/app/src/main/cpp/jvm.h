@@ -60,7 +60,7 @@ public:
   }
 
   // Returns the underlying Java object reference.
-  jobject ref() const {
+  [[nodiscard]] jobject ref() const {
     return ref_;
   }
 
@@ -71,11 +71,11 @@ public:
     return ref;
   }
 
-  bool IsNull() const {
+  [[nodiscard]] bool IsNull() const {
     return ref_ == nullptr;
   }
 
-  bool IsNotNull() const {
+  [[nodiscard]] bool IsNotNull() const {
     return ref_ != nullptr;
   }
 
@@ -85,8 +85,8 @@ public:
     return std::move(MakeGlobal());
   }
 
-  JClass GetClass() const;
-  JClass GetClass(JNIEnv* jni) const;
+  [[nodiscard]] JClass GetClass() const;
+  [[nodiscard]] JClass GetClass(JNIEnv* jni) const;
   JObject CallObjectMethod(jmethodID method, ...) const;
   JObject CallObjectMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   bool CallBooleanMethod(jmethodID method, ...) const;
@@ -95,35 +95,35 @@ public:
   int32_t CallIntMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   void CallVoidMethod(jmethodID method, ...) const;
   void CallVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const;
-  JObject GetObjectField(jfieldID field) const {
+  [[nodiscard]] JObject GetObjectField(jfieldID field) const {
     return GetObjectField(GetJni(), field);
   }
-  JObject GetObjectField(JNIEnv* jni_env, jfieldID field) const;
+  [[nodiscard]] JObject GetObjectField(JNIEnv* jni_env, jfieldID field) const;
   void SetObjectField(jfieldID field, jobject value) const {
     SetObjectField(GetJni(), field, value);
   }
   void SetObjectField(JNIEnv* jni_env, jfieldID field, jobject value) const;
-  int32_t GetIntField(jfieldID field) const {
+  [[nodiscard]] int32_t GetIntField(jfieldID field) const {
     return GetIntField(GetJni(), field);
   }
-  int32_t GetIntField(JNIEnv* jni_env, jfieldID field) const;
+  [[nodiscard]] int32_t GetIntField(JNIEnv* jni_env, jfieldID field) const;
   void SetIntField(jfieldID field, int32_t value) const {
     SetIntField(GetJni(), field, value);
   }
   void SetIntField(JNIEnv* jni_env, jfieldID field, int32_t value) const;
-  float GetFloatField(jfieldID field) const {
+  [[nodiscard]] float GetFloatField(jfieldID field) const {
     return GetFloatField(GetJni(), field);
   }
-  float GetFloatField(JNIEnv* jni_env, jfieldID field) const;
+  [[nodiscard]] float GetFloatField(JNIEnv* jni_env, jfieldID field) const;
   void SetFloatField(jfieldID field, float value) const {
     SetFloatField(GetJni(), field, value);
   }
   void SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const;
   // Calls the toString() method on the Java object. Intended for debugging only and may be slow.
-  std::string ToString() const;
+  [[nodiscard]] std::string ToString() const;
 
 protected:
-  JNIEnv* GetJni() const {
+  [[nodiscard]] JNIEnv* GetJni() const {
     if (jni_env_ != nullptr) {
       return jni_env_;
     }
@@ -163,14 +163,14 @@ public:
 
   // Returns the underlying Java object reference. Do not pass that reference to a constructor of
   // JObject or a derived class since it would result in double deletion.
-  Base ref() const {
+  [[nodiscard]] Base ref() const {
     return down_cast<Base>(JObject::ref());
   }
 
   Wrapper& MakeGlobal() {
     return down_cast<Wrapper&>(JObject::MakeGlobal());
   };
-  Wrapper&& ToGlobal()&& {
+  [[nodiscard]] Wrapper&& ToGlobal()&& {
     return std::move(MakeGlobal());
   };
 
@@ -185,10 +185,10 @@ class JObjectArray : public JRef<JObjectArray, jobjectArray> {
 public:
   using JRef::JRef;
 
-  JObject GetElement(int32_t index) const {
+  [[nodiscard]] JObject GetElement(int32_t index) const {
     return GetElement(GetJni(), index);
   }
-  JObject GetElement(JNIEnv* jni_env, int32_t index) const;
+  [[nodiscard]] JObject GetElement(JNIEnv* jni_env, int32_t index) const;
   void SetElement(int32_t index, const JObject& element) const {
     SetElement(GetJni(), index, element);
   }
@@ -200,57 +200,57 @@ class JClass : public JRef<JClass, jclass> {
 public:
   using JRef::JRef;
 
-  jfieldID GetStaticFieldId(const char* name, const char* signature) const {
+  [[nodiscard]] jfieldID GetStaticFieldId(const char* name, const char* signature) const {
     return GetStaticFieldId(GetJni(), name, signature);
   }
-  jfieldID GetStaticFieldId(JNIEnv* jni_env, const char* name, const char* signature) const;
-  jfieldID GetFieldId(const char* name, const char* signature) const {
+  [[nodiscard]] jfieldID GetStaticFieldId(JNIEnv* jni_env, const char* name, const char* signature) const;
+  [[nodiscard]] jfieldID GetFieldId(const char* name, const char* signature) const {
     return GetFieldId(GetJni(), name, signature);
   }
-  jfieldID GetFieldId(JNIEnv* jni_env, const char* name, const char* signature) const;
+  [[nodiscard]] jfieldID GetFieldId(JNIEnv* jni_env, const char* name, const char* signature) const;
 
-  jmethodID GetStaticMethod(const char* name, const char* signature) const {
+  [[nodiscard]] jmethodID GetStaticMethod(const char* name, const char* signature) const {
     return GetStaticMethod(GetJni(), name, signature);
   }
-  jmethodID GetStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
-  jmethodID GetMethod(const char* name, const char* signature) const {
+  [[nodiscard]] jmethodID GetStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
+  [[nodiscard]] jmethodID GetMethod(const char* name, const char* signature) const {
     return GetMethod(GetJni(), name, signature);
   }
-  jmethodID GetMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
-  jmethodID GetConstructor(const char* signature) const {
+  [[nodiscard]] jmethodID GetMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
+  [[nodiscard]] jmethodID GetConstructor(const char* signature) const {
     return GetConstructor(GetJni(), signature);
   }
-  jmethodID GetConstructor(JNIEnv* jni_env, const char* signature) const;
-  jmethodID GetDeclaredOrInheritedMethod(const char* name, const char* signature) const {
+  [[nodiscard]] jmethodID GetConstructor(JNIEnv* jni_env, const char* signature) const;
+  [[nodiscard]] jmethodID GetDeclaredOrInheritedMethod(const char* name, const char* signature) const {
     return GetDeclaredOrInheritedMethod(GetJni(), name, signature);
   }
-  jmethodID GetDeclaredOrInheritedMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
+  [[nodiscard]] jmethodID GetDeclaredOrInheritedMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
 
   // Similar to GetMethod, but gracefully handles a non-existent method by returning nullptr.
-  jmethodID FindMethod(const char* name, const char* signature) const {
+  [[nodiscard]] jmethodID FindMethod(const char* name, const char* signature) const {
     return FindMethod(GetJni(), name, signature);
   }
-  jmethodID FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
+  [[nodiscard]] jmethodID FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
   // Similar to GetStaticMethod, but gracefully handles a non-existent method by returning nullptr.
-  jmethodID FindStaticMethod(const char* name, const char* signature) const {
+  [[nodiscard]] jmethodID FindStaticMethod(const char* name, const char* signature) const {
     return FindStaticMethod(GetJni(), name, signature);
   }
-  jmethodID FindStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
+  [[nodiscard]] jmethodID FindStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
 
-  JObject NewObject(jmethodID constructor, ...) const;
-  JObject NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const;
-  JObjectArray NewObjectArray(int32_t length, jobject initialElement) const {
+  [[nodiscard]] JObject NewObject(jmethodID constructor, ...) const;
+  [[nodiscard]] JObject NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const;
+  [[nodiscard]] JObjectArray NewObjectArray(int32_t length, jobject initialElement) const {
     return NewObjectArray(GetJni(), length, initialElement);
   }
-  JObjectArray NewObjectArray(JNIEnv* jni_env, int32_t length, jobject initialElement) const;
+  [[nodiscard]] JObjectArray NewObjectArray(JNIEnv* jni_env, int32_t length, jobject initialElement) const;
   JObject CallStaticObjectMethod(jmethodID method, ...) const;
   JObject CallStaticObjectMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   void CallStaticVoidMethod(jmethodID method, ...) const;
   void CallStaticVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const;
 
-  JClass GetSuperclass(JNIEnv* jni_env) const;
+  [[nodiscard]] JClass GetSuperclass(JNIEnv* jni_env) const;
   // Returns the name of the Java class.
-  std::string GetName(JNIEnv* jni_env) const;
+  [[nodiscard]] std::string GetName(JNIEnv* jni_env) const;
 };
 
 class JString : public JRef<JString, jstring> {
@@ -266,7 +266,7 @@ public:
     return std::move(MakeGlobal());
   };
 
-  std::string GetValue() const;
+  [[nodiscard]] std::string GetValue() const;
 };
 
 class JCharArray : public JRef<JCharArray, jcharArray> {
@@ -285,7 +285,55 @@ class JThrowable : public JRef<JThrowable, jthrowable> {
 public:
   using JRef::JRef;
 
-  std::string Describe() const;
+  [[nodiscard]] std::string Describe() const;
+};
+
+class JNumber : public JObject {
+public:
+  using JObject::JObject;
+  explicit JNumber(JObject&& number) noexcept
+      : JObject::JObject(std::move(number)) {}
+
+  [[nodiscard]] int32_t IntValue();
+
+private:
+  static void InitializeStatics(Jni jni);
+
+  static jmethodID int_value_method_;
+};
+
+class JIterator : public JObject {
+public:
+  using JObject::JObject;
+  explicit JIterator(JObject&& iterator) noexcept
+      : JObject::JObject(std::move(iterator)) {}
+
+  [[nodiscard]] bool HasNext() {
+    return CallBooleanMethod(has_next_method_);
+  }
+  [[nodiscard]] JObject Next() {
+    return CallObjectMethod(next_method_);
+  }
+
+private:
+  friend class JIterable;
+
+  static jmethodID has_next_method_;
+  static jmethodID next_method_;
+};
+
+class JIterable : JObject {
+public:
+  using JObject::JObject;
+  explicit JIterable(JObject&& iterable) noexcept
+      : JObject::JObject(std::move(iterable)) {}
+
+  [[nodiscard]] JIterator Iterator();
+
+private:
+  static void InitializeStatics(Jni jni);
+
+  static jmethodID iterator_method_;
 };
 
 class Jni {
@@ -304,7 +352,7 @@ public:
 
   JClass GetClass(const char* name) const;
 
-  JCharArray NewCharArray(int32_t length) const;
+  [[nodiscard]] JCharArray NewCharArray(int32_t length) const;
   bool CheckAndClearException() const;
   JThrowable GetAndClearException() const;
 
@@ -319,7 +367,7 @@ public:
   static Jni AttachCurrentThread(const char* thread_name);
   static void DetachCurrentThread();
   // Returns the JNI environment for the current thread.
-  static JNIEnv* GetJni() {
+  [[nodiscard]] static JNIEnv* GetJni() {
     JNIEnv* jni_env;
     jvm_->GetEnv(reinterpret_cast<void**>(&jni_env), jni_version_);
     return jni_env;
@@ -328,14 +376,14 @@ public:
   // Calls the System.exit method.
   [[noreturn]] static void Exit(int exitCode);
 
+  Jvm() = delete;
+
 private:
   friend class JClass;
 
   static JavaVM* jvm_;
   static jint jni_version_;
   static jmethodID class_get_name_method_;  // The java.lang.Class.getName method.
-
-  Jvm() = delete;
 };
 
 }  // namespace screensharing

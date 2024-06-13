@@ -52,7 +52,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
       project: Project,
       type: MessageType,
       htmlMsg: String,
-      hyperlinkListener: HyperlinkListener? = null
+      hyperlinkListener: HyperlinkListener? = null,
     ) {
       try {
         invokeLater {
@@ -64,7 +64,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
                 type = type,
                 icon = StudioIcons.AppQualityInsights.ISSUE,
                 htmlBody = htmlMsg,
-                listener = hyperlinkListener
+                listener = hyperlinkListener,
               )
             )
         }

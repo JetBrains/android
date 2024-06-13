@@ -37,6 +37,6 @@ object RenderSecurityManagerDefaults {
       */
       normalizeDirectoryPath(PathManager.getLogPath()),
       // When loading classes, IntelliJ might try to update cache hashes for the loaded files
-      normalizeDirectoryPath(Paths.get(PathManager.getSystemPath(), "caches"))
+      normalizeDirectoryPath(Paths.get(PathManager.getSystemPath(), "caches")),
     )
 }

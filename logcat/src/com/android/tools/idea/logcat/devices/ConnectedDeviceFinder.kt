@@ -30,9 +30,7 @@ import org.jetbrains.annotations.VisibleForTesting
 internal class ConnectedDeviceFinder
 @NonInjectable
 @VisibleForTesting
-constructor(
-  private val deviceProvisioner: DeviceProvisioner,
-) : DeviceFinder {
+constructor(private val deviceProvisioner: DeviceProvisioner) : DeviceFinder {
 
   @Suppress("unused") // Used by system in create a project service
   constructor(

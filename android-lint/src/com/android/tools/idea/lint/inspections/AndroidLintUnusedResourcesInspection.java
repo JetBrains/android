@@ -25,11 +25,11 @@ import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.SetAttributeQuickFix;
 import com.android.tools.idea.lint.quickFixes.UnusedResourcesQuickFix;
 import com.android.tools.lint.checks.UnusedResourceDetector;
+import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintUnusedResourcesInspection extends AndroidLintInspectionBase {
   public AndroidLintUnusedResourcesInspection() {
@@ -38,10 +38,8 @@ public class AndroidLintUnusedResourcesInspection extends AndroidLintInspectionB
 
   @NotNull
   @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                         @NotNull PsiElement endElement,
-                                         @NotNull String message,
-                                         @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull Incident incident) {
+    LintFix fixData = incident.getFix();
     String resource = LintFix.getString(fixData, UnusedResourceDetector.KEY_RESOURCE_FIELD, null);
     if (resource != null) {
       String resourceUrl = "@" + resource.substring(2).replace('.', '/');

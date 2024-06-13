@@ -22,6 +22,9 @@ interface IdeBuildType : IdeBaseConfig {
   /** Whether the build type is configured to generate an apk with debuggable native code. */
   val isJniDebuggable: Boolean
 
+  /** Whether the build type is configured to be build with support for pseudolocales. */
+  val isPseudoLocalesEnabled: Boolean
+
   /** Whether the build type is configured to generate an apk with debuggable renderscript code. */
   val isRenderscriptDebuggable: Boolean
 

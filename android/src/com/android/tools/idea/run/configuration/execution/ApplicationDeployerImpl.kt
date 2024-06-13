@@ -103,8 +103,24 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
   private fun runDeployTask(app: ApkInfo, deployTask: AbstractDeployTask, device: IDevice, indicator: ProgressIndicator): Deployer.Result {
     val result = stats.track(deployTask.id) {
       for (unit in app.files) {
-        addArtifact(ArtifactDetail.newBuilder().setSize(unit.apkFile.length()))
+        val artifactDetailBuilder = ArtifactDetail.newBuilder()
+        artifactDetailBuilder.setSize(unit.apkFile.length())
+        artifactDetailBuilder.setType(ArtifactDetail.ArtifactType.APK)
+        addArtifact(artifactDetailBuilder)
       }
+
+      // Check if a baseline profile fit the device
+      for (bpSet in app.baselineProfiles) {
+          if (device.version.apiLevel in bpSet.minApi..bpSet.maxApi) {
+            for (bp in bpSet.baselineProfiles) {
+              val artifactDetailBuilder = ArtifactDetail.newBuilder()
+              artifactDetailBuilder.setSize(bp.length())
+              artifactDetailBuilder.setType(ArtifactDetail.ArtifactType.BASELINE_PROFILE)
+              addArtifact(artifactDetailBuilder)
+            }
+          }
+      }
+
       deployTask.run(device, indicator).single() // use single(), because we have 1 apkInfo as input.
     }
     stats.addAllLaunchTaskDetail(deployTask.subTaskDetails)

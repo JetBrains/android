@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
+import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 
 /**
@@ -63,20 +64,23 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_35_JDK_8(agpVersion = "3.5.0", gradleVersion = "5.5", jdkVersion = JDK_1_8, kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_35(agpVersion = "3.5.0", gradleVersion = "5.5", jdkVersion = JDK_11, kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
 
-  // KGP 1.8 only supports Gradle 6.8.3+
   AGP_40(agpVersion = "4.0.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, kotlinVersion = "1.7.20", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_41(agpVersion = "4.1.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, kotlinVersion = "1.7.20", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_42(agpVersion = "4.2.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, kotlinVersion = "1.7.20", modelVersion = ModelVersion.V1, compileSdk = "32"),
 
-  AGP_70(agpVersion = "7.0.0", gradleVersion = "7.0.2", jdkVersion = JDK_11, modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_71(agpVersion = "7.1.0", gradleVersion = "7.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_72_V1(agpVersion = "7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_72(agpVersion = "7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2, compileSdk = "32"),
-  AGP_73(agpVersion = "7.3.0", gradleVersion = "7.4", modelVersion = ModelVersion.V2),
-  AGP_74(agpVersion = "7.4.1", gradleVersion = "7.5", modelVersion = ModelVersion.V2),
-  AGP_80(agpVersion = "8.0.2", gradleVersion = "8.0", modelVersion = ModelVersion.V2),
-  AGP_81(agpVersion = "8.1.0", gradleVersion = "8.0", modelVersion = ModelVersion.V2),
-  AGP_82(agpVersion = "8.2.0-beta01", gradleVersion = "8.2", modelVersion = ModelVersion.V2),
+  // Version constraints set by KGP:
+  //   - KGP 1.8 only supports Gradle 6.8.3+
+  //   - KGP 2.0 only supports AGP 7.1.3+
+  AGP_70(agpVersion = "7.0.0", gradleVersion = "7.0.2", jdkVersion = JDK_11, kotlinVersion = "1.9.22", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_71(agpVersion = "7.1.0", gradleVersion = "7.2", jdkVersion = JDK_17, kotlinVersion = "1.9.22", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_72_V1(agpVersion = "7.2.0", gradleVersion = "7.3.3", jdkVersion = JDK_17, modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_72(agpVersion = "7.2.0", gradleVersion = "7.3.3", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "32"),
+  AGP_73(agpVersion = "7.3.0", gradleVersion = "7.4", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
+  AGP_74(agpVersion = "7.4.1", gradleVersion = "7.5", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
+
+  AGP_80(agpVersion = "8.0.2", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
+  AGP_81(agpVersion = "8.1.0", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
+  AGP_82(agpVersion = "8.2.0", gradleVersion = "8.2", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
 
   // Must be last to represent the newest version.
   AGP_LATEST(null, gradleVersion = null);

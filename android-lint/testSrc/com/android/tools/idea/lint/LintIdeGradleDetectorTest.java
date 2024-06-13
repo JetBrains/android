@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lint;
 
+import static org.junit.Assume.assumeTrue;
+
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.lint.common.AndroidLintGradleDependencyInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDeprecatedConfigurationInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;
@@ -34,16 +37,20 @@ import com.intellij.codeInsight.daemon.ProblemHighlightFilter;
 import com.intellij.codeInsight.daemon.impl.HighlightVisitor;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.ExtensionTestUtil;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
 import org.jetbrains.kotlin.idea.highlighting.KotlinDiagnosticHighlightVisitor;
+import org.jetbrains.kotlin.idea.highlighting.KotlinSemanticHighlightingVisitor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -57,13 +64,21 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public static Collection<String[]> getParameters() {
     return Arrays.asList(new String[][] {
       {".gradle"},
-      {".gradle.kts"}
+      {".gradle.kts"},
+      {".gradle.dcl"}
     });
   }
+
+  // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+  private static final String K2_KTS_KEY = "kotlin.k2.scripting.enabled";
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+    if (KotlinPluginModeProvider.Companion.isK2Mode()) {
+      Registry.get(K2_KTS_KEY).setValue(true);
+    }
     myFixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
     // We mask (in particular) the KotlinProblemHighlightFilter which can cause Kotlin Script files not to get any highlighting at all.
     ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, List.of(), myFixture.getProjectDisposable());
@@ -73,14 +88,25 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
       .filter((x) -> !isKotlinHighlightVisitor(x)).toList();
     ExtensionTestUtil.maskExtensions(HighlightVisitor.EP_HIGHLIGHT_VISITOR, highlightVisitors, myFixture.getProjectDisposable(), false,
                                      myFixture.getProject());
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true);
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
+    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+    if (KotlinPluginModeProvider.Companion.isK2Mode()) {
+      Registry.get(K2_KTS_KEY).setValue(false);
+    }
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride();
   }
 
   private boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {
     // K1: a subtype of [AbstractKotlinHighlightVisitor]
     // K2: [KotlinDiagnosticHighlightVisitor] and [KotlinSemanticHighlightingVisitor]
-    // TODO(233): add checking if visitor instanceof KotlinSemanticHighlightingVisitor
     return visitor instanceof AbstractKotlinHighlightVisitor
-      || visitor instanceof KotlinDiagnosticHighlightVisitor;
+      || visitor instanceof KotlinDiagnosticHighlightVisitor
+      || visitor instanceof KotlinSemanticHighlightingVisitor;
   }
 
   @Test
@@ -312,6 +338,11 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);
+    String sourceName = BASE_PATH + getTestName(false) + extension;
+    if (extension.equals(".gradle.dcl")) {
+      assumeTrue("Not implemented for declarative Gradle file", new File(myFixture.getTestDataPath(), sourceName).exists());
+    }
+
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + extension, "build" + extension);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);

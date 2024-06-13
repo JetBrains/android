@@ -17,11 +17,10 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.ApiStatus
 
@@ -31,47 +30,33 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   /**
    * Status of the preview.
    *
-   * @param hasRuntimeErrors true if the project has any runtime errors that prevent the preview
-   *   being up to date. For example missing classes.
+   * @param hasErrorsAndNeedsBuild true if the project has any runtime errors that prevent the
+   *   preview being up to date. For example missing classes.
    * @param hasSyntaxErrors true if the preview is displaying content of a file that has syntax
    *   errors.
    * @param isOutOfDate true if the preview needs a refresh to be up to date.
    * @param areResourcesOutOfDate true if the preview needs a build to be up to date because
    *   resources are out of date.
    * @param isRefreshing true if the view is currently refreshing.
+   * @param previewedFile the [PsiFile] that this preview is representing, if any. For cases where
+   *   the preview is rendering synthetic previews or elements from multiple files, this can be
+   *   null.
+   *
+   * TODO(b/328056861) replace the use of this data class with PreviewViewModelStatus
    */
   data class Status(
-    val hasRuntimeErrors: Boolean,
-    val hasSyntaxErrors: Boolean,
-    val isOutOfDate: Boolean,
-    val areResourcesOutOfDate: Boolean,
-    val isRefreshing: Boolean,
-  ) {
+    override val hasErrorsAndNeedsBuild: Boolean,
+    override val hasSyntaxErrors: Boolean,
+    override val isOutOfDate: Boolean,
+    override val areResourcesOutOfDate: Boolean,
+    override val isRefreshing: Boolean,
+    override val previewedFile: PsiFile?,
+  ) : PreviewViewModelStatus {
     /** True if the preview has errors that will need a refresh */
-    val hasErrors = hasRuntimeErrors || hasSyntaxErrors
+    val hasErrors = hasErrorsAndNeedsBuild || hasSyntaxErrors
   }
 
   fun status(): Status
-
-  /**
-   * [StateFlow] of available named groups in this preview. The editor can contain multiple groups
-   * and only one will be displayed at a given time.
-   */
-  val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>>
-
-  /** [StateFlow] of available elements in this preview with no filters applied. */
-  val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>>
-
-  /**
-   * Currently selected group from [availableGroupsFlow] or [PreviewGroup.All] if none is selected.
-   */
-  var groupFilter: PreviewGroup
-
-  /**
-   * The [PsiFile] that this preview is representing, if any. For cases where the preview is
-   * rendering synthetic previews or elements from multiple files, this can be null.
-   */
-  val previewedFile: PsiFile?
 
   /** Flag to indicate the inspection tooltips is enabled. */
   var isInspectionTooltipEnabled: Boolean
@@ -100,19 +85,14 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
 class NopComposePreviewManager : ComposePreviewManager {
   override fun status() =
     ComposePreviewManager.Status(
-      hasRuntimeErrors = false,
+      hasErrorsAndNeedsBuild = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
+      previewedFile = null,
     )
 
-  override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
-    MutableStateFlow(emptySet())
-  override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
-    MutableStateFlow(emptySet())
-  override var groupFilter: PreviewGroup = PreviewGroup.All
-  override val previewedFile: PsiFile? = null
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
   override var isUiCheckFilterEnabled: Boolean = false

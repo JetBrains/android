@@ -18,6 +18,11 @@ package com.android.tools.idea.preview.lifecycle
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -25,15 +30,12 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 private enum class ActiveState {
   INITIALIZED,
   RESUMED,
   DEACTIVATED,
-  FULLY_DEACTIVATED
+  FULLY_DEACTIVATED,
 }
 
 class PreviewLifecycleManagerTest {
@@ -69,7 +71,7 @@ class PreviewLifecycleManagerTest {
         { state = ActiveState.RESUMED },
         { state = ActiveState.DEACTIVATED },
         { state = ActiveState.FULLY_DEACTIVATED },
-        delayedExecutor
+        delayedExecutor,
       )
 
     manager.activate()
@@ -139,5 +141,26 @@ class PreviewLifecycleManagerTest {
     }
 
     assertTrue("Delayed deactivation should have been disposed when the scope finished", disposed)
+  }
+
+  @Test
+  fun testDelayedDeactivationTimerIsRestarted() = runBlocking {
+    val lruActionQueue = DelayedLruActionQueue(3, Duration.ofSeconds(3))
+    var delayedDeactivationDone = false
+    val lifecycleManager =
+      PreviewLifecycleManager.createForTest(
+        this,
+        {},
+        {},
+        {},
+        { delayedDeactivationDone = true },
+        lruActionQueue::addDelayedAction,
+      )
+    repeat(4) {
+      lifecycleManager.activate()
+      lifecycleManager.deactivate()
+      delay(2.seconds)
+    }
+    assertFalse(delayedDeactivationDone)
   }
 }

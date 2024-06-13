@@ -4,10 +4,11 @@
                 android:layout_height="match_parent">
 
   <TextView
-      android:paddingStart="12sp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:paddingLeft="12sp" />
+      android:paddingLeft="12sp"
+      android:paddingStart="12sp"
+  />
 
   <EditText
       android:layout_width="wrap_content"

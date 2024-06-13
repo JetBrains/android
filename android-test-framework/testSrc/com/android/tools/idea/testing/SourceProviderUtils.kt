@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeCustomSourceDirectory
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -36,7 +41,7 @@ fun Project.dumpSourceProviders(): String {
   return buildString {
     var prefix = ""
 
-    fun out(s: String) = appendln("$prefix$s")
+    fun out(s: String) = appendLine("$prefix$s")
 
     fun <T> nest(title: String? = null, code: () -> T): T {
       if (title != null) {
@@ -133,6 +138,17 @@ fun Project.dumpSourceProviders(): String {
       dump(name)
     }
 
+    fun String.toPrintableName(): String {
+      return when (this) {
+        ARTIFACT_NAME_MAIN -> "Main"
+        ARTIFACT_NAME_UNIT_TEST -> "UnitTest"
+        ARTIFACT_NAME_ANDROID_TEST -> "AndroidTest"
+        ARTIFACT_NAME_TEST_FIXTURES -> "TestFixtures"
+        ARTIFACT_NAME_SCREENSHOT_TEST -> "ScreenshotTest"
+        else -> this
+      }
+  }
+
     this@dumpSourceProviders.getAndroidFacets()
       .sortedBy { it.holderModule.name }
       .forEach { facet ->
@@ -155,8 +171,20 @@ fun Project.dumpSourceProviders(): String {
               model.defaultSourceProvider.dump()
               nest("Active:") { model.activeSourceProviders.forEach { it.dump() } }
               nest("All:") { model.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
-              nest("UnitTest:") { model.unitTestSourceProviders.forEach { it.dump() } }
-              nest("AndroidTest:") { model.androidTestSourceProviders.forEach { it.dump() } }
+              nest("HostTest:") {
+                 model.hostTestSourceProviders.forEach { (k,v) ->
+                   nest(k.type.toPrintableName()) {
+                     v.forEach { it.dump() }
+                   }
+                 }
+              }
+              nest("DeviceTest:") {
+                model.deviceTestSourceProviders.forEach { (k,v) ->
+                  nest(k.type.toPrintableName()) {
+                    v.forEach { it.dump() }
+                  }
+                }
+              }
               nest("TestFixtures:") { model.testFixturesSourceProviders.forEach { it.dump() } }
             }
           }
@@ -164,12 +192,16 @@ fun Project.dumpSourceProviders(): String {
             val sourceProviderManager = SourceProviderManager.getInstance(facet)
             dumpPathsCore("Manifests", { getManifestFiles(facet) }, { it.url })
             nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
-            nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump("UnitTestSources") }
-            nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump("AndroidTestSources") }
+            nest("HostTestSources:") { sourceProviderManager.hostTestSources.forEach { it.value.dump("${it.key.type.toPrintableName()}Sources") } }
+            nest("DeviceTestSources:") { sourceProviderManager.deviceTestSources.forEach { it.value.dump("${it.key.type.toPrintableName()}TestSources") } }
             nest("TestFixturesSources:") { sourceProviderManager.testFixturesSources.dump("TestFixturesSources") }
             nest("GeneratedSources:") { sourceProviderManager.generatedSources.dump("GeneratedSources") }
-            nest("GeneratedUnitTestSources:") { sourceProviderManager.generatedUnitTestSources.dump("GeneratedUnitTestSources") }
-            nest("GeneratedAndroidTestSources:") { sourceProviderManager.generatedAndroidTestSources.dump("GeneratedAndroidTestSources") }
+            nest("GeneratedHostTestSources:") {
+              sourceProviderManager.generatedHostTestSources.forEach { it.value.dump("Generated${it.key.type.toPrintableName()}TestSources") }
+            }
+            nest("GeneratedDeviceTestSources:") {
+              sourceProviderManager.generatedDeviceTestSources.forEach { it.value.dump("Generated${it.key.type.toPrintableName()}TestSources") }
+            }
             nest("GeneratedTestFixturesSources:") { sourceProviderManager.generatedTestFixturesSources.dump("GeneratedTestFixturesSources") }
             nest(
               "CurrentAndSomeFrequentlyUsedInactiveSourceProviders:"
@@ -178,8 +210,12 @@ fun Project.dumpSourceProviders(): String {
                 .forEach { it.dump() }
             }
             nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
-            nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }
-            nest("CurrentAndroidTestSourceProviders:") { sourceProviderManager.currentAndroidTestSourceProviders.forEach { it.dump() } }
+            nest("CurrentHostTestSourceProviders:") {
+              sourceProviderManager.currentHostTestSourceProviders.values.flatten().forEach { it.dump() }
+            }
+            nest("CurrentDeviceTestSourceProviders:") {
+              sourceProviderManager.currentDeviceTestSourceProviders.values.flatten().forEach { it.dump() }
+            }
             nest("CurrentTestFixturesSourceProviders:") { sourceProviderManager.currentTestFixturesSourceProviders.forEach { it.dump() } }
           }
         }

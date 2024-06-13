@@ -52,7 +52,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
       AppInspectorJar(
         "network-inspector.jar",
         developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/network",
-        releaseDirectory = "plugins/android/resources/app-inspection/"
+        releaseDirectory = "plugins/android/resources/app-inspection/",
       )
     )
 
@@ -67,7 +67,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
     messenger: AppInspectorMessenger,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AppInspectorTab {
     val componentsProvider = DefaultUiComponentsProvider(project, parentDisposable)
     val codeNavigationProvider = DefaultCodeNavigationProvider(project)
@@ -84,7 +84,8 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
           FpsTimer(UPDATES_PER_SECOND),
           AndroidDispatchers.workerThread,
           AndroidDispatchers.uiThread,
-          usageTracker
+          usageTracker,
+          ideServices,
         )
       private val networkInspectorTab =
         NetworkInspectorTab(
@@ -93,7 +94,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
           dataSource,
           services,
           scope,
-          parentDisposable
+          parentDisposable,
         )
       override val component = networkInspectorTab.component
 

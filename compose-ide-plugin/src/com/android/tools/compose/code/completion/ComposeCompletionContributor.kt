@@ -133,7 +133,7 @@ private fun PsiElement?.isKdoc() = this is KDocName
 class ComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(
     parameters: CompletionParameters,
-    resultSet: CompletionResultSet
+    resultSet: CompletionResultSet,
   ) {
     if (
       parameters.position.getModuleSystem()?.usesCompose != true ||
@@ -188,6 +188,8 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     require(original.psiElement?.isComposableFunction() == true)
   }
 
+  private val functionInfo = psiElement.getFunctionInfoForCompletion()
+
   override fun getPsiElement(): KtNamedFunction = super.getPsiElement() as KtNamedFunction
 
   override fun renderElement(presentation: LookupElementPresentation) {
@@ -226,7 +228,7 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     if (!validCallTypes.contains(callType)) return null
 
     return if (KotlinPluginModeProvider.isK2Mode()) {
-      ComposeInsertHandlerForK2(psiElement, callType)
+      ComposeInsertHandlerForK2(functionInfo, callType)
     } else {
       val descriptor = getFunctionDescriptor() ?: return null
       ComposeInsertHandlerForK1(descriptor, callType)
@@ -235,8 +237,8 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
 
   private fun LookupElementPresentation.rewriteSignature(parts: ComposableFunctionRenderParts) {
     clearTail()
-    parts.parameters?.let { appendTailTextItalic(it, /* grayed = */ false) }
-    parts.tail?.let { appendTailText(" $it", /* grayed = */ true) }
+    parts.parameters?.let { appendTailTextItalic(it, /* grayed= */ false) }
+    parts.tail?.let { appendTailText(" $it", /* grayed= */ true) }
   }
 }
 
@@ -350,7 +352,7 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
             VdPreview.getPreviewFromVectorXml(
               VdPreview.TargetSize.createFromMaxDimension(16),
               content,
-              errorLog
+              errorLog,
             )
           if (errorLog.isNotEmpty()) {
             Logger.getInstance(ComposeMaterialIconLookupElement::class.java)
@@ -408,7 +410,7 @@ private abstract class ComposeInsertHandler(callType: CallType<*>) :
               }
             }
           }
-        }
+        },
       )
     }
 
@@ -420,7 +422,7 @@ private abstract class ComposeInsertHandler(callType: CallType<*>) :
     template: Template,
     parameterInfoList: List<ParameterInfo>,
     insertLambda: Boolean,
-    isNextElementOpenCurlyBrace: Boolean
+    isNextElementOpenCurlyBrace: Boolean,
   ) =
     template.apply {
       isToReformat = true
@@ -455,7 +457,7 @@ private abstract class ComposeInsertHandler(callType: CallType<*>) :
 
 private class ComposeInsertHandlerForK1(
   val functionDescriptor: FunctionDescriptor,
-  callType: CallType<*>
+  callType: CallType<*>,
 ) : ComposeInsertHandler(callType) {
   override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
     val allParameters = functionDescriptor.valueParameters
@@ -470,34 +472,50 @@ private class ComposeInsertHandlerForK1(
       template,
       inParens.map { ParameterInfo(it.name.asString(), it.isLambdaWithNoParameters()) },
       insertLambda,
-      context.isNextElementOpenCurlyBrace()
+      context.isNextElementOpenCurlyBrace(),
     )
   }
 }
 
 private class ComposeInsertHandlerForK2(
-  val functionElement: KtNamedFunction,
-  callType: CallType<*>
+  private val functionInfo: FunctionInfo,
+  callType: CallType<*>,
 ) : ComposeInsertHandler(callType) {
-  @OptIn(KaAllowAnalysisOnEdt::class)
   override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
-    allowAnalysisOnEdt {
-      analyze(functionElement) {
-        val functionSymbol = functionElement.getFunctionLikeSymbol()
-        val allParameters = functionSymbol.valueParameters
-        val requiredParameters = allParameters.filter { !it.hasDefaultValue && !it.isVararg }
-        val insertLambda =
-          allParameters.lastOrNull()?.let {
-            !it.isVararg && it.returnType is KtFunctionalType && !it.hasDefaultValue
-          } ?: false
-        val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
-        configureFunctionTemplate(
-          template,
-          inParens.map { ParameterInfo(it.name.asString(), isLambdaWithNoParameters(it)) },
-          insertLambda,
-          context.isNextElementOpenCurlyBrace()
-        )
-      }
-    }
+    configureFunctionTemplate(
+      template,
+      functionInfo.parameters,
+      functionInfo.insertLambda,
+      context.isNextElementOpenCurlyBrace(),
+    )
+  }
+}
+
+/**
+ * A class used to keep the result of analysis API for the information of parameters.
+ * [getFunctionInfoForCompletion] generates an instance of this class, and
+ * [ComposeInsertHandlerForK2] uses the instance of this class.
+ */
+private class FunctionInfo(
+  val parameters: List<ComposeInsertHandler.ParameterInfo>,
+  val insertLambda: Boolean,
+)
+
+private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo {
+  analyze(this) {
+    val functionSymbol = getFunctionLikeSymbol()
+    val allParameters = functionSymbol.valueParameters
+    val requiredParameters = allParameters.filter { !it.hasDefaultValue && !it.isVararg }
+    val insertLambda =
+      allParameters.lastOrNull()?.let {
+        !it.isVararg && it.returnType is KtFunctionalType && !it.hasDefaultValue
+      } ?: false
+    val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
+    return FunctionInfo(
+      inParens.map {
+        ComposeInsertHandler.ParameterInfo(it.name.asString(), isLambdaWithNoParameters(it))
+      },
+      insertLambda,
+    )
   }
 }

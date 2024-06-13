@@ -27,7 +27,6 @@ import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
-import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorController
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
@@ -35,6 +34,8 @@ import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.getAllDatabaseIds
+import com.android.tools.idea.sqlite.utils.SqliteTestUtil
+import com.android.tools.idea.sqlite.utils.StubProcessDescriptor
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -93,7 +94,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         model = model,
         databaseRepository = repository,
         fileDatabaseManager = fileDatabaseManager,
-        createController = { _, _, _, _ -> databaseInspectorController }
+        createController = { _, _, _, _ -> databaseInspectorController },
       )
 
     processDescriptor = StubProcessDescriptor()
@@ -118,14 +119,14 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         testRootDisposable,
         DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
         1,
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     val connection2 =
       LiveDatabaseConnection(
         testRootDisposable,
         DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
         2,
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
 
     pumpEventsAndWaitForFuture(
@@ -166,7 +167,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         databaseInspectorProjectService.startAppInspectionSession(
           clientCommandsChannel,
           appInspectionServices,
-          processDescriptor
+          processDescriptor,
         )
       }
 
@@ -181,7 +182,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
           clientCommandsChannel,
           appInspectionServices,
           processDescriptor,
-          processDescriptor.name
+          processDescriptor.name,
         )
       verify(databaseInspectorController).stopAppInspectionSession("processName", processDescriptor)
     }
@@ -204,7 +205,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         testRootDisposable,
         DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
         0,
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
 
     pumpEventsAndWaitForFuture(
@@ -269,7 +270,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       databaseInspectorProjectService.startAppInspectionSession(
         clientCommandsChannel,
         appInspectionServices,
-        processDescriptor
+        processDescriptor,
       )
     }
 

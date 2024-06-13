@@ -47,7 +47,7 @@ class InputTypePropertyItem(
   model: NlPropertiesModel,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
-  optionalValue2: Any? = null
+  optionalValue2: Any? = null,
 ) :
   NlFlagsPropertyItem(
     namespace,
@@ -59,7 +59,7 @@ class InputTypePropertyItem(
     model,
     components,
     optionalValue1,
-    optionalValue2
+    optionalValue2,
   ) {
 
   override val colorButton: ActionIconButton =

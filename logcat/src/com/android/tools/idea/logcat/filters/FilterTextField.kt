@@ -234,7 +234,7 @@ internal class FilterTextField(
             GotItTooltip(GOT_IT_ID, hintText, logcatPresenter)
               .withBrowserLink(
                 LogcatBundle.message("logcat.filter.got.it.link.text"),
-                logcatFilterHelpUrl
+                logcatFilterHelpUrl,
               )
               .show(textField, BOTTOM_LEFT)
           }
@@ -258,7 +258,7 @@ internal class FilterTextField(
             override fun activeKeymapChanged(keymap: Keymap?) {
               setPlaceholder(getFilterHintText())
             }
-          }
+          },
         )
     }
 
@@ -271,7 +271,7 @@ internal class FilterTextField(
           if (text == filter) {
             this.isFavorite = isFavorite
           }
-        }
+        },
       )
   }
 
@@ -471,7 +471,7 @@ internal class FilterTextField(
                 val selected = selectedIndex
                 listModel.setElementAt(
                   Item(item.filter, item.isFavorite, count, filterParser),
-                  index
+                  index,
                 )
                 if (selected >= 0) {
                   selectedIndex = selected
@@ -572,7 +572,7 @@ internal class FilterTextField(
       private var hoveredFavoriteIndex: Int? = null
 
       override fun mouseReleased(event: MouseEvent) {
-        if (event.button == BUTTON1 && event.modifiersEx == 0) {
+        if (event.button == BUTTON1 && event.modifiersEx == 0 && selectedIndex >= 0) {
           val index = selectedIndex
           val item = model.getElementAt(index) as? Item ?: return
           val cellLocation = getCellBounds(index, index).location
@@ -715,7 +715,7 @@ internal class FilterTextField(
 
       override fun getComponent(
         isSelected: Boolean,
-        list: JList<out FilterHistoryItem>
+        list: JList<out FilterHistoryItem>,
       ): JComponent {
         // This can be mico optimized, but it's more readable like this
         favoriteLabel.icon =
@@ -785,7 +785,7 @@ internal class FilterTextField(
 
       override fun getComponent(
         isSelected: Boolean,
-        list: JList<out FilterHistoryItem>
+        list: JList<out FilterHistoryItem>,
       ): JComponent {
         component.background = list.background
         return component
@@ -806,7 +806,7 @@ internal class FilterTextField(
   private abstract class HoverButton(
     icon: Icon,
     tooltip: String,
-    private val hoverIcon: Icon? = null
+    private val hoverIcon: Icon? = null,
   ) : JBLabel(icon) {
     private var hovered = false
 
@@ -844,7 +844,7 @@ internal class FilterTextField(
     HoverButton(
       AllIcons.Actions.Close,
       LogcatBundle.message("logcat.filter.clear.tooltip"),
-      AllIcons.Actions.CloseHovered
+      AllIcons.Actions.CloseHovered,
     ) {
     override fun mouseClicked() {
       this@FilterTextField.text = ""
@@ -871,7 +871,7 @@ internal class FilterTextField(
   private inner class MatchCaseButton :
     HoverButton(
       AllIcons.Actions.MatchCase,
-      LogcatBundle.message("logcat.filter.match.case.tooltip")
+      LogcatBundle.message("logcat.filter.match.case.tooltip"),
     ) {
     override fun mouseClicked() {
       matchCase = !matchCase

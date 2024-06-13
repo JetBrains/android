@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.DoubleClickListener;
@@ -37,7 +38,7 @@ public class ThemeSelectionDialog extends DialogWrapper {
   }
 
   public ThemeSelectionDialog(@NotNull Configuration configuration, @NotNull Set<String> excludedThemes) {
-    super(configuration.getConfigModule().getProject());
+    super(ConfigurationManager.getFromConfiguration(configuration).getProject());
     myPanel = new ThemeSelectionPanel(this, configuration, excludedThemes);
     setTitle("Select Theme");
     init();

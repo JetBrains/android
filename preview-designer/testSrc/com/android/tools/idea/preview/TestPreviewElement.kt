@@ -15,18 +15,27 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.DisplayPositioning
+import com.android.tools.preview.MethodPreviewElement
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.PreviewElement
+import com.android.tools.preview.PreviewElementInstance
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 
-internal class TestPreviewElement(
+internal class TestBasePreviewElement<T>(
   displayName: String = "",
+  override val methodFqn: String = "TestMethod",
   groupName: String? = null,
   showDecorations: Boolean = false,
   showBackground: Boolean = false,
   backgroundColor: String? = null,
   displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
-) : PreviewElement {
+  override val instanceId: String = methodFqn,
+  override val configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet(),
+) : MethodPreviewElement<T>, ConfigurablePreviewElement<T>, PreviewElementInstance<T> {
+  override val hasAnimations = false
   override val displaySettings =
     PreviewDisplaySettings(
       displayName,
@@ -34,8 +43,29 @@ internal class TestPreviewElement(
       showDecorations,
       showBackground,
       backgroundColor,
-      displayPositioning
+      displayPositioning,
     )
-  override val previewElementDefinitionPsi = null
-  override val previewBodyPsi = null
+  override val previewElementDefinition = null
+  override val previewBody = null
+
+  override fun createDerivedInstance(
+    displaySettings: PreviewDisplaySettings,
+    config: PreviewConfiguration,
+  ) =
+    TestBasePreviewElement<T>(
+      displayName = displaySettings.name,
+      methodFqn = methodFqn,
+      groupName = displaySettings.group,
+      showDecorations = displaySettings.showDecoration,
+      showBackground = displaySettings.showBackground,
+      backgroundColor = displaySettings.backgroundColor,
+      displayPositioning = displaySettings.displayPositioning,
+      instanceId = instanceId,
+      configuration = config,
+    )
 }
+
+internal typealias PsiTestPreviewElement =
+  TestBasePreviewElement<SmartPsiElementPointer<PsiElement>>
+
+internal typealias TestPreviewElement = TestBasePreviewElement<Unit>

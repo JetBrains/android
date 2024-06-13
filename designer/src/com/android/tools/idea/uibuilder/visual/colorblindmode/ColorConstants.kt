@@ -49,7 +49,7 @@ val LMS_TO_RGB: Mat3D =
     -0.113615,
     -0.000365294,
     -0.00412163,
-    0.693513
+    0.693513,
   )
 
 /** Simple identity matrix. */
@@ -66,7 +66,7 @@ fun buildLms2Lmsp(factor: Double = 0.0): Mat3D {
     0.0,
     0.0,
     0.0,
-    1.0
+    1.0,
   )
 }
 
@@ -81,7 +81,7 @@ fun buildLms2Lmsd(factor: Double = 0.0): Mat3D {
     1.24826 * (1.0 - factor),
     0.0,
     0.0,
-    1.0
+    1.0,
   )
 }
 
@@ -96,6 +96,6 @@ fun buildLms2Lmst(factor: Double = 0.0): Mat3D {
     0.0,
     -0.012244 * (1.0 - factor),
     0.072034 * (1.0 - factor),
-    0.0 + factor
+    0.0 + factor,
   )
 }

@@ -56,9 +56,11 @@ private val log = Logger.getInstance(MaterialIconsUpdater::class.java)
  * the metadata file is updated, the download for that icon is considered finished.
  *
  * Checks for a progress indicator between each delete/download operation. So the update process may be interrupted and continued later.
+ *
+ * Returns true if any icons were updated.
  */
 @Slow
-fun updateIconsAtDir(existingMetadata: MaterialIconsMetadata, newMetadata: MaterialIconsMetadata, targetDir: Path) {
+fun updateIconsAtDir(existingMetadata: MaterialIconsMetadata, newMetadata: MaterialIconsMetadata, targetDir: Path): Boolean {
   cleanupUnusedIcons(existingMetadata, targetDir)
 
   // The metadata builder should reflect the current status of the metadata during the process, so deletions or additions of icons should be
@@ -73,7 +75,8 @@ fun updateIconsAtDir(existingMetadata: MaterialIconsMetadata, newMetadata: Mater
 
   val updateData = getIconsUpdateData(existingMetadata, newMetadata)
   if (updateData.isEmpty()) {
-    return
+    log.info("No icons metadata update needed")
+    return false
   }
 
   var isCancelled = ProgressManager.getInstance().progressIndicator?.isCanceled ?: false
@@ -98,7 +101,7 @@ fun updateIconsAtDir(existingMetadata: MaterialIconsMetadata, newMetadata: Mater
     catch (e: Exception) {
       when (e) {
         // Don't include the ProcessCanceledException in the Log
-        is ProcessCanceledException -> log.info("Download cancelled for: ${iconMetadata.name}")
+        is ProcessCanceledException -> log.info("Download cancelled for: ${iconMetadata.name}", e)
         else -> log.warn("Download error for: ${iconMetadata.name}", e)
       }
     }
@@ -106,6 +109,8 @@ fun updateIconsAtDir(existingMetadata: MaterialIconsMetadata, newMetadata: Mater
 
   // Update metadata file
   MaterialIconsMetadata.writeAsJson(metadataBuilder.build(), targetDir.resolve(METADATA_FILE_NAME), log)
+  log.info("Updated icons remove=${updateData.iconsToRemove.size} download=${updateData.iconsToDownload}")
+  return true
 }
 
 /**
@@ -160,6 +165,7 @@ private fun cleanupUnusedIcons(existingMetadata: MaterialIconsMetadata, targetDi
  * Deletes existing files of [iconMetadata] before downloading.
  */
 private fun downloadIconStyles(metadata: MaterialIconsMetadata, targetDir: Path, iconMetadata: MaterialMetadataIcon) {
+  log.info("downloadIconStyles to $targetDir")
   val fileDescriptions = metadata.families
     .filter {
       !iconMetadata.unsupportedFamilies.contains(it)
@@ -170,6 +176,7 @@ private fun downloadIconStyles(metadata: MaterialIconsMetadata, targetDir: Path,
     }
   val downloader = DownloadableFileService.getInstance().createDownloader(fileDescriptions, "Material Icons")
   val downloaded = downloader.download(targetDir.toFile()).map { it.first }
+  log.info("downloadIconStyles downloaded ${downloaded.size} files")
   val renamedFiles = renameDownloadedFiles(downloaded)
   cleanUpDownloadDirectories(renamedFiles)
 }

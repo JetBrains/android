@@ -21,10 +21,6 @@ PROJECT                       : project
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-            TEST_COMPILE_MODE             : Android tests
-            TEST_COMPILE_MODE             : Unit tests
-            TEST_COMPILE_MODE             : None
     MODULE                        : project.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -72,38 +68,15 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
+                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources
+                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest
+                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources
+                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources
                 BUNDLE                        : :app:bundleBasicBarDebug
                 APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateBasicBarDebugSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :dyn_feature:assembleDebug
-                REBUILD                       : :app:assembleBasicBarDebug, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+                BASELINE_PROFILE_GEN          : :app:generateBasicBarDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -301,38 +274,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateBasicBarDebugSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :dyn_feature:assembleDebug
-                REBUILD                       : :app:assembleBasicBarDebug, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+                CLEAN                         : :app:generateBasicBarDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleBasicBarDebugAndroidTest
+                REBUILD                       : :app:assembleBasicBarDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources
+                SOURCE_GEN                    : :app:generateBasicBarDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :app:generateBasicBarDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -475,38 +423,15 @@ PROJECT                       : project
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
+                CLEAN                         : :app:generateBasicBarDebugSources
+                ASSEMBLE                      : :app:assembleBasicBarDebug
+                REBUILD                       : :app:assembleBasicBarDebug, :app:clean
+                COMPILE_JAVA                  : :app:compileBasicBarDebugSources
+                SOURCE_GEN                    : :app:generateBasicBarDebugSources
                 BUNDLE                        : :app:bundleBasicBarDebug
                 APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateBasicBarDebugSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :dyn_feature:assembleDebug
-                REBUILD                       : :app:assembleBasicBarDebug, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+                BASELINE_PROFILE_GEN          : :app:generateBasicBarDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -670,38 +595,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateBasicBarDebugSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :dyn_feature:assembleDebug
-                REBUILD                       : :app:assembleBasicBarDebug, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+                CLEAN                         : :app:createMockableJar
+                ASSEMBLE                      : :app:assembleBasicBarDebugUnitTest
+                REBUILD                       : :app:assembleBasicBarDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileBasicBarDebugUnitTestSources
+                SOURCE_GEN                    : :app:createMockableJar
+                BASELINE_PROFILE_GEN          : :app:generateBasicBarDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.dyn_feature
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.dyn_feature
@@ -749,34 +649,14 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :dyn_feature:generateDebugSources
+                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
+                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
+                COMPILE_JAVA                  : :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
+                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
+                APK_FROM_BUNDLE               : :dyn_feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :dyn_feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :dyn_feature:generateBaselineProfile
     MODULE                        : project.dyn_feature.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.dyn_feature
@@ -846,34 +726,14 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.dyn_feature.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :dyn_feature:generateDebugSources
+                CLEAN                         : :dyn_feature:generateDebugAndroidTestSources
+                ASSEMBLE                      : :dyn_feature:assembleDebugAndroidTest
+                REBUILD                       : :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
+                COMPILE_JAVA                  : :dyn_feature:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :dyn_feature:generateDebugAndroidTestSources
+                APK_FROM_BUNDLE               : :dyn_feature:assembleDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :dyn_feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :dyn_feature:generateBaselineProfile
     MODULE                        : project.dyn_feature.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.dyn_feature
@@ -939,34 +799,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :dyn_feature:generateDebugSources
                 ASSEMBLE                      : :dyn_feature:assembleDebug
                 REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:clean
                 COMPILE_JAVA                  : :dyn_feature:compileDebugSources
                 SOURCE_GEN                    : :dyn_feature:generateDebugSources
+                BASELINE_PROFILE_GEN          : :dyn_feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :dyn_feature:generateBaselineProfile
     MODULE                        : project.dyn_feature.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.dyn_feature
@@ -1031,34 +870,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.dyn_feature.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:assembleBasicBarDebugUnitTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :app:compileBasicBarDebugUnitTestSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleBasicBarDebug, :app:assembleBasicBarDebugAndroidTest, :app:clean, :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :app:compileBasicBarDebugAndroidTestSources, :app:compileBasicBarDebugSources, :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :app:generateBasicBarDebugAndroidTestSources, :app:generateBasicBarDebugSources, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                BUNDLE                        : :app:bundleBasicBarDebug
-                APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
+                CLEAN                         : :dyn_feature:createMockableJar
+                ASSEMBLE                      : :dyn_feature:assembleDebugUnitTest
+                REBUILD                       : :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
                 COMPILE_JAVA                  : :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :dyn_feature:generateDebugSources
+                SOURCE_GEN                    : :dyn_feature:createMockableJar
+                BASELINE_PROFILE_GEN          : :dyn_feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :dyn_feature:generateBaselineProfile
     MODULE                        : project.jav
         ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
@@ -1082,22 +900,9 @@ PROJECT                       : project
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jav:assemble, :jav:testClasses
                 REBUILD                       : :jav:assemble, :jav:clean, :jav:testClasses
                 COMPILE_JAVA                  : :jav:compileJava, :jav:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :jav:assemble
-                REBUILD                       : :jav:assemble, :jav:clean
-                COMPILE_JAVA                  : :jav:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :jav:assemble, :jav:testClasses
-                REBUILD                       : :jav:assemble, :jav:clean, :jav:testClasses
-                COMPILE_JAVA                  : :jav:compileJava, :jav:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :jav:assemble
-                REBUILD                       : :jav:assemble, :jav:clean
-                COMPILE_JAVA                  : :jav:compileJava
     MODULE                        : project.jav.main
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -1118,22 +923,9 @@ PROJECT                       : project
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jav:assemble, :jav:testClasses
                 REBUILD                       : :jav:assemble, :jav:clean, :jav:testClasses
                 COMPILE_JAVA                  : :jav:compileJava, :jav:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :jav:assemble
-                REBUILD                       : :jav:assemble, :jav:clean
-                COMPILE_JAVA                  : :jav:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :jav:assemble, :jav:testClasses
-                REBUILD                       : :jav:assemble, :jav:clean, :jav:testClasses
-                COMPILE_JAVA                  : :jav:compileJava, :jav:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :jav:assemble
-                REBUILD                       : :jav:assemble, :jav:clean
-                COMPILE_JAVA                  : :jav:compileJava
     MODULE                        : project.jav.test
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -1157,22 +949,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.jav.main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jav:assemble, :jav:testClasses
                 REBUILD                       : :jav:assemble, :jav:clean, :jav:testClasses
                 COMPILE_JAVA                  : :jav:compileJava, :jav:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :jav:assemble
-                REBUILD                       : :jav:assemble, :jav:clean
-                COMPILE_JAVA                  : :jav:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :jav:assemble, :jav:testClasses
-                REBUILD                       : :jav:assemble, :jav:clean, :jav:testClasses
-                COMPILE_JAVA                  : :jav:compileJava, :jav:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :jav:assemble
-                REBUILD                       : :jav:assemble, :jav:clean
-                COMPILE_JAVA                  : :jav:compileJava
     MODULE                        : project.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.lib
@@ -1220,30 +999,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
                 REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
                 COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
                 SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : project.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.lib
@@ -1375,30 +1137,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : :lib:generateDebugAndroidTestSources
+                ASSEMBLE                      : :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:assembleDebugAndroidTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : project.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.lib
@@ -1499,30 +1244,13 @@ PROJECT                       : project
             -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
             -                             : file://<PROJECT>/lib/build/generated/res/resValues/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
                 REBUILD                       : :lib:assembleDebug, :lib:clean
                 COMPILE_JAVA                  : :lib:compileDebugSources
                 SOURCE_GEN                    : :lib:generateDebugSources
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : project.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.lib
@@ -1649,30 +1377,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
+                CLEAN                         : :lib:createMockableJar
+                ASSEMBLE                      : :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebugUnitTest, :lib:clean
                 COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                SOURCE_GEN                    : :lib:createMockableJar
+                BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     MODULE                        : project.nested1
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested1
@@ -1720,30 +1431,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
                 ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:assembleDebugUnitTest
                 REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:assembleDebugUnitTest, :nested1:clean
                 COMPILE_JAVA                  : :nested1:compileDebugAndroidTestSources, :nested1:compileDebugSources, :nested1:compileDebugUnitTestSources
                 SOURCE_GEN                    : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugAndroidTestSources, :nested1:compileDebugSources
-                SOURCE_GEN                    : :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugUnitTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugUnitTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:createMockableJar, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug
-                REBUILD                       : :nested1:assembleDebug, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugSources
-                SOURCE_GEN                    : :nested1:generateDebugSources
+                BASELINE_PROFILE_GEN          : :nested1:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested1:generateBaselineProfile
     MODULE                        : project.nested1.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested1
@@ -1813,30 +1507,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested1.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:assembleDebugUnitTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:assembleDebugUnitTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugAndroidTestSources, :nested1:compileDebugSources, :nested1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugAndroidTestSources, :nested1:compileDebugSources
-                SOURCE_GEN                    : :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugUnitTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugUnitTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:createMockableJar, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug
-                REBUILD                       : :nested1:assembleDebug, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugSources
-                SOURCE_GEN                    : :nested1:generateDebugSources
+                CLEAN                         : :nested1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :nested1:assembleDebugAndroidTest
+                REBUILD                       : :nested1:assembleDebugAndroidTest, :nested1:clean
+                COMPILE_JAVA                  : :nested1:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :nested1:generateDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :nested1:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested1:generateBaselineProfile
     MODULE                        : project.nested1.deep
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested1.deep
@@ -1884,30 +1561,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
                 ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:assembleDebugUnitTest
                 REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:assembleDebugUnitTest, :nested1:deep:clean
                 COMPILE_JAVA                  : :nested1:deep:compileDebugAndroidTestSources, :nested1:deep:compileDebugSources, :nested1:deep:compileDebugUnitTestSources
                 SOURCE_GEN                    : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugAndroidTestSources, :nested1:deep:compileDebugSources
-                SOURCE_GEN                    : :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugUnitTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugUnitTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:deep:createMockableJar, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugSources
-                SOURCE_GEN                    : :nested1:deep:generateDebugSources
+                BASELINE_PROFILE_GEN          : :nested1:deep:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested1:deep:generateBaselineProfile
     MODULE                        : project.nested1.deep.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested1.deep
@@ -1977,30 +1637,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested1.deep.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:assembleDebugUnitTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:assembleDebugUnitTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugAndroidTestSources, :nested1:deep:compileDebugSources, :nested1:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugAndroidTestSources, :nested1:deep:compileDebugSources
-                SOURCE_GEN                    : :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugUnitTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugUnitTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:deep:createMockableJar, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugSources
-                SOURCE_GEN                    : :nested1:deep:generateDebugSources
+                CLEAN                         : :nested1:deep:generateDebugAndroidTestSources
+                ASSEMBLE                      : :nested1:deep:assembleDebugAndroidTest
+                REBUILD                       : :nested1:deep:assembleDebugAndroidTest, :nested1:deep:clean
+                COMPILE_JAVA                  : :nested1:deep:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :nested1:deep:generateDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :nested1:deep:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested1:deep:generateBaselineProfile
     MODULE                        : project.nested1.deep.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested1.deep
@@ -2066,30 +1709,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:assembleDebugUnitTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:assembleDebugUnitTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugAndroidTestSources, :nested1:deep:compileDebugSources, :nested1:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugAndroidTestSources, :nested1:deep:compileDebugSources
-                SOURCE_GEN                    : :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugUnitTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugUnitTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:deep:createMockableJar, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :nested1:deep:generateDebugSources
                 ASSEMBLE                      : :nested1:deep:assembleDebug
                 REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:clean
                 COMPILE_JAVA                  : :nested1:deep:compileDebugSources
                 SOURCE_GEN                    : :nested1:deep:generateDebugSources
+                BASELINE_PROFILE_GEN          : :nested1:deep:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested1:deep:generateBaselineProfile
     MODULE                        : project.nested1.deep.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested1.deep
@@ -2154,30 +1780,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested1.deep.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:assembleDebugUnitTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:assembleDebugUnitTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugAndroidTestSources, :nested1:deep:compileDebugSources, :nested1:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:deep:createMockableJar, :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugAndroidTest, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugAndroidTestSources, :nested1:deep:compileDebugSources
-                SOURCE_GEN                    : :nested1:deep:generateDebugAndroidTestSources, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested1:deep:createMockableJar, :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugUnitTest
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:assembleDebugUnitTest, :nested1:deep:clean
+                CLEAN                         : :nested1:deep:createMockableJar
+                ASSEMBLE                      : :nested1:deep:assembleDebugUnitTest
+                REBUILD                       : :nested1:deep:assembleDebugUnitTest, :nested1:deep:clean
                 COMPILE_JAVA                  : :nested1:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:deep:createMockableJar, :nested1:deep:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested1:deep:generateDebugSources
-                ASSEMBLE                      : :nested1:deep:assembleDebug
-                REBUILD                       : :nested1:deep:assembleDebug, :nested1:deep:clean
-                COMPILE_JAVA                  : :nested1:deep:compileDebugSources
-                SOURCE_GEN                    : :nested1:deep:generateDebugSources
+                SOURCE_GEN                    : :nested1:deep:createMockableJar
+                BASELINE_PROFILE_GEN          : :nested1:deep:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested1:deep:generateBaselineProfile
     MODULE                        : project.nested1.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested1
@@ -2243,30 +1852,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:assembleDebugUnitTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:assembleDebugUnitTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugAndroidTestSources, :nested1:compileDebugSources, :nested1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugAndroidTestSources, :nested1:compileDebugSources
-                SOURCE_GEN                    : :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugUnitTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugUnitTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:createMockableJar, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :nested1:generateDebugSources
                 ASSEMBLE                      : :nested1:assembleDebug
                 REBUILD                       : :nested1:assembleDebug, :nested1:clean
                 COMPILE_JAVA                  : :nested1:compileDebugSources
                 SOURCE_GEN                    : :nested1:generateDebugSources
+                BASELINE_PROFILE_GEN          : :nested1:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested1:generateBaselineProfile
     MODULE                        : project.nested1.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested1
@@ -2331,30 +1923,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested1.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:assembleDebugUnitTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:assembleDebugUnitTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugAndroidTestSources, :nested1:compileDebugSources, :nested1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:createMockableJar, :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugAndroidTest, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugAndroidTestSources, :nested1:compileDebugSources
-                SOURCE_GEN                    : :nested1:generateDebugAndroidTestSources, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested1:createMockableJar, :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug, :nested1:assembleDebugUnitTest
-                REBUILD                       : :nested1:assembleDebug, :nested1:assembleDebugUnitTest, :nested1:clean
+                CLEAN                         : :nested1:createMockableJar
+                ASSEMBLE                      : :nested1:assembleDebugUnitTest
+                REBUILD                       : :nested1:assembleDebugUnitTest, :nested1:clean
                 COMPILE_JAVA                  : :nested1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested1:createMockableJar, :nested1:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested1:generateDebugSources
-                ASSEMBLE                      : :nested1:assembleDebug
-                REBUILD                       : :nested1:assembleDebug, :nested1:clean
-                COMPILE_JAVA                  : :nested1:compileDebugSources
-                SOURCE_GEN                    : :nested1:generateDebugSources
+                SOURCE_GEN                    : :nested1:createMockableJar
+                BASELINE_PROFILE_GEN          : :nested1:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested1:generateBaselineProfile
     MODULE                        : project.nested2
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2
@@ -2402,30 +1977,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
                 ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:assembleBasicDebugUnitTest
                 REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:assembleBasicDebugUnitTest, :nested2:clean
                 COMPILE_JAVA                  : :nested2:compileBasicDebugAndroidTestSources, :nested2:compileBasicDebugSources, :nested2:compileBasicDebugUnitTestSources
                 SOURCE_GEN                    : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugAndroidTestSources, :nested2:compileBasicDebugSources
-                SOURCE_GEN                    : :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugUnitTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugUnitTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:createMockableJar, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugSources
-                SOURCE_GEN                    : :nested2:generateBasicDebugSources
+                BASELINE_PROFILE_GEN          : :nested2:generateBasicDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:generateBaselineProfile
     MODULE                        : project.nested2.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2
@@ -2513,30 +2071,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested2.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:assembleBasicDebugUnitTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:assembleBasicDebugUnitTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugAndroidTestSources, :nested2:compileBasicDebugSources, :nested2:compileBasicDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugAndroidTestSources, :nested2:compileBasicDebugSources
-                SOURCE_GEN                    : :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugUnitTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugUnitTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:createMockableJar, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugSources
-                SOURCE_GEN                    : :nested2:generateBasicDebugSources
+                CLEAN                         : :nested2:generateBasicDebugAndroidTestSources
+                ASSEMBLE                      : :nested2:assembleBasicDebugAndroidTest
+                REBUILD                       : :nested2:assembleBasicDebugAndroidTest, :nested2:clean
+                COMPILE_JAVA                  : :nested2:compileBasicDebugAndroidTestSources
+                SOURCE_GEN                    : :nested2:generateBasicDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :nested2:generateBasicDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:generateBaselineProfile
     MODULE                        : project.nested2.deep
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2.deep
@@ -2584,30 +2125,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
                 ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:assembleDebugUnitTest
                 REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:assembleDebugUnitTest, :nested2:deep:clean
                 COMPILE_JAVA                  : :nested2:deep:compileDebugAndroidTestSources, :nested2:deep:compileDebugSources, :nested2:deep:compileDebugUnitTestSources
                 SOURCE_GEN                    : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugAndroidTestSources, :nested2:deep:compileDebugSources
-                SOURCE_GEN                    : :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugUnitTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugUnitTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:deep:createMockableJar, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugSources
-                SOURCE_GEN                    : :nested2:deep:generateDebugSources
+                BASELINE_PROFILE_GEN          : :nested2:deep:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:deep:generateBaselineProfile
     MODULE                        : project.nested2.deep.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2.deep
@@ -2677,30 +2201,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested2.deep.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:assembleDebugUnitTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:assembleDebugUnitTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugAndroidTestSources, :nested2:deep:compileDebugSources, :nested2:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugAndroidTestSources, :nested2:deep:compileDebugSources
-                SOURCE_GEN                    : :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugUnitTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugUnitTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:deep:createMockableJar, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugSources
-                SOURCE_GEN                    : :nested2:deep:generateDebugSources
+                CLEAN                         : :nested2:deep:generateDebugAndroidTestSources
+                ASSEMBLE                      : :nested2:deep:assembleDebugAndroidTest
+                REBUILD                       : :nested2:deep:assembleDebugAndroidTest, :nested2:deep:clean
+                COMPILE_JAVA                  : :nested2:deep:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :nested2:deep:generateDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :nested2:deep:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:deep:generateBaselineProfile
     MODULE                        : project.nested2.deep.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2.deep
@@ -2766,30 +2273,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:assembleDebugUnitTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:assembleDebugUnitTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugAndroidTestSources, :nested2:deep:compileDebugSources, :nested2:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugAndroidTestSources, :nested2:deep:compileDebugSources
-                SOURCE_GEN                    : :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugUnitTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugUnitTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:deep:createMockableJar, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :nested2:deep:generateDebugSources
                 ASSEMBLE                      : :nested2:deep:assembleDebug
                 REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:clean
                 COMPILE_JAVA                  : :nested2:deep:compileDebugSources
                 SOURCE_GEN                    : :nested2:deep:generateDebugSources
+                BASELINE_PROFILE_GEN          : :nested2:deep:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:deep:generateBaselineProfile
     MODULE                        : project.nested2.deep.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2.deep
@@ -2854,30 +2344,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested2.deep.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:assembleDebugUnitTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:assembleDebugUnitTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugAndroidTestSources, :nested2:deep:compileDebugSources, :nested2:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:deep:createMockableJar, :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugAndroidTest, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugAndroidTestSources, :nested2:deep:compileDebugSources
-                SOURCE_GEN                    : :nested2:deep:generateDebugAndroidTestSources, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:deep:createMockableJar, :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugUnitTest
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:assembleDebugUnitTest, :nested2:deep:clean
+                CLEAN                         : :nested2:deep:createMockableJar
+                ASSEMBLE                      : :nested2:deep:assembleDebugUnitTest
+                REBUILD                       : :nested2:deep:assembleDebugUnitTest, :nested2:deep:clean
                 COMPILE_JAVA                  : :nested2:deep:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:deep:createMockableJar, :nested2:deep:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested2:deep:generateDebugSources
-                ASSEMBLE                      : :nested2:deep:assembleDebug
-                REBUILD                       : :nested2:deep:assembleDebug, :nested2:deep:clean
-                COMPILE_JAVA                  : :nested2:deep:compileDebugSources
-                SOURCE_GEN                    : :nested2:deep:generateDebugSources
+                SOURCE_GEN                    : :nested2:deep:createMockableJar
+                BASELINE_PROFILE_GEN          : :nested2:deep:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:deep:generateBaselineProfile
     MODULE                        : project.nested2.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2
@@ -2961,30 +2434,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:assembleBasicDebugUnitTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:assembleBasicDebugUnitTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugAndroidTestSources, :nested2:compileBasicDebugSources, :nested2:compileBasicDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugAndroidTestSources, :nested2:compileBasicDebugSources
-                SOURCE_GEN                    : :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugUnitTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugUnitTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:createMockableJar, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :nested2:generateBasicDebugSources
                 ASSEMBLE                      : :nested2:assembleBasicDebug
                 REBUILD                       : :nested2:assembleBasicDebug, :nested2:clean
                 COMPILE_JAVA                  : :nested2:compileBasicDebugSources
                 SOURCE_GEN                    : :nested2:generateBasicDebugSources
+                BASELINE_PROFILE_GEN          : :nested2:generateBasicDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:generateBaselineProfile
     MODULE                        : project.nested2.trans
         ExternalModuleGroup           : project.nested2
         ExternalModuleVersion         : unspecified
@@ -3008,10 +2464,6 @@ PROJECT                       : project
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-            TEST_COMPILE_MODE             : Android tests
-            TEST_COMPILE_MODE             : Unit tests
-            TEST_COMPILE_MODE             : None
     MODULE                        : project.nested2.trans.deep2
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2.trans.deep2
@@ -3059,30 +2511,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
                 ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:assembleDebugUnitTest
                 REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:assembleDebugUnitTest, :nested2:trans:deep2:clean
                 COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugAndroidTestSources, :nested2:trans:deep2:compileDebugSources, :nested2:trans:deep2:compileDebugUnitTestSources
                 SOURCE_GEN                    : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugAndroidTestSources, :nested2:trans:deep2:compileDebugSources
-                SOURCE_GEN                    : :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugUnitTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugUnitTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugSources
-                SOURCE_GEN                    : :nested2:trans:deep2:generateDebugSources
+                BASELINE_PROFILE_GEN          : :nested2:trans:deep2:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:trans:deep2:generateBaselineProfile
     MODULE                        : project.nested2.trans.deep2.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2.trans.deep2
@@ -3152,30 +2587,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested2.trans.deep2.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:assembleDebugUnitTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:assembleDebugUnitTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugAndroidTestSources, :nested2:trans:deep2:compileDebugSources, :nested2:trans:deep2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugAndroidTestSources, :nested2:trans:deep2:compileDebugSources
-                SOURCE_GEN                    : :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugUnitTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugUnitTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugSources
-                SOURCE_GEN                    : :nested2:trans:deep2:generateDebugSources
+                CLEAN                         : :nested2:trans:deep2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :nested2:trans:deep2:assembleDebugAndroidTest
+                REBUILD                       : :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:clean
+                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :nested2:trans:deep2:generateDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :nested2:trans:deep2:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:trans:deep2:generateBaselineProfile
     MODULE                        : project.nested2.trans.deep2.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2.trans.deep2
@@ -3241,30 +2659,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:assembleDebugUnitTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:assembleDebugUnitTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugAndroidTestSources, :nested2:trans:deep2:compileDebugSources, :nested2:trans:deep2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugAndroidTestSources, :nested2:trans:deep2:compileDebugSources
-                SOURCE_GEN                    : :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugUnitTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugUnitTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :nested2:trans:deep2:generateDebugSources
                 ASSEMBLE                      : :nested2:trans:deep2:assembleDebug
                 REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:clean
                 COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugSources
                 SOURCE_GEN                    : :nested2:trans:deep2:generateDebugSources
+                BASELINE_PROFILE_GEN          : :nested2:trans:deep2:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:trans:deep2:generateBaselineProfile
     MODULE                        : project.nested2.trans.deep2.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2.trans.deep2
@@ -3329,30 +2730,13 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested2.trans.deep2.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:assembleDebugUnitTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:assembleDebugUnitTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugAndroidTestSources, :nested2:trans:deep2:compileDebugSources, :nested2:trans:deep2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugAndroidTest, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugAndroidTestSources, :nested2:trans:deep2:compileDebugSources
-                SOURCE_GEN                    : :nested2:trans:deep2:generateDebugAndroidTestSources, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugUnitTest
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:assembleDebugUnitTest, :nested2:trans:deep2:clean
+                CLEAN                         : :nested2:trans:deep2:createMockableJar
+                ASSEMBLE                      : :nested2:trans:deep2:assembleDebugUnitTest
+                REBUILD                       : :nested2:trans:deep2:assembleDebugUnitTest, :nested2:trans:deep2:clean
                 COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:trans:deep2:createMockableJar, :nested2:trans:deep2:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested2:trans:deep2:generateDebugSources
-                ASSEMBLE                      : :nested2:trans:deep2:assembleDebug
-                REBUILD                       : :nested2:trans:deep2:assembleDebug, :nested2:trans:deep2:clean
-                COMPILE_JAVA                  : :nested2:trans:deep2:compileDebugSources
-                SOURCE_GEN                    : :nested2:trans:deep2:generateDebugSources
+                SOURCE_GEN                    : :nested2:trans:deep2:createMockableJar
+                BASELINE_PROFILE_GEN          : :nested2:trans:deep2:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:trans:deep2:generateBaselineProfile
     MODULE                        : project.nested2.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.nested2
@@ -3432,161 +2816,144 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested2.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:assembleBasicDebugUnitTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:assembleBasicDebugUnitTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugAndroidTestSources, :nested2:compileBasicDebugSources, :nested2:compileBasicDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:createMockableJar, :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugAndroidTest, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugAndroidTestSources, :nested2:compileBasicDebugSources
-                SOURCE_GEN                    : :nested2:generateBasicDebugAndroidTestSources, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :nested2:createMockableJar, :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugUnitTest
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:assembleBasicDebugUnitTest, :nested2:clean
+                CLEAN                         : :nested2:createMockableJar
+                ASSEMBLE                      : :nested2:assembleBasicDebugUnitTest
+                REBUILD                       : :nested2:assembleBasicDebugUnitTest, :nested2:clean
                 COMPILE_JAVA                  : :nested2:compileBasicDebugUnitTestSources
-                SOURCE_GEN                    : :nested2:createMockableJar, :nested2:generateBasicDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :nested2:generateBasicDebugSources
-                ASSEMBLE                      : :nested2:assembleBasicDebug
-                REBUILD                       : :nested2:assembleBasicDebug, :nested2:clean
-                COMPILE_JAVA                  : :nested2:compileBasicDebugSources
-                SOURCE_GEN                    : :nested2:generateBasicDebugSources
+                SOURCE_GEN                    : :nested2:createMockableJar
+                BASELINE_PROFILE_GEN          : :nested2:generateBasicDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :nested2:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : project.app.main
         Module                        : project.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>
             *CLASSES                      : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:collections:<VERSION>
             *CLASSES                      : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION>
             *CLASSES                      : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
             *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
             *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1
             *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
         LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1
@@ -3604,35 +2971,12 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateDebugAndroidTestSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::app:assembleBasicBarDebugUnitTest, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:assembleDebugAndroidTest, <PROJECT>::dyn_feature:assembleDebugUnitTest, <PROJECT>::jav:assemble, <PROJECT>::jav:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:assembleDebugUnitTest, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested1:deep:assembleDebugUnitTest, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:assembleBasicDebugUnitTest, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:deep:assembleDebugUnitTest, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:assembleDebugUnitTest
             REBUILD                       : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::app:assembleBasicBarDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:assembleDebugAndroidTest, <PROJECT>::dyn_feature:assembleDebugUnitTest, <PROJECT>::dyn_feature:clean, <PROJECT>::jav:assemble, <PROJECT>::jav:clean, <PROJECT>::jav:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:assembleDebugUnitTest, <PROJECT>::nested1:clean, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested1:deep:assembleDebugUnitTest, <PROJECT>::nested1:deep:clean, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:assembleBasicDebugUnitTest, <PROJECT>::nested2:clean, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:deep:assembleDebugUnitTest, <PROJECT>::nested2:deep:clean, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:assembleDebugUnitTest, <PROJECT>::nested2:trans:deep2:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileBasicBarDebugAndroidTestSources, <PROJECT>::app:compileBasicBarDebugSources, <PROJECT>::app:compileBasicBarDebugUnitTestSources, <PROJECT>::dyn_feature:compileDebugAndroidTestSources, <PROJECT>::dyn_feature:compileDebugSources, <PROJECT>::dyn_feature:compileDebugUnitTestSources, <PROJECT>::jav:compileJava, <PROJECT>::jav:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources, <PROJECT>::nested1:compileDebugAndroidTestSources, <PROJECT>::nested1:compileDebugSources, <PROJECT>::nested1:compileDebugUnitTestSources, <PROJECT>::nested1:deep:compileDebugAndroidTestSources, <PROJECT>::nested1:deep:compileDebugSources, <PROJECT>::nested1:deep:compileDebugUnitTestSources, <PROJECT>::nested2:compileBasicDebugAndroidTestSources, <PROJECT>::nested2:compileBasicDebugSources, <PROJECT>::nested2:compileBasicDebugUnitTestSources, <PROJECT>::nested2:deep:compileDebugAndroidTestSources, <PROJECT>::nested2:deep:compileDebugSources, <PROJECT>::nested2:deep:compileDebugUnitTestSources, <PROJECT>::nested2:trans:deep2:compileDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:compileDebugSources, <PROJECT>::nested2:trans:deep2:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateDebugAndroidTestSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
             BUNDLE                        : :app:bundleBasicBarDebug
-            APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-        TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:generateDebugAndroidTestSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:assembleDebugAndroidTest, <PROJECT>::jav:assemble, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:assembleDebugAndroidTest, <PROJECT>::dyn_feature:clean, <PROJECT>::jav:assemble, <PROJECT>::jav:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:clean, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested1:deep:clean, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:clean, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:deep:clean, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileBasicBarDebugAndroidTestSources, <PROJECT>::app:compileBasicBarDebugSources, <PROJECT>::dyn_feature:compileDebugAndroidTestSources, <PROJECT>::dyn_feature:compileDebugSources, <PROJECT>::jav:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::nested1:compileDebugAndroidTestSources, <PROJECT>::nested1:compileDebugSources, <PROJECT>::nested1:deep:compileDebugAndroidTestSources, <PROJECT>::nested1:deep:compileDebugSources, <PROJECT>::nested2:compileBasicDebugAndroidTestSources, <PROJECT>::nested2:compileBasicDebugSources, <PROJECT>::nested2:deep:compileDebugAndroidTestSources, <PROJECT>::nested2:deep:compileDebugSources, <PROJECT>::nested2:trans:deep2:compileDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:generateDebugAndroidTestSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
-            BUNDLE                        : :app:bundleBasicBarDebug
-            APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug, :dyn_feature:assembleDebugAndroidTest
-        TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugUnitTest, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:assembleDebugUnitTest, <PROJECT>::jav:assemble, <PROJECT>::jav:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugUnitTest, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugUnitTest, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugUnitTest, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugUnitTest, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:assembleDebugUnitTest, <PROJECT>::dyn_feature:clean, <PROJECT>::jav:assemble, <PROJECT>::jav:clean, <PROJECT>::jav:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugUnitTest, <PROJECT>::nested1:clean, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugUnitTest, <PROJECT>::nested1:deep:clean, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugUnitTest, <PROJECT>::nested2:clean, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugUnitTest, <PROJECT>::nested2:deep:clean, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugUnitTest, <PROJECT>::nested2:trans:deep2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileBasicBarDebugUnitTestSources, <PROJECT>::dyn_feature:compileDebugUnitTestSources, <PROJECT>::jav:compileJava, <PROJECT>::jav:testClasses, <PROJECT>::lib:compileDebugUnitTestSources, <PROJECT>::nested1:compileDebugUnitTestSources, <PROJECT>::nested1:deep:compileDebugUnitTestSources, <PROJECT>::nested2:compileBasicDebugUnitTestSources, <PROJECT>::nested2:deep:compileDebugUnitTestSources, <PROJECT>::nested2:trans:deep2:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugSources
-            BUNDLE                        : :app:bundleBasicBarDebug
             APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
-        TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::jav:assemble, <PROJECT>::lib:assembleDebug, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:clean, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:clean, <PROJECT>::jav:assemble, <PROJECT>::jav:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:clean, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:clean, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:clean, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:clean, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileBasicBarDebugSources, <PROJECT>::dyn_feature:compileDebugSources, <PROJECT>::jav:compileJava, <PROJECT>::lib:compileDebugSources, <PROJECT>::nested1:compileDebugSources, <PROJECT>::nested1:deep:compileDebugSources, <PROJECT>::nested2:compileBasicDebugSources, <PROJECT>::nested2:deep:compileDebugSources, <PROJECT>::nested2:trans:deep2:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
-            BUNDLE                        : :app:bundleBasicBarDebug
-            APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
+            BASELINE_PROFILE_GEN          : :app:generateBasicBarDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile

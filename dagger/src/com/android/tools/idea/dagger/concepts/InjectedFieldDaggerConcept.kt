@@ -26,7 +26,6 @@ import com.android.tools.idea.dagger.index.readClassId
 import com.android.tools.idea.dagger.index.writeClassId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.annotations.VisibleForTesting
@@ -108,16 +107,16 @@ internal data class InjectedFieldIndexValue(val classId: ClassId, val fieldName:
     internal val identifiers =
       DaggerElementIdentifiers(
         ktPropertyIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiFieldIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiFieldIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.fields.filter { it.name == fieldName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.fields
+      ?.asSequence()
+      ?.filter { it.name == fieldName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }

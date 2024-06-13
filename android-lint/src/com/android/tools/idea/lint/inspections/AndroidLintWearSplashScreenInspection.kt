@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.WearSplashScreenDetector
 class AndroidLintWearSplashScreenInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.wear.splash.screen"),
-    WearSplashScreenDetector.ISSUE
+    WearSplashScreenDetector.ISSUE,
   )

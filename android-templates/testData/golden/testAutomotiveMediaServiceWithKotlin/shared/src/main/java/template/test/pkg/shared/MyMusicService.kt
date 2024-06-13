@@ -86,17 +86,21 @@ class MyMusicService : MediaBrowserServiceCompat() {
         session = MediaSessionCompat(this, "MyMusicService")
         sessionToken = session.sessionToken
         session.setCallback(callback)
-        session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
-                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
+        session.setFlags(
+            MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
+                    MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
+        )
     }
 
     override fun onDestroy() {
         session.release()
     }
 
-    override fun onGetRoot(clientPackageName: String,
-                           clientUid: Int,
-                           rootHints: Bundle?): MediaBrowserServiceCompat.BrowserRoot? {
+    override fun onGetRoot(
+        clientPackageName: String,
+        clientUid: Int,
+        rootHints: Bundle?
+    ): MediaBrowserServiceCompat.BrowserRoot? {
         return MediaBrowserServiceCompat.BrowserRoot("root", null)
     }
 

@@ -25,9 +25,6 @@ import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
-import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
-import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
-import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.RotationRadian
@@ -70,6 +67,10 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_BACKSPACE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_ENTER
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_ESCAPE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT
@@ -90,6 +91,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TAB
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START
@@ -134,12 +136,8 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.KEY_RELEASED
-import java.awt.event.KeyEvent.VK_BACK_SPACE
-import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
-import java.awt.event.KeyEvent.VK_ENTER
-import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_HOME
 import java.awt.event.KeyEvent.VK_KP_DOWN
 import java.awt.event.KeyEvent.VK_KP_LEFT
@@ -149,7 +147,6 @@ import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
-import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -165,6 +162,7 @@ import java.awt.image.DataBufferInt
 import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.KeyStroke
 import kotlin.math.PI
@@ -729,16 +727,7 @@ class EmulatorView(
           response.hasDisplayConfigurationsChangedNotification() ->
               checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(response.displayConfigurationsChangedNotification)
           response.hasPosture() -> updateCurrentPosture(response.posture.value)
-          else  -> {
-            // Old style notifications.
-            // TODO: Remove the following 'when' statement after January 1, 2024.
-            when (response.event) {
-              VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
-              VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
-              DISPLAY_CONFIGURATIONS_CHANGED_UI -> notifyDisplayConfigurationListeners(null)
-              else -> {}
-            }
-          }
+          else  -> {}
         }
       }
     }
@@ -815,12 +804,12 @@ class EmulatorView(
         return
       }
 
-      if (event.isAltDown || event.isControlDown || event.isMetaDown) {
+      if (event.isControlDown || event.isMetaDown || (!SystemInfo.isMac && event.isAltDown)) {
         return
       }
 
       val c = event.keyChar
-      if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
+      if (c == CHAR_UNDEFINED || c.isISOControl()) {
         return
       }
 
@@ -868,28 +857,17 @@ class EmulatorView(
     }
 
     private fun keyPressedOrReleased(event: KeyEvent) {
-      val keyCode = event.keyCode
-      val modifiers = event.modifiersEx
-
       if (!isConnected) {
         return
       }
-      val emulatorKeyStroke = hostKeyStrokeToEmulatorKeyStroke(keyCode, modifiers)
-      if (emulatorKeyStroke == null) {
-        val keyName = hostKeyCodeToEmulatorKeyName(keyCode)
-        if (keyName != null) {
-          emulator.pressModifierKeys(modifiers)
-          val eventType = if (event.id == KEY_PRESSED) KeyEventType.keydown else KeyEventType.keyup
-          emulator.sendKey(createKeyboardEvent(keyName, eventType))
-          emulator.releaseModifierKeys(modifiers)
+      if (event.id == KEY_PRESSED) {
+        val emulatorKeyStroke = hostKeyStrokeToEmulatorKeyStroke(event.keyCode, event.modifiersEx)
+        if (emulatorKeyStroke != null) {
+          emulator.pressModifierKeys(emulatorKeyStroke.modifiers)
+          emulator.sendKey(KeyboardEvent.newBuilder().setKey(emulatorKeyStroke.keyName).setEventType(KeyEventType.keypress).build())
+          emulator.releaseModifierKeys(emulatorKeyStroke.modifiers)
           event.consume()
         }
-      }
-      else if (event.id == KEY_PRESSED) {
-        emulator.pressModifierKeys(emulatorKeyStroke.modifiers)
-        emulator.sendKey(KeyboardEvent.newBuilder().setKey(emulatorKeyStroke.keyName).setEventType(KeyEventType.keypress).build())
-        emulator.releaseModifierKeys(emulatorKeyStroke.modifiers)
-        event.consume()
       }
     }
 
@@ -905,53 +883,47 @@ class EmulatorView(
       return keyStrokeMap[KeyStroke.getKeyStroke(canonicalKeyCode, modifiers)]
     }
 
-    private fun hostKeyCodeToEmulatorKeyName(hostKeyCode: Int): String? {
-      return when (hostKeyCode) {
-        VK_BACK_SPACE -> "Backspace"
-        VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
-        VK_ENTER -> "Enter"
-        VK_ESCAPE -> "Escape"
-        VK_TAB -> "Tab"
-        else -> return null
-      }
-    }
-
     private fun buildKeyStrokeMap(): Map<KeyStroke, EmulatorKeyStroke> {
       return mutableMapOf<KeyStroke, EmulatorKeyStroke>().apply {
-        addKeystrokesForAction(ACTION_CUT, EmulatorKeyStroke("Cut"))
-        addKeystrokesForAction(ACTION_COPY, EmulatorKeyStroke("Copy"))
-        addKeystrokesForAction(ACTION_PASTE, EmulatorKeyStroke("Paste"))
-        addKeystrokesForAction(ACTION_SELECT_ALL, EmulatorKeyStroke("a", CTRL_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT, EmulatorKeyStroke("ArrowLeft"))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT, EmulatorKeyStroke("ArrowRight"))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, EmulatorKeyStroke("ArrowLeft", SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION, EmulatorKeyStroke("ArrowRight", SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_UP, EmulatorKeyStroke("ArrowUp"))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN, EmulatorKeyStroke("ArrowDown"))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION, EmulatorKeyStroke("ArrowUp", SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION, EmulatorKeyStroke("ArrowDown", SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_PREVIOUS_WORD, EmulatorKeyStroke("ArrowLeft", CTRL_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_NEXT_WORD, EmulatorKeyStroke("ArrowRight", CTRL_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION, EmulatorKeyStroke("ArrowLeft", CTRL_SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_NEXT_WORD_WITH_SELECTION, EmulatorKeyStroke("ArrowRight", CTRL_SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_LINE_START, EmulatorKeyStroke("Home"))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_LINE_END, EmulatorKeyStroke("End"))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION, EmulatorKeyStroke("Home", SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION, EmulatorKeyStroke("End", SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP, EmulatorKeyStroke("PageUp"))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN, EmulatorKeyStroke("PageDown"))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION, EmulatorKeyStroke("PageUp", SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION, EmulatorKeyStroke("PageDown", SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_TEXT_START, EmulatorKeyStroke("Home", CTRL_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_TEXT_END, EmulatorKeyStroke("End", CTRL_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, EmulatorKeyStroke("Home", CTRL_SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_EDITOR_TEXT_END_WITH_SELECTION, EmulatorKeyStroke("End", CTRL_SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_UNDO, EmulatorKeyStroke("z", CTRL_DOWN_MASK))
-        addKeystrokesForAction(ACTION_REDO, EmulatorKeyStroke("z", CTRL_SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_COPY, EmulatorKeyStroke("Copy"))
+        addKeyStrokesForAction(ACTION_CUT, EmulatorKeyStroke("Cut"))
+        addKeyStrokesForAction(ACTION_DELETE, EmulatorKeyStroke("Delete"))
+        addKeyStrokesForAction(ACTION_PASTE, EmulatorKeyStroke("Paste"))
+        addKeyStrokesForAction(ACTION_SELECT_ALL, EmulatorKeyStroke("a", CTRL_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_ENTER, EmulatorKeyStroke("Enter"))
+        addKeyStrokesForAction(ACTION_EDITOR_ESCAPE, EmulatorKeyStroke("Escape"))
+        addKeyStrokesForAction(ACTION_EDITOR_BACKSPACE, EmulatorKeyStroke("Backspace"))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT, EmulatorKeyStroke("ArrowLeft"))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT, EmulatorKeyStroke("ArrowRight"))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, EmulatorKeyStroke("ArrowLeft", SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION, EmulatorKeyStroke("ArrowRight", SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_UP, EmulatorKeyStroke("ArrowUp"))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN, EmulatorKeyStroke("ArrowDown"))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION, EmulatorKeyStroke("ArrowUp", SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION, EmulatorKeyStroke("ArrowDown", SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_PREVIOUS_WORD, EmulatorKeyStroke("ArrowLeft", CTRL_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_NEXT_WORD, EmulatorKeyStroke("ArrowRight", CTRL_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION, EmulatorKeyStroke("ArrowLeft", CTRL_SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_NEXT_WORD_WITH_SELECTION, EmulatorKeyStroke("ArrowRight", CTRL_SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_START, EmulatorKeyStroke("Home"))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_END, EmulatorKeyStroke("End"))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION, EmulatorKeyStroke("Home", SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION, EmulatorKeyStroke("End", SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP, EmulatorKeyStroke("PageUp"))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN, EmulatorKeyStroke("PageDown"))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION, EmulatorKeyStroke("PageUp", SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION, EmulatorKeyStroke("PageDown", SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_TAB, EmulatorKeyStroke("Tab"))
+        addKeyStrokesForAction(ACTION_EDITOR_TEXT_START, EmulatorKeyStroke("Home", CTRL_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_TEXT_END, EmulatorKeyStroke("End", CTRL_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, EmulatorKeyStroke("Home", CTRL_SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_EDITOR_TEXT_END_WITH_SELECTION, EmulatorKeyStroke("End", CTRL_SHIFT_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_UNDO, EmulatorKeyStroke("z", CTRL_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_REDO, EmulatorKeyStroke("z", CTRL_SHIFT_DOWN_MASK))
       }
     }
 
-    private fun MutableMap<KeyStroke, EmulatorKeyStroke>.addKeystrokesForAction(actionId: String, androidKeystroke: EmulatorKeyStroke) {
+    private fun MutableMap<KeyStroke, EmulatorKeyStroke>.addKeyStrokesForAction(actionId: String, androidKeystroke: EmulatorKeyStroke) {
       for (keyStroke in KeymapUtil.getKeyStrokes(KeymapUtil.getActiveKeymapShortcuts(actionId))) {
         put(keyStroke, androidKeystroke)
       }
@@ -1293,8 +1265,6 @@ class EmulatorView(
 
     @UiThread
     private fun updateDisplayImage() {
-      hideLongRunningOperationIndicatorInstantly()
-
       val screenshot = screenshotForDisplay.getAndSet(null)
       if (screenshot == null) {
         stats?.recordDroppedFrame()
@@ -1443,7 +1413,7 @@ class EmulatorView(
 
       fun log() {
         if (frameCount != 0) {
-          val frameRate = String.format("%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
+          val frameRate = String.format(Locale.ROOT, "%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
           val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
           val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
           val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""

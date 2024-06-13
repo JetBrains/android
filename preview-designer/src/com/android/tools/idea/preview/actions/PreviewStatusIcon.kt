@@ -21,12 +21,15 @@ import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
 /** [AnAction] that can be used to show an icon according to the [PreviewViewModelStatus]. */
 class PreviewStatusIcon : AnAction() {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     val previewViewModelStatus = e.getData(PREVIEW_VIEW_MODEL_STATUS)
     e.presentation.apply {
@@ -46,7 +49,7 @@ class PreviewStatusIcon : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val service = IssuePanelService.getInstance(project)
-    service.setSharedIssuePanelVisibility(true) {
+    service.showSharedIssuePanel {
       e.getData(SCENE_VIEW)?.let { service.setSelectedNode(SceneViewIssueNodeVisitor(it)) }
     }
   }

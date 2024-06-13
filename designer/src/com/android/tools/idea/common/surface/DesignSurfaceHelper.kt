@@ -18,6 +18,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.SdkConstants.*
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
@@ -78,7 +79,7 @@ fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, 
         facet,
         FD_RES_DRAWABLE,
         asset + DOT_XML,
-        CharStreams.toString(reader)
+        CharStreams.toString(reader),
       )
     }
   } catch (exception: IOException) {
@@ -90,7 +91,7 @@ fun copyLayoutToMainModuleSourceSet(
   project: Project,
   facet: AndroidFacet,
   layout: String,
-  @Language("XML") xml: String
+  @Language("XML") xml: String,
 ) {
   val message = "Do you want to copy layout $layout to your main module source set?"
 
@@ -109,7 +110,7 @@ private fun createResourceFile(
   facet: AndroidFacet,
   resourceDirectory: String,
   resourceFileName: String,
-  resourceFileContent: CharSequence
+  resourceFileContent: CharSequence,
 ) {
   WriteCommandAction.runWriteCommandAction(project) {
     try {
@@ -134,7 +135,7 @@ private fun createResourceFile(
 private fun getResourceDirectoryChild(
   project: Project,
   facet: AndroidFacet,
-  child: String
+  child: String,
 ): VirtualFile? {
   val resourceDirectory = ResourceFolderManager.getInstance(facet).primaryFolder
 
@@ -170,7 +171,7 @@ fun WorkBench<DesignSurface<*>>.handleLayoutlibNativeCrash(runnable: Runnable) {
  */
 fun createZoomControlAutoHiddenListener(
   zoomControlPaneOwner: JComponent,
-  zoomControlComponent: JComponent
+  zoomControlComponent: JComponent,
 ): AWTEventListener {
   return AWTEventListener { event ->
     val id: Int = event.id
@@ -203,7 +204,7 @@ fun DesignSurface<*>.getFitContentIntoWindowScale(contentSize: Dimension): Doubl
   @SurfaceScale
   val scaleY: Double =
     if (size.height == 0) 1.0 else availableHeight.toDouble() / contentSize.height
-  return minOf(scaleX, scaleY, myMaxFitIntoScale)
+  return minOf(scaleX, scaleY, zoomController.maxZoomToFitLevel)
 }
 
 /** Helper function to set the visibilities of all [SceneView]s in the [DesignSurface]. */
@@ -214,6 +215,7 @@ fun DesignSurface<*>.updateSceneViewVisibilities(visibilityFunc: (SceneView) -> 
 }
 
 /** Obtain the [DesignSurface] associated to a [FileEditor] if any. */
+@UiThread
 fun FileEditor.getDesignSurface(): DesignSurface<*>? =
   when (this) {
     is TextEditorWithPreview -> previewEditor.getDesignSurface()

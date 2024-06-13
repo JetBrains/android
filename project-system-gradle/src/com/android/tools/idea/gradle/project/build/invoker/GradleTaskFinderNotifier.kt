@@ -23,7 +23,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 
 object GradleTaskFinderNotifier {
-  fun notifyNoTaskFound(modules: Array<Module>, mode: BuildMode, type: TestCompileType) {
+  fun notifyNoTaskFound(modules: Array<Module>, mode: BuildMode) {
     if (modules.isEmpty()) return
     val modulePaths = modules
       .mapNotNull { it.getGradleIdentityPath() }
@@ -34,13 +34,13 @@ object GradleTaskFinderNotifier {
       .joinToString(", ") + if (modulePaths.size > MAX_MODULES_TO_INCLUDE_IN_LOG_MESSAGE) "..." else ""
 
     val logMessage =
-      String.format("Unable to find Gradle tasks to build: [%s]. Build mode: %s. Tests: %s.", logModuleNames, mode, type.displayName)
+      String.format("Unable to find Gradle tasks to build: [%s]. Build mode: %s", logModuleNames, mode)
     logger.warn(logMessage)
     val moduleNames = modulePaths.take(MAX_MODULES_TO_SHOW_IN_NOTIFICATION)
       .joinToString(", ") + if (modulePaths.size > 5) "..." else ""
 
     val message =
-      String.format("Unable to find Gradle tasks to build: [%s]. <br>Build mode: %s. <br>Tests: %s.", moduleNames, mode, type.displayName)
+      String.format("Unable to find Gradle tasks to build: [%s]. <br>Build mode: %s.", moduleNames, mode)
     NotificationGroupManager.getInstance()
       .getNotificationGroup("Android Gradle Tasks")
       .createNotification(message, NotificationType.WARNING)

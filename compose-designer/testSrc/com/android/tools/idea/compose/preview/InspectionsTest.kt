@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
 import org.intellij.lang.annotations.Language
@@ -26,7 +27,7 @@ import org.junit.Test
 
 class InspectionsTest {
 
-  @get:Rule val projectRule = ComposeProjectRule()
+  @get:Rule val projectRule = ComposeProjectRule(AndroidProjectRule.inMemory().withKotlin())
   private val fixture
     get() = projectRule.fixture
 
@@ -58,7 +59,7 @@ class InspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
       "9: Preview only works with Composable functions",
-      fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
+      fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber(),
     )
   }
 
@@ -149,7 +150,7 @@ class InspectionsTest {
         |34: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter
         |54: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter"""
         .trimMargin(),
-      inspections
+      inspections,
     )
   }
 
@@ -204,7 +205,7 @@ class InspectionsTest {
         |21: Multiple @PreviewParameter are not allowed
       """
         .trimMargin(),
-      inspections
+      inspections,
     )
   }
 
@@ -313,7 +314,7 @@ class InspectionsTest {
                     |68: Preview must be a top level declaration or in a top level class with a default constructor.
                     |70: Preview must be a top level declaration or in a top level class with a default constructor."""
         .trimMargin(),
-      inspections
+      inspections,
     )
   }
 
@@ -364,7 +365,7 @@ class InspectionsTest {
         |15: Preview width is limited to 2,000, and setting a higher number will not increase the preview width
       """
         .trimMargin(),
-      inspections
+      inspections,
     )
   }
 
@@ -415,7 +416,7 @@ class InspectionsTest {
         |15: Preview height is limited to 2,000, and setting a higher number will not increase the preview height
       """
         .trimMargin(),
-      inspections
+      inspections,
     )
   }
 
@@ -504,7 +505,7 @@ class InspectionsTest {
         |21: Preview fontScale value must be greater than zero
       """
         .trimMargin(),
-      inspections
+      inspections,
     )
   }
 
@@ -595,7 +596,7 @@ class InspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
       "8: Preview only works with Composable functions",
-      fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
+      fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber(),
     )
   }
 
@@ -636,7 +637,7 @@ class InspectionsTest {
     assertEquals(
       "6: Preview functions usually don't call themselves recursively," +
         " so please double-check you're calling the intended function",
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().descriptionWithLineNumber()
+      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().descriptionWithLineNumber(),
     )
   }
 }

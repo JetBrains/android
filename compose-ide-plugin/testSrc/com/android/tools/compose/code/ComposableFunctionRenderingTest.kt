@@ -56,7 +56,7 @@ class ComposableFunctionRenderingTest {
       @Composable
       fun ${caret}HomeScreen() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -78,7 +78,7 @@ class ComposableFunctionRenderingTest {
       @Composable
       fun ${caret}HomeScreen(foo: Int = 0, bar: String = "") {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -100,7 +100,7 @@ class ComposableFunctionRenderingTest {
       @Composable
       fun ${caret}HomeScreen(foo: Int, bar: String) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -122,7 +122,7 @@ class ComposableFunctionRenderingTest {
       @Composable
       fun ${caret}HomeScreen(foo: Int, bar: String = "", baz: Int = "") {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -144,7 +144,7 @@ class ComposableFunctionRenderingTest {
       @Composable
       fun ${caret}HomeScreen(foo: () -> Unit) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -166,7 +166,7 @@ class ComposableFunctionRenderingTest {
       @Composable
       fun ${caret}HomeScreen(foo: () -> Unit = {}) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -188,7 +188,7 @@ class ComposableFunctionRenderingTest {
       @Composable
       fun ${caret}HomeScreen(a: Int, b: Int = 0, foo: () -> Unit) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -210,7 +210,7 @@ class ComposableFunctionRenderingTest {
       @Composable
       fun ${caret}HomeScreen(a: Int, b: Int = 0, foo: () -> Unit = {}) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // This seems like odd behavior, but it's documenting the existing behavior at the time this

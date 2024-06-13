@@ -4,14 +4,13 @@ package org.jetbrains.android.actions;
 import com.android.ddmlib.Client;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.execution.common.debug.utils.AndroidConnectDebugger;
-import com.intellij.facet.ProjectFacetManager;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidConnectDebuggerAction extends AnAction {
@@ -45,7 +44,7 @@ public class AndroidConnectDebuggerAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     final Project project = e.getProject();
     boolean isVisible = isAndroidStudio ||
-                        (project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID));
+                        (project != null && CommonAndroidUtil.getInstance().isAndroidProject(project));
     e.getPresentation().setVisible(isVisible);
   }
 }

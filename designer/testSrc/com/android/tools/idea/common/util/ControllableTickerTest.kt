@@ -55,7 +55,7 @@ class ControllableTickerTest {
       ControllableTicker(
         counterIncrementer,
         Duration.ofMillis(TICKER_STEP_MILLIS),
-        executorProvider
+        executorProvider,
       )
 
     ticker.start()

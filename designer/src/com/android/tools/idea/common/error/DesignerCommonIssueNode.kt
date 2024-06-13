@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
 import com.intellij.codeHighlighting.HighlightDisplayLevel
-import com.intellij.designer.model.EmptyXmlTag
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.CompoundIconProvider
@@ -55,7 +54,7 @@ import javax.swing.Icon
  */
 abstract class DesignerCommonIssueNode(
   project: Project?,
-  parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>?
+  parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>?,
 ) :
   PresentableNodeDescriptor<DesignerCommonIssueNode>(project, parentDescriptor),
   LeafState.Supplier {
@@ -204,7 +203,7 @@ class NodeProviderImpl(private val rootNode: DesignerCommonIssueNode) : NodeProv
 class DesignerCommonIssueRoot(
   project: Project?,
   val issueProvider: DesignerCommonIssueProvider<out Any?>,
-  private val nodeFactoryProvider: () -> NodeFactory
+  private val nodeFactoryProvider: () -> NodeFactory,
 ) : DesignerCommonIssueNode(project, null) {
 
   private var _comparator: Comparator<DesignerCommonIssueNode> = compareBy { 0 }
@@ -268,7 +267,7 @@ class IssuedFileNode(val file: VirtualFile, parent: DesignerCommonIssueNode?) :
     val url = virtualFile.parent?.presentableUrl ?: return
     presentation.addText(
       "  ${FileUtil.getLocationRelativeToUserHome(url)}",
-      SimpleTextAttributes.GRAYED_ATTRIBUTES
+      SimpleTextAttributes.GRAYED_ATTRIBUTES,
     )
     val count = getNodeProvider().getIssueNodes(this).size
     presentation.addText("  ${createIssueCountText(count)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
@@ -309,7 +308,7 @@ interface NodeFactory {
 
   fun createFileNode(
     virtualFile: VirtualFile,
-    parent: DesignerCommonIssueNode
+    parent: DesignerCommonIssueNode,
   ): DesignerCommonIssueNode = IssuedFileNode(virtualFile, parent)
 }
 
@@ -323,7 +322,7 @@ class LayoutValidationNoFileNode(parent: DesignerCommonIssueNode?) :
 open class NoFileNode(
   private val nodeName: String,
   private val nodeIcon: Icon?,
-  parent: DesignerCommonIssueNode?
+  parent: DesignerCommonIssueNode?,
 ) : DesignerCommonIssueNode(parent?.project, parent) {
   override fun getLeafState() = LeafState.DEFAULT
 
@@ -365,7 +364,7 @@ val DESCEND_ORDER_DEFAULT_SEVERITIES: List<HighlightSeverity> =
 open class IssueNode(
   val file: VirtualFile?,
   val issue: Issue,
-  val parent: DesignerCommonIssueNode?
+  val parent: DesignerCommonIssueNode?,
 ) : DesignerCommonIssueNode(parent?.project, parent) {
 
   override fun getLeafState() = LeafState.ALWAYS
@@ -437,7 +436,7 @@ open class IssueNode(
 
 class VisualLintIssueNode(
   private val visualLintIssue: VisualLintRenderIssue,
-  parent: DesignerCommonIssueNode?
+  parent: DesignerCommonIssueNode?,
 ) : IssueNode(null, visualLintIssue, parent) {
 
   override fun getLeafState() = LeafState.DEFAULT
@@ -448,9 +447,7 @@ class VisualLintIssueNode(
     if (project == null) {
       return null
     }
-    val navigatable =
-      (visualLintIssue.components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
-        as? OpenFileDescriptor)
+    val navigatable = visualLintIssue.navigatable as? OpenFileDescriptor
     if (navigatable != null) {
       return MyOpenFileDescriptor(navigatable)
     }
@@ -495,7 +492,7 @@ private class MyOpenFileDescriptor(openFileDescriptor: OpenFileDescriptor) :
   OpenFileDescriptor(
     openFileDescriptor.project,
     openFileDescriptor.file,
-    openFileDescriptor.offset
+    openFileDescriptor.offset,
   ) {
 
   /**
@@ -540,7 +537,7 @@ class SelectWearDevicesNavigatable(project: Project) :
 @VisibleForTesting
 open class OpenLayoutValidationNavigatable(
   private val project: Project,
-  configurationSetToSelect: ConfigurationSet
+  configurationSetToSelect: ConfigurationSet,
 ) : Navigatable {
   private val task = {
     VisualizationToolWindowFactory.openAndSetConfigurationSet(project, configurationSetToSelect)
@@ -550,7 +547,7 @@ open class OpenLayoutValidationNavigatable(
     DesignerCommonIssuePanelUsageTracker.getInstance()
       .trackNavigationFromIssue(
         UniversalProblemsPanelEvent.IssueNavigated.OPEN_VALIDATION_TOOL,
-        project
+        project,
       )
     task()
   }

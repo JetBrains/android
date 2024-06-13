@@ -31,13 +31,13 @@ import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito.verify
 import java.awt.Component
 import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.writeText
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito.verify
 
 /** Tests for [ImportLogcatAction] */
 class ImportLogcatActionTest {
@@ -48,7 +48,7 @@ class ImportLogcatActionTest {
   val rule =
     RuleChain(
       projectRule,
-      ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory)
+      ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory),
     )
 
   @Test

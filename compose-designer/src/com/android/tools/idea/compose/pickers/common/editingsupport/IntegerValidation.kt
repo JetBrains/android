@@ -40,13 +40,13 @@ private fun createIntegerValidator(type: IntegerValidatorType): EditingValidatio
       }
         ?: return@validator Pair(
           EditingErrorCategory.ERROR,
-          message("picker.preview.input.validation.integer.nan")
+          message("picker.preview.input.validation.integer.nan"),
         )
 
     if (numberValue < 0) {
       return@validator Pair(
         EditingErrorCategory.ERROR,
-        message("picker.preview.input.validation.positive.value")
+        message("picker.preview.input.validation.positive.value"),
       )
     }
 
@@ -56,7 +56,7 @@ private fun createIntegerValidator(type: IntegerValidatorType): EditingValidatio
           IntegerValidatorType.NORMAL -> EditingErrorCategory.WARNING
           IntegerValidatorType.STRICT -> EditingErrorCategory.ERROR
         },
-        message("picker.preview.input.validation.positive.value")
+        message("picker.preview.input.validation.positive.value"),
       )
     }
     EDITOR_NO_ERROR
@@ -69,5 +69,5 @@ private enum class IntegerValidatorType {
   NORMAL,
 
   /** To validate for positive integers (>0). */
-  STRICT
+  STRICT,
 }

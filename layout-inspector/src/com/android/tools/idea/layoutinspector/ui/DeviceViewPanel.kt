@@ -24,7 +24,6 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
-import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
@@ -33,7 +32,6 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_S
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.createStandaloneLayoutInspectorToolbar
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataKey
@@ -56,7 +54,6 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.concurrent.Executor
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
@@ -64,6 +61,7 @@ import javax.swing.JPanel
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
 import kotlin.math.min
+import kotlinx.coroutines.launch
 
 private const val MAX_ZOOM = 300
 private const val MIN_ZOOM = 10
@@ -76,12 +74,8 @@ const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
 val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("Toggle3DActionButtonKey")
 
 /** Panel that shows the device screen in the layout inspector. */
-class DeviceViewPanel(
-  val layoutInspector: LayoutInspector,
-  disposableParent: Disposable,
-  @TestOnly
-  private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
+class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Disposable) :
+  JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
   private val renderSettings = layoutInspector.renderLogic.renderSettings
 
@@ -119,7 +113,7 @@ class DeviceViewPanel(
       hasForegroundProcess = { hasForegroundProcess },
       renderLogic = layoutInspector.renderLogic,
       renderModel = layoutInspector.renderModel,
-      coroutineScope = layoutInspector.coroutineScope
+      coroutineScope = layoutInspector.coroutineScope,
     )
 
   private fun showGrab() {
@@ -194,7 +188,7 @@ class DeviceViewPanel(
     MyViewportLayoutManager(
       scrollPane.viewport,
       { contentPanel.renderModel.layerSpacing },
-      { contentPanel.rootLocation }
+      { contentPanel.rootLocation },
     )
 
   private val actionToolbar =
@@ -202,7 +196,7 @@ class DeviceViewPanel(
       disposableParent,
       this,
       layoutInspector,
-      targetSelectedAction?.dropDownAction
+      targetSelectedAction?.dropDownAction,
     )
 
   private var isCurrentForegroundProcessDebuggable = false
@@ -278,60 +272,12 @@ class DeviceViewPanel(
     val model = layoutInspector.inspectorModel
     val notificationModel = layoutInspector.notificationModel
 
-    model.addAttachStageListener() { state ->
-      val text =
-        when (state) {
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE ->
-            "Unknown state"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.NOT_STARTED -> "Starting"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING -> "Adb ping success"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS -> "Attach success"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT ->
-            "Start request sent"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED ->
-            "Start request received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.STARTED -> "Started"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT -> "Roots sent"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_RECEIVED -> "Roots received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_INVALIDATION_CALLBACK ->
-            "Capture started"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.SCREENSHOT_CAPTURED ->
-            "Screenshot captured"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_HIERARCHY_CAPTURED ->
-            "Hierarchy captured"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.RESPONSE_SENT -> "Response sent"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LAYOUT_EVENT_RECEIVED ->
-            "View information received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_REQUEST_SENT ->
-            "Compose information request"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_RESPONSE_RECEIVED ->
-            "Compose information received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_REQUESTED ->
-            "Legacy window list requested"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_RECEIVED ->
-            "Legacy window list received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED ->
-            "Legacy hierarchy requested"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED ->
-            "Legacy hierarchy received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED ->
-            "Legacy screenshot requested"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED ->
-            "Legacy screenshot received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.PARSED_COMPONENT_TREE ->
-            "Compose tree parsed"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED -> "Update complete"
-        }
-
-      if (text.isNotEmpty()) {
-        loadingPane.setLoadingText(text)
-      }
-    }
+    model.addAttachStageListener(AttachProgressProvider { loadingPane.setLoadingText(it) })
 
     contentPanel.renderModel.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
         val performanceWarningNeeded =
-          layoutInspector.currentClient.isCapturing &&
+          layoutInspector.currentClient.inLiveMode &&
             (contentPanel.renderModel.isRotated || model.hasHiddenNodes())
         if (performanceWarningNeeded != performanceWarningGiven) {
           if (performanceWarningNeeded) {
@@ -343,7 +289,7 @@ class DeviceViewPanel(
               notificationModel.addNotification(
                 it,
                 LayoutInspectorBundle.message(it),
-                Status.Warning
+                Status.Warning,
               )
             }
           } else {
@@ -395,11 +341,11 @@ class DeviceViewPanel(
     var prevZoom = renderSettings.scalePercent
     renderSettings.modificationListeners.add {
       val client = layoutInspector.currentClient
-      if (client.isCapturing) {
+      if (client.inLiveMode) {
         client.updateScreenshotType(null, renderSettings.scaleFraction.toFloat())
       }
       if (prevZoom != renderSettings.scalePercent) {
-        backgroundExecutor.execute {
+        layoutInspector.coroutineScope.launch {
           floatingToolbarProvider.zoomChanged(prevZoom / 100.0, renderSettings.scalePercent / 100.0)
           prevZoom = renderSettings.scalePercent
           model.windows.values.forEach { it.refreshImages(renderSettings.scaleFraction) }
@@ -416,7 +362,7 @@ class DeviceViewPanel(
     floatingToolbar.location =
       Point(
         layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
-        layeredPane.height - floatingToolbar.height - TOOLBAR_INSET
+        layeredPane.height - floatingToolbar.height - TOOLBAR_INSET,
       )
   }
 
@@ -500,7 +446,7 @@ class DeviceViewPanel(
 class MyViewportLayoutManager(
   private val viewport: JViewport,
   private val layerSpacing: () -> Int,
-  private val rootLocation: () -> Point?
+  private val rootLocation: () -> Point?,
 ) : LayoutManager by viewport.layout {
   private var lastLayerSpacing = INITIAL_LAYER_SPACING
   private var lastRootLocation: Point? = null
@@ -530,7 +476,7 @@ class MyViewportLayoutManager(
               val size = viewport.view.preferredSize
               Point(
                 (size.width - bounds.width).coerceAtLeast(0) / 2,
-                (size.height - bounds.height).coerceAtLeast(0) / 2
+                (size.height - bounds.height).coerceAtLeast(0) / 2,
               )
             }
             else -> {
@@ -538,7 +484,7 @@ class MyViewportLayoutManager(
                 SwingUtilities.convertPoint(
                   viewport,
                   Point(viewport.width / 2, viewport.height / 2),
-                  viewport.view
+                  viewport.view,
                 )
               val xPercent = position.x.toDouble() / viewport.view.width.toDouble()
               val yPercent = position.y.toDouble() / viewport.view.height.toDouble()
@@ -548,7 +494,7 @@ class MyViewportLayoutManager(
               val newPosition =
                 Point(
                   (viewport.view.width * xPercent).toInt(),
-                  (viewport.view.height * yPercent).toInt()
+                  (viewport.view.height * yPercent).toInt(),
                 )
               newPosition.translate(-viewport.extentSize.width / 2, -viewport.extentSize.height / 2)
               newPosition

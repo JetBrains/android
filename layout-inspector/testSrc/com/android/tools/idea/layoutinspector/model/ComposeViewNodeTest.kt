@@ -18,6 +18,8 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
+import org.junit.Rule
 import org.junit.Test
 
 private val MATERIAL = packageNameHash("androidx.compose.material")
@@ -25,20 +27,22 @@ private val FOUNDATION_TEXT = packageNameHash("androidx.compose.foundation.text"
 private val EXAMPLE = packageNameHash("com.example.myexampleapp")
 
 class ComposeViewNodeTest {
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testIsSystemNode() {
-    val model = model {
-      view(ROOT) {
-        compose(VIEW1, "MyApplicationTheme", composePackageHash = EXAMPLE) {
-          compose(VIEW2, "Text", composePackageHash = EXAMPLE) {
-            compose(VIEW3, "Text", composePackageHash = MATERIAL) {
-              compose(VIEW4, "CoreText", composePackageHash = FOUNDATION_TEXT)
+    val model =
+      model(disposableRule.disposable) {
+        view(ROOT) {
+          compose(VIEW1, "MyApplicationTheme", composePackageHash = EXAMPLE) {
+            compose(VIEW2, "Text", composePackageHash = EXAMPLE) {
+              compose(VIEW3, "Text", composePackageHash = MATERIAL) {
+                compose(VIEW4, "CoreText", composePackageHash = FOUNDATION_TEXT)
+              }
             }
           }
         }
       }
-    }
 
     val user1 = model[VIEW1]!!
     val user2 = model[VIEW2]!!
@@ -65,34 +69,35 @@ class ComposeViewNodeTest {
 
   @Test
   fun testFlags() {
-    val model = model {
-      view(ROOT) {
-        compose(VIEW1, "MyApplicationTheme") {
-          compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
-            compose(
-              VIEW3,
-              "Text",
-              composeFlags = FLAG_HAS_MERGED_SEMANTICS,
-              composePackageHash = EXAMPLE
-            ) {
+    val model =
+      model(disposableRule.disposable) {
+        view(ROOT) {
+          compose(VIEW1, "MyApplicationTheme") {
+            compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
               compose(
-                VIEW4,
+                VIEW3,
                 "Text",
-                composeFlags = FLAG_HAS_UNMERGED_SEMANTICS,
-                composePackageHash = EXAMPLE
+                composeFlags = FLAG_HAS_MERGED_SEMANTICS,
+                composePackageHash = EXAMPLE,
               ) {
                 compose(
-                  VIEW5,
-                  "CoreText",
-                  composeFlags = FLAG_SYSTEM_DEFINED,
-                  composePackageHash = EXAMPLE
-                )
+                  VIEW4,
+                  "Text",
+                  composeFlags = FLAG_HAS_UNMERGED_SEMANTICS,
+                  composePackageHash = EXAMPLE,
+                ) {
+                  compose(
+                    VIEW5,
+                    "CoreText",
+                    composeFlags = FLAG_SYSTEM_DEFINED,
+                    composePackageHash = EXAMPLE,
+                  )
+                }
               }
             }
           }
         }
       }
-    }
     assertThat(model[VIEW2]?.isInlined).isTrue()
     assertThat(model[VIEW2]?.isSystemNode).isFalse()
     assertThat(model[VIEW2]?.hasMergedSemantics).isFalse()

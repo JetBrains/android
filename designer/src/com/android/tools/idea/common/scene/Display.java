@@ -24,8 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * Display a layout Scene
  */
 public class Display {
-  private long mTime;
-  private DisplayList myDisplayList = new DisplayList();
+  private final DisplayList myDisplayList = new DisplayList();
   private long myDisplayListVersion = 0;
   double myScale = 0;
 
@@ -34,11 +33,8 @@ public class Display {
   }
 
   public void draw(@NotNull SceneContext sceneContext, @NotNull Graphics2D g, @NotNull Scene scene) {
-    mTime = System.currentTimeMillis();
-    boolean needsRebuild = false;
-    if (scene.getDisplayListVersion() > myDisplayListVersion) {
-      needsRebuild = true;
-    }
+    long mTime = System.currentTimeMillis();
+    boolean needsRebuild = scene.getDisplayListVersion() > myDisplayListVersion;
     if (sceneContext.getScale() != myScale) {
       myScale = sceneContext.getScale();
       needsRebuild = true;

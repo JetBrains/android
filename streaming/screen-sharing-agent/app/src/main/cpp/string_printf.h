@@ -16,14 +16,16 @@
 
 #pragma once
 
+#include <cstdarg>
 #include <string>
-
-#include <stdarg.h>
 
 namespace screensharing {
 
 // Formats a string and returns it.
 std::string StringPrintf(const char* format, ...) __attribute__((format(printf, 1, 2)));
 std::string StringVPrintf(const char* format, va_list args);
+
+// Returns contents of a buffer as hexadecimal string.
+std::string HexString(const void* buf, size_t size);
 
 }  // namespace screensharing

@@ -16,12 +16,20 @@
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu
 
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
+import com.android.tools.profilers.cpu.config.AtraceConfiguration
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 
-class SystemTraceTaskHandler(sessionsManager: SessionsManager, private val isTraceboxEnabled: Boolean) : CpuTaskHandler(sessionsManager) {
-  override fun getCpuRecordingConfig() = PerfettoSystemTraceConfiguration(getTaskName(), isTraceboxEnabled)
+class SystemTraceTaskHandler(val sessionsManager: SessionsManager, private val isTraceboxEnabled: Boolean) : CpuTaskHandler(sessionsManager) {
+  override fun getCpuRecordingConfig(): ProfilingConfiguration =
+    PerfettoSystemTraceConfiguration(getTaskName(), isTraceboxEnabled)
+      .takeIf {
+        val selectedDevice = sessionsManager.studioProfilers.taskHomeTabModel.selectedDevice
+        selectedDevice != null && isDeviceSupported(selectedDevice.device, it)
+      }
+    ?: AtraceConfiguration(getTaskName())
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) =
     artifact is CpuCaptureSessionArtifact

@@ -17,8 +17,8 @@ package com.android.tools.idea.glance.preview
 
 import com.android.flags.ifEnabled
 import com.android.tools.idea.common.surface.Layer
+import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneLayer
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -42,7 +42,7 @@ internal val GLANCE_SCREEN_VIEW_PROVIDER =
 
     override fun createPrimarySceneView(
       surface: NlDesignSurface,
-      manager: LayoutlibSceneManager
+      manager: LayoutlibSceneManager,
     ): ScreenView =
       ScreenView.newBuilder(surface, manager)
         .withLayersProvider {
@@ -59,7 +59,7 @@ internal val GLANCE_SCREEN_VIEW_PROVIDER =
             }
             .build()
         }
-        .withShapePolicy { SceneView.SQUARE_SHAPE_POLICY.getShape(it) }
+        .withShapePolicy(SQUARE_SHAPE_POLICY)
         .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
         .build()
 

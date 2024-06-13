@@ -35,7 +35,7 @@ class ViewBindingShortNameCacheTest {
     AndroidProjectRule.withAndroidModel(
       AndroidProjectBuilder(
         namespace = { "test.db" },
-        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }
+        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) },
       )
     )
 
@@ -58,7 +58,7 @@ class ViewBindingShortNameCacheTest {
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // initialize module resources

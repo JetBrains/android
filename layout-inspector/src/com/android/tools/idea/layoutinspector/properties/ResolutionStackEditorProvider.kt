@@ -29,7 +29,7 @@ import javax.swing.JComponent
 class ResolutionStackEditorProvider(
   model: InspectorPropertiesModel,
   enumSupportProvider: EnumSupportProvider<InspectorPropertyItem>,
-  val controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>
+  controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>,
 ) : EditorProvider<InspectorPropertyItem> {
   private val baseTypeProvider = BaseTypeProvider(controlTypeProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, baseTypeProvider)
@@ -39,9 +39,14 @@ class ResolutionStackEditorProvider(
 
   override fun createEditor(
     property: InspectorPropertyItem,
-    context: EditorContext
+    context: EditorContext,
   ): Pair<PropertyEditorModel, JComponent> {
-    val (model, editor) = editorProvider.createEditor(property, context)
+    // Use EditorContext.TABLE_RENDERER such that text will always be rendered as a PropertyLabel.
+    // This will eliminate flickering from the table row being resized when a PropertyTextField is
+    // used for editing.
+    // Note: In the Layout Inspector we do not need to edit text values, but a ResolutionStackEditor
+    // will be an editor such that the links can be clicked / tabbed to.
+    val (model, editor) = editorProvider.createEditor(property, EditorContext.TABLE_RENDERER)
     model.readOnly = true
     if (!property.needsResolutionEditor) {
       return Pair(model, editor)

@@ -144,6 +144,8 @@ class DownloadsAnalyzerTest {
     // For `-sources` and `-javadoc`:
     //  - android model builder requests both thus we should see both requests for C.
     //  - platform model builder requests only sources by default for buildscript thus we should see only sources for D.
+    // Duplicate request with error code for javadoc/source is expected because we are using ArtifactResolutionQuery api when artifactView
+    // api couldn't find the javadoc/source.
     Truth.assertThat(HttpServerWrapper.detectedHttpRequests.filter { it.contains("/example/") }).containsExactlyElementsIn("""
       Server1: GET on /example/C/1.0/C-1.0.pom - return error 404
       Server1: HEAD on /example/C/1.0/C-1.0.jar - return error 404
@@ -151,6 +153,8 @@ class DownloadsAnalyzerTest {
       Server2: GET on /example/C/1.0/C-1.0.jar - OK
       Server2: GET on /example/D/1.0/D-1.0.pom - OK
       Server2: GET on /example/D/1.0/D-1.0.jar - OK
+      Server2: HEAD on /example/C/1.0/C-1.0-sources.jar - return error 404
+      Server2: HEAD on /example/C/1.0/C-1.0-javadoc.jar - return error 404
       Server2: HEAD on /example/C/1.0/C-1.0-sources.jar - return error 404
       Server2: HEAD on /example/C/1.0/C-1.0-javadoc.jar - return error 404
       Server2: HEAD on /example/D/1.0/D-1.0-sources.jar - return error 404

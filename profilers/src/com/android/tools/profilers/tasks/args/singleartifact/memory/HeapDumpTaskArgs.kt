@@ -21,6 +21,7 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 /**
  * The following class serves as a wrapper for all arguments/data passed to the heap dump task handler.
  */
-class HeapDumpTaskArgs(private val artifact: HprofSessionArtifact) : MemoryCaptureTaskArgs<HprofSessionArtifact, Memory.HeapDumpInfo>() {
+class HeapDumpTaskArgs(override val isFromStartup: Boolean = false,
+                       private val artifact: HprofSessionArtifact?) : MemoryCaptureTaskArgs<HprofSessionArtifact, Memory.HeapDumpInfo>() {
   override fun getMemoryCaptureArtifact() = artifact
 }

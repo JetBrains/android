@@ -26,6 +26,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintTypographyDashesInspec
 import com.android.tools.idea.lint.inspections.AndroidLintUnusedResourcesInspection;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.Vendor;
+import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.base.Joiner;
@@ -141,7 +142,7 @@ public class AndroidLintInspectionBaseTest extends LightJavaCodeInsightFixtureAd
     LintFix third = LintFix.create().name("Third Alphabetically").replace().text("Test").with("1").build();
     LintFix group1 = LintFix.create().alternatives(first, second, third);
 
-    LintIdeQuickFix[] fixes = AndroidLintInspectionBase.createFixes(file, group1);
+    LintIdeQuickFix[] fixes = AndroidLintInspectionBase.createFixes(getProject(), file, new Incident(), group1);
     assertEquals("First Alphabetically", fixes[0].getName());
     assertEquals(Priority.TOP, fixes[0].getPriority());
     assertEquals("Second Alphabetically", fixes[1].getName());

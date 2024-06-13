@@ -52,6 +52,7 @@ import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -196,8 +197,8 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(runConfiguration.deployOptions.pmInstallFlags).isEqualTo("Some Flags")
   }
 
-
   @Test
+  @Ignore("b/326598354")
   fun testResetFromConfigurationWithChosenSlots() {
     runConfiguration.componentLaunchOptions.watchFaceInfo = object : ComplicationWatchFaceInfo {
       override val complicationSlots = listOf(
@@ -247,6 +248,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @Ignore("b/326598354")
   fun testFilterComponentTypes() {
     runConfiguration.componentLaunchOptions.watchFaceInfo = object : ComplicationWatchFaceInfo {
       override val complicationSlots = listOf(
@@ -426,6 +428,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @Ignore("b/327623449")
   fun testResetFromAndApplyTo() {
     runConfiguration.componentLaunchOptions.componentName = "com.example.MyLongShortTextComplication"
     runConfiguration.setModule(module)

@@ -23,7 +23,7 @@ import org.gradle.tooling.BuildAction
 /**
  * Invokes Gradle tasks in the background.
  */
-internal interface GradleTasksExecutor {
+interface GradleTasksExecutor {
   fun execute(
     request: GradleBuildInvoker.Request,
     buildAction: BuildAction<*>?,

@@ -73,6 +73,7 @@ import com.android.tools.idea.wizard.template.UrlLinkWidget
 import com.android.tools.idea.wizard.template.Widget
 import com.android.tools.idea.wizard.ui.WizardUtils
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Joiner
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
@@ -82,11 +83,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.FlowLayout
 import java.util.EnumSet
 import java.util.Optional
@@ -95,69 +95,82 @@ import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import org.jetbrains.android.util.AndroidBundle.message
 
-val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
-  ACTIVITY, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
-)
+val TYPE_CONSTRAINTS: EnumSet<Constraint> =
+  EnumSet.of(
+    ACTIVITY,
+    CLASS,
+    PACKAGE,
+    APP_PACKAGE,
+    MODULE,
+    LAYOUT,
+    DRAWABLE,
+    SOURCE_SET_FOLDER,
+    STRING,
+    URI_AUTHORITY,
+  )
 
 fun Parameter<*>.isRelated(p: Parameter<*>): Boolean =
-  p is StringParameter && this is StringParameter && p !== this &&
-  TYPE_CONSTRAINTS.intersect(constraints).intersect(p.constraints).isNotEmpty()
+  p is StringParameter &&
+    this is StringParameter &&
+    p !== this &&
+    TYPE_CONSTRAINTS.intersect(constraints).intersect(p.constraints).isNotEmpty()
 
 /**
- * A step which takes a template and wraps a UI around it, allowing a user to modify its various parameters.
+ * A step which takes a template and wraps a UI around it, allowing a user to modify its various
+ * parameters.
  *
- * Far from being generic data, the template edited by this step is very Android specific, and needs to be aware of things like
- * the current project/module, package name, min supported API, previously configured values, etc.
+ * Far from being generic data, the template edited by this step is very Android specific, and needs
+ * to be aware of things like the current project/module, package name, min supported API,
+ * previously configured values, etc.
  */
-class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.Label title: String, private val templates: List<NamedModuleTemplate>)
-  : ModelWizardStep<RenderTemplateModel>(model, title) {
+class ConfigureTemplateParametersStep(
+  model: RenderTemplateModel,
+  @NlsContexts.Label title: String,
+  private val templates: List<NamedModuleTemplate>,
+) : ModelWizardStep<RenderTemplateModel>(model, title) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
   private val parameterRows = hashMapOf<Parameter<in Any>, RowEntry<*>>()
   private val userValues = hashMapOf<Parameter<*>, Any>()
 
   /**
-   * Validity check of all parameters is performed when any parameter changes, and the first error found is set here.
-   * This is then registered as its own validator with [validatorPanel].
-   * This vastly simplifies validation, as we no longer have to worry about implicit relationships between parameters
-   * (when changing one makes another valid/invalid).
+   * Validity check of all parameters is performed when any parameter changes, and the first error
+   * found is set here. This is then registered as its own validator with [validatorPanel]. This
+   * vastly simplifies validation, as we no longer have to worry about implicit relationships
+   * between parameters (when changing one makes another valid/invalid).
    */
   private val invalidParameterMessage = StringValueProperty()
 
-  private val templateDescriptionLabel = JBLabel().apply {
-    font = JBFont.label().lessOn(1f)
-  }
-  private val templateTitleLabel = JBLabel(title).apply {
-    font = JBFont.label().asBold()
-  }
+  private val templateDescriptionLabel = JBLabel().apply { font = JBFont.label().lessOn(1f) }
+  private val templateTitleLabel = JBLabel(title).apply { font = JBFont.label().asBold() }
 
   private var parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
 
-  private val mainPanel = panel {
-    row {
-      cell(templateTitleLabel)
-    }
-    row {
-      cell(templateDescriptionLabel).align(AlignX.FILL)
-    }
-    row {
-      cell(parametersPanel).align(AlignX.FILL)
-    }
-  }.apply {
-    border = JBUI.Borders.emptyTop(32)
-  }
+  private val mainPanel =
+    panel {
+        row { cell(templateTitleLabel).align(Align.FILL).resizableColumn() }
+        row { cell(templateDescriptionLabel).align(Align.FILL).resizableColumn() }
+        row { cell(parametersPanel).align(Align.FILL).resizableColumn() }
+      }
+      .apply { border = JBUI.Borders.emptyTop(32) }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, mainPanel)
   private val rootPanel: JScrollPane = wrapWithVScroll(validatorPanel)
   private var evaluationState = EvaluationState.NOT_EVALUATING
-  private val parameters: Collection<Parameter<*>> get() = model.newTemplate.parameters
-  private val project: Project? get() = if (model.isNewProject) null else model.project
+  private val parameters: Collection<Parameter<*>>
+    get() = model.newTemplate.parameters
+
+  private val project: Project?
+    get() = if (model.isNewProject) null else model.project
 
   /**
-   * Given a parameter, return a String key we can use to interact with IntelliJ's [RecentsManager] system.
+   * Given a parameter, return a String key we can use to interact with IntelliJ's [RecentsManager]
+   * system.
    */
-  private fun getRecentsKeyForParameter(parameter: Parameter<*>) = "android.template.${parameter.hashCode()}"
+  private fun getRecentsKeyForParameter(parameter: Parameter<*>) =
+    "android.template.${parameter.hashCode()}"
 
   override fun shouldShow(): Boolean = model.newTemplate !== Template.NoActivity
 
@@ -180,8 +193,13 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
     templateTitleLabel.text = newTemplate.name
 
     for (widget in model.newTemplate.widgets) {
-      if (widget is LanguageWidget && (model.moduleTemplateDataBuilder.isNewModule || model.projectTemplateDataBuilder.isNewProject)) {
-        // We should not show language chooser in "New Module" and "New Project" wizards because it should be selected on a previous step.
+      if (
+        widget is LanguageWidget &&
+          (model.moduleTemplateDataBuilder.isNewModule ||
+            model.projectTemplateDataBuilder.isNewProject)
+      ) {
+        // We should not show language chooser in "New Module" and "New Project" wizards because it
+        // should be selected on a previous step.
         continue
       }
 
@@ -194,7 +212,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
       val property = row.property
       val parameter = widget.parameter as Parameter<Any>
       property?.addListener {
-        // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
+        // If not evaluating, change comes from the user (or user pressed "Back" and updates are
+        // "external". eg Template changed)
         if (evaluationState != EvaluationState.EVALUATING && mainPanel.isShowing) {
           userValues[parameter] = property.get()
           parameter.setFromProperty(property)
@@ -204,7 +223,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
       }
       parameterRows[parameter] = row
       when (widget) {
-        // We cannot know a good default value for package in template, but it's being preset in [createRowForWidget]
+        // We cannot know a good default value for package in template, but it's being preset in
+        // [createRowForWidget]
         is PackageNameWidget -> parameter.value = property!!.get()
         is EnumWidget -> row.setValue((parameter.value as Enum<*>).name)
         else -> row.setValue(parameter.value)
@@ -212,13 +232,19 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
     }
 
     if (templates.size > 1) {
-      val row = RowEntry(message("android.wizard.target.source.set.header"), ModuleTemplateComboProvider(templates)).apply {
-        setEnabled(true)
-        addToPanel(parametersPanel)
-        property!!.addListener {
-          model.wizardParameterData.sourceProviderName = (property.get() as Optional<NamedModuleTemplate>).get().name
-        }
-      }
+      val row =
+        RowEntry(
+            message("android.wizard.target.source.set.header"),
+            ModuleTemplateComboProvider(templates),
+          )
+          .apply {
+            setEnabled(true)
+            addToPanel(parametersPanel)
+            property!!.addListener {
+              model.wizardParameterData.sourceProviderName =
+                (property.get() as Optional<NamedModuleTemplate>).get().name
+            }
+          }
 
       val template = (row.property as SelectedItemProperty<NamedModuleTemplate>)
       // ModuleTemplateComboProvider always sets this
@@ -229,8 +255,10 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
     validatorPanel.registerMessageSource(invalidParameterMessage)
 
     // TODO do not deduplicate package name etc.
-    val parameterValues = parameters.filterIsInstance<StringParameter>()
-      .associateWith { userValues[it] ?: deduplicate(it) }
+    val parameterValues =
+      parameters.filterIsInstance<StringParameter>().associateWith {
+        userValues[it] ?: deduplicate(it)
+      }
 
     parameters.forEach {
       val resolvedValue = parameterValues[it]
@@ -243,50 +271,61 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
   }
 
   /**
-   * Every template parameter, based on its type, can generate a row of* components. For example, a text parameter becomes a
-   * "Label: Textfield" set, while a list of choices becomes "Label: pulldown".
+   * Every template parameter, based on its type, can generate a row of* components. For example, a
+   * text parameter becomes a "Label: Textfield" set, while a list of choices becomes "Label:
+   * pulldown".
    *
-   * This method takes an input [Parameter] and returns a generated [RowEntry] for  it, which neatly encapsulates its UI.
-   * The caller should use [RowEntry.addToPanel] after receiving it.
+   * This method takes an input [Parameter] and returns a generated [RowEntry] for it, which neatly
+   * encapsulates its UI. The caller should use [RowEntry.addToPanel] after receiving it.
    */
-  private fun createRowForWidget(module: Module?, widget: Widget<*>): RowEntry<*> = when (widget) {
-    is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider(widget.parameter))
-    is LabelWidget -> RowEntry(LabelFieldProvider(widget.text))
-    is LanguageWidget -> RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
-      val language = (it.property as SelectedItemProperty<Language>)
-      bindings.bindTwoWay(language, model.language)
-      if (TemplateConstraint.Kotlin in model.newTemplate.constraints) {
-        model.language.value = Language.Kotlin
-        it.setEnabled(false)
-        it.setVisible(false)
-      }
-    }
-    is PackageNameWidget -> {
-      val rowEntry = if (module != null)
-        RowEntry(
-          widget.p.name, PackageComboProvider(module.project, widget.p, model.packageName.get(), getRecentsKeyForParameter(widget.p))
-        )
-      else
-        RowEntry(widget.p.name, LabelWithEditButtonProvider(widget.p))
+  private fun createRowForWidget(module: Module?, widget: Widget<*>): RowEntry<*> =
+    when (widget) {
+      is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider(widget.parameter))
+      is LabelWidget -> RowEntry(LabelFieldProvider(widget.text, widget.icon))
+      is LanguageWidget ->
+        RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
+          val language = (it.property as SelectedItemProperty<Language>)
+          bindings.bindTwoWay(language, model.language)
+          if (TemplateConstraint.Kotlin in model.newTemplate.constraints) {
+            model.language.value = Language.Kotlin
+            it.setEnabled(false)
+            it.setVisible(false)
+          }
+        }
+      is PackageNameWidget -> {
+        val rowEntry =
+          if (module != null)
+            RowEntry(
+              widget.p.name,
+              PackageComboProvider(
+                module.project,
+                widget.p,
+                model.packageName.get(),
+                getRecentsKeyForParameter(widget.p),
+              ),
+            )
+          else RowEntry(widget.p.name, LabelWithEditButtonProvider(widget.p))
 
-      // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
-      val packageName = rowEntry.property as StringProperty
-      bindings.bindTwoWay(packageName, model.packageName)
-      // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new evaluation when value changes.
-      listeners.listen(model.packageName) { enqueueEvaluateParameters() }
-      rowEntry
+        // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
+        val packageName = rowEntry.property as StringProperty
+        bindings.bindTwoWay(packageName, model.packageName)
+        // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new
+        // evaluation when value changes.
+        listeners.listen(model.packageName) { enqueueEvaluateParameters() }
+        rowEntry
+      }
+      is CheckBoxWidget -> RowEntry(CheckboxProvider(widget.p))
+      is UrlLinkWidget -> RowEntry(UrlLinkProvider(widget.urlName, widget.urlAddress))
+      is Separator -> RowEntry(SeparatorProvider())
+      is EnumWidget<*> -> RowEntry(widget.p.name, EnumComboProvider(widget.p))
+      else -> error("Only string and bool parameters are supported for now")
     }
-    is CheckBoxWidget -> RowEntry(CheckboxProvider(widget.p))
-    is UrlLinkWidget -> RowEntry(UrlLinkProvider(widget.urlName, widget.urlAddress))
-    is Separator -> RowEntry(SeparatorProvider())
-    is EnumWidget<*> -> RowEntry(widget.p.name, EnumComboProvider(widget.p))
-    else -> error("Only string and bool parameters are supported for now")
-  }
 
   /**
-   * Instead of evaluating all parameters immediately, invoke the request to run later. This option allows us to avoid the situation where
-   * a value has just changed, is forcefully re-evaluated immediately, and causes Swing to throw an exception between we're editing a
-   * value while it's in a locked read-only state.
+   * Instead of evaluating all parameters immediately, invoke the request to run later. This option
+   * allows us to avoid the situation where a value has just changed, is forcefully re-evaluated
+   * immediately, and causes Swing to throw an exception between we're editing a value while it's in
+   * a locked read-only state.
    */
   private fun enqueueEvaluateParameters() {
     if (evaluationState == EvaluationState.REQUEST_ENQUEUED) {
@@ -298,8 +337,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
   }
 
   /**
-   * Run through all parameters for our current template and update their values,
-   * including visibility, enabled state, and actual values.
+   * Run through all parameters for our current template and update their values, including
+   * visibility, enabled state, and actual values.
    */
   private fun evaluateParameters() {
     evaluationState = EvaluationState.EVALUATING
@@ -311,8 +350,10 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
       }
     }
 
-    val parameterValues = parameters.filterIsInstance<StringParameter>()
-      .associateWith { userValues[it] ?: deduplicate(it) }
+    val parameterValues =
+      parameters.filterIsInstance<StringParameter>().associateWith {
+        userValues[it] ?: deduplicate(it)
+      }
 
     parameters.forEach {
       val resolvedValue = parameterValues[it]
@@ -329,21 +370,44 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
   private fun validateAllParameters(): String? {
     val sourceProvider = model.template.get().getSourceProvider()
 
+    return getSortedStringParametersForValidation(parameters).firstNotNullOfOrNull { parameter ->
+      val property =
+        parameterRows[parameter as Parameter<in Any>]?.property ?: return@firstNotNullOfOrNull null
+      parameter.validate(
+        project,
+        model.module,
+        sourceProvider,
+        model.packageName.get(),
+        property.get(),
+        getRelatedValues(parameter),
+      )
+    }
+  }
+
+  /**
+   * Returns the template's parameters, with parameters containing the PACKAGE constraint first.
+   * This is sort of a hack to make validation check PACKAGE constraints first, before CLASS
+   * constraints. CLASS checks for whether the fully qualified name is valid, while PACKAGE only
+   * checks the package name, so we should check PACKAGE first to display more relevant error
+   * messages.
+   */
+  @VisibleForTesting
+  fun getSortedStringParametersForValidation(
+    parameters: Collection<Parameter<*>>
+  ): List<StringParameter> {
     return parameters
       .filterIsInstance<StringParameter>()
       .filter { it.isVisibleAndEnabled }
-      .firstNotNullOfOrNull { parameter ->
-        val property = parameterRows[parameter as Parameter<in Any>]?.property ?: return@firstNotNullOfOrNull null
-        parameter.validate(project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
-      }
+      .sortedByDescending { it.constraints.contains(PACKAGE) }
   }
 
   override fun getComponent(): JComponent = rootPanel
 
-  override fun getPreferredFocusComponent(): JComponent? = parametersPanel.components.firstOrNull {
-    val child = it as JComponent
-    child.componentCount == 0 && child.isFocusable && child.isVisible
-  } as? JComponent
+  override fun getPreferredFocusComponent(): JComponent? =
+    parametersPanel.components.firstOrNull {
+      val child = it as JComponent
+      child.componentCount == 0 && child.isFocusable && child.isVisible
+    } as? JComponent
 
   override fun canGoForward(): ObservableBool = validatorPanel.hasErrors().not()
 
@@ -355,21 +419,18 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
   }
 
   override fun dispose() {
+    super.dispose()
     bindings.releaseAll()
     listeners.releaseAll()
     super.dispose()
   }
 
-  /**
-   * When finished with this step, calculate and install a bunch of values.
-   */
+  /** When finished with this step, calculate and install a bunch of values. */
   override fun onProceeding() {
     // Some parameter values should be saved for later runs through this wizard, so do that first.
     parameterRows.values.forEach(RowEntry<*>::accept)
 
-    parameterRows.forEach { (p, row) ->
-      p.setFromProperty(row.property!!)
-    }
+    parameterRows.forEach { (p, row) -> p.setFromProperty(row.property!!) }
   }
 
   private fun <T> Parameter<T>.setFromProperty(property: AbstractProperty<*>) {
@@ -379,20 +440,26 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
       }
       else -> {
         @Suppress("UNCHECKED_CAST")
-        this.value = property.get() as T // TODO(qumeric): row may have no property? (e.g. separator)
+        this.value =
+          property.get() as T // TODO(qumeric): row may have no property? (e.g. separator)
       }
     }
   }
 
   /**
-   * Fetches the values of all parameters that are related to the target parameter. This is useful when validating a parameter's value.
+   * Fetches the values of all parameters that are related to the target parameter. This is useful
+   * when validating a parameter's value.
    */
   private fun getRelatedValues(parameter: Parameter<*>): Set<Any> =
-    parameters.filter { parameter.isRelated(it) }.mapNotNull { parameterRows[it]?.property?.get() }.toSet()
+    parameters
+      .filter { parameter.isRelated(it) }
+      .mapNotNull { parameterRows[it]?.property?.get() }
+      .toSet()
 
   /**
-   * Because the FreeMarker templating engine is mostly opaque to us, any time any parameter changes, we need to re-evaluate all parameters.
-   * Parameter evaluation can be started immediately via [evaluateParameters] or with a delay using [enqueueEvaluateParameters].
+   * Because the FreeMarker templating engine is mostly opaque to us, any time any parameter
+   * changes, we need to re-evaluate all parameters. Parameter evaluation can be started immediately
+   * via [evaluateParameters] or with a delay using [enqueueEvaluateParameters].
    */
   private enum class EvaluationState {
     NOT_EVALUATING,
@@ -410,16 +477,16 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
 
     private val header: JPanel?
     private val componentProvider: ComponentProvider<T>
-    private val container: JPanel = DialogPanel().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    }
+    private val container: JPanel =
+      DialogPanel().apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
 
     constructor(@NlsContexts.Label headerText: String, componentProvider: ComponentProvider<T>) {
       val headerLabel = JBLabel(headerText)
-      header = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-        add(headerLabel)
-        add(Box.createHorizontalStrut(20))
-      }
+      header =
+        JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+          add(headerLabel)
+          add(Box.createHorizontalStrut(20))
+        }
       this.componentProvider = componentProvider
       component = componentProvider.createComponent()
       property = componentProvider.createProperty(component)
@@ -475,7 +542,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
     var suggested = value
     val extPart = Files.getFileExtension(value)
 
-    // First remove file extension. Then remove all trailing digits, because we probably were the ones that put them there.
+    // First remove file extension. Then remove all trailing digits, because we probably were the
+    // ones that put them there.
     // For example, if two parameters affect each other, say "Name" and "Layout", you get this:
     // Step 1) Resolve "Name" -> "Name2", causes related "Layout" to become "Layout2"
     // Step 2) Resolve "Layout2" -> "Layout22"
@@ -487,11 +555,19 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.L
     var suffix = 2
     val relatedValues = getRelatedValues(parameter)
     val sourceProvider = model.template.get().getSourceProvider()
-    while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {
+    while (
+      !parameter.uniquenessSatisfied(
+        project,
+        model.module,
+        sourceProvider,
+        model.packageName.get(),
+        suggested,
+        relatedValues,
+      )
+    ) {
       suggested = filenameJoiner.join(namePart + suffix, extPart.ifEmpty { null })
       suffix++
     }
     return suggested
   }
 }
-

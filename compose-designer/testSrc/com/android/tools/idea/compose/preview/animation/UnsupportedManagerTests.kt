@@ -18,15 +18,17 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.util.ui.UIUtil
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.animation.LabelCard
+import com.android.tools.idea.preview.animation.TestUtils.findAllCards
+import java.awt.Dimension
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.awt.Dimension
 
 @RunWith(Parameterized::class)
 class UnsupportedManagerTests(private val animationType: ComposeAnimationType) : InspectorTests() {
@@ -41,12 +43,12 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
         arrayOf(ComposeAnimationType.ANIMATE_CONTENT_SIZE),
         arrayOf(ComposeAnimationType.DECAY_ANIMATION),
         arrayOf(ComposeAnimationType.TARGET_BASED_ANIMATION),
-        arrayOf(ComposeAnimationType.UNSUPPORTED)
+        arrayOf(ComposeAnimationType.UNSUPPORTED),
       )
   }
 
   @Test
-  fun unsupportedAnimationInspector() {
+  fun unsupportedAnimationInspector() = runBlocking {
     val inspector = createAndOpenInspector()
 
     val animation =
@@ -58,10 +60,9 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
 
     val clock = TestClockWithCoordination()
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
 
-    ApplicationManager.getApplication().invokeAndWait {
+    withContext(uiThread) {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()

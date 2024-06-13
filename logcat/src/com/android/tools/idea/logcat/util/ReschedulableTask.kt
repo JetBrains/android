@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.logcat.util
 
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
-import java.util.concurrent.atomic.AtomicReference
 
 /** A delayed task that can be replaced by another task before it is executed. */
 internal class ReschedulableTask(private val coroutineScope: CoroutineScope) {

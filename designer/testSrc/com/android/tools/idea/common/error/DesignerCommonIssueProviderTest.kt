@@ -39,7 +39,12 @@ class DesignerCommonIssueProviderTest {
   fun testReceiveMessageFromTopic() {
     val project = projectRule.project
     val provider =
-      DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, null)
+      DesignToolsIssueProvider(
+        projectRule.testRootDisposable,
+        project,
+        EmptyFilter,
+        SHARED_ISSUE_PANEL_TAB_ID,
+      )
 
     var count = 0
     val listener: () -> Unit = { count++ }
@@ -57,7 +62,12 @@ class DesignerCommonIssueProviderTest {
   fun testUpdateIssuesFromSameSource() {
     val project = projectRule.project
     val provider =
-      DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, null)
+      DesignToolsIssueProvider(
+        projectRule.testRootDisposable,
+        project,
+        EmptyFilter,
+        SHARED_ISSUE_PANEL_TAB_ID,
+      )
 
     assertEmpty(provider.getFilteredIssues())
 
@@ -98,7 +108,12 @@ class DesignerCommonIssueProviderTest {
   fun testUpdateIssuesFromMultipleSource() {
     val project = projectRule.project
     val provider =
-      DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, null)
+      DesignToolsIssueProvider(
+        projectRule.testRootDisposable,
+        project,
+        EmptyFilter,
+        SHARED_ISSUE_PANEL_TAB_ID,
+      )
 
     assertEmpty(provider.getFilteredIssues())
 
@@ -147,7 +162,7 @@ class DesignerCommonIssueProviderTest {
           ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
             .withBounds(0, 0, 1000, 1000)
             .matchParentWidth()
-            .matchParentHeight()
+            .matchParentHeight(),
         )
         .build()
     }
@@ -164,8 +179,8 @@ class DesignerCommonIssueProviderTest {
             .withAttribute(
               SdkConstants.TOOLS_URI,
               SdkConstants.ATTR_IGNORE,
-              VisualLintErrorType.BOUNDS.ignoredAttributeValue
-            )
+              VisualLintErrorType.BOUNDS.ignoredAttributeValue,
+            ),
         )
         .build()
     }
@@ -178,14 +193,14 @@ class DesignerCommonIssueProviderTest {
         VisualLintErrorType.BOUNDS,
         model1.components,
         issueProvider,
-        ""
+        "",
       )
     val visualLintIssue2 =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.BOUNDS,
         model2.components,
         issueProvider,
-        ""
+        "",
       )
     assertTrue(filter.invoke(visualLintIssue1))
     assertFalse(filter.invoke(visualLintIssue2))
@@ -202,7 +217,7 @@ class DesignerCommonIssueProviderTest {
           ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
             .withBounds(0, 0, 1000, 1000)
             .matchParentWidth()
-            .matchParentHeight()
+            .matchParentHeight(),
         )
         .build()
     }
@@ -215,7 +230,7 @@ class DesignerCommonIssueProviderTest {
           ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
             .withBounds(0, 0, 1000, 1000)
             .matchParentWidth()
-            .matchParentHeight()
+            .matchParentHeight(),
         )
         .build()
     }
@@ -227,14 +242,14 @@ class DesignerCommonIssueProviderTest {
         VisualLintErrorType.BOUNDS,
         model1.components,
         issueProvider,
-        ""
+        "",
       )
     val visualLintIssue2 =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.BOUNDS,
         model2.components,
         issueProvider,
-        ""
+        "",
       )
 
     runInEdtAndWait { projectRule.fixture.openFileInEditor(model1.virtualFile) }

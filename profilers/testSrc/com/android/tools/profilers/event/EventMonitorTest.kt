@@ -29,12 +29,14 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
+import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNATTACHABLE_RESPONSE
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
 
 class EventMonitorTest {
   private val timer = FakeTimer()
@@ -45,16 +47,19 @@ class EventMonitorTest {
 
   private lateinit var monitor: EventMonitor
   private lateinit var profilers: StudioProfilers
+  private lateinit var ideProfilerServices: FakeIdeProfilerServices
 
   @Before
   fun setUp() {
-    val services = FakeIdeProfilerServices()
-    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
+    ideProfilerServices = FakeIdeProfilerServices()
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     monitor = EventMonitor(profilers)
   }
 
   @Test
   fun monitorEnabledOnAgentAttached() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     assertThat(monitor.isEnabled).isFalse() // Monitor is not enabled on start.
 
     val session = Common.Session.newBuilder()
@@ -82,6 +87,57 @@ class EventMonitorTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     assertThat(monitor.isEnabled).isTrue()
+  }
+
+  @Test
+  fun monitorEnabledChangedOnAgentAttachable() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
+    assertThat(monitor.isEnabled).isFalse()
+
+    val session = Common.Session.newBuilder()
+      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build()
+    val sessionOMetadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build()
+    transportService.addSession(session, sessionOMetadata)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Set the session without attaching the agent. The monitor should still be disabled.
+    profilers.sessionsManager.setSession(session)
+    assertThat(monitor.isEnabled).isFalse()
+    assertEquals(Common.AgentData.Status.UNSPECIFIED, monitor.profilers.agentData.status);
+
+    // Set the session to something else, to make sure we won't return early when setting the session again.
+    profilers.sessionsManager.setSession(Common.Session.getDefaultInstance())
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Make sure the agent is not attachable and set the session afterward. Monitor should be not enabled still.
+    transportService.addEventToStream(session.streamId, Event.newBuilder()
+      .setKind(Event.Kind.AGENT)
+      .setPid(session.pid)
+      .setAgentData(DEFAULT_AGENT_UNATTACHABLE_RESPONSE)
+      .build())
+    profilers.sessionsManager.setSession(session)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    assertThat(monitor.isEnabled).isFalse()
+    assertEquals(Common.AgentData.Status.UNATTACHABLE, monitor.profilers.agentData.status)
+
+    // Set the session to something else, to make sure we won't return early when setting the session again
+    profilers.sessionsManager.setSession(Common.Session.getDefaultInstance())
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Make sure the agent is attached and set the session afterward. Monitor should be enabled.
+    transportService.addEventToStream(session.streamId, Event.newBuilder()
+      .setKind(Event.Kind.AGENT)
+      .setPid(session.pid)
+      .setAgentData(DEFAULT_AGENT_ATTACHED_RESPONSE)
+      .build())
+    profilers.sessionsManager.setSession(session)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    assertThat(monitor.isEnabled).isTrue()
+    assertEquals(Common.AgentData.Status.ATTACHED, monitor.profilers.agentData.status)
   }
 
   @Test

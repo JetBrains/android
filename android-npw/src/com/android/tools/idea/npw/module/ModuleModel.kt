@@ -19,9 +19,9 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.NewAndroidModuleModel

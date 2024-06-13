@@ -17,12 +17,12 @@ package com.android.tools.idea.compose.preview.analytics
 
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
-import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder.getPreviewNodes
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -94,10 +94,10 @@ class MultiPreviewUsageTrackerTest {
         ${
         buildMultiPreviewGraph(1, 7,
                                listOf(Pair(0, 1), Pair(1, 2), Pair(1, 3), Pair(2, 4), Pair(2, 5), Pair(3, 6), Pair(3, 7)),
-                               setOf(0, 2, 4, 6))
+                               setOf(0, 2, 4, 6),)
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     val multiPreviewUsageTracker = runReadAction {
       MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
@@ -115,14 +115,14 @@ class MultiPreviewUsageTrackerTest {
         it.nodeType ==
           ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
             .ROOT_COMPOSABLE_FUNCTION_NODE
-      }
+      },
     )
     assertEquals(
       5,
       nodes.count {
         it.nodeType ==
           ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
-      }
+      },
     )
 
     // Check counters (if root counters are ok, all other counters are probably ok)
@@ -163,11 +163,11 @@ class MultiPreviewUsageTrackerTest {
         ${
         buildMultiPreviewGraph(2, 11,
                                listOf(Pair(0, 2), Pair(0, 3), Pair(1, 4), Pair(1, 5), Pair(2, 6), Pair(2, 10), Pair(3, 7),
-                                      Pair(4, 7), Pair(5, 8), Pair(5, 9), Pair(6, 10), Pair(7, 11), Pair(8, 12), Pair(9, 12)),
-                               setOf(0, 2, 4, 6, 12))
+                                      Pair(4, 7), Pair(5, 8), Pair(5, 9), Pair(6, 10), Pair(7, 11), Pair(8, 12), Pair(9, 12),),
+                               setOf(0, 2, 4, 6, 12),)
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     val multiPreviewUsageTracker = runReadAction {
       MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
@@ -185,14 +185,14 @@ class MultiPreviewUsageTrackerTest {
         it.nodeType ==
           ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
             .ROOT_COMPOSABLE_FUNCTION_NODE
-      }
+      },
     )
     assertEquals(
       6,
       nodes.count {
         it.nodeType ==
           ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
-      }
+      },
     )
 
     // Check counters (if roots counters are ok, all other counters are probably ok)
@@ -230,9 +230,9 @@ class MultiPreviewUsageTrackerTest {
       listOf(3, 5),
       listOf(
           nodes.count { it.anonymizedComposableId == idsList[0] },
-          nodes.count { it.anonymizedComposableId == idsList[1] }
+          nodes.count { it.anonymizedComposableId == idsList[1] },
         )
-        .sorted()
+        .sorted(),
     )
   }
 
@@ -254,11 +254,11 @@ class MultiPreviewUsageTrackerTest {
         buildMultiPreviewGraph(2, 11,
                                listOf(Pair(0, 2), Pair(0, 3), Pair(1, 4), Pair(1, 5), Pair(2, 6), Pair(2, 10),
                                       Pair(3, 7), Pair(4, 7), Pair(5, 8), Pair(5, 9), Pair(6, 10),
-                                      Pair(7, 11), Pair(8, 12), Pair(9, 12), Pair(11, 3), Pair(11, 4)),
-                               setOf(0, 2, 4, 6, 12))
+                                      Pair(7, 11), Pair(8, 12), Pair(9, 12), Pair(11, 3), Pair(11, 4),),
+                               setOf(0, 2, 4, 6, 12),)
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     val multiPreviewUsageTracker = runReadAction {
       MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
@@ -276,14 +276,14 @@ class MultiPreviewUsageTrackerTest {
         it.nodeType ==
           ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
             .ROOT_COMPOSABLE_FUNCTION_NODE
-      }
+      },
     )
     assertEquals(
       10,
       nodes.count {
         it.nodeType ==
           ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
-      }
+      },
     )
 
     // Check counters (if roots counters are ok, all other counters are probably ok)
@@ -321,15 +321,15 @@ class MultiPreviewUsageTrackerTest {
       listOf(5, 7),
       listOf(
           nodes.count { it.anonymizedComposableId == idsList[0] },
-          nodes.count { it.anonymizedComposableId == idsList[1] }
+          nodes.count { it.anonymizedComposableId == idsList[1] },
         )
-        .sorted()
+        .sorted(),
     )
   }
 
   @Test
   fun testLogEvent_EssentialsMode() {
-    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
+    StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
     fun logAndGetMultiPreviewEvent() =
       MultiPreviewUsageTracker.getInstance(null)
         .logEvent(MultiPreviewEvent(listOf(), ""))
@@ -337,13 +337,13 @@ class MultiPreviewUsageTrackerTest {
 
     try {
       val settings = AndroidEditorSettings.getInstance().globalState
-      settings.isComposePreviewEssentialsModeEnabled = false
+      settings.isPreviewEssentialsModeEnabled = false
       assertFalse(logAndGetMultiPreviewEvent().isComposePreviewLiteMode)
 
-      settings.isComposePreviewEssentialsModeEnabled = true
+      settings.isPreviewEssentialsModeEnabled = true
       assertTrue(logAndGetMultiPreviewEvent().isComposePreviewLiteMode)
     } finally {
-      StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.clearOverride()
+      StudioFlags.PREVIEW_ESSENTIALS_MODE.clearOverride()
     }
   }
 
@@ -461,7 +461,7 @@ class MultiPreviewUsageTrackerTest {
 
   private fun addFileAndCreateMultiPreviewEvent(
     fileName: String,
-    fileContent: String
+    fileContent: String,
   ): MultiPreviewEvent {
     val vFile =
       fixture
@@ -482,7 +482,7 @@ class MultiPreviewUsageTrackerTest {
         project,
         vFile,
         COMPOSABLE_ANNOTATION_FQ_NAME,
-        COMPOSABLE_ANNOTATION_NAME
+        COMPOSABLE_ANNOTATION_NAME,
       ) { methods ->
         getPreviewNodes(methods, true).asSequence()
       }
@@ -510,7 +510,7 @@ private fun buildMultiPreviewGraph(
   nComposable: Int,
   nAnnotClasses: Int,
   edges: List<Pair<Int, Int>>,
-  idsWithPreview: Set<Int>
+  idsWithPreview: Set<Int>,
 ): String {
   // validate parameters
   assertTrue(nComposable >= 0 && nAnnotClasses >= 0)

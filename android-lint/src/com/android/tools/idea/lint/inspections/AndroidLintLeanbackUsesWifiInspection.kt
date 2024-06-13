@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.LeanbackWifiUsageDetector
 class AndroidLintLeanbackUsesWifiInspection :
   AndroidLintInspectionBase(
     AndroidLintBundle.message("android.lint.inspections.leanback.uses.wifi"),
-    LeanbackWifiUsageDetector.ISSUE
+    LeanbackWifiUsageDetector.ISSUE,
   )

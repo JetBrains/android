@@ -46,7 +46,7 @@ class NodeProviderTest {
 
     nodeProvider.updateIssues(
       listOf(issue1, issue2, issue3, issue4, issue5),
-      LayoutValidationNodeFactory
+      LayoutValidationNodeFactory,
     )
 
     val fileNode = nodeProvider.getFileNodes()

@@ -26,7 +26,6 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
-import com.android.tools.layoutlib.LayoutlibFactory;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.imagepool.ImagePool;
@@ -38,6 +37,7 @@ import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.rendering.tracking.RenderTaskAllocationTracker;
 import com.android.tools.rendering.tracking.RenderTaskAllocationTrackerImpl;
 import com.android.tools.rendering.tracking.StackTraceCapture;
+import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -129,7 +129,7 @@ final public class RenderService implements Disposable {
   public RenderLogger createLogger(
     @Nullable Project project,
     boolean logFramework,
-    @NotNull RenderProblem.RunnableFixFactory fixFactory,
+    @NotNull RenderProblem.ActionFixFactory fixFactory,
     @NotNull Supplier<HtmlLinkManager> linkManagerFactory) {
     return new RenderLogger(project, myCredential, logFramework, fixFactory, linkManagerFactory);
   }
@@ -570,7 +570,7 @@ final public class RenderService implements Disposable {
           message = message != null ? message : RenderingBundle.message("android.layout.preview.default.error.message");
           myLogger.addMessage(
             RenderProblem.createHtml(
-              ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableFixFactory()));
+              ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getActionFixFactory()));
           return null;
         }
 

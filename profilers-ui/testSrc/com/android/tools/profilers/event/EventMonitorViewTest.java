@@ -15,17 +15,22 @@
  */
 package com.android.tools.profilers.event;
 
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNATTACHABLE_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNSPECIFIED_RESPONSE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.EventComponent;
+import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
@@ -39,11 +44,14 @@ import com.android.tools.profilers.StudioProfilersView;
 import com.google.common.truth.Truth;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.DisposableRule;
+import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.components.JBPanel;
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -80,9 +88,13 @@ public class EventMonitorViewTest {
 
   @Before
   public void setUp() {
+    // The Task-Based UX flag will be disabled for the call to setPreferredProcess, then re-enabled. This is because the setPreferredProcess
+    // method changes behavior based on the flag's value, and some of the tests depend on the behavior with the flag turned off.
+    myProfilerServices.enableTaskBasedUx(false);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    myProfilerServices.enableTaskBasedUx(true);
 
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
     // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
@@ -91,6 +103,39 @@ public class EventMonitorViewTest {
     myMonitorView = new EventMonitorView(profilerView, new EventMonitor(myProfilers));
 
     updateAgentData(DEFAULT_AGENT_ATTACHED_RESPONSE);
+
+  }
+
+  @Test
+  public void testDisabledMonitorLoading() {
+    // Set agent UnSpecified
+    updateAgentData(DEFAULT_AGENT_UNSPECIFIED_RESPONSE);
+    Component[]  children = myMonitorView.getComponent().getComponents();
+    assertEquals( 1, children.length);
+    // Awaiting agent to be attached
+    // FakeIdeService displays JPanel instead of JBLoadingPanel
+    assertTrue(children[0] instanceof JPanel);
+  }
+
+  /** When LiveView task is the first task (Agent not being attached) **/
+  @Test
+  public void testDisabledMonitorWhenAgentNotAttachable() {
+    // Set agent UnAttachable
+    updateAgentData(DEFAULT_AGENT_UNATTACHABLE_RESPONSE);
+    Component[]  children = myMonitorView.getComponent().getComponents();
+    assertEquals(myFeatureLevel < AndroidVersion.VersionCodes.O ? 2 : 1, children.length);
+
+    if (myFeatureLevel < AndroidVersion.VersionCodes.O) {
+      assertTrue(children[0] instanceof JLabel);
+      JLabel label = (JLabel)children[0];
+      assertEquals(myMonitorView.getDisabledMessage(), label.getText());
+      Truth.assertThat(label.getText()).contains("Additional");
+    } else {
+      assertTrue(children[0] instanceof JLabel);
+      JLabel label = (JLabel)children[0];
+      assertEquals(myMonitorView.getDisabledMessage(), label.getText());
+      assertEquals("There was an error loading this feature. Try restarting the profiler to fix it.", label.getText());
+    }
   }
 
   @Test

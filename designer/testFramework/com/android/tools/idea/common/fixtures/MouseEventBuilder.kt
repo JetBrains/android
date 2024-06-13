@@ -27,7 +27,7 @@ import java.awt.event.MouseEvent
 
 open class MouseEventBuilder(
   @SwingCoordinate private val myX: Int,
-  @SwingCoordinate private val myY: Int
+  @SwingCoordinate private val myY: Int,
 ) {
   private var mySource: Any = LayoutTestUtilities::class.java
   private var myComponent: Component? = null

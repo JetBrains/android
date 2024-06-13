@@ -32,10 +32,12 @@ import javax.swing.Icon
 import javax.swing.JComponent
 
 @VisibleForTesting
-val ICON_LEGACY_PHONE: Icon = LayeredIcon.layeredIcon { arrayOf(ICON_PHONE, AllIcons.General.WarningDecorator) }
+val ICON_LEGACY_PHONE: Icon =
+  LayeredIcon.layeredIcon { arrayOf(ICON_PHONE, AllIcons.General.WarningDecorator) }
 
 @VisibleForTesting
-val ICON_LEGACY_EMULATOR: Icon = LayeredIcon.layeredIcon { arrayOf(ICON_EMULATOR, AllIcons.General.WarningDecorator) }
+val ICON_LEGACY_EMULATOR: Icon =
+  LayeredIcon.layeredIcon { arrayOf(ICON_EMULATOR, AllIcons.General.WarningDecorator) }
 
 // TODO this class can be removed once the flag
 // DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
@@ -43,7 +45,7 @@ val ICON_LEGACY_EMULATOR: Icon = LayeredIcon.layeredIcon { arrayOf(ICON_EMULATOR
 // A [DropDownAction] with a button.
 data class DropDownActionWithButton(
   val dropDownAction: DropDownAction,
-  val getButton: () -> JComponent?
+  val getButton: () -> JComponent?,
 )
 
 /** Factory class responsible for creating either a device or process picker. */
@@ -66,7 +68,7 @@ object TargetSelectionActionFactory {
    */
   fun getSingleDeviceProcessPicker(
     layoutInspector: LayoutInspector,
-    targetDeviceSerialNumber: String
+    targetDeviceSerialNumber: String,
   ): SingleDeviceSelectProcessAction? {
     val model = layoutInspector.deviceModel ?: return null
     return SingleDeviceSelectProcessAction(
@@ -74,7 +76,7 @@ object TargetSelectionActionFactory {
       targetDeviceSerialNumber = targetDeviceSerialNumber,
       onProcessSelected = { newProcess ->
         layoutInspector.processModel?.selectedProcess = newProcess
-      }
+      },
     )
   }
 
@@ -89,10 +91,10 @@ object TargetSelectionActionFactory {
       stopPresentation =
         SelectProcessAction.StopPresentation(
           "Stop Inspector",
-          "Stop running the layout inspector against the current process"
+          "Stop running the layout inspector against the current process",
         ),
       onStopAction = { layoutInspector.stopInspector() },
-      customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution
+      customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution,
     )
   }
 
@@ -107,7 +109,7 @@ object TargetSelectionActionFactory {
         layoutInspector.processModel?.selectedProcess = newProcess
       },
       onDetachAction = { layoutInspector.stopInspector() },
-      customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution
+      customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution,
     )
   }
 

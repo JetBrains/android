@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.adtui.ZoomController
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundType
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.RoamingType
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
@@ -27,7 +30,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.xmlb.annotations.Transient
 import java.io.File
 
-@State(name = "DesignSurface", storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)])
+@Service(Service.Level.PROJECT)
+@State(
+  name = "DesignSurface",
+  storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE, roamingType = RoamingType.DISABLED)],
+)
 class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
 
   var surfaceState: SurfaceState = SurfaceState()
@@ -71,18 +78,20 @@ class SurfaceState {
   var lastSelectedDrawableBackgroundType: DrawableBackgroundType = DrawableBackgroundType.NONE
 
   @Transient
-  fun loadFileScale(project: Project, file: VirtualFile): Double? {
+  fun loadFileScale(project: Project, file: VirtualFile, zoomController: ZoomController?): Double? {
     val relativePath = getRelativePathInProject(project, file) ?: return null
-    return filePathToZoomLevelMap[relativePath]
+
+    return filePathToZoomLevelMap[relativePath.appendStoreId(zoomController)]
   }
 
   @Transient
-  fun saveFileScale(project: Project, file: VirtualFile, scale: Double?) {
+  fun saveFileScale(project: Project, file: VirtualFile, zoomController: ZoomController?) {
     val relativePath = getRelativePathInProject(project, file) ?: return
-    if (scale == null) {
-      filePathToZoomLevelMap.remove(relativePath)
+    val zoomLevelMapKey = relativePath.appendStoreId(zoomController)
+    if (zoomController?.scale == null) {
+      filePathToZoomLevelMap.remove(zoomLevelMapKey)
     } else {
-      filePathToZoomLevelMap[relativePath] = scale
+      filePathToZoomLevelMap[zoomLevelMapKey] = zoomController.scale
     }
   }
 
@@ -97,7 +106,7 @@ class SurfaceState {
   fun saveDrawableBackgroundType(
     project: Project,
     file: VirtualFile,
-    type: DrawableBackgroundType
+    type: DrawableBackgroundType,
   ) {
     lastSelectedDrawableBackgroundType = type
     val relativePath = getRelativePathInProject(project, file) ?: return
@@ -110,4 +119,13 @@ private fun getRelativePathInProject(project: Project, file: VirtualFile): Strin
   val projectBasePath = project.basePath ?: return null
   val filePath = file.let { BackedVirtualFile.getOriginFileIfBacked(it) }.path
   return FileUtilRt.getRelativePath(projectBasePath, filePath, File.separatorChar, true)
+}
+
+/**
+ * @param zoomController The [ZoomController] containing a store id (it can be null).
+ * @return The key of the map where the scale is stored, if the store id is null returns only the
+ *   path of the file.
+ */
+private fun String.appendStoreId(zoomController: ZoomController?): String {
+  return zoomController?.storeId?.let { storeId -> "$this:$storeId" } ?: this
 }

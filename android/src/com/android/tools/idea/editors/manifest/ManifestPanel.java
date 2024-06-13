@@ -18,6 +18,10 @@ package com.android.tools.idea.editors.manifest;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.android.utils.SdkUtils.parseDecoratedFileUrlString;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
+import static com.intellij.openapi.editor.XmlHighlighterColors.XML_ATTRIBUTE_NAME;
+import static com.intellij.openapi.editor.XmlHighlighterColors.XML_ATTRIBUTE_VALUE;
+import static com.intellij.openapi.editor.XmlHighlighterColors.XML_NS_PREFIX;
+import static com.intellij.openapi.editor.XmlHighlighterColors.XML_TAG_NAME;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.UiThread;
@@ -173,7 +177,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private final List<ManifestFileWithMetadata> myOtherFiles = new ArrayList<>();
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
   private VirtualFile myFile;
-  private final Color myBackgroundColor;
+  private final JBColor myBackgroundColor;
   private Map<PathString, ExternalAndroidLibrary> myLibrariesByManifestDir;
 
   public ManifestPanel(final @NotNull AndroidFacet facet, final @NotNull Disposable parent) {
@@ -187,7 +191,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
     EditorColorsManager colorsManager = EditorColorsManager.getInstance();
     EditorColorsScheme scheme = colorsManager.getGlobalScheme();
-    myBackgroundColor = scheme.getDefaultBackground();
+    myBackgroundColor = JBColor.lazy(() -> colorsManager.getGlobalScheme().getDefaultBackground());
     myDefaultFont = scheme.getFont(EditorFontType.PLAIN);
 
     myTree = new FileColorTree();
@@ -236,6 +240,17 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
     };
     details.addHyperlinkListener(hyperLinkListener);
+    details.addPropertyChangeListener("UI", (event) -> {
+      TreePath path = myTree.getSelectionPath();
+      ManifestTreeNode node = null;
+      if (path != null) {
+        Object component = path.getLastPathComponent();
+        if (component instanceof ManifestTreeNode) {
+          node = (ManifestTreeNode)component;
+        }
+      }
+      updateDetails(node);
+    });
 
     return details;
   }
@@ -1195,11 +1210,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     private final SimpleTextAttributes myPrefixAttributes;
 
     public SyntaxHighlightingCellRenderer() {
-      EditorColorsScheme globalScheme = EditorColorsManager.getInstance().getGlobalScheme();
-      Color tagNameColor = globalScheme.getAttributes(XmlHighlighterColors.XML_TAG_NAME).getForegroundColor();
-      Color nameColor = globalScheme.getAttributes(XmlHighlighterColors.XML_ATTRIBUTE_NAME).getForegroundColor();
-      Color valueColor = globalScheme.getAttributes(XmlHighlighterColors.XML_ATTRIBUTE_VALUE).getForegroundColor();
-      Color prefixColor = globalScheme.getAttributes(XmlHighlighterColors.XML_NS_PREFIX).getForegroundColor();
+      EditorColorsManager colorsManager = EditorColorsManager.getInstance();
+      Color tagNameColor = JBColor.lazy(() -> colorsManager.getGlobalScheme().getAttributes(XML_TAG_NAME).getForegroundColor());
+      Color nameColor = JBColor.lazy(() -> colorsManager.getGlobalScheme().getAttributes(XML_ATTRIBUTE_NAME).getForegroundColor());
+      Color valueColor = JBColor.lazy(() -> colorsManager.getGlobalScheme().getAttributes(XML_ATTRIBUTE_VALUE).getForegroundColor());
+      Color prefixColor = JBColor.lazy(() -> colorsManager.getGlobalScheme().getAttributes(XML_NS_PREFIX).getForegroundColor());
       myTagNameAttributes = new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, tagNameColor);
       myNameAttributes = new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, nameColor);
       myValueAttributes = new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, valueColor);

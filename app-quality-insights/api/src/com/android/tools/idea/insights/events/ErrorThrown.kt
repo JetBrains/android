@@ -25,11 +25,11 @@ data class ErrorThrown(val error: Throwable?) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     return StateTransition(
       state.copy(issues = LoadingState.UnknownFailure(null, error)),
-      Action.NONE
+      Action.NONE,
     )
   }
 }

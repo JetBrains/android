@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.execution.common.stats.RunStats
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ValidationError
@@ -46,7 +45,7 @@ private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
 open class ComposePreviewRunConfiguration(
   project: Project,
   factory: ConfigurationFactory,
-  activityName: String = "androidx.compose.ui.tooling.PreviewActivity"
+  activityName: String = "androidx.compose.ui.tooling.PreviewActivity",
 ) : AndroidRunConfiguration(project, factory) {
 
   /**
@@ -66,9 +65,6 @@ open class ComposePreviewRunConfiguration(
    */
   override fun isTestConfiguration() = true
 
-  override val testCompileMode: TestCompileType
-    get() = TestCompileType.ANDROID_TESTS
-
   override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
     return emptyList()
   }
@@ -77,7 +73,7 @@ open class ComposePreviewRunConfiguration(
   enum class TriggerSource(val eventType: ComposeDeployEvent.ComposeDeployEventType) {
     UNKNOWN(ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE),
     TOOLBAR(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_TOOLBAR),
-    GUTTER(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_GUTTER)
+    GUTTER(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_GUTTER),
   }
 
   var triggerSource = TriggerSource.UNKNOWN

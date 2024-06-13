@@ -7,13 +7,17 @@ package org.jetbrains.kotlin.android.configure
 
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
+import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.ANDROID_TEST
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeSourceProvider
@@ -44,6 +48,7 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
+import org.jetbrains.kotlin.utils.filterIsInstanceAnd
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -85,6 +90,9 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
   override fun populateModuleDependencies(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>, ideProject: DataNode<ProjectData>) {
     super.populateModuleDependencies(gradleModule, ideModule, ideProject)
 
+    // Workaround added for KT-64114
+    addMissingGradlePrefixForLibraryDependencies(ideModule)
+
     val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java) ?: return
     val selectedVariantName = androidModels.selectedVariantName
@@ -103,6 +111,14 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
         )
       }
     }
+  }
+
+  private fun addMissingGradlePrefixForLibraryDependencies(ideModule: DataNode<ModuleData>) {
+    ideModule.sourceSetsByName().values
+      .flatMap { it.children }
+      .map { it.data }
+      .filterIsInstanceAnd<LibraryDependencyData> { !it.internalName.startsWith(GradleConstants.GRADLE_NAME) }
+      .forEach { it.internalName = "${GradleConstants.GRADLE_NAME}: ${it.internalName}" }
   }
 }
 
@@ -179,12 +195,12 @@ fun IdeVariantCoreImpl.patchFromMppModel(
     mainArtifact = mainArtifact.copy(
       variantSourceProvider = mainArtifact.variantSourceProvider.patch(MAIN)
     ),
-    androidTestArtifact = androidTestArtifact?.copy(
-      variantSourceProvider = androidTestArtifact?.variantSourceProvider.patch(ANDROID_TEST)
-    ),
-    unitTestArtifact = unitTestArtifact?.copy(
-      variantSourceProvider = unitTestArtifact?.variantSourceProvider.patch(UNIT_TEST)
-    ),
+    deviceTestArtifacts = deviceTestArtifacts.map {
+      it.copy(variantSourceProvider = it.variantSourceProvider?.patch(it.name.toWellKnownSourceSet()))
+                                                  },
+    hostTestArtifacts = hostTestArtifacts.map {
+      it.copy( variantSourceProvider = it.variantSourceProvider.patch(it.name.toWellKnownSourceSet()))
+                                              } ,
     testFixturesArtifact = testFixturesArtifact?.copy(
       variantSourceProvider = testFixturesArtifact?.variantSourceProvider.patch(TEST_FIXTURES)
     )
@@ -195,8 +211,9 @@ private fun IdeVariantCoreImpl.artifact(artifact: IdeModuleWellKnownSourceSet): 
   return when (artifact) {
     MAIN -> mainArtifact
     TEST_FIXTURES -> testFixturesArtifact
-    UNIT_TEST -> unitTestArtifact
-    ANDROID_TEST -> androidTestArtifact
+    UNIT_TEST -> hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }
+    SCREENSHOT_TEST -> hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
+    ANDROID_TEST -> deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
   }
 }
 
@@ -205,6 +222,7 @@ private val IdeModuleWellKnownSourceSet.artifactName: String
     MAIN -> ARTIFACT_NAME_MAIN
     ANDROID_TEST -> ARTIFACT_NAME_ANDROID_TEST
     UNIT_TEST -> ARTIFACT_NAME_UNIT_TEST
+    SCREENSHOT_TEST -> ARTIFACT_NAME_SCREENSHOT_TEST
     TEST_FIXTURES -> ARTIFACT_NAME_TEST_FIXTURES
   }
 
@@ -213,6 +231,7 @@ private fun IdeSourceProviderContainer.sourceProvider(artifact: IdeModuleWellKno
     MAIN -> sourceProvider
     TEST_FIXTURES -> extraSourceProviders.singleOrNull { it.artifactName == TEST_FIXTURES.artifactName }?.sourceProvider
     UNIT_TEST -> extraSourceProviders.singleOrNull { it.artifactName == UNIT_TEST.artifactName }?.sourceProvider
+    SCREENSHOT_TEST -> extraSourceProviders.singleOrNull{ it.artifactName == SCREENSHOT_TEST.artifactName }?.sourceProvider
     ANDROID_TEST -> extraSourceProviders.singleOrNull { it.artifactName == ANDROID_TEST.artifactName }?.sourceProvider
   }
 }
@@ -304,6 +323,7 @@ private fun IdeModuleWellKnownSourceSet.androidCompilationNameSuffix() = when (t
   MAIN -> ""
   ANDROID_TEST -> "AndroidTest"
   UNIT_TEST -> "UnitTest"
+  SCREENSHOT_TEST -> "ScreenshotTest"
   TEST_FIXTURES -> "TestFixtures"
 }
 
@@ -312,6 +332,8 @@ private fun IdeModuleWellKnownSourceSet.kmpSourceSetSuffixes() = when (this) {
   MAIN -> setOf("main")
   ANDROID_TEST -> setOf("androidTest", "instrumentedTest")
   UNIT_TEST -> setOf("test", "unitTest")
+  // TODO (karimai): verify this when screenshotTest support is enabled for KMP.
+  SCREENSHOT_TEST -> setOf("screenshotTest")
   TEST_FIXTURES -> setOf("testFixtures")
 }
 

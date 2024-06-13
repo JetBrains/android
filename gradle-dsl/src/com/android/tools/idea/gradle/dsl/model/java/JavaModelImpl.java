@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model.java;
 
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
+import com.android.tools.idea.gradle.dsl.api.java.ToolchainModel;
 import com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
+import com.android.tools.idea.gradle.dsl.parser.java.ToolchainDslElement;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,5 +28,11 @@ import org.jetbrains.annotations.NotNull;
 public class JavaModelImpl extends BaseCompileOptionsModelImpl implements JavaModel {
   public JavaModelImpl(@NotNull JavaDslElement dslElement) {
     super(dslElement);
+  }
+
+  @Override
+  public @NotNull ToolchainModel toolchain() {
+    ToolchainDslElement toolchainDslElement = myDslElement.ensurePropertyElement(ToolchainDslElement.TOOLCHAIN);
+    return new ToolchainModelImpl(toolchainDslElement);
   }
 }

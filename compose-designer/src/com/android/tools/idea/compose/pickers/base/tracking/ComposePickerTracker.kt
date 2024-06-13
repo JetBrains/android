@@ -39,7 +39,7 @@ internal interface ComposePickerTracker {
   fun registerModification(
     name: String,
     value: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
-    device: Device?
+    device: Device?,
   )
 
   /**

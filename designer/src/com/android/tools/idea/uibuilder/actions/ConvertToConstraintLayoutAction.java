@@ -38,6 +38,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.WEB_VIEW;
+import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -46,6 +47,7 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -53,10 +55,10 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.rendering.parsers.AttributeSnapshot;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -111,17 +113,24 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   public static final String ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT = "layout_conversion_wrapHeight"; //$NON-NLS-1$
   private static final HashSet<String> ourExcludedTags = new HashSet<>(Arrays.asList(TAG_LAYOUT, TAG_DATA, TAG_VARIABLE, TAG_IMPORT));
   public static final String ACTION_UNDO_ID = "convert_constraintlayout_id";
-  private final NlDesignSurface mySurface;
 
-  public ConvertToConstraintLayoutAction(@NotNull NlDesignSurface surface) {
+  public ConvertToConstraintLayoutAction() {
     super(TITLE, TITLE, null);
-    mySurface = surface;
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
+    DesignSurface<?> surface = e.getData(DESIGN_SURFACE);
+    if (surface == null) {
+      return;
+    }
     Presentation presentation = e.getPresentation();
-    SceneView screenView = mySurface.getFocusedSceneView();
+    SceneView screenView = surface.getFocusedSceneView();
     NlComponent target = findTarget(screenView);
     if (target != null) {
       String tagName = target.getTagName();
@@ -165,7 +174,11 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    SceneView sceneView = mySurface.getFocusedSceneView();
+    DesignSurface<?> surface = e.getData(DESIGN_SURFACE);
+    if (surface == null) {
+      return;
+    }
+    SceneView sceneView = surface.getFocusedSceneView();
     if (sceneView == null) {
       return;
     }
@@ -179,7 +192,10 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
     // Step #1: UI
 
-    Project project = mySurface.getProject();
+    Project project = e.getProject();
+    if (project == null) {
+      return;
+    }
     ConvertToConstraintLayoutForm dialog = new ConvertToConstraintLayoutForm(project);
     if (!dialog.showAndGet()) {
       return;

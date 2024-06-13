@@ -16,6 +16,7 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
+import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.mvvm.PreviewViewModel
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
@@ -32,13 +33,15 @@ private const val PREVIEW_NOTIFICATION_GROUP_ID = "Wear Tile Preview Notificatio
 internal class WearTilePreviewViewModel(
   previewView: PreviewView,
   projectBuildStatusManager: ProjectBuildStatusManager,
+  previewRefreshManager: PreviewRefreshManager,
   project: Project,
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  hasRenderErrors: () -> Boolean
+  hasRenderErrors: () -> Boolean,
 ) :
   CommonPreviewViewModel(
     previewView,
     projectBuildStatusManager,
+    previewRefreshManager,
     project,
     psiFilePointer,
     hasRenderErrors,
@@ -47,7 +50,7 @@ internal class WearTilePreviewViewModel(
         PREVIEW_NOTIFICATION_GROUP_ID,
         message("event.log.refresh.title"),
         message("event.log.refresh.total.elapsed.time", durationString),
-        NotificationType.INFORMATION
+        NotificationType.INFORMATION,
       )
-    }
+    },
   )

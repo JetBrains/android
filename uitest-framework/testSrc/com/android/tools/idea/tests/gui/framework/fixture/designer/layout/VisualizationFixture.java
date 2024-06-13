@@ -20,6 +20,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -49,7 +50,7 @@ public class VisualizationFixture extends ToolWindowFixture {
   }
 
   public VisualizationFixture waitForRenderToFinish() {
-    myDesignSurfaceFixture.waitForRenderToFinish();
+    myDesignSurfaceFixture.waitForRenderToFinish(Wait.seconds(60));
     return this;
   }
 
@@ -75,8 +76,7 @@ public class VisualizationFixture extends ToolWindowFixture {
    * Zoom to fit the screen
    */
   public void zoomToFit() {
-    myDesignSurfaceFixture.target()
-      .zoomToFit();
+    myDesignSurfaceFixture.target().getZoomController().zoomToFit();
     myDesignSurfaceFixture.waitForRenderToFinish();
   }
 
@@ -84,8 +84,7 @@ public class VisualizationFixture extends ToolWindowFixture {
    * To use the Zoom In feature from the Pan button
    */
   public void zoomIn() {
-    myDesignSurfaceFixture.target()
-      .zoom(ZoomType.IN);
+    myDesignSurfaceFixture.target().getZoomController().zoom(ZoomType.IN);
     myDesignSurfaceFixture.waitForRenderToFinish();
   }
 
@@ -93,8 +92,7 @@ public class VisualizationFixture extends ToolWindowFixture {
    * To use the Zoom out feature from the Pan button
    */
   public void zoomOut() {
-    myDesignSurfaceFixture.target()
-      .zoom((ZoomType.OUT));
+    myDesignSurfaceFixture.target().getZoomController().zoom((ZoomType.OUT));
     myDesignSurfaceFixture.waitForRenderToFinish();
   }
 
@@ -102,8 +100,7 @@ public class VisualizationFixture extends ToolWindowFixture {
    * To zoom to the 100% or 1:1
    */
   public  void zoomToActual() {
-    myDesignSurfaceFixture.target()
-      .zoom(ZoomType.ACTUAL);
+    myDesignSurfaceFixture.target().getZoomController().zoom(ZoomType.ACTUAL);
     myDesignSurfaceFixture.waitForRenderToFinish();
   }
 

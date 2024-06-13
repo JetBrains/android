@@ -87,7 +87,7 @@ class ProjectNavigationResourceModificationTrackerTest {
       navFileInBaseAppModule.replaceWithoutSaving(
         "FirstFragment",
         "FirstFragmentChanged",
-        fixture.project
+        fixture.project,
       )
     }
     // picked up 1 document change
@@ -102,7 +102,7 @@ class ProjectNavigationResourceModificationTrackerTest {
       navFileInDepModule.replaceWithoutSaving(
         "FirstFragment",
         "FirstFragmentChanged",
-        fixture.project
+        fixture.project,
       )
     }
     // picked up 1 document change

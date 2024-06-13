@@ -57,7 +57,7 @@ class TreeTableModelImplTest {
     TreeTableModelImpl(
       listOf(),
       mapOf(Pair(Item::class.java, ItemNodeType()), Pair(Style::class.java, StyleNodeType())),
-      SwingUtilities::invokeLater
+      SwingUtilities::invokeLater,
     )
   private val table = runInEdtAndGet {
     TreeTableImpl(
@@ -70,7 +70,7 @@ class TreeTableModelImplTest {
       installTreeSearch = false,
       autoScroll = false,
       expandAllOnRootChange = false,
-      treeHeaderRenderer = null
+      treeHeaderRenderer = null,
     )
   }
   private val selectionModel = table.treeTableSelectionModel

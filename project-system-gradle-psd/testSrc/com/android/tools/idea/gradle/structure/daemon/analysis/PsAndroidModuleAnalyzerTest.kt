@@ -80,7 +80,7 @@ class PsAndroidModuleAnalyzerTest {
         .toSet()
 
       assertThat(messages, equalTo(setOf(
-        "Gradle promoted library version to 28.0.0" to "in: implementation",
+        "Gradle provided version 28.0.0" to "in: implementation",
       )))
     }
   }

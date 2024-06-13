@@ -42,7 +42,7 @@ class NlNewPropertyItem(
   model: NlPropertiesModel,
   var properties: PropertiesTable<NlPropertyItem>,
   val filter: (NlPropertyItem) -> Boolean = { true },
-  val delegateUpdated: (NlNewPropertyItem) -> Unit = {}
+  val delegateUpdated: (NlNewPropertyItem) -> Unit = {},
 ) :
   NlPropertyItem("", "", NlPropertyType.UNKNOWN, null, "", "", model, listOf()),
   NewPropertyItem,
@@ -93,6 +93,7 @@ class NlNewPropertyItem(
 
   // There should only be one instance of NeleNewPropertyItem per Property panel.
   override fun equals(other: Any?) = other is NlNewPropertyItem
+
   // The hashCode can be an arbitrary number since we only have 1 instance
   override fun hashCode() = 517
 
@@ -201,7 +202,7 @@ class NlNewPropertyItem(
 
   private fun getPropertyNameWithPrefix(
     property: NlPropertyItem,
-    resolver: ResourceNamespace.Resolver
+    resolver: ResourceNamespace.Resolver,
   ): String {
     val name = property.name
     val prefixFromResolver = resolver.uriToPrefix(property.namespace)

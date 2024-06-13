@@ -55,6 +55,7 @@ def main():
     intellij = load_project("IntelliJ", intellij_root)
     convert_intellij_sdk_libs(studio, intellij, source_map_file)
     rename_libraries_using_prefix(studio, "studio-lib")
+    remove_test_sources(intellij)
     move_project_kotlinc_opts_into_modules(intellij)
 
     # Merge the projects and write out the result.
@@ -192,6 +193,17 @@ def rename_libraries_using_prefix(project: JpsProject, prefix: str):
                 dep.set("name", f"{prefix}-{lib_name}")
 
 
+# Removes all test sources from the given project.
+def remove_test_sources(project: JpsProject):
+    for module in project.modules:
+        for content in module.xml.findall("./component[@name='NewModuleRootManager']/content"):
+            test_sources = content.findall("./sourceFolder[@isTestSource='true']")
+            test_resources = content.findall("./sourceFolder[@type='java-test-resource']")
+            for test_root in test_sources + test_resources:
+                # Mark test roots as "excluded" so that IntelliJ does not even bother indexing them.
+                test_root.tag = "excludeFolder"
+
+
 # Finds project-level Kotlinc opts, and moves them into modules instead.
 # This helps avoid configuration clashes between the two projects.
 def move_project_kotlinc_opts_into_modules(project: JpsProject):
@@ -199,8 +211,17 @@ def move_project_kotlinc_opts_into_modules(project: JpsProject):
     kotlin_facet = create_kotlin_facet_from_project_settings(project)
     for module in project.modules:
         facet_manager = get_or_create_child(module.xml.getroot(), "component", name="FacetManager")
-        if facet_manager.find(f"./facet[@type='kotlin-language']") is None:
+        kotlin_language_facet = facet_manager.find(f"./facet[@type='kotlin-language']")
+        # copy kotlin configurations if there aren't any specified in the module
+        if kotlin_language_facet is None:
             facet_manager.append(copy.deepcopy(kotlin_facet))
+        else:
+            # if useProjectSettings is true (which it is by default), we want to set it explicitly to what is used in tools/idea
+            # so that the default for Android Studio is not used for that module, as these could conflict.
+            configurations = kotlin_language_facet.find("configuration")
+            use_idea_settings = "true" if configurations is None else configurations.attrib.get("useProjectSettings", "true")
+            if use_idea_settings == "true":
+                facet_manager.append(copy.deepcopy(kotlin_facet))
 
 
 def write_project(project: JpsProject, outdir: Path):
@@ -357,17 +378,44 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
     source_map_text = read_jps_file(source_map_file, {"PROJECT_DIR": intellij.root})
     source_map = json.loads(source_map_text)
 
+    # Studio refers to plugins by their plugin ID. So, we need to find the plugin ID associated
+    # with each plugin (by querying the plugin.xml file inside each plugin directory).
+    plugin_dir_to_id = {}
+    for mapping in source_map:
+        path = Path(mapping["path"])
+        type = mapping["type"]
+        if not path.match("**/dist.all/plugins/*/lib/*.jar"):
+            continue  # Not a plugin.
+        if type != "module-output":
+            continue  # Not a module (there will be no plugin.xml file).
+        module_name = mapping["name"]
+        jps_module = next(m for m in intellij.modules if m.name == module_name)
+        srcs = jps_module.xml.findall('./component/content/sourceFolder')
+        for src in srcs:
+            if src.get("isTestSource") == "true" or src.get("type") == "java-test-resource":
+                continue
+            src_dir = Path(src.get("url").removeprefix("file://"))
+            plugin_xml = src_dir.joinpath("META-INF/plugin.xml")
+            if not plugin_xml.is_file():
+                continue
+            plugin_xml = ET.parse(plugin_xml)
+            id = plugin_xml.findtext("./id") or fail(f"Plugin ID not found in {plugin_xml}")
+            dir = path.parent.parent.name
+            plugin_dir_to_id[dir] = id
+            break
+
     res: dict[str,list[ET.Element]] = {}
     for mapping in source_map:
         # Find the intellij-sdk lib that contains this jar.
         path = Path(mapping["path"])
         if path.match("**/dist.all/lib/testFramework.jar"):
             intellij_sdk_lib = "intellij-test-framework"
-        elif path.match("**/dist.all/lib/*.jar") or path.match("**/dist.all/plugins/java/lib/*.jar"):
+        elif path.match("**/dist.all/lib/*.jar"):
             intellij_sdk_lib = "studio-sdk"
         elif path.match("**/dist.all/plugins/*/lib/*.jar"):
-            plugin = path.parent.parent.name
-            intellij_sdk_lib = f"studio-plugin-{plugin}"
+            plugin_dir = path.parent.parent.name
+            plugin_id = plugin_dir_to_id[plugin_dir]
+            intellij_sdk_lib = f"studio-plugin-{plugin_id}"
         else:
             continue  # Can happen for non-classpath artifacts, e.g. java/lib/rt/debugger-agent.jar.
 

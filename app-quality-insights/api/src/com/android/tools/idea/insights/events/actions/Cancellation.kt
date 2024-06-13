@@ -65,10 +65,8 @@ class CompositeCancellationToken(private val tokens: List<CancellationToken>) : 
 }
 
 /** A token backed by Kotlin's [Job]. */
-class JobCancellationToken(
-  private val job: Job,
-  override val action: Action.Single,
-) : CancellationToken {
+class JobCancellationToken(private val job: Job, override val action: Action.Single) :
+  CancellationToken {
 
   override fun cancel(reason: Action): JobCancellationToken? {
     if (job.isCompleted) return null

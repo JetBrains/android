@@ -31,7 +31,7 @@ internal class LogcatFilterLanguageRule : ExternalResource() {
   override fun after() {
     LanguageParserDefinitions.INSTANCE.removeExplicitExtension(
       LogcatFilterLanguage,
-      parserDefinition
+      parserDefinition,
     )
   }
 }

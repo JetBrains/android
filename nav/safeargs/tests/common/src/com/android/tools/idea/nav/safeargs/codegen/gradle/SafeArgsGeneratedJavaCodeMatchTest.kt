@@ -53,6 +53,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
   private val projectRule = AndroidGradleProjectRule()
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
+
   // TODO (b/162520387): Do not ignore these methods when testing.
   private val IGNORED_METHODS =
     setOf("equals", "hashCode", "toString", "getActionId", "getArguments")
@@ -196,7 +197,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
           .filter { it.modifierSet().contains(JvmModifier.PUBLIC) }
           .map { it.toDescription() }
           .sortedBy { it.name }
-          .toSet()
+          .toSet(),
     )
 
   private fun PsiMethod.toDescription() =
@@ -204,21 +205,21 @@ class SafeArgsGeneratedJavaCodeMatchTest {
       name = this.name,
       type = this.returnType?.toDescription(),
       params = this.parameters.filterIsInstance<PsiParameter>().map { it.toDescription() }.toSet(),
-      modifiers = this.modifierSet()
+      modifiers = this.modifierSet(),
     )
 
   private fun PsiParameter.toDescription() =
     ParamDescription(
       name = this.name,
       type = this.type.toDescription(),
-      modifiers = this.modifierSet().filter { it != JvmModifier.PACKAGE_LOCAL }.toSet()
+      modifiers = this.modifierSet().filter { it != JvmModifier.PACKAGE_LOCAL }.toSet(),
     )
 
   private fun PsiField.toDescription() =
     FieldDescription(
       name = this.name,
       type = this.type.toDescription(),
-      modifiers = this.modifierSet()
+      modifiers = this.modifierSet(),
     )
 
   private fun PsiType.toDescription() =
@@ -227,26 +228,26 @@ class SafeArgsGeneratedJavaCodeMatchTest {
   private data class ClassDescription(
     val qualifiedName: String,
     val methods: Set<MethodDescription>,
-    val fields: Set<FieldDescription>
+    val fields: Set<FieldDescription>,
   )
 
   private data class MethodDescription(
     val name: String,
     val type: String?,
     val modifiers: Set<JvmModifier>,
-    val params: Set<ParamDescription>
+    val params: Set<ParamDescription>,
   )
 
   private data class FieldDescription(
     val name: String,
     val type: String,
-    val modifiers: Set<JvmModifier>
+    val modifiers: Set<JvmModifier>,
   )
 
   private data class ParamDescription(
     val name: String,
     val type: String,
-    val modifiers: Set<JvmModifier>
+    val modifiers: Set<JvmModifier>,
   )
 
   private fun PsiModifierListOwner.modifierSet() =

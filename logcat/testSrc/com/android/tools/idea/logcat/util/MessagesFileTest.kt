@@ -15,7 +15,7 @@ internal class MessagesFileTest {
   val rule =
     RuleChain(
       ApplicationRule(),
-      ApplicationServiceRule(TempFileFactory::class.java, tempFileFactory)
+      ApplicationServiceRule(TempFileFactory::class.java, tempFileFactory),
     )
 
   @Test
@@ -52,17 +52,11 @@ internal class MessagesFileTest {
     messagesFile.initialize()
 
     messagesFile.appendMessages(
-      listOf(
-        logcatMessage(message = "Foo"),
-        logcatMessage(message = "Bar"),
-      )
+      listOf(logcatMessage(message = "Foo"), logcatMessage(message = "Bar"))
     )
 
     assertThat(messagesFile.loadMessagesAndDelete())
-      .containsExactly(
-        logcatMessage(message = "Foo"),
-        logcatMessage(message = "Bar"),
-      )
+      .containsExactly(logcatMessage(message = "Foo"), logcatMessage(message = "Bar"))
     assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
@@ -80,15 +74,12 @@ internal class MessagesFileTest {
 
     messagesFile.appendMessages(
       listOf(
-        logcatMessage(message = "More-12345"), // This message will go into file2
+        logcatMessage(message = "More-12345") // This message will go into file2
       )
     )
 
     assertThat(tempFileFactory.getExistingFileNames())
-      .containsExactly(
-        "studio-test-1.bin",
-        "studio-test-2.bin",
-      )
+      .containsExactly("studio-test-1.bin", "studio-test-2.bin")
     assertThat(messagesFile.loadMessagesAndDelete())
       .containsExactly(
         logcatMessage(message = "Foo-12345"),
@@ -117,15 +108,12 @@ internal class MessagesFileTest {
     )
     messagesFile.appendMessages(
       listOf(
-        logcatMessage(message = "Even more"), // This message will go into file3
+        logcatMessage(message = "Even more") // This message will go into file3
       )
     )
 
     assertThat(tempFileFactory.getExistingFileNames())
-      .containsExactly(
-        "studio-test-2.bin",
-        "studio-test-3.bin",
-      )
+      .containsExactly("studio-test-2.bin", "studio-test-3.bin")
     assertThat(messagesFile.loadMessagesAndDelete())
       .containsExactly(
         logcatMessage(message = "More-1234"),

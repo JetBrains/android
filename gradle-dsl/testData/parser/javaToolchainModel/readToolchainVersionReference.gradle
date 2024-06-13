@@ -1,0 +1,8 @@
+ext{
+  jLV = JavaLanguageVersion.of(21)
+}
+java {
+  toolchain {
+    languageVersion = jLV
+  }
+}

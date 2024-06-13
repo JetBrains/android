@@ -31,7 +31,7 @@ class ComposePreviewSettingsEditorTest : AndroidTestCase() {
 
   override fun configureAdditionalModules(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture?>,
-    modules: List<MyAdditionalModuleData?>
+    modules: List<MyAdditionalModuleData?>,
   ) {
     super.configureAdditionalModules(projectBuilder, modules)
     addModuleWithAndroidFacet(
@@ -39,7 +39,7 @@ class ComposePreviewSettingsEditorTest : AndroidTestCase() {
       modules,
       "library",
       AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      false
+      false,
     )
   }
 

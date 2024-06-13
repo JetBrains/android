@@ -25,7 +25,7 @@ MODULE                        : project.app
             ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            - DesugaredMethodFiles        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -42,7 +42,7 @@ MODULE                        : project.app
         ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+        - DesugaredMethodFiles        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::app                : null => :app@main
@@ -50,7 +50,7 @@ MODULE                        : project.app
                 artifacts::app                : null => :app@main
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        MinSdkVersion                 : API 16
+        MinSdkVersion                 : API 21
         TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders
             - ManifestFiles               : <ROOT>/app/src/main/AndroidManifest.xml

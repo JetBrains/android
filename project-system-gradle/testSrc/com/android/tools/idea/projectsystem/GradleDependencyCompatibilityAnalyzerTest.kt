@@ -58,7 +58,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     cacheExpiryHours = Int.MAX_VALUE,
     useNetwork = false
   ) {
-    override fun readUrlData(url: String, timeout: Int): ByteArray = throw AssertionFailedError("shouldn't try to read!")
+    override fun readUrlData(url: String, timeout: Int, lastModified: Long) = throw AssertionFailedError("shouldn't try to read!")
     override fun error(throwable: Throwable, message: String?) {}
   }
 

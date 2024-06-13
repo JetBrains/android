@@ -24,19 +24,20 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
-import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
+import com.android.tools.idea.res.StudioResourceIdManager;
+import com.android.tools.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.ViewLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.res.ids.ResourceIdManager;
-import com.android.tools.sdk.AndroidPlatform;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 
@@ -111,7 +112,7 @@ public class ViewLoaderTest extends AndroidTestCase {
   public void testRClassLoad() throws ClassNotFoundException {
     RenderLogger logger = new RenderLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoaderReference.getClassLoader());
-    ResourceIdManager idManager = ResourceIdManager.get(myModule);
+    ResourceIdManager idManager = StudioResourceIdManager.get(myModule);
     assertNotNull(idManager);
 
     // No LocalResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.

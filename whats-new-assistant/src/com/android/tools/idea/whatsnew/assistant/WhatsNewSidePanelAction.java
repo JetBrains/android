@@ -23,6 +23,7 @@ import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.WhatsNewAction;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -73,6 +74,12 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
     myAction.update(e);
     presentation.setDescription(AndroidBundle.message("whatsnew.action.custom.description",
                                                       ApplicationNamesInfo.getInstance().getFullProductName()));
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return myAction.getActionUpdateThread();
   }
 
   @Override

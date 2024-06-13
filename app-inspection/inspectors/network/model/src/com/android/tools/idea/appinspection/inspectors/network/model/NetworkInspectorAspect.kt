@@ -42,5 +42,5 @@ enum class NetworkInspectorAspect {
    * Aspect associated with the panel that shows details of a connection or a rule. The panel may be
    * empty when there is no active selection or the panel is closed manually.
    */
-  DETAILS
+  DETAILS,
 }

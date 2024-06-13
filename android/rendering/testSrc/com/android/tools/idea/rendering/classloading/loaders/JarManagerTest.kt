@@ -337,4 +337,32 @@ class JarManagerUtilTest {
       String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file3"))!!)
     )
   }
+
+  @Test
+  fun `check cache invalidated`() {
+    val outDirectory = Files.createTempDirectory("out")
+    val jarFile = outDirectory.resolve("content1.jar")
+    val jarFilePath = createJarFile(jarFile, mapOf("file1" to "contents1".encodeToByteArray()))
+    val jarManager = JarManager()
+
+    assertEquals(
+      "contents1",
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+    )
+
+    jarFile.toFile().delete()
+    createJarFile(jarFile, mapOf("file1" to "updatedcontents1".encodeToByteArray()))
+
+    assertEquals(
+      "contents1",
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+    )
+
+    jarManager.clearCache()
+
+    assertEquals(
+      "updatedcontents1",
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+    )
+  }
 }

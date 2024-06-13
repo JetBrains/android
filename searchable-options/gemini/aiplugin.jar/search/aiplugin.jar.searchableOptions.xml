@@ -1,0 +1,104 @@
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="analyze" path="ActionManager" hit="Analyze Thread Safety" />
+    <option name="safety" path="ActionManager" hit="Analyze Thread Safety" />
+    <option name="thread" path="ActionManager" hit="Analyze Thread Safety" />
+    <option name="analyzes" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="files" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="for" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="safety" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="selected" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="state" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="the" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="thread" path="ActionManager" hit="Analyzes the thread safety state for the selected files." />
+    <option name="code" path="ActionManager" hit="Comment Code" />
+    <option name="comment" path="ActionManager" hit="Comment Code" />
+    <option name="code" path="ActionManager" hit="Document Code" />
+    <option name="document" path="ActionManager" hit="Document Code" />
+    <option name="code" path="ActionManager" hit="Explain Code" />
+    <option name="explain" path="ActionManager" hit="Explain Code" />
+    <option name="gemini" path="ActionManager" hit="Gemini" />
+    <option name="compose" path="ActionManager" hit="Generate Compose Sample Data" />
+    <option name="data" path="ActionManager" hit="Generate Compose Sample Data" />
+    <option name="generate" path="ActionManager" hit="Generate Compose Sample Data" />
+    <option name="sample" path="ActionManager" hit="Generate Compose Sample Data" />
+    <option name="generate" path="ActionManager" hit="Generate README" />
+    <option name="readme" path="ActionManager" hit="Generate README" />
+    <option name="a" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="files" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="for" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="generates" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="in" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="markdown" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="readme" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="selected" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="the" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="code" path="ActionManager" hit="Simplify Code" />
+    <option name="simplify" path="ActionManager" hit="Simplify Code" />
+    <option name="commit" path="ActionManager" hit="Suggest Commit Message" />
+    <option name="message" path="ActionManager" hit="Suggest Commit Message" />
+    <option name="suggest" path="ActionManager" hit="Suggest Commit Message" />
+    <option name="improvements" path="ActionManager" hit="Suggest Improvements" />
+    <option name="suggest" path="ActionManager" hit="Suggest Improvements" />
+    <option name="by" path="ActionManager" hit="Suggest commit message by summarizing changes" />
+    <option name="changes" path="ActionManager" hit="Suggest commit message by summarizing changes" />
+    <option name="commit" path="ActionManager" hit="Suggest commit message by summarizing changes" />
+    <option name="message" path="ActionManager" hit="Suggest commit message by summarizing changes" />
+    <option name="suggest" path="ActionManager" hit="Suggest commit message by summarizing changes" />
+    <option name="summarizing" path="ActionManager" hit="Suggest commit message by summarizing changes" />
+    <option name="transform" path="ActionManager" hit="Transform..." />
+  </configurable>
+  <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Gemini">
+    <option name="" hit=" Ask to decide per project" />
+    <option name="ask" hit=" Ask to decide per project" />
+    <option name="decide" hit=" Ask to decide per project" />
+    <option name="per" hit=" Ask to decide per project" />
+    <option name="project" hit=" Ask to decide per project" />
+    <option name="to" hit=" Ask to decide per project" />
+    <option name="" hit=" Do not use context from any project" />
+    <option name="any" hit=" Do not use context from any project" />
+    <option name="context" hit=" Do not use context from any project" />
+    <option name="do" hit=" Do not use context from any project" />
+    <option name="from" hit=" Do not use context from any project" />
+    <option name="not" hit=" Do not use context from any project" />
+    <option name="project" hit=" Do not use context from any project" />
+    <option name="use" hit=" Do not use context from any project" />
+    <option name="" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="context" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="default" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="from" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="improve" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="project" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="responses" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="template" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="this" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="to" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="use" hit=" Use context from this project (Default (Template) Project) to improve responses" />
+    <option name="" hit=" Use context from your projects to improve responses" />
+    <option name="context" hit=" Use context from your projects to improve responses" />
+    <option name="from" hit=" Use context from your projects to improve responses" />
+    <option name="improve" hit=" Use context from your projects to improve responses" />
+    <option name="projects" hit=" Use context from your projects to improve responses" />
+    <option name="responses" hit=" Use context from your projects to improve responses" />
+    <option name="to" hit=" Use context from your projects to improve responses" />
+    <option name="use" hit=" Use context from your projects to improve responses" />
+    <option name="your" hit=" Use context from your projects to improve responses" />
+    <option name="awareness" hit="Context Awareness" />
+    <option name="context" hit="Context Awareness" />
+    <option name="ai-based" hit="Enable AI-based inline code completions" />
+    <option name="code" hit="Enable AI-based inline code completions" />
+    <option name="completions" hit="Enable AI-based inline code completions" />
+    <option name="enable" hit="Enable AI-based inline code completions" />
+    <option name="inline" hit="Enable AI-based inline code completions" />
+    <option name="gemini" hit="Gemini" />
+    <option name="a" hit="Gemini requires a logged in Google account." />
+    <option name="account" hit="Gemini requires a logged in Google account." />
+    <option name="gemini" hit="Gemini requires a logged in Google account." />
+    <option name="google" hit="Gemini requires a logged in Google account." />
+    <option name="in" hit="Gemini requires a logged in Google account." />
+    <option name="logged" hit="Gemini requires a logged in Google account." />
+    <option name="requires" hit="Gemini requires a logged in Google account." />
+    <option name="in" hit="Log in" />
+    <option name="log" hit="Log in" />
+  </configurable>
+</options>

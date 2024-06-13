@@ -32,7 +32,7 @@ public class SystemFontsTest extends FontTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySystemFonts = DownloadableFontCacheServiceImpl.getInstance().getSystemFonts();
+    mySystemFonts = StudioDownloadableFontCacheService.getInstance().getSystemFonts();
   }
 
   public void testAllSystemFontsAvailable() {

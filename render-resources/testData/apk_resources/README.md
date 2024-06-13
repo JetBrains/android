@@ -16,3 +16,8 @@ The content of `apk-with-plurals.ap_` was produced by the following steps:
 `frameworks/support` of `androidx`
 2. copying entries required for the tests from `out/androidx/compose/animation/animation/integration-tests/animation-demos/build/intermediates/apk_for_local_test/debugUnitTest/packageDebugUnitTestForUnitTest/apk-for-local-test.ap_`
    into this `apk-with-plurals.ap_` archive with `zip -U <path to demoUnitTest folder>/apk-for-local-test.ap_ "resources.arsc" --out apk-with-plurals.ap_`
+
+The content of `apk-all-resources.ap_` was produced bby the following steps:
+
+1. running `./gradlew :lib:testDebugUnitTest` in the `Allresources`
+2. copying `Allresources/lib/build/intermediates/apk_for_local_test/debugUnitTest/apk-for-local-test.ap_` to `apk-all-resources.ap_`

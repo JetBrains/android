@@ -19,6 +19,7 @@ import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_DE
 import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_TABLET_ID;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.android.tools.rendering.ProblemSeverity.WARNING;
+import static com.android.tools.rendering.RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
@@ -190,7 +191,6 @@ public class RenderTask {
   private long myTimeout;
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
-  private boolean myProvideCookiesForIncludedViews = false;
   @Nullable private RenderSession myRenderSession;
   @NotNull private IImageFactory myCachingImageFactory = SIMPLE_IMAGE_FACTORY;
   @Nullable private IImageFactory myImageFactoryDelegate;
@@ -585,14 +585,6 @@ public class RenderTask {
   }
 
   /**
-   * Returns whether this parser will provide view cookies for included views.
-   */
-  public boolean getProvideCookiesForIncludedViews() {
-    return myProvideCookiesForIncludedViews;
-  }
-
-
-  /**
    * Returns the root tag for the given {@link RenderXmlFile}, if any, acquiring the read
    * lock to do so if necessary
    *
@@ -844,8 +836,6 @@ public class RenderTask {
       if (fromXmlFile != null) {
         LayoutRenderPullParser parser = LayoutRenderPullParser.create(fromXmlFile, myLogger,
                                                                       myContext.getModule().getResourceRepositoryManager());
-        // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
-        parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
         topParser = parser;
       }
       else {
@@ -903,7 +893,7 @@ public class RenderTask {
   /**
    * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
    * wait until all the async actions have finished running. This will wait the default timeout
-   * (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) for the invoked action to complete.
+   * (see {@link DEFAULT_RENDER_THREAD_TIMEOUT_MS}) for the invoked action to complete.
    * See {@link RenderService#getRenderAsyncActionExecutor()}.
    */
   @VisibleForTesting
@@ -939,7 +929,7 @@ public class RenderTask {
       }
 
       return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
-    }), RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
+    }), DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
       .whenComplete((result, ex) -> myTestEventListener.onAfterInflate())
       .handle((result, ex) -> {
         if (ex != null) {
@@ -951,7 +941,7 @@ public class RenderTask {
             message = ex.toString();
           }
           RenderModelModule module = myContext.getModule();
-          RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
+          RenderProblem.ActionFixFactory fixFactory = module.getEnvironment().getActionFixFactory();
           myLogger.addMessage(RenderProblem.createHtml(ERROR, message, module.getProject(), myLogger.getLinkManager(), ex, fixFactory));
         }
 
@@ -1167,7 +1157,7 @@ public class RenderTask {
           message = e.toString();
         }
         RenderModelModule module = myContext.getModule();
-        RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
+        RenderProblem.ActionFixFactory fixFactory = module.getEnvironment().getActionFixFactory();
         myLogger.addMessage(RenderProblem.createHtml(ERROR, message, module.getProject(), myLogger.getLinkManager(), e, fixFactory));
         return CompletableFuture.completedFuture(
           RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, module, xmlFile, e, myLogger));
@@ -1418,10 +1408,17 @@ public class RenderTask {
   /**
    * Similar to {@link #runAsyncRenderAction(Callable)} but executes it under a {@link RenderSession}. This allows the
    * given block to access resources since they are setup before executing it.
+   *
+   *
+   * @param block the {@link Callable} to be executed in the Render thread.
+   * @param timeout  maximum time to wait for the action to execute. If <= 0, the default timeout
+   *                (see {@link DEFAULT_RENDER_THREAD_TIMEOUT_MS}) will be used.
+   * @param unit    the {@link TimeUnit} for the timeout.
+   *
    * @return A {@link CompletableFuture} that completes when the block finalizes.
    */
   @NotNull
-  public CompletableFuture<Void> runAsyncRenderActionWithSession(@NotNull Runnable block) {
+  public CompletableFuture<Void> runAsyncRenderActionWithSession(@NotNull Runnable block, long timeout, @NotNull TimeUnit unit) {
     if (isDisposed.get()) {
       return immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
@@ -1431,9 +1428,8 @@ public class RenderTask {
     }
     return runAsyncRenderAction(() -> {
       renderSession.execute(block);
-
       return null;
-    });
+    }, timeout, unit);
   }
 
   @VisibleForTesting

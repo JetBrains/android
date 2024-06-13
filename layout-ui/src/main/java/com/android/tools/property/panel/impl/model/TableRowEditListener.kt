@@ -23,7 +23,7 @@ enum class TableEditingRequest {
   STOP_EDITING,
   BEST_MATCH,
   SPECIFIED_ITEM,
-  SELECT
+  SELECT,
 }
 
 interface TableRowEditListener : ValueChangedListener {

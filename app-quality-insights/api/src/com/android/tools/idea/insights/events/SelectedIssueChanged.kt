@@ -30,7 +30,7 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     if (issue == state.selectedIssue) {
       return StateTransition(state, Action.NONE)
@@ -75,12 +75,12 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
             LoadingState.Loading
           } else {
             LoadingState.Ready(null)
-          }
+          },
       ),
       action =
         if (issue != null && state.issues is LoadingState.Ready)
           actionsForSelectedIssue(key, issue.id)
-        else Action.NONE
+        else Action.NONE,
     )
   }
 }

@@ -23,7 +23,7 @@ class LerpPoint : LerpValue<Point> {
   override fun interpolate(fraction: Float): Point {
     return Point(
       start.x + ((end.x - start.x) * fraction).toInt(),
-      start.y + ((end.y - start.y) * fraction).toInt()
+      start.y + ((end.y - start.y) * fraction).toInt(),
     )
   }
 }

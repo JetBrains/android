@@ -16,15 +16,19 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.InspectorLayout
-import com.android.tools.idea.compose.preview.animation.TestUtils
-import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
-import com.android.tools.idea.compose.preview.animation.TooltipInfo
-import com.android.tools.idea.compose.preview.animation.Transition
+import com.android.tools.idea.preview.animation.AnimatedProperty
+import com.android.tools.idea.preview.animation.AnimationUnit
+import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.TestUtils
+import com.android.tools.idea.preview.animation.TestUtils.scanForTooltips
+import com.android.tools.idea.preview.animation.TooltipInfo
+import com.android.tools.idea.preview.animation.Transition
+import com.android.tools.idea.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import junit.framework.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -41,201 +45,210 @@ class TransitionCurveTest {
       .add(100, ComposeUnit.IntSize(20, -20))
       .build()!!
 
-  @Test
-  fun `create transition curves`(): Unit {
-    ApplicationManager.getApplication().invokeAndWait {
-      val slider = TestUtils.createTestSlider()
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+  @get:Rule val edtRule = EdtRule()
 
-      val transition = Transition(mutableMapOf(0 to property, 1 to property))
-      val transitionCurveOne =
-        TransitionCurve.create(
-          state = ElementState(),
+  @RunsInEdt
+  @Test
+  fun `create transition curves`() {
+    val slider = TestUtils.createTestSlider()
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+
+    val transition = Transition(mutableMapOf(0 to property, 1 to property))
+    val transitionCurveOne =
+      TransitionCurve.create(
+          0,
+          null,
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
-      val transitionCurveTwo =
-        TransitionCurve.create(
-          state = ElementState(),
+        .apply { Disposer.register(projectRule.testRootDisposable, this) }
+    val transitionCurveTwo =
+      TransitionCurve.create(
+          0,
+          null,
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled() + transitionCurveOne.height,
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
+        .apply { Disposer.register(projectRule.testRootDisposable, this) }
 
-      transitionCurveOne.timelineUnits =
-        listOf(
-          ComposeUnit.TimelineUnit("Property One", ComposeUnit.IntSize(0, 0)),
-          ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5))
-        )
+    transitionCurveOne.timelineUnits =
+      listOf(
+        AnimationUnit.TimelineUnit("Property One", ComposeUnit.IntSize(0, 0)),
+        AnimationUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)),
+      )
 
-      slider.sliderUI.elements.add(transitionCurveOne)
-      slider.sliderUI.elements.add(transitionCurveTwo)
+    slider.sliderUI.elements = listOf(transitionCurveOne, transitionCurveTwo)
 
-      // Timeline has tooltips
-      ui.render() // paint() method within render() should be called to update BoxedLabel positions.
-      val tooltips = slider.scanForTooltips()
-      val expected =
-        setOf(
-          TooltipInfo("Property One", "width ( 0 , _ )"),
-          TooltipInfo("Property One", "height ( _ , 0 )"),
-          TooltipInfo("Property Two", "width ( 5 , _ )"),
-          TooltipInfo("Property Two", "height ( _ , 5 )")
-        )
-      assertEquals(expected, tooltips)
+    // Timeline has tooltips
+    ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+    val tooltips = slider.scanForTooltips()
+    val expected =
+      setOf(
+        TooltipInfo("Property One", "width ( 0 , _ )"),
+        TooltipInfo("Property One", "height ( _ , 0 )"),
+        TooltipInfo("Property Two", "width ( 5 , _ )"),
+        TooltipInfo("Property Two", "height ( _ , 5 )"),
+      )
+    assertEquals(expected, tooltips)
 
-      // Uncomment to preview ui.
-      // ui.render()
-    }
+    // Uncomment to preview ui.
+    // ui.render()
   }
 
+  @RunsInEdt
   @Test
-  fun `create transition curves with null properties`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
-      val slider = TestUtils.createTestSlider()
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
-      val transition = Transition(mutableMapOf(0 to property, 1 to null, 2 to property, 3 to null))
-      val transitionCurve =
-        TransitionCurve.create(
-          state = ElementState(),
+  fun `create transition curves with null properties`() {
+    val slider = TestUtils.createTestSlider()
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+    val transition = Transition(mutableMapOf(0 to property, 1 to null, 2 to property, 3 to null))
+    val transitionCurve =
+      TransitionCurve.create(
+          0,
+          null,
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
-      slider.sliderUI.elements.add(transitionCurve)
-      // No tooltips.
-      ui.render() // paint() method within render() should be called to update BoxedLabel positions.
-      assertEquals(0, slider.scanForTooltips().size)
-      // Uncomment to preview ui.
-      // ui.render()
-    }
+        .apply { Disposer.register(projectRule.testRootDisposable, this) }
+    slider.sliderUI.elements = listOf(transitionCurve)
+    // No tooltips.
+    ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+    assertEquals(0, slider.scanForTooltips().size)
+    // Uncomment to preview ui.
+    // ui.render()
+  }
 
+  @RunsInEdt
   @Test
-  fun `create transition curve with null timeline units`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
-      val slider = TestUtils.createTestSlider()
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
-      val transition = Transition(mutableMapOf(0 to property, 1 to property, 2 to property))
-      val transitionCurve =
-        TransitionCurve.create(
-          state = ElementState(),
+  fun `create transition curve with null timeline units`() {
+    val slider = TestUtils.createTestSlider()
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+    val transition = Transition(mutableMapOf(0 to property, 1 to property, 2 to property))
+    val transitionCurve =
+      TransitionCurve.create(
+          0,
+          null,
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
-      transitionCurve.timelineUnits =
-        listOf(null, null, ComposeUnit.TimelineUnit("Property", ComposeUnit.IntSize(5, 5)))
-      slider.sliderUI.elements.add(transitionCurve)
-      // Timeline has tooltips.
-      ui.render() // paint() method within render() should be called to update BoxedLabel positions.
-      val tooltips = slider.scanForTooltips()
-      val expected =
-        setOf(
-          TooltipInfo("Property", "width ( 5 , _ )"),
-          TooltipInfo("Property", "height ( _ , 5 )")
-        )
-      assertEquals(expected, tooltips)
-      // Uncomment to preview ui.
-      // ui.render()
-    }
+        .apply { Disposer.register(projectRule.testRootDisposable, this) }
+    transitionCurve.timelineUnits =
+      listOf(null, null, AnimationUnit.TimelineUnit("Property", ComposeUnit.IntSize(5, 5)))
+    slider.sliderUI.elements = listOf(transitionCurve)
+    // Timeline has tooltips.
+    ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+    val tooltips = slider.scanForTooltips()
+    val expected =
+      setOf(TooltipInfo("Property", "width ( 5 , _ )"), TooltipInfo("Property", "height ( _ , 5 )"))
+    assertEquals(expected, tooltips)
+    // Uncomment to preview ui.
+    // ui.render()
+  }
 
+  @RunsInEdt
   @Test
-  fun `create transition curve with less timeline units`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
-      val slider = TestUtils.createTestSlider()
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
-      val transition = Transition(mutableMapOf(0 to property, 1 to property))
-      val transitionCurve =
-        TransitionCurve.create(
-          state = ElementState(),
+  fun `create transition curve with less timeline units`() {
+    val slider = TestUtils.createTestSlider()
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+    val transition = Transition(mutableMapOf(0 to property, 1 to property))
+    val transitionCurve =
+      TransitionCurve.create(
+          0,
+          null,
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
-      transitionCurve.timelineUnits =
-        listOf(ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)))
-      slider.sliderUI.elements.add(transitionCurve)
-      // Timeline has tooltips.
-      ui.render() // paint() method within render() should be called to update BoxedLabel positions.
-      val tooltips = slider.scanForTooltips()
-      val expected =
-        setOf(
-          TooltipInfo("Property Two", "width ( 5 , _ )"),
-          TooltipInfo("Property Two", "height ( _ , 5 )")
-        )
-      assertEquals(expected, tooltips)
-      // Uncomment to preview ui.
-      // ui.render()
-    }
+        .apply { Disposer.register(projectRule.testRootDisposable, this) }
+    transitionCurve.timelineUnits =
+      listOf(AnimationUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)))
+    slider.sliderUI.elements = listOf(transitionCurve)
+    // Timeline has tooltips.
+    ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+    val tooltips = slider.scanForTooltips()
+    val expected =
+      setOf(
+        TooltipInfo("Property Two", "width ( 5 , _ )"),
+        TooltipInfo("Property Two", "height ( _ , 5 )"),
+      )
+    assertEquals(expected, tooltips)
+    // Uncomment to preview ui.
+    // ui.render()
+  }
 
+  @RunsInEdt
   @Test
-  fun `create transition curve with more timeline units`(): Unit =
-    ApplicationManager.getApplication().invokeAndWait {
-      val slider = TestUtils.createTestSlider()
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
-      val transition = Transition(mutableMapOf(0 to property, 1 to property))
-      val transitionCurve =
-        TransitionCurve.create(
-          state = ElementState(),
+  fun `create transition curve with more timeline units`() {
+    val slider = TestUtils.createTestSlider()
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+    val transition = Transition(mutableMapOf(0 to property, 1 to property))
+    val transitionCurve =
+      TransitionCurve.create(
+          0,
+          null,
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
-      transitionCurve.timelineUnits =
-        listOf(
-          ComposeUnit.TimelineUnit("Property One", ComposeUnit.IntSize(0, 0)),
-          ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(0, 0)),
-          ComposeUnit.TimelineUnit("Property Three", ComposeUnit.IntSize(5, 5))
-        )
-      slider.sliderUI.elements.add(transitionCurve)
-      slider.sliderUI.elements.add(transitionCurve)
-      // Timeline has tooltips.
-      ui.render() // paint() method within render() should be called to update BoxedLabel positions.
-      val tooltips = slider.scanForTooltips()
-      val expected =
-        setOf(
-          TooltipInfo("Property One", "width ( 0 , _ )"),
-          TooltipInfo("Property One", "height ( _ , 0 )"),
-          TooltipInfo("Property Two", "width ( 0 , _ )"),
-          TooltipInfo("Property Two", "height ( _ , 0 )")
-        )
-      assertEquals(expected, tooltips)
-      // Uncomment to preview ui.
-      // ui.render()
-    }
+        .apply { Disposer.register(projectRule.testRootDisposable, this) }
+    transitionCurve.timelineUnits =
+      listOf(
+        AnimationUnit.TimelineUnit("Property One", ComposeUnit.IntSize(0, 0)),
+        AnimationUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(0, 0)),
+        AnimationUnit.TimelineUnit("Property Three", ComposeUnit.IntSize(5, 5)),
+      )
+    slider.sliderUI.elements = listOf(transitionCurve, transitionCurve)
+    // Timeline has tooltips.
+    ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+    val tooltips = slider.scanForTooltips()
+    val expected =
+      setOf(
+        TooltipInfo("Property One", "width ( 0 , _ )"),
+        TooltipInfo("Property One", "height ( _ , 0 )"),
+        TooltipInfo("Property Two", "width ( 0 , _ )"),
+        TooltipInfo("Property Two", "height ( _ , 0 )"),
+      )
+    assertEquals(expected, tooltips)
+    // Uncomment to preview ui.
+    // ui.render()
+  }
 
+  @RunsInEdt
   @Test
   fun `create empty transition curves`() {
-    ApplicationManager.getApplication().invokeAndWait {
-      val slider = TestUtils.createTestSlider()
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+    val slider = TestUtils.createTestSlider()
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
 
-      val transitionCurve =
-        TransitionCurve.create(
-          state = ElementState(),
+    val transitionCurve =
+      TransitionCurve.create(
+          0,
+          null,
           transition = Transition(emptyMap()),
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy
+          positionProxy = slider.sliderUI.positionProxy,
         )
+        .apply { Disposer.register(projectRule.testRootDisposable, this) }
 
-      slider.sliderUI.elements.add(transitionCurve)
+    slider.sliderUI.elements = listOf(transitionCurve)
 
-      // There are no tooltips.
-      ui.render() // paint() method within render() should be called to update BoxedLabel positions.
-      val tooltips = slider.scanForTooltips()
-      assertEquals(emptySet<TooltipInfo>(), tooltips)
+    // There are no tooltips.
+    ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+    val tooltips = slider.scanForTooltips()
+    assertEquals(emptySet<TooltipInfo>(), tooltips)
 
-      // Even though transition is empty, it should have one element.
-      assertTrue(transitionCurve.height > 10)
+    // Even though transition is empty, it should have one element.
+    assertTrue(transitionCurve.height > 10)
 
-      // Uncomment to preview ui.
-      // ui.render()
-    }
+    // Uncomment to preview ui.
+    // ui.render()
   }
 }

@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -34,12 +33,15 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
     new PropertiesElementDescription<>("buildTypes", BuildTypesDslElement.class, BuildTypesDslElement::new, BuildTypesDslElementSchema::new);
 
   @Override
-  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+  public PropertiesElementDescription getChildPropertiesElementDescription(
+    GradleDslNameConverter converter,
+    String name
+  ) {
     return BuildTypeDslElement.BUILD_TYPE;
   }
 
   // the order is significant to the extent that it matches the order these build types are added by the Android Gradle Plugin
-  @NotNull private static final List<String> implicitBuildTypes = ContainerUtil.immutableList("release", "debug");
+  @NotNull private static final List<String> implicitBuildTypes = List.of("release", "debug");
 
   @Override
   public boolean implicitlyExists(@NotNull String name) {

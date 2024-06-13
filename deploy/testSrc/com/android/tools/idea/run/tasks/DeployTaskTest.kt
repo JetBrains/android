@@ -153,6 +153,17 @@ class DeployTaskTest {
   }
 
   @Test
+  fun testDeployApi33() {
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU))
+    val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallFullApk().build()
+
+    val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
+    deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
+  }
+
+  @Test
   fun testDeployApi28WithUserPmOptions() {
     whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))

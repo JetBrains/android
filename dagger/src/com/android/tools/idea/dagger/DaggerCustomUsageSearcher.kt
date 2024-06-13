@@ -39,7 +39,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   override fun processElementUsages(
     element: PsiElement,
     processor: Processor<in Usage>,
-    options: FindUsagesOptions
+    options: FindUsagesOptions,
   ) {
     val (metricsType, elapsedTimeMillis) =
       runReadAction { processElementUsagesInReadAction(element, processor) } ?: return
@@ -51,7 +51,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
 
   private fun processElementUsagesInReadAction(
     element: PsiElement,
-    processor: Processor<in Usage>
+    processor: Processor<in Usage>,
   ): Pair<DaggerEditorEvent.ElementType, Long>? {
     if (!element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return null
 
@@ -74,7 +74,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   class DaggerUsage(
     private val usageElement: DaggerElement,
     private val targetElement: DaggerElement,
-    private val usageTypeName: String
+    private val usageTypeName: String,
   ) : UsageInfo2UsageAdapter(UsageInfo(usageElement.psiElement)), UsageWithType {
 
     override fun getUsageType(): UsageType? {
@@ -87,7 +87,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
         .trackNavigation(
           DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_USAGES,
           fromElement = targetElement.metricsElementType,
-          toElement = usageElement.metricsElementType
+          toElement = usageElement.metricsElementType,
         )
       super<UsageInfo2UsageAdapter>.navigate(focus)
     }

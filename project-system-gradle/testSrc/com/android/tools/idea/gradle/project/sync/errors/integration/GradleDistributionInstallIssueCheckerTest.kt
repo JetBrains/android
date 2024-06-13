@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioProxySett
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.utils.FileUtils
-import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.util.io.NioFiles
 import org.jetbrains.plugins.gradle.issue.quickfix.GradleWrapperSettingsOpenQuickFix
@@ -47,17 +46,17 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
     FileUtils.mkdirs(distsDir)
     NioFiles.setReadOnly(distsDir.toPath(), true)
 
-    runSyncAndCheckFailure(
+    runSyncAndCheckBuildIssueFailure(
       preparedProject,
       { buildIssue ->
-        Truth.assertThat(buildIssue).isNotNull()
-        Truth.assertThat(buildIssue.description).contains("Could not install Gradle distribution from 'https://services.gradle.org/distributions/gradle-8.3-rc-2-bin.zip'.")
-        Truth.assertThat(buildIssue.description).contains("Reason: java.lang.RuntimeException: Could not create parent directory for lock file ")
-        Truth.assertThat(buildIssue.description).contains("""
+        expect.that(buildIssue).isNotNull()
+        expect.that(buildIssue.description).contains("Could not install Gradle distribution from 'https://services.gradle.org/distributions/gradle-8.3-rc-2-bin.zip'.")
+        expect.that(buildIssue.description).contains("Reason: java.lang.RuntimeException: Could not create parent directory for lock file ")
+        expect.that(buildIssue.description).contains("""
           Please ensure Android Studio can write to the specified Gradle wrapper distribution directory.
           You can also change Gradle home directory in Gradle Settings.
         """.trimIndent())
-        Truth.assertThat(buildIssue.quickFixes.map { it::class.java }).isEqualTo(listOf(
+        expect.that(buildIssue.quickFixes.map { it::class.java }).isEqualTo(listOf(
           UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java,
           GradleWrapperSettingsOpenQuickFix::class.java
         ))
@@ -78,18 +77,18 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       zipStorePath=wrapper/dists
     """.trimIndent())
 
-    runSyncAndCheckFailure(
+    runSyncAndCheckBuildIssueFailure(
       preparedProject,
       { buildIssue ->
-        Truth.assertThat(buildIssue).isNotNull()
-        Truth.assertThat(buildIssue.description).isEqualTo("""
+        expect.that(buildIssue).isNotNull()
+        expect.that(buildIssue.description).isEqualTo("""
           Could not install Gradle distribution from 'https://127.0.0.1:1234/distributions/gradle-8.3-rc-2-bin.zip'.
           Reason: java.net.ConnectException: Connection refused
           
           Please ensure <a href="open_gradle_wrapper_settings">gradle distribution url</a> is correct.
           If you are behind an HTTP proxy, please <a href="open.proxy.settings">configure the proxy settings</a>.
         """.trimIndent())
-        Truth.assertThat(buildIssue.quickFixes.map { it::class.java }).isEqualTo(listOf(
+        expect.that(buildIssue.quickFixes.map { it::class.java }).isEqualTo(listOf(
           GradleWrapperSettingsOpenQuickFix::class.java,
           OpenStudioProxySettingsQuickFix::class.java
         ))
@@ -111,18 +110,18 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       zipStoreBase=PROJECT
       zipStorePath=wrapper/dists
     """.trimIndent())
-    runSyncAndCheckFailure(
+    runSyncAndCheckBuildIssueFailure(
       preparedProject,
       { buildIssue ->
-        Truth.assertThat(buildIssue).isNotNull()
-        Truth.assertThat(buildIssue.description).isEqualTo("""
+        expect.that(buildIssue).isNotNull()
+        expect.that(buildIssue.description).isEqualTo("""
           Could not install Gradle distribution from 'https://$unknownHost/distributions/gradle-8.3-rc-2-bin.zip'.
           Reason: java.net.UnknownHostException: $unknownHost
           
           Please ensure <a href="open_gradle_wrapper_settings">gradle distribution url</a> is correct.
           If you are behind an HTTP proxy, please <a href="open.proxy.settings">configure the proxy settings</a>.
         """.trimIndent())
-        Truth.assertThat(buildIssue.quickFixes.map { it::class.java }).isEqualTo(listOf(
+        expect.that(buildIssue.quickFixes.map { it::class.java }).isEqualTo(listOf(
           GradleWrapperSettingsOpenQuickFix::class.java,
           OpenStudioProxySettingsQuickFix::class.java
         ))

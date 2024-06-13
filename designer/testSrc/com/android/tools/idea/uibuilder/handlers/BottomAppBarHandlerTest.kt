@@ -78,7 +78,7 @@ class BottomAppBarHandlerTest {
             createComponent(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION))
           handler.onCreate(null, component, InsertType.CREATE)
           component
-        }
+        },
       )
     val expected =
       """
@@ -112,7 +112,7 @@ class BottomAppBarHandlerTest {
             createComponent(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION))
           handler.onCreate(null, component, InsertType.CREATE)
           component
-        }
+        },
       )
     val expected =
       """

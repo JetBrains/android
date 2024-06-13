@@ -69,7 +69,7 @@ class SafeArgNavigationKtTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -91,7 +91,7 @@ class SafeArgNavigationKtTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val argsClassDescriptors: List<LightArgsKtClass> =
@@ -246,7 +246,7 @@ class SafeArgNavigationKtTest {
           </navigation>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -268,7 +268,7 @@ class SafeArgNavigationKtTest {
         storageManager = LockBasedStorageManager.NO_LOCKS,
         trace = traceMock,
         moduleInfo = moduleSourceInfo,
-        lookupTracker = LookupTracker.DO_NOTHING
+        lookupTracker = LookupTracker.DO_NOTHING,
       ) as SafeArgsSyntheticPackageProvider
 
     val directionsClassDescriptors: List<LightDirectionsKtClass> =

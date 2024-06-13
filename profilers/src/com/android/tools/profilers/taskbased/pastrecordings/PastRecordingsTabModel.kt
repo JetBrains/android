@@ -15,11 +15,9 @@
  */
 package com.android.tools.profilers.taskbased.pastrecordings
 
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
-import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.annotations.VisibleForTesting
 
 /**
@@ -29,12 +27,11 @@ import com.google.common.annotations.VisibleForTesting
  */
 class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
   @VisibleForTesting
-  val recordingListModel = RecordingListModel(profilers, taskHandlers, taskGridModel::resetTaskSelection)
+  val recordingListModel = RecordingListModel(profilers, taskHandlers, taskGridModel::resetTaskSelection, taskGridModel::onTaskSelection,
+                                              ::onEnterTaskButtonClick)
 
   @VisibleForTesting
   val selectedRecording get() = recordingListModel.selectedRecording.value
-
-  override val isEnterTaskButtonEnabled get() = selectedRecording != null && selectedTaskType != ProfilerTaskType.UNSPECIFIED
 
   override fun onEnterTaskButtonClick() {
     val selectedSession = selectedRecording!!.session
@@ -48,7 +45,7 @@ class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(
 
     // Update the currently selected task type used to launch the recording with before setting the session. This guarantees that the
     // most up-to-date Profiler task will be used to handle the set session's data.
-    profilers.sessionsManager.setSessionProfilerTaskType(selectedSession.sessionId, selectedTaskType)
+    profilers.sessionsManager.currentTaskType = selectedTaskType
     profilers.sessionsManager.setSession(selectedSession)
   }
 }

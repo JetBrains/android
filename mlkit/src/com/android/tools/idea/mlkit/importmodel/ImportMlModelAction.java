@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
@@ -46,6 +47,11 @@ public class ImportMlModelAction extends AnAction {
 
   public ImportMlModelAction() {
     super(TITLE, null, StudioIcons.Shell.Filetree.ANDROID_FILE);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

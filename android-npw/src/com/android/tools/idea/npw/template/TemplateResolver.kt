@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.npw.template
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.WizardTemplateProvider
 import com.intellij.openapi.extensions.ExtensionPointName
 
@@ -28,7 +30,11 @@ class TemplateResolver {
 
     fun getAllTemplates(): List<Template> {
       return EP_NAME.extensions
-        .flatMap { it.getTemplates() }
+        .flatMap {
+          it.getTemplates().filter {
+            StudioFlags.NPW_ENABLE_GENAI_TEMPLATE.get() || it.name != "Gemini API Starter"
+          }
+        }
     }
 
     fun getTemplateByName(name: String, category: Category? = null, formFactor: FormFactor? = null) =

@@ -141,6 +141,26 @@ class KtBaselineProfileRunLineMarkerContributorTest {
 
   @Test
   @RunsInEdt
+  fun `when Kotlin class has BaselineProfileRule with type reference, it should show contributor`() {
+    val sourceFile = addKtBaselineProfileGeneratorToProject("""
+        $KT_SRC_FILE_HEADER
+        class BaselineProfileGenerator {
+
+          @get:Rule
+          val rule: BaselineProfileRule = BaselineProfileRule()
+
+          @Test
+          fun generate() { }
+        }
+      """.trimIndent())
+
+    assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
+
+    assertTestContributorInfo(sourceFile.funNamed("generate"))
+  }
+
+  @Test
+  @RunsInEdt
   fun `when Kotlin inner class has BaselineProfileRule, outer class methods should NOT show contributor`() {
     val sourceFile = addKtBaselineProfileGeneratorToProject("""
         $KT_SRC_FILE_HEADER

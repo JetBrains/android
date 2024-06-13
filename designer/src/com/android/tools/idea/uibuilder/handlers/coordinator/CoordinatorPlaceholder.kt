@@ -31,7 +31,7 @@ const val SIZE = 20
 class CoordinatorPlaceholder(
   host: SceneComponent,
   private val anchor: SceneComponent,
-  private val type: Type
+  private val type: Type,
 ) : Placeholder(host) {
 
   override val associatedComponent: SceneComponent
@@ -41,12 +41,12 @@ class CoordinatorPlaceholder(
     attributes.setAttribute(
       SdkConstants.AUTO_URI,
       SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY,
-      getAnchorGravity()
+      getAnchorGravity(),
     )
     attributes.setAttribute(
       SdkConstants.AUTO_URI,
       SdkConstants.ATTR_LAYOUT_ANCHOR,
-      SdkConstants.NEW_ID_PREFIX + anchor.nlComponent.ensureLiveId()
+      SdkConstants.NEW_ID_PREFIX + anchor.nlComponent.ensureLiveId(),
     )
   }
 
@@ -114,6 +114,6 @@ class CoordinatorPlaceholder(
     BOTTOM,
     RIGHT_TOP,
     RIGHT,
-    RIGHT_BOTTOM
+    RIGHT_BOTTOM,
   }
 }

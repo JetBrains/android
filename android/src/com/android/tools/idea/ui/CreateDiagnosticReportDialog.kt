@@ -42,9 +42,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBDimension
-import com.intellij.util.ui.JBUI
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
@@ -54,6 +51,7 @@ import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.swing.Action
+import javax.swing.GroupLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -82,7 +80,7 @@ private const val TITLE = "Collect Logs and Diagnostics Data"
  */
 class CreateDiagnosticReportDialog(private val project: Project?, files: List<FileInfo>) : DialogWrapper(project) {
   private val fileTree: Tree
-  private val grid = JPanel(GridBagLayout())
+  private val panel = JPanel()
   private val contents: JBTextArea
   private val checkBox: JBCheckBox
 
@@ -103,120 +101,91 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
   init {
     title = TITLE
-    isResizable = false
+    isResizable = true
     isModal = true
 
-    grid.apply {
-      val filesLabel = JLabel().apply {
-        text = "Files to include:"
-      }
-
-      val constraints = GridBagConstraints().apply {
-        gridx = 0
-        gridy = 0
-        anchor = GridBagConstraints.NORTHWEST
-        insets = JBUI.insets(10, 20, 0, 0)
-      }
-
-      add(filesLabel, constraints)
-
-      fileTree = buildTree(files)
-
-      val treeScrollPane = JBScrollPane(fileTree).apply {
-        preferredSize = JBDimension(300, 300)
-      }
-
-      constraints.apply {
-        gridx = 0
-        gridy = 1
-      }
-
-      add(treeScrollPane, constraints)
-
-      contents = JBTextArea().apply {
-        isEditable = false
-        border = fileTree.border
-        addFocusListener(object : FocusAdapter() {
-          override fun focusGained(e: FocusEvent?) {
-            caret.isVisible = true
-          }
-        })
-      }
-
-      val contentsScrollPane = JBScrollPane(contents).apply {
-        preferredSize = JBDimension(800, 300)
-      }
-
-      constraints.apply {
-        gridx = 1
-        gridy = 1
-      }
-
-      add(contentsScrollPane, constraints)
-
-      val privacy1 = JLabel().apply {
-        text = PRIVACY_TEXT_1
-      }
-
-      constraints.apply {
-        gridx = 0
-        gridy = 2
-        gridwidth = 2
-      }
-
-      add(privacy1, constraints)
-
-      val privacy2 = JLabel().apply {
-        text = PRIVACY_TEXT_2
-      }
-
-      val oldInsets = constraints.insets
-      constraints.apply {
-        gridy = 3
-        insets = JBUI.insets(insets.top - 10, insets.left, insets.bottom, insets.right)
-      }
-
-      add(privacy2, constraints)
-
-      val privacyLink = BrowserLink("Privacy Policy", PRIVACY_HYPERLINK)
-
-      constraints.apply {
-        gridy = 4
-        insets = oldInsets
-      }
-
-      add(privacyLink, constraints)
-
-      val termsOfServiceLink = BrowserLink("Terms of Service", TOS_HYPERLINK)
-
-      constraints.apply {
-        gridy = 5
-      }
-
-      add(termsOfServiceLink, constraints)
-
-      checkBox = JBCheckBox().apply {
-        text = "I agree to the terms above."
-        addItemListener { _ ->
-          createAction.isEnabled = isSelected
-        }
-      }
-
-      constraints.apply {
-        gridx = 0
-        gridy = 6
-        gridwidth = 1
-      }
-
-      add(checkBox, constraints)
+    val filesLabel = JLabel().apply {
+      text = "Files to include:"
     }
+
+    fileTree = buildTree(files)
+
+    val treeScrollPane = JBScrollPane(fileTree).apply {
+      preferredSize = JBDimension(250, 250)
+      minimumSize = preferredSize
+    }
+
+    contents = JBTextArea().apply {
+      isEditable = false
+      border = fileTree.border
+      addFocusListener(object : FocusAdapter() {
+        override fun focusGained(e: FocusEvent?) {
+          caret.isVisible = true
+        }
+      })
+    }
+
+    val contentsScrollPane = JBScrollPane(contents).apply {
+      preferredSize = JBDimension(700, 250)
+      minimumSize = preferredSize
+    }
+
+    val privacy1 = JLabel().apply {
+      text = PRIVACY_TEXT_1
+    }
+
+    val privacy2 = JLabel().apply {
+      text = PRIVACY_TEXT_2
+    }
+
+    val privacyLink = BrowserLink("Privacy Policy", PRIVACY_HYPERLINK)
+
+    val termsOfServiceLink = BrowserLink("Terms of Service", TOS_HYPERLINK)
+
+    checkBox = JBCheckBox().apply {
+      text = "I agree to the terms above."
+      addItemListener { _ ->
+        createAction.isEnabled = isSelected
+      }
+    }
+
+    val groupLayout = GroupLayout(panel).apply {
+      autoCreateGaps = true
+      autoCreateContainerGaps = true
+    }
+
+    val vGroup = groupLayout.createSequentialGroup()
+      .addComponent(filesLabel)
+      .addGroup(groupLayout.createParallelGroup()
+                  .addComponent(treeScrollPane)
+                  .addComponent(contentsScrollPane))
+      .addComponent(privacy1)
+      .addComponent(privacy2)
+      .addComponent(privacyLink)
+      .addComponent(termsOfServiceLink)
+      .addComponent(checkBox)
+    groupLayout.setVerticalGroup(vGroup)
+
+    val hGroup = groupLayout.createParallelGroup()
+      .addComponent(filesLabel)
+      .addGroup(groupLayout.createSequentialGroup()
+                  .addComponent(treeScrollPane)
+                  .addComponent(contentsScrollPane))
+      .addComponent(privacy1)
+      .addComponent(privacy2)
+      .addComponent(privacyLink)
+      .addComponent(termsOfServiceLink)
+      .addComponent(checkBox)
+    groupLayout.setHorizontalGroup(hGroup)
+
+    panel.layout = groupLayout
 
     updateContents(null)
 
     init()
   }
 
-  override fun createCenterPanel(): JComponent = grid
+  override fun createCenterPanel(): JComponent = panel
 
   override fun doOKAction() {
     if (!visitAllNodes(fileTree.model.root as FileTreeNode).any { it.isChecked }) {

@@ -24,5 +24,5 @@ import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
  * A tab in the Profiler tool window, wrapping a [StudioProfilersHomeTabView].
  */
 class StudioProfilersHomeTab(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
-  val view = StudioProfilersHomeTabView(TaskHomeTabModel(profilers), ideProfilerComponents)
+  val view = StudioProfilersHomeTabView(profilers.taskHomeTabModel, ideProfilerComponents)
 }

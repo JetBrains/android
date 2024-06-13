@@ -23,6 +23,7 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintEditorResult;
 import com.android.tools.idea.lint.common.LintExternalAnnotator;
 import com.android.tools.idea.lint.common.LintProblemData;
+import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -163,7 +164,8 @@ public class ModelLintIssueAnnotator {
       SmartPsiElementPointer<PsiElement> endElementPointer =
         SmartPointerManager.getInstance(model.getProject()).createSmartPsiElementPointer(endElement, xmlFile);
 
-      lintModel.addIssue(component, attributeKey, issue, problemData.getMessage(), inspection, level,
+      Incident incident = problemData.getIncident();
+      lintModel.addIssue(component, attributeKey, incident, issue, problemData.getMessage(), inspection, level,
                          startElementPointer, endElementPointer, problemData.getQuickfixData());
     }
 

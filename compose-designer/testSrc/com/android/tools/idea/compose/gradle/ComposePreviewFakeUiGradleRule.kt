@@ -19,10 +19,10 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.gradle.preview.displayName
-import com.android.tools.idea.compose.preview.ComposePreviewRefreshManager
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
@@ -30,9 +30,11 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
@@ -42,7 +44,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.rules.RuleChain
@@ -68,7 +69,7 @@ class ComposePreviewFakeUiGradleRule(
   testDataPath: String = TEST_DATA_PATH,
   kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
   projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
-  enableRenderQuality: Boolean = StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get()
+  enableRenderQuality: Boolean = StudioFlags.PREVIEW_RENDER_QUALITY.get(),
 ) : ComposeGradleProjectRule(projectPath, testDataPath, kotlinVersion, projectRule) {
 
   // The logger must be initialized later since at this point the logger framework is not ready yet
@@ -87,18 +88,18 @@ class ComposePreviewFakeUiGradleRule(
   lateinit var fakeUi: FakeUi
     private set
 
-  private lateinit var refreshManager: ComposePreviewRefreshManager
+  private lateinit var refreshManager: PreviewRefreshManager
 
   override val delegate: RuleChain =
     super.delegate.around(
       object : NamedExternalResource() {
         override fun before(description: Description) {
-          StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.override(enableRenderQuality)
+          StudioFlags.PREVIEW_RENDER_QUALITY.override(enableRenderQuality)
           setUpPreview()
         }
 
         override fun after(description: Description) {
-          StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.clearOverride()
+          StudioFlags.PREVIEW_RENDER_QUALITY.clearOverride()
           FastPreviewConfiguration.getInstance().resetDefault()
         }
       }
@@ -115,7 +116,7 @@ class ComposePreviewFakeUiGradleRule(
     psiMainFile = getPsiFile(project, previewFilePath)
     previewView = TestComposePreviewView(fixture.testRootDisposable, project)
     composePreviewRepresentation = createComposePreviewRepresentation(psiMainFile, previewView)
-    refreshManager = ComposePreviewRefreshManager.getInstance(project)
+    refreshManager = PreviewRefreshManager.getInstance(RenderingTopic.COMPOSE_PREVIEW)
 
     withContext(AndroidDispatchers.uiThread) {
       fakeUi =
@@ -126,7 +127,7 @@ class ComposePreviewFakeUiGradleRule(
             add(previewView, BorderLayout.CENTER)
           },
           1.0,
-          true
+          true,
         )
       fakeUi.root.validate()
     }
@@ -144,13 +145,13 @@ class ComposePreviewFakeUiGradleRule(
       UIUtil.dispatchAllInvocationEvents()
     }
 
-    Assert.assertTrue(previewView.hasRendered)
-    Assert.assertTrue(previewView.hasContent)
-    Assert.assertTrue(!composePreviewRepresentation.status().hasErrors)
-    Assert.assertTrue(!composePreviewRepresentation.status().hasSyntaxErrors)
-    Assert.assertTrue(!composePreviewRepresentation.status().isOutOfDate)
+    assertTrue(previewView.hasRendered)
+    assertTrue(previewView.hasContent)
+    assertTrue(!composePreviewRepresentation.status().hasErrors)
+    assertTrue(!composePreviewRepresentation.status().hasSyntaxErrors)
+    assertTrue(!composePreviewRepresentation.status().isOutOfDate)
 
-    withContext(AndroidDispatchers.uiThread) { validate() }
+    validate()
     logger.info("ComposePreviewFakeUiGradleRuleImpl setUp completed")
   }
 
@@ -160,6 +161,20 @@ class ComposePreviewFakeUiGradleRule(
     setUpPreview()
   }
 
+  fun runWithRenderQualityEnabled(runnable: suspend () -> Unit) = runBlocking {
+    try {
+      if (!StudioFlags.PREVIEW_RENDER_QUALITY.get()) {
+        StudioFlags.PREVIEW_RENDER_QUALITY.override(true)
+        // We need to set up things again to make sure that the flag change takes effect
+        resetInitialConfiguration()
+        withContext(AndroidDispatchers.uiThread) { fakeUi.root.validate() }
+      }
+      runnable()
+    } finally {
+      StudioFlags.PREVIEW_RENDER_QUALITY.clearOverride()
+    }
+  }
+
   /**
    * Executes [runnable], expecting it to cause a refresh of type [expectedRefreshType] to start
    * running.
@@ -167,13 +182,13 @@ class ComposePreviewFakeUiGradleRule(
   suspend fun waitForAnyRefreshToStart(
     timeout: Duration,
     expectedRefreshType: ComposePreviewRefreshType,
-    runnable: suspend () -> Unit
+    runnable: suspend () -> Unit,
   ) = coroutineScope {
     // Make sure to start waiting for the change before triggering it
     val awaitingJob = launch {
       refreshManager.refreshingTypeFlow.awaitStatus(
         "Timeout waiting for refresh to start",
-        timeout
+        timeout,
       ) {
         it == expectedRefreshType
       }
@@ -183,16 +198,6 @@ class ComposePreviewFakeUiGradleRule(
     assertTrue(awaitingJob.isCompleted)
     // Make sure that the job hasn't failed, i.e. that a refresh started
     assertFalse(awaitingJob.isCancelled)
-  }
-
-  /** Wait for all running refreshes to complete. */
-  suspend fun waitForAllRefreshesToFinish(timeout: Duration) {
-    refreshManager.refreshingTypeFlow.awaitStatus(
-      "Timeout waiting for refresh to finish",
-      timeout
-    ) {
-      it == null
-    }
   }
 
   /**
@@ -205,7 +210,7 @@ class ComposePreviewFakeUiGradleRule(
     allRefreshesFinishTimeout: Duration = DEFAULT_REFRESH_TIMEOUT,
     expectedRefreshType: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL,
     aRefreshMustStart: Boolean = true,
-    runnable: suspend () -> Unit
+    runnable: suspend () -> Unit,
   ) {
     waitForAllRefreshesToFinish(timeout = 5.seconds)
     try {
@@ -225,25 +230,25 @@ class ComposePreviewFakeUiGradleRule(
 
   /** Validates the UI to ensure is up to date. */
   suspend fun validate(zoomToFit: Boolean = true) {
-    withContext(AndroidDispatchers.uiThread) {
-      fakeUi.root.validate()
-      if (zoomToFit) {
-        // zoom to fit might (but not always) trigger a render quality change
-        runAndWaitForRefresh(
-          expectedRefreshType = ComposePreviewRefreshType.QUALITY,
-          aRefreshMustStart = false
-        ) {
-          previewView.mainSurface.zoomToFit()
+    runAndWaitForRefresh(
+      expectedRefreshType = ComposePreviewRefreshType.QUALITY,
+      aRefreshMustStart = false,
+    ) {
+      withContext(AndroidDispatchers.uiThread) {
+        fakeUi.root.validate()
+        fakeUi.layoutAndDispatchEvents()
+        if (zoomToFit) {
+          previewView.mainSurface.zoomController.zoomToFit()
           fakeUi.root.validate()
+          fakeUi.layoutAndDispatchEvents()
         }
       }
-      fakeUi.layoutAndDispatchEvents()
     }
   }
 
   fun createComposePreviewRepresentation(
     psiFile: PsiFile,
-    view: TestComposePreviewView
+    view: TestComposePreviewView,
   ): ComposePreviewRepresentation {
     val previewRepresentation =
       ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }

@@ -34,7 +34,7 @@ import com.android.tools.idea.editors.strings.action.RemoveKeysAction
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.FIXED_COLUMN_COUNT
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.RESOURCE_FOLDER_COLUMN
-import com.android.tools.idea.res.createTestModuleRepository
+import com.android.tools.idea.res.ModuleResourceRepository
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.res.LocalResourceRepository
@@ -76,7 +76,7 @@ class StringResourceViewPanelFakeUiTest {
     projectRule.fixture.testDataPath =
       resolveWorkspacePath("tools/adt/idea/android/testData").toString()
     resourceDirectory = projectRule.fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
-    localResourceRepository = createTestModuleRepository(facet, listOf(resourceDirectory))
+    localResourceRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory))
 
     stringResourceViewPanel = StringResourceViewPanel(projectRule.module.androidFacet, projectRule.testRootDisposable)
     invokeAndWaitIfNeeded {

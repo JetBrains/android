@@ -18,32 +18,37 @@ package com.android.tools.idea.wear.preview
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.actions.CommonPreviewActionManager
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
 
 private val WEAR_TILE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 internal class WearTilePreviewRepresentation(
   adapterViewFqcn: String,
   psiFile: PsiFile,
-  previewProvider: PreviewElementProvider<WearTilePreviewElement>,
-  previewElementModelAdapterDelegate: PreviewElementModelAdapter<WearTilePreviewElement, NlModel>,
+  previewProviderConstructor:
+    (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<PsiWearTilePreviewElement>,
+  previewElementModelAdapterDelegate: PreviewElementModelAdapter<PsiWearTilePreviewElement, NlModel>,
 ) :
-  CommonPreviewRepresentation<WearTilePreviewElement>(
+  CommonPreviewRepresentation<PsiWearTilePreviewElement>(
     adapterViewFqcn,
     psiFile,
-    previewProvider,
+    previewProviderConstructor,
     previewElementModelAdapterDelegate,
     ::CommonNlDesignSurfacePreviewView,
     ::WearTilePreviewViewModel,
-    NlDesignSurface.Builder::configureDesignSurface
+    NlDesignSurface.Builder::configureDesignSurface,
+    renderingTopic = RenderAsyncActionExecutor.RenderingTopic.WEAR_TILE_PREVIEW,
   )
 
 private fun NlDesignSurface.Builder.configureDesignSurface() {
-  setActionManagerProvider(::WearTilePreviewActionManager)
+  setActionManagerProvider(::CommonPreviewActionManager)
   setSupportedActions(WEAR_TILE_SUPPORTED_ACTIONS)
   setScreenViewProvider(WEAR_TILE_SCREEN_VIEW_PROVIDER, false)
 }

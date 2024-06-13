@@ -1,0 +1,21 @@
+plugins {
+    alias(libs.plugins.jetbrains.kotlin.android)
+}
+apply plugin: 'android'
+
+android {
+    compileSdkVersion 17
+    buildToolsVersion "17.0.0"
+
+    defaultConfig {
+        minSdkVersion 7
+        targetSdkVersion 16
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    compile 'com.android.support:support-v4:13.0.0'
+}

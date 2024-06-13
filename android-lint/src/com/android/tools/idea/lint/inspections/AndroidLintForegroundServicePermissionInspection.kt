@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.ForegroundServicePermissionDetector
 class AndroidLintForegroundServicePermissionInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.foreground.service.permission"),
-    ForegroundServicePermissionDetector.ISSUE_PERMISSION
+    ForegroundServicePermissionDetector.ISSUE_PERMISSION,
   )

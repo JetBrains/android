@@ -107,7 +107,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
     @AndroidDpCoordinate l: Int,
     @AndroidDpCoordinate t: Int,
     @AndroidDpCoordinate r: Int,
-    @AndroidDpCoordinate b: Int
+    @AndroidDpCoordinate b: Int,
   ): Boolean {
     val left: Int
     val right: Int
@@ -168,7 +168,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
                   ph.region.top,
                   ph.region.right,
                   ph.region.bottom,
-                ),
+                )
               )
             }
             ph.associatedComponent == snappedPlaceholder.associatedComponent -> {
@@ -179,7 +179,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
                   ph.region.top,
                   ph.region.right,
                   ph.region.bottom,
-                ),
+                )
               )
             }
             else -> Unit // Do nothing for Placeholders in different host
@@ -272,7 +272,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
     @AndroidDpCoordinate x: Int,
     @AndroidDpCoordinate y: Int,
     unused: List<Target>,
-    ignored: SceneContext
+    ignored: SceneContext,
   ) {
     draggedComponents.forEach { it.isDragging = true }
     snap(x, y)
@@ -286,7 +286,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
    */
   private fun snap(
     @AndroidDpCoordinate mouseX: Int,
-    @AndroidDpCoordinate mouseY: Int
+    @AndroidDpCoordinate mouseY: Int,
   ): Placeholder? {
     // We use primary component to do snap
     val left = mouseX - offsets[0].x
@@ -369,7 +369,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
   override fun mouseRelease(
     @AndroidDpCoordinate x: Int,
     @AndroidDpCoordinate y: Int,
-    unused: List<Target>
+    unused: List<Target>,
   ) {
     if (!myComponent.isDragging) {
       val isClicked = abs(x - firstMouse.x) <= 1 && abs(y - firstMouse.y) <= 1
@@ -385,7 +385,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
         // TODO: Makes Notch works when dragging from other layouts to Constraint Layout.
         if (ToggleAutoConnectAction.isAutoconnectOn()) {
           targetSnapper.applyNotches(
-            draggedComponents[0].authoritativeNlComponent.startAttributeTransaction(),
+            draggedComponents[0].authoritativeNlComponent.startAttributeTransaction()
           )
         }
         applyPlaceholder(ph)
@@ -509,7 +509,7 @@ private abstract class BasePlaceholderDrawRegion(
   @AndroidDpCoordinate private val x1: Int,
   @AndroidDpCoordinate private val y1: Int,
   @AndroidDpCoordinate private val x2: Int,
-  @AndroidDpCoordinate private val y2: Int
+  @AndroidDpCoordinate private val y2: Int,
 ) : DrawRegion() {
 
   final override fun paint(g: Graphics2D, sceneContext: SceneContext) {
@@ -551,7 +551,7 @@ private class DrawSnappedPlaceholder(
   @AndroidDpCoordinate x1: Int,
   @AndroidDpCoordinate y1: Int,
   @AndroidDpCoordinate x2: Int,
-  @AndroidDpCoordinate y2: Int
+  @AndroidDpCoordinate y2: Int,
 ) : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
 
   override fun getBackgroundColor(colorSet: ColorSet): Color? = colorSet.dragReceiverBackground
@@ -565,7 +565,7 @@ private class DrawSiblingsOfSnappedPlaceholder(
   @AndroidDpCoordinate x1: Int,
   @AndroidDpCoordinate y1: Int,
   @AndroidDpCoordinate x2: Int,
-  @AndroidDpCoordinate y2: Int
+  @AndroidDpCoordinate y2: Int,
 ) : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
 
   override fun getBackgroundColor(colorSet: ColorSet): Color? =
@@ -580,7 +580,7 @@ private class DrawHoveredHost(
   @AndroidDpCoordinate x1: Int,
   @AndroidDpCoordinate y1: Int,
   @AndroidDpCoordinate x2: Int,
-  @AndroidDpCoordinate y2: Int
+  @AndroidDpCoordinate y2: Int,
 ) : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
 
   override fun getBackgroundColor(colorSet: ColorSet): Color? = null
@@ -594,7 +594,7 @@ private class DrawNonHoveredHost(
   @AndroidDpCoordinate x1: Int,
   @AndroidDpCoordinate y1: Int,
   @AndroidDpCoordinate x2: Int,
-  @AndroidDpCoordinate y2: Int
+  @AndroidDpCoordinate y2: Int,
 ) : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
 
   override fun getBackgroundColor(colorSet: ColorSet): Color? = null

@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogView
-import junit.framework.Assert
+import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
 import java.io.File
@@ -34,10 +35,10 @@ class GradleVersionCatalogViewTest: GradleFileModelTestCase() {
     val view = getVersionCatalogView(settingsModel)
     val catalogToFile = view.catalogToFileMap
     assertSize(2, catalogToFile.entries)
-    Assert.assertNotNull(catalogToFile["libs"])
-    Assert.assertNotNull(catalogToFile["libs"]!!.path.endsWith("gradle/libs.versions.toml"))
-    Assert.assertNotNull(catalogToFile["foo"])
-    Assert.assertNotNull(catalogToFile["foo"]!!.path.endsWith("gradle/foo.versions.toml"))
+    assertThat(catalogToFile["libs"]).isNotNull()
+    assertThat(catalogToFile["libs"]!!.path).endsWith("gradle/libs.versions.toml")
+    assertThat(catalogToFile["foo"]).isNotNull()
+    assertThat(catalogToFile["foo"]!!.path).endsWith("gradle/foo.versions.toml")
   }
 
   @Test
@@ -48,8 +49,8 @@ class GradleVersionCatalogViewTest: GradleFileModelTestCase() {
     val view = getVersionCatalogView(settingsModel)
     val catalogToFile = view.catalogToFileMap
     assertSize(1, catalogToFile.entries)
-    Assert.assertNotNull(catalogToFile["libs"])
-    Assert.assertNotNull(catalogToFile["libs"]!!.path.endsWith("gradle/libs.versions.toml"))
+    assertThat(catalogToFile["libs"]).isNotNull()
+    assertThat(catalogToFile["libs"]!!.path).endsWith("gradle/libs.versions.toml")
   }
 
   @Test
@@ -61,8 +62,8 @@ class GradleVersionCatalogViewTest: GradleFileModelTestCase() {
     val view = getVersionCatalogView(settingsModel)
     val catalogToFile = view.catalogToFileMap
     assertSize(1, catalogToFile.entries)
-    Assert.assertNotNull(catalogToFile["libs"])
-    Assert.assertNotNull(catalogToFile["libs"]!!.path.endsWith("gradle/libs.versions.toml"))
+    assertThat(catalogToFile["libs"]).isNotNull()
+    assertThat(catalogToFile["libs"]!!.path).endsWith("gradle/libs.versions.toml")
   }
 
   @Test
@@ -77,7 +78,7 @@ class GradleVersionCatalogViewTest: GradleFileModelTestCase() {
     val view = getVersionCatalogView(settingsModel)
     var catalogToFile = view.catalogToFileMap
     assertSize(1, catalogToFile.entries)
-    Assert.assertNotNull(catalogToFile["libs"])
+    assertThat(catalogToFile["libs"]).isNotNull()
 
     val dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement()
     val foo = dependencyResolutionManagementModel.addVersionCatalog("foo")
@@ -88,8 +89,20 @@ class GradleVersionCatalogViewTest: GradleFileModelTestCase() {
     catalogToFile = view.catalogToFileMap // getting updated version
 
     assertSize(2, catalogToFile.entries)
-    Assert.assertNotNull(catalogToFile["foo"])
-    Assert.assertNotNull(catalogToFile["foo"]!!.path.endsWith("gradle/foo.versions.toml"))
+    assertThat(catalogToFile["foo"]).isNotNull()
+    assertThat(catalogToFile["foo"]!!.path).endsWith("gradle/foo.versions.toml")
+  }
+
+  @Test
+  @Throws(IOException::class)
+  fun testDefaultVersionCatalogWithNoSettingsFile() {
+    removeSettingsFile()
+    createCatalogFile("libs.versions.toml")
+    val view = GradleModelProvider.getInstance().getVersionCatalogView(project)
+    assertThat(view.getCatalogToFileMap()).hasSize(1)
+    val defaultLib = view.getCatalogToFileMap()["libs"]
+    assertThat(defaultLib).isNotNull()
+    assertThat(defaultLib!!.path).endsWith("gradle/libs.versions.toml")
   }
 
   private fun getVersionCatalogView(settingsModel: GradleSettingsModel): GradleVersionCatalogView =

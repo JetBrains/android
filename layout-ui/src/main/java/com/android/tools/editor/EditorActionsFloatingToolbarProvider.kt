@@ -57,7 +57,7 @@ private val VERTICAL_PANEL_MARGINS
 abstract class EditorActionsFloatingToolbarProvider(
   private val component: JComponent,
   parentDisposable: Disposable,
-  private val actionPlacePrefix: String = ""
+  private val actionPlacePrefix: String = "",
 ) : PanZoomListener, Disposable {
 
   val floatingToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
@@ -257,7 +257,7 @@ private fun createToolbar(
   place: String,
   actionManager: ActionManager,
   actionGroup: ActionGroup,
-  target: JComponent
+  target: JComponent,
 ): ActionToolbar {
   // Place must be "DesignSurface" to get the correct variation for zoom icons.
   val toolbar =

@@ -173,18 +173,6 @@ class BuildAnalyzerComboBoxViewTest {
 
   @Test
   @RunsInEdt
-  @Ignore("b/303116012")
-  fun testActionToolbarIsSetProperly() {
-    val toolbar = TreeWalker(view.wholePanel).descendants().filterIsInstance<ActionToolbar>().single()
-
-    assertThat(toolbar.targetComponent).isEqualTo(view.wholePanel)
-    assertThat(toolbar.actions).hasSize(2)
-    assertThat(toolbar.actions[0]).isInstanceOf(BuildAnalyzerPropertiesAction::class.java)
-    assertThat(toolbar.actions[1]).isInstanceOf(Separator::class.java)
-  }
-
-  @Test
-  @RunsInEdt
   fun testModelListenersReleasedOnUiDisposal() {
     // Select each page to trigger its lazy creation, after that model listeners should be set up.
     BuildAnalyzerViewModel.DataSet.values().forEach { model.selectedData = it }

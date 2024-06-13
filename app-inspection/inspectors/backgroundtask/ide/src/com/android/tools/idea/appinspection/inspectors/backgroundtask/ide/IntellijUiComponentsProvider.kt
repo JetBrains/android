@@ -24,9 +24,13 @@ import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator
 import com.android.tools.nativeSymbolizer.createNativeSymbolizer
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 
-class IntellijUiComponentsProvider(private val project: Project) : UiComponentsProvider {
+class IntellijUiComponentsProvider(
+  private val project: Project,
+  private val parentDisposable: Disposable,
+) : UiComponentsProvider {
   override val codeNavigator: CodeNavigator
 
   init {
@@ -37,6 +41,6 @@ class IntellijUiComponentsProvider(private val project: Project) : UiComponentsP
   }
 
   override fun createStackTraceView(model: StackTraceModel): StackTraceView {
-    return IntelliJStackTraceGroup(project).createStackView(model)
+    return IntelliJStackTraceGroup(project, parentDisposable).createStackView(model)
   }
 }

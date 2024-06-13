@@ -46,7 +46,7 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
 
   override fun updateDatabaseSchema(
     viewDatabase: ViewDatabase,
-    diffOperations: List<SchemaDiffOperation>
+    diffOperations: List<SchemaDiffOperation>,
   ) {}
 
   override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
@@ -70,4 +70,6 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
   override fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int) {}
 
   override fun showOfflineModeUnavailablePanel() {}
+
+  override fun setForceOpen(forceOpen: Boolean) {}
 }

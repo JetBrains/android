@@ -24,10 +24,12 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.util.SlowOperations
 import java.io.File
 
 class StudioEmbeddedRenderTarget {
@@ -70,7 +72,10 @@ class StudioEmbeddedRenderTarget {
       if (StudioPathManager.isRunningFromSources()) {
         path = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/layoutlib/").toString()
       }
-      val root = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL).findFileByPath(FileUtil.toSystemIndependentName(path))
+      val root =
+        SlowOperations.allowSlowOperations(ThrowableComputable {
+          VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL).findFileByPath(FileUtil.toSystemIndependentName(path))
+        })
       if (root != null) {
         val rootFile = VfsUtilCore.virtualToIoFile(root)
         if (rootFile.exists() && rootFile.isDirectory) {

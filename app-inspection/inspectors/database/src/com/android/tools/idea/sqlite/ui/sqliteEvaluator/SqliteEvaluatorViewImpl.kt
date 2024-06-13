@@ -74,7 +74,7 @@ class SqliteEvaluatorViewImpl(
     ApplicationManager.getApplication().invokeLaterOnWriteThread {
       PsiManager.getInstance(project).dropPsiCaches()
     }
-  }
+  },
 ) : SqliteEvaluatorView {
 
   private val splitterPanel = OnePixelSplitter(true)
@@ -87,7 +87,7 @@ class SqliteEvaluatorViewImpl(
       .getEditorField(
         AndroidSqlLanguage.INSTANCE,
         project,
-        listOf(EditorCustomization { editor -> editor.setBorder(JBUI.Borders.empty()) })
+        listOf(EditorCustomization { editor -> editor.setBorder(JBUI.Borders.empty()) }),
       )
 
   private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
@@ -119,7 +119,7 @@ class SqliteEvaluatorViewImpl(
     }
 
     topPanel.border = JBUI.Borders.empty(6)
-    controlsPanel.border = JBUI.Borders.empty(6, 0, 0, 0)
+    controlsPanel.border = JBUI.Borders.emptyTop(6)
     bottomPanel.border = IdeBorderFactory.createBorder(SideBorder.TOP)
 
     topPanel.background = primaryContentBackground
@@ -149,7 +149,7 @@ class SqliteEvaluatorViewImpl(
             sqliteDatabase: SqliteDatabaseId?,
             index: Int,
             selected: Boolean,
-            hasFocus: Boolean
+            hasFocus: Boolean,
           ) {
             if (sqliteDatabase != null) {
               icon =
@@ -174,7 +174,7 @@ class SqliteEvaluatorViewImpl(
         queryHistoryView.show(
           component,
           queryHistoryButton.x + queryHistoryButton.width / 2,
-          topPanel.height - topPanel.border.getBorderInsets(controlsPanel).bottom
+          topPanel.height - topPanel.border.getBorderInsets(controlsPanel).bottom,
         )
       }
     }
@@ -187,7 +187,7 @@ class SqliteEvaluatorViewImpl(
       KeymapUtil.getKeyStroke(CustomShortcutSet(*shortcutsMultiline))
         ?: KeyStroke.getKeyStroke(
           KeyEvent.VK_ENTER,
-          Toolkit.getDefaultToolkit().menuShortcutKeyMask
+          Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx,
         )
     val shortcutText =
       KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(keyStrokeMultiline))
@@ -221,7 +221,8 @@ class SqliteEvaluatorViewImpl(
   override fun schemaChanged(databaseId: SqliteDatabaseId) {
     // A fresh schema is taken from the schema provider each time the selected db changes in the
     // combo box.
-    // Therefore the only case we need to worry about is when the schema that changed belongs to the
+    // Therefore, the only case we need to worry about is when the schema that changed belongs to
+    // the
     // currently selected db.
     if ((databaseComboBox.selectedItem as SqliteDatabaseId) == databaseId) {
       setSchemaFromSelectedItem()

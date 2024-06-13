@@ -21,8 +21,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
-import com.android.tools.profilers.taskbased.tasks.CreateProfilerTaskTabListener
-import com.android.tools.profilers.taskbased.tasks.OpenProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.task.CreateProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -136,14 +136,6 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
     toolWindow.stripeTitle = PROFILER_TOOL_WINDOW_TITLE
     // Android Studio wants to always show the stripe button for profiler. It's a common entry point into profiler for Studio users.
     toolWindow.isShowStripeButton = true
-
-    // When we initialize the ToolWindow we call to the profiler service to also make sure it is initialized.
-    // The default behavior for intellij is to lazy load services so having this call here forces intellij to
-    // load the AndroidProfilerService registering the data and callbacks required for initializing the profilers.
-    // Note: The AndroidProfilerService is where all application level components should be managed. This means if
-    // we have something that impacts the TransportPipeline or should be done only once for X instances of
-    // profilers or projects it will need to be handled there.
-    AndroidProfilerService.getInstance()
   }
 
   companion object {

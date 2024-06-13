@@ -24,11 +24,13 @@ import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
+import com.android.utils.FileUtils;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -76,7 +78,7 @@ public class IdeaSyncCachesTest extends AndroidGradleTestCase {
     });
   }
 
-  public void testMissingJarTriggersSync() {
+  public void testMissingJarTriggersSync() throws IOException {
     if (!IdeInfo.getInstance().isAndroidStudio()) return;
     // this test is not correct. The following is happening on startup:
     //  1. IDE starts and executes ExternalSystemStartupActivity.
@@ -117,7 +119,16 @@ public class IdeaSyncCachesTest extends AndroidGradleTestCase {
     // library files.
     //noinspection UnstableApiUsage
     GradleDaemonServices.stopDaemons();
+
     deleteLibraryFilesFromGradleCache(lifecycleLiveDataLibraryPaths);
+    for (VirtualFile file : lifecycleLiveDataLibraryPaths) {
+      while(!file.getName().equals("transformed")) {
+        file = file.getParent();
+      }
+      // Delete the workspace of artifact transforms which has the format of .../hashes/transformed/...., because Gradle doesn't allow the
+      // workspace of immutable transforms to be corrupted. However, it is okay the workspace is missing and Gradle would create a new one.
+      FileUtils.deleteRecursivelyIfExists(new File(file.getParent().getCanonicalPath()));
+    }
     openPreparedProject(this, "project", project -> {
       assertEquals(ProjectSystemSyncManager.SyncResult.SUCCESS,
                    ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult());

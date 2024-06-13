@@ -15,51 +15,18 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.deployer.tasks.LiveUpdateDeployer
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.psi.PsiFile
-
 /**
- * Centralized place to handle errors reporting and metrics.
+ * Centralized place to construct user-friendly error message.
  */
-
-private val log = Logger.getInstance(LiveEditProjectMonitor::class.java)
-
-fun reportLiveEditError(exception: LiveEditUpdateException) {
-  // TODO: Temp solution. These probably need to go somewhere when we have a UI.
-  report("E: Live Edit " + errorMessage(exception))
-}
-
-fun leErrorMessage(type: LiveEditUpdateException.Error, source : String?) = "${type.message} ${source?.let {" in ${it}"}}. Live Edit is temporarily paused until all build errors are fixed."
+public fun leErrorMessage(type: LiveEditUpdateException.Error, source : String?) = "${type.message} ${source?.let {" in ${it}"}}. Live Edit is temporarily paused until all build errors are fixed."
 
 fun errorMessage(exception: LiveEditUpdateException) : String {
-  val source: PsiFile? = exception.source ?: return "${exception.error.message}: \n ${exception.details} \n"
-
-  when (exception.error) {
-    LiveEditUpdateException.Error.COMPILATION_ERROR -> return leErrorMessage(exception.error, exception.source.name)
-    LiveEditUpdateException.Error.ANALYSIS_ERROR -> return leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, exception.source.name)
-    else -> {}
+  val error = exception.error.message
+  var details = exception.details
+  if (!details.isEmpty()) {
+    details = "\n$details."
   }
-  return "${exception.error.message}: \n ${exception.details} \n"
+  var inLocation = exception.sourceFilename?.let { " in $it" } ?: ""
+  var cause = exception.cause?.let { "\n${it.stackTraceToString()}" } ?: ""
+  return "$error$inLocation.$details$cause"
 }
-
-/**
- * Centralized place to handle errors reporting and metrics.
- */
-fun reportDeployerError(error: LiveUpdateDeployer.UpdateLiveEditError) {
-  // TODO: Temp solution. These probably need to go somewhere when we have a UI.
-  report("E: Live Edit ${error.message}\n")
-}
-
-fun reportDeployPerformance(metric: PerformanceTracker) {
-  // These are the 3 that is most interesting to monitor.
-  println("analysis = ${metric["analysis"]}")
-  println("codegen = ${metric["codegen"]}")
-  println("deploy = ${metric["deploy"]}")
-}
-
-private fun report(message: String) {
-  print(message)
-  log.warn(message)
-}
-

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
@@ -72,9 +71,5 @@ open class TransformTestCase : GradleFileModelTestCase() {
 
   protected fun createExpressionMap(name: GradleNameElement = GradleNameElement.empty()): GradleDslExpressionMap {
     return GradleDslExpressionMap(gradleDslFile, name, false)
-  }
-
-  protected fun createClosure(parent: GradleDslElement): GradleDslClosure {
-    return GradleDslClosure(parent, null, GradleNameElement.empty())
   }
 }

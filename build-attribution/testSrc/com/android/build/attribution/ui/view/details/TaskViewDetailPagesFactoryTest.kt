@@ -208,7 +208,6 @@ which it must do in order to support incremental builds.<BR/>
   }
 
   @Test
-  @Ignore("b/303118095")
   @RunsInEdt
   fun testLearnMoreLinkClicked() {
     val data = MockUiData(tasksList = "myPlugin".let { pluginName ->

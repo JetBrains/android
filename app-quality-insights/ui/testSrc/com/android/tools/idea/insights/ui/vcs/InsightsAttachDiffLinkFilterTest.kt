@@ -52,7 +52,7 @@ class InsightsAttachDiffLinkFilterTest {
     exceptionInfoCache =
       InsightsExceptionInfoCache(
         projectRule.project,
-        GlobalSearchScope.allScope(projectRule.project)
+        GlobalSearchScope.allScope(projectRule.project),
       )
     console =
       ConsoleViewImpl(projectRule.project, true).also {
@@ -136,11 +136,11 @@ class InsightsAttachDiffLinkFilterTest {
               revision = REVISION_74081e5f,
               filePath = targetPsiFile.virtualFile.toVcsFilePath(),
               lineNumber = 4,
-              origin = null
+              origin = null,
             ),
           highlightStartOffset = 73,
           highlightEndOffset = 92,
-          tracker
+          tracker,
         )
       )
   }
@@ -172,11 +172,11 @@ class InsightsAttachDiffLinkFilterTest {
               revision = REVISION_74081e5f,
               filePath = targetPsiFile.virtualFile.toVcsFilePath(),
               lineNumber = 4,
-              origin = null
+              origin = null,
             ),
           highlightStartOffset = 80,
           highlightEndOffset = 97,
-          tracker
+          tracker,
         )
       )
   }

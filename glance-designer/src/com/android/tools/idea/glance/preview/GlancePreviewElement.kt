@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.glance.preview
 
+import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.MethodPreviewElement
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewElementInstance
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 
-/**
- * Information required to display the preview of a Glance UI element.
- *
- * TODO(b/239802877): Create 2 different classes instead for appwidget and tile cases with different
- *   PreviewConfigurations reflecting the specifics of those.
- */
-class GlancePreviewElement(
+/** Information required to display the preview of a Glance UI element. */
+data class GlancePreviewElement<T>(
   override val displaySettings: PreviewDisplaySettings,
-  override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-  override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-  override val methodFqn: String
-) : MethodPreviewElement
+  override val previewElementDefinition: T?,
+  override val previewBody: T?,
+  override val methodFqn: String,
+  override val configuration: PreviewConfiguration,
+  override val hasAnimations: Boolean = false,
+  override val instanceId: String = methodFqn,
+) : MethodPreviewElement<T>, ConfigurablePreviewElement<T>, PreviewElementInstance<T> {
+  override fun createDerivedInstance(
+    displaySettings: PreviewDisplaySettings,
+    config: PreviewConfiguration,
+  ) = copy(displaySettings = displaySettings, configuration = config)
+}
+
+typealias PsiGlancePreviewElement = GlancePreviewElement<SmartPsiElementPointer<PsiElement>>

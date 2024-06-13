@@ -73,7 +73,7 @@ class DaggerConsoleFilter : Filter {
   private fun collectLinks(
     line: String,
     lineStart: Int,
-    results: MutableCollection<Filter.Result>
+    results: MutableCollection<Filter.Result>,
   ) {
     for (match in FQCN_WITH_METHOD.findAll(line).iterator()) {
       val link: HyperlinkInfo

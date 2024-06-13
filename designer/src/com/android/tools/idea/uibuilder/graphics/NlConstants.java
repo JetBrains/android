@@ -26,9 +26,6 @@ public class NlConstants {
 
   public static final int DEFAULT_SCREEN_OFFSET_X = 50;
   public static final int DEFAULT_SCREEN_OFFSET_Y = 50;
-  /** Distance between blueprint screen and regular screen */
-  @SwingCoordinate
-  public static final int SCREEN_DELTA = 48;
 
   /**
    * The maximum number of pixels will be considered a "match" when snapping
@@ -48,8 +45,6 @@ public class NlConstants {
   public static final Color RESIZING_BUCKET_COLOR = new Color(0x03, 0xa9, 0xf4, 26);
 
   public static final BasicStroke THICK_SOLID_STROKE = new BasicStroke(2.0f);
-  public static final BasicStroke DOTTED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
-                                                                  new float[] { 2, 2 }, 0.0f);
   public static final BasicStroke DASHED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
                                                                   new float[] { 4, 4 }, 0.0f);
   public static final BasicStroke PATTERN_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,

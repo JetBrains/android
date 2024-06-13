@@ -82,20 +82,22 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   public void testGeneratedResources() throws Exception {
     File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
     Files.append(
-      "android {\n" +
-      "  String resGeneratePath = \"${buildDir}/generated/my_generated_resources/res\"\n" +
-      "    def generateResTask = tasks.create(name: 'generateMyResources').doLast {\n" +
-      "        def rawDir = \"${resGeneratePath}/raw\"\n" +
-      "        mkdir(rawDir)\n" +
-      "        file(\"${rawDir}/sample_raw_resource\").write(\"sample text\")\n" +
-      "    }\n" +
-      "\n" +
-      "    def resDir = files(resGeneratePath).builtBy(generateResTask)\n" +
-      "\n" +
-      "    applicationVariants.all { variant ->\n" +
-      "        variant.registerGeneratedResFolders(resDir)\n" +
-      "    }\n" +
-      "}",
+      """
+
+        android {
+          String resGeneratePath = "${buildDir}/generated/my_generated_resources/res"
+            def generateResTask = tasks.create(name: 'generateMyResources').doLast {
+                def rawDir = "${resGeneratePath}/raw"
+                mkdir(rawDir)
+                file("${rawDir}/sample_raw_resource").write("sample text")
+            }
+
+            def resDir = files(resGeneratePath).builtBy(generateResTask)
+
+            applicationVariants.all { variant ->
+                variant.registerGeneratedResFolders(resDir)
+            }
+        }""",
       new File(projectRoot, "app/build.gradle"),
       StandardCharsets.UTF_8);
     requestSyncAndWait();
@@ -111,7 +113,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertThat(generatedResourcesFolder).named("my_generated_resources folder").isNotNull();
     File resourceFile = FileUtils.join(generatedResourcesFolder, "raw", "sample_raw_resource");
     Files.createParentDirs(resourceFile);
-    Files.write("sample text", resourceFile, StandardCharsets.UTF_8);
+    Files.write("\nsample text", resourceFile, StandardCharsets.UTF_8);
 
     refreshProjectFiles();
 

@@ -15,27 +15,35 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.res.AppLanguageInfo
+import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
-import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
+import com.android.tools.idea.streaming.emulator.APPLICATION_ID1
+import com.android.tools.idea.streaming.emulator.APPLICATION_ID2
+import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
+import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SIZE
+import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
+import com.android.tools.idea.streaming.uisettings.ui.FontSize
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import kotlinx.coroutines.runBlocking
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
 import kotlin.time.Duration.Companion.seconds
 
+private const val API_LEVEL = 33
+
 class DeviceUiSettingsControllerTest {
   @get:Rule
   val agentRule = FakeScreenSharingAgentRule()
-
-  @get:Rule
-  val edtRule = EdtRule()
 
   private val project
     get() = agentRule.project
@@ -43,37 +51,74 @@ class DeviceUiSettingsControllerTest {
   private val testRootDisposable
     get() = agentRule.disposable
 
-  private val model: UiSettingsModel by lazy { UiSettingsModel() }
-  private val device: FakeDevice by lazy { agentRule.connectDevice("Pixel 8", 34, Dimension(1080, 2280)) }
+  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), 480, API_LEVEL) }
+  private val device: FakeDevice by lazy { agentRule.connectDevice("Pixel 8", API_LEVEL, Dimension(1080, 2280)) }
   private val agent: FakeScreenSharingAgent by lazy { device.agent }
   private val controller: DeviceUiSettingsController by lazy { createUiSettingsController() }
+
+  @Before
+  fun before() {
+    agent.foregroundProcess = APPLICATION_ID1
+    val appLanguageServices = AppLanguageService { listOf(
+      AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("ru"))),
+      AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("es"))))
+    }
+    project.registerOrReplaceServiceInstance(AppLanguageService::class.java, appLanguageServices, testRootDisposable)
+  }
 
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
     controller.initAndWait()
-    val state = createAndAddListener(model.inDarkMode, true)
-    assertThat(model.inDarkMode.value).isFalse()
-    assertThat(state.changes).isEqualTo(1)
-    assertThat(state.lastValue).isFalse()
+    val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
+    listeners.checkValues(expectedChanges = 1, expectedCustomValues = false, expectedSettable = true)
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
-    val state = createAndAddListener(model.inDarkMode, true)
+    val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     controller.initAndWait()
-    assertThat(model.inDarkMode.value).isFalse()
-    assertThat(state.changes).isEqualTo(2) // After addListener and after value read
-    assertThat(state.lastValue).isFalse()
+    listeners.checkValues(expectedChanges = 2, expectedCustomValues = false, expectedSettable = true)
   }
 
   @Test
   fun testReadCustomValue() {
     agent.darkMode = true
+    agent.gestureNavigation = true
+    agent.appLocales = "da"
+    agent.talkBackInstalled = true
+    agent.talkBackOn = true
+    agent.selectToSpeakOn = true
+    agent.fontSize = CUSTOM_FONT_SIZE
+    agent.screenDensity = CUSTOM_DENSITY
     controller.initAndWait()
-    val state = createAndAddListener(model.inDarkMode, false)
-    assertThat(model.inDarkMode.value).isTrue()
-    assertThat(state.changes).isEqualTo(1)
-    assertThat(state.lastValue).isTrue()
+    val listeners = UiControllerListenerValidator(model, customValues = false, settable = false)
+    listeners.checkValues(expectedChanges = 1, expectedCustomValues = true, expectedSettable = true)
+  }
+
+  @Test
+  fun testReadCustomValueWithoutFontSizeAndDensity() {
+    agent.darkMode = true
+    agent.gestureNavigation = true
+    agent.appLocales = "da"
+    agent.talkBackInstalled = true
+    agent.talkBackOn = true
+    agent.selectToSpeakOn = true
+    agent.fontSizeSettable = false
+    agent.fontSize = CUSTOM_FONT_SIZE
+    agent.screenDensitySettable = false
+    agent.screenDensity = CUSTOM_DENSITY
+    controller.initAndWait()
+    val listeners = UiControllerListenerValidator(model, customValues = false, settable = true)
+    listeners.checkValues(expectedChanges = 1, expectedCustomValues = true, expectedSettable = false)
+  }
+
+  @Test
+  fun testGestureOverlayMissingAndTalkbackInstalled() {
+    agent.gestureOverlayInstalled = false
+    agent.talkBackInstalled = true
+    controller.initAndWait()
+    assertThat(model.gestureOverlayInstalled.value).isFalse()
+    assertThat(model.talkBackInstalled.value).isTrue()
   }
 
   @Test
@@ -91,31 +136,97 @@ class DeviceUiSettingsControllerTest {
     waitForCondition(10.seconds) { !agent.darkMode }
   }
 
-  private fun createUiSettingsController(): DeviceUiSettingsController =
-    DeviceUiSettingsController(createDeviceController(device), model)
+  @Test
+  fun testGestureNavigationOn() {
+    controller.initAndWait()
+    model.gestureNavigation.setFromUi(true)
+    waitForCondition(10.seconds) { agent.gestureNavigation }
+  }
 
-  private fun createDeviceController(device: FakeDevice): DeviceController {
+  @Test
+  fun testGestureNavigationOff() {
+    agent.gestureNavigation = true
+    controller.initAndWait()
+    model.gestureNavigation.setFromUi(false)
+    waitForCondition(10.seconds) { !agent.gestureNavigation }
+  }
+
+  @Test
+  fun testAppSetLanguage() {
+    controller.initAndWait()
+    val appLanguage = model.appLanguage
+    appLanguage.selection.setFromUi(appLanguage.getElementAt(1))
+    waitForCondition(10.seconds) { agent.appLocales == "da"}
+    appLanguage.selection.setFromUi(appLanguage.getElementAt(0))
+    waitForCondition(10.seconds) { agent.appLocales == ""}
+  }
+
+  @Test
+  fun testSetTalkBackOn() {
+    agent.talkBackInstalled = true
+    controller.initAndWait()
+    model.talkBackOn.setFromUi(true)
+    waitForCondition(10.seconds) { agent.talkBackOn }
+  }
+
+  @Test
+  fun testSetTalkBackOff() {
+    agent.talkBackInstalled = true
+    agent.talkBackOn = true
+    controller.initAndWait()
+    model.talkBackOn.setFromUi(false)
+    waitForCondition(10.seconds) { !agent.talkBackOn }
+  }
+
+  @Test
+  fun testSetSelectToSpeakOn() {
+    agent.talkBackInstalled = true
+    controller.initAndWait()
+    model.selectToSpeakOn.setFromUi(true)
+    waitForCondition(10.seconds) { agent.selectToSpeakOn }
+  }
+
+  @Test
+  fun testSetSelectToSpeakOff() {
+    agent.talkBackInstalled = true
+    agent.selectToSpeakOn = true
+    controller.initAndWait()
+    model.selectToSpeakOn.setFromUi(false)
+    waitForCondition(10.seconds) { !agent.selectToSpeakOn }
+  }
+
+  @Test
+  fun testSetFontSize() {
+    controller.initAndWait()
+    model.fontSizeIndex.setFromUi(0)
+    waitForCondition(10.seconds) { agent.fontSize == 85 }
+    model.fontSizeIndex.setFromUi(3)
+    waitForCondition(10.seconds) { agent.fontSize == FontSize.LARGE_130.percent }
+  }
+
+  @Test
+  fun testSetDensity() {
+    controller.initAndWait()
+    model.screenDensityIndex.setFromUi(0)
+    waitForCondition(10.seconds) { agent.screenDensity == 408 }
+    model.screenDensityIndex.setFromUi(model.screenDensityMaxIndex.value)
+    waitForCondition(10.seconds) { agent.screenDensity == 672 }
+  }
+
+  private fun createUiSettingsController(): DeviceUiSettingsController {
     val view = createDeviceView(device)
     view.setBounds(0, 0, 600, 800)
-    waitForFrame(view)
-    return view.deviceController!!
+    waitForCondition(10.seconds) { view.isConnected }
+    return DeviceUiSettingsController(view.deviceController!!, view.deviceClient.deviceConfig, project, model)
   }
 
   private fun createDeviceView(device: FakeDevice): DeviceView {
     val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
-    return DeviceView(deviceClient, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
-  }
-
-  private data class ListenerState<T>(var changes: Int, var lastValue: T)
-
-  private fun <T> createAndAddListener(property: TwoWayProperty<T>, initialValue: T): ListenerState<T> {
-    val state = ListenerState(0, initialValue)
-    property.addControllerListener(testRootDisposable) { newValue ->
-      state.changes++
-      state.lastValue = newValue
-    }
-    return state
+    val view = DeviceView(deviceClient, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
+    view.size = Dimension(600, 800)
+    waitForFrame(view)
+    return view
   }
 
   private fun DeviceUiSettingsController.initAndWait() = runBlocking {

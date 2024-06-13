@@ -257,7 +257,6 @@ public class PluginsBlockTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddExistingPluginToPluginsAndApplyBlock() throws Exception {
-    isIrrelevantForDeclarative("No apply syntax for declarative");
     writeToBuildFile(TestFile.ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("kotlin-android", "com.android.application"), buildModel.plugins());
@@ -298,7 +297,6 @@ public class PluginsBlockTest extends GradleFileModelTestCase {
   @Test
   public void testParsePluginBlockWithAnnotation() throws Exception {
     isIrrelevantForGroovy("Annotations are not supported in Groovy build files");
-    isIrrelevantForDeclarative("No annotations for Declarative");
     writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_ANNOTATIONS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
@@ -340,7 +338,6 @@ public class PluginsBlockTest extends GradleFileModelTestCase {
   @Test
   public void testPluginIdMethodCall() throws Exception {
     isIrrelevantForKotlinScript("All plugin Dsl calls are method calls");
-    isIrrelevantForDeclarative("No method call for declarative");
     writeToBuildFile(TestFile.PLUGINS_BLOCK_ID_METHOD_CALL);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
@@ -349,7 +346,6 @@ public class PluginsBlockTest extends GradleFileModelTestCase {
   @Test
   public void testPluginDslMethodCall() throws Exception {
     isIrrelevantForKotlinScript("All plugin Dsl calls are method calls");
-    isIrrelevantForDeclarative("No declarative method calls");
     writeToBuildFile(TestFile.PLUGINS_BLOCK_DSL_METHOD_CALL);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("version", "7.1.0")), buildModel.plugins());

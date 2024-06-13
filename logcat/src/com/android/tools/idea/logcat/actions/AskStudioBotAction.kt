@@ -15,51 +15,70 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.util.extractStudioBotQuestion
+import com.android.tools.idea.logcat.util.extractStudioBotContent
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
+import icons.StudioIcons
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)")
 
-internal class AskStudioBotAction : DumbAwareAction(IssueExplainer.get().getIcon()) {
+internal class AskStudioBotAction : DumbAwareAction(StudioIcons.StudioBot.ASK) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
+  private fun getLabel(selection: String?, message: String?): String? =
+    when {
+      !selection.isNullOrBlank() -> LogcatBundle.message("logcat.studio.bot.action.selection")
+      message == null -> null
+      exceptionLinePattern.containsMatchIn(message) ->
+        LogcatBundle.message("logcat.studio.bot.action.crash")
+      else -> LogcatBundle.message("logcat.studio.bot.action.entry")
+    }
+
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = false
-    if (!IssueExplainer.get().isAvailable()) {
+    val studioBot = StudioBot.getInstance()
+    if (!studioBot.isAvailable()) {
       return
     }
     val editor = e.getEditor() ?: return
     val selection = editor.selectionModel.selectedText
     val message = e.getLogcatMessage()?.message
 
-    val label =
-      when {
-        !selection.isNullOrBlank() -> LogcatBundle.message("logcat.studio.bot.action.selection")
-        message == null -> return
-        exceptionLinePattern.containsMatchIn(message) ->
-          LogcatBundle.message("logcat.studio.bot.action.crash")
-        else -> LogcatBundle.message("logcat.studio.bot.action.entry")
-      }
+    val label = getLabel(selection, message) ?: return
     e.presentation.isVisible = true
-    e.presentation.text = IssueExplainer.get().getFixLabel(label)
+    e.presentation.text = LogcatBundle.message("logcat.studio.bot.action.label", label)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    val studioBot = StudioBot.getInstance()
     val project = e.project ?: return
     val editor = e.getEditor() ?: return
     val selection = editor.selectionModel.selectedText
-    val question =
+    val message = e.getLogcatMessage()?.message
+
+    val label = getLabel(selection, message) ?: return
+    val content =
       selection.takeIf { !it.isNullOrBlank() }
-        ?: e.getLogcatMessage()?.extractStudioBotQuestion()
+        ?: e.getLogcatMessage()?.extractStudioBotContent()
         ?: return
-    IssueExplainer.get().explain(project, question, IssueExplainer.RequestKind.LOGCAT)
+
+    val queryText = LogcatBundle.message("logcat.studio.bot.action.query", label, content)
+
+    // Logcat output is considered sensitive text, so we have to check the context sharing setting
+    if (studioBot.isContextAllowed(project)) {
+      val prompt = buildPrompt(project) { userMessage { text(queryText, filesUsed = emptyList()) } }
+      studioBot.chat(project).sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
+    } else {
+      studioBot.chat(project).stageChatQuery(queryText, StudioBot.RequestSource.LOGCAT)
+    }
+
     ApplicationManager.getApplication().invokeLater {
       ToolWindowManagerEx.getInstanceEx(project).hideToolWindow("Logcat", false)
     }

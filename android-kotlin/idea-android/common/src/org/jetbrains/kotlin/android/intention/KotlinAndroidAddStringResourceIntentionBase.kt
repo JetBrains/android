@@ -20,6 +20,7 @@ import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.compose.COMPOSE_STRING_RESOURCE_FQN
 import com.android.tools.compose.isInsideComposableCode
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.buildResourceNameFromStringValue
 import com.android.tools.idea.res.createValueResource
@@ -100,13 +101,14 @@ abstract class KotlinAndroidAddStringResourceIntentionBase : SelfTargetingIntent
         return IntentionPreviewInfo.EMPTY
     }
 
-    override fun checkFile(file: PsiFile): Boolean {
-        return true
+    override fun isApplicableTo(element: KtStringTemplateExpression, caretOffset: Int): Boolean {
+        if(suppressAndroidPlugin()) return false
+        val facet = AndroidFacet.getInstance(element.containingFile) ?: return false
+        return ProjectSystemService.getInstance(element.project)
+          .projectSystem
+          .getModuleSystem(facet.module)
+          .supportsAndroidResources
     }
-
-    override fun isApplicableTo(element: KtStringTemplateExpression, caretOffset: Int) =
-        !suppressAndroidPlugin() &&
-        AndroidFacet.getInstance(element.containingFile) != null
 
     override fun applyTo(element: KtStringTemplateExpression, editor: Editor?) {
         val facet = AndroidFacet.getInstance(element.containingFile)

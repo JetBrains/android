@@ -197,12 +197,18 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   class ResourceFileReference(val myFile: PsiFile) : PsiReference {
     override fun handleElementRename(newElementName: String): PsiElement {
       if (myFile.isValid) {
-        val nameWithoutExtension = FileUtilRt.getNameWithoutExtension(myFile.name)
-        val extension = FileUtilRt.getExtension(myFile.name)
-        if (nameWithoutExtension.endsWith(".9") && FileUtilRt.extensionEquals(myFile.name, PNG_EXTENSION)) {
-          myFile.name = "$newElementName.9.$extension"
+        val originalName = myFile.name
+        val nameWithoutExtension = FileUtilRt.getNameWithoutExtension(originalName)
+        if (nameWithoutExtension == originalName) {
+          myFile.name = newElementName
         } else {
-          myFile.name = "$newElementName.$extension"
+          val extension = FileUtilRt.getExtension(originalName)
+          if (nameWithoutExtension.endsWith(".9") && FileUtilRt.extensionEquals(originalName, PNG_EXTENSION)) {
+            myFile.name = "$newElementName.9.$extension"
+          }
+          else {
+            myFile.name = "$newElementName.$extension"
+          }
         }
       }
       return myFile

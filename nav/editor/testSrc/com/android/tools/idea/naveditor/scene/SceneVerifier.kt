@@ -27,7 +27,7 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 
-val ACTION_COLOR = Color(0xa7, 0xa7, 0xa7, 0xb2)
+val ACTION_COLOR = Color(0xdfe1e5)
 val SELECTED_COLOR = Color(0x1886f7)
 val FRAME_COLOR = Color(0xa7a7a7)
 val HANDLE_COLOR = Color(0xf5f5f5)

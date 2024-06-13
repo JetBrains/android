@@ -68,13 +68,13 @@ internal open class Fixture(val project: Project, val testScope: TestScope) {
         templatesFlow,
         clock,
         ddmlibDeviceLookupFlow,
-        launchCompatibilityCheckerFlow
+        launchCompatibilityCheckerFlow,
       )
       .also {
         project.replaceService(
           DeploymentTargetDevicesService::class.java,
           it,
-          scope.scopeDisposable()
+          scope.scopeDisposable(),
         )
       }
   }
@@ -90,7 +90,7 @@ internal open class Fixture(val project: Project, val testScope: TestScope) {
         selectedTargetStateService,
         devicesService.loadedDevices,
         clock,
-        testScope.coroutineContext[CoroutineDispatcher]!!
+        testScope.coroutineContext[CoroutineDispatcher]!!,
       )
       .also {
         project.replaceService(DevicesSelectedService::class.java, it, scope.scopeDisposable())
@@ -105,7 +105,7 @@ internal open class Fixture(val project: Project, val testScope: TestScope) {
       { devicesService },
       { devicesSelectedService },
       Project::service,
-      { runManager }
+      { runManager },
     )
   }
 

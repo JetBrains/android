@@ -76,7 +76,7 @@ class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: 
       .replaceService(
         LineMarkerSettings::class.java,
         fakeLineMarkerSettings,
-        projectRule.testRootDisposable
+        projectRule.testRootDisposable,
       )
 
     checkAnnotations(
@@ -91,7 +91,7 @@ class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: 
           }
       """
           .trimIndent(),
-      lineToInsights = emptyList()
+      lineToInsights = emptyList(),
     )
   }
 
@@ -111,7 +111,7 @@ class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: 
           }
       """
           .trimIndent(),
-      lineToInsights = emptyList()
+      lineToInsights = emptyList(),
     )
   }
 
@@ -121,7 +121,7 @@ class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: 
       listOf(
         buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
         buildAppInsight(Frame(line = 100), buildIssue(appVcsInfo)),
-        buildAppInsight(Frame(line = 200), buildIssue(appVcsInfo))
+        buildAppInsight(Frame(line = 200), buildIssue(appVcsInfo)),
       )
 
     withFakedInsights(expected)
@@ -237,7 +237,7 @@ class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: 
   private fun checkAnnotations(
     fileName: String,
     source: String,
-    lineToInsights: List<LineToInsights>
+    lineToInsights: List<LineToInsights>,
   ) {
     val psiFile = projectRule.fixture.addFileToProject("src/$fileName", source)
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)

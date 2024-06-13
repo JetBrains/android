@@ -51,6 +51,8 @@ class LegacyCpuTraceCommandHandlerTest {
 
   @Test
   fun testStartStopWorkflow() {
+    StudioFlags.PROFILER_TASK_BASED_UX.override(false)
+
     val testPid = 1
     val startTimestamp = 10L
     val endTimestamp = 20L
@@ -117,6 +119,7 @@ class LegacyCpuTraceCommandHandlerTest {
       kind = Common.Event.Kind.CPU_TRACE
       groupId = startTimestamp
       timestamp = endTimestamp
+      isEnded = true
       traceData = Trace.TraceData.newBuilder().apply {
         traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build()
       }.build()
@@ -196,6 +199,7 @@ class LegacyCpuTraceCommandHandlerTest {
       kind = Common.Event.Kind.CPU_TRACE
       groupId = startTimestamp
       timestamp = endTimestamp
+      isEnded = true
       traceData = Trace.TraceData.newBuilder().apply {
         traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build()
       }.build()

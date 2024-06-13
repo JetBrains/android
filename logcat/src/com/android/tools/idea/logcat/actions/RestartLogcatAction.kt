@@ -41,7 +41,7 @@ internal class RestartLogcatAction :
   DumbAwareAction(
     LogcatBundle.message("logcat.restart.action.text"),
     null,
-    AllIcons.Actions.Restart
+    AllIcons.Actions.Restart,
   ) {
 
   override fun update(e: AnActionEvent) {

@@ -27,7 +27,7 @@ data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVarian
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ) =
     StateTransition(
       state.copy(
@@ -37,6 +37,6 @@ data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVarian
             variants.map { Selection(null, it) }
           }
       ),
-      Action.NONE
+      Action.NONE,
     )
 }

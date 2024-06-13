@@ -32,7 +32,7 @@ object LinearPlaceholderFactory {
     anchor: SceneComponent?,
     snappedY: Int,
     left: Int,
-    right: Int
+    right: Int,
   ): Placeholder = VerticalPlaceholder(host, anchor, snappedY, left, right)
 
   @JvmStatic
@@ -41,17 +41,17 @@ object LinearPlaceholderFactory {
     anchor: SceneComponent?,
     snappedX: Int,
     top: Int,
-    bottom: Int
+    bottom: Int,
   ): Placeholder = HorizontalPlaceholder(host, anchor, snappedX, top, bottom)
 
   private abstract class LinearPlaceholder(
     host: SceneComponent,
-    private val anchor: SceneComponent?
+    private val anchor: SceneComponent?,
   ) : Placeholder(host) {
 
     override fun findNextSibling(
       appliedComponent: SceneComponent,
-      newParent: SceneComponent
+      newParent: SceneComponent,
     ): SceneComponent? = anchor
 
     override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) =
@@ -63,7 +63,7 @@ object LinearPlaceholderFactory {
     anchor: SceneComponent?,
     private val snappedY: Int,
     left: Int,
-    right: Int
+    right: Int,
   ) : LinearPlaceholder(host, anchor) {
     override val region = Region(left, snappedY - SIZE, right, snappedY + SIZE, host.depth)
 
@@ -83,7 +83,7 @@ object LinearPlaceholderFactory {
     anchor: SceneComponent?,
     private val snappedX: Int,
     top: Int,
-    bottom: Int
+    bottom: Int,
   ) : LinearPlaceholder(host, anchor) {
     override val region = Region(snappedX - SIZE, top, snappedX + SIZE, bottom, host.depth)
 

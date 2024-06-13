@@ -43,7 +43,7 @@ val STUB_TRACKER =
     override fun trackProcessSelected(
       device: DeviceDescriptor,
       numDevices: Int,
-      numProcesses: Int
+      numProcesses: Int,
     ) {}
 
     override fun trackInspectionStopped() {}

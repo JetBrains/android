@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.analytics.setApplicationId
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.preview.PreviewNode
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -64,7 +64,7 @@ private class MultiPreviewNopTracker : MultiPreviewUsageTracker {
 private class InternalMultiPreviewUsageTracker(
   private val executor: Executor,
   private val facet: AndroidFacet?,
-  private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>
+  private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>,
 ) : MultiPreviewUsageTracker {
   override val graphCache: Cache<String, Int> = CacheBuilder.newBuilder().build()
 
@@ -93,7 +93,7 @@ class MultiPreviewEvent(private val nodes: List<MultiPreviewNode>, val fileFqNam
           .filter { !it.nodeInfo.isUseless() && !it.nodeInfo.isPreviewType() }
           .map { it.nodeInfo.build() }
       )
-      .setIsComposePreviewLiteMode(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+      .setIsComposePreviewLiteMode(PreviewEssentialsModeManager.isEssentialsModeEnabled)
 
   fun build(): ComposeMultiPreviewEvent {
     return eventBuilder.build()
@@ -165,7 +165,7 @@ class MultiPreviewNodeInfo(type: ComposeMultiPreviewEvent.ComposeMultiPreviewNod
    */
   fun withChildNodes(
     multiPreviewChildNodes: Collection<MultiPreviewNodeInfo?>,
-    previewChildrenCount: Int
+    previewChildrenCount: Int,
   ): MultiPreviewNodeInfo {
     if (!this.isMultiPreviewType() && !this.isRootComposableType()) {
       LOG.error(

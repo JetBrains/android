@@ -20,11 +20,12 @@
 package com.android.tools.idea.sqlite.cli
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.sqlite.cli.SqliteQueries.SELECT_TABLE_NAMES
+import com.android.tools.idea.sqlite.cli.SqliteQueries.SELECT_VIEW_NAMES
 import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableContents
-import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableNames
-import com.android.tools.idea.sqlite.cli.SqliteQueries.selectViewNames
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.Strings
+import com.intellij.util.io.awaitExit
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
@@ -86,11 +87,12 @@ class SqliteCliArgs private constructor() {
       args.add(SqliteCliArg("${selectTableContents(tableName)};"))
     }
 
-    fun queryTableList() = apply { args.add(SqliteCliArg("$selectTableNames;")) }
+    fun queryTableList() = apply { args.add(SqliteCliArg("$SELECT_TABLE_NAMES;")) }
 
-    fun queryViewList() = apply { args.add(SqliteCliArg("$selectViewNames;")) }
+    fun queryViewList() = apply { args.add(SqliteCliArg("$SELECT_VIEW_NAMES;")) }
 
     fun raw(rawArg: String) = apply { args.add(SqliteCliArg(rawArg)) }
+
     /**
      * Moves data from the WAL (write-ahead log) to the main DB file.
      *
@@ -109,9 +111,9 @@ class SqliteCliArgs private constructor() {
 }
 
 object SqliteQueries {
-  const val selectTableNames =
+  const val SELECT_TABLE_NAMES =
     "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
-  const val selectViewNames =
+  const val SELECT_VIEW_NAMES =
     "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
 
   fun selectTableContents(tableName: String) = "select * from '$tableName'"
@@ -153,7 +155,7 @@ class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: Cor
             inputLines,
             outputWriter,
             errWriter,
-            dispatcher
+            dispatcher,
           )
         val stdOutput =
           if (outputWriter is StringWriter) outputWriter.toString()
@@ -179,12 +181,12 @@ private object ProcessExecutor {
     inputLines: List<String>,
     stdWriter: Writer,
     errWriter: Writer,
-    dispatcher: CoroutineDispatcher
+    dispatcher: CoroutineDispatcher,
   ): Int =
     withContext(dispatcher) {
       val process = ProcessBuilder(listOf(executable)).start()
 
-      val exitCode = async { process.waitFor() }
+      val exitCode = async { process.awaitExit() }
       val errOutput = async {
         consumeProcessOutput(process.errorStream, errWriter, process, dispatcher)
       }
@@ -215,7 +217,7 @@ private object ProcessExecutor {
     source: InputStream?,
     outputWriter: Writer,
     process: Process,
-    dispatcher: CoroutineDispatcher
+    dispatcher: CoroutineDispatcher,
   ) =
     withContext(dispatcher) {
       if (source == null) return@withContext

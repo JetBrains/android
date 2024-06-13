@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.mlkit.viewer;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -33,7 +32,7 @@ public class TfliteModelFileEditorProvider implements FileEditorProvider, DumbAw
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return StudioFlags.ML_MODEL_BINDING.get() && FileTypeRegistry.getInstance().isFileOfType(file, TfliteModelFileType.INSTANCE);
+    return FileTypeRegistry.getInstance().isFileOfType(file, TfliteModelFileType.INSTANCE);
   }
 
   @NotNull

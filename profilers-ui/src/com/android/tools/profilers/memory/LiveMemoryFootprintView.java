@@ -22,6 +22,7 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
+import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.stdui.ContextMenuItem;
@@ -68,7 +69,8 @@ public class LiveMemoryFootprintView extends LiveDataView<LiveMemoryFootprintMod
                                                     new JPanel(),
                                                     profilersView.getComponent(),
                                                     myMemoryFootprintModel.isLiveAllocationTrackingReady(),
-                                                    this::shouldShowTooltip);
+                                                    this::shouldShowTooltip,
+                                                    LineChart.ALWAYS_1);
     myGarbageCollectionComponent = new GarbageCollectionComponent();
     TabularLayout topPanelLayout = new TabularLayout("*", "*,Fit-");
     myComponent = new JPanel(topPanelLayout);

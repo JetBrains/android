@@ -38,14 +38,16 @@ public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
                                        ExternalNativeBuildDslElement::new,
                                        ExternalNativeBuildDslElementSchema::new);
 
-  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"cmake", CMakeDslElement.CMAKE},
     {"ndkBuild", NdkBuildDslElement.NDK_BUILD},
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 
@@ -54,9 +56,8 @@ public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
   }
 
   static final class ExternalNativeBuildDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 

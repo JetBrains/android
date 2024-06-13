@@ -70,7 +70,7 @@ class ConsumerAndProviderTypeUtilTest {
           lazyInt: Lazy<Int>,
         )
         """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.openFileInEditor(psiFile.virtualFile)
 
@@ -113,7 +113,7 @@ class ConsumerAndProviderTypeUtilTest {
           integer: Int,
         )
         """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )

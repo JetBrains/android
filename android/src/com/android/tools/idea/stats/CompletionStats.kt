@@ -27,12 +27,8 @@ import com.intellij.codeInsight.completion.CompletionPhaseListener
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupEvent
 import com.intellij.codeInsight.lookup.LookupListener
-import com.intellij.codeInsight.lookup.LookupManager
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.codeInsight.lookup.LookupManagerListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -114,29 +110,22 @@ object CompletionStats {
     )
   }
 
-  /** Registers lookup listeners. */
-  internal class MyStartupActivity : StartupActivity, DumbAware {
-    override fun runActivity(project: Project) {
-      ApplicationManager.getApplication().messageBus.connect(project)
-        .subscribe(CompletionPhaseListener.TOPIC, MyCompletionPhaseListener())
-
-      // For each new lookup window we get the current file type and register our LookupListener.
-      LookupManager.getInstance(project).addPropertyChangeListener { e ->
-        if (e.propertyName != LookupManager.PROP_ACTIVE_LOOKUP) {
-          return@addPropertyChangeListener
-        }
-        val lookup = e.newValue as? Lookup ?: return@addPropertyChangeListener
-        val file = FileDocumentManager.getInstance().getFile(lookup.editor.document)
-        activeFileType = when (file) {
-          null -> unknownFileType
-          else -> {
-            // Capture a local reference to the project in the current thread in case the reference changes by the time the below executes.
-            val project = lookup.editor.project
-            coroutineScope.async { getEditorFileTypeForAnalytics(file, project) }
-          }
-        }
-        lookup.addLookupListener(MyLookupListener())
+  // For each new lookup window we get the current file type and register our LookupListener.
+  class MyLookupManagerListener : LookupManagerListener {
+    override fun activeLookupChanged(oldLookup: Lookup?, newLookup: Lookup?) {
+      if (newLookup == null) {
+        return
       }
+      val file = FileDocumentManager.getInstance().getFile(newLookup.editor.document)
+      activeFileType = when (file) {
+        null -> unknownFileType
+        else -> {
+          // Capture a local reference to the project in the current thread in case the reference changes by the time the below executes.
+          val project = newLookup.editor.project
+          coroutineScope.async { getEditorFileTypeForAnalytics(file, project) }
+        }
+      }
+      newLookup.addLookupListener(MyLookupListener())
     }
   }
 

@@ -82,7 +82,7 @@ class LayoutInspectorFileEditorTest {
       TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH),
       "snapshotVersionError",
       generatedImage,
-      0.01
+      0.01,
     )
   }
 
@@ -93,7 +93,7 @@ class LayoutInspectorFileEditorTest {
     val editor =
       LayoutInspectorFileEditor(
         projectRule.project,
-        TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/snapshot.li")
+        TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/snapshot.li"),
       )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
@@ -120,7 +120,7 @@ class LayoutInspectorFileEditorTest {
     val editor =
       LayoutInspectorFileEditor(
         projectRule.project,
-        TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/compose-snapshot.li")
+        TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/compose-snapshot.li"),
       )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
@@ -139,7 +139,7 @@ class LayoutInspectorFileEditorTest {
       .containsExactly(
         Capability.SUPPORTS_SYSTEM_NODES,
         Capability.SUPPORTS_COMPOSE,
-        Capability.SUPPORTS_SEMANTICS
+        Capability.SUPPORTS_SEMANTICS,
       )
     assertThat(inspector.inspectorModel.resourceLookup.hasResolver).isTrue()
   }

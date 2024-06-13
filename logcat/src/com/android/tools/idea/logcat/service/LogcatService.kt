@@ -38,7 +38,7 @@ interface LogcatService {
   ): Flow<List<LogcatMessage>> =
     readLogcat(device.serialNumber, device.sdk, duration, newMessagesOnly)
 
-  suspend fun clearLogcat(device: Device)
+  suspend fun clearLogcat(serialNumber: String)
 
   companion object {
     @JvmStatic

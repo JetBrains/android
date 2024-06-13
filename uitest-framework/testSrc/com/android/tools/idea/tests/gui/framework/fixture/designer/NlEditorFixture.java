@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
+import static java.awt.event.InputEvent.META_MASK;
 import static junit.framework.TestCase.assertTrue;
 import static org.fest.swing.awt.AWT.translate;
 
@@ -47,12 +49,18 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.UIUtil;
 import java.awt.AWTException;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.util.Collection;
 import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -60,6 +68,7 @@ import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import org.fest.swing.core.ComponentDragAndDrop;
+import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
@@ -149,6 +158,24 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     Wait.seconds(10);
   }
 
+  @NotNull
+  public NlEditorFixture zoomToFit() {
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
+    robot().click(surface);
+
+    Wait.seconds(10);
+    ActionButton zoomToFitButton = waitUntilShowing(robot(), target(), new GenericTypeMatcher<>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton actionButton) {
+        return "Zoom to Fit Screen".equals(actionButton.getAccessibleContext().getAccessibleName());
+      }
+    });
+    robot().focus(zoomToFitButton);
+    robot().click(zoomToFitButton);
+    Wait.seconds(10);
+    return this;
+  }
+
   public void zoomInByShortcutKeys() {
     pressControlKeyAndOtherKey(KeyEvent.VK_ADD);
   }
@@ -164,18 +191,21 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
       robot().pressAndReleaseKey(keyEvent);
       robot().releaseKey(KeyEvent.VK_CONTROL);
     }
+    robot().waitForIdle();
   }
 
   public void zoomOutByShortcutKeys() {
     pressControlKeyAndOtherKey(KeyEvent.VK_MINUS);
   }
 
-  public void zoomtoFitByShortcutKeys() {
+  @NotNull
+  public NlEditorFixture zoomtoFitByShortcutKeys() {
     pressControlKeyAndOtherKey(KeyEvent.VK_SLASH);
+    return this;
   }
 
   public void zoomto100PercentByShortcutKeys() {
-    pressControlKeyAndOtherKey(KeyEvent.VK_0);
+    pressControlKeyAndOtherKey(KeyEvent.VK_PERIOD);
   }
 
   public boolean panButtonPresent() {
@@ -296,6 +326,16 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
       myPaletteFixture = NlPaletteFixture.create(robot(), workBench);
     }
     return myPaletteFixture;
+  }
+
+  @NotNull
+  public NlEditorFixture collapseToolWindows() {
+    Wait.seconds(10).expecting("WorkBench is showing").until(() -> myDesignSurfaceFixture.target().isShowing());
+    WorkBench<DesignSurface<?>> workBench = (WorkBench<DesignSurface<?>>)SwingUtilities.getAncestorOfClass(WorkBench.class, myDesignSurfaceFixture.target());
+    UIUtil.invokeAndWaitIfNeeded(workBench::minimizeAllAttachedToolWindows);
+    // Process all the pending actions to ensure the panels are collapsed
+    UIUtil.invokeAndWaitIfNeeded(PlatformTestUtil::dispatchAllEventsInIdeEventQueue);
+    return this;
   }
 
   @NotNull

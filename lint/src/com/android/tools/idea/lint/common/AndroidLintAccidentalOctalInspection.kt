@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.GradleDetector
 class AndroidLintAccidentalOctalInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.accidental.octal"),
-    GradleDetector.ACCIDENTAL_OCTAL
+    GradleDetector.ACCIDENTAL_OCTAL,
   )

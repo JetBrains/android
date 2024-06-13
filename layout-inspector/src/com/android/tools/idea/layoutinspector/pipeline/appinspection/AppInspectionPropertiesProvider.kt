@@ -26,26 +26,29 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersData
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesData
+import com.android.tools.idea.layoutinspector.properties.ColorActionIconButton
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.properties.ResolutionStackItem
 import com.android.tools.idea.layoutinspector.properties.ResultListener
 import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.property.panel.api.PropertiesTable
-import com.intellij.openapi.application.runReadAction
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.intellij.util.concurrency.ThreadingAssertions.assertBackgroundThread
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Future
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 class AppInspectionPropertiesProvider(
   private val propertiesCache: ViewPropertiesCache,
   private val parametersCache: ComposeParametersCache?,
-  private val model: InspectorModel
+  private val model: InspectorModel,
 ) : PropertiesProvider {
 
   private val resultListeners = CopyOnWriteArrayList<ResultListener>()
@@ -100,37 +103,41 @@ class AppInspectionPropertiesProvider(
    * - Create resolution stack items based on the resolution stack received from the agent.
    */
   @Slow // may use index for resolveDimension
-  private fun completeProperties(view: ViewNode, propertiesData: ViewPropertiesData) {
+  @VisibleForTesting
+  suspend fun completeProperties(view: ViewNode, propertiesData: ViewPropertiesData) {
+    assertBackgroundThread()
     val properties = propertiesData.properties
     if (properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return
 
-    properties.values.forEach { it.resolveDimensionType(view) }
+    properties.values.forEach { property ->
+      property.resolveDimensionType(view)
+      property.replaceFileLocations(view)
+      property.addColorButton(view)
+    }
 
     if (model.resourceLookup.hasResolver) {
-      runReadAction {
-        propertiesData.classNames
-          .cellSet()
-          .mapNotNull { cell ->
-            properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
-              convertToItemWithClassLocation(it, cell.value!!)
-            }
+      propertiesData.classNames
+        .cellSet()
+        .mapNotNull { cell ->
+          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
+            convertToItemWithClassLocation(it, cell.value!!)
           }
-          .forEach { properties.put(it) }
-        propertiesData.resolutionStacks
-          .cellSet()
-          .mapNotNull { cell ->
-            properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
-              convertToResolutionStackItem(it, view, cell.value!!)
-            }
+        }
+        .forEach { properties.put(it) }
+      propertiesData.resolutionStacks
+        .cellSet()
+        .mapNotNull { cell ->
+          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
+            convertToResolutionStackItem(it, view, cell.value!!)
           }
-          .forEach { properties.put(it) }
-      }
+        }
+        .forEach { properties.put(it) }
     }
     addInternalProperties(
       properties,
       view,
       properties.getOrNull(ANDROID_URI, ATTR_ID)?.value,
-      model
+      model,
     )
   }
 
@@ -149,24 +156,28 @@ class AppInspectionPropertiesProvider(
    * this will delay that cost until it is needed to show the properties for the containing
    * [ViewNode].
    */
-  private fun convertToItemWithClassLocation(
+  private suspend fun convertToItemWithClassLocation(
     item: InspectorPropertyItem,
-    className: String
+    className: String,
   ): InspectorPropertyItem? {
     val classLocation =
       model.resourceLookup.resolveClassNameAsSourceLocation(className) ?: return null
     return InspectorGroupPropertyItem(
-      item.namespace,
-      item.name,
-      item.type,
-      item.initialValue,
-      classLocation,
-      item.section,
-      item.source,
-      item.viewId,
-      item.lookup,
-      emptyList()
-    )
+        item.namespace,
+        item.name,
+        item.type,
+        item.snapshotValue,
+        classLocation,
+        item.section,
+        item.source,
+        item.viewId,
+        item.lookup,
+        emptyList(),
+      )
+      .apply {
+        sourceLocations.addAll(item.sourceLocations)
+        colorButton = item.colorButton
+      }
   }
 
   /**
@@ -182,10 +193,10 @@ class AppInspectionPropertiesProvider(
    * were found the original property item is replaced with a group item with children consisting of
    * the available resource references where a value was found.
    */
-  private fun convertToResolutionStackItem(
+  private suspend fun convertToResolutionStackItem(
     item: InspectorPropertyItem,
     view: ViewNode,
-    resolutionStack: List<ResourceReference>
+    resolutionStack: List<ResourceReference>,
   ): InspectorPropertyItem? {
     val map =
       resolutionStack
@@ -198,22 +209,41 @@ class AppInspectionPropertiesProvider(
     }
     val classLocation: SourceLocation? = (item as? InspectorGroupPropertyItem)?.classLocation
     if (map.isNotEmpty() || item.source != null || classLocation != null) {
+      val children = mutableListOf<InspectorPropertyItem>()
       // Make this item a group item such that the details are hidden until the item is expanded.
       // Note that there doesn't have to be sub items in the group. A source location or class
       // location is enough to trigger this.
       return InspectorGroupPropertyItem(
-        item.namespace,
-        item.name,
-        item.type,
-        item.initialValue,
-        classLocation,
-        item.section,
-        item.source,
-        item.viewId,
-        item.lookup,
-        map
-      )
+          item.namespace,
+          item.name,
+          item.type,
+          item.snapshotValue,
+          classLocation,
+          item.section,
+          item.source,
+          item.viewId,
+          item.lookup,
+          children,
+        )
+        .apply {
+          sourceLocations.addAll(item.sourceLocations)
+          colorButton = item.colorButton
+          map.mapTo(children) { (reference, value) ->
+            ResolutionStackItem(this, reference, value).apply {
+              replaceFileLocations(view)
+              addColorButton(view)
+            }
+          }
+        }
     }
     return null
+  }
+
+  private suspend fun InspectorPropertyItem.replaceFileLocations(view: ViewNode) {
+    lookup.resourceLookup.findFileLocations(this, view, source, sourceLocations)
+  }
+
+  private suspend fun InspectorPropertyItem.addColorButton(view: ViewNode) {
+    colorButton = ColorActionIconButton.createColorButton(type, value, view, lookup.resourceLookup)
   }
 }

@@ -60,7 +60,7 @@ class ComposePreviewRunConfigurationGradleTest {
       validatePreview(
         projectRule.project,
         SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
-        expectedSetupResult = true
+        expectedSetupResult = true,
       )
     assertTrue(errors.isEmpty())
   }
@@ -71,7 +71,7 @@ class ComposePreviewRunConfigurationGradleTest {
       validatePreview(
         projectRule.project,
         SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,
-        expectedSetupResult = false
+        expectedSetupResult = false,
       )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
@@ -83,7 +83,7 @@ class ComposePreviewRunConfigurationGradleTest {
       validatePreview(
         projectRule.project,
         SimpleComposeAppPaths.APP_PREVIEWS_UNIT_TEST.path,
-        expectedSetupResult = false
+        expectedSetupResult = false,
       )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
@@ -95,7 +95,7 @@ class ComposePreviewRunConfigurationGradleTest {
       validatePreview(
         projectRule.project,
         SimpleComposeAppPaths.LIB_PREVIEWS.path,
-        expectedSetupResult = true
+        expectedSetupResult = true,
       )
     assertTrue(errors.isEmpty())
   }
@@ -106,7 +106,7 @@ class ComposePreviewRunConfigurationGradleTest {
       validatePreview(
         projectRule.project,
         SimpleComposeAppPaths.LIB_PREVIEWS_ANDROID_TEST.path,
-        expectedSetupResult = false
+        expectedSetupResult = false,
       )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
@@ -118,7 +118,7 @@ class ComposePreviewRunConfigurationGradleTest {
       validatePreview(
         projectRule.project,
         SimpleComposeAppPaths.LIB_PREVIEWS_UNIT_TEST.path,
-        expectedSetupResult = false
+        expectedSetupResult = false,
       )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
@@ -128,13 +128,13 @@ class ComposePreviewRunConfigurationGradleTest {
 private fun validatePreview(
   project: Project,
   filePath: String,
-  expectedSetupResult: Boolean
+  expectedSetupResult: Boolean,
 ): MutableList<ValidationError> {
   val previewRunConfigurationProducer = ComposePreviewRunConfigurationProducer()
   val previewRunConfiguration =
     ComposePreviewRunConfiguration(
       project,
-      ComposePreviewRunConfigurationType().configurationFactories[0]
+      ComposePreviewRunConfigurationType().configurationFactories[0],
     )
 
   val vFile =
@@ -149,7 +149,7 @@ private fun validatePreview(
       previewRunConfigurationProducer.setupConfigurationFromContext(
         previewRunConfiguration,
         context,
-        Ref(previewFun)
+        Ref(previewFun),
       )
     assertEquals(expectedSetupResult, setupResult)
 

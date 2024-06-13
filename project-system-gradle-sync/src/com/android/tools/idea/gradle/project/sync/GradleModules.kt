@@ -22,6 +22,8 @@ import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintableName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
@@ -93,7 +95,7 @@ class JavaModule(
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
 sealed class AndroidModule constructor(
-  val agpVersion: AgpVersion?,
+  val modelVersions: ModelVersions,
   val buildPathMap: Map<String, BuildId>,
   gradleProject: BasicGradleProject,
   val androidProject: IdeAndroidProjectImpl,
@@ -142,7 +144,7 @@ sealed class AndroidModule constructor(
   }
 
   class V1(
-    agpVersion: AgpVersion?,
+    modelVersions: ModelVersions,
     buildPathMap: Map<String, BuildId>,
     gradleProject: BasicGradleProject,
     androidProject: IdeAndroidProjectImpl,
@@ -156,7 +158,7 @@ sealed class AndroidModule constructor(
     nativeModule: IdeNativeModule?,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ) : AndroidModule(
-    agpVersion = agpVersion,
+    modelVersions = modelVersions,
     buildPathMap = buildPathMap,
     gradleProject = gradleProject,
     androidProject = androidProject,
@@ -189,7 +191,7 @@ sealed class AndroidModule constructor(
   }
 
   class V2(
-    agpVersion: AgpVersion?,
+    modelVersions: ModelVersions,
     buildPathMap: Map<String, BuildId>,
     gradleProject: BasicGradleProject,
     androidProject: IdeAndroidProjectImpl,
@@ -200,7 +202,7 @@ sealed class AndroidModule constructor(
     nativeModule: IdeNativeModule?,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ) : AndroidModule(
-    agpVersion = agpVersion,
+    modelVersions = modelVersions,
     buildPathMap = buildPathMap,
     gradleProject = gradleProject,
     androidProject = androidProject,
@@ -292,10 +294,12 @@ private fun List<IdeVariantCoreImpl>.patchForKapt(kaptModel: KaptGradleModel?): 
     variant.copy(
       mainArtifact = variant.mainArtifact
         .maybePatch("") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
-      androidTestArtifact = variant.androidTestArtifact
-        ?.maybePatch("AndroidTest") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
-      unitTestArtifact = variant.unitTestArtifact
-        ?.maybePatch("UnitTest") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
+      deviceTestArtifacts = variant.deviceTestArtifacts.map {
+        v -> v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
+                                                            },
+      hostTestArtifacts = variant.hostTestArtifacts.map {
+        v -> v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
+                                                        },
       testFixturesArtifact = variant.testFixturesArtifact
         ?.maybePatch("TestFixtures") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
     )
@@ -354,13 +358,12 @@ private fun collectIdentifiers(
 ): List<ArtifactIdentifier> {
   return variants.asSequence()
     .flatMap {
-      sequenceOf(
-        it.mainArtifact.compileClasspathCore,
-        it.androidTestArtifact?.compileClasspathCore,
-        it.unitTestArtifact?.compileClasspathCore,
-        it.testFixturesArtifact?.compileClasspathCore
-      )
-        .filterNotNull()
+      val sequence = sequenceOf(it.mainArtifact.compileClasspathCore) +
+                     it.deviceTestArtifacts.find { v -> v.name == IdeArtifactName.ANDROID_TEST }?.compileClasspathCore +
+                     it.hostTestArtifacts.map { v -> v.compileClasspathCore } +
+                     it.testFixturesArtifact?.compileClasspathCore
+
+        sequence.filterNotNull()
     }
     .flatMap { it.dependencies.asSequence() }
     .mapNotNull { (libraryResolver(it.target) as? IdeArtifactLibrary)?.component }

@@ -28,7 +28,7 @@ enum class FakeLineType {
   PROPERTY,
   TABLE,
   PANEL,
-  SEPARATOR
+  SEPARATOR,
 }
 
 open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {

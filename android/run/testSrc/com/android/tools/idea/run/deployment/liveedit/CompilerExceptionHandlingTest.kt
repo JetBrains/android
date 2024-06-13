@@ -27,7 +27,7 @@ import kotlin.test.assertEquals
 class CompilerExceptionHandlingTest {
 
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setUp() {
@@ -37,7 +37,7 @@ class CompilerExceptionHandlingTest {
   @Test
   fun notDropProcessCancelException() {
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
-    val input = LiveEditCompilerInput(file, findFunction(file, "foo"))
+    val input = LiveEditCompilerInput(file, getPsiValidationState(file))
     val cache = Mockito.spy(MutableIrClassCache())
     Mockito.`when`(cache["AKt"]).thenThrow(ProcessCanceledException())
     val output = LiveEditCompiler(file.project, cache).compile(listOf(input))
@@ -47,7 +47,7 @@ class CompilerExceptionHandlingTest {
   @Test
   fun syntaxError() {
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
-    val input = LiveEditCompilerInput(file, findFunction(file, "foo"))
+    val input = LiveEditCompilerInput(file, getPsiValidationState(file))
     val cache = Mockito.spy(MutableIrClassCache())
     Mockito.`when`(cache["AKt"]).thenThrow(LiveEditUpdateException.compilationError("some syntax error in file A.kt"))
 
@@ -64,7 +64,7 @@ class CompilerExceptionHandlingTest {
   @Test
   fun unknownException() {
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
-    val input = LiveEditCompilerInput(file, findFunction(file, "foo"))
+    val input = LiveEditCompilerInput(file, getPsiValidationState(file))
     val cache = Mockito.spy(MutableIrClassCache())
     Mockito.`when`(cache["AKt"]).thenThrow(ExceptionUnknownToStudio())
 

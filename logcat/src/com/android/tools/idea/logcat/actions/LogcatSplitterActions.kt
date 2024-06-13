@@ -25,7 +25,7 @@ internal class LogcatSplitterActions(splitterActions: ActionGroup) :
   PopupActionGroupAction(
     LogcatBundle.message("logcat.splitter.actions.text"),
     null,
-    AllIcons.Actions.SplitVertically
+    AllIcons.Actions.SplitVertically,
   ) {
 
   private val splitterActions = splitterActions.getChildren(null).asList()

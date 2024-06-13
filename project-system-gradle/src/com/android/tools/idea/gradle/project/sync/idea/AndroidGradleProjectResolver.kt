@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import android.annotation.SuppressLint
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.repository.Revision
-import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
@@ -45,7 +43,6 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
-import com.android.tools.idea.gradle.project.sync.GradleSyncEventLogger
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
@@ -57,7 +54,6 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs
 import com.android.tools.idea.gradle.project.sync.errors.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
-import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.addTraceJvmArgs
 import com.android.tools.idea.gradle.project.sync.idea.VariantProjectDataNodes.Companion.collectCurrentAndPreviouslyCachedVariants
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel
@@ -81,10 +77,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.appendCapitalized
 import com.android.utils.findGradleSettingsFile
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueType
-import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.externalSystem.JavaModuleData
 import com.intellij.notification.Notification
@@ -122,20 +115,17 @@ import com.intellij.util.SystemProperties
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
-import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.android.configure.patchFromMppModel
-import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
-import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
 import org.jetbrains.plugins.gradle.model.DefaultExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalProject
+import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
-import org.jetbrains.plugins.gradle.service.project.ArtifactMappingService
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -151,7 +141,7 @@ private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
  * Imports Android-Gradle projects into IDEA.
  */
 @Order(ExternalSystemConstants.UNORDERED)
-@SuppressLint("AvoidByLazy")
+@Suppress("AvoidByLazy")
 class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal constructor(private val myCommandLineArgs: CommandLineArgs) :
   AbstractProjectResolverExtension(), AndroidGradleProjectResolverMarker {
   private var project: Project? = null
@@ -372,17 +362,21 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         moduleNode, gradleModule, variant.mainArtifact.name,
         null
       )
-      val unitTest: IdeBaseArtifactCore? = variant.unitTestArtifact
+      val unitTest: IdeBaseArtifactCore? = variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }
       if (unitTest != null) {
         createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, unitTest.name, prodModule)
       }
-      val androidTest: IdeBaseArtifactCore? = variant.androidTestArtifact
+      val androidTest: IdeBaseArtifactCore? = variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
       if (androidTest != null) {
         createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, androidTest.name, prodModule)
       }
       val testFixtures: IdeBaseArtifactCore? = variant.testFixturesArtifact
       if (testFixtures != null) {
         createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, testFixtures.name, prodModule)
+      }
+      val screenshotTest: IdeBaseArtifactCore? = variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
+      if (screenshotTest != null) {
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, screenshotTest.name, prodModule)
       }
 
       // Setup testData nodes for testing sources used by Gradle test runners.
@@ -396,7 +390,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     populateAdditionalClassifierArtifactsModel(gradleModule)
   }
 
-  @SuppressLint("NewApi")
+  @Suppress("NewApi")
   private fun createAndSetupTestDataNode(
     moduleDataNode: DataNode<ModuleData>,
     gradleAndroidModel: GradleAndroidModelData
@@ -671,10 +665,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   override fun getExtraJvmArgs(): List<Pair<String, String>> {
     if (ExternalSystemApiUtil.isInProcessMode(GradleProjectSystemUtil.GRADLE_SYSTEM_ID)) {
       val args: MutableList<Pair<String, String>> = ArrayList()
-      if (IdeInfo.getInstance().isAndroidStudio) {
-        // Inject javaagent args.
-        addTraceJvmArgs(args)
-      } else {
+      if (!IdeInfo.getInstance().isAndroidStudio) {
         val localProperties = localProperties
         if (localProperties.androidSdkPath == null) {
           val androidHomePath = IdeSdks.getInstance().androidSdkPath
@@ -910,7 +901,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         val variant = result.first
         if (variant == androidModel.selectedVariantCore) {
           val classesDirFile = sourceSet.generatedClassesDirFile
-          addToNewOrExistingLibraryData(result.second, "kaptGeneratedClasses", setOf(classesDirFile), sourceSet.isTest)
+          addToNewOrExistingLibraryData(result.second, "kaptGeneratedClasses", setOf(classesDirFile), sourceSet.isTest, true)
         }
       }
     }
@@ -919,7 +910,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       moduleDataNode: DataNode<GradleSourceSetData>,
       name: String,
       files: Set<File?>,
-      isTest: Boolean
+      isTest: Boolean,
+      isExported: Boolean = false,
     ) {
       // Code adapted from KaptProjectResolverExtension
       val newLibrary = LibraryData(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, name)
@@ -934,6 +926,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         files.forEach { file: File? -> newLibrary.addPath(LibraryPathType.BINARY, file!!.absolutePath) }
         val libraryDependencyData = LibraryDependencyData(moduleDataNode.data, newLibrary, LibraryLevel.MODULE)
         libraryDependencyData.scope = if (isTest) DependencyScope.TEST else DependencyScope.COMPILE
+        libraryDependencyData.isExported = isExported
         moduleDataNode.createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
       }
     }
@@ -954,7 +947,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       if (sourceSetName.endsWith(androidTestSuffix)) {
         val variantName = sourceSetName.substring(0, sourceSetName.length - androidTestSuffix.length)
         val variant = androidModel.findVariantCoreByName(variantName)
-        val artifact: IdeBaseArtifactCore? = variant?.androidTestArtifact
+        val artifact: IdeBaseArtifactCore? = variant?.deviceTestArtifacts?.find { it.name == IdeArtifactName.ANDROID_TEST }
         return if (artifact == null) null else Pair.create(variant, moduleNode.findSourceSetDataForArtifact(artifact))
       }
 
@@ -972,9 +965,19 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       if (sourceSetName.endsWith(unitTestSuffix)) {
         val variantName = sourceSetName.substring(0, sourceSetName.length - unitTestSuffix.length)
         val variant = androidModel.findVariantCoreByName(variantName)
-        val artifact: IdeBaseArtifactCore? = variant?.unitTestArtifact
+        val artifact: IdeBaseArtifactCore? = variant?.hostTestArtifacts?.find { it.name == IdeArtifactName.UNIT_TEST }
         return if (artifact == null) null else Pair.create(variant, moduleNode.findSourceSetDataForArtifact(artifact))
       }
+
+      // Check if it's a screenshot test source set.
+      val screenshotTest = "ScreenshotTest"
+      if (sourceSetName.endsWith(screenshotTest)) {
+        val variantName = sourceSetName.substring(0, sourceSetName.length - screenshotTest.length)
+        val variant = androidModel.findVariantCoreByName(variantName)
+        val artifact = variant?.hostTestArtifacts?.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
+        return if (artifact == null) null else Pair.create(variant, moduleNode.findSourceSetDataForArtifact(artifact))
+      }
+
       return null
     }
 
@@ -1073,36 +1076,6 @@ private fun IdeAndroidSyncIssuesAndExceptions.process(moduleDataNode: DataNode<M
   exceptions.forEach { logger<AndroidGradleProjectResolver>().warn(it) }
 }
 
-@VisibleForTesting
-fun mergeProjectResolvedArtifacts(
-  kmpArtifactToModuleIdMap: Map<String, List<String>>,
-  platformArtifactToModuleIdMap: ArtifactMappingService,
-  project: Project?,
-  rootProjectPath: @SystemIndependent String
-): Map<String, Set<String>> =
-  (kmpArtifactToModuleIdMap.keys + platformArtifactToModuleIdMap.keys)
-    .associateBy({ it }, {
-      val kmpModuleIds = kmpArtifactToModuleIdMap[it]?.toSet()
-      val platformModuleId = platformArtifactToModuleIdMap.getModuleMapping(it)?.moduleIds?.firstOrNull()
-      when {
-        kmpModuleIds != null && platformModuleId != null -> {
-          if (platformModuleId !in kmpModuleIds) {
-            // TODO (b/250368030)
-            // error("Both artifact maps contains same key: $it with different values for kmp: $kmpIds and platform: $platformId")
-            project?.let {
-              logKmpIncorrectSourceSetsIssue(project, rootProjectPath)
-            }
-            kmpModuleIds + platformModuleId
-          } else {
-            kmpModuleIds
-          }
-        }
-        kmpModuleIds != null -> kmpModuleIds
-        platformModuleId != null -> setOf(platformModuleId)
-        else -> emptySet()
-      }
-    })
-
 private fun IdeaModule.matchesPath(buildPath: String?, modulePath: String?): Boolean {
   return projectIdentifier.buildIdentifier.rootDir.path == buildPath
          && projectIdentifier.projectPath?.equals(modulePath) == true
@@ -1114,15 +1087,3 @@ private fun IdeaModule.getHolderProjectPath(): GradleHolderProjectPath {
     projectIdentifier.projectPath)
 }
 
-private fun logKmpIncorrectSourceSetsIssue(
-  project: Project,
-  rootProjectPath: @SystemIndependent String
-) {
-  val issue = GradleSyncIssue.newBuilder()
-    .setType(GradleSyncIssueType.TYPE_KMP_INCORRECT_PLATFORM_SOURCE_SET)
-    .build()
-  val event = GradleSyncEventLogger()
-    .generateSyncEvent(project, rootProjectPath, EventKind.GRADLE_SYNC_ISSUES)
-    .addGradleSyncIssues(issue)
-  log(event)
-}

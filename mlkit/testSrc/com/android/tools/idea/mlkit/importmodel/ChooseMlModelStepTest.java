@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 
 import com.android.test.testutils.TestUtils;
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.mlkit.MlConstants;
@@ -46,7 +45,6 @@ public class ChooseMlModelStepTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    StudioFlags.ML_MODEL_BINDING.override(true);
 
     MockitoAnnotations.initMocks(this);
     myFile = spy(new File("model.tflite"));
@@ -59,7 +57,6 @@ public class ChooseMlModelStepTest extends AndroidTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      StudioFlags.ML_MODEL_BINDING.clearOverride();
       Disposer.dispose(myChooseMlModelStep);
     }
     catch (Throwable e) {

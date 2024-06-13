@@ -18,6 +18,7 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -30,6 +31,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidActionGroupRemover extends ActionGroup {
   @NotNull private final ActionGroup myDelegate;
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
 
   /**
    * Creates a new {@link AndroidActionGroupRemover}.

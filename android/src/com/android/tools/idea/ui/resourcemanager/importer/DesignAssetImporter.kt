@@ -17,13 +17,17 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.SourceProviderManager
+import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -113,12 +117,29 @@ class DesignAssetImporter {
 fun getOrCreateDefaultResDirectory(androidFacet: AndroidFacet): File {
   val resDirectories =
     SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider.resDirectoryUrls.map { File(VfsUtil.urlToPath(it)) }
-  if (resDirectories.isEmpty()) {
-    val project = androidFacet.module.project
-    return GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, androidFacet.module.name).paths.resDirectories.first()
+  if (resDirectories.isNotEmpty()) {
+    return resDirectories.firstOrNull { it.exists() }
+           ?: resDirectories.first().also { it.mkdirs() }
   }
-  return resDirectories.firstOrNull { it.exists() }
-         ?: resDirectories.first().also { it.createNewFile() }
+
+  val projectSystem = androidFacet.module.project.getProjectSystem()
+  return when (val token = projectSystem.getTokenOrNull(CreateDefaultResDirectoryToken.EP_NAME)) {
+    null -> null
+    else -> token.createDefaultResDirectory(projectSystem, androidFacet)
+  } ?: throw(IllegalStateException("No res directory for $androidFacet and no way to make one."))
+}
+
+interface CreateDefaultResDirectoryToken<T : AndroidProjectSystem> : Token {
+  /**
+   * Called when there are no resDirectoryUrls in the main IDEA Source Provider.  Implementations should modify the
+   * project such that, after modification, there will be at least one such resDirectoryUrl and it points to a writeable
+   * directory.
+   */
+  fun createDefaultResDirectory(projectSystem: T, facet: AndroidFacet): File?
+  companion object {
+    val EP_NAME = ExtensionPointName<CreateDefaultResDirectoryToken<AndroidProjectSystem>>(
+      "com.android.tools.idea.ui.resourcemanager.importer.createDefaultResDirectoryToken")
+  }
 }
 
 /**

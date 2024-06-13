@@ -46,7 +46,7 @@ internal open class CloseablePanel(heading: String, component: JComponent) :
             .addPreferredGap(
               LayoutStyle.ComponentPlacement.UNRELATED,
               GroupLayout.DEFAULT_SIZE,
-              Int.MAX_VALUE
+              Int.MAX_VALUE,
             )
             .addComponent(closeButton)
             .addContainerGap()

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -25,37 +25,23 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlinx.coroutines.launch
-import java.awt.MouseInfo
-import javax.swing.SwingUtilities
 
 /**
  * [AnAction] that navigates to the deepest Composable that is part of the project, and that is
  * visible at the position where the mouse is located, at the moment the action is created.
  */
 class JumpToDefinitionAction(
-  surface: DesignSurface<LayoutlibSceneManager>,
+  @SwingCoordinate private val x: Int,
+  @SwingCoordinate private val y: Int,
   private val navigationHandler: NavigationHandler,
-  private val sceneView: SceneView,
-  title: String = message("action.jump.to.definition")
+  title: String = message("action.jump.to.definition"),
 ) : AnAction(title) {
 
-  private val x: Int
-  private val y: Int
-
-  init {
-    // Extract the information relative to the mouse position when creating the action,
-    // not when clicking on "jump to definition"
-    val mousePosition = MouseInfo.getPointerInfo().location
-    SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
-    x = mousePosition.x
-    y = mousePosition.y
-  }
-
-  private val scope = AndroidCoroutineScope(surface)
-
   override fun update(e: AnActionEvent) {
+    val surface = e.getData(DESIGN_SURFACE)
+    val sceneView = surface?.getSceneViewAt(x, y)
     e.presentation.isEnabledAndVisible =
-      (sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult != null
+      (sceneView?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -63,6 +49,10 @@ class JumpToDefinitionAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    scope.launch { navigationHandler.handleNavigateWithCoordinates(sceneView, x, y, true) }
+    val surface = e.getRequiredData(DESIGN_SURFACE)
+    val sceneView = surface.getSceneViewAt(x, y) ?: return
+    AndroidCoroutineScope(sceneView).launch {
+      navigationHandler.handleNavigateWithCoordinates(sceneView, x, y, true)
+    }
   }
 }

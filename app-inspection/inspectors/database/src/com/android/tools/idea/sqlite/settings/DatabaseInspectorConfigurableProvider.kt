@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite.settings
 
-import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle.message
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
@@ -26,7 +26,7 @@ import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.util.xmlb.XmlSerializerUtil
-import java.awt.BorderLayout
+import javax.swing.BoxLayout
 import javax.swing.JPanel
 
 class DatabaseInspectorConfigurableProvider : ConfigurableProvider() {
@@ -36,30 +36,41 @@ class DatabaseInspectorConfigurableProvider : ConfigurableProvider() {
 }
 
 private class DatabaseInspectorConfigurable : SearchableConfigurable {
-  private val component: JPanel = JPanel(BorderLayout())
-  private val enableOfflineModeCheckBox = JBCheckBox(message("enable.offline.mode"))
+  private val component: JPanel = JPanel()
+  private val enableOfflineModeCheckBox =
+    JBCheckBox(message("enable.offline.mode")).apply { name = "enableOfflineMode" }
+  private val forceOpenCheckBox =
+    JBCheckBox(message("force.open.database")).apply { name = "forceOpen" }
 
   private val settings = DatabaseInspectorSettings.getInstance()
 
   init {
-    component.add(enableOfflineModeCheckBox, BorderLayout.PAGE_START)
+    component.layout = BoxLayout(component, BoxLayout.Y_AXIS)
+    component.add(enableOfflineModeCheckBox)
+    if (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
+      component.add(forceOpenCheckBox)
+    }
   }
 
   override fun createComponent() = component
 
-  override fun isModified() = enableOfflineModeCheckBox.isSelected != settings.isOfflineModeEnabled
+  override fun isModified() =
+    enableOfflineModeCheckBox.isSelected != settings.isOfflineModeEnabled ||
+      forceOpenCheckBox.isSelected != settings.isForceOpen
 
   override fun apply() {
     val isOfflineModeEnabled = enableOfflineModeCheckBox.isSelected
     settings.isOfflineModeEnabled = isOfflineModeEnabled
+    settings.isForceOpen = forceOpenCheckBox.isSelected
   }
 
   override fun reset() {
     enableOfflineModeCheckBox.isSelected = settings.isOfflineModeEnabled
+    forceOpenCheckBox.isSelected = settings.isForceOpen
   }
 
   override fun getDisplayName(): String {
-    return DatabaseInspectorBundle.message("database.inspector")
+    return message("database.inspector")
   }
 
   override fun getId() = "database.inspector"
@@ -76,6 +87,8 @@ class DatabaseInspectorSettings : PersistentStateComponent<DatabaseInspectorSett
   }
 
   var isOfflineModeEnabled = true
+
+  var isForceOpen: Boolean = false
 
   override fun getState() = this
 

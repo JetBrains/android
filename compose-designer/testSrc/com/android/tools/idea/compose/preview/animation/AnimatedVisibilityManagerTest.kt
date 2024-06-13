@@ -18,21 +18,24 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
+import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
-import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.util.ui.UIUtil
-import org.junit.Assert
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.preview.animation.TestUtils.findAllCards
+import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
 class AnimatedVisibilityManagerTest : InspectorTests() {
 
@@ -150,11 +153,13 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       assertEquals(1, stateCalls)
       // Swap
       ui.clickOn(toolbar.components[1])
+      delayUntilCondition(200) { transitionCalls == 2 }
       assertEquals(2, transitionCalls)
       assertEquals(2, stateCalls)
       // Swap again
       ui.clickOn(toolbar.components[1])
       assertEquals(2, transitionCalls)
+      delayUntilCondition(200) { stateCalls == 3 }
       assertEquals(3, stateCalls)
     }
   }
@@ -169,21 +174,24 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
 
     setupAndCheckToolbar(clock) { _, ui ->
-      assertEquals(1, numberOfCalls)
+      // call from SupportedAnimationManager.setup
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 1 } }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
-      Assert.assertEquals(1, sliders.size)
+      assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
       assertEquals(2, numberOfCalls)
       timelineSlider.value = 200
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
       assertEquals(3, numberOfCalls)
     }
   }
 
   private fun setupAndCheckToolbar(
     clock: TestClock,
-    checkToolbar: (JComponent, FakeUi) -> Unit,
+    checkToolbar: suspend (JComponent, FakeUi) -> Unit,
   ) {
     val inspector = createAndOpenInspector()
 
@@ -195,17 +203,19 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
           setOf(TestClock.AnimatedVisibilityState.Enter, TestClock.AnimatedVisibilityState.Exit)
       }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    runBlocking {
+      surface.sceneManagers.forEach { it.render() }
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
 
-    ApplicationManager.getApplication().invokeAndWait {
-      val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
-      ui.updateToolbars()
-      ui.layoutAndDispatchEvents()
-      val cards = findAllCards(inspector.component)
-      Assert.assertEquals(1, cards.size)
-      val toolbar = cards.first().component.findToolbar("AnimationCard") as JComponent
-      checkToolbar(toolbar, ui)
+      withContext(uiThread) {
+        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+        ui.updateToolbars()
+        ui.layoutAndDispatchEvents()
+        val cards = findAllCards(inspector.component)
+        assertEquals(1, cards.size)
+        val toolbar = cards.first().component.findToolbar("AnimationCard") as JComponent
+        checkToolbar(toolbar, ui)
+      }
     }
   }
 }

@@ -43,14 +43,14 @@ interface SourceProviders {
   val sources: IdeaSourceProvider
 
   /**
-   * Returns the source provider for all unit test sources in the currently selected variant in the overlay order.
+   * Returns a map of the source provider for all host test sources in the currently selected variant in the overlay order.
    */
-  val unitTestSources: IdeaSourceProvider
+  val hostTestSources: Map<TestComponentType, IdeaSourceProvider>
 
   /**
-   * Returns the source provider for all android test sources in the currently selected variant in the overlay order.
+   * Returns a map of the source provider for all device test sources in the currently selected variant in the overlay order.
    */
-  val androidTestSources: IdeaSourceProvider
+  val deviceTestSources: Map<TestComponentType, IdeaSourceProvider>
 
   /**
    * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
@@ -63,14 +63,14 @@ interface SourceProviders {
   val generatedSources: IdeaSourceProvider
 
   /**
-   * Returns the source provider for all unit test sources in the currently selected variant in the overlay order.
+   * Returns a map of the source provider for all host test sources in the currently selected variant in the overlay order.
    */
-  val generatedUnitTestSources: IdeaSourceProvider
+  val generatedHostTestSources: Map<TestComponentType, IdeaSourceProvider>
 
   /**
-   * Returns the source provider for all android test sources in the currently selected variant in the overlay order.
+   * Returns a map of the source provider for all device test sources in the currently selected variant in the overlay order.
    */
-  val generatedAndroidTestSources: IdeaSourceProvider
+  val generatedDeviceTestSources: Map<TestComponentType, IdeaSourceProvider>
 
   /**
    * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
@@ -104,20 +104,20 @@ interface SourceProviders {
   val currentSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
-   * Returns a list of source providers for unit test artifacts (e.g. `test/`source sets), in increasing
+   * Returns a list of source providers for Host test artifacts (e.g. for unit test arifact: `test/`source sets), in increasing
    * precedence order.
    *
    * @see currentSourceProviders
    */
-  val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
+  val currentHostTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
 
   /**
-   * Returns a list of source providers for Android test artifacts (e.g. `androidTest/` source sets), in increasing
+   * Returns a list of source providers for Device test artifacts (e.g. for Android test artifact `androidTest/` source sets), in increasing
    * precedence order.
    *
    * @see currentSourceProviders
    */
-  val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
+  val currentDeviceTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
 
   /**
    * Returns a list of source providers for test fixtures artifacts (e.g. `testFixtures/` source sets), in increasing
@@ -166,25 +166,25 @@ interface SourceProviders {
       facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = sourceSet
-        override val unitTestSources: IdeaSourceProvider
+        override val hostTestSources: Map<TestComponentType, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val androidTestSources: IdeaSourceProvider
+        override val deviceTestSources: Map<TestComponentType, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val testFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val generatedSources: IdeaSourceProvider =
           createMergedSourceProvider(ScopeType.MAIN, emptyList())
-        override val generatedUnitTestSources: IdeaSourceProvider
+        override val generatedHostTestSources: Map<TestComponentType, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val generatedAndroidTestSources: IdeaSourceProvider
+        override val generatedDeviceTestSources: Map<TestComponentType, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val generatedTestFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = ImmutableList.of(sourceSet)
-        override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
+        override val currentHostTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
-        override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
+        override val currentDeviceTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
         override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
@@ -211,25 +211,25 @@ interface SourceProviders {
       facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
-        override val unitTestSources: IdeaSourceProvider
+        override val hostTestSources: Map<TestComponentType, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val androidTestSources: IdeaSourceProvider
+        override val deviceTestSources: Map<TestComponentType, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val testFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val generatedSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
-        override val generatedUnitTestSources: IdeaSourceProvider
+        override val generatedHostTestSources: Map<TestComponentType, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val generatedAndroidTestSources: IdeaSourceProvider
+        override val generatedDeviceTestSources: Map<TestComponentType, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val generatedTestFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
+        override val currentHostTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
-        override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
+        override val currentDeviceTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
         override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
@@ -352,9 +352,10 @@ fun SourceProviders.getForFile(targetFolder: VirtualFile?): List<NamedIdeaSource
   return if (targetFolder != null) {
     // Add source providers that contain the file (if any) and any that have files under the given folder
     // Also checks in the test providers.
-    (currentAndSomeFrequentlyUsedInactiveSourceProviders + currentAndroidTestSourceProviders + currentUnitTestSourceProviders)
-      .filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }
-      .takeUnless { it.isEmpty() }
+    (currentAndSomeFrequentlyUsedInactiveSourceProviders +
+     currentDeviceTestSourceProviders.values.flatten() +
+     currentHostTestSourceProviders.values.flatten()
+    ).filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }.takeUnless { it.isEmpty() }
   }
   else null
 }
@@ -410,8 +411,8 @@ fun IdeaSourceProvider.findSourceRoot(file: VirtualFile): VirtualFile? {
 fun <T : IdeaSourceProvider> Iterable<T>.findByFile(file: VirtualFile): T? = firstOrNull { it.containsFile(file) }
 
 fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-  return SourceProviders.getInstance(facet).unitTestSources.containsFile(candidate) ||
-         SourceProviders.getInstance(facet).androidTestSources.containsFile(candidate)
+  return SourceProviders.getInstance(facet).hostTestSources.values.findByFile(candidate) != null ||
+         SourceProviders.getInstance(facet).deviceTestSources.values.findByFile(candidate) != null
 }
 
 /** Returns true if the given candidate file is a manifest file in the given module  */

@@ -22,7 +22,6 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.StreamConnected
 import com.android.tools.idea.transport.manager.StreamDisconnected
@@ -71,7 +70,7 @@ fun interface ForegroundProcessListener {
   fun onNewProcess(
     device: DeviceDescriptor,
     foregroundProcess: ForegroundProcess,
-    isDebuggable: Boolean
+    isDebuggable: Boolean,
   )
 }
 
@@ -132,7 +131,7 @@ class ForegroundProcessDetectionImpl(
   private val streamManager: TransportStreamManager,
   private val workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
   @TestOnly private val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {},
-  @TestOnly private val pollingIntervalMs: Long = 2000
+  @TestOnly private val pollingIntervalMs: Long = 2000,
 ) : ForegroundProcessDetection, Disposable {
 
   companion object {
@@ -174,7 +173,7 @@ class ForegroundProcessDetectionImpl(
     private fun addTimeStamp(
       deviceDescriptor: DeviceDescriptor,
       newTimeStamp: Long,
-      layoutInspectorMetrics: LayoutInspectorMetrics
+      layoutInspectorMetrics: LayoutInspectorMetrics,
     ) {
       if (connectTimestamps.contains(deviceDescriptor)) {
         val prevTimeStamp = connectTimestamps[deviceDescriptor]!!
@@ -189,7 +188,7 @@ class ForegroundProcessDetectionImpl(
           layoutInspectorMetrics.logTransportError(
             DynamicLayoutInspectorTransportError.Type
               .TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
-            deviceDescriptor
+            deviceDescriptor,
           )
         } else {
           connectTimestamps[deviceDescriptor] = newTimeStamp
@@ -240,7 +239,7 @@ class ForegroundProcessDetectionImpl(
   private data class ForegroundProcessData(
     val device: DeviceDescriptor,
     val process: ForegroundProcess,
-    val isDebuggable: Boolean
+    val isDebuggable: Boolean,
   )
 
   /**
@@ -260,7 +259,7 @@ class ForegroundProcessDetectionImpl(
   private fun invokeListeners(
     device: DeviceDescriptor,
     process: ForegroundProcess,
-    isDebuggable: Boolean
+    isDebuggable: Boolean,
   ) {
     lastForegroundProcess = ForegroundProcessData(device, process, isDebuggable)
     foregroundProcessListeners.forEach { it.onNewProcess(device, process, isDebuggable) }
@@ -290,7 +289,7 @@ class ForegroundProcessDetectionImpl(
                 .eventFlow(
                   StreamEventQuery(
                     eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS,
-                    startTime = { currentTime }
+                    startTime = { currentTime },
                   )
                 )
                 .collect { streamEvent ->
@@ -312,7 +311,7 @@ class ForegroundProcessDetectionImpl(
                 workDispatcher,
                 transportClient,
                 metrics,
-                pollingIntervalMs
+                pollingIntervalMs,
               )
 
             // start listening for LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED events
@@ -322,7 +321,7 @@ class ForegroundProcessDetectionImpl(
                   StreamEventQuery(
                     eventKind =
                       Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
-                    startTime = { currentTime }
+                    startTime = { currentTime },
                   )
                 )
                 .collect { streamEvent ->
@@ -406,13 +405,6 @@ class ForegroundProcessDetectionImpl(
             handler?.post(HandshakeState.Disconnected)
 
             if (streamDevice.serial == deviceModel.selectedDevice?.serial) {
-              // when a device is disconnected we still want to call [DebugViewAttributes#clear],
-              // because this updates the state of the class. The flag will be turned off on the
-              // device by the trap command, we want to reflect this state in DebugViewAttributes.
-              val debugViewAttributes = DebugViewAttributes.getInstance()
-              if (debugViewAttributes.usePerDeviceSettings()) {
-                debugViewAttributes.clear(project, streamDevice)
-              }
               deviceModel.selectedDevice = null
             }
 
@@ -494,7 +486,7 @@ class ForegroundProcessDetectionImpl(
     scope.launch {
       transportClient.sendCommand(
         Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS,
-        stream.streamId
+        stream.streamId,
       )
     }
   }
@@ -504,13 +496,13 @@ class ForegroundProcessDetectionImpl(
    */
   private fun sendStopOnDevicePollingCommand(
     stream: Common.Stream,
-    deviceDescriptor: DeviceDescriptor
+    deviceDescriptor: DeviceDescriptor,
   ) {
     if (shouldStopPollingDevice(deviceDescriptor)) {
       scope.launch {
         transportClient.sendCommand(
           Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS,
-          stream.streamId
+          stream.streamId,
         )
       }
     }
@@ -541,7 +533,7 @@ class ForegroundProcessDetectionImpl(
 /** Send a command to the transport. */
 internal suspend fun TransportClient.sendCommand(
   commandType: Commands.Command.CommandType,
-  streamId: Long
+  streamId: Long,
 ) =
   withContext(AndroidDispatchers.workerThread) {
     val command = Commands.Command.newBuilder().setType(commandType).setStreamId(streamId).build()

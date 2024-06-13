@@ -108,21 +108,17 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-genrule(
+# bazel run :update_libimage_converter
+sh_binary(
     name = "update_libimage_converter",
-    srcs = [
-        ":libimage_converter",
-        "//tools/base/repository:find_workspace",
-    ],
-    outs = ["unused_out"],
-    cmd = "touch $(location unused_out) && cp $(location libimage_converter) " +
-          "`cat $(location //tools/base/repository:find_workspace)`/tools/adt/idea/streaming/native/" +
-          select({
-              "@platforms//os:linux": "linux",
-              ":macos": "mac",
-              ":macos_arm": "mac_arm",
-              "@platforms//os:windows": "win",
-          }),
-    local = True,
-    tags = ["manual"],
+    srcs = ["//tools/base/bazel/shell:workspace-cp.sh"],
+    args = [
+        "$(execpath libimage_converter)",
+    ] + select({
+        "@platforms//os:linux": ["tools/adt/idea/streaming/native/linux"],
+        ":macos": ["tools/adt/idea/streaming/native/mac"],
+        ":macos_arm": ["tools/adt/idea/streaming/native/mac_arm"],
+        "@platforms//os:windows": ["tools/adt/idea/streaming/native/win"],
+    }),
+    data = [":libimage_converter"],
 )

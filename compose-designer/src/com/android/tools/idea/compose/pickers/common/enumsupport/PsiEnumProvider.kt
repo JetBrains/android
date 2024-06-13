@@ -75,7 +75,7 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
               initialResolvedValue and UI_MODE_NIGHT_MASK == 0x20, // Check if it's night mode
               uiMode.classConstant,
               uiMode.display,
-              uiMode.resolvedValue
+              uiMode.resolvedValue,
             )
           } else {
             return@uiMode uiMode

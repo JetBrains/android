@@ -57,7 +57,7 @@ class SqliteEvaluatorController(
   override val closeTabInvoked: () -> Unit,
   private val showExportDialog: (ExportDialogParams) -> Unit,
   private val edtExecutor: Executor,
-  private val taskExecutor: Executor
+  private val taskExecutor: Executor,
 ) : DatabaseInspectorController.TabController {
   companion object {
     private const val QUERY_HISTORY_KEY = "com.android.tools.idea.sqlite.queryhistory"
@@ -82,7 +82,7 @@ class SqliteEvaluatorController(
       @UiThread
       override fun onDatabasesChanged(
         openDatabaseIds: List<SqliteDatabaseId>,
-        closeDatabaseIds: List<SqliteDatabaseId>
+        closeDatabaseIds: List<SqliteDatabaseId>,
       ) {
         openDatabases.clear()
         openDatabases.addAll(openDatabaseIds.sortedBy { it.name })
@@ -103,7 +103,7 @@ class SqliteEvaluatorController(
       override fun onSchemaChanged(
         databaseId: SqliteDatabaseId,
         oldSchema: SqliteSchema,
-        newSchema: SqliteSchema
+        newSchema: SqliteSchema,
       ) {
         view.schemaChanged(databaseId)
       }
@@ -158,7 +158,7 @@ class SqliteEvaluatorController(
 
   fun showAndExecuteSqlStatement(
     databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement
+    sqliteStatement: SqliteStatement,
   ): ListenableFuture<Unit> {
     if (databaseId !in openDatabases) {
       return immediateFailedFuture(
@@ -186,7 +186,7 @@ class SqliteEvaluatorController(
 
   private fun executeSqlStatement(
     databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement
+    sqliteStatement: SqliteStatement,
   ): ListenableFuture<Unit> {
     resetTable()
 
@@ -238,7 +238,7 @@ class SqliteEvaluatorController(
 
   private fun runQuery(
     databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement
+    sqliteStatement: SqliteStatement,
   ): ListenableFuture<Unit> {
     currentTableController =
       TableController(
@@ -251,7 +251,7 @@ class SqliteEvaluatorController(
         sqliteStatement = sqliteStatement,
         showExportDialog = showExportDialog,
         edtExecutor = edtExecutor,
-        taskExecutor = taskExecutor
+        taskExecutor = taskExecutor,
       )
     Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
     return currentTableController!!
@@ -268,7 +268,7 @@ class SqliteEvaluatorController(
 
   private fun runUpdate(
     databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement
+    sqliteStatement: SqliteStatement,
   ): ListenableFuture<Unit> {
     return databaseRepository
       .executeStatement(databaseId, sqliteStatement)
@@ -317,12 +317,12 @@ class SqliteEvaluatorController(
       DatabaseInspectorAnalyticsTracker.getInstance(project)
         .trackStatementExecuted(
           connectivityState,
-          AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
+          AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT,
         )
 
       executeSqlStatement(
         databaseId,
-        createSqliteStatement(project, currentEvaluationParams.statementText)
+        createSqliteStatement(project, currentEvaluationParams.statementText),
       )
     }
 
@@ -343,7 +343,7 @@ class SqliteEvaluatorController(
 
   interface Listener {
     /**
-     * Called when an user-defined SQLite statement is successfully executed
+     * Called when a user-defined SQLite statement is successfully executed
      *
      * @param databaseId The database on which the statement was executed.
      */

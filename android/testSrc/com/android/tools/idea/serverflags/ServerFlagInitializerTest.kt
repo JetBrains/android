@@ -20,11 +20,13 @@ import com.android.tools.analytics.CommonMetricsData.OS_NAME_FREE_BSD
 import com.android.tools.analytics.CommonMetricsData.OS_NAME_LINUX
 import com.android.tools.analytics.CommonMetricsData.OS_NAME_MAC
 import com.android.tools.analytics.CommonMetricsData.OS_NAME_WINDOWS
+import com.android.tools.idea.serverflags.protos.Brand
 import com.android.tools.idea.serverflags.protos.OSType
 import com.android.tools.idea.serverflags.protos.ServerFlagList
 import com.android.tools.idea.serverflags.protos.ServerFlagTest
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.util.io.FileUtil
 import junit.framework.TestCase
 import java.nio.file.Path
@@ -58,7 +60,9 @@ class ServerFlagInitializerTest : TestCase() {
   }
 
   fun testFileNotPresent() {
-    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, EXPERIMENTS) }
+    ServerFlagServiceImpl.initializer = {
+      ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, AndroidStudioEvent.IdeBrand.ANDROID_STUDIO, EXPERIMENTS)
+    }
     val service = ServerFlagServiceImpl()
 
     service.apply {
@@ -73,7 +77,7 @@ class ServerFlagInitializerTest : TestCase() {
   fun testPercentEnabled() {
     val expected = serverFlagTestData
 
-    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, emptyList()) }
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, AndroidStudioEvent.IdeBrand.ANDROID_STUDIO, emptyList()) }
     saveServerFlagList(expected, localPath, VERSION)
     val service = ServerFlagServiceImpl()
 
@@ -106,16 +110,32 @@ class ServerFlagInitializerTest : TestCase() {
     testOsType(OS_NAME_FREE_BSD, OSType.OS_TYPE_FREE_BSD)
   }
 
+  fun testAndroidStudio() {
+    testBrand(AndroidStudioEvent.IdeBrand.ANDROID_STUDIO, Brand.BRAND_ANDROID_STUDIO)
+  }
+
+  fun testAndroidStudioWithBlaze() {
+    testBrand(AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE, Brand.BRAND_ANDROID_STUDIO_WITH_BLAZE)
+  }
+
   private fun testOsType(osName: String, osType: OSType) {
     saveServerFlagList(serverFlagTestDataByOs, localPath, VERSION)
 
-    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, osName, emptyList()) }
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, osName, AndroidStudioEvent.IdeBrand.ANDROID_STUDIO, emptyList()) }
     val service = ServerFlagServiceImpl()
     assertThat(service.names).containsExactlyElementsIn(listOf(osType.toString()))
   }
 
+  private fun testBrand(brand: AndroidStudioEvent.IdeBrand, filterBy: Brand) {
+    saveServerFlagList(serverFlagTestDataByBrand, localPath, VERSION)
+
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, brand, emptyList()) }
+    val service = ServerFlagServiceImpl()
+    assertThat(service.names).containsExactlyElementsIn(listOf(filterBy.toString()))
+  }
+
   private fun testServerFlagInitializer(expected: ServerFlagList) {
-    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, EXPERIMENTS) }
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, AndroidStudioEvent.IdeBrand.ANDROID_STUDIO, EXPERIMENTS) }
     val service = ServerFlagServiceImpl()
 
     service.apply {

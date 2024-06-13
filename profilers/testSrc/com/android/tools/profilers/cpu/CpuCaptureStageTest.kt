@@ -83,6 +83,8 @@ class CpuCaptureStageTest {
 
   @Test
   fun parsingFailureGoesToNullStage() {
+    services.enableTaskBasedUx(false)
+
     profilers.sessionsManager.importSessionFromFile(CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"))
     profilers.sessionsManager.update()
     assertThat(services.notification).isNotNull()

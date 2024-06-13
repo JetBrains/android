@@ -29,19 +29,19 @@ object HelpSupportBinding {
   fun registerHelpKeyActions(
     component: JComponent,
     getProperty: () -> PropertyItem?,
-    condition: Int = JComponent.WHEN_FOCUSED
+    condition: Int = JComponent.WHEN_FOCUSED,
   ) {
     component.registerAnActionKey(
       { getProperty()?.helpSupport?.help },
       KeyStrokes.F1,
       "help",
-      condition
+      condition,
     )
     component.registerAnActionKey(
       { getProperty()?.helpSupport?.secondaryHelp },
       KeyStrokes.SHIFT_F1,
       "help2",
-      condition
+      condition,
     )
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.let {
       component.registerActionShortCutSet({ getProperty()?.helpSupport?.browse() }, it.shortcutSet)

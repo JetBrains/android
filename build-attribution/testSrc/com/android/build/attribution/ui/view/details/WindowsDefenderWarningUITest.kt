@@ -16,19 +16,19 @@
 package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.ui.MockUiData
-import com.android.build.attribution.ui.controllers.WindowsDefenderPageHandlerImpl
 import com.android.build.attribution.ui.model.WarningsDataPageModelImpl
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.WindowsDefenderWarningNodeDescriptor
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.build.diagnostic.WindowsDefenderCheckService
-import com.android.build.diagnostic.WindowsDefenderCheckerWrapper
 import com.android.testutils.MockitoKt
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.android.build.diagnostic.WindowsDefenderCheckService
+import com.android.build.attribution.ui.controllers.WindowsDefenderPageHandlerImpl
+import com.intellij.diagnostic.WindowsDefenderChecker
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -52,17 +52,16 @@ class WindowsDefenderWarningUITest {
     Path.of("C:\\Users\\username\\AppData\\Local\\Google\\Android")
   )
 
-  private val checkerWrapperMock = Mockito.mock(WindowsDefenderCheckerWrapper::class.java).apply {
+  private val checkerMock = Mockito.mock(WindowsDefenderChecker::class.java).apply {
     Mockito.`when`(this.isStatusCheckIgnored(MockitoKt.any())).thenReturn(false)
     Mockito.`when`(this.isRealTimeProtectionEnabled).thenReturn(true)
-    Mockito.`when`(this.canRunScript()).thenReturn(true)
-    Mockito.`when`(this.getImportantPaths(MockitoKt.any())).thenReturn(listOfPaths)
+    Mockito.`when`(this.getPathsToExclude(MockitoKt.any())).thenReturn(listOfPaths)
   }
 
   @Test
   fun testWarningTreeNodeCreatedByTheModelWhenShouldBeShown() {
     val mockUiData = MockUiData().apply {
-      windowsDefenderWarningData =  WindowsDefenderCheckService.WindowsDefenderWarningData(true, true, emptyList())
+      windowsDefenderWarningData =  WindowsDefenderCheckService.WindowsDefenderWarningData(true, emptyList())
     }
 
     val model = WarningsDataPageModelImpl(mockUiData)
@@ -89,7 +88,7 @@ class WindowsDefenderWarningUITest {
 
   @Test
   fun testUICreationWhenCanRunScript() {
-    val page = createPage(checkerWrapperMock)
+    val page = createPage(checkerMock)
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
@@ -102,23 +101,8 @@ class WindowsDefenderWarningUITest {
   }
 
   @Test
-  fun testUICreationWhenCanNotRunScript() {
-    Mockito.`when`(checkerWrapperMock.canRunScript()).thenReturn(false)
-
-    val page = createPage(checkerWrapperMock)
-    page.size = Dimension(600, 400)
-    val ui = FakeUi(page)
-    ui.layoutAndDispatchEvents()
-
-    assertThat(page.autoExclusionLine.isVisible).isFalse()
-    assertThat(page.autoExcludeStatus.isVisible).isFalse()
-    assertThat(page.suppressLine.isVisible).isTrue()
-    assertThat(page.warningSuppressedMessage.isVisible).isFalse()
-  }
-
-  @Test
-  fun testUIResponceOnSuppressAction() {
-    val page = createPage(checkerWrapperMock)
+  fun testUIResponseOnSuppressAction() {
+    val page = createPage(checkerMock)
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
@@ -130,18 +114,18 @@ class WindowsDefenderWarningUITest {
     assertThat(page.autoExcludeStatus.isVisible).isFalse()
     assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isTrue()
-    Mockito.verify(checkerWrapperMock, Mockito.times(1)).ignoreStatusCheck(MockitoKt.any(), MockitoKt.eq(true))
+    Mockito.verify(checkerMock, Mockito.times(1)).ignoreStatusCheck(MockitoKt.any(), MockitoKt.eq(true))
   }
 
   @Test
-  fun testUIResponceOnExcludeActionSuccess() {
-    val page = createPage(checkerWrapperMock)
+  fun testUIResponseOnExcludeActionSuccess() {
+    val page = createPage(checkerMock)
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
 
     // Exclusion script runs in Backgroundable task that in tests runs synchronously
-    Mockito.`when`(checkerWrapperMock.excludeProjectPaths(MockitoKt.eq(listOfPaths))).then {
+    Mockito.`when`(checkerMock.excludeProjectPaths(MockitoKt.any(), MockitoKt.eq(listOfPaths))).then {
       assertThat(page.autoExcludeStatus.text).isEqualTo("Running...")
       return@then true
     }
@@ -154,18 +138,18 @@ class WindowsDefenderWarningUITest {
     assertThat(page.autoExcludeStatus.text).isEqualTo("Project paths were successfully added to the Microsoft Defender exclusion list")
     assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
-    Mockito.verify(checkerWrapperMock, Mockito.times(1)).ignoreStatusCheck(MockitoKt.any(), MockitoKt.eq(true))
+    Mockito.verify(checkerMock, Mockito.times(1)).ignoreStatusCheck(MockitoKt.any(), MockitoKt.eq(true))
   }
 
   @Test
-  fun testUIResponceOnExcludeActionFailure() {
-    val page = createPage(checkerWrapperMock)
+  fun testUIResponseOnExcludeActionFailure() {
+    val page = createPage(checkerMock)
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
 
     // Exclusion script runs in Backgroundable task that in tests runs synchronously
-    Mockito.`when`(checkerWrapperMock.excludeProjectPaths(MockitoKt.eq(listOfPaths))).then {
+    Mockito.`when`(checkerMock.excludeProjectPaths(MockitoKt.any(), MockitoKt.eq(listOfPaths))).then {
       assertThat(page.autoExcludeStatus.text).isEqualTo("Running...")
       return@then false
     }
@@ -178,11 +162,11 @@ class WindowsDefenderWarningUITest {
     assertThat(page.autoExcludeStatus.text).isEqualTo("Microsoft Defender configuration script failed. Please look for \"WindowsDefenderChecker\" records in the log.")
     assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
-    Mockito.verify(checkerWrapperMock, Mockito.never()).ignoreStatusCheck(MockitoKt.any(), MockitoKt.eq(true))
+    Mockito.verify(checkerMock, Mockito.never()).ignoreStatusCheck(MockitoKt.any(), MockitoKt.eq(true))
   }
 
-  private fun createPage(checkerWrapperMock: WindowsDefenderCheckerWrapper): WindowsDefenderWarningPage {
-    val service = WindowsDefenderCheckService(projectRule.project) { checkerWrapperMock }
+  private fun createPage(checkerMock: WindowsDefenderChecker): WindowsDefenderWarningPage {
+    val service = WindowsDefenderCheckService(projectRule.project) { checkerMock }
     service.checkRealTimeProtectionStatus()
     val mockUiData = MockUiData().apply {
       windowsDefenderWarningData =  service.warningData

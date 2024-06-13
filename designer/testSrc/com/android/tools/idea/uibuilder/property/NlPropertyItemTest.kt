@@ -43,6 +43,7 @@ import com.android.SdkConstants.ATTR_THEME
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.FD_RES_NAVIGATION
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
@@ -53,11 +54,14 @@ import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
 import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
 import com.android.tools.idea.uibuilder.property.support.ToggleShowResolvedValueAction
@@ -68,8 +72,8 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeHighlighting.HighlightDisplayLevel
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditor
@@ -84,25 +88,47 @@ import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.ColorsIcon
 import icons.StudioIcons
 import java.awt.Color
-import java.util.concurrent.CountDownLatch
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.ComponentStack
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.After
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 
 private const val HELLO_WORLD = "Hello World"
 
 class NlPropertyItemTest {
+  private val testScope = TestScope()
+  private val testDispatcher = StandardTestDispatcher(testScope.testScheduler)
+
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule))!!
+  @get:Rule
+  val chain =
+    RuleChain.outerRule(projectRule)
+      .around(MinApiRule(projectRule))!!
+      .around(
+        AndroidExecutorsRule(
+          workerThreadExecutor = testDispatcher.asExecutor(),
+          diskIoThreadExecutor = testDispatcher.asExecutor(),
+          uiThreadExecutor = { _, runnable -> testScope.launch { runnable.run() } },
+        )
+      )
 
   private var componentStack: ComponentStack? = null
 
@@ -213,39 +239,47 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testColorPropertyWithColorStateList() {
-    val util =
-      SupportTestUtil(projectRule, createTextViewWithTextColor("@android:color/primary_text_dark"))
-    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
-    runInEdt {
-      property.model.showResolvedValues = false
-      assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
-      assertThat(property.namespace).isEqualTo(ANDROID_URI)
-      assertThat(property.type).isEqualTo(NlPropertyType.COLOR_STATE_LIST)
-      assertThat(property.value).isEqualTo("@android:color/primary_text_dark")
-      assertThat(property.isReference).isTrue()
-    }
-    val colorIcon = ColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
-    val colorButton = property.colorButton!!
-    val updatedPropertiesCountDownLatch = CountDownLatch(1)
-    property.model.addListener(
-      object : PropertiesModelListener<NlPropertyItem> {
-        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
-          updatedPropertiesCountDownLatch.countDown()
-        }
+  fun testColorPropertyWithColorStateList() =
+    testScope.runTest {
+      val util =
+        SupportTestUtil(
+          projectRule,
+          createTextViewWithTextColor("@android:color/primary_text_dark"),
+        )
+      val property =
+        util.makePropertySuspend(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
+      withContext(uiThread) {
+        property.model.showResolvedValues = false
+        assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
+        assertThat(property.namespace).isEqualTo(ANDROID_URI)
+        assertThat(property.type).isEqualTo(NlPropertyType.COLOR_STATE_LIST)
+        assertThat(property.value).isEqualTo("@android:color/primary_text_dark")
+        assertThat(property.isReference).isTrue()
       }
-    )
+      val colorIcon = ColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
+      val colorButton = property.colorButton!!
+      val updatedPropertiesDeferrable = CompletableDeferred<Unit>()
 
-    // The first check will trigger the update of the cache and a property values changed
-    // trigger once the icon is available.
-    val actionIcon = runReadAction { colorButton.actionIcon }
-    updatedPropertiesCountDownLatch.await()
-    assertThat(runReadAction { colorButton.actionIcon }).isNotEqualTo(actionIcon)
-    assertThat(runReadAction { colorButton.actionIcon }).isEqualTo(colorIcon)
-    val browseButton = property.browseButton!!
-    assertThat(runReadAction { browseButton.actionIcon })
-      .isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
-  }
+      // Wait for the resolver to be loaded
+      delayUntilCondition(100L) { property.resolver != null }
+
+      property.model.addListener(
+        object : PropertiesModelListener<NlPropertyItem> {
+          override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+            updatedPropertiesDeferrable.complete(Unit)
+          }
+        }
+      )
+
+      // The first check will trigger the update of the cache and a property values changed
+      // trigger once the icon is available.
+      val ignored = readAction { colorButton.actionIcon }
+      updatedPropertiesDeferrable.await()
+      delayUntilCondition(100L) { readAction { colorButton.actionIcon } == colorIcon }
+      val browseButton = property.browseButton!!
+      assertThat(readAction { browseButton.actionIcon })
+        .isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
+    }
 
   @Test
   fun testIsReference(): Unit = runInEdt {
@@ -300,7 +334,7 @@ class NlPropertyItemTest {
     val util =
       SupportTestUtil(
         projectRule,
-        createLinearLayoutWithThemeOverlay("@style/ThemeOverlay.Overlay")
+        createLinearLayoutWithThemeOverlay("@style/ThemeOverlay.Overlay"),
       )
 
     assertThat(resolvedValue(util, NlPropertyType.COLOR, "?attr/fullscreenBackgroundColor"))
@@ -418,7 +452,7 @@ class NlPropertyItemTest {
       components[0],
       ResourceNamespace.ANDROID,
       ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall"
+      "?attr/textAppearanceSmall",
     )
     waitUntilLastSelectionUpdateCompleted(property.model)
 
@@ -465,13 +499,13 @@ class NlPropertyItemTest {
       components[0],
       ResourceNamespace.ANDROID,
       ATTR_LINE_SPACING_EXTRA,
-      "16sp"
+      "16sp",
     )
     manager.putDefaultPropertyValue(
       components[0],
       ResourceNamespace.ANDROID,
       ATTR_TEXT_SIZE,
-      "@dimen/text_size_button_material"
+      "@dimen/text_size_button_material",
     )
     waitUntilLastSelectionUpdateCompleted(util.model)
 
@@ -582,15 +616,15 @@ class NlPropertyItemTest {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     projectRule.fixture.copyFileToProject(
       "mipmap/mipmap-hdpi/ic_launcher.png",
-      "res/mipmap-hdpi/ic_launcher.png"
+      "res/mipmap-hdpi/ic_launcher.png",
     )
     projectRule.fixture.copyFileToProject(
       "mipmap/mipmap-mdpi/ic_launcher.png",
-      "res/mipmap-mdpi/ic_launcher.png"
+      "res/mipmap-mdpi/ic_launcher.png",
     )
     projectRule.fixture.copyFileToProject(
       "mipmap/mipmap-xhdpi/ic_launcher.png",
-      "res/mipmap-xhdpi/ic_launcher.png"
+      "res/mipmap-xhdpi/ic_launcher.png",
     )
     val util = SupportTestUtil(projectRule, createImageView())
     val srcCompat = util.makeProperty(ANDROID_URI, ATTR_SRC_COMPAT, NlPropertyType.DRAWABLE)
@@ -763,8 +797,8 @@ class NlPropertyItemTest {
     val file = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
     whenever(
         fileManager.openFileEditor(
-          Mockito.any(FileEditorNavigatable::class.java),
-          Mockito.anyBoolean()
+          ArgumentMatchers.any(FileEditorNavigatable::class.java),
+          ArgumentMatchers.anyBoolean(),
         )
       )
       .thenReturn(listOf(mock(FileEditor::class.java)))
@@ -772,7 +806,7 @@ class NlPropertyItemTest {
     property.helpSupport.browse()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    Mockito.verify(fileManager).openFileEditor(file.capture(), Mockito.eq(true))
+    Mockito.verify(fileManager).openFileEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
     check(descriptor is OpenFileDescriptor) // Downcast needed to extract file offset.
     assertThat(descriptor.file.name).isEqualTo("styles_material.xml")
@@ -803,6 +837,46 @@ class NlPropertyItemTest {
     property.value = HELLO_WORLD
     assertThat(property.value).isEqualTo("@string/demo")
   }
+
+  @Test
+  fun testLazyResolverLoading() =
+    testScope.runTest {
+      val util =
+        SupportTestUtil(
+          projectRule,
+          createTextViewWithTextColor("@android:color/primary_text_dark"),
+        )
+      val property =
+        util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST, false)
+      assertNull(property.resolver)
+
+      // Wait for the resolver to be loaded
+      delayUntilCondition(100L) { property.resolver != null }
+    }
+
+  @Test
+  fun testNavigationItems() =
+    testScope.runTest {
+      val util =
+        SupportTestUtil(
+          projectRule,
+          parentTag = "action",
+          resourceFolder = FD_RES_NAVIGATION,
+          fileName = "navigation.xml",
+        )
+      val property =
+        util.makePropertySuspend(
+          ANDROID_URI,
+          NavigationSchema.ATTR_ENTER_ANIM,
+          NlPropertyType.ANIMATOR,
+        )
+      withContext(uiThread) {
+        assertThat(property.editingSupport.validation("@android:anim/accelerate_interpolator"))
+          .isEqualTo(EDITOR_NO_ERROR)
+        assertThat(property.editingSupport.validation("@android:animator/fade_in"))
+          .isEqualTo(EDITOR_NO_ERROR)
+      }
+    }
 
   private fun createTextView(): ComponentDescriptor =
     ComponentDescriptor(TEXT_VIEW)
@@ -847,7 +921,7 @@ class NlPropertyItemTest {
         ComponentDescriptor(BUTTON)
           .withBounds(0, 20, 200, 20)
           .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
-          .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
+          .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design"),
       )
 
   /** Creates a simple `LinearLayout` with an optional `theme` overlay. */
@@ -871,7 +945,7 @@ class NlPropertyItemTest {
         ComponentDescriptor(BUTTON)
           .withBounds(0, 20, 200, 20)
           .withAttribute(ANDROID_URI, ATTR_TEXT, "other")
-          .withAttribute(TOOLS_URI, ATTR_TEXT, "something")
+          .withAttribute(TOOLS_URI, ATTR_TEXT, "something"),
       )
 
   private fun createMultipleComponents(): ComponentDescriptor =
@@ -897,7 +971,7 @@ class NlPropertyItemTest {
         ComponentDescriptor(BUTTON)
           .withBounds(0, 60, 200, 20)
           .id(NEW_ID_PREFIX + "button2")
-          .withAttribute(ANDROID_URI, ATTR_TEXT, "other")
+          .withAttribute(ANDROID_URI, ATTR_TEXT, "other"),
       )
 
   private fun isReferenceValue(property: NlPropertyItem, value: String): Boolean {

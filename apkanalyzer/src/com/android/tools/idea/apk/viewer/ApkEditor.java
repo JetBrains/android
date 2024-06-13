@@ -196,6 +196,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     ApkDiffPanel panel = new ApkDiffPanel(oldApk, myRoot);
     builder.setCenterPanel(panel.getContainer());
     builder.setPreferredFocusComponent(panel.getPreferredFocusedComponent());
+    builder.addCloseButton();
     builder.show();
   }
 

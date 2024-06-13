@@ -61,14 +61,15 @@ class ViewNodeCacheTest {
 
   @Test
   fun testThreading() {
-    val model = model {
-      view(ROOT, x = 2, y = 4, width = 6, height = 8, qualifiedName = "root") {
-        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+    val model =
+      model(disposableRule.disposable) {
+        view(ROOT, x = 2, y = 4, width = 6, height = 8, qualifiedName = "root") {
+          view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+            view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+          }
+          view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
         }
-        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
-    }
     assertThat(model[VIEW1]).isNotNull()
     val cache =
       object : ViewNodeCache<Int>(model) {
@@ -134,7 +135,7 @@ class ViewNodeCacheTest {
     model: InspectorModel,
     cache: ViewNodeCache<*>,
     window: AndroidWindow,
-    allIds: List<Long>
+    allIds: List<Long>,
   ) {
     model.update(window, allIds, 0)
     cache.retain(allIds)

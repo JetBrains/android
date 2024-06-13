@@ -289,13 +289,17 @@ interface IdeSyncIssue {
      * Using an empty flavor dimension.
      */
     const val TYPE_EMPTY_FLAVOR_DIMENSION = 52
-    // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
-    // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
-    // an indexing issue in the past (see http://issuetracker.google.com/138278313).
 
     /**
      * A sync issue type for exceptions that were converted to a sync issue.
      */
     const val TYPE_EXCEPTION = 53
+
+    /** Indicates that the namespace is missing  */
+    const val TYPE_NAMESPACE_NOT_SET = 54
+
+    // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
+    // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
+    // an indexing issue in the past (see http://issuetracker.google.com/138278313).
   }
 }

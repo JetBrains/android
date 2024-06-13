@@ -23,13 +23,9 @@ import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
-import com.google.gct.login.GoogleLogin
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
-import com.studiogrpc.testutils.ForwardingInterceptor
 import java.awt.Component
 import java.awt.event.ContainerAdapter
 import java.awt.event.ContainerEvent
@@ -68,12 +64,8 @@ class VitalsTabProviderTest {
     projectRule.project.replaceService(
       VitalsConfigurationService::class.java,
       mockService,
-      projectRule.disposable
+      projectRule.disposable,
     )
-    val googleLoginMock = MockitoKt.mock<GoogleLogin>()
-    Mockito.`when`(googleLoginMock.getActiveUserAuthInterceptor()).thenReturn(ForwardingInterceptor)
-    ApplicationManager.getApplication()
-      .registerServiceInstance(GoogleLogin::class.java, googleLoginMock)
 
     val tabProvider = VitalsTabProvider()
     val tabPanel = AppInsightsTabPanel()

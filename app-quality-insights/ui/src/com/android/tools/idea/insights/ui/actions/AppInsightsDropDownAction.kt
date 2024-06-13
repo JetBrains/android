@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.insights.Selection
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -38,7 +39,7 @@ open class AppInsightsDropDownAction<T>(
   private val flow: StateFlow<Selection<T>>,
   private val getIconForValue: ((T) -> Icon?)?,
   private val onSelect: (T) -> Unit,
-  private val getDisplayTitle: (T?) -> String = { it.toString() }
+  private val getDisplayTitle: (T?) -> String = { it.toString() },
 ) : DropDownAction(text, description, icon) {
   override fun updateActions(context: DataContext): Boolean {
     removeAll()
@@ -48,6 +49,8 @@ open class AppInsightsDropDownAction<T>(
     }
     return true
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.setText(getDisplayTitle(flow.value.selected), false)

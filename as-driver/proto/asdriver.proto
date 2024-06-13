@@ -21,6 +21,8 @@ service AndroidStudio {
 
   rpc EditFile(EditFileRequest) returns (EditFileResponse) {}
 
+  rpc MoveCaret(MoveCaretRequest) returns (MoveCaretResponse) {}
+
   rpc WaitForComponent(WaitForComponentRequest) returns (WaitForComponentResponse) {}
 
   rpc GetSystemProperty(GetSystemPropertyRequest) returns (GetSystemPropertyResponse) {}
@@ -152,6 +154,19 @@ message EditFileResponse {
     ERROR = 1;
   }
   EditFileResponse.Result result = 1;
+  string error_message = 2;
+}
+
+message MoveCaretRequest {
+  string window = 1;
+}
+
+message MoveCaretResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  MoveCaretResponse.Result result = 1;
   string error_message = 2;
 }
 

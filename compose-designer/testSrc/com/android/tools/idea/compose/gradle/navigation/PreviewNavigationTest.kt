@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.preview.navigation.findNavigatableComponen
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.util.getRootComponent
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.preview.SingleComposePreviewElementInstance
@@ -78,7 +79,7 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
     sceneView: SceneView,
     x: Int,
     y: Int,
-    requestFocus: Boolean
+    requestFocus: Boolean,
   ): Boolean {
     assertTrue(expectedInvocationsCountDownLatch.count > 0)
     expectedInvocationsCountDownLatch.countDown()
@@ -117,13 +118,17 @@ class PreviewNavigationTest {
   fun testComposableNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.mainModule
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.TwoElementsPreview"
-        )
+        ),
       )
+      .future
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
         val viewInfos = parseViewInfo(rootView, logger = LOG)
@@ -153,7 +158,7 @@ class PreviewNavigationTest {
               .trimIndent(),
             findComponentHits(viewInfos, 0, 0)
               .filter { it.fileName == "MainActivity.kt" }
-              .joinToString("\n") { "${it.fileName}:${it.lineNumber}" }
+              .joinToString("\n") { "${it.fileName}:${it.lineNumber}" },
           )
 
           // Click the Button by clicking (0, bounds.bottom / 4)
@@ -169,7 +174,7 @@ class PreviewNavigationTest {
               .trimIndent(),
             findComponentHits(viewInfos, 0, bounds.bottom - bounds.bottom / 4)
               .filter { it.fileName == "MainActivity.kt" }
-              .joinToString("\n") { "${it.fileName}:${it.lineNumber}" }
+              .joinToString("\n") { "${it.fileName}:${it.lineNumber}" },
           )
         }
       }
@@ -180,13 +185,17 @@ class PreviewNavigationTest {
   fun testInlineNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.mainModule
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.MyPreviewWithInline"
-        )
+        ),
       )
+      .future
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
         val viewInfos = parseViewInfo(rootView, logger = LOG)
@@ -211,13 +220,17 @@ class PreviewNavigationTest {
   fun testInProjectNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.mainModule
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.NavigatablePreview"
-        )
+        ),
       )
+      .future
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
         val viewInfos = parseViewInfo(rootView, logger = LOG)
@@ -247,13 +260,17 @@ class PreviewNavigationTest {
   fun testDuplicateFileNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.mainModule
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.OnlyATextNavigation"
-        )
+        ),
       )
+      .future
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
         val viewInfos = parseViewInfo(rootView, logger = LOG)
@@ -298,7 +315,7 @@ class PreviewNavigationTest {
             add(previewView, BorderLayout.CENTER)
           },
           1.0,
-          true
+          true,
         )
       fakeUi.root.validate()
     }
@@ -327,11 +344,7 @@ class PreviewNavigationTest {
     // Create a preview representation with an associated fakeUi
     val myNavigationHandler = TestNavigationHandler(1)
     val previewView =
-      TestComposePreviewView(
-        fixture.testRootDisposable,
-        project,
-        myNavigationHandler,
-      )
+      TestComposePreviewView(fixture.testRootDisposable, project, myNavigationHandler)
     val composePreviewRepresentation =
       ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
         previewView
@@ -348,7 +361,7 @@ class PreviewNavigationTest {
             add(previewView, BorderLayout.CENTER)
           },
           1.0,
-          true
+          true,
         )
       fakeUi.root.validate()
     }
@@ -372,7 +385,7 @@ class PreviewNavigationTest {
     myNavigationHandler.expectedInvocationsCountDownLatch.await()
     assertEquals(
       sceneViewPanel.sceneView.getRootComponent(),
-      sceneViewPanel.sceneView.surface.selectionModel.selection.single()
+      sceneViewPanel.sceneView.surface.selectionModel.selection.single(),
     )
     assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
 
@@ -383,7 +396,7 @@ class PreviewNavigationTest {
     myNavigationHandler.expectedInvocationsCountDownLatch.await()
     assertEquals(
       otherSceneViewPanel.sceneView.getRootComponent(),
-      sceneViewPanel.sceneView.surface.selectionModel.selection.single()
+      sceneViewPanel.sceneView.surface.selectionModel.selection.single(),
     )
     assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
 
@@ -416,7 +429,7 @@ class PreviewNavigationTest {
     myNavigationHandler.expectedInvocationsCountDownLatch.await()
     assertEquals(
       otherSceneViewPanel.sceneView.getRootComponent(),
-      sceneViewPanel.sceneView.surface.selectionModel.selection.single()
+      sceneViewPanel.sceneView.surface.selectionModel.selection.single(),
     )
     assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
 
@@ -427,7 +440,7 @@ class PreviewNavigationTest {
     myNavigationHandler.expectedInvocationsCountDownLatch.await()
     assertEquals(
       sceneViewPanel.sceneView.getRootComponent(),
-      sceneViewPanel.sceneView.surface.selectionModel.selection.single()
+      sceneViewPanel.sceneView.surface.selectionModel.selection.single(),
     )
     assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
 

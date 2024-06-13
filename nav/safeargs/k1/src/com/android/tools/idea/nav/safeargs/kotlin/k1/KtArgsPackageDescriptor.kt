@@ -44,7 +44,7 @@ class KtArgsPackageDescriptor(
   private val destination: NavDestinationData,
   private val superTypesProvider: (PackageFragmentDescriptorImpl) -> Collection<KotlinType>,
   private val sourceElement: SourceElement,
-  private val storageManager: StorageManager
+  private val storageManager: StorageManager,
 ) : PackageFragmentDescriptorImpl(containingNavFileInfo.moduleDescriptor, fqName) {
   private val scope = storageManager.createLazyValue { SafeArgsModuleScope() }
 
@@ -67,14 +67,14 @@ class KtArgsPackageDescriptor(
             superTypesProvider(safeArgsPackageDescriptor),
             sourceElement,
             safeArgsPackageDescriptor,
-            storageManager
+            storageManager,
           )
         listOfNotNull(argsClass)
       }
 
     override fun getContributedDescriptors(
       kindFilter: DescriptorKindFilter,
-      nameFilter: (Name) -> Boolean
+      nameFilter: (Name) -> Boolean,
     ): Collection<DeclarationDescriptor> {
       return classes().filter {
         kindFilter.acceptsKinds(DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS_MASK) &&
@@ -90,7 +90,7 @@ class KtArgsPackageDescriptor(
 
     override fun getContributedClassifier(
       name: Name,
-      location: LookupLocation
+      location: LookupLocation,
     ): ClassifierDescriptor? {
       return classes().firstOrNull { it.name == name }
     }

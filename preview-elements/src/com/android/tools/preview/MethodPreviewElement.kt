@@ -16,7 +16,7 @@
 package com.android.tools.preview
 
 /** A preview element that represents a method. */
-interface MethodPreviewElement : PreviewElement {
+interface MethodPreviewElement<T> : PreviewElement<T> {
   /** Fully Qualified Name of the method representing the preview element */
   val methodFqn: String
 }

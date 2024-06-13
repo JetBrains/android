@@ -125,7 +125,12 @@ public class DeployTask extends AbstractDeployTask {
     // issuing a "force-stop", but still yield the expecting behavior that app is restarted after install. Note that
     // this functionality is only valid for Android Nougat or above.
     boolean isDontKillSupported = device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.N);
-    if (isDontKillSupported) {
+
+    // The above statement is no longer true for API33. That is to say, we no longer need to perform our own
+    // process termination in Studio and will rely solely on the Package Manager to perform process termination.
+    boolean isDontKillNeed = !StudioFlags.INSTALL_USE_PM_TERMINATE.get() ||
+                             !device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU);
+    if (isDontKillSupported && isDontKillNeed) {
       options.setDontKill();
     }
 

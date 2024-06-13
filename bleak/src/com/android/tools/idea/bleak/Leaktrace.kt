@@ -35,12 +35,7 @@ class Leaktrace(val elements: List<LeaktraceElement>) {
   fun referenceMatches(index: Int, className: String, fieldName: String): Boolean {
     val realIndex = if (index < 0) elements.size - 1 + index else index
     if (realIndex < 0 || realIndex > elements.size - 2) return false
-    if (elements[realIndex].type == "java.lang.Class") {
-      // Leaktrace reference is a static field. Match className against the name of the class, not its type
-      return elements[realIndex].className == className && elements[realIndex+1].referenceLabel == fieldName
-    } else {
-      return elements[realIndex].type == className && elements[realIndex+1].referenceLabel == fieldName
-    }
+    return elements[realIndex].typeOrClassName() == className && elements[realIndex+1].referenceLabel == fieldName
   }
 }
 
@@ -51,6 +46,8 @@ class LeaktraceElement(val type: String, val referenceLabel: String, obj: Any?) 
   } catch (t: Throwable) {
     "[EXCEPTION in toString]"
   }
+
+  fun typeOrClassName() = className ?: type
 
   fun signature() = "$referenceLabel: $type"
 

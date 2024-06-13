@@ -1,0 +1,24 @@
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.ml-api",
+    srcs = ["src/main/kotlin"],
+    iml_files = ["intellij.android.ml-api.iml"],
+    resources = ["src/resources"],
+    test_class = "com.android.tools.idea.studiobot.MlApiTestSuite",
+    test_srcs = ["test"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java[test]",
+        "@intellij//:org.jetbrains.kotlin[test]",
+        "@intellij//:test-framework[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
+    ],
+)

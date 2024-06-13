@@ -56,7 +56,7 @@ class CollapsibleLabelPanel(
   private val fontSize: UIUtil.FontSize,
   private val fontStyle: Int,
   actions: List<AnAction> = emptyList(),
-  private val nameColumnFraction: ColumnFraction = ColumnFraction()
+  private val nameColumnFraction: ColumnFraction = ColumnFraction(),
 ) : JPanel(BorderLayout()) {
   val label = ExpandableLabel()
 
@@ -82,7 +82,7 @@ class CollapsibleLabelPanel(
       { label.x },
       { width },
       { 0 },
-      ::onResizeModeChange
+      ::onResizeModeChange,
     )
   private var initialized = false
 

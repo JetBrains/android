@@ -15,20 +15,51 @@
  */
 package com.android.tools.idea.lint.common;
 
+import static com.android.tools.lint.client.api.LintClient.CLIENT_STUDIO;
+import static com.android.tools.lint.detector.api.TextFormat.HTML;
+import static com.android.tools.lint.detector.api.TextFormat.HTML_WITH_UNICODE;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import static com.android.tools.lint.detector.api.TextFormat.TEXT;
+import static com.intellij.xml.CommonXmlStrings.HTML_END;
+import static com.intellij.xml.CommonXmlStrings.HTML_START;
+
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.Vendor;
-import com.android.tools.lint.detector.api.*;
-import com.android.tools.lint.detector.api.LintFix.*;
+import com.android.tools.lint.detector.api.Category;
+import com.android.tools.lint.detector.api.Implementation;
+import com.android.tools.lint.detector.api.Incident;
+import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
+import com.android.tools.lint.detector.api.Option;
+import com.android.tools.lint.detector.api.Scope;
+import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInsight.intention.PriorityAction;
-import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
-import com.intellij.codeInspection.*;
-import com.intellij.codeInspection.ex.*;
+import com.intellij.codeInspection.BatchSuppressManager;
+import com.intellij.codeInspection.GlobalInspectionContext;
+import com.intellij.codeInspection.GlobalInspectionTool;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.InspectionProfile;
+import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptionsProcessor;
+import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.ProblemDescriptorBase;
+import com.intellij.codeInspection.ProblemHighlightType;
+import com.intellij.codeInspection.QuickFix;
+import com.intellij.codeInspection.SuppressQuickFix;
+import com.intellij.codeInspection.XmlSuppressableInspectionTool;
+import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
+import com.intellij.codeInspection.ex.InspectionProfileImpl;
+import com.intellij.codeInspection.ex.InspectionProfileKt;
+import com.intellij.codeInspection.ex.InspectionToolWrapper;
+import com.intellij.codeInspection.ex.Tools;
+import com.intellij.codeInspection.ex.ToolsImpl;
 import com.intellij.lang.annotation.ProblemGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -39,24 +70,26 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
-import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.PsiBinaryFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileSystemItem;
+import com.intellij.psi.PsiManager;
 import com.siyeh.ig.InspectionGadgetsFix;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.idea.KotlinFileType;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.tools.lint.client.api.LintClient.CLIENT_STUDIO;
-import static com.android.tools.lint.detector.api.TextFormat.*;
-import static com.intellij.xml.CommonXmlStrings.HTML_END;
-import static com.intellij.xml.CommonXmlStrings.HTML_START;
 
 // TODO: autofix should be the default, and if not set, the first one
 public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
@@ -90,15 +123,21 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   @NotNull
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    LintIdeQuickFix[] fixes = getQuickFixes(startElement, endElement, message);
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull Incident incident) {
+    LintFix fixData = incident.getFix();
+    LintIdeQuickFix[] fixes = getQuickFixes(startElement, endElement, incident.getMessage(), fixData);
 
     if (fixData != null && fixes.length == 0) {
-      return createFixes(startElement.getContainingFile(), fixData);
+      return createFixes(startElement.getProject(), startElement.getContainingFile(), incident, fixData);
     }
 
     return fixes;
+  }
+
+  @NotNull
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
+                                         @Nullable LintFix fixData) {
+    return getQuickFixes(startElement, endElement, message);
   }
 
   @NotNull
@@ -130,6 +169,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @NotNull
   public LintIdeQuickFix[] getAllFixes(@NotNull PsiElement startElement,
                                        @NotNull PsiElement endElement,
+                                       @NotNull Incident incident,
                                        @NotNull String message,
                                        @Nullable LintFix fixData,
                                        @NotNull LintIdeQuickFixProvider[] fixProviders,
@@ -147,7 +187,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       }
     }
 
-    LintIdeQuickFix[] fixes = getQuickFixes(startElement, endElement, message, fixData);
+    LintIdeQuickFix[] fixes = getQuickFixes(startElement, endElement, incident);
     Collections.addAll(result, fixes);
 
     return result.toArray(LintIdeQuickFix.EMPTY_ARRAY);
@@ -156,13 +196,14 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @NotNull
   public LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement,
                                             @NotNull PsiElement endElement,
+                                            @NotNull Incident incident,
                                             @NotNull String message,
                                             @Nullable LintFix fixData,
                                             @NotNull LintIdeQuickFixProvider[] fixProviders,
                                             @NotNull Issue issue) {
     LintIdeSupport ideSupport = LintIdeSupport.get();
     boolean includeFeedbackFix = ideSupport.canRequestFeedback();
-    LintIdeQuickFix[] fixes = getAllFixes(startElement, endElement, message, fixData, fixProviders, issue);
+    LintIdeQuickFix[] fixes = getAllFixes(startElement, endElement, incident, message, fixData, fixProviders, issue);
     if (fixes.length == 0) {
       if (includeFeedbackFix) {
         return new LocalQuickFix[]{ideSupport.requestFeedbackFix(issue)};
@@ -173,8 +214,12 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
     List<LocalQuickFix> result = new ArrayList<>(fixes.length);
     for (LintIdeQuickFix fix : fixes) {
-      if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
-        result.add(new MyLocalQuickFix(fix));
+      if (fix instanceof DefaultLintQuickFix) {
+        if (((DefaultLintQuickFix)fix).isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
+          result.add(new MyLocalQuickFix((DefaultLintQuickFix)fix));
+        }
+      } else if (fix instanceof ModCommandLintQuickFix) {
+        result.add(((ModCommandLintQuickFix)fix).asLocalQuickFix(issue, startElement.getProject()));
       }
     }
 
@@ -261,16 +306,17 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
       final TextRange range = problemData.getTextRange();
       Issue issue = problemData.getIssue();
+      Incident incident = problemData.getIncident();
 
       if (range.getStartOffset() == range.getEndOffset()) {
 
         if (psiFile instanceof PsiBinaryFile || psiFile instanceof PsiDirectory) {
-          final LocalQuickFix[] fixes = getLocalQuickFixes(psiFile, psiFile, originalMessage, quickfixData, fixProviders, issue);
+          final LocalQuickFix[] fixes = getLocalQuickFixes(psiFile, psiFile, incident, originalMessage, quickfixData, fixProviders, issue);
           result.add(new NonTextFileProblemDescriptor((PsiFileSystemItem)psiFile, formattedMessage, fixes));
         }
         else if (!isSuppressedFor(psiFile)) {
           result.add(manager.createProblemDescriptor(psiFile, formattedMessage, false,
-                                                     getLocalQuickFixes(psiFile, psiFile, originalMessage, quickfixData, fixProviders,
+                                                     getLocalQuickFixes(psiFile, psiFile, incident, originalMessage, quickfixData, fixProviders,
                                                                         issue), ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
         }
       }
@@ -281,7 +327,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         if (startElement != null && endElement != null && !isSuppressedFor(startElement)) {
           result.add(manager.createProblemDescriptor(startElement, endElement, formattedMessage,
                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false,
-                                                     getLocalQuickFixes(startElement, endElement, originalMessage, quickfixData,
+                                                     getLocalQuickFixes(startElement, endElement, incident, originalMessage, quickfixData,
                                                                         fixProviders, issue)));
         }
       }
@@ -615,162 +661,17 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   /**
    * Wraps quickfixes from {@link LintFix} with default implementations
    */
-  public static LintIdeQuickFix[] createFixes(@Nullable PsiFile file, @Nullable LintFix lintFix) {
-    if (lintFix instanceof ReplaceString) {
-      LintIdeQuickFix fix = ReplaceStringQuickFix.create(file, (ReplaceString)lintFix);
-      return new LintIdeQuickFix[]{fix};
-    }
-    else if (lintFix instanceof SetAttribute) {
-      SetAttribute data = (SetAttribute)lintFix;
-      if (data.getValue() == null) {
-        return new LintIdeQuickFix[]{new RemoveAttributeFix(data)};
-      }
-
-      // TODO: SetAttribute can now have a custom range!
-      return new LintIdeQuickFix[]{new SetAttributeQuickFix(data.getDisplayName(), data.getFamilyName(), data.getAttribute(),
-                                                            data.getNamespace(), data.getValue(),
-                                                            data.getDot(), data.getMark())};
-    }
-    else if (lintFix instanceof CreateFileFix) {
-      CreateFileFix fix = (CreateFileFix)lintFix;
-      return new LintIdeQuickFix[]{
-        new CreateFileQuickFix(fix.getFile(), fix.getText(), fix.getBinary(), fix.getSelectPattern(), fix.getReformat(),
-                               fix.getDisplayName(), fix.getFamilyName())};
-    }
-    else if (lintFix instanceof AnnotateFix) {
-      AnnotateFix fix = (AnnotateFix)lintFix;
-      // TODO: We need to also paass & handle fix.getRange() here!
-      return new LintIdeQuickFix[]{new AnnotateQuickFix(fix.getDisplayName(), fix.getFamilyName(), fix.getAnnotation(), fix.getReplace())};
-    }
-    else if (lintFix instanceof LintFixGroup) {
-      LintFixGroup group = (LintFixGroup)lintFix;
-      List<LintIdeQuickFix> fixList = new ArrayList<>();
-      for (LintFix fix : group.getFixes()) {
-        Collections.addAll(fixList, createFixes(file, fix));
-      }
-      LintIdeQuickFix[] fixes = fixList.toArray(LintIdeQuickFix.EMPTY_ARRAY);
-
-      switch (group.getType()) {
-        case COMPOSITE:
-          return new LintIdeQuickFix[]{new CompositeLintFix(lintFix.getDisplayName(), lintFix.getFamilyName(), fixes)};
-        case ALTERNATIVES: {
-          if (fixes.length > 1) {
-            // IntelliJ will sort fixes alphabetically -- it will NOT preserve the order fixes are registered in.
-            // The only way to work around this is to arrange for the labels have the same alphabetical ordering
-            // as their priorities, which can be tricky.
-            //
-            // However, IntelliJ later introduced a PriorityAction interface. Unfortunately, it is NOT a general
-            // priority where we can just assign priorities as ordinals; instead, there are a few enums. So we'll
-            // use these priorities to at a minimum force the first (presumably default) option to have the highest
-            // priority.
-            //
-            // We don't use the full complement of priorities because we don't want these actions to be sorted
-            // lower than some of the fallback/default intention actions, such as suppression, and it turns out
-            // these actions are already using HIGH priority so the best we can do is to boost one of them up
-            // to TOP.
-            fixes[0].setPriority(PriorityAction.Priority.TOP);
-          }
-          return fixes;
-        }
-      }
-    }
-    else if (lintFix instanceof ShowUrl) {
-      return new LintIdeQuickFix[]{new ShowUrlQuickFix((ShowUrl)lintFix)};
-    }
-    return LintIdeQuickFix.EMPTY_ARRAY;
-  }
-
-  static class CompositeLintFix extends DefaultLintQuickFix {
-    private final LintIdeQuickFix[] myFixes;
-
-    CompositeLintFix(String displayName, String familyName, LintIdeQuickFix[] myFixes) {
-      super(displayName != null ? displayName : "Fix", familyName);
-      this.myFixes = myFixes;
-    }
-
-    @Override
-    public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-
-      if (IntentionPreviewUtils.isIntentionPreviewActive() && context instanceof AndroidQuickfixContexts.EditorContext editorContext) {
-        // In preview, we should only attempt to run fixes that apply to the current file
-        PsiFile previewFile = editorContext.getFile();
-        String previewName =  previewFile != null ? previewFile.getName() : null;
-        for (LintIdeQuickFix fix : myFixes) {
-          SmartPsiFileRange range = fix.getRange();
-          if (range != null && previewName != null) {
-            PsiFile containingFile = range.getContainingFile();
-            if (containingFile != null) {
-              if (!previewName.equals(containingFile.getName())) {
-                continue;
-              }
-            }
-          }
-          fix.apply(startElement, endElement, context);
-        }
-      } else {
-        for (LintIdeQuickFix fix : myFixes) {
-          fix.apply(startElement, endElement, context);
-        }
-      }
-    }
-
-    @Override
-    public boolean isApplicable(@NotNull PsiElement startElement,
-                                @NotNull PsiElement endElement,
-                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
-      for (LintIdeQuickFix fix : myFixes) {
-        if (!fix.isApplicable(startElement, endElement, contextType)) {
-          return false;
-        }
-      }
-      return true;
-    }
-  }
-
-  static class RemoveAttributeFix extends DefaultLintQuickFix {
-    private final SetAttribute myData;
-
-    RemoveAttributeFix(SetAttribute data) {
-      super(data.getDisplayName(), data.getFamilyName());
-      myData = data;
-    }
-
-    @Override
-    public void apply(@NotNull PsiElement startElement,
-                      @NotNull PsiElement endElement,
-                      @NotNull AndroidQuickfixContexts.Context context) {
-      // TODO: We need to check and process myData.getRange() hre
-      XmlAttribute attribute = findAttribute(startElement);
-      if (attribute != null && attribute.isValid()) {
-        attribute.delete();
-      }
-    }
-
-    @Override
-    public boolean isApplicable(@NotNull PsiElement startElement,
-                                @NotNull PsiElement endElement,
-                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
-      XmlAttribute attribute = findAttribute(startElement);
-      return attribute != null && attribute.isValid();
-    }
-
-    @Nullable
-    private XmlAttribute findAttribute(@NotNull PsiElement startElement) {
-      final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
-
-      if (tag == null) {
-        return null;
-      }
-
-      return myData.getNamespace() != null ? tag.getAttribute(myData.getAttribute(), myData.getNamespace()) :
-             tag.getAttribute(myData.getAttribute());
-    }
+  public static LintIdeQuickFix[] createFixes(@NotNull Project project,
+                                              @Nullable PsiFile file,
+                                              @NotNull Incident incident,
+                                              @NotNull LintFix lintFix) {
+    return LintIdeFixPerformer.Companion.createIdeFixes(project, file, incident, lintFix, true);
   }
 
   static class MyLocalQuickFix extends InspectionGadgetsFix {
-    private final LintIdeQuickFix myLintQuickFix;
+    private final DefaultLintQuickFix myLintQuickFix;
 
-    MyLocalQuickFix(@NotNull LintIdeQuickFix lintQuickFix) {
+    MyLocalQuickFix(@NotNull DefaultLintQuickFix lintQuickFix) {
       myLintQuickFix = lintQuickFix;
     }
 

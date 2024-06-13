@@ -49,7 +49,7 @@ enum class LintTestProject(
   override val setup: () -> () -> Unit = { {} },
   override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
   override val expectedSyncIssues: Set<Int> = emptySet(),
-  override val verifyOpened: ((Project) -> Unit)? = null
+  override val verifyOpened: ((Project) -> Unit)? = null,
 ) : TemplateBasedTestProject {
   BASIC_CMAKE_APP(TestDataPaths.BASIC_CMAKE_APP),
   COMPOSITE_BUILD(TestDataPaths.COMPOSITE_BUILD),
@@ -60,8 +60,7 @@ enum class LintTestProject(
   NON_STANDARD_SOURCE_SETS(TestDataPaths.NON_STANDARD_SOURCE_SETS, pathToOpen = "/application"),
   PSD_SAMPLE_GROOVY(TestDataPaths.PSD_SAMPLE_GROOVY),
   SIMPLE_APPLICATION(TestDataPaths.SIMPLE_APPLICATION),
-  TEST_FIXTURES(TestDataPaths.TEST_FIXTURES),
-  ;
+  TEST_FIXTURES(TestDataPaths.TEST_FIXTURES);
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String =
     "tools/adt/idea/android/testData/snapshots"
@@ -70,7 +69,7 @@ enum class LintTestProject(
     listOf(
       File(
         AndroidTestBase.getTestDataPath(),
-        PathUtil.toSystemDependentName(TestDataPaths.PSD_SAMPLE_REPO)
+        PathUtil.toSystemDependentName(TestDataPaths.PSD_SAMPLE_REPO),
       )
     )
 }

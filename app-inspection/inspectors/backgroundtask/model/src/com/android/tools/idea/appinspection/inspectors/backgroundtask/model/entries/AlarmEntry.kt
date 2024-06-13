@@ -30,7 +30,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
     SET,
     CANCELLED,
     FIRED,
-    UNSPECIFIED
+    UNSPECIFIED,
   }
 
   private var _className = ""

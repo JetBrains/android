@@ -26,5 +26,5 @@ class AppContext(
   val theme: Resource = Resource(),
   val screenSize: Dimension? = null,
   val mainDisplayOrientation: Int,
-  val isRunningInMainDisplay: Boolean
+  val isRunningInMainDisplay: Boolean,
 )

@@ -83,7 +83,7 @@ private object EntryPointMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodW
 
     indexEntries.addIndexValue(
       methodReturnTypeSimpleName,
-      EntryPointMethodIndexValue(classId, methodSimpleName)
+      EntryPointMethodIndexValue(classId, methodSimpleName),
     )
   }
 }
@@ -133,23 +133,23 @@ internal data class EntryPointMethodIndexValue(val classId: ClassId, val methodS
     internal val identifiers =
       DaggerElementIdentifiers(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods.filter { it.name == methodSimpleName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
 
 internal data class EntryPointMethodDaggerElement(
   override val psiElement: PsiElement,
-  override val rawType: PsiType
+  override val rawType: PsiType,
 ) : ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())

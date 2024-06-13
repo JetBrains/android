@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeClassField
@@ -36,10 +37,12 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.variantNames
+import com.android.tools.idea.gradle.util.BaselineProfileUtil.getGenerateBaselineProfileTaskName
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.model.TestOptions
+import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugaring
 import com.android.tools.lint.detector.api.Desugaring
 import com.android.utils.usLocaleCapitalize
@@ -50,6 +53,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
+import java.util.Locale
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -106,27 +110,35 @@ class GradleAndroidModel(
   fun getArtifactForAndroidTest(): IdeAndroidArtifact? {
     return when (androidProject.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> selectedVariant.mainArtifact
-      else -> selectedVariant.androidTestArtifact
+      else -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
     }
   }
 
   fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
-    return selectedVariantCore.androidTestArtifact?.testOptions?.instrumentedTestTaskName
+    return selectedVariantCore.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.testOptions?.instrumentedTestTaskName
            ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
   }
 
-  val selectedAndroidTestCompileDependencies: IdeDependencies? get() = selectedVariant.androidTestArtifact?.compileClasspath
+  fun getGenerateBaselineProfileTaskNameForSelectedVariant(useAllVariants: Boolean): String? {
+    val variant = if (useAllVariants) "" else selectedVariantName.replaceFirstChar {
+      if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+    }
+
+    return getGenerateBaselineProfileTaskName(variant, agpVersion)
+  }
+
+  val selectedAndroidTestCompileDependencies: IdeDependencies? get() =
+    selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath
 
   val mainArtifact: IdeAndroidArtifact get() = selectedVariant.mainArtifact
   val defaultSourceProvider: IdeSourceProvider get() = androidProject.defaultSourceProvider.sourceProvider!!
   val activeSourceProviders: List<IdeSourceProvider> get() = data.activeSourceProviders
-  val unitTestSourceProviders: List<IdeSourceProvider> get() = data.unitTestSourceProviders
-  val androidTestSourceProviders: List<IdeSourceProvider> get() = data.androidTestSourceProviders
+  val hostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.hostTestSourceProviders
+  val deviceTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.deviceTestSourceProviders
   val testFixturesSourceProviders: List<IdeSourceProvider> get() = data.testFixturesSourceProviders
-
   val allSourceProviders: List<IdeSourceProvider> get() = data.allSourceProviders
-  val allUnitTestSourceProviders: List<IdeSourceProvider> get() = data.allUnitTestSourceProviders
-  val allAndroidTestSourceProviders: List<IdeSourceProvider> get() = data.allAndroidTestSourceProviders
+  val allHostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.allHostTestSourceProviders
+  val allDeviceTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.allDeviceSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
 
   /**
@@ -157,6 +169,10 @@ class GradleAndroidModel(
     val buildTypeContainer = myBuildTypesByName[selectedVariant.buildType]
       ?: error("Build type ${selectedVariant.buildType} not found")
     return buildTypeContainer.buildType.isDebuggable
+  }
+
+  fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer {
+    return myBuildTypesByName[variant.buildType] ?: error("Build type ${variant.buildType} not found")
   }
 
   private val myMinSdkVersion: AndroidVersion by lazy(LazyThreadSafetyMode.PUBLICATION) {
@@ -243,7 +259,7 @@ class GradleAndroidModel(
   }
 
   override fun getTestOptions(): TestOptions {
-    val testArtifact = selectedVariant.androidTestArtifact
+    val testArtifact = selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
     val testOptions = testArtifact?.testOptions
     val executionOption: TestExecutionOption? =
       when (val execution = testOptions?.execution) {

@@ -56,7 +56,7 @@ class AppInsightsProjectLevelControllerTest {
           AppInsightsState(
             Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)),
             TEST_FILTERS,
-            LoadingState.Loading
+            LoadingState.Loading,
           )
         )
 
@@ -67,7 +67,7 @@ class AppInsightsProjectLevelControllerTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       )
@@ -87,7 +87,7 @@ class AppInsightsProjectLevelControllerTest {
                   MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
               ),
             issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
-            permission = Permission.FULL
+            permission = Permission.FULL,
           )
         )
       verify(client).listTopOpenIssues(any(), any(), any(), any())
@@ -108,9 +108,9 @@ class AppInsightsProjectLevelControllerTest {
           issues =
             LoadingState.UnknownFailure(
               message = "Currently selected app is not configured with the current insights tool.",
-              cause = UnconfiguredAppException
+              cause = UnconfiguredAppException,
             ),
-          filters = TEST_FILTERS
+          filters = TEST_FILTERS,
         )
       )
   }
@@ -131,8 +131,8 @@ class AppInsightsProjectLevelControllerTest {
             model.filters.copy(
               versions = MultiSelection.emptySelection(),
               devices = MultiSelection.emptySelection(),
-              operatingSystems = MultiSelection.emptySelection()
-            )
+              operatingSystems = MultiSelection.emptySelection(),
+            ),
         )
       )
     client.completeIssuesCallWith(
@@ -142,7 +142,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -159,9 +159,9 @@ class AppInsightsProjectLevelControllerTest {
                 MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
               operatingSystems =
                 MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
-              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
             ),
-          issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant()))
+          issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
         )
       )
     verify(client)
@@ -173,7 +173,7 @@ class AppInsightsProjectLevelControllerTest {
         },
         any(),
         any(),
-        any()
+        any(),
       )
     return@runBlocking
   }
@@ -203,9 +203,9 @@ class AppInsightsProjectLevelControllerTest {
                   MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
                 operatingSystems =
                   MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
-                signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+                signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
               ),
-            issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant()))
+            issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
           )
         )
 
@@ -231,7 +231,7 @@ class AppInsightsProjectLevelControllerTest {
           model.copy(
             connections = Selection(CONNECTION2, listOf(CONNECTION2)),
             issues = LoadingState.Loading,
-            filters = TEST_FILTERS
+            filters = TEST_FILTERS,
           )
         )
       client.completeIssuesCallWith(
@@ -241,7 +241,7 @@ class AppInsightsProjectLevelControllerTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       )
@@ -258,9 +258,9 @@ class AppInsightsProjectLevelControllerTest {
                   MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
                 operatingSystems =
                   MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
-                signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+                signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
               ),
-            issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant()))
+            issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
           )
         )
       verify(client)
@@ -272,7 +272,7 @@ class AppInsightsProjectLevelControllerTest {
           },
           any(),
           any(),
-          any()
+          any(),
         )
       return@runBlocking
     }
@@ -296,7 +296,7 @@ class AppInsightsProjectLevelControllerTest {
           connections =
             Selection(preferredConnection, listOf(unpreferredConnection, preferredConnection)),
           issues = LoadingState.Loading,
-          filters = TEST_FILTERS
+          filters = TEST_FILTERS,
         )
       )
     client.completeIssuesCallWith(
@@ -306,7 +306,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -324,9 +324,9 @@ class AppInsightsProjectLevelControllerTest {
                 MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
               operatingSystems =
                 MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
-              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
             ),
-          issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant()))
+          issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
         )
       )
     verify(client)
@@ -338,7 +338,7 @@ class AppInsightsProjectLevelControllerTest {
         },
         any(),
         any(),
-        any()
+        any(),
       )
     return@runBlocking
   }
@@ -366,9 +366,9 @@ class AppInsightsProjectLevelControllerTest {
               LoadingState.UnknownFailure(
                 message =
                   "Currently selected app is not configured with the current insights tool.",
-                cause = UnconfiguredAppException
+                cause = UnconfiguredAppException,
               ),
-            filters = TEST_FILTERS
+            filters = TEST_FILTERS,
           )
         )
     }
@@ -385,7 +385,7 @@ class AppInsightsProjectLevelControllerTest {
             listOf(DEFAULT_FETCHED_VERSIONS, newVersion),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       )
@@ -401,7 +401,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS, newVersion),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -421,7 +421,7 @@ class AppInsightsProjectLevelControllerTest {
         },
         any(),
         any(),
-        any()
+        any(),
       )
     return@runBlocking
   }
@@ -437,7 +437,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS, newVersion),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -455,7 +455,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS, newVersion),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -485,7 +485,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS, anotherFetchedVersion),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -500,10 +500,10 @@ class AppInsightsProjectLevelControllerTest {
                 versions =
                   MultiSelection(
                     emptySet(),
-                    listOf(DEFAULT_FETCHED_VERSIONS, anotherFetchedVersion)
+                    listOf(DEFAULT_FETCHED_VERSIONS, anotherFetchedVersion),
                   )
               ),
-          issues = LoadingState.UnknownFailure(null, NoVersionsSelectedException)
+          issues = LoadingState.UnknownFailure(null, NoVersionsSelectedException),
         )
       )
 
@@ -516,7 +516,7 @@ class AppInsightsProjectLevelControllerTest {
         },
         any(),
         any(),
-        any()
+        any(),
       )
     return@runBlocking
   }
@@ -544,7 +544,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(fetchedVersion),
           listOf(fetchedDevice),
           listOf(fetchedOs),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -557,10 +557,10 @@ class AppInsightsProjectLevelControllerTest {
               versions = MultiSelection(setOf(fetchedVersion), listOf(fetchedVersion)),
               devices = MultiSelection(setOf(fetchedDevice), listOf(fetchedDevice)),
               operatingSystems = MultiSelection(setOf(fetchedOs), listOf(fetchedOs)),
-              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
             ),
           issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
-          permission = DEFAULT_FETCHED_PERMISSIONS
+          permission = DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     return@runBlocking
@@ -579,7 +579,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(fetchedVersion),
           listOf(fetchedDevice),
           listOf(fetchedOs),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -592,7 +592,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(fetchedVersion),
           listOf(fetchedDevice),
           listOf(fetchedOs),
-          Permission.FULL
+          Permission.FULL,
         )
       )
     )
@@ -607,7 +607,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(fetchedVersion),
           listOf(fetchedDevice),
           listOf(fetchedOs),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -620,9 +620,9 @@ class AppInsightsProjectLevelControllerTest {
               versions = MultiSelection(setOf(fetchedVersion), listOf(fetchedVersion)),
               devices = MultiSelection(setOf(fetchedDevice), listOf(fetchedDevice)),
               operatingSystems = MultiSelection(setOf(fetchedOs), listOf(fetchedOs)),
-              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
             ),
-          issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant()))
+          issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
         )
       )
     return@runBlocking
@@ -638,7 +638,7 @@ class AppInsightsProjectLevelControllerTest {
             emptyList(),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       )
@@ -669,11 +669,11 @@ class AppInsightsProjectLevelControllerTest {
                 emptyList(),
                 listOf(DEFAULT_FETCHED_DEVICES),
                 listOf(DEFAULT_FETCHED_OSES),
-                DEFAULT_FETCHED_PERMISSIONS
+                DEFAULT_FETCHED_PERMISSIONS,
               )
             ),
           detailsState = LoadingState.Ready(ISSUE1_DETAILS),
-          notesState = LoadingState.Ready(emptyList())
+          notesState = LoadingState.Ready(emptyList()),
         )
       )
       .isEqualTo(
@@ -682,7 +682,7 @@ class AppInsightsProjectLevelControllerTest {
             LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE2, ISSUE1)), clock.instant())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
-          permission = Permission.FULL
+          permission = Permission.FULL,
         )
       )
     return@runBlocking
@@ -699,7 +699,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS, newVersion),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -707,6 +707,8 @@ class AppInsightsProjectLevelControllerTest {
     controllerRule.toggleFatality(FailureType.FATAL)
     controllerRule.consumeNext()
     controllerRule.toggleFatality(FailureType.NON_FATAL)
+    controllerRule.consumeNext()
+    controllerRule.toggleFatality(FailureType.ANR)
     assertThat(controllerRule.consumeNext().issues)
       .isEqualTo(LoadingState.UnknownFailure(null, NoTypesSelectedException))
     controllerRule.selectVersions(emptySet())
@@ -726,7 +728,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS, newVersion),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -750,7 +752,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS),
           listOf(DEFAULT_FETCHED_DEVICES, newDevice),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -774,7 +776,7 @@ class AppInsightsProjectLevelControllerTest {
             emptyList(),
             emptyList(),
             emptyList(),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       )
@@ -797,7 +799,7 @@ class AppInsightsProjectLevelControllerTest {
           currentIssueVariants = LoadingState.Loading,
           currentEvents = LoadingState.Loading,
           currentIssueDetails = LoadingState.Loading,
-          currentNotes = LoadingState.Loading
+          currentNotes = LoadingState.Loading,
         )
       )
 
@@ -819,13 +821,12 @@ class AppInsightsProjectLevelControllerTest {
           currentEvents =
             LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
-          currentNotes = LoadingState.Ready(emptyList())
+          currentNotes = LoadingState.Ready(emptyList()),
         )
       )
     return@runBlocking
   }
 
-  // TODO(b/228076042): Add test scenario for ANRs when it's added back
   @Test
   fun `when fatality is toggled it propagates to the model`() =
     runBlocking<Unit> {
@@ -836,28 +837,35 @@ class AppInsightsProjectLevelControllerTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       controllerRule.consumeInitialState(issuesResponse)
 
       controllerRule.toggleFatality(FailureType.FATAL)
       assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
-        .containsExactly(FailureType.NON_FATAL)
+        .containsExactly(FailureType.ANR, FailureType.NON_FATAL)
       client.completeIssuesCallWith(issuesResponse)
       assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
-        .containsExactly(FailureType.NON_FATAL)
+        .containsExactly(FailureType.ANR, FailureType.NON_FATAL)
       verify(client)
         .listTopOpenIssues(
           argThat {
-            it.filters.eventTypes.size == 1 && it.filters.eventTypes.contains(FailureType.NON_FATAL)
+            it.filters.eventTypes.size == 2 &&
+              it.filters.eventTypes.containsAll(listOf(FailureType.ANR, FailureType.NON_FATAL))
           },
           any(),
           any(),
-          any()
+          any(),
         )
 
       controllerRule.toggleFatality(FailureType.NON_FATAL)
+      client.completeIssuesCallWith(issuesResponse)
+      controllerRule.consumeNext()
+      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
+        .containsExactly(FailureType.ANR)
+
+      controllerRule.toggleFatality(FailureType.ANR)
       assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected).isEmpty()
       verify(client, never())
         .listTopOpenIssues(argThat { it.filters.eventTypes.isEmpty() }, any(), any(), any())
@@ -873,7 +881,7 @@ class AppInsightsProjectLevelControllerTest {
           },
           any(),
           any(),
-          any()
+          any(),
         )
     }
 
@@ -891,7 +899,7 @@ class AppInsightsProjectLevelControllerTest {
             listOf(fetchedVersion),
             listOf(fetchedDevice),
             listOf(fetchedOs),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       )
@@ -906,7 +914,7 @@ class AppInsightsProjectLevelControllerTest {
             listOf(fetchedVersion),
             listOf(fetchedDevice),
             listOf(fetchedOs),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       )
@@ -920,11 +928,11 @@ class AppInsightsProjectLevelControllerTest {
                 versions = MultiSelection(setOf(fetchedVersion), listOf(fetchedVersion)),
                 devices = MultiSelection(setOf(fetchedDevice), listOf(fetchedDevice)),
                 operatingSystems = MultiSelection(setOf(fetchedOs), listOf(fetchedOs)),
-                signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+                signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
               ),
             issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
             currentIssueDetails = LoadingState.Loading,
-            currentNotes = LoadingState.Loading
+            currentNotes = LoadingState.Loading,
           )
         )
 
@@ -938,7 +946,7 @@ class AppInsightsProjectLevelControllerTest {
           newModel.copy(
             issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
             currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
-            currentNotes = LoadingState.Ready(emptyList())
+            currentNotes = LoadingState.Ready(emptyList()),
           )
         )
 
@@ -952,7 +960,7 @@ class AppInsightsProjectLevelControllerTest {
             currentIssueVariants = LoadingState.Ready(null),
             currentEvents = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
-            currentNotes = LoadingState.Ready(null)
+            currentNotes = LoadingState.Ready(null),
           )
         )
       return@runBlocking
@@ -970,7 +978,7 @@ class AppInsightsProjectLevelControllerTest {
             listOf(fetchedVersion),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       )
@@ -985,11 +993,11 @@ class AppInsightsProjectLevelControllerTest {
               listOf(fetchedVersion),
               listOf(DEFAULT_FETCHED_DEVICES),
               listOf(DEFAULT_FETCHED_OSES),
-              DEFAULT_FETCHED_PERMISSIONS
+              DEFAULT_FETCHED_PERMISSIONS,
             )
           ),
         issueVariantsState = LoadingState.Ready(emptyList()),
-        detailsState = LoadingState.Ready(ISSUE1_DETAILS)
+        detailsState = LoadingState.Ready(ISSUE1_DETAILS),
       )
     assertThat(newModel)
       .isEqualTo(
@@ -997,7 +1005,7 @@ class AppInsightsProjectLevelControllerTest {
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
           currentIssueVariants = LoadingState.Ready(Selection(null, emptyList())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
-          currentNotes = LoadingState.Ready(emptyList())
+          currentNotes = LoadingState.Ready(emptyList()),
         )
       )
 
@@ -1009,7 +1017,7 @@ class AppInsightsProjectLevelControllerTest {
           issues = LoadingState.UnknownFailure(null),
           currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
-          currentNotes = LoadingState.Ready(null)
+          currentNotes = LoadingState.Ready(null),
         )
       )
 
@@ -1023,7 +1031,7 @@ class AppInsightsProjectLevelControllerTest {
     val state =
       LoadingState.UnknownFailure(
         null,
-        cause = RevertibleException(snapshot = null, CancellableTimeoutException)
+        cause = RevertibleException(snapshot = null, CancellableTimeoutException),
       )
     assertThat(state.isCancellableTimeoutException()).isTrue()
   }
@@ -1038,7 +1046,7 @@ class AppInsightsProjectLevelControllerTest {
           emptyList(),
           emptyList(),
           emptyList(),
-          Permission.READ_ONLY
+          Permission.READ_ONLY,
         )
       )
     )
@@ -1070,7 +1078,7 @@ class AppInsightsProjectLevelControllerTest {
             listOf(DEFAULT_FETCHED_VERSIONS),
             listOf(DEFAULT_FETCHED_DEVICES),
             listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS
+            DEFAULT_FETCHED_PERMISSIONS,
           )
         )
       )
@@ -1086,7 +1094,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -1103,7 +1111,7 @@ class AppInsightsProjectLevelControllerTest {
             currentIssueVariants = LoadingState.Loading,
             currentEvents = LoadingState.Loading,
             currentIssueDetails = LoadingState.Loading,
-            currentNotes = LoadingState.Loading
+            currentNotes = LoadingState.Loading,
           )
       )
 
@@ -1120,7 +1128,7 @@ class AppInsightsProjectLevelControllerTest {
           emptyList(),
           emptyList(),
           emptyList(),
-          Permission.FULL
+          Permission.FULL,
         )
       )
     )
@@ -1162,11 +1170,11 @@ class AppInsightsProjectLevelControllerTest {
             emptyList(),
             emptyList(),
             emptyList(),
-            Permission.FULL
+            Permission.FULL,
           )
         ),
       // Ensure we have notes fetched before the following "add" or "delete" actions.
-      notesState = LoadingState.Ready(listOf(NOTE1))
+      notesState = LoadingState.Ready(listOf(NOTE1)),
     )
 
     // Create a new note and check the state of the current notes.
@@ -1199,10 +1207,10 @@ class AppInsightsProjectLevelControllerTest {
             emptyList(),
             emptyList(),
             emptyList(),
-            Permission.FULL
+            Permission.FULL,
           )
         ),
-      notesState = LoadingState.Ready(listOf(NOTE2, NOTE1))
+      notesState = LoadingState.Ready(listOf(NOTE2, NOTE1)),
     )
 
     // Delete this note and check the state of the current notes.
@@ -1235,7 +1243,7 @@ class AppInsightsProjectLevelControllerTest {
           emptyList(),
           emptyList(),
           emptyList(),
-          Permission.READ_ONLY
+          Permission.READ_ONLY,
         )
       )
     )
@@ -1259,7 +1267,7 @@ class AppInsightsProjectLevelControllerTest {
           emptyList(),
           emptyList(),
           emptyList(),
-          Permission.READ_ONLY
+          Permission.READ_ONLY,
         )
       )
     )
@@ -1281,7 +1289,7 @@ class AppInsightsProjectLevelControllerTest {
             emptyList(),
             emptyList(),
             emptyList(),
-            Permission.READ_ONLY
+            Permission.READ_ONLY,
           )
         )
       )
@@ -1297,7 +1305,7 @@ class AppInsightsProjectLevelControllerTest {
               emptyList(),
               emptyList(),
               emptyList(),
-              Permission.READ_ONLY
+              Permission.READ_ONLY,
             )
           )
         )
@@ -1317,10 +1325,10 @@ class AppInsightsProjectLevelControllerTest {
               emptyList(),
               emptyList(),
               emptyList(),
-              Permission.READ_ONLY
+              Permission.READ_ONLY,
             )
           ),
-          isTransitionToOnlineMode = true
+          isTransitionToOnlineMode = true,
         )
       ) {
         assertThat(mode).isEqualTo(ConnectionMode.ONLINE)
@@ -1343,10 +1351,10 @@ class AppInsightsProjectLevelControllerTest {
                 emptyList(),
                 emptyList(),
                 emptyList(),
-                Permission.FULL
+                Permission.FULL,
               )
             ),
-          notesState = LoadingState.Ready(listOf(NOTE1))
+          notesState = LoadingState.Ready(listOf(NOTE1)),
         )
       assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
 
@@ -1378,11 +1386,11 @@ class AppInsightsProjectLevelControllerTest {
                 emptyList(),
                 emptyList(),
                 emptyList(),
-                Permission.FULL
+                Permission.FULL,
               )
             ),
           notesState = LoadingState.Ready(listOf(NOTE1)),
-          isTransitionToOnlineMode = true
+          isTransitionToOnlineMode = true,
         )
       assertThat(state.mode).isEqualTo(ConnectionMode.ONLINE)
 
@@ -1423,7 +1431,7 @@ class AppInsightsProjectLevelControllerTest {
           listOf(DEFAULT_FETCHED_VERSIONS),
           listOf(DEFAULT_FETCHED_DEVICES),
           listOf(DEFAULT_FETCHED_OSES),
-          DEFAULT_FETCHED_PERMISSIONS
+          DEFAULT_FETCHED_PERMISSIONS,
         )
       )
     )
@@ -1439,7 +1447,7 @@ class AppInsightsProjectLevelControllerTest {
         argThat { it.filters.visibilityType == VisibilityType.USER_PERCEIVED },
         any(),
         any(),
-        any()
+        any(),
       )
     return@runBlocking
   }
@@ -1453,10 +1461,10 @@ class AppInsightsProjectLevelControllerTest {
           emptyList(),
           emptyList(),
           emptyList(),
-          Permission.READ_ONLY
+          Permission.READ_ONLY,
         )
       ),
-      eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2"), Event("3")), ""))
+      eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2"), Event("3")), "")),
     )
 
     controllerRule.controller.nextEvent()
@@ -1478,10 +1486,10 @@ class AppInsightsProjectLevelControllerTest {
             emptyList(),
             emptyList(),
             emptyList(),
-            Permission.READ_ONLY
+            Permission.READ_ONLY,
           )
         ),
-        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "abc"))
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "abc")),
       )
 
       controllerRule.controller.nextEvent()

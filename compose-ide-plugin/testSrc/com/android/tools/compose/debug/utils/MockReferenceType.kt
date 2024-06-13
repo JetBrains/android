@@ -30,7 +30,7 @@ import com.sun.jdi.VirtualMachine
 
 sealed class MockReferenceType(
   private val debugProcess: DebugProcessImpl,
-  private val name: String
+  private val name: String,
 ) : ReferenceType by MockitoKt.mock() {
   private val methods = mutableListOf<Method>()
 
@@ -66,7 +66,7 @@ class MockClassType(
   debugProcess: DebugProcessImpl,
   name: String,
   private val superClass: ClassType? = null,
-  private val interfaces: List<InterfaceType> = emptyList()
+  private val interfaces: List<InterfaceType> = emptyList(),
 ) : ClassType, MockReferenceType(debugProcess, name) {
   private val methodToValue = mutableMapOf<String, Value>()
 
@@ -79,7 +79,7 @@ class MockClassType(
     thread: ThreadReference?,
     method: Method,
     arguments: List<Value>,
-    options: Int
+    options: Int,
   ): Value {
     val name = method.name() ?: error("Name of method \"$method\" is null.")
     return methodToValue[name] ?: error("Fake value is not set for method \"$name\" when asked.")
@@ -101,7 +101,7 @@ class MockClassType(
     thread: ThreadReference?,
     method: Method,
     arguments: List<Value>,
-    options: Int
+    options: Int,
   ): ObjectReference {
     throw UnsupportedOperationException()
   }

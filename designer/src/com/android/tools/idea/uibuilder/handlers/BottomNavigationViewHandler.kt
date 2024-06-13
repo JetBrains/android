@@ -29,7 +29,7 @@ class BottomNavigationViewHandler : FrameLayoutHandler() {
       ATTR_MENU,
       ATTR_ITEM_BACKGROUND,
       ATTR_ITEM_TEXT_COLOR,
-      ATTR_ELEVATION
+      ATTR_ELEVATION,
     )
   }
 }

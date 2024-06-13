@@ -27,7 +27,7 @@ class InlineNotificationBuilder(private val model: InspectorPropertiesModel) :
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<InspectorPropertyItem>
+    properties: PropertiesTable<InspectorPropertyItem>,
   ) {
     if (properties.namespaces.size > 1)
       return // If we have properties other than the "internal" generated for the dimension builder

@@ -34,6 +34,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskIn
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskInspectorEvent.Type.TABLE_MODE_SELECTED
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskInspectorEvent.Type.WORK_SELECTED
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.util.concurrency.EdtExecutorService
@@ -52,8 +53,9 @@ import org.junit.Test
 class BackgroundTaskEntriesViewTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val usageTrackerRule = UsageTrackerRule()
+  private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(projectRule, usageTrackerRule)
+  @get:Rule val rule = RuleChain(projectRule, usageTrackerRule, disposableRule)
 
   private val scope =
     CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
@@ -75,15 +77,15 @@ class BackgroundTaskEntriesViewTest {
           backgroundTaskInspectorMessenger,
           WmiMessengerTarget.Resolved(workMessenger),
           scope,
-          IdeBackgroundTaskInspectorTracker(projectRule.project)
+          IdeBackgroundTaskInspectorTracker(projectRule.project),
         )
       tab =
         BackgroundTaskInspectorTab(
           client,
           AppInspectionIdeServicesAdapter(),
-          IntellijUiComponentsProvider(projectRule.project),
+          IntellijUiComponentsProvider(projectRule.project, disposableRule.disposable),
           scope,
-          uiDispatcher
+          uiDispatcher,
         )
       selectionModel = tab.selectionModel
       entriesView = tab.component.firstComponent as BackgroundTaskEntriesView
@@ -106,10 +108,7 @@ class BackgroundTaskEntriesViewTest {
       graphViewAction.actionPerformed(TestActionEvent.createTestEvent())
 
       assertThat(usageTrackerRule.backgroundInspectorEvents().map { it.type })
-        .containsExactly(
-          WORK_SELECTED,
-          GRAPH_MODE_SELECTED,
-        )
+        .containsExactly(WORK_SELECTED, GRAPH_MODE_SELECTED)
     }
   }
 
@@ -126,11 +125,7 @@ class BackgroundTaskEntriesViewTest {
       listViewAction.actionPerformed(TestActionEvent.createTestEvent())
 
       assertThat(usageTrackerRule.backgroundInspectorEvents().map { it.type })
-        .containsExactly(
-          WORK_SELECTED,
-          GRAPH_MODE_SELECTED,
-          TABLE_MODE_SELECTED,
-        )
+        .containsExactly(WORK_SELECTED, GRAPH_MODE_SELECTED, TABLE_MODE_SELECTED)
     }
   }
 }

@@ -1,13 +1,15 @@
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_VERSION_FOR_TESTS")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 
 common_data = [
     ":sdkindexapp",
     ":sdkindexproject_deps",
     ":sdkindexsnapshot",
     "//prebuilts/studio/sdk:build-tools/latest",
-    "//tools/base/build-system:gradle-distrib-7.3.3",
+    INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
 old_project_app_data = [
@@ -27,7 +29,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -101,11 +104,11 @@ maven_repository(
     name = "sdkindexproject_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20-Beta",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_" + KGP_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KGP_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KGP_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],

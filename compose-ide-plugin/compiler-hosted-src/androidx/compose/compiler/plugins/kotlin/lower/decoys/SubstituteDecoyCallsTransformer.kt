@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package androidx.compose.compiler.plugins.kotlin.lower.decoys
 
+import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
+import androidx.compose.compiler.plugins.kotlin.lower.ComposerParamTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.ModuleLoweringPass
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.ir.util.remapTypeParameters
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.declarations.lazy.IrLazyFunctionBase
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
@@ -36,11 +42,15 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrDelegatingConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionReferenceImpl
+import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.jetbrains.kotlin.ir.util.copyTypeAndValueArgumentsFrom
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
-import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.ir.util.remapTypeParameters
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 
 /**
  * Replaces all decoys references to their implementations created in [CreateDecoysTransformer].
@@ -48,16 +58,27 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 class SubstituteDecoyCallsTransformer(
     pluginContext: IrPluginContext,
     symbolRemapper: DeepCopySymbolRemapper,
-    bindingTrace: BindingTrace,
     signatureBuilder: IdSignatureFactory,
+    stabilityInferencer: StabilityInferencer,
     metrics: ModuleMetrics,
+    featureFlags: FeatureFlags,
 ) : AbstractDecoysLowering(
     pluginContext = pluginContext,
     symbolRemapper = symbolRemapper,
-    bindingTrace = bindingTrace,
     metrics = metrics,
-    signatureBuilder = signatureBuilder
+    stabilityInferencer = stabilityInferencer,
+    signatureBuilder = signatureBuilder,
+    featureFlags = featureFlags,
 ), ModuleLoweringPass {
+    private val decoysTransformer = CreateDecoysTransformer(
+        pluginContext,
+        symbolRemapper,
+        signatureBuilder,
+        stabilityInferencer,
+        metrics,
+        featureFlags,
+    )
+    private val lazyDeclarationsCache = mutableMapOf<IrFunctionSymbol, IrFunction>()
 
     override fun lower(module: IrModuleFragment) {
         module.transformChildrenVoid()
@@ -107,20 +128,29 @@ class SubstituteDecoyCallsTransformer(
             return super.visitSimpleFunction(declaration)
         }
 
+        remapOverriddenSymbols(declaration)
+        return super.visitSimpleFunction(declaration)
+    }
+
+    private fun remapOverriddenSymbols(declaration: IrSimpleFunction) {
         val newOverriddenSymbols = declaration.overriddenSymbols.map {
-            if (it.owner.isDecoy()) {
-                it.owner.getComposableForDecoy() as IrSimpleFunctionSymbol
+            // It can be an overridden symbol from another module, so access it via `decoyOwner`
+            val maybeDecoy = it.decoyOwner
+            if (maybeDecoy.isDecoy()) {
+                maybeDecoy.getComposableForDecoy() as IrSimpleFunctionSymbol
             } else {
                 it
+            }.also {
+                // need to fix for entire hierarchy (because of "original" symbols in LazyIR)
+                remapOverriddenSymbols(it.owner)
             }
         }
 
         declaration.overriddenSymbols = newOverriddenSymbols
-        return super.visitSimpleFunction(declaration)
     }
 
     override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
-        val callee = expression.symbol.owner
+        val callee = expression.symbol.decoyOwner
         if (!callee.isDecoy()) {
             return super.visitConstructorCall(expression)
         }
@@ -147,7 +177,7 @@ class SubstituteDecoyCallsTransformer(
     override fun visitDelegatingConstructorCall(
         expression: IrDelegatingConstructorCall
     ): IrExpression {
-        val callee = expression.symbol.owner
+        val callee = expression.symbol.decoyOwner
         if (!callee.isDecoy()) {
             return super.visitDelegatingConstructorCall(expression)
         }
@@ -170,7 +200,7 @@ class SubstituteDecoyCallsTransformer(
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
-        val callee = expression.symbol.owner
+        val callee = expression.symbol.decoyOwner
         if (!callee.isDecoy()) {
             return super.visitCall(expression)
         }
@@ -194,7 +224,7 @@ class SubstituteDecoyCallsTransformer(
     }
 
     override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
-        val callee = expression.symbol.owner
+        val callee = expression.symbol.decoyOwner
         if (!callee.isDecoy()) {
             return super.visitFunctionReference(expression)
         }
@@ -216,4 +246,44 @@ class SubstituteDecoyCallsTransformer(
         }
         return super.visitFunctionReference(updatedReference)
     }
+
+    private val addComposerParameterInplace = object : IrElementTransformerVoid() {
+        private val composerParamTransformer = ComposerParamTransformer(
+            context, symbolRemapper, stabilityInferencer, true, metrics, featureFlags
+
+        )
+        override fun visitSimpleFunction(declaration: IrSimpleFunction): IrStatement {
+            return composerParamTransformer.visitSimpleFunction(declaration)
+        }
+    }
+
+    /**
+     * Since kotlin 1.7.20, k/js started to use LazyIr (stubs).
+     * Decoys logic used to rely on full deserialized IR of the module dependencies.
+     *
+     * This extension adjusts LazyIr for decoys needs:
+     * generates decoy implementation declarations and adds composer parameter to ensure matching
+     * signatures.
+     *
+     * To consider: LazyIr allows to get rid of decoys logic. But it's going to be a breaking
+     * change for the compose users, since all published klibs will need to be recompiled in order
+     * to be compatible with new-no-decoys compiler plugin. So we'll need to choose
+     * a good moment for such a breaking change.
+     */
+    private val IrFunctionSymbol.decoyOwner: IrFunction
+        get() = if (owner is IrLazyFunctionBase && !owner.isDecoy()) {
+            lazyDeclarationsCache.getOrPut(this) {
+                val declaration = owner
+                if (declaration.shouldBeRemapped()) {
+                    when (declaration) {
+                        is IrSimpleFunction -> decoysTransformer.visitSimpleFunction(declaration)
+                        is IrConstructor -> decoysTransformer.visitConstructor(declaration)
+                        else -> decoysTransformer.visitFunction(declaration)
+                    }.also {
+                        decoysTransformer.updateParents()
+                        owner.parent.transformChildrenVoid(addComposerParameterInplace)
+                    } as IrFunction
+                } else owner
+            }
+        } else owner
 }

@@ -15,19 +15,12 @@
  */
 package com.android.tools.datastore.database;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+
+import java.sql.*;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface a {@link com.android.tools.datastore.ServicePassThrough} object returns to indicate this object is

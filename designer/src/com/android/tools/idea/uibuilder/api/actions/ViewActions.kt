@@ -50,7 +50,7 @@ constructor(protected val myIcon: Icon?, protected val myLabel: String) : ViewAc
     handler: ViewHandler,
     component: NlComponent,
     selectedChildren: MutableList<NlComponent>,
-    modifiersEx: Int
+    modifiersEx: Int,
   ) {
     presentation.setIcon(icon)
     presentation.setLabel(label)
@@ -75,7 +75,7 @@ object ViewActionUtils {
           .add(ToggleAllShowDecorationsAction())
           .add(ToggleShowTooltipsAction())
           .build()
-      )
+      ),
     )
 
   /**
@@ -90,7 +90,7 @@ object ViewActionUtils {
         "Toggle Width",
         SdkConstants.ATTR_LAYOUT_WIDTH,
         StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
-        StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL
+        StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL,
       )
     )
     actions.add(
@@ -98,7 +98,7 @@ object ViewActionUtils {
         "Toggle Height",
         SdkConstants.ATTR_LAYOUT_HEIGHT,
         StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
-        StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL
+        StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL,
       )
     )
     return actions

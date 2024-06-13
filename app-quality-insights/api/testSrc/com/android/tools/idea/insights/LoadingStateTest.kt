@@ -75,7 +75,7 @@ class LoadingStateTest {
         LoadingState.Ready(1),
         LoadingState.Loading,
         LoadingState.Ready(2),
-        unauthorized
+        unauthorized,
       )
       .inOrder()
   }

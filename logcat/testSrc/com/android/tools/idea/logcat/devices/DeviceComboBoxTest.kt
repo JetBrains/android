@@ -55,7 +55,7 @@ class DeviceComboBoxTest {
       ProjectServiceRule(
         projectRule,
         DeviceComboBoxDeviceTrackerFactory::class.java,
-        DeviceComboBoxDeviceTrackerFactory { deviceTracker }
+        DeviceComboBoxDeviceTrackerFactory { deviceTracker },
       ),
     )
 
@@ -84,20 +84,14 @@ class DeviceComboBoxTest {
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
       deviceTracker.use {
-        it.sendEvents(
-          Added(device1),
-          Added(device2),
-        )
+        it.sendEvents(Added(device1), Added(device2))
         advanceUntilIdle()
       }
 
       assertThat(selectionEvents).containsExactly(DeviceItem(device1))
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
       assertThat(deviceComboBox.getItems())
-        .containsExactly(
-          DeviceItem(device1),
-          DeviceItem(device2),
-        )
+        .containsExactly(DeviceItem(device1), DeviceItem(device2))
         .inOrder()
     }
 
@@ -109,20 +103,14 @@ class DeviceComboBoxTest {
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
       deviceTracker.use {
-        it.sendEvents(
-          Added(device1),
-          Added(device2),
-        )
+        it.sendEvents(Added(device1), Added(device2))
         advanceUntilIdle()
       }
 
       assertThat(selectionEvents).containsExactly(DeviceItem(device2))
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
       assertThat(deviceComboBox.getItems())
-        .containsExactly(
-          DeviceItem(device1),
-          DeviceItem(device2),
-        )
+        .containsExactly(DeviceItem(device1), DeviceItem(device2))
         .inOrder()
     }
 
@@ -137,20 +125,13 @@ class DeviceComboBoxTest {
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
       deviceTracker.use {
-        it.sendEvents(
-          Added(device1),
-          Added(device2),
-        )
+        it.sendEvents(Added(device1), Added(device2))
         advanceUntilIdle()
       }
 
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
       assertThat(deviceComboBox.getItems())
-        .containsExactly(
-          FileItem(path),
-          DeviceItem(device1),
-          DeviceItem(device2),
-        )
+        .containsExactly(FileItem(path), DeviceItem(device1), DeviceItem(device2))
         .inOrder()
     }
 
@@ -161,24 +142,14 @@ class DeviceComboBoxTest {
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
       deviceTracker.use {
-        it.sendEvents(
-          Added(device2.online()),
-          StateChanged(device2.offline()),
-        )
+        it.sendEvents(Added(device2.online()), StateChanged(device2.offline()))
         advanceUntilIdle()
       }
 
       assertThat(selectionEvents)
-        .containsExactly(
-          DeviceItem(device2.online()),
-          DeviceItem(device2.offline()),
-        )
+        .containsExactly(DeviceItem(device2.online()), DeviceItem(device2.offline()))
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-      assertThat(deviceComboBox.getItems())
-        .containsExactly(
-          DeviceItem(device2.offline()),
-        )
-        .inOrder()
+      assertThat(deviceComboBox.getItems()).containsExactly(DeviceItem(device2.offline())).inOrder()
     }
 
   @Test
@@ -188,21 +159,14 @@ class DeviceComboBoxTest {
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
       deviceTracker.use {
-        it.sendEvents(
-          Added(device1),
-          Added(device2.online()),
-          StateChanged(device2.offline()),
-        )
+        it.sendEvents(Added(device1), Added(device2.online()), StateChanged(device2.offline()))
         advanceUntilIdle()
       }
 
       assertThat(selectionEvents).containsExactly(DeviceItem(device1))
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
       assertThat(deviceComboBox.getItems())
-        .containsExactly(
-          DeviceItem(device1),
-          DeviceItem(device2.offline()),
-        )
+        .containsExactly(DeviceItem(device1), DeviceItem(device2.offline()))
         .inOrder()
     }
 
@@ -213,20 +177,13 @@ class DeviceComboBoxTest {
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
       deviceTracker.use {
-        it.sendEvents(
-          Added(device1),
-          Added(device2),
-        )
+        it.sendEvents(Added(device1), Added(device2))
         advanceUntilIdle()
         deviceComboBox.selectedItem = DeviceItem(device2)
         advanceUntilIdle()
       }
 
-      assertThat(selectedItems.await())
-        .containsExactly(
-          DeviceItem(device1),
-          DeviceItem(device2),
-        )
+      assertThat(selectedItems.await()).containsExactly(DeviceItem(device1), DeviceItem(device2))
     }
 
   @Test
@@ -292,11 +249,7 @@ class DeviceComboBoxTest {
 
       assertThat(selectionEvents).containsExactly(FileItem(path))
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-      assertThat(deviceComboBox.getItems())
-        .containsExactly(
-          FileItem(path),
-        )
-        .inOrder()
+      assertThat(deviceComboBox.getItems()).containsExactly(FileItem(path)).inOrder()
     }
 
   private fun deviceComboBox(

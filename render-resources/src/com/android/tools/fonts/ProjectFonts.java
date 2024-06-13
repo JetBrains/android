@@ -19,6 +19,8 @@ import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WEIGHT;
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
@@ -28,11 +30,17 @@ import com.android.ide.common.fonts.QueryParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourcesUtil;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.android.tools.apk.analyzer.ResourceIdResolver;
+import com.android.tools.res.FileResourceReader;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import java.io.File;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,8 +50,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import kotlin.text.StringsKt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This class will find all the project level font definitions by iterating
@@ -54,13 +60,24 @@ import org.jetbrains.annotations.Nullable;
 public class ProjectFonts {
   private final DownloadableFontCacheService myService;
   private final ResourceRepositoryManager myResourceRepository;
+  private final ResourceIdResolver myResourceIdResolver;
   private final Map<String, FontFamily> myProjectFonts;
   private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
-  public ProjectFonts(@NotNull ResourceRepositoryManager resourceRepositoryManager) {
-    myService = DownloadableFontCacheService.getInstance();
+  public ProjectFonts(
+    @NonNull DownloadableFontCacheService fontService,
+    @NonNull ResourceRepositoryManager resourceRepositoryManager) {
+    this(fontService, resourceRepositoryManager, ResourceIdResolver.NO_RESOLUTION);
+  }
+
+  public ProjectFonts(
+    @NonNull DownloadableFontCacheService fontService,
+    @NonNull ResourceRepositoryManager resourceRepositoryManager,
+    @NonNull ResourceIdResolver resourceIdResolver) {
+    myService = fontService;
     myResourceRepository = resourceRepositoryManager;
+    myResourceIdResolver = resourceIdResolver;
     myProjectFonts = new TreeMap<>();
     myParseResults = new HashMap<>();
     myDefinitions = new ArrayList<>();
@@ -69,7 +86,7 @@ public class ProjectFonts {
   /**
    * Return a list of {@link FontFamily} defined in the project.
    */
-  @NotNull
+  @NonNull
   public List<FontFamily> getFonts() {
     List<FontFamily> fonts = new ArrayList<>();
     ListMultimap<String, ResourceItem>
@@ -84,8 +101,8 @@ public class ProjectFonts {
   /**
    * Return the font family for a given name.
    */
-  @NotNull
-  public FontFamily getFont(@NotNull String name) {
+  @NonNull
+  public FontFamily getFont(@NonNull String name) {
     return resolveFont(name);
   }
 
@@ -123,8 +140,8 @@ public class ProjectFonts {
    * @param name name of font resource used as value of android:fontFamily e.g. "@font/myfont" or "cursive"
    * @return {@link FontFamily} describing the font.
    */
-  @NotNull
-  private FontFamily resolveFont(@NotNull String name) {
+  @NonNull
+  private FontFamily resolveFont(@NonNull String name) {
     analyzeFont(name);
     FontFamily resolvedFamily = myProjectFonts.get(name);
     if (resolvedFamily != null) {
@@ -149,7 +166,7 @@ public class ProjectFonts {
     return createUnresolvedFontFamily(name);
   }
 
-  private FontFamily resolveDownloadableFont(@NotNull String name, @NotNull QueryParser.DownloadableParseResult result) {
+  private FontFamily resolveDownloadableFont(@NonNull String name, @NonNull QueryParser.DownloadableParseResult result) {
     String authority = result.getAuthority();
     List<FontDetail> details = new ArrayList<>();
     for (Map.Entry<String, Collection<MutableFontDetail>> entry : result.getFonts().asMap().entrySet()) {
@@ -175,7 +192,7 @@ public class ProjectFonts {
     return createSynonym(name, details);
   }
 
-  private FontFamily resolveCompoundFont(@NotNull String name, @NotNull FontFamilyParser.CompoundFontResult result) {
+  private FontFamily resolveCompoundFont(@NonNull String name, @NonNull FontFamilyParser.CompoundFontResult result) {
     if (hasCircularReferences(name)) {
       return createUnresolvedFontFamily(name);
     }
@@ -205,7 +222,7 @@ public class ProjectFonts {
    * </ul>
    * @param name name of font resource used as value of android:fontFamily e.g. "@font/myfont" or "cursive"
    */
-  private void analyzeFont(@NotNull String name) {
+  private void analyzeFont(@NonNull String name) {
     if (isKnownFont(name)) {
       return;
     }
@@ -228,13 +245,21 @@ public class ProjectFonts {
       return;
     }
     if (value.endsWith(".xml")) {
-      File fontFile = new File(value);
-      if (!fontFile.exists()) {
+      PathString pathString = ResourcesUtil.toFileResourcePathString(value);
+      if (pathString == null) {
+        createUnresolvedFontFamily(name);
+        return;
+      }
+      byte[] fileBytes;
+      try {
+        fileBytes = FileResourceReader.readBytes(pathString, myResourceIdResolver);
+      } catch (IOException ignore) {
         createUnresolvedFontFamily(name);
         return;
       }
 
-      QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(fontFile);
+      InputStream is = new ByteArrayInputStream(fileBytes);
+      QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(is, value);
       if (result instanceof FontFamilyParser.ParseErrorResult) {
         createUnresolvedFontFamily(name);
         return;
@@ -251,21 +276,21 @@ public class ProjectFonts {
     createEmbeddedFontFamily(name, value);
   }
 
-  private boolean isKnownFont(@NotNull String name) {
+  private boolean isKnownFont(@NonNull String name) {
     return isSystemFont(name) || myProjectFonts.containsKey(name) || myParseResults.containsKey(name);
   }
 
-  private static boolean isSystemFont(@NotNull String name) {
+  private static boolean isSystemFont(@NonNull String name) {
     return !name.startsWith("@font/");
   }
 
-  private boolean hasCircularReferences(@NotNull String name) {
+  private boolean hasCircularReferences(@NonNull String name) {
     myDefinitions.clear();
     myDefinitions.add(name);
     return checkDependencies(name);
   }
 
-  private boolean checkDependencies(@NotNull String name) {
+  private boolean checkDependencies(@NonNull String name) {
     QueryParser.ParseResult result = myParseResults.get(name);
     if (result == null) {
       return false;
@@ -287,7 +312,7 @@ public class ProjectFonts {
     return false;
   }
 
-  private void createEmbeddedFontFamily(@NotNull String name, @NotNull String fileName) {
+  private void createEmbeddedFontFamily(@NonNull String name, @NonNull String fileName) {
     String fontName = StringsKt.removePrefix(name, "@font/");
     String fileUrl = FILE_PROTOCOL_START + fileName;
     MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, fileUrl, "", false, false);
@@ -295,7 +320,7 @@ public class ProjectFonts {
     myProjectFonts.put(name, family);
   }
 
-  private FontFamily createUnresolvedFontFamily(@NotNull String name) {
+  private FontFamily createUnresolvedFontFamily(@NonNull String name) {
     String fontName = StringsKt.removePrefix(name, "@font/");
     MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false);
     FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, "", "", Collections.singletonList(detail));
@@ -303,7 +328,7 @@ public class ProjectFonts {
     return family;
   }
 
-  private FontFamily createSynonym(@NotNull String name, @NotNull List<FontDetail> details) {
+  private FontFamily createSynonym(@NonNull String name, @NonNull List<FontDetail> details) {
     assert !details.isEmpty();
     MutableFontDetail wanted = new MutableFontDetail(400, 100, false);
     FontDetail best = wanted.findBestMatch(details);
@@ -315,7 +340,7 @@ public class ProjectFonts {
     return family;
   }
 
-  private FontFamily createCompoundFamily(@NotNull String name, @NotNull List<FontDetail> fonts) {
+  private FontFamily createCompoundFamily(@NonNull String name, @NonNull List<FontDetail> fonts) {
     assert !fonts.isEmpty();
     String fontName = StringsKt.removePrefix(name, "@font/");
     MutableFontDetail wanted = new MutableFontDetail(400, 100, false);

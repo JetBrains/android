@@ -20,6 +20,7 @@ import com.android.tools.idea.profilers.AndroidProfilerBundle.message
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfile
@@ -27,7 +28,6 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowId
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.Nls
 import javax.swing.Icon
 
@@ -41,10 +41,19 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
   class ProfilerSetting(profilingMode: ProfilingMode) : AbstractProfilerSetting(profilingMode) {
     @get:Nls
     override val actionName: String
-      get() = when (profilingMode) {
-        ProfilingMode.PROFILEABLE -> message("android.profiler.action.profile.with.low.overhead")
-        ProfilingMode.DEBUGGABLE -> message("android.profiler.action.profile.with.complete.data")
-        else -> message("android.profiler.action.profile")
+      get() = if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+        when (profilingMode) {
+          ProfilingMode.PROFILEABLE -> "Profiler: Run as profileable (low overhead)"
+          ProfilingMode.DEBUGGABLE -> "Profiler: Run as debuggable (complete data)"
+          else -> "Profiler: Run"
+        }
+      }
+      else {
+        when (profilingMode) {
+          ProfilingMode.PROFILEABLE -> "Profile with low overhead (profileable)"
+          ProfilingMode.DEBUGGABLE -> "Profile with complete data (debuggable)"
+          else -> "Profile"
+        }
       }
 
     override val icon: Icon
@@ -94,7 +103,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
   override fun getHelpId(): String? = null
 
-  override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
+  override fun isApplicable(project: Project): Boolean = CommonAndroidUtil.getInstance().isAndroidProject(project)
 
   override fun getRunToolbarActionText(param: String): String = "Profile"
 

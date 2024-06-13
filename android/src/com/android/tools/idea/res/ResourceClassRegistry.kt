@@ -61,22 +61,27 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
     repo: ResourceRepository,
     idManager: ResourceIdManager,
     packageName: String?,
-    namespace: ResourceNamespace
+    namespace: ResourceNamespace,
   ) {
     if (packageName.isNullOrEmpty()) return
-
-    val info = repoMap.getOrPut(repo) { ResourceRepositoryInfo(repo, idManager, namespace) }
+    var info = repoMap[repo]
+    if (info == null) {
+      info = ResourceRepositoryInfo(repo, idManager, namespace)
+      repoMap[repo] = info
+      // Explicit cleanup for Disposable instead of waiting for GC.
+      if (repo is Disposable && !Disposer.tryRegister(repo) { removeRepository(repo) }) {
+        removeRepository(repo)
+        return
+      }
+    }
     info.packages.add(packageName)
-    // Explicit cleanup for Disposable instead of waiting for GC.
-    if (repo is Disposable && !Disposer.tryRegister(repo) { removeRepository(repo) })
-      removeRepository(repo)
     packages = createPackageCache() // Invalidate cache.
   }
 
   /** Looks up a class definition for the given name, if possible */
   fun findClassDefinition(
     className: String,
-    repositoryManager: ResourceRepositoryManager
+    repositoryManager: ResourceRepositoryManager,
   ): ByteArray? {
     if (!className.isRClassName()) return null
     val pkg = className.substringBeforeLast(".", "")
@@ -102,7 +107,7 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
 
   private fun findClassGenerator(
     repositories: List<ResourceRepository>,
-    className: String
+    className: String,
   ): ResourceClassGenerator? {
     return repositories
       .asSequence()
@@ -129,7 +134,7 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
   private class ResourceRepositoryInfo(
     repo: ResourceRepository,
     idManager: ResourceIdManager,
-    namespace: ResourceNamespace
+    namespace: ResourceNamespace,
   ) {
     val resourceClassGenerator = ResourceClassGenerator.create(idManager, repo, namespace)
     val packages = mutableSetOf<String>()

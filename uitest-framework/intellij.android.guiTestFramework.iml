@@ -9,17 +9,17 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="fest-swing" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="test-recorder" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
@@ -43,7 +43,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.lint-api" scope="TEST" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />

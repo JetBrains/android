@@ -18,16 +18,16 @@ package com.android.tools.profilers.taskbased.common.constants
 import androidx.compose.ui.unit.dp
 
 object TaskBasedUxDimensions {
-  // Divider thickness for all top-level dividers used in the toolwindow.
-  val PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP = 1.dp
   // Selection panel (process and recording list) minimum and maximum ratio in horizontal split divider component.
   const val SELECTION_PANEL_MIN_RATIO_FLOAT = 0.35f
   const val SELECTION_PANEL_MAX_RATIO_FLOAT = 0.5f
 
   // Size of each Task grid item in the Task selection grid. This includes both the task icon and title.
   val TASK_WIDTH_DP = 150.dp
-  // Size of the task grid item icon.
-  const val ICON_SIZE_PX = 75
+  val TASK_GRID_HORIZONTAL_SPACE_DP = 50.dp
+  val TASK_GRID_VERTICAL_SPACE_DP = 20.dp
+  val TASK_GRID_HORIZONTAL_PADDING_DP = 50.dp
+  const val MAX_NUM_TASKS_IN_ROW = 5
 
   // Common table dimensions
   val TABLE_ROW_HEIGHT_DP = 24.dp
@@ -37,19 +37,23 @@ object TaskBasedUxDimensions {
   val PID_COL_WIDTH_DP = 55.dp
   val MANIFEST_CONFIG_COL_WIDTH_DP = 175.dp
 
+  // Common dropdown dimensions
+  val DROPDOWN_HORIZONTAL_PADDING_DP = 5.dp
+  val DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP = 7.5.dp
+
   // Device selection dropdown and restart buttons content padding
-  val DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP = 5.dp
-  val RESTART_ACTION_CONTENT_PADDING_DP = 5.dp
+  val DEVICE_SELECTION_DROPDOWN_VERTICAL_PADDING_DP = 10.dp
+  val DEVICE_SELECTION_HORIZONTAL_PADDING_DP = 10.dp
+  val DEVICE_SELECTION_VERTICAL_PADDING_DP = 5.dp
+  val DEVICE_SELECTION_TITLE_HORIZONTAL_SPACE_DP = 5.dp
 
   // Recording table dimension
   val RECORDING_TIME_COL_WIDTH_DP = 150.dp
   val RECORDING_TASKS_COL_WIDTH_DP = 200.dp
 
-  // Recording list actions bar content padding
-  val RECORDING_LIST_ACTIONS_BAR_CONTENT_PADDING_DP = 5.dp
-
   // Task action bar content padding.
   val TASK_ACTION_BAR_CONTENT_PADDING_DP = 5.dp
+  val TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP = 10.dp
 
   // Top bar dimensions
   val TOP_BAR_HEIGHT_DP = 30.dp

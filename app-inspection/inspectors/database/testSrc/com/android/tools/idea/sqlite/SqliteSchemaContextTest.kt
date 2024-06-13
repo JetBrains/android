@@ -54,7 +54,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
     val columns: List<SqliteColumn> =
       listOf(
         SqliteColumn("col1", SqliteAffinity.TEXT, true, false),
-        SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
+        SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
       )
     val table = SqliteTable("table", columns, null, false)
 
@@ -70,7 +70,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
     assertThat(androidSqlColumns)
       .containsExactly(
         SqliteSchemaColumn(columns[0].name, sqlFile, SqliteSchemaSqlType(columns[0].affinity.name)),
-        SqliteSchemaColumn(columns[1].name, sqlFile, SqliteSchemaSqlType(columns[1].affinity.name))
+        SqliteSchemaColumn(columns[1].name, sqlFile, SqliteSchemaSqlType(columns[1].affinity.name)),
       )
   }
 
@@ -96,7 +96,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
             "User",
             listOf(SqliteColumn("name", SqliteAffinity.TEXT, true, false)),
             null,
-            false
+            false,
           )
         )
       )
@@ -118,7 +118,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
             "User",
             listOf(SqliteColumn("name", SqliteAffinity.TEXT, true, false)),
             null,
-            false
+            false,
           )
         )
       )

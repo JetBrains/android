@@ -36,7 +36,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * This class also serves as a [ModificationTracker] which is incremented whenever data binding
  * and/or view binding is enabled / disabled for any module in the current project.
  */
-@Service
+@Service(Service.Level.PROJECT)
 class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTracker {
   companion object {
     @JvmStatic
@@ -80,10 +80,10 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
             facets,
             dataBindingTracker,
             viewBindingTracker,
-            moduleManager
+            moduleManager,
           )
         },
-        false
+        false,
       )
 
     dataBindingEnabledModules =
@@ -95,7 +95,7 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
             }
           CachedValueProvider.Result.create(facets, dataBindingTracker, moduleManager)
         },
-        false
+        false,
       )
 
     viewBindingEnabledModules =
@@ -105,7 +105,7 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
             allBindingEnabledModules.value.filter { facet -> facet.isViewBindingEnabled() }
           CachedValueProvider.Result.create(facets, viewBindingTracker, moduleManager)
         },
-        false
+        false,
       )
   }
 

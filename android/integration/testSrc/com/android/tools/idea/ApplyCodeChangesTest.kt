@@ -70,9 +70,7 @@ class ApplyCodeChangesTest {
           studio.waitForBuild()
           studio.executeAction("Run")
 
-          system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.applychanges",
-            60, TimeUnit.SECONDS)
+          studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.applychanges", 60, TimeUnit.SECONDS)
 
           println("Waiting for application startup")
           adb.runCommand("logcat") {

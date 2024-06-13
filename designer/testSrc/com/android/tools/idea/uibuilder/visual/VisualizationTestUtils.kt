@@ -28,7 +28,7 @@ import kotlin.test.assertNotNull
 
 class VisualizationTestToolWindowManager(
   private val project: Project,
-  private val disposableParent: Disposable
+  private val disposableParent: Disposable,
 ) : ToolWindowHeadlessManagerImpl(project) {
   private val idToToolWindow = mutableMapOf<String, ToolWindow>()
 
@@ -41,7 +41,7 @@ class VisualizationTestToolWindowManager(
       }
     assertNotNull(
       ep,
-      "Layout validation tool window (id = ${VisualizationToolWindowFactory.TOOL_WINDOW_ID}) is not registered as plugin"
+      "Layout validation tool window (id = ${VisualizationToolWindowFactory.TOOL_WINDOW_ID}) is not registered as plugin",
     )
 
     val factory = ep.getToolWindowFactory(ep.pluginDescriptor)

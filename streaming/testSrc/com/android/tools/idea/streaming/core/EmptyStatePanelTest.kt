@@ -33,6 +33,7 @@ import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
@@ -70,13 +71,14 @@ class EmptyStatePanelTest {
     get() = projectRule.disposable
   private val emptyStatePanel by lazy { createEmptyStatePanel() }
   private val ui by lazy { FakeUi(emptyStatePanel) }
-  private val emulatorPackage = FakeLocalPackage(SdkConstants.FD_EMULATOR).apply { setRevision(Revision(31, 3, 10)) }
+  private val emulatorPackage = FakeLocalPackage(SdkConstants.FD_EMULATOR).apply { setRevision(Revision(35, 1, 3)) }
   private val executedActions = mutableListOf<String>()
 
   @Before
   fun setUp() {
     val mockActionManager = mock<ActionManagerEx>()
     whenever(mockActionManager.getAction(any())).thenAnswer { TestAction(it.getArgument(0)) }
+    whenever(mockActionManager.performWithActionCallbacks(any(), any(), any<Runnable>())).then { it.getArgument<Runnable>(2).run() }
     ApplicationManager.getApplication().replaceService(ActionManager::class.java, mockActionManager, testRootDisposable)
 
     val repoManager = FakeRepoManager(RepositoryPackages(listOf(emulatorPackage), emptyList()))
@@ -107,17 +109,17 @@ class EmptyStatePanelTest {
     assertThat(htmlComponent.normalizedText).contains(
         "To mirror a physical device, connect it via USB cable or over WiFi, click" +
         " <font color=\"6c707e\" size=\"+1\"><b>&#65291;</b></font> and select the device from the list." +
-        " You may also select the <i>Activate mirroring when a new physical device is connected</i> option in the" +
+        " You may also select the <b>Activate mirroring when a new physical device is connected</b> option in the" +
         " <font color=\"589df6\"><a href=\"DeviceMirroringSettings\">Device Mirroring settings</a></font>.")
   }
 
   @Test
   fun testEmulatorTooOld() {
     EmulatorSettings.getInstance().launchInToolWindow = true
-    emulatorPackage.setRevision(Revision(30, 6))
+    emulatorPackage.setRevision(Revision(35, 1, 2))
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains(
-        "To launch virtual devices in this window, install Android Emulator 31.3.10 or higher." +
+        "To launch virtual devices in this window, install Android Emulator 35.1.3 or higher." +
         " Please <font color=\"589df6\"><a href=\"CheckForUpdate\">check for updates</a></font>" +
         " and install the latest version of the Android Emulator.")
     htmlComponent.clickOnHyperlink("CheckForUpdate")
@@ -142,7 +144,7 @@ class EmptyStatePanelTest {
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains(
         "To launch a virtual device, click <font color=\"6c707e\" size=\"+1\"><b>&#65291;</b></font> and select a virtual device," +
-        " or select the <i>Launch in the Running Devices tool window</i> option in the" +
+        " or select the <b>Launch in the Running Devices tool window</b> option in the" +
         " <font color=\"589df6\"><a href=\"EmulatorSettings\">Emulator settings</a></font>" +
         " and use the <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>.")
   }

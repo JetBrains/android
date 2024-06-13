@@ -82,7 +82,7 @@ interface SnapshotLoader {
     file: Path,
     model: InspectorModel,
     notificationModel: NotificationModel,
-    stats: SessionStatistics
+    stats: SessionStatistics,
   ): SnapshotMetadata?
 
   companion object {
@@ -109,7 +109,7 @@ enum class ProtocolVersion(val value: String) {
   Version1("1"), // Legacy layout inspector
   Version2("2"), // Legacy version that was never implemented
   Version3("3"), // new inspector for API <= 28
-  Version4("4") // Live layout inspector for API >= 29
+  Version4("4"), // Live layout inspector for API >= 29
 }
 
 private const val VERSION = "version"
@@ -117,7 +117,7 @@ private const val TITLE = "title"
 
 class LayoutInspectorCaptureOptions(
   var version: ProtocolVersion = ProtocolVersion.Version1,
-  var title: String = ""
+  var title: String = "",
 ) {
 
   override fun toString(): String {

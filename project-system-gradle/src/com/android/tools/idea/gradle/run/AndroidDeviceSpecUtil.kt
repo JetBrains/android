@@ -21,6 +21,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.AndroidDeviceSpec
 import com.google.common.collect.Ordering
@@ -69,7 +70,8 @@ const val DEVICE_SPEC_TIMEOUT_SECONDS = 10L
 fun createSpec(
   devices: List<AndroidDevice>,
   timeout: Long = DEVICE_SPEC_TIMEOUT_SECONDS,
-  unit: TimeUnit = TimeUnit.SECONDS
+  unit: TimeUnit = TimeUnit.SECONDS,
+  notification: (title: String, message: String) -> Unit = { _, _ -> }
 ): AndroidDeviceSpec? {
   if (devices.isEmpty()) {
     return null
@@ -97,15 +99,25 @@ fun createSpec(
       density = Density.create(device.density)
     }
 
-    // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
-    abis = device.abis.map { it.toString() }
+    val preferredAbi = device.appPreferredAbi
+    abis = if (StudioFlags.RISC_V.get() && preferredAbi != null) {
+      listOf(preferredAbi)
+    }
+    else {
+      // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
+      device.abis.map { it.toString() }
+    }
     log.info("Creating spec for " + device.name + " with ABIs: " + abis.ifEmpty { "<none specified>" })
   }
   else {
+    if (StudioFlags.RISC_V.get() &&
+        devices.any { device -> device.appPreferredAbi != null && device.abis.size > 1 }) {
+      notification.invoke("Preferred ABI", "Preferred ABI may not be respected when building for multiple devices.")
+    }
     log.info("Creating spec for multiple devices")
   }
 
-  val deviceSerials = devices.map { it.serial }
+  val deviceSerials = devices.mapNotNull { if (it.isRunning) it.launchedDevice.get().serialNumber else null }
   val allDevicesSupportSdkRuntime =  devices.all { it.supportsSdkRuntime }
   if (allDevicesSupportSdkRuntime) {
     log.info("Creating spec for privacy sandbox enabled device.")
@@ -214,19 +226,6 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer, mo
     }
     writer.endObject()
   }
-}
-
-fun IDevice.createSpec(): AndroidDeviceSpec {
-  return AndroidDeviceSpecImpl(
-    version,
-    version,
-    Density.create(density),
-    abis,
-    supportsSdkRuntimeProvider =  {
-      services().containsKey("sdk_sandbox") && version.isGreaterOrEqualThan(34)
-    },
-    languagesProvider = { getLanguages(Duration.ofSeconds(DEVICE_SPEC_TIMEOUT_SECONDS)).sorted() }
-  )
 }
 
 private val log: Logger

@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.isAndroidTestModule
@@ -194,7 +195,8 @@ class FacetFinderTest {
     val sourceProviderManager = SourceProviderManager.getInstance(facet)
     val sourceProviders = when {
       module.isMainModule() -> sourceProviderManager.currentSourceProviders
-      module.isAndroidTestModule() -> sourceProviderManager.currentAndroidTestSourceProviders
+      module.isAndroidTestModule() -> sourceProviderManager.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST] ?:
+                                      throw IllegalArgumentException("expected module to be main or androidTest")
       else -> throw IllegalArgumentException("expected module to be main or androidTest")
     }
     val sourceProvider =

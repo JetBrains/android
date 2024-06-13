@@ -16,6 +16,7 @@
 package com.android.tools.profilers.tasks
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
@@ -35,18 +36,26 @@ object ProfilerTaskLauncher {
    */
   @JvmStatic
   fun launchProfilerTask(selectedTaskType: ProfilerTaskType,
+                         isStartupTask: Boolean,
                          taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
                          session: Common.Session,
                          sessionIdToSessionItems: Map<Long, SessionItem>,
-                         openTaskTab: BiConsumer<ProfilerTaskType, TaskArgs?>) {
+                         openTaskTab: BiConsumer<ProfilerTaskType, TaskArgs>,
+                         ideProfilerServices: IdeProfilerServices) {
     if (!taskHandlers.containsKey(selectedTaskType)) {
       getLogger().error("The task type, " + selectedTaskType.description + ", " + "does not have a corresponding task handler.")
       return
     }
+
     val taskHandler: ProfilerTaskHandler = taskHandlers[selectedTaskType]!!
-    // Construct the args using the selected tasks task handler implementation of TaskArgs creation.
-    val args = taskHandler.createArgs(sessionIdToSessionItems, session)
-    // Open the task tab with the selected task and constructed task arguments.
-    openTaskTab.accept(selectedTaskType, args)
+    try {
+      // Construct the args using the selected tasks task handler implementation of TaskArgs creation.
+      val args = taskHandler.createArgs(isStartupTask, sessionIdToSessionItems, session)
+      // Open the task tab with the selected task and constructed task arguments.
+      openTaskTab.accept(selectedTaskType, args)
+    }
+    catch (e: Exception) {
+      ideProfilerServices.openErrorDialog("There was an error launching the task.", "Task Launch Error")
+    }
   }
 }

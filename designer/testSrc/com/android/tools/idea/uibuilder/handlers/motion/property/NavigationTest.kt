@@ -81,7 +81,7 @@ class NavigationTest {
       CONSTRAINTSET,
       SCENE_FILE,
       67,
-      "<ConstraintSet android:id=\"@+id/base\">"
+      "<ConstraintSet android:id=\"@+id/base\">",
     )
   }
 
@@ -94,7 +94,7 @@ class NavigationTest {
       CONSTRAINT,
       SCENE_FILE,
       11,
-      "android:layout_width=\"64dp\""
+      "android:layout_width=\"64dp\"",
     )
     check(
       ANDROID_URI,
@@ -102,7 +102,7 @@ class NavigationTest {
       CONSTRAINT,
       SCENE_FILE,
       12,
-      "android:layout_height=\"64dp\""
+      "android:layout_height=\"64dp\"",
     )
     check(
       "",
@@ -110,7 +110,7 @@ class NavigationTest {
       CUSTOM_ATTRIBUTE,
       SCENE_FILE,
       29,
-      "motion:customPixelDimension=\"2sp\"/>"
+      "motion:customPixelDimension=\"2sp\"/>",
     )
   }
 
@@ -123,7 +123,7 @@ class NavigationTest {
       CONSTRAINT,
       SCENE_FILE,
       71,
-      "android:layout_width=\"100dp\""
+      "android:layout_width=\"100dp\"",
     )
     check(
       ANDROID_URI,
@@ -131,7 +131,7 @@ class NavigationTest {
       CONSTRAINT,
       SCENE_FILE,
       72,
-      "android:layout_height=\"100dp\""
+      "android:layout_height=\"100dp\"",
     )
   }
 
@@ -145,7 +145,7 @@ class NavigationTest {
       CONSTRAINT,
       LAYOUT_FILE,
       42,
-      "android:layout_width=\"32dp\""
+      "android:layout_width=\"32dp\"",
     )
     check(
       ANDROID_URI,
@@ -153,7 +153,7 @@ class NavigationTest {
       CONSTRAINT,
       LAYOUT_FILE,
       43,
-      "android:layout_height=\"10dp\""
+      "android:layout_height=\"10dp\"",
     )
     check(
       "",
@@ -161,7 +161,7 @@ class NavigationTest {
       CUSTOM_ATTRIBUTE,
       SCENE_FILE,
       95,
-      "motion:customPixelDimension=\"2sp\"/>"
+      "motion:customPixelDimension=\"2sp\"/>",
     )
   }
 
@@ -174,7 +174,7 @@ class NavigationTest {
       CONSTRAINT,
       LAYOUT_FILE,
       11,
-      "android:layout_width=\"32dp\""
+      "android:layout_width=\"32dp\"",
     )
     check(
       ANDROID_URI,
@@ -182,7 +182,7 @@ class NavigationTest {
       CONSTRAINT,
       LAYOUT_FILE,
       12,
-      "android:layout_height=\"32dp\""
+      "android:layout_height=\"32dp\"",
     )
   }
 
@@ -196,7 +196,7 @@ class NavigationTest {
       LAYOUT,
       SCENE_FILE,
       35,
-      "android:layout_height=\"1dp\"/>"
+      "android:layout_height=\"1dp\"/>",
     )
     check(AUTO_URI, MOTION_MOTION_STAGGER, MOTION, SCENE_FILE, 91, "motion:motionStagger=\"1\"")
     check(
@@ -205,7 +205,7 @@ class NavigationTest {
       MOTION,
       SCENE_FILE,
       92,
-      "motion:pathMotionArc=\"startHorizontal\"/>"
+      "motion:pathMotionArc=\"startHorizontal\"/>",
     )
     check(ANDROID_URI, ATTR_ALPHA, PROPERTY_SET, LAYOUT_FILE, 45, "android:alpha=\"0.7\"")
   }
@@ -220,7 +220,7 @@ class NavigationTest {
       TRANSITION,
       SCENE_FILE,
       104,
-      "motion:motionInterpolator=\"linear\">"
+      "motion:motionInterpolator=\"linear\">",
     )
     check(
       AUTO_URI,
@@ -228,7 +228,7 @@ class NavigationTest {
       ON_CLICK,
       SCENE_FILE,
       106,
-      "<OnClick motion:targetId=\"@+id/run\"/>"
+      "<OnClick motion:targetId=\"@+id/run\"/>",
     )
     check(
       AUTO_URI,
@@ -236,7 +236,7 @@ class NavigationTest {
       ON_SWIPE,
       SCENE_FILE,
       109,
-      "motion:dragDirection=\"dragRight\""
+      "motion:dragDirection=\"dragRight\"",
     )
   }
 
@@ -249,7 +249,7 @@ class NavigationTest {
       KEY_POSITION,
       SCENE_FILE,
       117,
-      "motion:pathMotionArc=\"flip\""
+      "motion:pathMotionArc=\"flip\"",
     )
     check(AUTO_URI, "percentX", KEY_POSITION, SCENE_FILE, 120, "motion:percentX=\"0.7\"")
   }
@@ -263,7 +263,7 @@ class NavigationTest {
       KEY_ATTRIBUTE,
       SCENE_FILE,
       151,
-      "android:rotation=\"1\""
+      "android:rotation=\"1\"",
     )
     check(
       "",
@@ -271,7 +271,7 @@ class NavigationTest {
       CUSTOM_ATTRIBUTE,
       SCENE_FILE,
       156,
-      "motion:customPixelDimension=\"2sp\"/>"
+      "motion:customPixelDimension=\"2sp\"/>",
     )
   }
 
@@ -284,7 +284,7 @@ class NavigationTest {
       KEY_CYCLE,
       SCENE_FILE,
       159,
-      "motion:transitionPathRotate=\"1.5\""
+      "motion:transitionPathRotate=\"1.5\"",
     )
     check("", ATTR_PIVOT_X, CUSTOM_ATTRIBUTE, SCENE_FILE, 164, "motion:customFloatValue=\".3\"/>")
   }
@@ -298,7 +298,7 @@ class NavigationTest {
       KEY_TIME_CYCLE,
       SCENE_FILE,
       167,
-      "motion:transitionPathRotate=\"1.5\""
+      "motion:transitionPathRotate=\"1.5\"",
     )
     check("", ATTR_PIVOT_X, CUSTOM_ATTRIBUTE, SCENE_FILE, 172, "motion:customFloatValue=\".7\"/>")
   }
@@ -309,7 +309,7 @@ class NavigationTest {
     section: String,
     expectedFile: String,
     expectedLine: Int,
-    expectedText: String
+    expectedText: String,
   ) {
     Navigation.browseToValue(motionRule.property(namespace, name, section))
     motionRule.checkEditor(expectedFile, expectedLine, expectedText)

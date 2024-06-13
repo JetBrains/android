@@ -4,9 +4,9 @@
     android:layout_height="match_parent">
 
     <fragment
+        android:id="@+id/TODO"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:name="android.app.ListFragment"
-        android:id="@+id/TODO" />
+        android:name="android.app.ListFragment"/>
 
 </LinearLayout>

@@ -30,6 +30,7 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.kotlin.psi.KtElement
 
 class RemoveImplementationPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
@@ -154,14 +155,18 @@ enum class ModuleKind(val implementationProperties: GradleBuildModel.() -> List<
     }),
   DYNAMIC_FEATURE(
     {
-      listOf(
+      // TODO(b/327396128): as and when the behaviour of consumerProguardFiles in dynamic-feature modules is changed, either
+      //  continue doing this or do something different (possibly even a different processor).  If possible, remove the
+      //  Kotlin Script-specific nature of this test (and the Kotlin studio plugin from this module's dependencies.
+      fun GradlePropertyModel.isKotlinScript() = psiElement is KtElement
+      listOfNotNull(
         android().aidlPackagedList(),
         android().assetPacks(),
         android().dynamicFeatures(),
         android().targetProjectPath(),
         android().defaultConfig().applicationId(),
         android().defaultConfig().applicationIdSuffix(),
-        android().defaultConfig().consumerProguardFiles(),
+        android().defaultConfig().consumerProguardFiles().takeIf(GradlePropertyModel::isKotlinScript),
         android().defaultConfig().dimension(),
         android().defaultConfig().maxSdkVersion(),
         android().defaultConfig().multiDexEnabled(),
@@ -171,19 +176,19 @@ enum class ModuleKind(val implementationProperties: GradleBuildModel.() -> List<
         android().defaultConfig().versionNameSuffix()
       ) +
       android().buildTypes().flatMap {
-        listOf(
+        listOfNotNull(
           it.debuggable(),
           it.isDefault(),
           it.embedMicroApp(),
-          it.consumerProguardFiles(),
+          it.consumerProguardFiles().takeIf(GradlePropertyModel::isKotlinScript),
           it.applicationIdSuffix(),
           it.versionNameSuffix()
         )
       } +
       android().productFlavors().flatMap {
-        listOf(
+        listOfNotNull(
           it.isDefault(),
-          it.consumerProguardFiles(),
+          it.consumerProguardFiles().takeIf(GradlePropertyModel::isKotlinScript),
           it.applicationId(),
           it.applicationIdSuffix(),
           it.multiDexEnabled(),

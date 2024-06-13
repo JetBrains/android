@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.fonts.ProjectFonts
 import com.android.tools.idea.fonts.MoreFontsDialog
+import com.android.tools.idea.fonts.StudioDownloadableFontCacheService
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumSupport
@@ -36,7 +37,11 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class FontEnumSupport(private val facet: AndroidFacet, private val resolver: ResourceResolver?) :
   EnumSupport {
-  private val projectFonts = ProjectFonts(StudioResourceRepositoryManager.getInstance(facet))
+  private val projectFonts =
+    ProjectFonts(
+      StudioDownloadableFontCacheService.getInstance(),
+      StudioResourceRepositoryManager.getInstance(facet),
+    )
 
   override val values: List<EnumValue>
     get() {

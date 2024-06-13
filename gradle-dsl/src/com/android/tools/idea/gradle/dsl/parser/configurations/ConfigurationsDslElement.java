@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.configurations;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
@@ -27,7 +28,10 @@ public class ConfigurationsDslElement extends GradleDslBlockElement implements G
     new PropertiesElementDescription<>("configurations", ConfigurationsDslElement.class, ConfigurationsDslElement::new);
 
   @Override
-  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+  public PropertiesElementDescription getChildPropertiesElementDescription(
+    GradleDslNameConverter converter,
+    String name
+  ) {
     return ConfigurationDslElement.CONFIGURATION;
   }
 

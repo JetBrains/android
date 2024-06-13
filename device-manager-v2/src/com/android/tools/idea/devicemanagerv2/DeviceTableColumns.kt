@@ -56,14 +56,14 @@ internal object DeviceTableColumns {
     LabelColumn<DeviceRowData>(
       DeviceManagerBundle.message("column.title.api"),
       Column.SizeConstraint(min = 20, max = 65),
-      stringAttribute { it.androidVersion?.apiStringWithExtension ?: "" }
+      stringAttribute { it.androidVersion?.apiStringWithExtension ?: "" },
     )
 
   object HandleType :
     LabelColumn<DeviceRowData>(
       DeviceManagerBundle.message("column.title.handletype"),
       Column.SizeConstraint(min = 20, max = 80),
-      stringAttribute { it.handleType.toString() }
+      stringAttribute { it.handleType.toString() },
     )
 
   object Status : Column<DeviceRowData, DeviceRowData.Status, IconLabel> {
@@ -83,7 +83,7 @@ internal object DeviceTableColumns {
     override fun updateValue(
       rowValue: DeviceRowData,
       component: IconLabel,
-      value: DeviceRowData.Status
+      value: DeviceRowData.Status,
     ) {
       component.baseIcon =
         when {
@@ -125,7 +125,7 @@ internal object DeviceTableColumns {
 
     override fun installMouseDelegate(
       component: ActionButtonsPanel,
-      mouseDelegate: DelegateMouseEventHandler
+      mouseDelegate: DelegateMouseEventHandler,
     ) {
       // Install the mouse handler on each child of the panel
       component.components.forEach { mouseDelegate.installListenerOn(it) }

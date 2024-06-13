@@ -24,6 +24,7 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationModelModule;
+import com.android.tools.idea.configurations.ConfigurationFileUtil;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.android.tools.idea.configurations.StudioConfigurationModelModule;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
@@ -33,6 +34,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -88,7 +90,8 @@ public class LocaleMenuAction extends DropDownAction {
 
         VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, null, locale, null);
         if (better != null) {
-          title = ConfigurationAction.getBetterMatchLabel(Locale.getLocaleLabel(locale, true), better, configuration.getFile());
+          VirtualFile file = ConfigurationFileUtil.getVirtualFile(configuration);
+          title = ConfigurationAction.getBetterMatchLabel(Locale.getLocaleLabel(locale, true), better, file);
         }
 
         add(new SetLocaleAction(title, locale, currentLocalLabel.equals(title)));
@@ -141,7 +144,8 @@ public class LocaleMenuAction extends DropDownAction {
     // only lock down this layout to the current locale if the layout only exists for this
     // locale.
     if (specificLocale != null) {
-      List<VirtualFile> variations = IdeResourcesUtil.getResourceVariations(configuration.getFile(), false);
+      VirtualFile file = ConfigurationFileUtil.getVirtualFile(configuration);
+      List<VirtualFile> variations = IdeResourcesUtil.getResourceVariations(file, false);
       for (VirtualFile variation : variations) {
         FolderConfiguration config = FolderConfiguration.getConfigForFolder(variation.getParent().getName());
         if (config != null && config.getLocaleQualifier() == null) {
@@ -168,6 +172,11 @@ public class LocaleMenuAction extends DropDownAction {
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
     updatePresentation(e);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   private void updatePresentation(@NotNull AnActionEvent e) {
@@ -217,6 +226,11 @@ public class LocaleMenuAction extends DropDownAction {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+
+    @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       super.actionPerformed(event);
       updateActions(event.getDataContext());
@@ -249,7 +263,7 @@ public class LocaleMenuAction extends DropDownAction {
     }
   }
 
-  private class EditTranslationAction extends AnAction {
+  private static class EditTranslationAction extends AnAction {
 
     public EditTranslationAction() {
       super("Edit Translations...", null, null);

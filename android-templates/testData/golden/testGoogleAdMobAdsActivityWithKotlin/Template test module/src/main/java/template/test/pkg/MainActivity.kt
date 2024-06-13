@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         MobileAds.initialize(
-                this
+            this
         ) { }
         // Load the InterstitialAd and set the adUnitId (defined in values/strings.xml).
         loadInterstitialAd()
@@ -68,66 +68,66 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem) =
-            when (item.itemId) {
-                R.id.action_settings -> true
-                else -> super.onOptionsItemSelected(item)
-            }
+        when (item.itemId) {
+            R.id.action_settings -> true
+            else -> super.onOptionsItemSelected(item)
+        }
 
     private fun loadInterstitialAd() {
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(this, getString(R.string.interstitial_ad_unit_id), adRequest,
-                object : InterstitialAdLoadCallback() {
-                    override fun onAdLoaded(ad: InterstitialAd) {
-                        // The interstitialAd reference will be null until
-                        // an ad is loaded.
-                        interstitialAd = ad
-                        nextLevelButton.setEnabled(true)
-                        Toast.makeText(this@MainActivity, "onAdLoaded()", Toast.LENGTH_SHORT)
-                                .show()
-                        ad.setFullScreenContentCallback(
-                                object : FullScreenContentCallback() {
-                                    override fun onAdDismissedFullScreenContent() {
-                                        // Called when fullscreen content is dismissed.
-                                        // Make sure to set your reference to null so you don't
-                                        // show it a second time.
-                                        interstitialAd = null
-                                        Log.d(TAG, "The ad was dismissed.")
-                                    }
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(ad: InterstitialAd) {
+                    // The interstitialAd reference will be null until
+                    // an ad is loaded.
+                    interstitialAd = ad
+                    nextLevelButton.setEnabled(true)
+                    Toast.makeText(this@MainActivity, "onAdLoaded()", Toast.LENGTH_SHORT)
+                        .show()
+                    ad.setFullScreenContentCallback(
+                        object : FullScreenContentCallback() {
+                            override fun onAdDismissedFullScreenContent() {
+                                // Called when fullscreen content is dismissed.
+                                // Make sure to set your reference to null so you don't
+                                // show it a second time.
+                                interstitialAd = null
+                                Log.d(TAG, "The ad was dismissed.")
+                            }
 
-                                    override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                                        // Called when fullscreen content failed to show.
-                                        // Make sure to set your reference to null so you don't
-                                        // show it a second time.
-                                        interstitialAd = null
-                                        Log.d(TAG, "The ad failed to show.")
-                                    }
+                            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                                // Called when fullscreen content failed to show.
+                                // Make sure to set your reference to null so you don't
+                                // show it a second time.
+                                interstitialAd = null
+                                Log.d(TAG, "The ad failed to show.")
+                            }
 
-                                    override fun onAdShowedFullScreenContent() {
-                                        // Called when fullscreen content is shown.
-                                        Log.d(TAG, "The ad was shown.")
-                                    }
-                                })
-                    }
+                            override fun onAdShowedFullScreenContent() {
+                                // Called when fullscreen content is shown.
+                                Log.d(TAG, "The ad was shown.")
+                            }
+                        })
+                }
 
-                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                        // Handle the error
-                        Log.i(TAG, loadAdError.message)
-                        interstitialAd = null
-                        nextLevelButton.setEnabled(true)
-                        val error: String = String.format(
-                                Locale.ENGLISH,
-                                "domain: %s, code: %d, message: %s",
-                                loadAdError.domain,
-                                loadAdError.code,
-                                loadAdError.message
-                        )
-                        Toast.makeText(
-                                this@MainActivity,
-                                "onAdFailedToLoad() with error: $error", Toast.LENGTH_SHORT
-                        )
-                                .show()
-                    }
-                })
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    // Handle the error
+                    Log.i(TAG, loadAdError.message)
+                    interstitialAd = null
+                    nextLevelButton.setEnabled(true)
+                    val error: String = String.format(
+                        Locale.ENGLISH,
+                        "domain: %s, code: %d, message: %s",
+                        loadAdError.domain,
+                        loadAdError.code,
+                        loadAdError.message
+                    )
+                    Toast.makeText(
+                        this@MainActivity,
+                        "onAdFailedToLoad() with error: $error", Toast.LENGTH_SHORT
+                    )
+                        .show()
+                }
+            })
     }
 
     private fun showInterstitial() {

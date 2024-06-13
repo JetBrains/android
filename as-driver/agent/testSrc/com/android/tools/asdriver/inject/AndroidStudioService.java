@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -47,8 +48,10 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -58,6 +61,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.platform.backend.observation.Observation;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -79,6 +83,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import kotlin.Unit;
+import kotlin.coroutines.EmptyCoroutineContext;
+import kotlinx.coroutines.BuildersKt;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
@@ -160,27 +167,40 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   @Override
   public void executeAction(ASDriver.ExecuteActionRequest request, StreamObserver<ASDriver.ExecuteActionResponse> responseObserver) {
     ASDriver.ExecuteActionResponse.Builder builder = ASDriver.ExecuteActionResponse.newBuilder();
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      AnAction action = ActionManager.getInstance().getAction(request.getActionId());
-      if (action == null) {
-        builder.setResult(ASDriver.ExecuteActionResponse.Result.ACTION_NOT_FOUND);
-        return;
-      }
+    builder.setResult(ASDriver.ExecuteActionResponse.Result.ERROR);
 
-      String projectName = request.hasProjectName() ? request.getProjectName() : null;
-      DataContext dataContext = getDataContext(projectName, request.getDataContextSource());
-      if (dataContext == null) {
-        String errorMessage = "Could not get a DataContext for executeAction.";
-        System.err.println(errorMessage);
-        builder.setErrorMessage(errorMessage);
-        builder.setResult(ASDriver.ExecuteActionResponse.Result.ERROR);
-      }
-      else {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      @Nullable String errorMessage = null;
+      try {
+        AnAction action = ActionManager.getInstance().getAction(request.getActionId());
+        if (action == null) {
+          builder.setResult(ASDriver.ExecuteActionResponse.Result.ACTION_NOT_FOUND);
+          return;
+        }
+
+        String projectName = request.hasProjectName() ? request.getProjectName() : null;
+        DataContext dataContext = getDataContext(projectName, request.getDataContextSource());
+        if (dataContext == null) {
+          errorMessage = "Could not get a DataContext for executeAction.";
+          return;
+        }
+
         AnActionEvent event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, dataContext);
         ActionUtil.performActionDumbAwareWithCallbacks(action, event);
         builder.setResult(ASDriver.ExecuteActionResponse.Result.OK);
+      } catch (Exception e) {
+        e.printStackTrace();
+        if (!StringUtil.isEmpty(e.getMessage())) {
+          errorMessage = e.getMessage();
+        }
+      } finally {
+        if (!StringUtil.isEmpty(errorMessage)) {
+          System.err.println(errorMessage);
+          builder.setErrorMessage(errorMessage);
+        }
       }
     });
+
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
@@ -250,10 +270,10 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         // the editor has to be showing or else performDumbAwareWithCallbacks will suppress the action.
         //
         // ...so by default, we create our own DataContext rather than getting one from a component.
-        MapDataContext dataContext = new MapDataContext();
-        dataContext.put(CommonDataKeys.PROJECT, projectForContext);
-        dataContext.put(CommonDataKeys.EDITOR, selectedTextEditor);
-        return dataContext;
+        return SimpleDataContext.builder()
+          .add(CommonDataKeys.PROJECT, projectForContext)
+          .add(CommonDataKeys.EDITOR, selectedTextEditor)
+          .build();
       }
       default -> throw new IllegalArgumentException("Invalid DataContextSource provided with ExecuteActionRequest.");
     }
@@ -308,6 +328,10 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       Project[] projects = ProjectManager.getInstance().getOpenProjects();
       CountDownLatch latch = new CountDownLatch(projects.length);
       for (Project p : projects) {
+        // TODO(b/315365181): waiting for smart mode is insufficient because the IDE may enter smart mode while still scanning for
+        //  files to index (see https://youtrack.jetbrains.com/issue/IJPL-50). So, we call Observation.awaitConfiguration() to wait
+        //  for file scanning to finish too. More investigated is needed to determine whether this is the right solution.
+        awaitProjectConfiguration(p);
         DumbService.getInstance(p).smartInvokeLater(latch::countDown);
       }
       latch.await();
@@ -316,6 +340,20 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     }
     responseObserver.onNext(ASDriver.WaitForIndexResponse.newBuilder().build());
     responseObserver.onCompleted();
+  }
+
+  private void awaitProjectConfiguration(Project project) throws InterruptedException {
+    // Note: Observation.awaitConfiguration() is a Kotlin suspend function, hence the strange code below to call it from Java.
+    BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE, (scope, continuation) -> {
+      return Observation.INSTANCE.awaitConfiguration(
+        project,
+        progressMessage -> {
+          System.out.println(progressMessage);
+          return Unit.INSTANCE;
+        },
+        continuation
+      );
+    });
   }
 
   private Project findProjectByName(String projectName) {
@@ -593,6 +631,76 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
 
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
+  }
+
+  @Override
+  public void moveCaret(ASDriver.MoveCaretRequest request, StreamObserver<ASDriver.MoveCaretResponse> responseObserver) {
+    ASDriver.MoveCaretResponse.Builder builder = ASDriver.MoveCaretResponse.newBuilder();
+    builder.setResult(ASDriver.MoveCaretResponse.Result.ERROR);
+
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      @Nullable String errorMessage = null;
+      try {
+        Project project = getSingleProject();
+        FileEditor selectedEditor = FileEditorManager.getInstance(project).getSelectedEditor();
+        if (selectedEditor == null) {
+          errorMessage = "Selected editor not found.";
+          return;
+        }
+
+        if (!(selectedEditor instanceof TextEditor textEditor)) {
+          errorMessage = "Open editor is not a TextEditor";
+          return;
+        }
+
+        int offset = offsetForWindow(textEditor.getEditor().getDocument().getText(), request.getWindow());
+        if (offset == -1) {
+          errorMessage = "Offset not found in open document.";
+          return;
+        }
+
+        CaretModel caretModel = textEditor.getEditor().getCaretModel();
+        caretModel.moveToOffset(offset);
+
+        builder.setResult(ASDriver.MoveCaretResponse.Result.OK);
+      } catch (Exception e) {
+        e.printStackTrace();
+        if (!StringUtil.isEmpty(e.getMessage())) {
+          errorMessage = e.getMessage();
+        }
+      } finally {
+        if (!StringUtil.isEmpty(errorMessage)) {
+          System.err.println(errorMessage);
+          builder.setErrorMessage(errorMessage);
+        }
+      }
+    });
+
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  /**
+   * Find the offset for a given window within a text string.
+   *
+   * @param documentText the string in which to search.
+   * @param window the string indicating the offset to be found. The string needs to contain a `|` character surrounded by a prefix and/or
+   *               suffix. The text is searched for the concatenation of prefix and suffix strings and the position of `|` for the first
+   *               match is returned.
+   */
+  private int offsetForWindow(String documentText, String window) {
+    int delta = window.indexOf('|');
+    if (delta == -1) {
+      return -1;
+    }
+
+    String target = window.substring(0, delta) + window.substring(delta + 1);
+    int start = documentText.indexOf(target);
+    if (start == -1) {
+      return -1;
+    }
+
+    return start + delta;
   }
 
   @Override

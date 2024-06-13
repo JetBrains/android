@@ -49,7 +49,7 @@ class ReferencePointScrollerTest {
         oldMousePosition,
         oldScale = 1.0,
         newScale = 2.0,
-        mapOf(sceneViewMock to oldSceneViewRectangle)
+        mapOf(sceneViewMock to oldSceneViewRectangle),
       ) {
         newSceneViewRectangle
       }
@@ -79,7 +79,7 @@ class ReferencePointScrollerTest {
         oldMousePosition,
         oldScale = 1.0,
         newScale = 2.0,
-        mapOf(sceneViewMock to null)
+        mapOf(sceneViewMock to null),
       ) {
         null
       }
@@ -111,7 +111,7 @@ class ReferencePointScrollerTest {
         oldMousePosition,
         oldScale = 1.0,
         newScale = 2.0,
-        mapOf(sceneViewMock to oldSceneViewRectangle)
+        mapOf(sceneViewMock to oldSceneViewRectangle),
       ) {
         newSceneViewRectangle
       }
@@ -143,7 +143,7 @@ class ReferencePointScrollerTest {
         oldMousePosition,
         oldScale = 2.0,
         newScale = 1.0,
-        mapOf(sceneViewMock to oldSceneViewRectangle)
+        mapOf(sceneViewMock to oldSceneViewRectangle),
       ) {
         newSceneViewRectangle
       }
@@ -173,7 +173,7 @@ class ReferencePointScrollerTest {
         oldMousePosition,
         oldScale = 2.0,
         newScale = 1.0,
-        mapOf(sceneViewMock to null)
+        mapOf(sceneViewMock to null),
       ) {
         null
       }
@@ -205,7 +205,7 @@ class ReferencePointScrollerTest {
         oldMousePosition,
         oldScale = 2.0,
         newScale = 1.0,
-        mapOf(sceneViewMock to oldSceneViewRectangle)
+        mapOf(sceneViewMock to oldSceneViewRectangle),
       ) {
         newSceneViewRectangle
       }

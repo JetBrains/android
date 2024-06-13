@@ -28,7 +28,7 @@ class AnimatedPropertyItem(
   name: String,
   defaultValue: String?,
   inputValidation: EditingValidation = { EDITOR_NO_ERROR },
-  override val namespace: String
+  override val namespace: String,
 ) : MemoryParameterPropertyItem(name, defaultValue, inputValidation) {
 
   override var value: String? = defaultValue

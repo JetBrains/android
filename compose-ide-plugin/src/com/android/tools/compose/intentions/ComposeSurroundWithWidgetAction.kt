@@ -58,7 +58,7 @@ class ComposeSurroundWithWidgetActionGroup :
     listOf(
       ComposeSurroundWithBoxAction(),
       ComposeSurroundWithRowAction(),
-      ComposeSurroundWithColumnAction()
+      ComposeSurroundWithColumnAction(),
     )
   ) {
   override fun getGroupText(actions: List<ComposeSurroundWithWidgetAction>) =
@@ -69,7 +69,7 @@ class ComposeSurroundWithWidgetActionGroup :
     editor: Editor,
     file: PsiFile,
     actions: List<ComposeSurroundWithWidgetAction>,
-    invokeAction: (ComposeSurroundWithWidgetAction) -> Unit
+    invokeAction: (ComposeSurroundWithWidgetAction) -> Unit,
   ) {
     createPopup(project, actions, invokeAction).showInBestPositionFor(editor)
   }
@@ -77,7 +77,7 @@ class ComposeSurroundWithWidgetActionGroup :
   private fun createPopup(
     project: Project,
     actions: List<ComposeSurroundWithWidgetAction>,
-    invokeAction: (ComposeSurroundWithWidgetAction) -> Unit
+    invokeAction: (ComposeSurroundWithWidgetAction) -> Unit,
   ): ListPopup {
 
     val step =
@@ -86,7 +86,7 @@ class ComposeSurroundWithWidgetActionGroup :
 
         override fun onChosen(
           selectedValue: ComposeSurroundWithWidgetAction,
-          finalChoice: Boolean
+          finalChoice: Boolean,
         ): PopupStep<*>? {
           invokeAction(selectedValue)
           return FINAL_CHOICE
@@ -109,7 +109,7 @@ private fun PsiFile.findParentCallExpression(offset: Int): PsiElement? =
     offset,
     KtCallExpression::class.java,
     false,
-    KtNamedFunction::class.java
+    KtNamedFunction::class.java,
   )
 
 /**
@@ -156,7 +156,7 @@ fun findSurroundingSelectionRange(file: PsiFile, editor: Editor): TextRange? {
         file,
         minOf(editor.selectionModel.selectionStart, startSelectionOffset),
         maxOf(editor.selectionModel.selectionEnd, endSelectionOffset),
-        ElementKind.EXPRESSION
+        ElementKind.EXPRESSION,
       )
       .filter { it.isInsideComposableCode() }
   if (statements.isNotEmpty()) {

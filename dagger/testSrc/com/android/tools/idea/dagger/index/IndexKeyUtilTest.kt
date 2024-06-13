@@ -57,7 +57,7 @@ class IndexKeyUtilTest {
         package com.example
         class F<caret>oo
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType = (myFixture.elementAtCaret as KtClass).toPsiType()!!
@@ -75,7 +75,7 @@ class IndexKeyUtilTest {
         package com.example;
         class F<caret>oo {}
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType = myFixture.elementAtCaret.classToPsiType()
@@ -92,7 +92,7 @@ class IndexKeyUtilTest {
       """
         class F<caret>oo
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType = (myFixture.elementAtCaret as KtClass).toPsiType()!!
@@ -114,7 +114,7 @@ class IndexKeyUtilTest {
           package com.example
           class Foo
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -137,7 +137,7 @@ class IndexKeyUtilTest {
 
           val fooAlias1: FooAlias1 = FooAlias()
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -161,7 +161,7 @@ class IndexKeyUtilTest {
 
           val fooAlias2: FooAlias2 = FooAlias()
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -193,7 +193,7 @@ class IndexKeyUtilTest {
 
       val fooAlias2: FooAlias2 = FooAlias()
       """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -232,7 +232,7 @@ class IndexKeyUtilTest {
           val fooJ: Long = 0L
           val fooS: Short = 0
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -293,7 +293,7 @@ class IndexKeyUtilTest {
             private short unboxedS = 0;
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -356,7 +356,7 @@ class IndexKeyUtilTest {
             private Short boxedS = 0;
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -410,7 +410,7 @@ class IndexKeyUtilTest {
             private String javaString = "";
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -426,7 +426,7 @@ class IndexKeyUtilTest {
           package com.example
           val kotlinString: String = ""
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -455,7 +455,7 @@ class IndexKeyUtilTest {
 
           val type1: SomeGenericType<kotlin.String> = SomeGenericType()
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -480,7 +480,7 @@ class IndexKeyUtilTest {
             public static SomeGenericType<String> value = new SomeGenericType<String>();
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -511,7 +511,7 @@ class IndexKeyUtilTest {
 
           val type1: SomeGenericType<List<Int>> = SomeGenericType()
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -550,7 +550,7 @@ class IndexKeyUtilTest {
           val longArray: LongArray = longArrayOf()
           val shortArray: ShortArray = shortArrayOf()
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -623,7 +623,7 @@ class IndexKeyUtilTest {
             public Integer[] boxedArray = {};
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -690,7 +690,7 @@ class IndexKeyUtilTest {
           val fooArray: Array<SomeGenericType<Foo>> = arrayOf()
           val stringArray: Array<SomeGenericType<String>> = arrayOf()
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -722,7 +722,7 @@ class IndexKeyUtilTest {
             public SomeGenericType<String>[] stringArray = {};
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -754,7 +754,7 @@ class IndexKeyUtilTest {
           val intProperty: Int = 0
           val charProperty: Char = 'a'
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -788,7 +788,7 @@ class IndexKeyUtilTest {
           val integerArrayProperty: MyIntegerArray = arrayOf()
           val charArrayProperty: MyFooArray = arrayOf()
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -815,7 +815,7 @@ class IndexKeyUtilTest {
 
         class Foo<T>
         """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.openFileInEditor(
@@ -846,7 +846,7 @@ class IndexKeyUtilTest {
           val arrayBarProperty: MyArrayBar = arrayOf()
           val arrayFooBarProperty: MyArrayFooBar = arrayOf()
           """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
     )
@@ -862,7 +862,7 @@ class IndexKeyUtilTest {
         "MyFooBar",
         "OtherFooInt",
         "OtherFooBar",
-        ""
+        "",
       )
     val fooBarType = myFixture.findParentElement<KtProperty>("fooBar|Property").psiType!!
     assertThat(getIndexKeys(fooBarType, myFixture.project, myFixture.project.projectScope()))
@@ -879,7 +879,7 @@ class IndexKeyUtilTest {
         "MyFooBar",
         "OtherFooInt",
         "OtherFooBar",
-        ""
+        "",
       )
     val otherFooBarType = myFixture.findParentElement<KtProperty>("otherFooBar|Property").psiType!!
     assertThat(getIndexKeys(otherFooBarType, myFixture.project, myFixture.project.projectScope()))

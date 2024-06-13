@@ -64,7 +64,7 @@ class AdbFileListing(
         }
         processStatOutputLine(commandResult.output[0], defaultRoot)
       } catch (e: AdbShellCommandException) {
-        LOGGER.debug(e)
+        LOGGER.debug(e.message)
         defaultRoot
       }
     }
@@ -80,7 +80,7 @@ class AdbFileListing(
         }
         processStatOutputLine(commandResult.output[0], defaultData)
       } catch (e: AdbShellCommandException) {
-        LOGGER.debug(e)
+        LOGGER.debug(e.message)
         defaultData
       }
     }
@@ -171,7 +171,7 @@ class AdbFileListing(
     )
   }
   companion object {
-    private val defaultRoot: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
+    val defaultRoot: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
     private val defaultData: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/data/data/").setKind(EntryKind.DIRECTORY).build()
   }
 }

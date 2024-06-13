@@ -16,9 +16,12 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.tests.AdtTestProjectDescriptors
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
 abstract class DaggerTestCase : JavaCodeInsightFixtureAdtTestCase() {
+  override fun getProjectDescriptor() = AdtTestProjectDescriptors.kotlin()
+
   override fun setUp() {
     StudioFlags.DAGGER_SUPPORT_ENABLED.override(true)
     super.setUp()

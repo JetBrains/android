@@ -23,4 +23,8 @@
     <listener class="com.android.tools.idea.vitals.VitalsSyncResultListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
   </projectListeners>
+
+  <extensions defaultExtensionNs="com.google.gct.login">
+    <googleLoginFeature implementation="com.android.tools.idea.vitals.VitalsLoginFeature"/>
+  </extensions>
 </idea-plugin>

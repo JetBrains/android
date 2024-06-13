@@ -23,92 +23,12 @@ import com.android.tools.idea.compose.preview.animation.validation.DpValidation
 import com.android.tools.idea.compose.preview.animation.validation.FloatValidation
 import com.android.tools.idea.compose.preview.animation.validation.IntValidation
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.ui.ColorUtil
 import java.lang.reflect.Method
 
 /** Compose units represented as multi-dimensional properties. */
 object ComposeUnit {
-
-  class TimelineUnit(val propertyLabel: String, val unit: NumberUnit<*>?)
-
-  /** Multidimensional property with each dimension of the type [A]. */
-  interface Unit<A> {
-    val components: List<A>
-
-    fun toString(componentId: Int): String
-
-    override fun toString(): String
-
-    fun createProperties(prefix: String): List<AnimatedPropertyItem> =
-      components.mapIndexed { index, component ->
-        AnimatedPropertyItem("${prefix}.$index", "$component", { EDITOR_NO_ERROR }, "Any")
-      }
-
-    fun parseUnit(getValue: (Int) -> String?): Unit<*>?
-
-    fun getPickerTitle(): String
-  }
-
-  /** Multidimensional property with each dimension of the type [A]. */
-  interface NumberUnit<A> : Unit<A> where A : Number, A : Comparable<A> {
-    /**
-     * Transforms a component to a [Double]. It unifies painting of the curves in [InspectorPainter]
-     * .
-     */
-    fun componentAsDouble(componentId: Int) = components[componentId].toDouble()
-  }
-
-  abstract class Unit1D<A>(val component1: A) : Unit<A> {
-    override val components = listOf(component1)
-
-    override fun toString(componentId: Int) = component1.toString()
-
-    override fun toString(): String = components.joinToString { it.toString() }
-  }
-
-  abstract class Unit2D<A>(val component1: A, val component2: A) : Unit<A> {
-    override val components = listOf(component1, component2)
-
-    override fun toString(componentId: Int) =
-      "( " +
-        "${if (componentId == 0) component1 else "_"} , " +
-        "${if (componentId == 1) component2 else "_"} )"
-
-    override fun toString(): String =
-      components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
-  }
-
-  abstract class Unit3D<A>(val component1: A, val component2: A, val component3: A) : Unit<A> {
-    override val components = listOf(component1, component2, component3)
-
-    override fun toString(componentId: Int) =
-      "( " +
-        "${if (componentId == 0) component1 else "_"} , " +
-        "${if (componentId == 1) component2 else "_"} , " +
-        "${if (componentId == 2) component3 else "_"} )"
-
-    override fun toString(): String =
-      components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
-  }
-
-  abstract class Unit4D<A>(
-    val component1: A,
-    val component2: A,
-    val component3: A,
-    val component4: A
-  ) : Unit<A> {
-    override val components = listOf(component1, component2, component3, component4)
-
-    override fun toString(componentId: Int) =
-      "( " +
-        "${if (componentId == 0) component1 else "_"} , " +
-        "${if (componentId == 1) component2 else "_"} , " +
-        "${if (componentId == 2) component3 else "_"} , " +
-        "${if (componentId == 3) component4 else "_"} )"
-
-    override fun toString(): String =
-      components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
-  }
 
   /**
    * Parses and creates a [Unit] from [ComposeAnimatedProperty.value].
@@ -116,7 +36,8 @@ object ComposeUnit {
    * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
    *   [Unit3D], [Unit4D] respectively.
    */
-  fun parse(property: ComposeAnimatedProperty): NumberUnit<*>? = parseNumberUnit(property.value)
+  fun parse(property: ComposeAnimatedProperty): AnimationUnit.NumberUnit<*>? =
+    parseNumberUnit(property.value)
 
   /**
    * Parses and creates a [NumberUnit]
@@ -124,7 +45,7 @@ object ComposeUnit {
    * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
    *   [Unit3D], [Unit4D] respectively.
    */
-  fun parseNumberUnit(value: Any?): NumberUnit<*>? {
+  fun parseNumberUnit(value: Any?): AnimationUnit.NumberUnit<*>? {
     if (value == null) return null
     return when (value.javaClass.kotlin.qualifiedName) {
       Color.CLASS_NAME -> Color.create(value)
@@ -134,10 +55,7 @@ object ComposeUnit {
       IntOffset.CLASS_NAME -> IntOffset.create(value)
       IntSize.CLASS_NAME -> IntSize.create(value)
       Offset.CLASS_NAME -> Offset.create(value)
-      "kotlin.Int" -> if (value is Int) IntUnit(value) else null
-      "kotlin.Double" -> if (value is Double) DoubleUnit(value) else null
-      "kotlin.Float" -> if (value is Float) FloatUnit(value) else null
-      else -> UnknownNumberUnit(value)
+      else -> AnimationUnit.parseNumberUnit(value)
     }
   }
 
@@ -147,95 +65,21 @@ object ComposeUnit {
    * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
    *   [Unit3D], [Unit4D] respectively.
    */
-  fun parseStateUnit(value: Any?): Unit<*>? {
-    return parseNumberUnit(value)?.takeIf { it !is UnknownNumberUnit }
+  fun parseStateUnit(value: Any?): AnimationUnit.Unit<*>? {
+    return parseNumberUnit(value)?.takeIf { it !is AnimationUnit.UnknownNumberUnit }
       ?: value?.let {
         when (value) {
-          is String -> StringUnit(value)
-          else -> UnitUnknown(value)
+          is String -> AnimationUnit.StringUnit(value)
+          else -> AnimationUnit.UnitUnknown(value)
         }
       }
   }
 
-  class IntUnit(value: Int) : Unit1D<Int>(value), NumberUnit<Int> {
-    override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$component1", IntValidation, "Int"))
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
-      return try {
-        getValue(0)?.toInt()?.let { IntUnit(it) }
-      } catch (_: NumberFormatException) {
-        null
-      }
-    }
-
-    override fun getPickerTitle() = message("animation.inspector.picker.int")
-  }
-
-  class DoubleUnit(value: Double) : Unit1D<Double>(value), NumberUnit<Double> {
-    override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$component1", DoubleValidation, "Double"))
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
-      return try {
-        getValue(0)?.toDouble()?.let { DoubleUnit(it) }
-      } catch (_: NumberFormatException) {
-        null
-      }
-    }
-
-    override fun getPickerTitle() = message("animation.inspector.picker.double")
-  }
-
-  class FloatUnit(value: Float) : Unit1D<Float>(value), NumberUnit<Float> {
-    override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$component1", FloatValidation, "Float"))
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
-      return try {
-        getValue(0)?.toFloat()?.let { FloatUnit(it) }
-      } catch (_: NumberFormatException) {
-        null
-      }
-    }
-
-    override fun getPickerTitle() = message("animation.inspector.picker.float")
-  }
-
-  class StringUnit(value: String) : Unit1D<String>(value) {
-    override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, component1, { EDITOR_NO_ERROR }, "String"))
-
-    override fun parseUnit(getValue: (Int) -> String?) = getValue(0)?.let { StringUnit(it) }
-
-    override fun getPickerTitle() = message("animation.inspector.picker.string")
-  }
-
-  open class UnitUnknown(val any: Any) : Unit1D<Int>(0) {
-    override val components = listOf(0)
-
-    override fun toString(componentId: Int) = any.toString()
-
-    override fun toString(): String = any.toString()
-
-    override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$any", { EDITOR_NO_ERROR }, "Any"))
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
-      // TODO Not supported at the moment.
-      return null
-    }
-
-    override fun getPickerTitle() = message("animation.inspector.picker.value")
-  }
-
-  class UnknownNumberUnit(any: Any) : UnitUnknown(any), NumberUnit<Int>
-
   class IntSize(component1: Int, component2: Int) :
-    Unit2D<Int>(component1, component2), NumberUnit<Int> {
+    AnimationUnit.Unit2D<Int>(component1, component2), AnimationUnit.NumberUnit<Int> {
     companion object {
-      const val CLASS_NAME = "androidx.compose.ui.unit.IntSize"
-      private val COMPONENT_NAMES = arrayOf("width", "height")
+      internal const val CLASS_NAME = "androidx.compose.ui.unit.IntSize"
+      internal val COMPONENT_NAMES = arrayOf("width", "height")
 
       fun create(property: Any?): IntSize? {
         property?.also {
@@ -252,12 +96,7 @@ object ComposeUnit {
     override fun toString(componentId: Int) =
       "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
 
-    override fun createProperties(prefix: String) =
-      components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", IntValidation, "Int")
-      }
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
+    override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
       try {
         val component1 = getValue(0)?.toInt() ?: return null
         val component2 = getValue(1)?.toInt() ?: return null
@@ -271,10 +110,10 @@ object ComposeUnit {
   }
 
   class IntOffset(component1: Int, component2: Int) :
-    Unit2D<Int>(component1, component2), NumberUnit<Int> {
+    AnimationUnit.Unit2D<Int>(component1, component2), AnimationUnit.NumberUnit<Int> {
     companion object {
-      const val CLASS_NAME = "androidx.compose.ui.unit.IntOffset"
-      private val COMPONENT_NAMES = arrayOf("x", "y")
+      internal const val CLASS_NAME = "androidx.compose.ui.unit.IntOffset"
+      internal val COMPONENT_NAMES = arrayOf("x", "y")
 
       fun create(property: Any?): IntOffset? {
         property?.also {
@@ -291,12 +130,7 @@ object ComposeUnit {
     override fun toString(componentId: Int) =
       "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
 
-    override fun createProperties(prefix: String) =
-      components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", IntValidation, "Int")
-      }
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
+    override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
       return try {
         val component1 = getValue(0)?.toInt() ?: return null
         val component2 = getValue(1)?.toInt() ?: return null
@@ -309,9 +143,10 @@ object ComposeUnit {
     override fun getPickerTitle() = message("animation.inspector.picker.int.offset")
   }
 
-  class Dp(component1: Float) : Unit1D<Float>(component1), NumberUnit<Float> {
+  class Dp(component1: Float) :
+    AnimationUnit.Unit1D<Float>(component1), AnimationUnit.NumberUnit<Float> {
     companion object {
-      const val CLASS_NAME = "androidx.compose.ui.unit.Dp"
+      internal const val CLASS_NAME = "androidx.compose.ui.unit.Dp"
 
       fun create(property: Any?): Dp? {
         property?.also {
@@ -326,10 +161,7 @@ object ComposeUnit {
 
     override fun toString(): String = "${component1}dp"
 
-    override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$component1", DpValidation, "Float"))
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
+    override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
       return try {
         getValue(0)?.toFloat()?.let { Dp(it) }
       } catch (_: NumberFormatException) {
@@ -341,10 +173,10 @@ object ComposeUnit {
   }
 
   class Size(component1: Float, component2: Float) :
-    Unit2D<Float>(component1, component2), NumberUnit<Float> {
+    AnimationUnit.Unit2D<Float>(component1, component2), AnimationUnit.NumberUnit<Float> {
     companion object {
-      const val CLASS_NAME = "androidx.compose.ui.geometry.Size"
-      private val COMPONENT_NAMES = arrayOf("width", "height")
+      internal const val CLASS_NAME = "androidx.compose.ui.geometry.Size"
+      val COMPONENT_NAMES = arrayOf("width", "height")
 
       fun create(property: Any?): Size? {
         property?.also {
@@ -361,12 +193,7 @@ object ComposeUnit {
     override fun toString(componentId: Int) =
       "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
 
-    override fun createProperties(prefix: String) =
-      components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", FloatValidation, "Float")
-      }
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
+    override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
       try {
         val component1 = getValue(0)?.toFloat() ?: return null
         val component2 = getValue(1)?.toFloat() ?: return null
@@ -380,10 +207,11 @@ object ComposeUnit {
   }
 
   class Rect(component1: Float, component2: Float, component3: Float, component4: Float) :
-    Unit4D<Float>(component1, component2, component3, component4), NumberUnit<Float> {
+    AnimationUnit.Unit4D<Float>(component1, component2, component3, component4),
+    AnimationUnit.NumberUnit<Float> {
     companion object {
-      const val CLASS_NAME = "androidx.compose.ui.geometry.Rect"
-      private val COMPONENT_NAMES = arrayOf("left", "top", "right", "bottom")
+      internal const val CLASS_NAME = "androidx.compose.ui.geometry.Rect"
+      internal val COMPONENT_NAMES = arrayOf("left", "top", "right", "bottom")
 
       fun create(property: Any?): Rect? {
         property?.also {
@@ -401,12 +229,7 @@ object ComposeUnit {
     override fun toString(componentId: Int) =
       "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
 
-    override fun createProperties(prefix: String) =
-      components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", FloatValidation, "Float")
-      }
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
+    override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
       try {
         val component1 = getValue(0)?.toFloat() ?: return null
         val component2 = getValue(1)?.toFloat() ?: return null
@@ -422,10 +245,10 @@ object ComposeUnit {
   }
 
   class Offset(component1: Float, component2: Float) :
-    Unit2D<Float>(component1, component2), NumberUnit<Float> {
+    AnimationUnit.Unit2D<Float>(component1, component2), AnimationUnit.NumberUnit<Float> {
     companion object {
-      const val CLASS_NAME = "androidx.compose.ui.geometry.Offset"
-      private val COMPONENT_NAMES = arrayOf("x", "y")
+      internal const val CLASS_NAME = "androidx.compose.ui.geometry.Offset"
+      internal val COMPONENT_NAMES = arrayOf("x", "y")
 
       fun create(property: Any?): Offset? {
         property?.also {
@@ -442,12 +265,7 @@ object ComposeUnit {
     override fun toString(componentId: Int) =
       "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
 
-    override fun createProperties(prefix: String) =
-      components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", FloatValidation, "Float")
-      }
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
+    override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
       try {
         val component1 = getValue(0)?.toFloat() ?: return null
         val component2 = getValue(1)?.toFloat() ?: return null
@@ -461,10 +279,13 @@ object ComposeUnit {
   }
 
   class Color(component1: Float, component2: Float, component3: Float, component4: Float) :
-    Unit4D<Float>(component1, component2, component3, component4), NumberUnit<Float> {
+    AnimationUnit.Unit<Float>,
+    AnimationUnit.Unit4D<Float>(component1, component2, component3, component4),
+    AnimationUnit.NumberUnit<Float>,
+    AnimationUnit.Color {
     companion object {
-      const val CLASS_NAME = "androidx.compose.ui.graphics.Color"
-      private val COMPONENT_NAMES = arrayOf("red", "green", "blue", "alpha")
+      internal const val CLASS_NAME = "androidx.compose.ui.graphics.Color"
+      internal val COMPONENT_NAMES = arrayOf("red", "green", "blue", "alpha")
 
       fun create(property: Any?): Color? {
         property?.also {
@@ -484,7 +305,7 @@ object ComposeUnit {
         Color(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
     }
 
-    val color: java.awt.Color? =
+    override val color: java.awt.Color? =
       try {
         java.awt.Color(component1, component2, component3, component4)
       } catch (_: IllegalArgumentException) {
@@ -499,12 +320,7 @@ object ComposeUnit {
       return color?.let { "0x${ColorUtil.toHex(it, true).uppercase()}" } ?: super.toString()
     }
 
-    override fun createProperties(prefix: String) =
-      components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", FloatValidation, "Color")
-      }
-
-    override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
+    override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
       try {
         val component1 = getValue(0)?.toFloat() ?: return null
         val component2 = getValue(1)?.toFloat() ?: return null
@@ -526,4 +342,58 @@ object ComposeUnit {
       .singleOrNull { it.name == methodName }
       ?.apply { this.isAccessible = true }
   }
+
+  fun AnimationUnit.Unit<*>.createProperties(prefix: String): List<AnimatedPropertyItem> =
+    when (this) {
+      is Rect -> {
+        components.mapIndexed { index, component ->
+          AnimatedPropertyItem(Rect.COMPONENT_NAMES[index], "$component", FloatValidation, "Float")
+        }
+      }
+      is Color -> {
+        components.mapIndexed { index, component ->
+          AnimatedPropertyItem(Color.COMPONENT_NAMES[index], "$component", FloatValidation, "Color")
+        }
+      }
+      is IntSize -> {
+        components.mapIndexed { index, component ->
+          AnimatedPropertyItem(IntSize.COMPONENT_NAMES[index], "$component", IntValidation, "Int")
+        }
+      }
+      is IntOffset -> {
+        components.mapIndexed { index, component ->
+          AnimatedPropertyItem(IntOffset.COMPONENT_NAMES[index], "$component", IntValidation, "Int")
+        }
+      }
+      is Dp -> listOf(AnimatedPropertyItem(prefix, "$component1", DpValidation, "Float"))
+      is Size ->
+        components.mapIndexed { index, component ->
+          AnimatedPropertyItem(Size.COMPONENT_NAMES[index], "$component", FloatValidation, "Float")
+        }
+      is Offset ->
+        components.mapIndexed { index, component ->
+          AnimatedPropertyItem(
+            Offset.COMPONENT_NAMES[index],
+            "$component",
+            FloatValidation,
+            "Float",
+          )
+        }
+      is AnimationUnit.StringUnit ->
+        listOf(AnimatedPropertyItem(prefix, component1, { EDITOR_NO_ERROR }, "String"))
+      is AnimationUnit.IntUnit ->
+        listOf(AnimatedPropertyItem(prefix, "$component1", IntValidation, "Int"))
+      is AnimationUnit.DoubleUnit ->
+        listOf(AnimatedPropertyItem(prefix, "$component1", DoubleValidation, "Double"))
+      is AnimationUnit.FloatUnit ->
+        listOf(AnimatedPropertyItem(prefix, "$component1", FloatValidation, "Float"))
+      is AnimationUnit.UnitUnknown ->
+        components.mapIndexed { index, component ->
+          AnimatedPropertyItem("${prefix}.$index", "$component", { EDITOR_NO_ERROR }, "Any")
+        }
+      else ->
+        components.mapIndexed { index, component ->
+          AnimatedPropertyItem("${prefix}.$index", "$component", { EDITOR_NO_ERROR }, "Any")
+        }
+    }
 }

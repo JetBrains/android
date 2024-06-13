@@ -20,28 +20,27 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.testFramework.MapDataContext;
 import java.util.Collections;
 import org.jetbrains.android.AndroidTestCase;
 
 public final class CreateTypedResourceFileActionTest extends AndroidTestCase {
 
-  private final MapDataContext myDataContext = new MapDataContext();
-
   public void testDoIsAvailableForTypedResourceDirectory() {
+    SimpleDataContext.Builder dataContext = SimpleDataContext.builder();
     for (ResourceFolderType folderType: ResourceFolderType.values()) {
       String filePath = "res/" + folderType.getName() + "/my_" + folderType.getName() + ".xml";
-      myDataContext.put(CommonDataKeys.PSI_ELEMENT, myFixture.addFileToProject(filePath, "").getParent());
-      assertTrue("Failed for " + folderType.name(), CreateTypedResourceFileAction.doIsAvailable(myDataContext, folderType.getName()));
+      dataContext.add(CommonDataKeys.PSI_ELEMENT, myFixture.addFileToProject(filePath, "").getParent());
+      assertTrue("Failed for " + folderType.name(), CreateTypedResourceFileAction.doIsAvailable(dataContext.build(), folderType.getName()));
     }
 
     VirtualFile resDir = myFixture.findFileInTempDir("res");
     PsiDirectory psiResDir = myFixture.getPsiManager().findDirectory(resDir);
-    myDataContext.put(CommonDataKeys.PSI_ELEMENT, psiResDir);
+    dataContext.add(CommonDataKeys.PSI_ELEMENT, psiResDir);
     // Should fail when the directory is not a type specific resource directory (e.g: res/drawable).
-    assertFalse(CreateTypedResourceFileAction.doIsAvailable(myDataContext, ResourceFolderType.DRAWABLE.getName()));
+    assertFalse(CreateTypedResourceFileAction.doIsAvailable(dataContext.build(), ResourceFolderType.DRAWABLE.getName()));
   }
 
   public void testAddPreferencesScreenAndroidxPreferenceLibraryHandling() {

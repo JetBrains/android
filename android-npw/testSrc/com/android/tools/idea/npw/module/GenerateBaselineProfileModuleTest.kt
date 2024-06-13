@@ -206,6 +206,7 @@ class GenerateBaselineProfileModuleTest {
       viewBindingSupport = ViewBindingSupport.NOT_SUPPORTED,
       category = Category.Application,
       isMaterial3 = true,
+      isCompose = false,
       useGenericLocalTests = true,
       useGenericInstrumentedTests = true,
     )
@@ -260,9 +261,10 @@ dependencies {
 
 androidComponents {
     onVariants(selector().all()) {  v ->
+        def artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
         v.instrumentationRunnerArguments.put(
             "targetAppId",
-            v.testedApks.map { v.artifacts.getBuiltArtifactsLoader().load(it)?.applicationId }
+            v.testedApks.map { artifactsLoader.load(it)?.applicationId }
         )
     }
 }
@@ -296,13 +298,16 @@ android {
 
     targetProjectPath = ":app"
 
+    // This code creates the gradle managed device used to generate baseline profiles.
+    // To use GMD please invoke generation through the command line:
+    // ./gradlew :app:generateBaselineProfile
     testOptions.managedDevices.devices {
-    create<ManagedVirtualDevice>("pixel6Api34") {
-        device = "Pixel 6"
-        apiLevel = 34
-        systemImageSource = "google"
+        create<ManagedVirtualDevice>("pixel6Api34") {
+            device = "Pixel 6"
+            apiLevel = 34
+            systemImageSource = "google"
+        }
     }
-}
 }
 
 // This is the configuration block for the Baseline Profile plugin.
@@ -317,9 +322,10 @@ dependencies {
 
 androidComponents {
     onVariants {  v ->
+        val artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
         v.instrumentationRunnerArguments.put(
             "targetAppId",
-            v.testedApks.map { v.artifacts.getBuiltArtifactsLoader().load(it)?.applicationId }
+            v.testedApks.map { artifactsLoader.load(it)?.applicationId }
         )
     }
 }
@@ -706,13 +712,16 @@ android {
 
     targetProjectPath = ":app"
 
+    // This code creates the gradle managed device used to generate baseline profiles.
+    // To use GMD please invoke generation through the command line:
+    // ./gradlew :app:generateBaselineProfile
     testOptions.managedDevices.devices {
-    create<ManagedVirtualDevice>("pixel6Api34") {
-        device = "Pixel 6"
-        apiLevel = 34
-        systemImageSource = "google"
+        create<ManagedVirtualDevice>("pixel6Api34") {
+            device = "Pixel 6"
+            apiLevel = 34
+            systemImageSource = "google"
+        }
     }
-}
 }
 
 // This is the configuration block for the Baseline Profile plugin.

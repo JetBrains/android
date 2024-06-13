@@ -41,7 +41,6 @@ class EssentialsMode {
 
   companion object {
     private const val REGISTRY_KEY = "ide.essentials.mode"
-    private val messenger = service<EssentialsModeMessenger>()
     private val essentialsModeLogger = logger<EssentialsMode>()
 
     // keeping Essential Highlighting separable from Essentials Mode if it's determined at a future
@@ -60,7 +59,7 @@ class EssentialsMode {
       if (essentialHighlightingEnabled.get()) EssentialHighlightingMode.setEnabled(value)
       // send message if the value changed
       if (beforeSet != value) {
-        messenger.sendMessage()
+        service<EssentialsModeMessenger>().sendMessage()
         essentialsModeLogger.info("Essentials mode isEnabled set to $value")
         updateUI(value)
 

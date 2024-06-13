@@ -49,15 +49,15 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
           maxX = max(maxX, it.x + it.scaledContentSize.width)
           maxY = max(maxY, it.y + it.scaledContentSize.height)
         }
-        val currentScale = surface.scale
+        val currentScale = surface.zoomController.scale
         val size =
           Dimension(
             ((maxX - minX + 2 * MARGIN) / currentScale).toInt(),
-            ((maxY - minY + 2 * MARGIN) / currentScale).toInt()
+            ((maxY - minY + 2 * MARGIN) / currentScale).toInt(),
           )
         val scale = surface.getFitContentIntoWindowScale(size)
 
-        surface.setScale(scale)
+        surface.zoomController.setScale(scale)
         surface.setScrollPosition(minX - MARGIN, minY - MARGIN)
         surface.revalidateScrollArea()
       }

@@ -94,7 +94,7 @@ class LogcatMessageAssemblerTest {
               "Tag",
               1619900000L,
               123L,
-              "Message 1"
+              "Message 1",
             )
           )
         )
@@ -133,7 +133,7 @@ class LogcatMessageAssemblerTest {
               "Tag",
               1619900000L,
               101L,
-              "Message 1"
+              "Message 1",
             ),
             logcatMessage(
               DEBUG,
@@ -144,7 +144,7 @@ class LogcatMessageAssemblerTest {
               "Tag",
               1619900000L,
               102L,
-              "Message 2"
+              "Message 2",
             ),
           ),
           listOf(
@@ -157,7 +157,7 @@ class LogcatMessageAssemblerTest {
               "Tag",
               1619900000L,
               103L,
-              "Message 3"
+              "Message 3",
             )
           ),
         )
@@ -201,7 +201,7 @@ class LogcatMessageAssemblerTest {
               "Tag1",
               1619900000L,
               123L,
-              "Message 1"
+              "Message 1",
             )
           ),
           listOf(
@@ -214,7 +214,7 @@ class LogcatMessageAssemblerTest {
               "Tag2",
               1619900000L,
               123L,
-              "Message 2 Line 1\nMessage 2 Line 2"
+              "Message 2 Line 1\nMessage 2 Line 2",
             )
           ),
           listOf(
@@ -227,7 +227,7 @@ class LogcatMessageAssemblerTest {
               "Tag3",
               1619900000L,
               123L,
-              "Message 3"
+              "Message 3",
             )
           ),
         )
@@ -273,7 +273,7 @@ class LogcatMessageAssemblerTest {
               "Tag1",
               1619900000L,
               123L,
-              "Message 1"
+              "Message 1",
             )
           ),
           listOf(
@@ -286,7 +286,7 @@ class LogcatMessageAssemblerTest {
               "Tag2",
               1619900000L,
               123L,
-              "Message 2"
+              "Message 2",
             ),
             logcatMessage(
               DEBUG,
@@ -297,7 +297,7 @@ class LogcatMessageAssemblerTest {
               "Tag3",
               1619900000L,
               123L,
-              "Message 3"
+              "Message 3",
             ),
           ),
           listOf(
@@ -310,7 +310,7 @@ class LogcatMessageAssemblerTest {
               "Tag4",
               1619900000L,
               123L,
-              "Message 4"
+              "Message 4",
             )
           ),
         )
@@ -355,7 +355,7 @@ class LogcatMessageAssemblerTest {
               "Tag1",
               1619900000L,
               123L,
-              "Message 1"
+              "Message 1",
             )
           ),
           listOf(
@@ -368,7 +368,7 @@ class LogcatMessageAssemblerTest {
               "Tag2",
               1619900000L,
               123L,
-              "Message 2 Line 1\n\nMessage 2 Line 3"
+              "Message 2 Line 1\n\nMessage 2 Line 3",
             )
           ),
           listOf(
@@ -381,7 +381,7 @@ class LogcatMessageAssemblerTest {
               "Tag3",
               1619900000L,
               123L,
-              "Message 3"
+              "Message 3",
             )
           ),
         )
@@ -398,9 +398,11 @@ class LogcatMessageAssemblerTest {
         Message 1 Line 1
       """
       )
-      assembler.processNewLines("""
+      assembler.processNewLines(
+        """
         Message 1 Line 2
-      """)
+      """
+      )
 
       assembler.processNewLines(
         """
@@ -426,7 +428,7 @@ class LogcatMessageAssemblerTest {
               "Tag1",
               1619900000L,
               123L,
-              "Message 1 Line 1\nMessage 1 Line 2\nMessage 1 Line 3"
+              "Message 1 Line 1\nMessage 1 Line 2\nMessage 1 Line 3",
             )
           ),
           listOf(
@@ -439,7 +441,7 @@ class LogcatMessageAssemblerTest {
               "Tag2",
               1619900000L,
               123L,
-              "Message 2"
+              "Message 2",
             )
           ),
         )
@@ -479,7 +481,7 @@ class LogcatMessageAssemblerTest {
               "Tag1",
               1619900001L,
               123L,
-              "Message 1"
+              "Message 1",
             ),
           ),
           listOf(
@@ -492,7 +494,7 @@ class LogcatMessageAssemblerTest {
               "Tag2",
               1619900001L,
               123L,
-              "Message 2"
+              "Message 2",
             )
           ),
         )
@@ -527,9 +529,9 @@ class LogcatMessageAssemblerTest {
               "Tag2",
               1619900001L,
               123L,
-              "Message 2"
+              "Message 2",
             )
-          ),
+          )
         )
     }
 
@@ -566,7 +568,7 @@ class LogcatMessageAssemblerTest {
             "Tag1",
             1619900000L,
             123L,
-            "Message 1"
+            "Message 1",
           )
         )
       assertThat(channel.isEmpty)
@@ -583,7 +585,7 @@ class LogcatMessageAssemblerTest {
             "Tag2",
             1619900000L,
             123L,
-            "Message 2"
+            "Message 2",
           )
         )
 
@@ -608,7 +610,7 @@ class LogcatMessageAssemblerTest {
             "Tag3",
             1619900000L,
             123L,
-            "Message 3"
+            "Message 3",
           )
         )
       assertThat(channel.isEmpty)
@@ -625,7 +627,7 @@ class LogcatMessageAssemblerTest {
             "Tag4",
             1619900000L,
             123L,
-            "Message 4"
+            "Message 4",
           )
         )
 
@@ -650,7 +652,7 @@ class LogcatMessageAssemblerTest {
             "Tag5",
             1619900000L,
             123L,
-            "Message 5"
+            "Message 5",
           )
         )
       assertThat(channel.isEmpty)
@@ -667,7 +669,7 @@ class LogcatMessageAssemblerTest {
             "Tag6",
             1619900000L,
             123L,
-            "Message 6"
+            "Message 6",
           )
         )
       channel.close()
@@ -772,7 +774,7 @@ class LogcatMessageAssemblerTest {
         channel,
         processNameMonitor,
         coroutineContext,
-        lastMessageDelayMs = 100
+        lastMessageDelayMs = 100,
       )
     Disposer.register(disposableRule.disposable, logcatMessageAssembler)
     return logcatMessageAssembler
@@ -788,7 +790,7 @@ private fun logcatMessage(
   tag: String,
   seconds: Long,
   millis: Long,
-  message: String
+  message: String,
 ) =
   LogcatMessage(
     LogcatHeader(
@@ -798,9 +800,9 @@ private fun logcatMessage(
       appId,
       processName,
       tag,
-      Instant.ofEpochSecond(seconds, MILLISECONDS.toNanos(millis))
+      Instant.ofEpochSecond(seconds, MILLISECONDS.toNanos(millis)),
     ),
-    message
+    message,
   )
 
 private suspend fun LogcatMessageAssembler.processNewLines(lines: String) =

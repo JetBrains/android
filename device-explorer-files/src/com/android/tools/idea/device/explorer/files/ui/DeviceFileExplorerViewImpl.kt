@@ -21,6 +21,7 @@ import com.android.tools.idea.device.explorer.files.DeviceExplorerViewProgressLi
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel
 import com.android.tools.idea.device.explorer.files.DeviceFileExplorerView
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.CopyPathMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.DeleteNodesMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.MenuContext

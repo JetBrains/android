@@ -63,7 +63,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   val nameColumnFraction =
     ColumnFraction(
       PropertiesComponent.getInstance().getFloat(LEFT_FRACTION_KEY, 0.4f),
-      resizeSupported = true
+      resizeSupported = true,
     )
   private val inspector = InspectorPanelImpl(inspectorModel, nameColumnFraction, parentDisposable)
 
@@ -119,7 +119,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
       ScrollPaneFactory.createScrollPane(
         component,
         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
       )
     scrollPane.verticalScrollBar =
       object : JBScrollBar() {
@@ -161,7 +161,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
       JBUI.Borders.merge(
         JBUI.Borders.empty(0, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, 0, 0),
         SideBorder(JBColor.border(), SideBorder.BOTTOM),
-        true
+        true,
       )
     addLine(model, null)
     inspector.addLineElement(label)
@@ -173,7 +173,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addSubTitle(
     title: String,
     initiallyExpanded: Boolean,
-    parent: InspectorLineModel?
+    parent: InspectorLineModel?,
   ): InspectorLineModel {
     addSeparatorBeforeTitle()
     val model = TitleLineModel(title)
@@ -184,7 +184,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
       JBUI.Borders.merge(
         JBUI.Borders.empty(0, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, 0, 0),
         SideBorder(JBColor.border(), SideBorder.BOTTOM),
-        true
+        true,
       )
     addLine(model, parent)
     inspector.addLineElement(label)
@@ -196,7 +196,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addCustomEditor(
     editorModel: PropertyEditorModel,
     editor: JComponent,
-    parent: InspectorLineModel?
+    parent: InspectorLineModel?,
   ): InspectorLineModel {
     addSeparatorAfterTitle(parent)
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
@@ -213,7 +213,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     searchable: Boolean,
     tableUI: TableUIProvider,
     actions: List<AnAction>,
-    parent: InspectorLineModel?
+    parent: InspectorLineModel?,
   ): TableLineModel {
     // Do NOT call addSeparatorAfterTitle since tables should not be preceded with spacing after a
     // title
@@ -224,7 +224,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
         tableUI.tableCellRendererProvider,
         tableUI.tableCellEditorProvider,
         actions,
-        nameColumnFraction
+        nameColumnFraction,
       )
     addLine(model, parent)
     inspector.addLineElement(editor.component)
@@ -233,7 +233,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
 
   override fun addComponent(
     component: JComponent,
-    parent: InspectorLineModel?
+    parent: InspectorLineModel?,
   ): InspectorLineModel {
     addSeparatorAfterTitle(parent)
     val model = GenericInspectorLineModel()
@@ -292,7 +292,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
 
   private fun addSeparator(
     bottomDivider: Boolean,
-    parent: InspectorLineModel? = null
+    parent: InspectorLineModel? = null,
   ): GenericInspectorLineModel {
     val component = JPanel()
     component.preferredSize = JBDimension(0, TITLE_SEPARATOR_HEIGHT)

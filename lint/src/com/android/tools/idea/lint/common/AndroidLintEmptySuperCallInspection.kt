@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.EmptySuperDetector
 class AndroidLintEmptySuperCallInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.empty.super.call"),
-    EmptySuperDetector.ISSUE
+    EmptySuperDetector.ISSUE,
   )

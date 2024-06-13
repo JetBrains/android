@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.OpenForTestingDetector
 class AndroidLintOpenForTestingInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.open.for.testing"),
-    OpenForTestingDetector.ISSUE
+    OpenForTestingDetector.ISSUE,
   )

@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.isActionActive
@@ -24,14 +23,14 @@ import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import icons.StudioIcons
-import org.jetbrains.annotations.VisibleForTesting
+import javax.swing.JComponent
 import kotlin.reflect.KMutableProperty1
+import org.jetbrains.annotations.VisibleForTesting
 
 const val HIGHLIGHT_COLOR_RED = 0xFF0000
 const val HIGHLIGHT_COLOR_BLUE = 0x4F9EE3
@@ -45,7 +44,7 @@ const val HIGHLIGHT_DEFAULT_COLOR = HIGHLIGHT_COLOR_BLUE
 /** Action shown in Layout Inspector toolbar, used to control Layout Inspector [RenderSettings]. */
 class RenderSettingsAction(
   private val renderModelProvider: () -> RenderModel,
-  renderSettingsProvider: () -> RenderSettings
+  renderSettingsProvider: () -> RenderSettings,
 ) : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
 
   init {
@@ -53,28 +52,28 @@ class RenderSettingsAction(
       ToggleRenderSettingsAction(
         "Show Borders",
         renderSettingsProvider,
-        RenderSettings::drawBorders
+        RenderSettings::drawBorders,
       )
     )
     add(
       ToggleRenderSettingsAction(
         "Show Layout Bounds",
         renderSettingsProvider,
-        RenderSettings::drawUntransformedBounds
+        RenderSettings::drawUntransformedBounds,
       )
     )
     add(
       ToggleRenderSettingsAction(
         "Show View Label",
         renderSettingsProvider,
-        RenderSettings::drawLabel
+        RenderSettings::drawLabel,
       )
     )
     add(
       ToggleRenderSettingsAction(
         "Show Fold Hinge and Angle",
         renderSettingsProvider,
-        RenderSettings::drawFold
+        RenderSettings::drawFold,
       )
     )
     add(HighlightColorAction(renderSettingsProvider))
@@ -84,16 +83,22 @@ class RenderSettingsAction(
 
   override fun update(e: AnActionEvent) {
     val enabled = renderModelProvider().isActive
-    e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY)?.isEnabled = enabled
-    e.presentation.isPerformGroup = renderModelProvider().isActive
+    e.presentation.isEnabled = enabled
+    e.presentation.isPerformGroup = enabled
+  }
+
+  override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
+    component.isEnabled = presentation.isEnabled
   }
 }
 
 private class ToggleRenderSettingsAction(
   actionName: String,
   private val renderSettingsProvider: () -> RenderSettings,
-  private val property: KMutableProperty1<RenderSettings, Boolean>
+  private val property: KMutableProperty1<RenderSettings, Boolean>,
 ) : ToggleAction(actionName) {
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun isSelected(event: AnActionEvent): Boolean {
     return property.get(renderSettingsProvider())
   }
@@ -114,9 +119,7 @@ class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
     val layoutInspector = LayoutInspector.get(event)
     val isConnected = layoutInspector?.currentClient?.isConnected ?: false
     event.presentation.isVisible =
-      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
-        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
-        layoutInspector?.treeSettings?.showRecompositions ?: false &&
+      layoutInspector?.treeSettings?.showRecompositions ?: false &&
         (!isConnected || isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS))
     event.presentation.isEnabled = isConnected
   }
@@ -134,7 +137,7 @@ class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
 private class ColorSettingAction(
   actionName: String,
   private val color: Int,
-  private val renderSettingsProvider: () -> RenderSettings
+  private val renderSettingsProvider: () -> RenderSettings,
 ) : CheckboxAction(actionName, null, null) {
   override fun isSelected(event: AnActionEvent): Boolean =
     renderSettingsProvider().highlightColor == color

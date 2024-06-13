@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ResourceUtil
 import com.intellij.util.download.DownloadableFileService
 import com.intellij.util.download.FileDownloader
+import com.intellij.util.io.URLUtil
 import java.io.File
 import java.io.IOException
 import java.net.URL
@@ -31,7 +32,7 @@ private const val SERVICE_NAME = "Known gradle plugins info"
 private const val PLUGINS_DATA_URL = "https://dl.google.com/android/studio/metadata/known_gradle_plugins.json"
 private const val FILENAME = "plugins.json"
 private const val DOWNLOAD_FILENAME = "plugins_temp.json"
-private val FALLBACK_URL = ResourceUtil.getResource(KnownGradlePluginsServiceImpl::class.java, "knownGradlePluginsData", FILENAME)
+private val FALLBACK_URL = ResourceUtil.getResource(KnownGradlePluginsServiceImpl::class.java.classLoader, "knownGradlePluginsData", FILENAME)
 private val CACHE_PATH = File(PathManager.getSystemPath(), "knownGradlePluginsData")
 
 /**
@@ -79,7 +80,7 @@ class KnownGradlePluginsServiceImpl constructor(downloader: FileDownloader, cach
 
   override fun loadFromFile(url: URL) {
     try {
-      val jsonString = ResourceUtil.loadText(url)
+      val jsonString = ResourceUtil.loadText(URLUtil.openStream(url))
       gradlePluginsData = GradlePluginsData.loadFromJson(jsonString)
     }
     catch (e: IOException) {
@@ -90,7 +91,7 @@ class KnownGradlePluginsServiceImpl constructor(downloader: FileDownloader, cach
 
 class LocalKnownGradlePluginsServiceImpl : KnownGradlePluginsService {
   override val gradlePluginsData = try {
-    GradlePluginsData.loadFromJson(ResourceUtil.loadText(FALLBACK_URL))
+    GradlePluginsData.loadFromJson(ResourceUtil.loadText(URLUtil.openStream(FALLBACK_URL)))
   }
   catch (e: Throwable) {
     GradlePluginsData.emptyData

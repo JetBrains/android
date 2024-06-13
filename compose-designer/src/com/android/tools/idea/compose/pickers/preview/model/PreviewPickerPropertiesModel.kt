@@ -35,9 +35,9 @@ import com.android.tools.idea.compose.pickers.preview.inspector.PreviewPropertie
 import com.android.tools.idea.compose.pickers.preview.property.DeviceParameterPropertyItem
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.pickers.preview.utils.getArgumentForParameter
-import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.findPreviewDefaultValues
+import com.android.tools.idea.preview.util.getSdkDevices
 import com.android.tools.preview.UNDEFINED_API_LEVEL
 import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.android.tools.preview.config.PARAMETER_API_LEVEL
@@ -69,6 +69,7 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.js.descriptorUtils.nameIfStandardType
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -93,14 +94,14 @@ private constructor(
   ktFile: KtFile,
   psiPropertiesProvider: PreviewPropertiesProvider,
   valuesProvider: EnumSupportValuesProvider,
-  tracker: ComposePickerTracker
+  tracker: ComposePickerTracker,
 ) :
   PsiCallPropertiesModel(
     project = project,
     module = module,
     ktFile = ktFile,
     psiPropertiesProvider = psiPropertiesProvider,
-    tracker = tracker
+    tracker = tracker,
   ) {
 
   override val inspectorBuilder: PsiPropertiesInspectorBuilder =
@@ -129,7 +130,7 @@ private constructor(
       project: Project,
       module: Module,
       previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-      tracker: ComposePickerTracker
+      tracker: ComposePickerTracker,
     ): PreviewPickerPropertiesModel {
       val annotationEntry = previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val libraryDefaultValues: Map<String, String?> =
@@ -142,7 +143,7 @@ private constructor(
       val valuesProvider =
         PreviewPickerValuesProvider.createPreviewValuesProvider(
           module = module,
-          containingFile = previewElementDefinitionPsi?.virtualFile
+          containingFile = previewElementDefinitionPsi?.virtualFile,
         )
       val defaultApiLevel =
         ConfigurationManager.findExistingInstance(module)
@@ -189,7 +190,7 @@ private constructor(
         ktFile = annotationEntry?.containingKtFile!!,
         psiPropertiesProvider = PreviewPropertiesProvider(defaultValues, annotationEntry),
         tracker = tracker,
-        valuesProvider = valuesProvider
+        valuesProvider = valuesProvider,
       )
     }
 
@@ -215,7 +216,7 @@ private class PreviewPropertiesProvider(
 
   override fun invoke(
     project: Project,
-    model: PsiCallPropertiesModel
+    model: PsiCallPropertiesModel,
   ): Collection<PsiPropertyItem> {
     val properties = mutableListOf<PsiPropertyItem>()
     ReadAction.run<Throwable> {
@@ -277,7 +278,7 @@ private class PreviewPropertiesProvider(
           parameterName,
           parameterTypeNameIfStandard,
           argumentExpression,
-          defaultValue
+          defaultValue,
         )
       PARAMETER_BACKGROUND_COLOR ->
         ColorPsiCallParameter(
@@ -287,7 +288,7 @@ private class PreviewPropertiesProvider(
           parameterName,
           parameterTypeNameIfStandard,
           argumentExpression,
-          defaultValue
+          defaultValue,
         )
       PARAMETER_WIDTH,
       PARAMETER_WIDTH_DP,
@@ -301,7 +302,7 @@ private class PreviewPropertiesProvider(
           parameterTypeNameIfStandard,
           argumentExpression,
           defaultValue,
-          IntegerNormalValidator
+          IntegerNormalValidator,
         )
       PARAMETER_API_LEVEL ->
         PsiCallParameterPropertyItem(
@@ -312,7 +313,7 @@ private class PreviewPropertiesProvider(
           parameterTypeNameIfStandard,
           argumentExpression,
           defaultValue,
-          IntegerStrictValidator
+          IntegerStrictValidator,
         )
       PARAMETER_DEVICE -> { // Note that DeviceParameterPropertyItem sets its own name to
         // PARAMETER_HARDWARE_DEVICE
@@ -323,7 +324,7 @@ private class PreviewPropertiesProvider(
             parameterName,
             parameterTypeNameIfStandard,
             argumentExpression,
-            defaultValue
+            defaultValue,
           )
           .also { properties.addAll(it.innerProperties) }
       }
@@ -336,7 +337,7 @@ private class PreviewPropertiesProvider(
           parameterName,
           parameterTypeNameIfStandard,
           argumentExpression,
-          defaultValue
+          defaultValue,
         )
       PARAMETER_SHOW_SYSTEM_UI,
       PARAMETER_SHOW_BACKGROUND ->
@@ -347,7 +348,7 @@ private class PreviewPropertiesProvider(
           parameterName,
           parameterTypeNameIfStandard,
           argumentExpression,
-          defaultValue
+          defaultValue,
         )
       else ->
         PsiCallParameterPropertyItem(
@@ -357,7 +358,7 @@ private class PreviewPropertiesProvider(
           parameterName,
           parameterTypeNameIfStandard,
           argumentExpression,
-          defaultValue
+          defaultValue,
         )
     }.also { properties.add(it) }
   }

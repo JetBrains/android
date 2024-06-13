@@ -1,0 +1,116 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "androidx.core.haptics",
+    "module": "haptics",
+    "version": "1.0.0-alpha01",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseVariantReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "1.8.22"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "haptics-1.0.0-alpha01.aar",
+          "url": "haptics-1.0.0-alpha01.aar",
+          "size": 98596,
+          "sha512": "8112ea3be58adfe692aa81cc32f9f1f375f31829f05d956fb013acb3e2729c2b1c1add66b7a880579d37579352d385d71b2dc43c21867b995c0608a24fb10636",
+          "sha256": "4a93c9ee3768a4d582f049c2897f1a0fc8d63c141b65303f2faf43510d628891",
+          "sha1": "cce6fce4091e97c7bc9e5496573b1022383168a6",
+          "md5": "e9cfb8d7da2d6337d791bae5fa132878"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [],
+      "files": [
+        {
+          "name": "haptics-1.0.0-alpha01.aar",
+          "url": "haptics-1.0.0-alpha01.aar",
+          "size": 98596,
+          "sha512": "8112ea3be58adfe692aa81cc32f9f1f375f31829f05d956fb013acb3e2729c2b1c1add66b7a880579d37579352d385d71b2dc43c21867b995c0608a24fb10636",
+          "sha256": "4a93c9ee3768a4d582f049c2897f1a0fc8d63c141b65303f2faf43510d628891",
+          "sha1": "cce6fce4091e97c7bc9e5496573b1022383168a6",
+          "md5": "e9cfb8d7da2d6337d791bae5fa132878"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "haptics-1.0.0-alpha01-sources.jar",
+          "url": "haptics-1.0.0-alpha01-sources.jar",
+          "size": 31885,
+          "sha512": "989e871ca63ebee6ae61784a3dc6ce88299ba62f507e8db625816354b0f7f7a5fb0967bec6e2ff6981359314ecac45688e6fb4ad00f4e125799de414246500cc",
+          "sha256": "dc6862a81aa5598a6c0d910a37bdd78bbf5a4c9df33333c4acc2c784700f05af",
+          "sha1": "cebb91a49839b914258eadcb33e0274b84b223f8",
+          "md5": "4030d7372428d57d0ae1fa2298bc0880"
+        },
+        {
+          "name": "haptics-1.0.0-alpha01-samples-sources.jar",
+          "url": "haptics-1.0.0-alpha01-samples-sources.jar",
+          "size": 4733,
+          "sha512": "d70b6ef047e21fbcc4078fc3745c17ddbf66c85046a84465b648c800312da90178b098d08be0774d4d17166f4e2f760276662d15c9bb83f1ec2245f9d7480749",
+          "sha256": "e215660960282ab8f4e8969ccac0359df507124a16831ca68a9e2dc85be489c8",
+          "sha1": "352bd02d6ceced0d9f19aed9b5bc6e7137413c0a",
+          "md5": "796855e759cff9daa29bc3c9ac0b8378"
+        }
+      ]
+    },
+    {
+      "name": "libraryVersionMetadata",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.usage": "library-version-metadata"
+      },
+      "files": [
+        {
+          "name": "haptics-1.0.0-alpha01-versionMetadata.json",
+          "url": "haptics-1.0.0-alpha01-versionMetadata.json",
+          "size": 12878,
+          "sha512": "79560a201ea35a960da23b488a83f146064b345fa4e62bf7d33a28ddece8f74a2f2fb59a911ac2a89b0d23f385de2c08e3c169dc73729568f895cb5e6f96da7a",
+          "sha256": "6e83b633dc80089a93dcc0ce2ba37caee83aded8a4fa38f968c88f5c4ef9cf79",
+          "sha1": "c3214a63b0cd7910ed18fd4205167c508ec76d97",
+          "md5": "e95387e78aa881814a878b42deac6201"
+        }
+      ]
+    }
+  ]
+}

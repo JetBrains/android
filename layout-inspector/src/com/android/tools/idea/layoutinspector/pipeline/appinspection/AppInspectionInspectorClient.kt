@@ -16,13 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.annotations.concurrency.Slow
-import com.android.repository.Revision
-import com.android.repository.api.RepoManager
-import com.android.repository.api.RepoPackage
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.sdklib.repository.meta.DetailsTypes
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
@@ -35,7 +30,6 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -43,18 +37,14 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility.NotCompatible.Reason.API_29_PLAY_STORE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.StudioDownloader
-import com.android.tools.idea.sdk.StudioSettingsController
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
@@ -62,7 +52,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
 import com.intellij.ui.EditorNotificationPanel.Status
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -77,9 +66,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
 
 const val SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY = "system.image.live.unsupported"
-@com.google.common.annotations.VisibleForTesting const val API_29_BUG_MESSAGE_KEY = "api29.message"
-@com.google.common.annotations.VisibleForTesting
-const val API_29_BUG_UPGRADE_KEY = "api29.upgrade.message"
 @com.google.common.annotations.VisibleForTesting const val MIN_API_29_GOOGLE_APIS_SYSIMG_REV = 12
 @com.google.common.annotations.VisibleForTesting const val MIN_API_29_AOSP_SYSIMG_REV = 8
 
@@ -91,7 +77,6 @@ const val API_29_BUG_UPGRADE_KEY = "api29.upgrade.message"
  */
 class AppInspectionInspectorClient(
   process: ProcessDescriptor,
-  isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
   notificationModel: NotificationModel,
   private val metrics: LayoutInspectorSessionMetrics,
@@ -103,17 +88,17 @@ class AppInspectionInspectorClient(
   private val apiServices: AppInspectionApiServices =
     AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly
-  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
+  private val debugViewAttributes: DebugViewAttributes = DebugViewAttributes(model.project),
 ) :
   AbstractInspectorClient(
     APP_INSPECTION_CLIENT,
     model.project,
     notificationModel,
     process,
-    isInstantlyAutoConnected,
     SessionStatisticsImpl(APP_INSPECTION_CLIENT),
     coroutineScope,
-    parentDisposable
+    parentDisposable,
   ) {
 
   private var viewInspector: ViewLayoutInspectorClient? = null
@@ -129,13 +114,11 @@ class AppInspectionInspectorClient(
     logError(t)
   }
 
-  private var debugViewAttributesChanged = false
-
   override val capabilities =
     EnumSet.of(
       Capability.SUPPORTS_CONTINUOUS_MODE,
       Capability.SUPPORTS_SYSTEM_NODES,
-      Capability.SUPPORTS_SKP
+      Capability.SUPPORTS_SKP,
     )!!
 
   private val skiaParser =
@@ -149,8 +132,8 @@ class AppInspectionInspectorClient(
   override val provider: PropertiesProvider
     get() = propertiesProvider
 
-  override val isCapturing: Boolean
-    get() = inspectorClientSettings.isCapturingModeOn
+  override val inLiveMode: Boolean
+    get() = inspectorClientSettings.inLiveMode
 
   override suspend fun doConnect() {
     // we run this function outside the runCatching because it sets a banner in case of exception.
@@ -175,7 +158,7 @@ class AppInspectionInspectorClient(
             treeSettings,
             capabilities,
             launchMonitor,
-            ::logComposeAttachError
+            ::logComposeAttachError,
           )
         val viewIns =
           ViewLayoutInspectorClient.launch(
@@ -188,21 +171,29 @@ class AppInspectionInspectorClient(
             this::notifyError,
             ::fireRootsEvent,
             ::fireTreeEvent,
-            launchMonitor
+            launchMonitor,
           )
         propertiesProvider =
           AppInspectionPropertiesProvider(
             viewIns.propertiesCache,
             composeInspector?.parametersCache,
-            model
+            model,
           )
         viewInspector = viewIns
 
         logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-        debugViewAttributesChanged = DebugViewAttributes.getInstance().set(model.project, process)
-        if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
-          showActivityRestartedInBanner(model.project, notificationModel, process)
+        when (val setFlagResult = debugViewAttributes.set(process.device)) {
+          is SetFlagResult.Set -> {
+            if (!setFlagResult.previouslySet) {
+              // Show the banner only if debugViewAttributes has changed.
+              showActivityRestartedInBanner(notificationModel)
+            }
+          }
+          is SetFlagResult.Failure -> {
+            showUnableToSetDebugViewAttributesBanner(notificationModel)
+          }
+          is SetFlagResult.Cancelled -> {}
         }
 
         val completableDeferred = CompletableDeferred<Unit>()
@@ -216,7 +207,7 @@ class AppInspectionInspectorClient(
           disableBitmapScreenshots(true)
         }
 
-        if (isCapturing) {
+        if (inLiveMode) {
           startFetchingInternal()
         } else {
           refreshInternal()
@@ -301,10 +292,6 @@ class AppInspectionInspectorClient(
   override suspend fun doDisconnect() =
     withContext(AndroidDispatchers.workerThread) {
       try {
-        val debugViewAttributes = DebugViewAttributes.getInstance()
-        if (debugViewAttributesChanged && !debugViewAttributes.usePerDeviceSettings()) {
-          debugViewAttributes.clear(model.project, process)
-        }
         viewInspector?.disconnect()
         composeInspector?.disconnect()
         // TODO: skiaParser#shutdown is a blocking function. Should be ported to coroutines
@@ -398,119 +385,82 @@ class AppInspectionInspectorClient(
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 
+  /**
+   * Check if the system image used by the emulator is supported or not. API 29 Play Store images
+   * are not supported: b/180622424. If not supported, show a banner informing the user.
+   */
   private fun checkApi29Version(
     process: ProcessDescriptor,
     project: Project,
-    sdkHandler: AndroidSdkHandler
+    sdkHandler: AndroidSdkHandler,
   ) {
-    val (success, image) =
-      checkSystemImageForAppInspectionCompatibility(process, project, sdkHandler)
-    if (success || image == null) {
-      return
+    val compatibility =
+      checkSystemImageForAppInspectionCompatibility(
+        process.device.isEmulator,
+        process.device.apiLevel,
+        process.device.serial,
+        project,
+        sdkHandler,
+      )
+
+    val notCompatibleReason =
+      when (compatibility) {
+        Compatibility.Compatible -> return
+        is Compatibility.NotCompatible -> compatibility.reason
+      }
+
+    when (notCompatibleReason) {
+      API_29_PLAY_STORE -> {
+        notificationModel.addNotification(
+          SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
+          LayoutInspectorBundle.message("api29.playstore.message"),
+          Status.Warning,
+          listOf(notificationModel.dismissAction),
+        )
+      }
     }
 
-    val tags = (image.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: listOf()
-    if (
-      tags.contains(SystemImageTags.GOOGLE_APIS_TAG) || tags.contains(SystemImageTags.DEFAULT_TAG)
-    ) {
-      val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
-      val showBanner =
-        RepoManager.RepoLoadedListener { packages ->
-          val message: String
-          val actions: List<StatusNotificationAction>
-          val remote = packages.consolidatedPkgs[image.path]?.remote
-          if (
-            remote != null &&
-              ((tags.contains(SystemImageTags.GOOGLE_APIS_TAG) &&
-                remote.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-                (tags.contains(SystemImageTags.DEFAULT_TAG) &&
-                  remote.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))
-          ) {
-            message =
-              "${LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)} ${LayoutInspectorBundle.message(API_29_BUG_UPGRADE_KEY)}"
-            actions =
-              listOf(
-                StatusNotificationAction("Download Update") {
-                  if (
-                    SdkQuickfixUtils.createDialogForPaths(project, listOf(image.path))
-                      ?.showAndGet() == true
-                  ) {
-                    Messages.showInfoMessage(
-                      project,
-                      "Please restart the emulator for update to take effect.",
-                      "Restart Required"
-                    )
-                  }
-                },
-                notificationModel.dismissAction
-              )
-          } else {
-            message = LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)
-            actions = listOf(notificationModel.dismissAction)
-          }
-          notificationModel.addNotification(
-            SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
-            message,
-            Status.Warning,
-            actions
-          )
-        }
-      sdkHandler
-        .getSdkManager(logger)
-        .load(
-          0,
-          null,
-          listOf(showBanner),
-          null,
-          StudioProgressRunner(false, false, "Checking available system images", null),
-          StudioDownloader(),
-          StudioSettingsController.getInstance()
-        )
-    } else {
-      notificationModel.addNotification(
-        SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
-        LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY),
-        Status.Warning,
-        listOf(notificationModel.dismissAction)
-      )
-    }
     throw ConnectionFailedException(
       "Unsupported system image revision",
-      AttachErrorCode.LOW_API_LEVEL
+      AttachErrorCode.LOW_API_LEVEL,
     )
   }
 }
 
 /** Check whether the current target's system image is compatible with app inspection. */
 fun checkSystemImageForAppInspectionCompatibility(
-  process: ProcessDescriptor,
+  isEmulator: Boolean,
+  apiLevel: Int,
+  serialNumber: String,
   project: Project,
-  sdkHandler: AndroidSdkHandler
-): Pair<Boolean, RepoPackage?> {
-  if (process.device.isEmulator && process.device.apiLevel == 29) {
-    val adb = AdbUtils.getAdbFuture(project).get()
-    val avdName =
-      adb
-        ?.devices
-        ?.find { it.serialNumber == process.device.serial }
-        ?.avdData
-        ?.get(1, TimeUnit.SECONDS)
-        ?.name
-    val avd =
-      avdName?.let { AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName) }
-    val imagePackage = (avd?.systemImage as? SystemImage)?.`package`
-    if (imagePackage != null) {
-      if (
-        (SystemImageTags.GOOGLE_APIS_TAG == avd.tag &&
-          imagePackage.version < Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-          (SystemImageTags.DEFAULT_TAG == avd.tag &&
-            imagePackage.version < Revision(MIN_API_29_AOSP_SYSIMG_REV) ||
-            // We don't know when the play store images will be updated yet
-            SystemImageTags.PLAY_STORE_TAG == avd.tag)
-      ) {
-        return Pair(false, imagePackage)
-      }
+  sdkHandler: AndroidSdkHandler,
+): Compatibility {
+  if (!isEmulator || apiLevel != 29) {
+    // We are interested in checking only emulators running API 29.
+    return Compatibility.Compatible
+  }
+
+  val adb = AdbUtils.getAdbFuture(project).get()
+  val avdName =
+    adb?.devices?.find { it.serialNumber == serialNumber }?.avdData?.get(1, TimeUnit.SECONDS)?.name
+      ?: return Compatibility.Compatible
+
+  val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName)
+
+  return if (SystemImageTags.PLAY_STORE_TAG == avd?.tag) {
+    // We don't support Play Store images on API 29: b/180622424
+    Compatibility.NotCompatible(API_29_PLAY_STORE)
+  } else {
+    Compatibility.Compatible
+  }
+}
+
+sealed class Compatibility {
+  object Compatible : Compatibility()
+
+  data class NotCompatible(val reason: Reason) : Compatibility() {
+    enum class Reason {
+      API_29_PLAY_STORE
     }
   }
-  return Pair(true, null)
 }

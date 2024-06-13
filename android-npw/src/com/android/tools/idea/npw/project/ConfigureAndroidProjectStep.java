@@ -63,7 +63,6 @@ import com.android.tools.idea.ui.validation.validators.StringPathValidator;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
-import com.android.tools.idea.wizard.template.Category;
 import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
@@ -337,7 +336,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   private static boolean hasValidSdkComposeVersion(VersionItem skdItem, @Nullable Template renderTemplate) {
     return renderTemplate == null ||
-           renderTemplate.getCategory() != Category.Compose ||
+           !renderTemplate.getConstraints().contains(TemplateConstraint.Compose) ||
            skdItem.getTargetApiLevel() >= AndroidVersion.VersionCodes.S;
   }
 

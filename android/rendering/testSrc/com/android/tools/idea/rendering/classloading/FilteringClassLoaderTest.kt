@@ -19,6 +19,7 @@ import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.loaders.StaticLoader
 import org.junit.Assert.fail
 import org.junit.Test
+import org.jetbrains.org.objectweb.asm.Type
 
 class A1
 
@@ -27,6 +28,13 @@ class A2
 class B1
 
 class B2
+
+fun loadClassBytes(c: Class<*>): ByteArray {
+  val className = "${Type.getInternalName(c)}.class"
+  c.classLoader.getResourceAsStream(className)!!.use {
+    return it.readBytes()
+  }
+}
 
 class FilteringClassLoaderTest {
   private val parentClassLoader =

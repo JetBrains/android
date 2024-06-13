@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockProjectEx
 import com.intellij.mock.MockPsiManager
@@ -140,6 +141,19 @@ class IntellijProfilerServicesTest {
     finally {
       Disposer.dispose(intellijProfilerServicesNow)
     }
+  }
+
+  @Test
+  fun testIsTaskSupportedOnStartup() {
+    // The following tasks are supported on startup.
+    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.NATIVE_ALLOCATIONS)).isTrue()
+    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.CALLSTACK_SAMPLE)).isTrue()
+    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING)).isTrue()
+    // The following tasks are NOT supported on startup.
+    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.HEAP_DUMP)).isFalse()
+    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)).isFalse()
+    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.LIVE_VIEW)).isFalse()
+    assertThat(intellijProfilerServices.isTaskSupportedOnStartup(ProfilerTaskType.UNSPECIFIED)).isFalse()
   }
 
   private fun mockProjectAttributes(project: Project) {

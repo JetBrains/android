@@ -70,7 +70,7 @@ class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement
 
 internal fun SourceElement.withFunctionIcon(
   name: String,
-  containingClassName: String
+  containingClassName: String,
 ): SourceElement {
   return (this.getPsi() as? SafeArgsXmlTag)?.let {
     XmlSourceElement(
@@ -78,7 +78,7 @@ internal fun SourceElement.withFunctionIcon(
         it.getOriginal(),
         IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Function),
         name,
-        containingClassName
+        containingClassName,
       )
     )
   } ?: this

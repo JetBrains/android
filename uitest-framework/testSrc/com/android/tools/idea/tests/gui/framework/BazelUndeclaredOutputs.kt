@@ -22,7 +22,7 @@ import org.junit.rules.ExternalResource
 import java.io.File
 
 /**
- * When running UI tests from Bazel, any artifacts like logs or failure screenshots must be copied to the directory specified by the
+ * When running UI tests from Bazel, any artifacts like failure screenshots must be copied to the directory specified by the
  * TEST_UNDECLARED_OUTPUTS_DIR environment variable, lest they be destroyed along with the sandbox. This rule provides a place to perform
  * this copying. If not running from Bazel, it is a no-op.
  */
@@ -31,10 +31,8 @@ class BazelUndeclaredOutputs : ExternalResource() {
   override fun after() {
     if (TestUtils.runningFromBazel()) {
       val outputDir = TestUtils.getTestOutputDir().toFile()
-      val logDir = File(PathManager.getSystemPath() + File.separator + "log")
-      val screenshotsDir = GuiTests.getFailedTestScreenshotDirPath()
-      FileUtils.copyDirectoryToDirectory(logDir, outputDir)
-      FileUtils.copyDirectoryToDirectory(screenshotsDir, outputDir)
+      FileUtils.copyDirectoryToDirectory(GuiTests.getFailedTestScreenshotDirPath(), outputDir)
+      FileUtils.copyDirectoryToDirectory(GuiTests.getFailedTestDiagnosticsDirPath(), outputDir)
     }
   }
 }

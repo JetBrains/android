@@ -90,9 +90,9 @@ public class HaxmAlert extends JPanel {
   }
 
   @VisibleForTesting
-  static String getWarningTextForX86HostsUsingNonX86Image(@NotNull SystemImageDescription description,
-                                                          ProductDetails.CpuArchitecture arch) {
-    Abi abi = Abi.getEnum(description.getAbiType());
+  public static String getWarningTextForX86HostsUsingNonX86Image(@NotNull SystemImageDescription description,
+                                                                 ProductDetails.CpuArchitecture arch) {
+    Abi abi = Abi.getEnum(description.getPrimaryAbiType());
     boolean isX86Host = arch == ProductDetails.CpuArchitecture.X86 || arch == ProductDetails.CpuArchitecture.X86_64;
     if (isX86Host && abi != Abi.X86 && abi != Abi.X86_64) {
       return "Consider using an x86 system image on an x86 host for better emulation performance.";
@@ -150,7 +150,7 @@ public class HaxmAlert extends JPanel {
             warningTextBuilder.append(nonX86ImageWarning).append("<br>");
           }
 
-          if (!SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
+          if (!myImageDescription.hasGoogleApis()) {
             if (warningTextBuilder.length() > 0) {
               warningTextBuilder.append("<br>");
             }

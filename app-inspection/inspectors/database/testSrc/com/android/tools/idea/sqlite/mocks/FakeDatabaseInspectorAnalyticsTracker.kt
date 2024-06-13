@@ -29,12 +29,12 @@ open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTra
 
   override fun trackStatementExecuted(
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext
+    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext,
   ) {}
 
   override fun trackStatementExecutionCanceled(
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext
+    statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext,
   ) {}
 
   override fun trackLiveUpdatedToggled(enabled: Boolean) {}
@@ -69,6 +69,6 @@ open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTra
       AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
     outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
-    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
   ) {}
 }

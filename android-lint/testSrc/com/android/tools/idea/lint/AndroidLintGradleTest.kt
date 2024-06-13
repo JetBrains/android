@@ -18,6 +18,8 @@ package com.android.tools.idea.lint
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.AndroidLintSimilarGradleDependencyInspection
+import com.android.tools.idea.lint.common.AndroidLintUseTomlInsteadInspection
 import com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
@@ -63,7 +65,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
           private String path = "/sdcard/foo"; // Deliberate lint warning
                                 ~~~~~~~~~~~~~
           Fix: Suppress SdCardPath with an annotation
-      """
+      """,
     )
   }
 
@@ -77,7 +79,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       debug,
       AndroidLintMockLocationInspection(),
       "android.permission.ACCESS_|MOCK_LOCATION",
-      "No warnings."
+      "No warnings.",
     )
     val main = myFixture.loadFile("app/src/main/AndroidManifest.xml")
 
@@ -91,7 +93,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           Fix: Move to debug-specific manifest
           Fix: Suppress: Add tools:ignore="MockLocation" attribute
-      """
+      """,
     )
   }
 
@@ -119,7 +121,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
         Fix: Surround with if (VERSION.SDK_INT >= VERSION_CODES.O) { ... }
         Fix: Add @RequiresApi(O) Annotation
         Fix: Suppress NewApi with an annotation
-    """
+    """,
     )
 
     val unitTestFile = myFixture.loadFile("app/src/test/java/google/testartifacts/ExampleTest.java")
@@ -128,13 +130,13 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       AndroidLintNewApiInspection(),
       "collection.st|ream",
       """
-    Error: Call requires API level 24 (current min is 16): `java.util.Collection#stream`
+    Error: Call requires API level 24, or core library desugaring (current min is 16): `java.util.Collection#stream`
         java.util.stream.Stream<String> streamOfCollection = collection.stream();
                                                                         ~~~~~~
         Fix: Surround with if (VERSION.SDK_INT >= VERSION_CODES.N) { ... }
         Fix: Add @RequiresApi(N) Annotation
         Fix: Suppress NewApi with an annotation
-    """
+    """,
     )
 
     val androidTestFile =
@@ -143,13 +145,13 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       androidTestFile,
       AndroidLintNewApiInspection(),
       "LocalDate.n|ow",
-      "No warnings."
+      "No warnings.",
     )
     myFixture.checkLint(
       androidTestFile,
       AndroidLintNewApiInspection(),
       "collection.st|ream",
-      "No warnings."
+      "No warnings.",
     )
   }
 
@@ -169,7 +171,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
           Fix: Replace with valueOf()
           Fix: Suppress UseValueOf with an annotation
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -180,9 +182,55 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     doGlobalInspectionTest(inspection, AnalysisScope(myFixture.project))
   }
 
+  fun testVersionCatalogNestedProjects() {
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_VERSION_CATALOG_NESTED_PROJECTS)
+    val appBuildFile = myFixture.loadFile("app/build.gradle.kts")
+    myFixture.checkLint(
+      appBuildFile,
+      AndroidLintUseTomlInsteadInspection(),
+      "com.android.support:appcompat-v|7:28.0.0",
+      """
+        Warning: Use version catalog instead
+            implementation("com.android.support:appcompat-v7:28.0.0")
+                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            Fix: Replace with new library catalog declaration for appcompat-v7
+            Fix: Suppress UseTomlInstead with a comment
+      """
+        .trimIndent(),
+    )
+    val nestedAppBuildFile = myFixture.loadFile("app/nested/build.gradle.kts")
+    myFixture.checkLint(
+      nestedAppBuildFile,
+      AndroidLintUseTomlInsteadInspection(),
+      "com.android.support:appcompat-v|7:28.0.0",
+      """
+        Warning: Use version catalog instead
+            implementation("com.android.support:appcompat-v7:28.0.0")
+                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            Fix: Replace with new library catalog declaration for appcompat-v7
+            Fix: Suppress UseTomlInstead with a comment
+      """
+        .trimIndent(),
+    )
+  }
+
+  fun testVersionCatalogForSimilarDependencies() {
+    loadProject(TestProjectPaths.TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG)
+    val appBuildFile = myFixture.loadFile("gradle/libs.versions.toml")
+    myFixture.checkLint(
+      appBuildFile,
+      AndroidLintSimilarGradleDependencyInspection(),
+      "androidx-core-ktx = { group = \"androidx.|core\", name = \"core-ktx\", version.ref = \"coreKtx\" }\n",
+      """
+        No warnings.
+      """
+        .trimIndent(),
+    )
+  }
+
   fun doGlobalInspectionTest(
     tool: GlobalInspectionTool,
-    scope: AnalysisScope
+    scope: AnalysisScope,
   ): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
     // We can't just override
     //    getTestDataDirectoryWorkspaceRelativePath() = "tools/adt/idea/android-lint/testData"
@@ -216,13 +264,14 @@ fun JavaCodeInsightTestFixture.checkLint(
   psiFile: PsiFile,
   inspection: AndroidLintInspectionBase,
   caret: String,
-  expected: String
+  expected: String,
 ) {
   AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
   enableInspections(inspection)
   val fileText = psiFile.text
   val sb = StringBuilder()
   val target = psiFile.findCaretOffset(caret)
+  editor.caretModel.moveToOffset(target)
   val highlights =
     doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
   for (highlight in highlights) {
@@ -265,6 +314,6 @@ fun JavaCodeInsightTestFixture.checkLint(
 
   AndroidGradleTestCase.assertEquals(
     expected.trimIndent().trim(),
-    sb.toString().trimIndent().trim()
+    sb.toString().trimIndent().trim(),
   )
 }

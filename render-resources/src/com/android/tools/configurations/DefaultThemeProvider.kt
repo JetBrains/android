@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceUrl
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.environment.Logger
 
 /** [ResourceReference] to the postSplashScreenTheme. */
 private val postSplashAttrReference = ResourceReference.attr(

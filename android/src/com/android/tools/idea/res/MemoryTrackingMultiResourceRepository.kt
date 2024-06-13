@@ -17,15 +17,18 @@ package com.android.tools.idea.res
 
 import com.android.tools.res.MultiResourceRepository
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
  * [MultiResourceRepository] that adjusts memory usage when the memory consumption becomes critical.
  */
-abstract class MemoryTrackingMultiResourceRepository protected constructor(displayName: String) :
+abstract class MemoryTrackingMultiResourceRepository
+protected constructor(parentDisposable: Disposable, displayName: String) :
   MultiResourceRepository<VirtualFile>(displayName), Disposable {
   init {
+    Disposer.register(parentDisposable, this)
     LowMemoryWatcher.register({ onLowMemory() }, this)
   }
 

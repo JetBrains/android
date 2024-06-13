@@ -9,7 +9,6 @@ message BuildAnalysisResultsMessage {
   optional AnnotationProcessorsAnalyzerResult annotationProcessorsAnalyzerResult = 1;
   optional AlwaysRunTasksAnalyzerResult alwaysRunTasksAnalyzerResult = 2;
   optional CriticalPathAnalyzerResult criticalPathAnalyzerResult = 3;
-  optional NoncacheableTasksAnalyzerResult noncacheableTasksAnalyzerResult= 4;
   optional GarbageCollectionAnalyzerResult garbageCollectionAnalyzerResult = 5;
   optional ProjectConfigurationAnalyzerResult projectConfigurationAnalyzerResult = 6;
   optional TasksConfigurationIssuesAnalyzerResult tasksConfigurationAnalyzerResult = 7;
@@ -144,10 +143,6 @@ message BuildAnalysisResultsMessage {
     }
   }
 
-  message NoncacheableTasksAnalyzerResult {
-    repeated string noncacheableTaskIds = 1;
-  }
-
   message GarbageCollectionAnalyzerResult {
     repeated GarbageCollectionData garbageCollectionData = 1;
     optional int32 javaVersion = 2;
@@ -236,6 +231,8 @@ message BuildAnalysisResultsMessage {
       SOURCE_GEN = 5;
       BUNDLE = 6;
       APK_FROM_BUNDLE = 7;
+      BASELINE_PROFILE_GEN = 8;
+      BASELINE_PROFILE_GEN_ALL_VARIANTS = 9;
     }
   }
 

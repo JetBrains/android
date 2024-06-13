@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.junit4.OldAgpTest
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -41,7 +40,7 @@ class MakeBeforeRunTaskProviderIntegrationOldAgpTest {
     )
     preparedProject.open { project ->
       val result = project.buildAndWait {buildInvoker ->
-        buildInvoker.assemble(TestCompileType.ALL)
+        buildInvoker.assemble()
       }
       assertThat(result.isBuildSuccessful).isTrue()
     }

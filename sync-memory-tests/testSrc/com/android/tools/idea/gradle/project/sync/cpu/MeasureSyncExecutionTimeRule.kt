@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.cpu
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
+import com.android.tools.idea.gradle.project.sync.gradle.CaptureType
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementCheckpoint
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.memory.OUTPUT_DIRECTORY
@@ -57,7 +58,7 @@ private val ANALYZER = listOf(
 
 private typealias TimestampedMeasurement = Pair<Instant, Duration>
 
-private data class Durations (
+private data class Durations(
   val gradleConfiguration : Duration,
   val gradleBeforeAndroidExecution: Duration,
   val gradleAndroidExecution: Duration,
@@ -66,7 +67,17 @@ private data class Durations (
   val finishTimestamp: Instant,
   val gradle: Duration = gradleConfiguration + gradleBeforeAndroidExecution + gradleAndroidExecution + gradleAfterAndroidExecution,
   val total: Duration = gradle + ide
-)
+) {
+  override fun toString() = """
+total: ${total.inWholeSeconds}s
+  -   ide: ${ide.inWholeSeconds}s
+  -gradle: ${gradle.inWholeSeconds}s
+    -configuration: ${gradleConfiguration.inWholeSeconds}s
+    -beforeAndroid: ${gradleBeforeAndroidExecution.inWholeSeconds}s
+    -      android: ${gradleAndroidExecution.inWholeSeconds}s
+    - afterAndroid: ${gradleAfterAndroidExecution.inWholeSeconds}s
+  """.trimIndent()
+}
 
 class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
   private val results = mutableListOf<Durations>()
@@ -75,12 +86,11 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
 
   override fun before() {
     StudioFlags.SYNC_STATS_OUTPUT_DIRECTORY.override(OUTPUT_DIRECTORY)
-    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureHistograms = false)
+    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureTypes = setOf(CaptureType.TIMESTAMP))
   }
 
   val listener = object : GradleSyncListenerWithRoot {
     override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
-      println("Project import started: attempt #${results.size + 1}")
       syncStartTimestamp = Clock.System.now()
     }
 
@@ -99,8 +109,8 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
         ide = ideFinishedTimestamp - gradleSyncFinishedTimestamp,
         finishTimestamp =  ideFinishedTimestamp
       )
-      println("Result: $result")
       results.add(result)
+      println("Project import #${results.size} result: $result")
     }
   }
 
@@ -125,12 +135,14 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
       }.groupBy { (type, _,) -> type }
       .mapValues { groupEntry -> groupEntry.value.map {it.second} }.entries // unpack group values
       .forEach { (type, values: List<TimestampedMeasurement>) ->
-      println("Recording ${projectName}_$type -> $values")
+      values.forEach { value ->
+        println("Recording ${projectName}_$type -> ${value.second.inWholeMilliseconds} ms (${value.second.inWholeSeconds} seconds)")
+      }
       recordCpuMeasurement("${projectName}_$type", values, enableAnalyzers = !type.startsWith(droppedPrefix) )
     }
   }
   private fun getTimestampForCheckpoint(checkpointName: String): Instant {
-    val file = File(OUTPUT_DIRECTORY).walk().first { it.name.endsWith(checkpointName) && !processedFiles.contains(it.name)}
+    val file = File(OUTPUT_DIRECTORY).walk().first { it.nameWithoutExtension.endsWith(checkpointName) && !processedFiles.contains(it.name)}
     return Instant.fromEpochMilliseconds(file.name.substringBefore('_').toLong()).also {
       processedFiles.add(file.name)
     }

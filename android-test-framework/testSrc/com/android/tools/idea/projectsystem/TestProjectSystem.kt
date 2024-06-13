@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -69,6 +70,10 @@ class TestProjectSystem @JvmOverloads constructor(
 
   data class Dependency(val type: DependencyType, val coordinate: GradleCoordinate)
 
+  override fun isAndroidProject(): Boolean {
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+  }
+
   override fun getBootClasspath(module: Module): Collection<String> {
     return emptyList()
   }
@@ -82,7 +87,7 @@ class TestProjectSystem @JvmOverloads constructor(
     val provider = object : ApplicationProjectContextProvider, TestToken {
       override val expectedInstance: TestProjectSystem = this@TestProjectSystem
 
-      override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
+      override fun getApplicationProjectContext(client: Client): ApplicationProjectContext {
         return TestApplicationProjectContext(client.clientData.packageName ?: error("packagename must not be empty"))
       }
     }

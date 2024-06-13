@@ -29,6 +29,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import icons.StudioIcons
+import org.junit.Assert
+import org.junit.Assume
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -37,6 +39,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.awt.geom.Rectangle2D
 import java.util.concurrent.TimeUnit
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 @RunWith(Parameterized::class)
 class AllocationStageViewTest(private val isLive: Boolean) {
@@ -93,6 +97,20 @@ class AllocationStageViewTest(private val isLive: Boolean) {
       assertThat(expected.all { it.isVisible }).isTrue()
       assertThat(unexpected.all { !it.isVisible || it !in descendants })
     }
+  }
+
+  @Test
+  fun `stage has AgentError with virtual device, display error panel`() {
+    val errorLabel = getAgentUnattachedError(true)
+    assertThat(errorLabel.text).isEqualTo("<html><div style='text-align: center;'> " +
+                                          "There was an error loading this feature. Try cold booting the virtual device. </div></html>")
+  }
+
+  @Test
+  fun `stage has AgentError with physical device, display error panel`() {
+    val errorLabel = getAgentUnattachedError(false)
+    assertThat(errorLabel.text).isEqualTo("<html><div style='text-align: center;'> " +
+                                          "There was an error loading this feature. Try restarting the device. </div></html>")
   }
 
   @Test
@@ -195,13 +213,23 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     }
   }
 
+  @Test
+  fun `timeline fills to the latest point in data-range, not all the way to the right by default`() {
+    Assume.assumeTrue(isLive)
+    stage.liveAllocationSamplingMode = FULL
+    stage.startLiveDataTimeline()
+    // Set the data range before the view range. Otherwise, setting data range can trigger `AllocationStage.onNewData()`
+    // which may increase or decrease `viewRange.max` by 1 microsecond to force a repaint, failing this test.
+    stage.timeline.dataRange.max = stage.minTrackingTimeUs + 600.0
+    stage.timeline.viewRange.max = stage.minTrackingTimeUs + 1000.0
+    assertThat(stageView.timelineComponent.fillEndSupplier().asDouble).isEqualTo(0.6)
+  }
+
   private fun tick() = timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
   private fun requestSamplingRate(rate: Int) =
     transportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.pid, 1, rate).build())
-
-
 
   private fun startSessionHelper(device: Common.Device, process: Common.Process) {
     profilers.sessionsManager.endCurrentSession()
@@ -209,6 +237,36 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     profilers.sessionsManager.beginSession(device.deviceId, device, process)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     profilers.stage = stage
+  }
+
+  private fun getAgentUnattachedError(isEmulator: Boolean): JLabel {
+    Assume.assumeTrue(isLive)
+    stage.liveAllocationSamplingMode = SAMPLED
+    val device = Common.Device.newBuilder().setDeviceId(1)
+      .setFeatureLevel(AndroidVersion.VersionCodes.O)
+      .setState(Common.Device.State.ONLINE)
+      .setIsEmulator(isEmulator)
+      .build()
+    val process = Common.Process.newBuilder().setDeviceId(1).setPid(2).setState(Common.Process.State.ALIVE).build()
+    // Set agent status unattachable
+    transportService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNATTACHABLE).build())
+    profilers.setProcess(device, process)
+    stage.stopTrackingDueToUnattachableAgent()
+    val subComponentsOfView = stageView.component.components
+    Assert.assertTrue(subComponentsOfView[0] is JPanel)
+
+    val mainPanel = subComponentsOfView[0] as JPanel
+    val mainPanelComponents = mainPanel.components
+    // Panel contains 2 components - JBSplitter and JPanel
+    assertThat(mainPanelComponents.size).isEqualTo(2)
+    Assert.assertTrue(mainPanelComponents[1] is JPanel)
+
+    val errorPanel = mainPanelComponents[1] as JPanel
+    val errorPanelLabelComponents = errorPanel.components
+    // JPanel contains 1 component - JLabel, which is the error message
+    assertThat(errorPanelLabelComponents.size).isEqualTo(1)
+    Assert.assertTrue(errorPanelLabelComponents[0] is JLabel)
+    return errorPanelLabelComponents[0] as JLabel
   }
 
   companion object {

@@ -5,12 +5,12 @@ iml_module(
     name = "intellij.android.compose-common",
     srcs = ["src"],
     iml_files = ["intellij.android.compose-common.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
@@ -33,8 +33,9 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin[test]",
         "//tools/adt/idea/.idea/libraries:truth",
     ],
 )

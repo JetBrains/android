@@ -23,19 +23,20 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
-import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.rendering.isCancellationException
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.util.Disposer
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.launch
 import java.awt.Rectangle
 import java.awt.event.AdjustmentEvent
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.abs
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Base interface for render quality management. Any RenderQualityManager should fulfill the three
@@ -48,6 +49,9 @@ interface RenderQualityManager {
   fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float
 
   fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean
+
+  fun needsQualityChange(surface: NlDesignSurface) =
+    surface.sceneManagers.any { needsQualityChange(it) }
 
   fun pause()
 
@@ -68,7 +72,8 @@ interface RenderQualityPolicy {
   fun getTargetQuality(scale: Double, isVisible: Boolean): Float
 }
 
-fun getDefaultPreviewQuality() = if (EssentialsMode.isEnabled()) 0.75f else 0.95f
+fun getDefaultPreviewQuality() =
+  if (PreviewEssentialsModeManager.isEssentialsModeEnabled) 0.75f else 0.95f
 
 /**
  * Default [RenderQualityManager] implementation, configurable by a [RenderQualityPolicy], that
@@ -84,7 +89,7 @@ fun getDefaultPreviewQuality() = if (EssentialsMode.isEnabled()) 0.75f else 0.95
 class DefaultRenderQualityManager(
   private val mySurface: NlDesignSurface,
   private val myPolicy: RenderQualityPolicy,
-  private val onQualityChangeMightBeNeeded: () -> Unit
+  private val onQualityChangeMightBeNeeded: () -> Unit,
 ) : RenderQualityManager {
   private val scope = AndroidCoroutineScope(mySurface)
   private var isPaused = false
@@ -99,7 +104,7 @@ class DefaultRenderQualityManager(
       disposableCallbackFlow<Unit>(
           "RenderQualityManager flow",
           logger = null,
-          parentDisposable = mySurface
+          parentDisposable = mySurface,
         ) {
           val panZoomListener =
             object : PanZoomListener {
@@ -148,13 +153,19 @@ class DefaultRenderQualityManager(
   override fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float {
     if (isPaused) return getDefaultPreviewQuality()
     uiDataLock.withLock {
-      if (!isUiDataUpToDate) {
+      if (
+        // Update rectangles if any UI related dimensions changed or a sceneView instance changed
+        !isUiDataUpToDate || sceneManager.sceneViews.any { !sceneViewRectangles.containsKey(it) }
+      ) {
         sceneViewRectangles = mySurface.findSceneViewRectangles()
         scrollRectangle = mySurface.currentScrollRectangle
         isUiDataUpToDate = true
       }
     }
-    return myPolicy.getTargetQuality(mySurface.scale, isSceneManagerVisible(sceneManager))
+    return myPolicy.getTargetQuality(
+      mySurface.zoomController.scale,
+      isSceneManagerVisible(sceneManager),
+    )
   }
 
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean =
@@ -176,6 +187,10 @@ class DefaultRenderQualityManager(
   override fun resume() {
     isPaused = false
   }
+
+  @TestOnly
+  internal fun sceneViewRectanglesContainsForTest(sceneView: SceneView) =
+    sceneViewRectangles.containsKey(sceneView)
 }
 
 /**

@@ -120,7 +120,7 @@ fun RecipeExecutor.generateCommonModule(
     with(resOut.resolve(SdkConstants.FD_RES_VALUES)) {
       save(androidModuleStrings(appTitle!!), resolve("strings.xml"))
       // Common themes.xml isn't needed for Compose because theme is created in Composable.
-      if (themesXml != null && data.category != Category.Compose) {
+      if (themesXml != null && !data.isCompose) {
         save(themesXml, resolve("themes.xml"))
       }
       if (colorsXml != null) {
@@ -129,7 +129,7 @@ fun RecipeExecutor.generateCommonModule(
     }
     themesXmlNight?.let {
       // Common themes.xml isn't needed for Compose because theme is created in Composable.
-      if (data.category != Category.Compose) {
+      if (!data.isCompose) {
         save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("themes.xml"))
       }
     }

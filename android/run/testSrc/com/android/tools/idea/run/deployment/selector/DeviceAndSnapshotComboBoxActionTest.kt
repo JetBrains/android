@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
@@ -29,9 +27,6 @@ import org.junit.Test
 
 class DeviceAndSnapshotComboBoxActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
-
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.DEPLOYMENT_TARGET_DEVICE_PROVISIONER_MIGRATION, true)
 
   val project
     get() = projectRule.project
@@ -68,7 +63,7 @@ class DeviceAndSnapshotComboBoxActionTest {
     devicesFlow.value = listOf(FakeDeviceHandle(scope, null, handleId("1")))
     sendLaunchCompatibility()
 
-    devicesSelectedService.devicesAndTargetsFlow.firstValue()
+    devicesSelectedService // fetch lazy value
     testScope.advanceUntilIdle()
 
     val event = actionEvent(dataContext(project), place = ActionPlaces.MAIN_TOOLBAR)
@@ -83,7 +78,7 @@ class DeviceAndSnapshotComboBoxActionTest {
     devicesFlow.value =
       listOf(
         FakeDeviceHandle(scope, null, handleId("1")),
-        FakeDeviceHandle(scope, null, handleId("2"))
+        FakeDeviceHandle(scope, null, handleId("2")),
       )
     sendLaunchCompatibility()
 

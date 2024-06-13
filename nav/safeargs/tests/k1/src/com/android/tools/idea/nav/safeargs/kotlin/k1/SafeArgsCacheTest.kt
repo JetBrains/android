@@ -51,7 +51,7 @@ class SafeArgsCacheTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val javaCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)

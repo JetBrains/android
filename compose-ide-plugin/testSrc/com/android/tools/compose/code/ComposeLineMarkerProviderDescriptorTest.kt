@@ -66,7 +66,7 @@ class ComposeLineMarkerProviderDescriptorTest {
         MyButton() // invocation
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     var identifier: LeafPsiElement? = null
@@ -100,7 +100,7 @@ class ComposeLineMarkerProviderDescriptorTest {
         MyButton() // invocation
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     var functionElement: KtNamedFunction? = null
@@ -130,7 +130,7 @@ class ComposeLineMarkerProviderDescriptorTest {
         MyButton() // invocation
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     var identifier: LeafPsiElement? = null

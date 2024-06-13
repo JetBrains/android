@@ -16,9 +16,9 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.flags.ifEnabled
+import com.android.tools.idea.common.surface.DEVICE_CONFIGURATION_SHAPE_POLICY
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -39,7 +39,7 @@ internal val WEAR_TILE_SCREEN_VIEW_PROVIDER =
 
     override fun createPrimarySceneView(
       surface: NlDesignSurface,
-      manager: LayoutlibSceneManager
+      manager: LayoutlibSceneManager,
     ): ScreenView =
       ScreenView.newBuilder(surface, manager)
         .withLayersProvider {
@@ -50,11 +50,13 @@ internal val WEAR_TILE_SCREEN_VIEW_PROVIDER =
               StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
                 add(ClassLoadingDebugLayer(surface.models.first().facet.module))
               }
-              StudioFlags.NELE_RENDER_DIAGNOSTICS.ifEnabled { add(DiagnosticsLayer(surface, surface.project)) }
+              StudioFlags.NELE_RENDER_DIAGNOSTICS.ifEnabled {
+                add(DiagnosticsLayer(surface, surface.project))
+              }
             }
             .build()
         }
-        .withShapePolicy { SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY.getShape(it) }
+        .withShapePolicy(DEVICE_CONFIGURATION_SHAPE_POLICY)
         .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
         .build()
 

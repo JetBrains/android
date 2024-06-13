@@ -96,8 +96,8 @@ class BuildAttributionManagerImpl(
     currentBuildAnalysisContext = BuildAnalysisContext(request)
 
     ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
+    if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
     currentBuildAnalysisContext.analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
-      if (!StudioFlags.isBuildOutputShowsDownloadInfo()) return
       val downloadsInfoDataModel = DownloadInfoDataModel(currentBuildAnalysisContext.currentBuildDisposable)
       it.eventsProcessor.downloadsInfoDataModel = downloadsInfoDataModel
       project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildAnalysisContext.currentBuildDisposable, downloadsInfoDataModel)

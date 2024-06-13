@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.compose.ComposeAutoDocumentation.Companion.shouldShowDocumentation
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -69,7 +68,7 @@ class ComposeAutoDocumentationTest {
 
       fun OpenDoorPolicy() {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.openFileInEditor(file.virtualFile)
@@ -94,7 +93,7 @@ class ComposeAutoDocumentationTest {
       package androidx.compose.ui
       interface Modifier
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val file =
       fixture.addFileToProject(
@@ -107,7 +106,7 @@ class ComposeAutoDocumentationTest {
       fun androidx.compose.ui.Modifier.formentera(): Modifier = this
       fun String.growUpAndBlowAway(): Int = 8675309
       """
-          .trimIndent()
+          .trimIndent(),
       )
     fixture.openFileInEditor(file.virtualFile)
 
@@ -138,7 +137,7 @@ class ComposeAutoDocumentationTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.openFileInEditor(file.virtualFile)

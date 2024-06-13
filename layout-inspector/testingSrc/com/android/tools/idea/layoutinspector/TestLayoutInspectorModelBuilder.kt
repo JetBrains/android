@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -36,21 +37,24 @@ import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.image.BufferedImage
 import java.util.concurrent.ScheduledExecutorService
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.facet.AndroidFacet
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a
 // subnode
 fun model(
+  disposable: Disposable,
   project: Project = mock(),
   treeSettings: TreeSettings = FakeTreeSettings(),
   scheduler: ScheduledExecutorService? = null,
-  body: InspectorModelDescriptor.() -> Unit
-) = InspectorModelDescriptor(project, scheduler).also(body).build(treeSettings)
+  body: InspectorModelDescriptor.() -> Unit,
+) = InspectorModelDescriptor(disposable, project, scheduler).also(body).build(treeSettings)
 
 fun window(
   windowId: Any,
@@ -63,7 +67,7 @@ fun window(
   imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
   layoutFlags: Int = 0,
   onRefreshImages: () -> Unit = {},
-  body: InspectorViewDescriptor.() -> Unit = {}
+  body: InspectorViewDescriptor.() -> Unit = {},
 ): AndroidWindow {
   val inspectorViewDescriptor =
     InspectorViewDescriptor(
@@ -77,7 +81,7 @@ fun window(
         null,
         "",
         layoutFlags,
-        null
+        null,
       )
       .also(body)
       .build()
@@ -108,7 +112,7 @@ fun view(
   textValue: String = "",
   layoutFlags: Int = 0,
   layout: ResourceReference? = defaultLayout,
-  body: InspectorViewDescriptor.() -> Unit = {}
+  body: InspectorViewDescriptor.() -> Unit = {},
 ) =
   InspectorViewDescriptor(
       drawId,
@@ -121,7 +125,7 @@ fun view(
       viewId,
       textValue,
       layoutFlags,
-      layout
+      layout,
     )
     .also(body)
     .build()
@@ -137,7 +141,7 @@ fun compose(
   y: Int = 0,
   width: Int = 0,
   height: Int = 0,
-  body: InspectorViewDescriptor.() -> Unit = {}
+  body: InspectorViewDescriptor.() -> Unit = {},
 ) =
   InspectorViewDescriptor(
       drawId,
@@ -153,7 +157,7 @@ fun compose(
       composeFilename = composeFilename,
       composePackageHash = composePackageHash,
       composeOffset = composeOffset,
-      composeLineNumber = composeLineNumber
+      composeLineNumber = composeLineNumber,
     )
     .also(body)
 
@@ -180,7 +184,7 @@ class InspectorViewDescriptor(
   private val composeOffset: Int = 0,
   private val composeLineNumber: Int = 0,
   private val composeFlags: Int = 0,
-  val imageType: ImageType = ImageType.BITMAP_AS_REQUESTED
+  val imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
 ) : InspectorNodeDescriptor {
   private val children = mutableListOf<InspectorNodeDescriptor>()
 
@@ -200,7 +204,7 @@ class InspectorViewDescriptor(
     textValue: String = "",
     layoutFlags: Int = 0,
     layout: ResourceReference? = defaultLayout,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) =
     children.add(
       InspectorViewDescriptor(
@@ -214,7 +218,7 @@ class InspectorViewDescriptor(
           viewId,
           textValue,
           layoutFlags,
-          layout
+          layout,
         )
         .apply(body)
     )
@@ -226,7 +230,7 @@ class InspectorViewDescriptor(
     viewId: ResourceReference? = null,
     textValue: String = "",
     layout: ResourceReference? = null,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) =
     view(
       drawId,
@@ -240,7 +244,7 @@ class InspectorViewDescriptor(
       textValue,
       0,
       layout,
-      body
+      body,
     )
 
   fun compose(
@@ -257,7 +261,7 @@ class InspectorViewDescriptor(
     y: Int = 0,
     width: Int = 0,
     height: Int = 0,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) =
     children.add(
       InspectorViewDescriptor(
@@ -277,7 +281,7 @@ class InspectorViewDescriptor(
           composeLineNumber = composeLineNumber,
           composeFlags = composeFlags,
           composeCount = composeCount,
-          composeSkips = composeSkips
+          composeSkips = composeSkips,
         )
         .apply(body)
     )
@@ -296,7 +300,7 @@ class InspectorViewDescriptor(
           renderBounds,
           viewId,
           textValue,
-          layoutFlags
+          layoutFlags,
         )
       } else {
         ComposeViewNode(
@@ -315,7 +319,7 @@ class InspectorViewDescriptor(
           composeOffset,
           composeLineNumber,
           composeFlags,
-          0
+          0,
         )
       }
     ViewNode.writeAccess {
@@ -338,8 +342,9 @@ class InspectorViewDescriptor(
 }
 
 class InspectorModelDescriptor(
+  val disposable: Disposable,
   val project: Project,
-  private val scheduler: ScheduledExecutorService?
+  private val scheduler: ScheduledExecutorService?,
 ) {
   private var root: InspectorViewDescriptor? = null
 
@@ -356,7 +361,7 @@ class InspectorModelDescriptor(
     layoutFlags: Int = 0,
     layout: ResourceReference? = defaultLayout,
     imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) {
     root =
       InspectorViewDescriptor(
@@ -371,7 +376,7 @@ class InspectorModelDescriptor(
           textValue,
           layoutFlags,
           layout,
-          imageType = imageType
+          imageType = imageType,
         )
         .apply(body)
   }
@@ -384,7 +389,7 @@ class InspectorModelDescriptor(
     textValue: String = "",
     imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
     layout: ResourceReference? = defaultLayout,
-    body: InspectorViewDescriptor.() -> Unit = {}
+    body: InspectorViewDescriptor.() -> Unit = {},
   ) =
     view(
       drawId,
@@ -399,11 +404,11 @@ class InspectorModelDescriptor(
       0,
       layout,
       imageType,
-      body
+      body,
     )
 
   fun build(treeSettings: TreeSettings): InspectorModel {
-    val model = InspectorModel(project, scheduler)
+    val model = InspectorModel(project, AndroidCoroutineScope(disposable), scheduler)
     val windowRoot = root?.build() ?: return model
     val newWindow =
       FakeAndroidWindow(windowRoot, windowRoot.drawId, root?.imageType ?: ImageType.UNKNOWN) {
@@ -450,11 +455,11 @@ class InspectorModelDescriptor(
         theme,
         process,
         screenSize = context.screenSize,
-        mainDisplayOrientation = context.mainDisplayOrientation
+        mainDisplayOrientation = context.mainDisplayOrientation,
       )
     }
     // This is usually added by DeviceViewPanel
-    model.addModificationListener { _, new, _ -> new?.refreshImages(1.0) }
+    model.addModificationListener { _, new, _ -> runBlocking { new?.refreshImages(1.0) } }
 
     return model
   }

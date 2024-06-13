@@ -46,7 +46,7 @@ interface DaggerIndexAnnotatedWrapper : DaggerIndexPsiWrapper {
 
 internal abstract class DaggerIndexAnnotatedKotlinWrapper(
   private val ktAnnotated: KtAnnotated,
-  private val importHelper: KotlinImportHelper
+  private val importHelper: KotlinImportHelper,
 ) : DaggerIndexAnnotatedWrapper {
   override fun getAnnotations(annotation: DaggerAnnotation) =
     ktAnnotated.annotationEntries
@@ -59,7 +59,7 @@ internal abstract class DaggerIndexAnnotatedKotlinWrapper(
 
 internal abstract class DaggerIndexAnnotatedJavaWrapper(
   private val psiModifierListOwner: PsiModifierListOwner,
-  private val importHelper: JavaImportHelper
+  private val importHelper: JavaImportHelper,
 ) : DaggerIndexAnnotatedWrapper {
   override fun getAnnotations(annotation: DaggerAnnotation) =
     psiModifierListOwner.annotations

@@ -39,7 +39,7 @@ namespace screensharing {
 // Processes control socket commands.
 class Controller : private DisplayManager::DisplayListener {
 public:
-  Controller(int socket_fd);
+  explicit Controller(int socket_fd);
   virtual ~Controller();
 
   void Run();
@@ -49,23 +49,23 @@ public:
 
 private:
   struct ClipboardListener : public ClipboardManager::ClipboardListener {
-    ClipboardListener(Controller* controller)
+    explicit ClipboardListener(Controller* controller)
         : controller_(controller) {
     }
     virtual ~ClipboardListener();
 
-    virtual void OnPrimaryClipChanged() override;
+    void OnPrimaryClipChanged() override;
 
     Controller* controller_;
   };
 
   struct DeviceStateListener : public DeviceStateManager::DeviceStateListener {
-    DeviceStateListener(Controller* controller)
+    explicit DeviceStateListener(Controller* controller)
         : controller_(controller) {
     }
     virtual ~DeviceStateListener();
 
-    virtual void OnDeviceStateChanged(int32_t device_state) override;
+    void OnDeviceStateChanged(int32_t device_state) override;
 
     Controller* controller_;
   };
@@ -94,6 +94,8 @@ private:
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
   static void StartVideoStream(const StartVideoStreamMessage& message);
   static void StopVideoStream(const StopVideoStreamMessage& message);
+  static void StartAudioStream(const StartAudioStreamMessage& message);
+  static void StopAudioStream(const StopAudioStreamMessage& message);
   static void WakeUpDevice();
 
   void StartClipboardSync(const StartClipboardSyncMessage& message);
@@ -106,15 +108,20 @@ private:
   void SendDeviceStateNotification();
 
   void SendDisplayConfigurations(const DisplayConfigurationRequest& request);
-  virtual void OnDisplayAdded(int32_t display_id);
-  virtual void OnDisplayRemoved(int32_t display_id);
-  virtual void OnDisplayChanged(int32_t display_id);
+  void OnDisplayAdded(int32_t display_id) override;
+  void OnDisplayRemoved(int32_t display_id) override;
+  void OnDisplayChanged(int32_t display_id) override;
   void SendPendingDisplayEvents();
 
   void SendUiSettings(const UiSettingsRequest& request);
   void SetDarkMode(const SetDarkModeMessage& message);
+  void SetGestureNavigation(const SetGestureNavigationMessage& message);
+  void SetAppLanguage(const SetAppLanguageMessage& message);
+  void SetTalkBack(const SetTalkBackMessage& message);
+  void SetSelectToSpeak(const SetSelectToSpeakMessage& message);
+  void SetFontSize(const SetFontSizeMessage& message);
+  void SetScreenDensity(const SetScreenDensityMessage& message);
 
-  // TODO: Remove the following 4 methods when b/303684492 is fixed.
   void StartDisplayPolling();
   void StopDisplayPolling();
   void PollDisplays();
@@ -125,28 +132,27 @@ private:
   Base128InputStream input_stream_;
   Base128OutputStream output_stream_;
   volatile bool stopped = false;
-  PointerHelper* pointer_helper_;  // Owned.
+  PointerHelper* pointer_helper_ = nullptr;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
-  int64_t motion_event_start_time_;
-  KeyCharacterMap* key_character_map_;  // Owned.
+  int64_t motion_event_start_time_ = 0;
+  KeyCharacterMap* key_character_map_ = nullptr;  // Owned.
 
   ClipboardListener clipboard_listener_;
-  int max_synced_clipboard_length_;
+  int max_synced_clipboard_length_ = 0;
   std::string last_clipboard_text_;
-  std::atomic_bool clipboard_changed_;
+  std::atomic_bool clipboard_changed_ = false;
 
   DeviceStateListener device_state_listener_;
   bool device_supports_multiple_states_ = false;
-  std::atomic_int32_t device_state_ = -1;
-  int32_t previous_device_state_ = -1;
+  std::atomic_int32_t device_state_identifier_ = DeviceStateManager::INVALID_DEVICE_STATE_IDENTIFIER;
+  int32_t previous_device_state_ = DeviceStateManager::INVALID_DEVICE_STATE_IDENTIFIER;
 
   std::mutex display_events_mutex_;
   std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)
 
   UiSettings ui_settings_;
 
-  // TODO: Remove the following 2 fields when b/303684492 is fixed.
   std::map<int32_t, DisplayInfo> current_displays_;
   std::chrono::steady_clock::time_point poll_displays_until_;
 

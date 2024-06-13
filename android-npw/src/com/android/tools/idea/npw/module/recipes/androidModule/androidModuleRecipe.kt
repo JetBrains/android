@@ -43,6 +43,7 @@ fun RecipeExecutor.generateAndroidModule(
   val useAndroidX = data.projectTemplateData.androidXSupport
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.api >= 31
   val isMaterial3 = data.isMaterial3
+  check(data.category != Category.Compose || data.isCompose) { "Template in Compose category must have isCompose set" }
   generateCommonModule(
     data = data,
     appTitle = appTitle,
@@ -62,7 +63,7 @@ fun RecipeExecutor.generateAndroidModule(
       androidModuleThemesNightMaterial3(data.themesData.main.name)
     else
       androidModuleThemesNight(useAndroidX, data.apis.minApi, data.themesData.main.name),
-    colorsXml = if (isMaterial3 && data.category != Category.Compose) androidModuleColorsMaterial3() else androidModuleColors(),
+    colorsXml = if (isMaterial3 && !data.isCompose) androidModuleColorsMaterial3() else androidModuleColors(),
     enableCpp = enableCpp,
     cppStandard = cppStandard,
     bytecodeLevel = bytecodeLevel,
@@ -70,11 +71,11 @@ fun RecipeExecutor.generateAndroidModule(
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames
-  if (data.category != Category.Compose) {
+  if (!data.isCompose) {
     addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
   }
 
-  if (data.projectTemplateData.androidXSupport && data.category != Category.Compose && !isMaterial3) {
+  if (data.projectTemplateData.androidXSupport && !data.isCompose && !isMaterial3) {
     // Though addDependency should not be called from a module recipe, adding this library because it's used for the default theme
     // (Theme.MaterialComponents.DayNight)
     addDependency("com.google.android.material:material:+")

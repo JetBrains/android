@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 internal class SourceCodePreview(
   psiFile: PsiFile,
   textEditor: Editor,
-  providers: Collection<PreviewRepresentationProvider>
+  providers: Collection<PreviewRepresentationProvider>,
 ) : MultiRepresentationPreview(psiFile, textEditor, providers) {
 
   val project = psiFile.project
@@ -67,7 +67,7 @@ internal class SourceCodePreview(
             }
             scheduleRepresentationsUpdates()
           }
-        }
+        },
       )
 
     setupChangeListener(
@@ -79,7 +79,7 @@ internal class SourceCodePreview(
         }
         updateRepresentationsAsync()
       },
-      this
+      this,
     )
   }
 
@@ -96,7 +96,7 @@ internal class SourceCodePreview(
         callback = {
           afterSyncUpdateScheduled.set(false)
           updateRepresentationsAsync()
-        }
+        },
       )
     }
   }

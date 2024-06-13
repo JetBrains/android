@@ -41,6 +41,7 @@ import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOption
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.utils.HashCodes
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
@@ -117,7 +118,7 @@ internal class DeviceToolWindowPanel(
 
     private fun updateMainToolbarLater() {
       EventQueue.invokeLater {
-        mainToolbar.updateActionsImmediately()
+        mainToolbar.updateActionsAsync()
       }
     }
   }
@@ -134,6 +135,7 @@ internal class DeviceToolWindowPanel(
    * Populates the device panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceToolWindowPanel.simpleId}.createContent" }
     if (contentDisposable != null) {
       thisLogger().error(IllegalStateException("${title}: content already exists"))
       return
@@ -167,6 +169,9 @@ internal class DeviceToolWindowPanel(
           ConnectionState.CONNECTED -> {
             deviceClient.deviceController?.apply {
               addDisplayListener(displayConfigurator)
+              Disposer.register(disposable) {
+                removeDisplayListener(displayConfigurator)
+              }
               displayConfigurator.onDisplaysChanged()
               addDeviceStateListener(deviceStateListener)
             }
@@ -182,8 +187,8 @@ internal class DeviceToolWindowPanel(
         }
 
         EventQueue.invokeLater {
-          mainToolbar.updateActionsImmediately()
-          secondaryToolbar.updateActionsImmediately()
+          mainToolbar.updateActionsAsync()
+          secondaryToolbar.updateActionsAsync()
         }
       }
     })
@@ -195,14 +200,17 @@ internal class DeviceToolWindowPanel(
    * Destroys content of the device panel and returns its state for later recreation.
    */
   override fun destroyContent(): DeviceUiState {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceToolWindowPanel.simpleId}.destroyContent" }
     val uiState = DeviceUiState()
+    val disposable = contentDisposable ?: return uiState
+    contentDisposable = null
     uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
     for (displayPanel in displayPanels.values) {
       uiState.zoomScrollState[displayPanel.displayId] = displayPanel.zoomScrollState
     }
 
-    contentDisposable?.let { Disposer.dispose(it) }
-    contentDisposable = null
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceToolWindowPanel.simpleId}.destroyContent disposing $disposable" }
+    Disposer.dispose(disposable)
 
     centerPanel.removeAll()
     displayPanels.clear()
@@ -283,8 +291,8 @@ internal class DeviceToolWindowPanel(
       val rootPanel = buildLayout(layoutRoot, newDisplays)
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
-      mainToolbar.updateActionsImmediately()
-      secondaryToolbar.updateActionsImmediately()
+      mainToolbar.updateActionsAsync()
+      secondaryToolbar.updateActionsAsync()
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
@@ -332,8 +340,8 @@ internal class DeviceToolWindowPanel(
     }
 
     private fun setRootPanel(rootPanel: JPanel) {
-      mainToolbar.updateActionsImmediately() // Rotation buttons are hidden in multi-display mode.
-      secondaryToolbar.updateActionsImmediately()
+      mainToolbar.updateActionsAsync() // Rotation buttons are hidden in multi-display mode.
+      secondaryToolbar.updateActionsAsync()
       centerPanel.removeAll()
       centerPanel.addToCenter(rootPanel)
       centerPanel.validate()

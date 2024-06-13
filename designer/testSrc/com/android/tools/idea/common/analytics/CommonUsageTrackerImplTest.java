@@ -15,38 +15,47 @@
  */
 package com.android.tools.idea.common.analytics;
 
+import static com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.rendering.RenderLogger;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.StudioHtmlLinkManager;
+import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.RenderResultStats;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.EditorFileType;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.google.wireless.android.sdk.stats.LayoutEditorState;
 import com.intellij.mock.MockModule;
 import com.intellij.mock.MockProject;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 
 public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
 
   protected CommonUsageTracker getUsageTracker() {
     DesignSurface<?> surface = mock(DesignSurface.class);
-    when(surface.getAnalyticsManager()).thenReturn(new DesignerAnalyticsManager(surface));
-    when(surface.getScale()).thenReturn(0.50);
+    DesignerAnalyticsManager analyticsManager = new DesignerAnalyticsManager(surface);
+    when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
+    when(surface.getZoomController()).thenReturn(createZoomControllerFake(0.5, null));
     Configuration configuration = getConfigurationMock();
     when(surface.getConfigurations()).thenReturn(ImmutableList.of(configuration));
     when(surface.getConfiguration()).thenReturn(configuration);
+
+    VirtualFile kotlinFile = mock(VirtualFile.class);
+    when(kotlinFile.getFileType()).thenReturn(KotlinFileType.INSTANCE);
+    analyticsManager.setEditorFileTypeWithoutTracking(kotlinFile, myFixture.getProject());
 
     return new CommonUsageTrackerImpl(SYNC_EXECUTOR, surface, usageTracker::logNow) {
       @Override
@@ -71,8 +80,11 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     assertThat(state.getConfigZoomLevel()).isEqualTo(SystemInfo.isMac && UIUtil.isRetina() ? 100 : 50);
     assertThat(state.getConfigApiLevel()).isEqualTo("mock");
     assertThat(state.getConfigOrientation()).isEqualTo(LayoutEditorState.Orientation.PORTRAIT);
-    usageTracker.getUsages().clear();
 
+    // Verify editor file type
+    assertThat(studioEvent.getLayoutEditorEvent().getEditorFileType()).isEqualTo(EditorFileType.KOTLIN);
+
+    usageTracker.getUsages().clear();
     tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
     studioEvent = getLastLogUsage();
     assertThat(studioEvent.getLayoutEditorEvent().getType()).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);

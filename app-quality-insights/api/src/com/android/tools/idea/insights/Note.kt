@@ -39,7 +39,7 @@ data class Note(
   val timestamp: Instant,
   val author: String,
   val body: String,
-  val state: NoteState
+  val state: NoteState,
 )
 
 /** State of the given note. */

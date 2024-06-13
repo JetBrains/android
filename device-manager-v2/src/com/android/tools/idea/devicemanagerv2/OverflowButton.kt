@@ -30,9 +30,9 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
       DefaultActionGroup(
         CustomActionsSchema.getInstance().getCorrectedAction("android.device.reservation.end"),
         CustomActionsSchema.getInstance()
-          .getCorrectedAction("android.device.reservation.extend.half.hour"),
+          .getCorrectedAction("android.device.reservation.extend.quarter.hour"),
         CustomActionsSchema.getInstance()
-          .getCorrectedAction("android.device.reservation.extend.max"),
+          .getCorrectedAction("android.device.reservation.extend.half.hour"),
       )
     private val wearableActions =
       DefaultActionGroup(
@@ -51,6 +51,7 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
         DuplicateDeviceAction(),
         WipeDataAction(),
         DeleteAction(),
+        DeleteTemplateAction(),
         Separator.create(),
         OpenDeviceExplorerAction(),
         ViewDetailsAction(),
@@ -67,7 +68,7 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
           DataManager.getInstance().getDataContext(this@OverflowButton),
           true,
           null,
-          15
+          15,
         )
         .showUnderneathOf(this@OverflowButton)
     }

@@ -56,6 +56,8 @@ public final class CpuProfilerTest {
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
 
+  private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
+
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuProfilerTest", myTransportService);
 
@@ -70,8 +72,7 @@ public final class CpuProfilerTest {
   public void setUp() {
     ServiceContainerUtil.registerServiceInstance(ApplicationManager.getApplication(), TransportService.class,
                                                  new TransportServiceTestImpl(myTransportService));
-    FakeIdeProfilerServices ideServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), ideServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
   }
 
   @Test
@@ -95,6 +96,8 @@ public final class CpuProfilerTest {
 
   @Test
   public void importedSessionListenerShouldBeRegistered() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     myCpuProfiler = new CpuProfiler(myProfilers);
     File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
@@ -222,6 +225,8 @@ public final class CpuProfilerTest {
 
   @Test
   public void referenceToTraceFilesAreSavedPerSession() throws IOException {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     myCpuProfiler = new CpuProfiler(myProfilers);
     File trace1 = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
@@ -313,7 +318,7 @@ public final class CpuProfilerTest {
 
     // Insert a stop status.
     Trace.TraceStatusData status2 = Trace.TraceStatusData.newBuilder()
-      .setTraceStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.WAIT_TIMEOUT).setErrorMessage("error"))
+      .setTraceStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.WAIT_TIMEOUT).setErrorCode(123))
       .build();
     Common.Event event2 =
       Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.TRACE_STATUS).setTimestamp(5)
@@ -330,6 +335,8 @@ public final class CpuProfilerTest {
 
   @Test
   public void reimportTraceShouldSelectSameSession() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     myCpuProfiler = new CpuProfiler(myProfilers);
     File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
 

@@ -63,7 +63,7 @@ data class TabInfo(
   val deviceId: DeviceId,
   val content: Component,
   val container: Container,
-  val displayView: AbstractDisplayView
+  val displayView: AbstractDisplayView,
 )
 
 class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) :
@@ -94,7 +94,7 @@ class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) :
 class FakeToolWindow(
   project: Project,
   tabs: List<TabInfo>,
-  private val manager: ToolWindowManager
+  private val manager: ToolWindowManager,
 ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private val fakeContentManager = FakeContentManager()
   private var visible = false
@@ -114,7 +114,15 @@ class FakeToolWindow(
     }
   }
 
+  override fun addContentManagerListener(listener: ContentManagerListener) {
+    fakeContentManager.addContentManagerListener(listener)
+  }
+
   override fun getContentManager(): ContentManager {
+    return fakeContentManager
+  }
+
+  override fun getContentManagerIfCreated(): ContentManager? {
     return fakeContentManager
   }
 
@@ -166,7 +174,7 @@ class FakeToolWindow(
 /**
  * Fake implementation of ContentManager taken from ToolWindowHeadlessManagerImpl#MockContentManager
  */
-private class FakeContentManager : ContentManager {
+class FakeContentManager : ContentManager {
   private val myDispatcher = EventDispatcher.create(ContentManagerListener::class.java)
   private val myContents: MutableList<Content> = ArrayList()
   private var mySelected: Content? = null
@@ -190,7 +198,7 @@ private class FakeContentManager : ContentManager {
         this,
         content,
         myContents.indexOf(content),
-        ContentManagerEvent.ContentOperation.add
+        ContentManagerEvent.ContentOperation.add,
       )
     myDispatcher.multicaster.contentAdded(e)
     if (mySelected == null) setSelectedContent(content)
@@ -321,7 +329,7 @@ private class FakeContentManager : ContentManager {
     content: Content,
     dispose: Boolean,
     requestFocus: Boolean,
-    implicitFocus: Boolean
+    implicitFocus: Boolean,
   ): ActionCallback {
     removeContent(content, dispose)
     return ActionCallback.DONE
@@ -349,7 +357,7 @@ private class FakeContentManager : ContentManager {
         this,
         content,
         myContents.indexOf(mySelected),
-        ContentManagerEvent.ContentOperation.remove
+        ContentManagerEvent.ContentOperation.remove,
       )
     myDispatcher.multicaster.selectionChanged(e)
   }
@@ -372,7 +380,7 @@ private class FakeContentManager : ContentManager {
         this,
         content,
         myContents.indexOf(content),
-        ContentManagerEvent.ContentOperation.add
+        ContentManagerEvent.ContentOperation.add,
       )
     myDispatcher.multicaster.selectionChanged(e)
   }
@@ -397,7 +405,7 @@ private class FakeContentManager : ContentManager {
   override fun setSelectedContentCB(
     content: Content,
     requestFocus: Boolean,
-    forcedFocus: Boolean
+    forcedFocus: Boolean,
   ): ActionCallback {
     return setSelectedContentCB(content)
   }
@@ -406,7 +414,7 @@ private class FakeContentManager : ContentManager {
     content: Content,
     requestFocus: Boolean,
     forcedFocus: Boolean,
-    implicit: Boolean
+    implicit: Boolean,
   ): ActionCallback {
     return setSelectedContentCB(content)
   }
@@ -434,10 +442,10 @@ private class FakeContentManager : ContentManager {
   }
 }
 
-private class FakeContent(
+class FakeContent(
   private val disposable: Disposable,
   private val contentManager: ContentManager,
-  private val fakeComponent: JComponent
+  private val fakeComponent: JComponent,
 ) : Content {
   init {
     Disposer.register(disposable, this)
@@ -491,7 +499,7 @@ private class FakeContent(
 
   override fun getManager() = contentManager
 
-  override fun isSelected() = true
+  override fun isSelected() = contentManager.selectedContent == this
 
   override fun release() {}
 
@@ -544,7 +552,7 @@ private class FakeContent(
   override fun getExecutionId() = 1L
 }
 
-private class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel(), DataProvider {
+class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel(), DataProvider {
   init {
     tabInfo.container.add(tabInfo.content)
   }

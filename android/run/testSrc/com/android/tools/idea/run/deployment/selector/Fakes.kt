@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.selector
 
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceInfo
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.BootSnapshotAction
 import com.android.sdklib.deviceprovisioner.ColdBootAction
@@ -29,6 +30,8 @@ import com.android.sdklib.deviceprovisioner.EditTemplateAction
 import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshot
 import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
+import com.android.sdklib.deviceprovisioner.TemplateState
+import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
@@ -66,6 +69,8 @@ internal class FakeDeviceHandle(
     DeviceProperties.buildForTest {
       model = id.identifier
       icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      androidVersion = AndroidVersion(34)
+      abiList = listOf(Abi.ARM64_V8A)
     },
   hasSnapshots: Boolean = false,
 ) : DeviceHandle {
@@ -84,13 +89,14 @@ internal class FakeDeviceHandle(
       stateFlow.update { DeviceState.Connected(it.properties, mockDevice) }
     }
 
-  override val activationAction =
-    object : ActivationAction {
-      override suspend fun activate() {}
+  override val activationAction = FakeActivationAction()
 
-      override val presentation =
-        MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
-    }
+  inner class FakeActivationAction : ActivationAction {
+    override suspend fun activate() {}
+
+    override val presentation =
+      MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+  }
 
   override val coldBootAction =
     object : ColdBootAction {
@@ -120,18 +126,25 @@ internal class FakeDeviceTemplate(
     DeviceProperties.buildForTest {
       model = id.identifier
       icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      androidVersion = AndroidVersion(34)
+      abiList = listOf(Abi.ARM64_V8A)
     },
 ) : DeviceTemplate {
-  override val activationAction =
-    object : TemplateActivationAction {
-      override suspend fun activate(duration: Duration?): DeviceHandle {
-        throw UnsupportedOperationException()
-      }
 
-      override val durationUsed: Boolean = false
-      override val presentation =
-        MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+  override val stateFlow = MutableStateFlow(TemplateState())
+
+  override val activationAction = ActivationAction()
+
+  inner class ActivationAction : TemplateActivationAction {
+    override suspend fun activate(duration: Duration?): DeviceHandle {
+      throw UnsupportedOperationException()
     }
+
+    override val durationUsed: Boolean = false
+    override val presentation =
+      MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+  }
+
   override val editAction: EditTemplateAction? = null
 }
 
@@ -153,19 +166,19 @@ internal fun createDevice(
         model = name
         this.disambiguator = disambiguator
         icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }
+      },
     )
   val device =
     DeploymentTargetDevice(
       DeviceHandleAndroidDevice(
         MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
         handle,
-        handle.state
+        handle.state,
       ),
       connectionTime,
       if (hasSnapshots) listOf(LocalEmulatorSnapshot("snap-1", Paths.get("/tmp/snap")))
       else emptyList(),
-      launchCompatibility
+      launchCompatibility,
     )
   return device
 }
@@ -182,7 +195,7 @@ internal fun createTemplate(
       DeviceTemplateAndroidDevice(
         scope,
         MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
-        handle
+        handle,
       ),
       connectionTime,
       emptyList(),

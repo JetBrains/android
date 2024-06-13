@@ -34,6 +34,7 @@ import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -64,7 +65,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> =
     WorkBench(project, "Database Inspector", null, parentDisposable)
-  private val tabs = BorderedTabs(project, project)
+  private val tabs = BorderedTabs(project, parentDisposable)
 
   override val component: JComponent = workBench
 
@@ -78,7 +79,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
 
     addEmptyStatePanel(
       DatabaseInspectorBundle.message("waiting.for.connection"),
-      databaseInspectorHelpUrl
+      databaseInspectorHelpUrl,
     )
 
     tabs.name = "right-panel-tabs-panel"
@@ -118,7 +119,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
           leftPanelView.addDatabaseSchema(
             databaseDiffOperation.viewDatabase,
             databaseDiffOperation.schema,
-            databaseDiffOperation.index
+            databaseDiffOperation.index,
           )
         }
         is DatabaseDiffOperation.RemoveDatabase ->
@@ -129,14 +130,14 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     if (openTabs.isEmpty() || leftPanelView.databasesCount == 0) {
       addEmptyStatePanel(
         DatabaseInspectorBundle.message("default.empty.state.message"),
-        databaseInspectorHelpUrl
+        databaseInspectorHelpUrl,
       )
     }
   }
 
   override fun updateDatabaseSchema(
     viewDatabase: ViewDatabase,
-    diffOperations: List<SchemaDiffOperation>
+    diffOperations: List<SchemaDiffOperation>,
   ) {
     leftPanelView.updateDatabase(viewDatabase, diffOperations)
   }
@@ -163,7 +164,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     if (openTabs.isEmpty()) {
       addEmptyStatePanel(
         DatabaseInspectorBundle.message("default.empty.state.message"),
-        databaseInspectorHelpUrl
+        databaseInspectorHelpUrl,
       )
     }
   }
@@ -185,7 +186,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
             NewLineChunk,
             TextChunk("($filesDownloaded/$totalFilesToDownload) databases downloaded..."),
           ),
-        actionData = ActionData("Cancel") { listeners.forEach { it.cancelOfflineModeInvoked() } }
+        actionData = ActionData("Cancel") { listeners.forEach { it.cancelOfflineModeInvoked() } },
       )
     enterOfflineModePanel.name = "right-panel-offline-mode"
 
@@ -194,6 +195,10 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
 
   override fun showOfflineModeUnavailablePanel() {
     addEmptyStatePanel("Offline mode unavailable.", offlineModeHelpUrl)
+  }
+
+  override fun setForceOpen(forceOpen: Boolean) {
+    leftPanelView.setForceOpen(forceOpen)
   }
 
   override fun updateKeepConnectionOpenButton(keepOpen: Boolean) {
@@ -213,7 +218,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     tabId: TabId,
     tabName: String,
     tabIcon: Icon,
-    tabContent: JComponent
+    tabContent: JComponent,
   ): TabInfo {
     val tab = TabInfo(tabContent)
     tab.`object` = tabId
@@ -224,11 +229,13 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
         AnAction(
           DatabaseInspectorBundle.message("action.close.tab"),
           DatabaseInspectorBundle.message("action.close.tab.desc"),
-          AllIcons.Actions.Close
+          AllIcons.Actions.Close,
         ) {
         override fun actionPerformed(e: AnActionEvent) {
           listeners.forEach { it.closeTabActionInvoked(tabId) }
         }
+
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
         override fun update(e: AnActionEvent) {
           e.presentation.hoveredIcon = AllIcons.Actions.CloseHovered
@@ -261,7 +268,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
       AutoHide.DOCKED,
       ToolWindowDefinition.DEFAULT_SIDE_WIDTH,
       ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
-      ToolWindowDefinition.ALLOW_BASICS
+      ToolWindowDefinition.ALLOW_BASICS,
     ) {
       SchemaPanelToolContent()
     }

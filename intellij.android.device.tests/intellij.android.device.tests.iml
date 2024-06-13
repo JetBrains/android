@@ -14,14 +14,10 @@
           </stringArguments>
           <arrayArguments>
             <arrayArg name="pluginClasspaths">
-              <args>
-                <arg>$MODULE_DIR$/../compose-ide-plugin/lib/compiler-hosted-1.5.8.jar</arg>
-              </args>
+              <args>$MODULE_DIR$/../compose-ide-plugin/lib/compiler-hosted-1.5.8.jar</args>
             </arrayArg>
             <arrayArg name="pluginOptions">
-              <args>
-                <arg>plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.24</arg>
-              </args>
+              <args>plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.24</args>
             </arrayArg>
           </arrayArguments>
         </compilerArguments>
@@ -33,16 +29,22 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="true" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.repository" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-collections-immutable" level="project" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.device" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.artwork-compose" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.device" />
 </module>

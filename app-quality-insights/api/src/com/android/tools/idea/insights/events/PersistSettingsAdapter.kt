@@ -27,12 +27,12 @@ import com.intellij.openapi.project.Project
 data class PersistSettingsAdapter(
   private val delegate: ChangeEvent,
   private val project: Project,
-  private val tabId: InsightsProviderKey
+  private val tabId: InsightsProviderKey,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     val transition = delegate.transition(state, tracker, key)
     if (

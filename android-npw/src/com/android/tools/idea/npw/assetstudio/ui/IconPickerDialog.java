@@ -49,6 +49,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -61,6 +62,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A dialog to pick a pre-configured material icon in vector format.
@@ -150,6 +152,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
       updateIconList();
     }
   };
+  private AtomicBoolean isBusy = new AtomicBoolean(false);
 
   public IconPickerDialog(@Nullable VdIcon selectedIcon) {
     this(selectedIcon, null, null);
@@ -234,24 +237,50 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     init();
 
     myIconTable.getEmptyText().setText("Loading icons...");
+    myStylesBox.setVisible(false);
+    myCategoriesBox.setVisible(false);
+    myStylesBox.addItemListener(myStylesBoxListener);
+    myCategoriesBox.addItemListener(myCategoriesBoxListener);
+    myStylesBox.setName("Styles");
+    myCategoriesBox.setName("Categories");
+    refreshIconList(metadataUrlProvider, iconsUrlProvider, true);
+  }
+
+  /**
+   * Refreshes the current icons list including styles and categories.
+   * @param metadataUrlProvider the url provider for the metadata information
+   * @param iconsUrlProvider the url provider for the icon content
+   * @param isFirstRefresh true if this is the first call to refresh icon during the dialog initialization. If true, a second call to this
+   *                       method might happen some time later if the download process detects icons remotely that were not present locally.
+   */
+  private void refreshIconList(@Nullable MaterialIconsMetadataUrlProvider metadataUrlProvider,
+                               @Nullable MaterialIconsUrlProvider iconsUrlProvider,
+                               boolean isFirstRefresh) {
     myIconTable.setPaintBusy(true);
     myStylesBox.setEnabled(false);
     myCategoriesBox.setEnabled(false);
+    isBusy.set(true);
     MaterialVdIconsProvider.loadMaterialVdIcons((materialVdIcons, status) -> {
       assert ApplicationManager.getApplication().isDispatchThread();
       myIconTable.getEmptyText().setText(StatusText.getDefaultEmptyText());
       populateIcons(materialVdIcons);
       if (status == MaterialVdIconsProvider.Status.FINISHED) {
-        // Enable the combo boxes once it has finished loading all icons.
         myIconTable.setPaintBusy(false);
+        // After everything has been updated, re-enable the dropdowns
         myStylesBox.setEnabled(true);
         myCategoriesBox.setEnabled(true);
-        myStylesBox.addItemListener(myStylesBoxListener);
-        myCategoriesBox.addItemListener(myCategoriesBoxListener);
+        isBusy.set(false);
       }
       pack();
+      repaint();
       return null;
-    }, getDisposable(), metadataUrlProvider, iconsUrlProvider);
+    }, getDisposable(), metadataUrlProvider, iconsUrlProvider, () -> {
+      if (isFirstRefresh) {
+        // Now we call ourselves again with isFirstRefresh set to false, avoiding an update cycle.
+        refreshIconList(metadataUrlProvider, iconsUrlProvider, false);
+      }
+      return null;
+    });
   }
 
   private void createUIComponents() {
@@ -306,9 +335,17 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     myIcons = icons;
     // Set boxes, styles and categories model.
     setStylesBoxModel();
-    setCategoriesBoxModel(0);
-    myStylesBox.setSelectedIndex(0);
-    myCategoriesBox.setSelectedIndex(0);
+
+    if (myStylesBox.getItemCount() > 0) {
+      if (myStylesBox.getSelectedIndex() == -1) myStylesBox.setSelectedIndex(0);
+      myStylesBox.setVisible(true);
+      setCategoriesBoxModel(myStylesBox.getSelectedIndex());
+    }
+
+    if (myCategoriesBox.getItemCount() > 0) {
+      if (myCategoriesBox.getSelectedIndex() == -1) myCategoriesBox.setSelectedIndex(0);
+      myCategoriesBox.setVisible(true);
+    }
 
     if (shouldUpdateIconList) {
       updateIconList();
@@ -337,10 +374,16 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
    * @param styleIndex The index that corresponds to a style in the {@link MaterialVdIcons#getStyles()} array
    */
   private void setCategoriesBoxModel(int styleIndex) {
-    ArrayList<String> categoriesArray = Arrays.stream(myIcons.getCategories(myIcons.getStyles()[styleIndex]))
+    String[] allStyles = myIcons.getStyles();
+    String style = styleIndex < allStyles.length ? myIcons.getStyles()[styleIndex] : "";
+    ArrayList<String> categoriesArray = Arrays.stream(myIcons.getCategories(style))
       .map((categoryName) -> categoryName.equals("av") ? "Audio/Video" : StringUtil.capitalize(categoryName))
       .collect(Collectors.toCollection(ArrayList::new));
-    categoriesArray.add(0, "All");
+
+    boolean hasCategories = !categoriesArray.isEmpty();
+    if (hasCategories) {
+      categoriesArray.add(0, "All");
+    }
     myCategoriesBox.setModel(new CollectionComboBoxModel<String>(categoriesArray, null));
   }
 
@@ -395,5 +438,10 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   @Nullable
   public Object getData(@NotNull String dataId) {
     return SearchTextField.KEY.is(dataId) ? mySearchField : null;
+  }
+
+  @TestOnly
+  boolean isBusy() {
+    return isBusy.get();
   }
 }

@@ -154,7 +154,7 @@ class NlEnumSupportProviderTest {
         "34sp",
         "48sp",
         "60sp",
-        "96sp"
+        "96sp",
       )
       .inOrder()
   }

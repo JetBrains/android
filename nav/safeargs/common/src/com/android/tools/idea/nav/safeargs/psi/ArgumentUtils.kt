@@ -20,9 +20,9 @@ object ArgumentUtils {
     modulePackage: String,
     adjustArgumentsWithDefaults: Boolean = false,
   ): List<NavActionData> =
-    actions.mapNotNull { action ->
+    actions.map { action ->
       if (action.destination == null) {
-        return@mapNotNull if (action.popUpTo == null) {
+        return@map if (action.popUpTo == null) {
           // No destination, no popUpTo: nothing we can do to resolve this, return untouched.
           action
         } else {
@@ -50,7 +50,7 @@ object ArgumentUtils {
           resolvedArguments
         }
 
-      return@mapNotNull object : NavActionData by action {
+      return@map object : NavActionData by action {
         override val arguments: List<NavArgumentData> = adjustedArguments
       }
     }
@@ -61,7 +61,7 @@ object ArgumentUtils {
    */
   private fun checkArguments(
     entry: Map.Entry<String, List<NavArgumentData>>,
-    modulePackage: String
+    modulePackage: String,
   ) {
     val types =
       entry.value

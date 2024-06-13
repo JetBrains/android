@@ -24,7 +24,6 @@ import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.controllers.TableController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
-import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -41,6 +40,7 @@ import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
+import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.toViewColumn
 import com.android.tools.idea.sqlite.utils.toViewColumns
@@ -86,7 +86,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     whenever(
         mockActionManager.createActionPopupMenu(
           any(String::class.java),
-          any(ActionGroup::class.java)
+          any(ActionGroup::class.java),
         )
       )
       .thenReturn(mockPopUpMenu)
@@ -313,7 +313,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rows =
       listOf(
         SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
-        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2")))),
       )
 
     view.startTableLoading()
@@ -402,7 +402,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rowsToAdd =
       listOf(
         SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
-        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2")))),
       )
 
     // Act
@@ -416,9 +416,9 @@ class TableViewImplTest : BasePlatformTestCase() {
         RowDiffOperation.UpdateCell(
           SqliteColumnValue("col", SqliteValue.StringValue("new val")),
           0,
-          0
+          0,
         ),
-        RowDiffOperation.RemoveLastRows(1)
+        RowDiffOperation.RemoveLastRows(1),
       )
     )
 
@@ -437,7 +437,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rowsToAdd =
       listOf(
         SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
-        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+        SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2")))),
       )
 
     // Act
@@ -451,7 +451,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         RowDiffOperation.UpdateCell(
           SqliteColumnValue("col", SqliteValue.StringValue("new val")),
           0,
-          0
+          0,
         )
       )
     )
@@ -461,14 +461,14 @@ class TableViewImplTest : BasePlatformTestCase() {
         RowDiffOperation.UpdateCell(
           SqliteColumnValue("col", SqliteValue.StringValue("new val1")),
           0,
-          0
+          0,
         ),
         RowDiffOperation.AddRow(
           SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val3"))))
         ),
         RowDiffOperation.AddRow(
           SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val4"))))
-        )
+        ),
       )
     )
 
@@ -482,14 +482,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -513,7 +513,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -531,7 +531,7 @@ class TableViewImplTest : BasePlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
     assertEquals(SqliteValue.fromAny(0), rows.first().values[1].value)
@@ -542,14 +542,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (c1 INT, c2 INT)",
-        insertStatement = "INSERT INTO t1 (c1, c2) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (c1, c2) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -573,7 +573,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -591,7 +591,7 @@ class TableViewImplTest : BasePlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
     assertEquals(SqliteValue.fromAny(0), rows.first().values[1].value)
@@ -602,14 +602,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -633,7 +633,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -651,7 +651,7 @@ class TableViewImplTest : BasePlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
     assertEquals(SqliteValue.fromAny("foo"), rows.first().values[1].value)
@@ -662,14 +662,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -693,7 +693,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -711,7 +711,7 @@ class TableViewImplTest : BasePlatformTestCase() {
           SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
         )
       )
-    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
     assertEquals(SqliteValue.fromAny(null), rows.first().values[1].value)
@@ -729,15 +729,15 @@ class TableViewImplTest : BasePlatformTestCase() {
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
           )
         ),
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
           )
-        )
+        ),
       )
 
     view.startTableLoading()
@@ -774,15 +774,15 @@ class TableViewImplTest : BasePlatformTestCase() {
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
           )
         ),
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
           )
-        )
+        ),
       )
 
     view.startTableLoading()
@@ -817,15 +817,15 @@ class TableViewImplTest : BasePlatformTestCase() {
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
           )
         ),
         SqliteRow(
           listOf(
             SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
           )
-        )
+        ),
       )
 
     view.startTableLoading()
@@ -932,14 +932,14 @@ class TableViewImplTest : BasePlatformTestCase() {
     val customSqliteFile =
       sqliteUtil.createAdHocSqliteDatabase(
         createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
-        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+        insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)",
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
         getJdbcDatabaseConnection(
           testRootDisposable,
           customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
         )
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
@@ -960,7 +960,7 @@ class TableViewImplTest : BasePlatformTestCase() {
         {},
         {},
         EdtExecutorService.getInstance(),
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())

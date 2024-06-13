@@ -15,25 +15,43 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.explainer.IssueExplainer
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.consoleLinkUnderlinedText
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.consoleLinkWithSeparatorText
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.ResultItem
+import com.intellij.openapi.project.Project
 
-class ExplainBuildErrorFilter(private val linkPrefix: String) : Filter {
+class ExplainBuildErrorFilter : Filter {
   override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
+    val linkPrefix = consoleLinkUnderlinedText
     if (!line.contains(linkPrefix)) return null
     val index = line.indexOf(linkPrefix)
     val lineStart = entireLength - line.length
-    // +2: Skip ": ", the URL separator in BuildOutputParserWrapper
-    val startIndex = index + 2 + linkPrefix.length
+    // Skip " " the URL separator in BuildOutputParserWrapper
+    val startIndex = index + consoleLinkWithSeparatorText.length
     // don't apply filters to sync output twice
     if (line.length < startIndex) return null
     val message = line.substring(startIndex)
     // TODO add message
     val linkStart = lineStart + index
+
+    // This should only be called when Studio Bot is available
+    val studioBot = StudioBot.getInstance()
     return Filter.Result(
-      listOf(ResultItem(linkStart, linkStart + linkPrefix.length + 1) { project ->
-        IssueExplainer.get().explain(project, message, IssueExplainer.RequestKind.BUILD_ISSUE)
+      listOf(ResultItem(linkStart, linkStart + linkPrefix.length) { project ->
+        studioBot.sendChatQueryIfContextAllowed(project, "Explain build error: $message", StudioBot.RequestSource.BUILD)
       }))
+  }
+}
+
+fun StudioBot.sendChatQueryIfContextAllowed(project: Project, query: String, requestSource: StudioBot.RequestSource) {
+  if (isContextAllowed(project)) {
+    val prompt = buildPrompt(project) { userMessage { text(query, filesUsed = emptyList()) } }
+    chat(project).sendChatQuery(prompt, requestSource)
+  }
+  else {
+    chat(project).stageChatQuery(query, requestSource)
   }
 }

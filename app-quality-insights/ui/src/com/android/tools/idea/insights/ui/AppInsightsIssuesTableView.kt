@@ -34,7 +34,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TableSpeedSearch
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.scale.JBUIScale
@@ -57,7 +56,7 @@ import org.jetbrains.annotations.TestOnly
 class AppInsightsIssuesTableView(
   model: AppInsightsIssuesTableModel,
   private val controller: AppInsightsProjectLevelController,
-  private val renderer: AppInsightsTableCellRenderer
+  private val renderer: AppInsightsTableCellRenderer,
 ) : Disposable {
   val component: JComponent
   private val speedSearch: TableSpeedSearch
@@ -74,14 +73,14 @@ class AppInsightsIssuesTableView(
     speedSearch =
       TableSpeedSearch(
         table,
-        Convertor { if (it is AppInsightsIssue) convertToSearchText(it) else it.toString() }
+        Convertor { if (it is AppInsightsIssue) convertToSearchText(it) else it.toString() },
       )
     tableHeader = table.tableHeader
     tableHeader.reorderingAllowed = false
     loadingPanel.add(table.tableHeader, TabularLayout.Constraint(0, 0))
     loadingPanel.add(
       ScrollPaneFactory.createScrollPane(table, true),
-      TabularLayout.Constraint(1, 0)
+      TabularLayout.Constraint(1, 0),
     )
     changeListener = ListSelectionListener {
       if (!it.valueIsAdjusting) {
@@ -110,9 +109,9 @@ class AppInsightsIssuesTableView(
                   clear()
                   appendText("No issues", EMPTY_STATE_TITLE_FORMAT)
                   appendSecondaryText(
-                    "You don't have any issues yet. Keep up the good work!",
+                    "It can take 24-48 hours for crashes to appear",
                     EMPTY_STATE_TEXT_FORMAT,
-                    null
+                    null,
                   )
                 }
               }
@@ -149,22 +148,11 @@ class AppInsightsIssuesTableView(
                 clear()
                 appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
                 appendLine("You can ", EMPTY_STATE_TEXT_FORMAT, null)
-                appendText(
-                  "retry",
-                  EMPTY_STATE_LINK_FORMAT,
-                ) {
-                  controller.refresh()
-                }
-                appendText(
-                  " the request",
-                  EMPTY_STATE_TEXT_FORMAT,
-                )
+                appendText("retry", EMPTY_STATE_LINK_FORMAT) { controller.refresh() }
+                appendText(" the request", EMPTY_STATE_TEXT_FORMAT)
                 appendText(" or, if you currently don't", EMPTY_STATE_TEXT_FORMAT)
                 appendLine("have a network connection, enter ", EMPTY_STATE_TEXT_FORMAT, null)
-                appendText(
-                  "Offline Mode",
-                  EMPTY_STATE_LINK_FORMAT,
-                ) {
+                appendText("Offline Mode", EMPTY_STATE_LINK_FORMAT) {
                   controller.enterOfflineMode()
                 }
                 appendText(".", EMPTY_STATE_TEXT_FORMAT)
@@ -181,7 +169,7 @@ class AppInsightsIssuesTableView(
                     appendSecondaryText(
                       "No event types are selected. Enable a type above to see issues.",
                       EMPTY_STATE_TEXT_FORMAT,
-                      null
+                      null,
                     )
                   }
                 }
@@ -192,7 +180,7 @@ class AppInsightsIssuesTableView(
                     appendSecondaryText(
                       "No versions are selected. Enable a version above to see issues.",
                       EMPTY_STATE_TEXT_FORMAT,
-                      null
+                      null,
                     )
                   }
                 }
@@ -203,21 +191,18 @@ class AppInsightsIssuesTableView(
                     appendSecondaryText(
                       "No devices are selected. Enable a device above to see issues.",
                       EMPTY_STATE_TEXT_FORMAT,
-                      null
+                      null,
                     )
                   }
                 }
                 is NoOperatingSystemsSelectedException -> {
                   table.tableEmptyText.apply {
                     clear()
-                    appendText(
-                      "No operating systems selected",
-                      SimpleTextAttributes.REGULAR_ATTRIBUTES
-                    )
+                    appendText("No operating systems selected", EMPTY_STATE_TITLE_FORMAT)
                     appendSecondaryText(
                       "No operating systems are selected. Enable an operating system above to see issues.",
-                      SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER, null),
-                      null
+                      EMPTY_STATE_TEXT_FORMAT,
+                      null,
                     )
                   }
                 }
@@ -229,7 +214,7 @@ class AppInsightsIssuesTableView(
                     clear()
                     appendText(
                       issues.message ?: "An unknown failure occurred",
-                      EMPTY_STATE_TITLE_FORMAT
+                      EMPTY_STATE_TITLE_FORMAT,
                     )
                   }
                 }
@@ -314,7 +299,7 @@ class AppInsightsIssuesTableView(
             AnimatedIcon.Default(),
             "Fetching issues is taking longer than expected.",
             EMPTY_STATE_TITLE_FORMAT,
-            null
+            null,
           )
           appendSecondaryText("You can wait, ", EMPTY_STATE_TEXT_FORMAT, null)
           appendSecondaryText("retry", EMPTY_STATE_LINK_FORMAT) { controller.refresh() }
@@ -330,7 +315,7 @@ class AppInsightsIssuesTableView(
           clear()
           appendText(
             failure.message ?: revertibleCause?.message ?: "An unknown failure occurred",
-            EMPTY_STATE_TITLE_FORMAT
+            EMPTY_STATE_TITLE_FORMAT,
           )
           if (cause.snapshot != null) {
             appendSecondaryText("Go Back", EMPTY_STATE_LINK_FORMAT) {

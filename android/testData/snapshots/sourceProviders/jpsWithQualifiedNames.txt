@@ -56,23 +56,19 @@ MODULE: MyApplication
                     file://./res
                 ResDirectories:
                     file://./res
-        UnitTestSources:
-            UnitTestSources (IDEA)
-                ScopeType: UNIT_TEST
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
-                ScopeType: ANDROID_TEST
+        HostTestSources:
+        DeviceTestSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
         GeneratedSources:
             GeneratedSources (IDEA)
                 ScopeType: MAIN
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -131,6 +127,6 @@ MODULE: MyApplication
                     file://./res
                 ResDirectories:
                     file://./res
-        CurrentUnitTestSourceProviders:
-        CurrentAndroidTestSourceProviders:
+        CurrentHostTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
         CurrentTestFixturesSourceProviders:

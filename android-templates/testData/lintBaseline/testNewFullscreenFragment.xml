@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file should not be edited manually! See go/template-diff-tests -->
+<issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
+
+    <issue
+        id="Overdraw"
+        message="Possible overdraw: Root element paints background `?attr/fullscreenBackgroundColor` with a theme that also paints a background (inferred theme is `@style/Theme.App`)"
+        errorLine1="    android:background=&quot;?attr/fullscreenBackgroundColor&quot;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_fullscreen.xml"
+            line="6"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ClickableViewAccessibility"
+        message="`onTouch` should call `View#performClick` when a click is detected"
+        errorLine1="        public boolean onTouch(View view, MotionEvent motionEvent) {"
+        errorLine2="                       ~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/FullscreenFragment.java"
+            line="101"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="ClickableViewAccessibility"
+        message="Custom view ``Button`` has `setOnTouchListener` called on it but does not override `performClick`"
+        errorLine1="        binding.dummyButton.setOnTouchListener(mDelayHideTouchListener);"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/FullscreenFragment.java"
+            line="141"
+            column="9"/>
+    </issue>
+
+</issues>

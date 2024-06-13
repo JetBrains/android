@@ -20,16 +20,20 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 
 /** An action that selects a preset style of Logcat format. */
 sealed class LogcatFormatPresetAction(
   private val style: FormattingOptions.Style,
-  private val logcatPresenter: LogcatPresenter
+  private val logcatPresenter: LogcatPresenter,
 ) :
   SelectableAction(LogcatBundle.message("logcat.format.preset.action.text", style.displayName)),
   DumbAware {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun actionPerformed(e: AnActionEvent) {
     if (!isSelected()) {
       logcatPresenter.formattingOptions = style.formattingOptions

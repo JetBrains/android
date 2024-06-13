@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package androidx.compose.compiler.plugins.kotlin.lower
 
+import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
 import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
+import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.KtxNameConventions
 import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
 import androidx.compose.compiler.plugins.kotlin.analysis.ComposeWritableSlices
+import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
 import androidx.compose.compiler.plugins.kotlin.inference.ApplierInferencer
 import androidx.compose.compiler.plugins.kotlin.inference.ErrorReporter
-import androidx.compose.compiler.plugins.kotlin.inference.TypeAdapter
 import androidx.compose.compiler.plugins.kotlin.inference.Item
 import androidx.compose.compiler.plugins.kotlin.inference.LazyScheme
 import androidx.compose.compiler.plugins.kotlin.inference.LazySchemeStorage
@@ -31,7 +35,9 @@ import androidx.compose.compiler.plugins.kotlin.inference.NodeKind
 import androidx.compose.compiler.plugins.kotlin.inference.Open
 import androidx.compose.compiler.plugins.kotlin.inference.Scheme
 import androidx.compose.compiler.plugins.kotlin.inference.Token
+import androidx.compose.compiler.plugins.kotlin.inference.TypeAdapter
 import androidx.compose.compiler.plugins.kotlin.inference.deserializeScheme
+import androidx.compose.compiler.plugins.kotlin.inference.mergeWith
 import androidx.compose.compiler.plugins.kotlin.irTrace
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -43,6 +49,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrLocalDelegatedProperty
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.declarations.name
@@ -60,9 +67,11 @@ import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+import org.jetbrains.kotlin.ir.interpreter.getLastOverridden
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeArgument
@@ -88,7 +97,6 @@ import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
-import org.jetbrains.kotlin.resolve.BindingTrace
 
 /**
  * This transformer walks the IR tree to infer the applier annotations such as ComposableTarget,
@@ -97,14 +105,16 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 class ComposableTargetAnnotationsTransformer(
     context: IrPluginContext,
     symbolRemapper: ComposableSymbolRemapper,
-    bindingTrace: BindingTrace,
-    metrics: ModuleMetrics
-) : AbstractComposeLowering(context, symbolRemapper, bindingTrace, metrics) {
-    private val ComposableTargetClass = getTopLevelClassOrNull(ComposeFqNames.ComposableTarget)
-    private val ComposableOpenTargetClass =
-        getTopLevelClassOrNull(ComposeFqNames.ComposableOpenTarget)
-    private val ComposableInferredTargetClass =
-        getTopLevelClassOrNull(ComposeFqNames.ComposableInferredTarget)
+    metrics: ModuleMetrics,
+    stabilityInferencer: StabilityInferencer,
+    featureFlags: FeatureFlags
+) : AbstractComposeLowering(context, symbolRemapper, metrics, stabilityInferencer, featureFlags) {
+    private val ComposableTargetClass = getTopLevelClassOrNull(ComposeClassIds.ComposableTarget)
+        ?.let(symbolRemapper::getReferencedClass)
+    private val ComposableOpenTargetClass = getTopLevelClassOrNull(ComposeClassIds.ComposableOpenTarget)
+        ?.let(symbolRemapper::getReferencedClass)
+    private val ComposableInferredTargetClass = getTopLevelClassOrNull(ComposeClassIds.ComposableInferredTarget)
+        ?.let(symbolRemapper::getReferencedClass)
 
     /**
      * A map of element to the owning function of the element.
@@ -281,7 +291,7 @@ class ComposableTargetAnnotationsTransformer(
         val owner = currentOwner
         if (
             owner == null || (
-                    !expression.isTransformedComposableCall() &&
+                    !expression.isComposableCall() &&
                     !expression.hasComposableArguments()
                 ) || when (expression.symbol.owner.fqNameWhenAvailable) {
                     ComposeFqNames.getCurrentComposerFullName,
@@ -658,32 +668,40 @@ class InferenceFunctionDeclaration(
     }
 
     override fun toDeclaredScheme(defaultTarget: Item): Scheme = with(transformer) {
-        function.scheme
-            ?: run {
-                val target = function.annotations.target.let { target ->
-                    if (target.isUnspecified && function.body == null) {
-                        defaultTarget
-                    } else if (target.isUnspecified) {
-                        // Default to the target specified at the file scope, if one.
-                        function.file.annotations.target
-                    } else target
-                }
-                val effectiveDefault =
-                    if (function.body == null) defaultTarget
-                    else Open(-1, isUnspecified = true)
-                val result = function.returnType.let { resultType ->
-                    if (resultType.isOrHasComposableLambda)
-                        resultType.toScheme(effectiveDefault)
-                    else null
-                }
-
-                Scheme(
-                    target,
-                    parameters().map { it.toDeclaredScheme(effectiveDefault) },
-                    result
-                )
-            }
+        function.scheme ?: function.toScheme(defaultTarget)
     }
+
+    private fun IrFunction.toScheme(defaultTarget: Item): Scheme = with(transformer) {
+        val target = function.annotations.target.let { target ->
+            if (target.isUnspecified && function.body == null) {
+                defaultTarget
+            } else if (target.isUnspecified) {
+                // Default to the target specified at the file scope, if one.
+                function.file.annotations.target
+            } else target
+        }
+        val effectiveDefault =
+            if (function.body == null) defaultTarget
+            else Open(-1, isUnspecified = true)
+        val result = function.returnType.let { resultType ->
+            if (resultType.isOrHasComposableLambda)
+                resultType.toScheme(effectiveDefault)
+            else null
+        }
+
+        Scheme(
+            target,
+            parameters().map { it.toDeclaredScheme(effectiveDefault) },
+            result
+        ).let { scheme ->
+            ancestorScheme(defaultTarget)?.let { scheme.mergeWith(listOf(it)) } ?: scheme
+        }
+    }
+
+    private fun IrFunction.ancestorScheme(defaultTarget: Item): Scheme? =
+        if (this is IrSimpleFunction && this.overriddenSymbols.isNotEmpty()) {
+            getLastOverridden().toScheme(defaultTarget)
+        } else null
 
     override fun hashCode(): Int = function.hashCode() * 31
     override fun equals(other: Any?) =

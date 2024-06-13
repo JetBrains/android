@@ -33,7 +33,7 @@ object MorphManager {
           SdkConstants.LINEAR_LAYOUT,
           module.mapAndroidxName(AndroidXConstants.COORDINATOR_LAYOUT),
           SdkConstants.RELATIVE_LAYOUT,
-          SdkConstants.FRAME_LAYOUT
+          SdkConstants.FRAME_LAYOUT,
         )
     } else {
       suggestions =
@@ -44,7 +44,7 @@ object MorphManager {
           SdkConstants.EDIT_TEXT,
           SdkConstants.CHECK_BOX,
           SdkConstants.RADIO_BUTTON,
-          SdkConstants.TOGGLE_BUTTON
+          SdkConstants.TOGGLE_BUTTON,
         )
     }
 

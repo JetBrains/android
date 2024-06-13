@@ -17,6 +17,7 @@ package com.android.tools.idea.execution.common.debug.utils
 
 import com.android.ddmlib.ClientData
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -50,17 +51,24 @@ object FacetFinder {
   /**
    * Finds a suitable facet by process name to use in debugger attachment configuration.
    *
-   * @return The facet to use for attachment configuration. Null if no suitable facet exists.
+   * @return The facet to use for attachment configuration. Throws if no suitable facet exists.
    */
   @Throws(ExecutionException::class)
   fun findFacetForProcess(project: Project, clientData: ClientData): Result {
-    return clientData.packageName?.let { heuristicApplicationId -> findFacetForApplicationId(project, heuristicApplicationId) }
-           ?: findFacetForGlobalProcess(project, clientData.clientDescription ?: throw ExecutionException("Process name not found"))
-
+    return tryFindFacetForProcess(project, clientData)
            ?: throw ExecutionException("Unable to find project context to attach debugger for process ${clientData.clientDescription}")
   }
+  /**
+   * Finds a suitable facet by process name to use in debugger attachment configuration.
+   *
+   * @return The facet to use for attachment configuration. Null if no suitable facet exists.
+   */
+  fun tryFindFacetForProcess(project: Project, clientData: ClientData): Result? {
+    return clientData.packageName?.let { heuristicApplicationId -> findFacetForApplicationId(project, heuristicApplicationId) }
+           ?: clientData.clientDescription?.let { clientDescription -> findFacetForGlobalProcess(project, clientDescription) }
+  }
 
-  fun findFacetForApplicationId(project: Project, applicationId: String): Result? {
+  private fun findFacetForApplicationId(project: Project, applicationId: String): Result? {
     return project.getProjectSystem().findModulesWithApplicationId(applicationId).lastOrNull()?.androidFacet?.let {
       Result(
         facet = it,
@@ -137,7 +145,7 @@ object FacetFinder {
           }
         }
       }
-      for (sourceProvider in facet.sourceProviders.currentAndroidTestSourceProviders) {
+      for (sourceProvider in facet.sourceProviders.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST] ?: emptyList()) {
         for (manifestFile in sourceProvider.manifestFiles) {
           val globalProcessNames = ProcessNameReader.readGlobalProcessNames(project, manifestFile)
           if (globalProcessNames.contains(processName)) {

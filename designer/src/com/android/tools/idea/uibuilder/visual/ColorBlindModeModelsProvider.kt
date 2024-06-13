@@ -42,7 +42,7 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parent: Disposable,
     file: PsiFile,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): List<NlModel> {
 
     if (file.typeOf() != LayoutFileType) {

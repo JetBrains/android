@@ -38,18 +38,18 @@ interface OfflineModeManager {
     databases: List<SqliteDatabaseId>,
     processDescriptor: ProcessDescriptor,
     appPackageName: String?,
-    handleError: (String, Throwable?) -> Unit
+    handleError: (String, Throwable?) -> Unit,
   ): Flow<DownloadProgress>
 
   data class DownloadProgress(
     val downloadState: DownloadState,
     val filesDownloaded: List<DatabaseFileData>,
-    val totalFiles: Int
+    val totalFiles: Int,
   )
 
   enum class DownloadState {
     IN_PROGRESS,
-    COMPLETED
+    COMPLETED,
   }
 }
 
@@ -69,7 +69,7 @@ class OfflineModeManagerImpl(
     databases: List<SqliteDatabaseId>,
     processDescriptor: ProcessDescriptor,
     appPackageName: String?,
-    handleError: (String, Throwable?) -> Unit
+    handleError: (String, Throwable?) -> Unit,
   ): Flow<OfflineModeManager.DownloadProgress> {
     return flow {
       val downloadedFiles = mutableListOf<DatabaseFileData>()
@@ -84,7 +84,7 @@ class OfflineModeManagerImpl(
           OfflineModeManager.DownloadProgress(
             OfflineModeManager.DownloadState.IN_PROGRESS,
             emptyList(),
-            databasesToDownload.size
+            databasesToDownload.size,
           )
         )
 
@@ -95,7 +95,7 @@ class OfflineModeManagerImpl(
               appPackageName,
               processDescriptor,
               downloadedFiles,
-              handleError
+              handleError,
             )
           }
           else -> {
@@ -103,7 +103,7 @@ class OfflineModeManagerImpl(
               "For security reasons offline mode is disabled when " +
                 "the process being inspected does not correspond to the project open in studio " +
                 "or when the project has been generated from a prebuilt apk.",
-              null
+              null,
             )
           }
         }
@@ -112,7 +112,7 @@ class OfflineModeManagerImpl(
           OfflineModeManager.DownloadProgress(
             OfflineModeManager.DownloadState.COMPLETED,
             downloadedFiles.toList(),
-            databasesToDownload.size
+            databasesToDownload.size,
           )
         )
       } catch (e: CancellationException) {
@@ -130,7 +130,7 @@ class OfflineModeManagerImpl(
     appPackageName: String?,
     processDescriptor: ProcessDescriptor,
     downloadedFiles: MutableList<DatabaseFileData>,
-    handleError: (String, Throwable?) -> Unit
+    handleError: (String, Throwable?) -> Unit,
   ) {
     databasesToDownload.forEach { liveSqliteDatabaseId ->
       try {
@@ -138,14 +138,14 @@ class OfflineModeManagerImpl(
           fileDatabaseManager.loadDatabaseFileData(
             appPackageName ?: processDescriptor.name,
             processDescriptor,
-            liveSqliteDatabaseId
+            liveSqliteDatabaseId,
           )
         downloadedFiles.add(databaseFileData)
         emit(
           OfflineModeManager.DownloadProgress(
             OfflineModeManager.DownloadState.IN_PROGRESS,
             downloadedFiles.toList(),
-            databasesToDownload.size
+            databasesToDownload.size,
           )
         )
       } catch (e: FileDatabaseException) {
@@ -159,6 +159,7 @@ class OfflineModeManagerImpl(
 
   companion object {
     private const val PROJECT_TRUSTED_KEY = "PROJECT_TRUSTED_KEY"
+
     /**
      * Before downloading any database, ask the user if they trust the app. We're doing this because
      * downloading a db and running statements on it might result in executing malicious code.
@@ -170,7 +171,7 @@ class OfflineModeManagerImpl(
     suspend fun doIsFileDownloadAllowed(
       project: Project,
       uiDispatcher: CoroutineContext,
-      askUser: () -> Boolean = { askUserIfAppIsTrusted(project) }
+      askUser: () -> Boolean = { askUserIfAppIsTrusted(project) },
     ) =
       withContext(uiDispatcher) {
         val isProjectTrusted =
@@ -197,7 +198,7 @@ class OfflineModeManagerImpl(
       }
       return MessageDialogBuilder.yesNo(
           DatabaseInspectorBundle.message("trust.database.title"),
-          DatabaseInspectorBundle.message("trust.database.message")
+          DatabaseInspectorBundle.message("trust.database.message"),
         )
         .yesText(DatabaseInspectorBundle.message("trust.and.continue"))
         .noText(DatabaseInspectorBundle.message("dont.trust.app"))

@@ -31,7 +31,7 @@ class CommonPreviewModeManagerTest {
   @Test
   fun testRestoreMode(): Unit = runBlocking {
     val manager = CommonPreviewModeManager()
-    val previewElement = mock<PreviewElement>()
+    val previewElement = mock<PreviewElement<Unit>>()
 
     manager.setMode(PreviewMode.Interactive(previewElement))
 
@@ -40,27 +40,48 @@ class CommonPreviewModeManagerTest {
     manager.restorePrevious()
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Default())
 
-    manager.setMode(PreviewMode.Default(GRID_LAYOUT_MANAGER_OPTIONS))
-    manager.setMode(PreviewMode.UiCheck(previewElement, GRID_LAYOUT_MANAGER_OPTIONS))
-    manager.setMode(PreviewMode.UiCheck(previewElement, LIST_LAYOUT_MANAGER_OPTION))
+    manager.setMode(PreviewMode.Default(GRID_LAYOUT_OPTION))
+    manager.setMode(
+      PreviewMode.UiCheck(
+        UiCheckInstance(previewElement, isWearPreview = false),
+        GRID_NO_GROUP_LAYOUT_OPTION,
+      )
+    )
+    manager.setMode(
+      PreviewMode.UiCheck(
+        UiCheckInstance(previewElement, isWearPreview = false),
+        LIST_NO_GROUP_LAYOUT_OPTION,
+      )
+    )
     manager.restorePrevious()
-    assertThat(manager.mode.value).isEqualTo(PreviewMode.Default(GRID_LAYOUT_MANAGER_OPTIONS))
+    assertThat(manager.mode.value).isEqualTo(PreviewMode.Default(GRID_LAYOUT_OPTION))
   }
 
   @Test
   fun testChangeModeLayout(): Unit = runBlocking {
     val manager = CommonPreviewModeManager()
-    val previewElement = mock<PreviewElement>()
+    val previewElement = mock<PreviewElement<Unit>>()
 
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Default())
 
     manager.setMode(PreviewMode.Gallery(previewElement))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(PREVIEW_LAYOUT_GALLERY_OPTION)
+    assertThat(manager.mode.value.layoutOption).isEqualTo(GALLERY_LAYOUT_OPTION)
 
-    manager.setMode(PreviewMode.UiCheck(previewElement))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_LAYOUT_MANAGER_OPTIONS)
+    manager.setMode(PreviewMode.UiCheck(UiCheckInstance(previewElement, isWearPreview = false)))
+    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)
 
-    manager.setMode(PreviewMode.UiCheck(previewElement, LIST_LAYOUT_MANAGER_OPTION))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(LIST_LAYOUT_MANAGER_OPTION)
+    manager.setMode(PreviewMode.AnimationInspection(previewElement))
+    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)
+
+    manager.setMode(
+      PreviewMode.UiCheck(
+        UiCheckInstance(previewElement, isWearPreview = false),
+        LIST_NO_GROUP_LAYOUT_OPTION,
+      )
+    )
+    assertThat(manager.mode.value.layoutOption).isEqualTo(LIST_NO_GROUP_LAYOUT_OPTION)
+
+    manager.setMode(PreviewMode.Interactive(previewElement))
+    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)
   }
 }

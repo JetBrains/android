@@ -14,29 +14,34 @@
  * limitations under the License.
  */
 
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package androidx.compose.compiler.plugins.kotlin.lower
 
+import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.ir.IrImplementationDetail
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.createBlockBody
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrSetValue
+import org.jetbrains.kotlin.ir.expressions.impl.IrBlockBodyImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrSetValueImpl
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
 import org.jetbrains.kotlin.ir.transformStatement
 import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
-import org.jetbrains.kotlin.resolve.BindingTrace
 
 /**
  * This transformer is a workaround for https://youtrack.jetbrains.com/issue/KT-44945 on non-JVM
@@ -60,13 +65,21 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 class KlibAssignableParamTransformer(
     context: IrPluginContext,
     symbolRemapper: DeepCopySymbolRemapper,
-    bindingTrace: BindingTrace,
     metrics: ModuleMetrics,
-) : AbstractComposeLowering(context, symbolRemapper, bindingTrace, metrics), ModuleLoweringPass {
+    stabilityInferencer: StabilityInferencer,
+    featureFlags: FeatureFlags,
+) : AbstractComposeLowering(
+    context,
+    symbolRemapper,
+    metrics,
+    stabilityInferencer,
+    featureFlags
+), ModuleLoweringPass {
     override fun lower(module: IrModuleFragment) {
         module.transformChildrenVoid(this)
     }
 
+    @OptIn(IrImplementationDetail::class)
     override fun visitFunction(declaration: IrFunction): IrStatement {
         val assignableParams = declaration.valueParameters.filter { it.isAssignable }
 
@@ -98,10 +111,10 @@ class KlibAssignableParamTransformer(
         }
 
         declaration.body = declaration.body?.let { body ->
-            declaration.factory.createBlockBody(
+            context.irFactory.createBlockBody(
                 body.startOffset,
                 body.endOffset
-            ) {
+            ).apply {
                 statements.addAll(variables)
 
                 val updatedBody = body.statements.map {

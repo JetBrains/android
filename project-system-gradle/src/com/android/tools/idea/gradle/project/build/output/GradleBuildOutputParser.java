@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
-import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser.STDOUT_ERROR_TAG;
+import static com.android.ide.common.blame.MessageJsonSerializer.STDOUT_ERROR_TAG;
 import static com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_ERROR_SUFFIX;
@@ -90,6 +90,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
     // consume the build failed message if there were some errors parsed before, this makes sure that GradleBuildScriptErrorParser will not
     // re-parse and duplicate the errors
     if (currentLine.startsWith(BUILD_FAILED_WITH_EXCEPTION_LINE) && buildIdsWithAGPErrors.contains(reader.getParentEventId())) {
+      BuildOutputParserUtils.consumeRestOfOutput(reader);
       return true;
     }
 
@@ -115,21 +116,22 @@ public class GradleBuildOutputParser implements BuildOutputParser {
         buildIdsWithAGPErrors.add(buildId);
       }
       futureOutput.addAll(Arrays.asList(msg.getRawMessage().split("\\n")));
+      String message = msg.getText().lines().findFirst().orElse(msg.getText());
+      String detailedMessage = msg.getRawMessage().isEmpty() ? msg.getText() : msg.getRawMessage();
       boolean validPosition = false;
       for (SourceFilePosition sourceFilePosition : msg.getSourceFilePositions()) {
         FilePosition filePosition = convertToFilePosition(sourceFilePosition);
         if (filePosition != null) {
           validPosition = true;
           messageConsumer.accept(
-            new FileMessageEventImpl(buildId, convertKind(msg.getKind()), getMessageGroup(msg), msg.getText(),
-                                     msg.getRawMessage().isEmpty() ? msg.getText() : msg.getRawMessage(),
-                                     filePosition));
+            new FileMessageEventImpl(buildId, convertKind(msg.getKind()), getMessageGroup(msg), message, detailedMessage, filePosition)
+          );
         }
       }
       if (!validPosition) {
-        messageConsumer
-          .accept(new MessageEventImpl(buildId, convertKind(msg.getKind()), getMessageGroup(msg), msg.getText(),
-                                       msg.getRawMessage().isEmpty() ? msg.getText() : msg.getRawMessage()));
+        messageConsumer.accept(
+          new MessageEventImpl(buildId, convertKind(msg.getKind()), getMessageGroup(msg), message, detailedMessage)
+        );
       }
     }
     catch (JsonParseException ignored) {

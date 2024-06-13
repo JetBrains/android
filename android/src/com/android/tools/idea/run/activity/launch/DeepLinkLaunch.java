@@ -69,7 +69,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
     public String DEEP_LINK = "";
 
     @Override
-    protected void doLaunch(@NotNull IDevice device,
+    protected boolean doLaunch(@NotNull IDevice device,
                             @NotNull App app,
                             @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
                             @NotNull ConsoleView console) throws ExecutionException {
@@ -89,6 +89,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
         logger.warn(e);
         throw new ExecutionException("Unexpected error while executing: " + command);
       }
+      return true;
     }
 
     @NotNull

@@ -56,6 +56,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.util.text.StringUtil
@@ -82,6 +83,7 @@ import com.intellij.util.ui.tree.TreeUtil
 import sun.swing.DefaultLookup
 import java.awt.Color
 import java.awt.Component
+import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -160,7 +162,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
     val testRow = myModel.addTestResultsRow(device, testCase)
     refreshTable()
     myTableView.tree.expandPath(TreeUtil.getPath(myModel.myRootAggregationRow, testRow.parent))
-    return sequence<AndroidTestResults> {
+    return sequence {
       yield(testRow)
       var parent = testRow.parent
       while (parent != null) {
@@ -332,27 +334,44 @@ private class FailedTestsNavigator(private val treetableView: AndroidTestResults
   }
 
   private fun getNextFailedTestNode(): AndroidTestResultsRow? {
-    return getSequence(DefaultMutableTreeNode::getNextNode).firstOrNull()
+    return getFirstRowOrNull(DefaultMutableTreeNode::getNextNode)
   }
 
   private fun getPreviousFailedTestNode(): AndroidTestResultsRow? {
-    return getSequence(DefaultMutableTreeNode::getPreviousNode).firstOrNull()
+    return getFirstRowOrNull(DefaultMutableTreeNode::getPreviousNode)
   }
 
-  private fun getSequence(next: DefaultMutableTreeNode.() -> DefaultMutableTreeNode?): Sequence<AndroidTestResultsRow> {
-    return sequence<AndroidTestResultsRow> {
-      if (treetableView.rowCount == 0) {
-        return@sequence
-      }
-      val selectedNode = (treetableView.selectedObject ?: treetableView.getValueAt(0, 0)) as? DefaultMutableTreeNode ?: return@sequence
-      var node = selectedNode.next()
-      while (node != null) {
-        if (node is AndroidTestResultsRow && node.getTestResultSummary() == AndroidTestCaseResult.FAILED) {
-          yield(node)
+  private fun getFirstRowOrNull(next: DefaultMutableTreeNode.() -> DefaultMutableTreeNode?): AndroidTestResultsRow? {
+    if(treetableView.isValidThread()) {
+        if (treetableView.rowCount == 0) {
+          return null
         }
-        node = node.next()
-      }
+        val selectedNode = (treetableView.selectedObject ?: treetableView.getValueAt(0, 0)) as? DefaultMutableTreeNode ?: return null
+        var node = selectedNode.next()
+        while (node != null) {
+          if (node is AndroidTestResultsRow && node.getTestResultSummary() == AndroidTestCaseResult.FAILED) {
+            return node
+          }
+          node = node.next()
+        }
+      return null
     }
+    var node: AndroidTestResultsRow? = null
+
+    runInEdt {
+      if (treetableView.rowCount == 0) {
+        return@runInEdt
+      }
+
+      val selectedNode = (treetableView.selectedObject ?: treetableView.getValueAt(0, 0)) as? DefaultMutableTreeNode ?: return@runInEdt
+      node = generateSequence(selectedNode.next()) { it.next() }
+        .filterIsInstance<AndroidTestResultsRow>()
+        .filter { it.getTestResultSummary() == AndroidTestCaseResult.FAILED }
+        .firstOrNull()
+
+    }
+
+    return node
   }
 }
 
@@ -407,6 +426,25 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   private var myLastReportedDevice: AndroidDevice? = null
 
   private var mySortOrder: SortOrder = SortOrder.UNSORTED
+
+  @Volatile
+  private var background = getBackgroundThread()
+
+  private fun getBackgroundThread(): Thread? {
+    return if (EventQueue.isDispatchThread()) null else Thread.currentThread()
+  }
+
+  fun isValidThread(): Boolean {
+    val thread = getBackgroundThread()
+    if (thread == null) {
+      background = null // the background thread is not allowed after the first access from the EDT
+      return true // the EDT is always allowed
+    }
+    if (thread === background) {
+      return true // the background thread is allowed only before the first access from the EDT
+    }
+    return false // a background thread is not allowed to handle Swing components
+  }
 
   init {
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
@@ -486,9 +524,17 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       }
     })
   }
-
   val selectedObject: AndroidTestResults?
-    get() = selection?.firstOrNull() as? AndroidTestResults
+    get() {
+      if (isValidThread())
+        return selection?.firstOrNull() as? AndroidTestResults
+
+      var testResult: AndroidTestResults? = null
+      runInEdt {
+        testResult = selection?.firstOrNull() as? AndroidTestResults
+      }
+      return testResult
+    }
 
   override fun valueChanged(event: ListSelectionEvent) {
     super.valueChanged(event)
@@ -541,8 +587,8 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 
   override fun getData(dataId: String): Any? {
     return when {
-      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> selectedObject.let { selection ->
-        DataProvider { slowId -> getSlowData(slowId, selection) }
+      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> {
+        DataProvider { slowId -> getSlowData(slowId) }
       }
       CommonDataKeys.PROJECT.`is`(dataId) -> {
         javaPsiFacade.project
@@ -555,15 +601,15 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     }
   }
 
-  private fun getSlowData(dataId: String, selection: AndroidTestResults?): Any? {
+   private fun getSlowData(dataId: String): Any? {
     return when {
       CommonDataKeys.PSI_ELEMENT.`is`(dataId) -> {
-        val selectedTestResults = selection ?: return null
+        val selectedTestResults = selectedObject ?: return null
         getPsiElement(selectedTestResults)
       }
 
       Location.DATA_KEY.`is`(dataId) -> {
-        val psiElement = getSlowData(CommonDataKeys.PSI_ELEMENT.name, selection) as? PsiElement ?: return null
+        val psiElement = getSlowData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
         PsiLocation.fromPsiElement(psiElement, module)
       }
 
@@ -1322,18 +1368,7 @@ private class AggregationRow(override val packageName: String = "",
   }
 
   override fun getLogcat(device: AndroidDevice): String {
-    return allChildren.fold("") { acc, result ->
-      val logcat = (result as? AndroidTestResults)?.getLogcat(device)
-      if (logcat.isNullOrBlank()) {
-        acc
-      } else {
-        if (acc.isBlank()) {
-          logcat
-        } else {
-          "${acc}\n${logcat}"
-        }
-      }
-    }
+    return ""
   }
 
   override fun getStartTime(device: AndroidDevice): Long? {

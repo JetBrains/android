@@ -11,10 +11,10 @@ import kotlin.random.Random
  * can use this class with the parameters created on the linked website.
  */
 data class SamplePass(
-        private val issuerEmail: String,
-        private val issuerId: String,
-        private val passClass: String,
-        private val passId: String
+    private val issuerEmail: String,
+    private val issuerId: String,
+    private val passClass: String,
+    private val passId: String
 ) {
     val toJson: String = """
     {

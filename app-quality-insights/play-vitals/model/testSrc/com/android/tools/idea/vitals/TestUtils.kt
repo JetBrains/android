@@ -55,7 +55,7 @@ val TEST_ISSUE1 =
       emptySet(),
       "https://url.for-crash.com",
       0,
-      emptyList()
+      emptyList(),
     ),
     Event(
       name = "apps/com.labpixies.flood/MmRlYzYzZGRlODkyMTM4N2RkZTAxNTI0YWZlYzE4Mjc=",
@@ -64,7 +64,7 @@ val TEST_ISSUE1 =
           device = MOST_AFFECTED_DEVICE,
           operatingSystemInfo =
             OperatingSystemInfo(displayVersion = "12", displayName = "Android (12)"),
-          eventTime = FAKE_6_DAYS_AGO
+          eventTime = FAKE_6_DAYS_AGO,
         ),
       stacktraceGroup =
         StacktraceGroup(
@@ -76,7 +76,7 @@ val TEST_ISSUE1 =
                     caption =
                       Caption(
                         title = "Non-fatal Exception: retrofit2.HttpException",
-                        subtitle = "HTTP 401 "
+                        subtitle = "HTTP 401 ",
                       ),
                     blames = Blames.BLAMED,
                     frames =
@@ -91,7 +91,7 @@ val TEST_ISSUE1 =
                           offset = 23,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.BLAMED
+                          blame = Blames.BLAMED,
                         ),
                         Frame(
                           line = 31,
@@ -103,17 +103,17 @@ val TEST_ISSUE1 =
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.NOT_BLAMED
-                        )
-                      )
+                          blame = Blames.NOT_BLAMED,
+                        ),
+                      ),
                   ),
                 type = "retrofit2.HttpException",
                 exceptionMessage = "HTTP 401 ",
-                rawExceptionMessage = "retrofit2.HttpException: HTTP 401 "
+                rawExceptionMessage = "retrofit2.HttpException: HTTP 401 ",
               )
             )
-        )
-    )
+        ),
+    ),
   )
 
 val TEST_ISSUE2 =
@@ -133,7 +133,7 @@ val TEST_ISSUE2 =
       emptySet(),
       "https://url.for-crash.com/2",
       0,
-      emptyList()
+      emptyList(),
     ),
     Event(
       name = "apps/com.labpixies.flood/MzU4ZDdkMDc3YTljMzRlNWQ4MGY4MjQxYTFlMzdhODM=",
@@ -142,7 +142,7 @@ val TEST_ISSUE2 =
           device = Device(manufacturer = "Samsung", model = "Galaxy 9000"),
           operatingSystemInfo =
             OperatingSystemInfo(displayVersion = "10", displayName = "Android (12)"),
-          eventTime = FAKE_25_DAYS_AGO
+          eventTime = FAKE_25_DAYS_AGO,
         ),
       stacktraceGroup =
         StacktraceGroup(
@@ -154,7 +154,7 @@ val TEST_ISSUE2 =
                     caption =
                       Caption(
                         title = "javax.net.ssl.SSLHandshakeException",
-                        subtitle = "Trust anchor for certification path not found."
+                        subtitle = "Trust anchor for certification path not found.",
                       ),
                     blames = Blames.NOT_BLAMED,
                     frames =
@@ -168,7 +168,7 @@ val TEST_ISSUE2 =
                           offset = 23,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.NOT_BLAMED
+                          blame = Blames.NOT_BLAMED,
                         ),
                         Frame(
                           line = 1134,
@@ -179,14 +179,14 @@ val TEST_ISSUE2 =
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.NOT_BLAMED
-                        )
-                      )
+                          blame = Blames.NOT_BLAMED,
+                        ),
+                      ),
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
                 exceptionMessage = "Trust anchor for certification path not found ",
                 rawExceptionMessage =
-                  "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found "
+                  "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
               ),
               ExceptionStack(
                 stacktrace =
@@ -194,7 +194,7 @@ val TEST_ISSUE2 =
                     caption =
                       Caption(
                         title = "java.security.cert.CertPathValidatorException",
-                        subtitle = "Trust anchor for certification path not found."
+                        subtitle = "Trust anchor for certification path not found.",
                       ),
                     blames = Blames.BLAMED,
                     frames =
@@ -208,7 +208,7 @@ val TEST_ISSUE2 =
                           offset = 23,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.NOT_BLAMED
+                          blame = Blames.NOT_BLAMED,
                         ),
                         Frame(
                           line = 320,
@@ -219,16 +219,16 @@ val TEST_ISSUE2 =
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
-                          blame = Blames.BLAMED
-                        )
-                      )
+                          blame = Blames.BLAMED,
+                        ),
+                      ),
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
                 exceptionMessage = "Trust anchor for certification path not found ",
                 rawExceptionMessage =
-                  "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found "
+                  "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
               ),
             )
-        )
-    )
+        ),
+    ),
   )

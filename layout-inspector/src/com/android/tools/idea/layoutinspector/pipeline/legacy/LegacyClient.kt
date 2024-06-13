@@ -38,28 +38,26 @@ import java.nio.file.Path
  */
 class LegacyClient(
   process: ProcessDescriptor,
-  isInstantlyAutoConnected: Boolean,
   val model: InspectorModel,
   notificationModel: NotificationModel,
   private val metrics: LayoutInspectorSessionMetrics,
   coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
-  treeLoaderForTest: LegacyTreeLoader? = null
+  treeLoaderForTest: LegacyTreeLoader? = null,
 ) :
   AbstractInspectorClient(
     LEGACY_CLIENT,
     model.project,
     notificationModel,
     process,
-    isInstantlyAutoConnected,
     SessionStatisticsImpl(LEGACY_CLIENT),
     coroutineScope,
-    parentDisposable
+    parentDisposable,
   ) {
 
   private val lookup: ViewNodeAndResourceLookup = model
 
-  override val isCapturing = false
+  override val inLiveMode = false
 
   override val provider = LegacyPropertiesProvider()
 
@@ -132,7 +130,7 @@ class LegacyClient(
         latestConfig,
         latestTheme,
         process,
-        model
+        model,
       )
     snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
@@ -176,5 +174,5 @@ class LegacyClient(
 data class LegacyEvent(
   val windowId: String,
   val propertyUpdater: LegacyPropertiesProvider.Updater,
-  val allWindows: List<String>
+  val allWindows: List<String>,
 )

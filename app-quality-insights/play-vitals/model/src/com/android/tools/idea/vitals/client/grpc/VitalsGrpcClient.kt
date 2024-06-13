@@ -42,9 +42,7 @@ interface VitalsGrpcClient {
    * Returns freshness info (query period granularity & valid end-time) which is required for the
    * following metrics query ([queryErrorCountMetrics]).
    */
-  suspend fun getErrorCountMetricsFreshnessInfo(
-    connection: Connection,
-  ): List<Freshness>
+  suspend fun getErrorCountMetricsFreshnessInfo(connection: Connection): List<Freshness>
 
   /**
    * Returns metrics based on the passed-in searching criteria.
@@ -61,7 +59,7 @@ interface VitalsGrpcClient {
     dimensions: List<DimensionType>,
     metrics: List<MetricType>,
     freshness: Freshness,
-    maxNumResults: Int = DEFAULT_MAX_DATA_POINTS_PER_CALL
+    maxNumResults: Int = DEFAULT_MAX_DATA_POINTS_PER_CALL,
   ): List<DimensionsAndMetrics>
 
   /** Returns versions that are part of the releases. */
@@ -75,7 +73,7 @@ interface VitalsGrpcClient {
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId,
-    maxNumResults: Int
+    maxNumResults: Int,
   ): List<Event>
 
   /** Returns top issues based on the passed-in searching criteria. */
@@ -83,6 +81,6 @@ interface VitalsGrpcClient {
     connection: Connection,
     filters: QueryFilters,
     maxNumResults: Int = DEFAULT_MAX_OPEN_ISSUES_PER_CALL,
-    pageTokenFromPreviousCall: String? = null
+    pageTokenFromPreviousCall: String? = null,
   ): List<IssueDetails>
 }

@@ -15,27 +15,32 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration.Companion.getInstance
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.testartifacts.instrumented.testsuite.export.ImportAndroidTestMatrixRunProfile
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import org.jetbrains.android.facet.AndroidFacet
+
 
 class GradleAndroidTestRunConfigurationExecutorProvider : AndroidConfigurationExecutor.Provider {
   override fun createAndroidConfigurationExecutor(
     env: ExecutionEnvironment,
   ): AndroidConfigurationExecutor? {
-    val configuration = env.runProfile
+    val configuration = if (env.runProfile is ImportAndroidTestMatrixRunProfile) {
+      (env.runProfile as ImportAndroidTestMatrixRunProfile).initialConfiguration
+    } else {
+      env.runProfile
+    }
     if (configuration !is AndroidTestRunConfiguration) return null
 
     val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
     val module = configuration.configurationModule.module ?: throw ExecutionException("Module is not set")
     val facet = AndroidFacet.getInstance(module) ?: throw ExecutionException("Facet is not found")
 
-    if (getInstance().RUN_ANDROID_TEST_USING_GRADLE && isRunAndroidTestUsingGradleSupported(facet)) {
+    if (isRunAndroidTestUsingGradleSupported(facet)) {
       // Skip task for instrumentation tests run via UTP/AGP so that Gradle build
       // doesn't run twice per test run.
       env.putUserData(GradleBuilds.BUILD_SHOULD_EXECUTE, false)

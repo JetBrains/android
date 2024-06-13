@@ -31,6 +31,7 @@ import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
@@ -45,10 +46,16 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull private final Project myProject;
 
+  @NotNull private final Disposable myParentDisposable;
+
   @NotNull private final FeatureTracker myFeatureTracker;
 
-  public IntellijProfilerComponents(@NotNull Project project, @NotNull FeatureTracker featureTracker) {
+  public IntellijProfilerComponents(
+    @NotNull Project project,
+    @NotNull Disposable parentDisposable,
+    @NotNull FeatureTracker featureTracker) {
     myProject = project;
+    myParentDisposable = parentDisposable;
     myFeatureTracker = featureTracker;
   }
 
@@ -92,7 +99,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   @NotNull
   @Override
   public StackTraceGroup createStackGroup() {
-    return new IntelliJStackTraceGroup(myProject);
+    return new IntelliJStackTraceGroup(myProject, myParentDisposable);
   }
 
   @NotNull

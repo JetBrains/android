@@ -51,8 +51,8 @@ abstract class LaunchOptionState {
     extraFlags: String,
     console: ConsoleView,
     stats: RunStats
-  ) {
-    stats.track(id) { doLaunch(device, app, apkProvider, isDebug, extraFlags, console) }
+  ) : Boolean {
+    return stats.track(id) { doLaunch(device, app, apkProvider, isDebug, extraFlags, console) }
   }
 
   @Throws(ExecutionException::class)
@@ -63,7 +63,7 @@ abstract class LaunchOptionState {
     isDebug: Boolean,
     extraFlags: String,
     console: ConsoleView
-  )
+  ) : Boolean
 
   open fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
     return emptyList()
@@ -75,7 +75,8 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
   override val componentType = ComponentType.ACTIVITY
   override val userVisibleComponentTypeName = "Activity"
 
-  override fun doLaunch(device: IDevice, app: App, apkProvider: ApkProvider, isDebug: Boolean, extraFlags: String, console: ConsoleView) {
+  override fun doLaunch(
+    device: IDevice, app: App, apkProvider: ApkProvider, isDebug: Boolean, extraFlags: String, console: ConsoleView) : Boolean {
     ProgressManager.checkCanceled()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val activityQualifiedName = getQualifiedActivityName(device, apkProvider, app.appId)
@@ -86,6 +87,7 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
     if (matcher.find()) {
       throw AndroidExecutionException(ACTIVITY_DOES_NOT_EXIST, matcher.group())
     }
+    return true
   }
 
 

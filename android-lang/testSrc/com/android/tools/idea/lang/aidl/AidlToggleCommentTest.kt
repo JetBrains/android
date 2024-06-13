@@ -15,20 +15,35 @@
  */
 package com.android.tools.idea.lang.aidl
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.testFramework.LightPlatformCodeInsightTestCase
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.util.application
 import org.intellij.lang.annotations.Language
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class AidlToggleCommentTest : LightPlatformCodeInsightTestCase() {
-  override fun getTestDataPath(): String = com.android.tools.idea.lang.getTestDataPath()
+@RunWith(JUnit4::class)
+class AidlToggleCommentTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
+
+  private val fixture by lazy { projectRule.fixture }
 
   // This is how this case handled in other languages
-  fun testComment() = doTest("test", "//test")
-  fun testUncomment() = doTest("//test", "test")
-  fun testCommentOnEmptyLine() = doTest("<caret>\n", "//<caret>\n")
-  fun testUncommentOnEmptyLine() = doTest("// <caret>\n", "\n<caret>")
-  fun testBlockComment() = doTest(
+  @Test
+  fun comment() = doTest("test", "//test")
+  @Test
+  fun uncomment() = doTest("//test", "test")
+  @Test
+  fun commentOnEmptyLine() = doTest("<caret>\n", "//<caret>\n")
+  @Test
+  fun uncommentOnEmptyLine() = doTest("// <caret>\n", "\n<caret>")
+  @Test
+  fun blockComment() = doTest(
     """
     enum ByteEnum {
         <block>// Comment about FOO.
@@ -47,7 +62,8 @@ class AidlToggleCommentTest : LightPlatformCodeInsightTestCase() {
     """.trimIndent()
   )
 
-  fun testBlockUncomment() = doTest(
+  @Test
+  fun blockUncomment() = doTest(
     """
     enum ByteEnum {
         //// Co<block>mment about FOO.
@@ -67,8 +83,12 @@ class AidlToggleCommentTest : LightPlatformCodeInsightTestCase() {
   )
 
   private fun doTest(@Language("AIDL") before: String, @Language("AIDL") after: String) {
-    configureFromFileText("file.aidl", before)
-    PlatformTestUtil.invokeNamedAction(IdeActions.ACTION_COMMENT_LINE)
-    checkResultByText(after)
+    fixture.configureByText("file.agsl", before)
+
+    application.invokeAndWait {
+      PlatformTestUtil.invokeNamedAction(IdeActions.ACTION_COMMENT_LINE)
+    }
+
+    fixture.checkResult(after)
   }
 }

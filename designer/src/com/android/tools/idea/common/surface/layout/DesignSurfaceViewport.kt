@@ -29,14 +29,14 @@ import javax.swing.event.ChangeListener
 
 /**
  * Abstraction over the [DesignSurface] viewport. In scrollable surfaces, this will wrap a
- * [JViewport]. For non scrolable surfaces, this will simply wrap a [Component].
+ * [JViewport]. For non-scrollable surfaces, this will simply wrap a [Component].
  */
 interface DesignSurfaceViewport {
   val viewRect: Rectangle
   val viewportComponent: Component
 
   /**
-   * The contained view in this viewport. For non scrollable surfaces, this might be the same as
+   * The contained view in this viewport. For non-scrollable surfaces, this might be the same as
    * [viewportComponent].
    */
   val viewComponent: Component
@@ -80,7 +80,7 @@ class ScrollableDesignSurfaceViewport(val viewport: JViewport) : DesignSurfaceVi
 }
 
 /**
- * A [DesignSurfaceViewport] for non scrollable surfaces. These surfaces will usually be embedded in
+ * A [DesignSurfaceViewport] for non-scrollable surfaces. These surfaces will usually be embedded in
  * a scrollable panel.
  */
 class NonScrollableDesignSurfaceViewport(val viewport: JComponent) : DesignSurfaceViewport {

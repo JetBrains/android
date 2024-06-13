@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.state
 
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.actions.EnumStateAction
 import com.android.tools.idea.compose.preview.animation.actions.SwapAction
 import com.android.tools.idea.compose.preview.animation.actions.ToolbarLabel
@@ -26,7 +26,8 @@ import com.android.tools.idea.compose.preview.animation.actions.ToolbarLabel
  * @param tracker usage tracker for animation tooling
  * @param callback when state has changed
  */
-class FromToState(tracker: AnimationTracker, callback: () -> Unit) : AnimationState(callback) {
+class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
+  AnimationState(callback) {
 
   private val fromState = EnumStateAction(stateCallback)
   private val toState = EnumStateAction(stateCallback)
@@ -48,7 +49,7 @@ class FromToState(tracker: AnimationTracker, callback: () -> Unit) : AnimationSt
       },
       fromState,
       ToolbarLabel("to"),
-      toState
+      toState,
     )
 
   override fun stateHashCode() = Pair(fromState.stateHashCode, toState.stateHashCode).hashCode()

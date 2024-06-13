@@ -21,29 +21,40 @@ import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PAT
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_PROPERTY
 import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.TempDirTestFixture
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class SqliteCliProviderTest : LightPlatformTestCase() {
-  private lateinit var tempDirTestFixture: TempDirTestFixture
+@RunWith(JUnit4::class)
+class SqliteCliProviderTest {
+  private val projectRule = ProjectRule()
 
-  override fun setUp() {
-    super.setUp()
-    tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
+  private val project
+    get() = projectRule.project
+
+  private val temporaryFolder = TemporaryFolder()
+  @get:Rule val rule = RuleChain(projectRule, temporaryFolder)
+
+  @Before
+  fun setUp() {
     initAdbFileProvider(project)
-    tempDirTestFixture.setUp()
   }
 
-  override fun tearDown() {
+  @After
+  fun tearDown() {
     System.clearProperty(SQLITE3_PATH_PROPERTY)
     System.clearProperty(SQLITE3_PATH_ENV)
-    tempDirTestFixture.tearDown()
-    super.tearDown()
   }
 
+  @Test
   fun testRealSdk() {
     val actual = SqliteCliProviderImpl(project).getSqliteCli()
     assertThat(actual!!.exists()).isTrue()
@@ -52,10 +63,10 @@ class SqliteCliProviderTest : LightPlatformTestCase() {
     assertThat(actual.parent.toFile().name).isEqualTo("platform-tools")
   }
 
+  @Test
   fun testSystemOverride() {
-    val fakeSqlite3Env = tempDirTestFixture.createFile("fake-sqlite3-env").toNioPath().toFile()
-    val fakeSqlite3Property =
-      tempDirTestFixture.createFile("fake-sqlite3-property").toNioPath().toFile()
+    val fakeSqlite3Env = temporaryFolder.newFile("fake-sqlite3-env").toPath().toFile()
+    val fakeSqlite3Property = temporaryFolder.newFile("fake-sqlite3-property").toPath().toFile()
 
     val propertyResolver: (key: String) -> String? = { key ->
       if (key == SQLITE3_PATH_PROPERTY) fakeSqlite3Property.path else ""
@@ -74,6 +85,7 @@ class SqliteCliProviderTest : LightPlatformTestCase() {
     assertThat(actual2!!.toFile().canonicalPath).isEqualTo(fakeSqlite3Property.canonicalPath)
   }
 
+  @Test
   fun testExtension() {
     val actual = SqliteCliProviderImpl(project).getSqliteCli()
     val expectedExtension = if (OsType.getHostOs() == OsType.WINDOWS) "exe" else ""

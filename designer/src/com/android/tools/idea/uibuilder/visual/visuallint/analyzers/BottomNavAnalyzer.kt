@@ -41,7 +41,7 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel
+    model: NlModel,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
@@ -74,7 +74,7 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
     return VisualLintIssueContent(
       view = view,
       message = "Bottom navigation bar is not recommended for breakpoints over 600dp",
-      descriptionProvider = content
+      descriptionProvider = content,
     )
   }
 }

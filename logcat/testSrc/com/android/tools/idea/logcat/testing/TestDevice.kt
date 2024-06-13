@@ -20,6 +20,7 @@ import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle
@@ -38,14 +39,24 @@ internal class TestDevice(
   private val manufacturer: String = "",
   private val model: String = "",
   private val avdName: String = "",
+  private val type: DeviceType = DeviceType.HANDHELD,
 ) {
 
   val device =
     when {
       serialNumber.isEmulatorSerial() ->
-        Device.createEmulator(serialNumber, state == ONLINE, release, sdk, avdName)
+        Device.createEmulator(serialNumber, state == ONLINE, release, sdk, avdName, sdk, type)
       else ->
-        Device.createPhysical(serialNumber, state == ONLINE, release, sdk, manufacturer, model)
+        Device.createPhysical(
+          serialNumber,
+          state == ONLINE,
+          release,
+          sdk,
+          manufacturer,
+          model,
+          sdk,
+          type,
+        )
     }
   private val deviceProperties =
     when {
@@ -54,6 +65,7 @@ internal class TestDevice(
           makeAvdInfo(avdName, manufacturer, model, AndroidVersion(sdk))
         ) {
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+          deviceType = type
           populateDeviceInfoProto("Test", null, emptyMap(), "connectionId")
         }
       else ->
@@ -63,6 +75,7 @@ internal class TestDevice(
           androidRelease = release
           androidVersion = AndroidVersion(sdk)
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+          deviceType = type
         }
     }
 
@@ -92,7 +105,7 @@ private fun makeAvdInfo(
   avdName: String,
   manufacturer: String,
   model: String,
-  androidVersion: AndroidVersion
+  androidVersion: AndroidVersion,
 ): AvdInfo {
   val basePath = Path.of("/tmp/fake_avds/$avdName")
   return AvdInfo(
@@ -107,6 +120,7 @@ private fun makeAvdInfo(
       AvdManager.AVD_INI_ABI_TYPE to Abi.ARM64_V8A.toString(),
       AvdManager.AVD_INI_DISPLAY_NAME to avdName,
     ),
-    AvdInfo.AvdStatus.OK
+    null,
+    AvdInfo.AvdStatus.OK,
   )
 }

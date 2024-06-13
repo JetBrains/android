@@ -11,7 +11,7 @@ iml_module(
     iml_files = ["intellij.android.adt.testutils.iml"],
     test_srcs = ["src/main/java"],
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/studio/intellij-sdk:studio-sdk-test-framework"],
+    exports = ["@intellij//:test-framework"],
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
@@ -19,13 +19,14 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
+        "@intellij//:org.toml.lang[test]",
+        "@intellij//:test-framework[test]",
     ],
 )

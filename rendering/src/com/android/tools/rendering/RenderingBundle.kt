@@ -28,7 +28,7 @@ object RenderingBundle {
   @NonNls private const val BUNDLE_NAME = "messages.RenderingBundle"
   private var ourBundle: Reference<ResourceBundle?>? = null
   private val bundle: ResourceBundle?
-    private get() {
+    get() {
       var bundle = ourBundle?.get()
       if (bundle == null) {
         bundle = DynamicBundle.getResourceBundle(RenderingBundle::class.java.classLoader, BUNDLE_NAME)
@@ -45,7 +45,7 @@ object RenderingBundle {
   private fun readFromBundleAndFormat(
     bundle: ResourceBundle,
     key: String,
-    vararg params: Any
+    vararg params: Any,
   ): String {
     val rawValue = bundle.getString(key)
     val locale = bundle.locale

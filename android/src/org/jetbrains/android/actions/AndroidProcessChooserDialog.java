@@ -492,7 +492,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
 
       List<Client> clients = Lists.newArrayList(device.getClients());
-      clients.sort((c1, c2) -> {
+      Collections.sort(clients, (c1, c2) -> {
         String n1 = StringUtil.notNullize(c1.getClientData().getClientDescription());
         String n2 = StringUtil.notNullize(c2.getClientData().getClientDescription());
         return n1.compareTo(n2);

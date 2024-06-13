@@ -238,7 +238,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
       if (psiFile == null) {
         return LocalQuickFix.EMPTY_ARRAY;
       }
-      return new LocalQuickFix[]{new CreateValueResourceQuickFix(myFacet, ResourceType.STYLE, resourceName, psiFile, false)};
+      return new LocalQuickFix[]{new CreateValueResourceQuickFix(myFacet, ResourceType.STYLE, resourceName, psiFile)};
     }
   }
 }

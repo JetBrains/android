@@ -320,6 +320,8 @@ class SessionsViewTest {
 
   @Test
   fun testStopProfiling() {
+    myIdeProfilerServices.enableTaskBasedUx(false)
+
     val device1 = onlineDevice { deviceId = NEW_DEVICE_ID_1; manufacturer = "Manufacturer1"; model = "Model1" }
     val process1 = debuggableProcess { pid = 10; deviceId = NEW_DEVICE_ID_1; name = "Process1" }
 
@@ -342,6 +344,8 @@ class SessionsViewTest {
 
   @Test
   fun testImportSessionsFromHprofFile() {
+    myIdeProfilerServices.enableTaskBasedUx(false)
+
     val sessionsPanel = mySessionsView.sessionsPanel
     assertThat(sessionsPanel.componentCount).isEqualTo(0)
 
@@ -504,6 +508,8 @@ class SessionsViewTest {
 
   @Test
   fun testCpuCaptureItemSelection() {
+    myIdeProfilerServices.enableTaskBasedUx(false)
+
     val sessionsPanel = mySessionsView.sessionsPanel
     sessionsPanel.setSize(200, 200)
     val ui = FakeUi(sessionsPanel)
@@ -576,6 +582,8 @@ class SessionsViewTest {
 
   @Test
   fun testCpuOngoingCaptureItemSelection() {
+    myIdeProfilerServices.enableTaskBasedUx(false)
+
     val sessionsPanel = mySessionsView.sessionsPanel
     sessionsPanel.setSize(200, 200)
     val ui = FakeUi(sessionsPanel)
@@ -682,6 +690,8 @@ class SessionsViewTest {
 
   @Test
   fun testMemoryOngoingHeapDumpItemSelection() {
+    myIdeProfilerServices.enableTaskBasedUx(false)
+
     val sessionsPanel = mySessionsView.sessionsPanel
     sessionsPanel.setSize(200, 200)
     val ui = FakeUi(sessionsPanel)
@@ -724,6 +734,8 @@ class SessionsViewTest {
 
   @Test
   fun testMemoryLegacyAllocationsSelection() {
+    myIdeProfilerServices.enableTaskBasedUx(false)
+
     val sessionsPanel = mySessionsView.sessionsPanel
     sessionsPanel.setSize(200, 200)
     val ui = FakeUi(sessionsPanel)
@@ -779,6 +791,8 @@ class SessionsViewTest {
 
   @Test
   fun testMemoryOngoingLegacyAllocationsSelection() {
+    myIdeProfilerServices.enableTaskBasedUx(false)
+
     val sessionsPanel = mySessionsView.sessionsPanel
     sessionsPanel.setSize(200, 200)
     val ui = FakeUi(sessionsPanel)

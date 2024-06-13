@@ -3,14 +3,10 @@ package com.android.tools.idea.uibuilder.options
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.modes.essentials.EssentialsMode
-import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
+import com.android.tools.idea.uibuilder.options.AndroidDesignerBundle.message
 import com.intellij.ide.ui.search.SearchableOptionContributor
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.service
-import com.intellij.openapi.observable.properties.AtomicBooleanProperty
-import com.intellij.openapi.observable.util.not
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -37,8 +33,8 @@ import org.jetbrains.annotations.VisibleForTesting
 
 private const val CONFIGURABLE_ID = "nele.options"
 private val DISPLAY_NAME =
-  if (IdeInfo.getInstance().isAndroidStudio) "Design Tools"
-  else AndroidDesignerBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
+  if (IdeInfo.getInstance().isAndroidStudio) "UI Tools"
+  else message("android.uibuilder.nloptionsconfigurable.displayName")
 
 @VisibleForTesting const val LABEL_TRACK_PAD = "Track Pad"
 @VisibleForTesting
@@ -109,21 +105,21 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
           editorModeComboBox()
             .bindItem(
               { state.preferredPreviewableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
-              state::setPreferredPreviewableEditorMode
+              state::setPreferredPreviewableEditorMode,
             )
         }
         row("Compose files without previews:") {
           editorModeComboBox()
             .bindItem(
               { state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
-              state::setPreferredComposableEditorMode
+              state::setPreferredComposableEditorMode,
             )
         }
         row("Other Kotlin files:") {
           editorModeComboBox()
             .bindItem(
               { state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
-              state::setPreferredKotlinEditorMode
+              state::setPreferredKotlinEditorMode,
             )
         }
       }
@@ -142,13 +138,13 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                   minSensitivityPercentage,
                   maxSensitivityPercentage,
                   0,
-                  (maxSensitivityPercentage - minSensitivityPercentage) / 4
+                  (maxSensitivityPercentage - minSensitivityPercentage) / 4,
                 )
                 .labelTable(
                   mapOf(
                     minSensitivityPercentage to JLabel("Slow"),
                     defaultSensitivityPercentage to JLabel("Default"),
-                    maxSensitivityPercentage to JLabel("Fast")
+                    maxSensitivityPercentage to JLabel("Fast"),
                   )
                 )
                 .applyToComponent { value = percentageValue }
@@ -157,48 +153,36 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         }
       }
 
-      val essentialsModeObservable = createEssentialsModeObservable()
-      group("Compose Preview") {
-        if (StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.get()) {
-          buttonsGroup("Resource Usage:") {
-            row {
-                comment(
-                  "Note: Resource usage cannot be changed when Android Studio Essentials Mode is enabled. In this case, Compose Preview " +
-                    "resource usage will be overridden to Essentials."
-                )
-              }
-              .visibleIf(essentialsModeObservable)
-
+      group("Preview Settings") {
+        if (StudioFlags.PREVIEW_ESSENTIALS_MODE.get()) {
+          buttonsGroup(message("android.uibuilder.nloptionsconfigurable.resource.usage")) {
             lateinit var defaultModeRadioButton: Cell<JBRadioButton>
             row {
-                defaultModeRadioButton =
-                  radioButton("Default").bindSelected({
-                    !state.isComposePreviewEssentialsModeEnabled && !EssentialsMode.isEnabled()
-                  }) {
-                    state.isComposePreviewEssentialsModeEnabled = !it
+              defaultModeRadioButton =
+                radioButton(
+                    message("android.uibuilder.nloptionsconfigurable.resource.usage.default")
+                  )
+                  .bindSelected({ !state.isPreviewEssentialsModeEnabled }) {
+                    state.isPreviewEssentialsModeEnabled = !it
                   }
-              }
-              .enabledIf(essentialsModeObservable.not())
+            }
             indent {
-                row {
-                  checkBox("Enable live updates")
-                    .bindSelected(fastPreviewState::isEnabled) { fastPreviewState.isEnabled = it }
-                    .enabledIf(defaultModeRadioButton.selected)
-                }
+              row {
+                checkBox("Enable live updates")
+                  .bindSelected(fastPreviewState::isEnabled) { fastPreviewState.isEnabled = it }
+                  .enabledIf(defaultModeRadioButton.selected)
               }
-              .enabledIf(essentialsModeObservable.not())
+            }
             row {
-                val essentialsModeHint =
-                  "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes. " +
-                    "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews#essentials\">Learn more</a>"
-
-                radioButton("Essentials").comment(essentialsModeHint).bindSelected({
-                  state.isComposePreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
-                }) {
-                  state.isComposePreviewEssentialsModeEnabled = it
+              radioButton(
+                  message("android.uibuilder.nloptionsconfigurable.resource.usage.essentials")
+                )
+                // TODO(b/327343295) add "Learn More" link when the DAC page is live
+                .comment(message("essentials.mode.hint"))
+                .bindSelected({ state.isPreviewEssentialsModeEnabled }) {
+                  state.isPreviewEssentialsModeEnabled = it
                 }
-              }
-              .enabledIf(essentialsModeObservable.not())
+            }
           }
         } else {
           row {
@@ -209,19 +193,6 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         }
       }
     }
-  }
-
-  private fun createEssentialsModeObservable(): AtomicBooleanProperty {
-    val essentialsModeEnabled = AtomicBooleanProperty(EssentialsMode.isEnabled())
-    val essentialsModeMessagingService = service<EssentialsModeMessenger>()
-    ApplicationManager.getApplication()
-      .messageBus
-      .connect(disposable!!)
-      .subscribe(
-        essentialsModeMessagingService.TOPIC,
-        EssentialsModeMessenger.Listener { essentialsModeEnabled.set(EssentialsMode.isEnabled()) }
-      )
-    return essentialsModeEnabled
   }
 
   override fun isModified(): Boolean {
@@ -266,6 +237,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
  * return value is 0.22
  */
 private fun percentageValueToDouble(percentage: Int): Double = percentage * 0.01
+
 /**
  * Helper function to convert a double value to percentage value. For example, when [double] is
  * 0.44, the return value is 44.
@@ -287,7 +259,7 @@ class NlOptionConfigurableSearchableOptionContributor : SearchableOptionContribu
         LABEL_MAGNIFY_ZOOMING_SENSITIVITY,
         CONFIGURABLE_ID,
         DISPLAY_NAME,
-        false
+        false,
       )
     }
   }

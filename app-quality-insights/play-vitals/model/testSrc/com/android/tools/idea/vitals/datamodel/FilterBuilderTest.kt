@@ -47,7 +47,7 @@ class FilterBuilderTest {
         operatingSystems = setOf(OperatingSystemInfo.ALL),
         eventTypes = FailureType.values().toList(),
         signal = SignalType.SIGNAL_UNSPECIFIED,
-        visibilityType = VisibilityType.ALL
+        visibilityType = VisibilityType.ALL,
       )
     val generated = buildFiltersFromQuery(query)
 
@@ -64,7 +64,7 @@ class FilterBuilderTest {
         operatingSystems = setOf(ANDROID_12, ANDROID_14),
         eventTypes = listOf(FailureType.FATAL, FailureType.ANR),
         signal = SignalType.SIGNAL_UNSPECIFIED,
-        visibilityType = VisibilityType.USER_PERCEIVED
+        visibilityType = VisibilityType.USER_PERCEIVED,
       )
 
     val generated = buildFiltersFromQuery(query)

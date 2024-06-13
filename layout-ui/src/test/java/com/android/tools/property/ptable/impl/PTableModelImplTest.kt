@@ -29,7 +29,7 @@ class PTableModelImplTest {
     val model =
       createModel(
         Item("weight"),
-        Group("weiss", Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff"))))
+        Group("weiss", Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff")))),
       )
     val impl = PTableModelImpl(model)
     assertThat(impl.depth(model.find("weight")!!)).isEqualTo(0)
@@ -46,7 +46,7 @@ class PTableModelImplTest {
     val model =
       createModel(
         Item("weight"),
-        Group("weiss", Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff"))))
+        Group("weiss", Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff")))),
       )
     val impl = PTableModelImpl(model)
     assertThat(impl.parentOf(model.find("weight")!!)).isNull()
@@ -66,7 +66,7 @@ class PTableModelImplTest {
         Item("size"),
         Item("readonly"),
         Item("visible"),
-        Group("weiss", Item("siphon"), Item("extra"))
+        Group("weiss", Item("siphon"), Item("extra")),
       )
     val groupBefore = model.items[4] as PTableGroupItem
     val impl = PTableModelImpl(model)
@@ -77,7 +77,7 @@ class PTableModelImplTest {
       Item("size"),
       Item("readonly"),
       Group("weiss", Item("siphon"), Item("extra")),
-      Item("zebra")
+      Item("zebra"),
     )
     val groupAfter = model.items[3] as PTableGroupItem
 
@@ -96,7 +96,7 @@ class PTableModelImplTest {
     val model =
       createModel(
         Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))),
-        Item("item2")
+        Item("item2"),
       )
     val impl = PTableModelImpl(model)
     impl.expand(0)
@@ -111,7 +111,7 @@ class PTableModelImplTest {
     val model =
       createModel(
         Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))),
-        Item("item2")
+        Item("item2"),
       )
     val impl = PTableModelImpl(model)
     impl.expand(0)
@@ -127,7 +127,7 @@ class PTableModelImplTest {
     val model =
       createModel(
         Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))),
-        Item("item2")
+        Item("item2"),
       )
     val impl = PTableModelImpl(model)
     impl.expand(0)
@@ -136,7 +136,7 @@ class PTableModelImplTest {
       true,
       Item("extra"),
       Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))),
-      Item("item2")
+      Item("item2"),
     )
 
     checkRows(impl, "extra", "group", "item1", "visibility", "show", "hide", "item2")

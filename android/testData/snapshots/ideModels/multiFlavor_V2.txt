@@ -18,497 +18,493 @@ MODULE                        : MultiFlavor
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : androidx.activity:activity:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/activity/activity/1.0.0/activity-1.0.0.aar
         artifactAddress               : androidx.activity:activity:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar
         component                     : androidx.activity:activity:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/R.txt
     - library                     : androidx.appcompat:appcompat-resources:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/aidl [-]
         artifact                      : <M2>/androidx/appcompat/appcompat-resources/1.1.0/appcompat-resources-1.1.0.aar
         artifactAddress               : androidx.appcompat:appcompat-resources:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jars/classes.jar
         component                     : androidx.appcompat:appcompat-resources:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/res
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/R.txt
     - library                     : androidx.appcompat:appcompat:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/aidl [-]
         artifact                      : <M2>/androidx/appcompat/appcompat/1.1.0/appcompat-1.1.0.aar
         artifactAddress               : androidx.appcompat:appcompat:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jars/classes.jar
         component                     : androidx.appcompat:appcompat:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/res
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/R.txt
     - library                     : androidx.arch.core:core-runtime:2.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/aidl [-]
         artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
         artifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
         component                     : androidx.arch.core:core-runtime:2.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
     - library                     : androidx.constraintlayout:constraintlayout:1.1.3@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/aidl [-]
         artifact                      : <M2>/androidx/constraintlayout/constraintlayout/1.1.3/constraintlayout-1.1.3.aar
         artifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar
         component                     : androidx.constraintlayout:constraintlayout:1.1.3
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/res
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/R.txt
     - library                     : androidx.core:core:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/aidl
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/aidl
         artifact                      : <M2>/androidx/core/core/1.1.0/core-1.1.0.aar
         artifactAddress               : androidx.core:core:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jars/classes.jar
         component                     : androidx.core:core:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/res
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/R.txt
     - library                     : androidx.cursoradapter:cursoradapter:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.aar
         artifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
         component                     : androidx.cursoradapter:cursoradapter:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
     - library                     : androidx.customview:customview:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/customview/customview/1.0.0/customview-1.0.0.aar
         artifactAddress               : androidx.customview:customview:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
         component                     : androidx.customview:customview:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
     - library                     : androidx.drawerlayout:drawerlayout:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.aar
         artifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
         component                     : androidx.drawerlayout:drawerlayout:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
     - library                     : androidx.fragment:fragment:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/aidl [-]
         artifact                      : <M2>/androidx/fragment/fragment/1.1.0/fragment-1.1.0.aar
         artifactAddress               : androidx.fragment:fragment:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jars/classes.jar
         component                     : androidx.fragment:fragment:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/annotations.zip
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/R.txt
     - library                     : androidx.interpolator:interpolator:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/interpolator/interpolator/1.0.0/interpolator-1.0.0.aar
         artifactAddress               : androidx.interpolator:interpolator:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
         component                     : androidx.interpolator:interpolator:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
     - library                     : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/aidl [-]
         artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata-core/2.0.0/lifecycle-livedata-core-2.0.0.aar
         artifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
         component                     : androidx.lifecycle:lifecycle-livedata-core:2.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/R.txt
     - library                     : androidx.lifecycle:lifecycle-livedata:2.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/aidl [-]
         artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar
         artifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
         component                     : androidx.lifecycle:lifecycle-livedata:2.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
     - library                     : androidx.lifecycle:lifecycle-runtime:2.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/aidl [-]
         artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.1.0/lifecycle-runtime-2.1.0.aar
         artifactAddress               : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar
         component                     : androidx.lifecycle:lifecycle-runtime:2.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/R.txt
     - library                     : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/aidl [-]
         artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.1.0/lifecycle-viewmodel-2.1.0.aar
         artifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar
         component                     : androidx.lifecycle:lifecycle-viewmodel:2.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/R.txt
     - library                     : androidx.loader:loader:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
         artifactAddress               : androidx.loader:loader:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
         component                     : androidx.loader:loader:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
     - library                     : androidx.savedstate:savedstate:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/savedstate/savedstate/1.0.0/savedstate-1.0.0.aar
         artifactAddress               : androidx.savedstate:savedstate:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar
         component                     : androidx.savedstate:savedstate:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/R.txt
     - library                     : androidx.test.espresso:espresso-core:3.2.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/aidl [-]
         artifact                      : <M2>/androidx/test/espresso/espresso-core/3.2.0/espresso-core-3.2.0.aar
         artifactAddress               : androidx.test.espresso:espresso-core:3.2.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar
         component                     : androidx.test.espresso:espresso-core:3.2.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/R.txt
     - library                     : androidx.test.espresso:espresso-idling-resource:3.2.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/aidl [-]
         artifact                      : <M2>/androidx/test/espresso/espresso-idling-resource/3.2.0/espresso-idling-resource-3.2.0.aar
         artifactAddress               : androidx.test.espresso:espresso-idling-resource:3.2.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar
         component                     : androidx.test.espresso:espresso-idling-resource:3.2.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/R.txt
     - library                     : androidx.test.ext:junit:1.1.2@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/aidl [-]
         artifact                      : <M2>/androidx/test/ext/junit/1.1.2/junit-1.1.2.aar
         artifactAddress               : androidx.test.ext:junit:1.1.2@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar
         component                     : androidx.test.ext:junit:1.1.2
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/R.txt
     - library                     : androidx.test:core:1.3.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/aidl [-]
         artifact                      : <M2>/androidx/test/core/1.3.0/core-1.3.0.aar
         artifactAddress               : androidx.test:core:1.3.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar
         component                     : androidx.test:core:1.3.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/R.txt
     - library                     : androidx.test:monitor:1.3.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/aidl [-]
         artifact                      : <M2>/androidx/test/monitor/1.3.0/monitor-1.3.0.aar
         artifactAddress               : androidx.test:monitor:1.3.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar
         component                     : androidx.test:monitor:1.3.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/R.txt
     - library                     : androidx.test:runner:1.2.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/aidl [-]
         artifact                      : <M2>/androidx/test/runner/1.2.0/runner-1.2.0.aar
         artifactAddress               : androidx.test:runner:1.2.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar
         component                     : androidx.test:runner:1.2.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/R.txt
     - library                     : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/aidl [-]
         artifact                      : <M2>/androidx/vectordrawable/vectordrawable-animated/1.1.0/vectordrawable-animated-1.1.0.aar
         artifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
         component                     : androidx.vectordrawable:vectordrawable-animated:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/R.txt
     - library                     : androidx.vectordrawable:vectordrawable:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/aidl [-]
         artifact                      : <M2>/androidx/vectordrawable/vectordrawable/1.1.0/vectordrawable-1.1.0.aar
         artifactAddress               : androidx.vectordrawable:vectordrawable:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
         component                     : androidx.vectordrawable:vectordrawable:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/R.txt
     - library                     : androidx.versionedparcelable:versionedparcelable:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/aidl
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/aidl
         artifact                      : <M2>/androidx/versionedparcelable/versionedparcelable/1.1.0/versionedparcelable-1.1.0.aar
         artifactAddress               : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jars/classes.jar
         component                     : androidx.versionedparcelable:versionedparcelable:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/R.txt
     - library                     : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/aidl [-]
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/viewpager/viewpager/1.0.0/viewpager-1.0.0.aar
         artifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
         component                     : androidx.viewpager:viewpager:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
     - library                     : androidx.annotation:annotation:1.1.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar
         artifactAddress               : androidx.annotation:annotation:1.1.0@jar
@@ -581,8 +577,6 @@ MODULE                        : MultiFlavor
                 qName                         : :app
                 group                         : MultiFlavor
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -604,437 +598,481 @@ MODULE                        : MultiFlavor
                     testFirstXyzSecondXyzReleaseUnitTest    : testFirstXyzSecondXyzReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testFirstXyzSecondXyzReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestFirstAbcAnnotationProcessor  : <empty>
-                    androidTestFirstAbcCompileOnly          : <empty>
-                    androidTestFirstAbcImplementation       : <empty>
-                    androidTestFirstAbcRuntimeOnly          : <empty>
-                    androidTestFirstAbcSecondAbcAnnotationProcessor   : <empty>
-                    androidTestFirstAbcSecondAbcCompileOnly : <empty>
-                    androidTestFirstAbcSecondAbcDebugAnnotationProcessor        : <empty>
-                    androidTestFirstAbcSecondAbcDebugCompileOnly      : <empty>
-                    androidTestFirstAbcSecondAbcDebugImplementation   : <empty>
-                    androidTestFirstAbcSecondAbcDebugRuntimeOnly      : <empty>
-                    androidTestFirstAbcSecondAbcDebugWearApp          : <empty>
-                    androidTestFirstAbcSecondAbcImplementation        : <empty>
-                    androidTestFirstAbcSecondAbcRuntimeOnly : <empty>
-                    androidTestFirstAbcSecondAbcWearApp     : <empty>
-                    androidTestFirstAbcSecondXyzAnnotationProcessor   : <empty>
-                    androidTestFirstAbcSecondXyzCompileOnly : <empty>
-                    androidTestFirstAbcSecondXyzDebugAnnotationProcessor        : <empty>
-                    androidTestFirstAbcSecondXyzDebugCompileOnly      : <empty>
-                    androidTestFirstAbcSecondXyzDebugImplementation   : <empty>
-                    androidTestFirstAbcSecondXyzDebugRuntimeOnly      : <empty>
-                    androidTestFirstAbcSecondXyzDebugWearApp          : <empty>
-                    androidTestFirstAbcSecondXyzImplementation        : <empty>
-                    androidTestFirstAbcSecondXyzRuntimeOnly : <empty>
-                    androidTestFirstAbcSecondXyzWearApp     : <empty>
-                    androidTestFirstAbcWearApp    : <empty>
-                    androidTestFirstXyzAnnotationProcessor  : <empty>
-                    androidTestFirstXyzCompileOnly          : <empty>
-                    androidTestFirstXyzImplementation       : <empty>
-                    androidTestFirstXyzRuntimeOnly          : <empty>
-                    androidTestFirstXyzSecondAbcAnnotationProcessor   : <empty>
-                    androidTestFirstXyzSecondAbcCompileOnly : <empty>
-                    androidTestFirstXyzSecondAbcDebugAnnotationProcessor        : <empty>
-                    androidTestFirstXyzSecondAbcDebugCompileOnly      : <empty>
-                    androidTestFirstXyzSecondAbcDebugImplementation   : <empty>
-                    androidTestFirstXyzSecondAbcDebugRuntimeOnly      : <empty>
-                    androidTestFirstXyzSecondAbcDebugWearApp          : <empty>
-                    androidTestFirstXyzSecondAbcImplementation        : <empty>
-                    androidTestFirstXyzSecondAbcRuntimeOnly : <empty>
-                    androidTestFirstXyzSecondAbcWearApp     : <empty>
-                    androidTestFirstXyzSecondXyzAnnotationProcessor   : <empty>
-                    androidTestFirstXyzSecondXyzCompileOnly : <empty>
-                    androidTestFirstXyzSecondXyzDebugAnnotationProcessor        : <empty>
-                    androidTestFirstXyzSecondXyzDebugCompileOnly      : <empty>
-                    androidTestFirstXyzSecondXyzDebugImplementation   : <empty>
-                    androidTestFirstXyzSecondXyzDebugRuntimeOnly      : <empty>
-                    androidTestFirstXyzSecondXyzDebugWearApp          : <empty>
-                    androidTestFirstXyzSecondXyzImplementation        : <empty>
-                    androidTestFirstXyzSecondXyzRuntimeOnly : <empty>
-                    androidTestFirstXyzSecondXyzWearApp     : <empty>
-                    androidTestFirstXyzWearApp    : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestSecondAbcAnnotationProcessor : <empty>
-                    androidTestSecondAbcCompileOnly         : <empty>
-                    androidTestSecondAbcImplementation      : <empty>
-                    androidTestSecondAbcRuntimeOnly         : <empty>
-                    androidTestSecondAbcWearApp   : <empty>
-                    androidTestSecondXyzAnnotationProcessor : <empty>
-                    androidTestSecondXyzCompileOnly         : <empty>
-                    androidTestSecondXyzImplementation      : <empty>
-                    androidTestSecondXyzRuntimeOnly         : <empty>
-                    androidTestSecondXyzWearApp   : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugApi                      : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugWearApp                  : <empty>
-                    default                       : <empty>
-                    firstAbcAnnotationProcessor   : <empty>
-                    firstAbcApi                   : <empty>
-                    firstAbcCompileOnly           : <empty>
-                    firstAbcImplementation        : <empty>
-                    firstAbcRuntimeOnly           : <empty>
-                    firstAbcSecondAbcAnnotationProcessor    : <empty>
-                    firstAbcSecondAbcApi          : <empty>
-                    firstAbcSecondAbcCompileOnly  : <empty>
-                    firstAbcSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
-                    firstAbcSecondAbcDebugAndroidTestCompileClasspath : <empty>
-                    firstAbcSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
-                    firstAbcSecondAbcDebugAnnotationProcessor         : <empty>
-                    firstAbcSecondAbcDebugAnnotationProcessorClasspath          : <empty>
-                    firstAbcSecondAbcDebugApi     : <empty>
-                    firstAbcSecondAbcDebugApiElements       : <empty>
-                    firstAbcSecondAbcDebugCompileClasspath  : <empty>
-                    firstAbcSecondAbcDebugCompileOnly       : <empty>
-                    firstAbcSecondAbcDebugImplementation    : <empty>
-                    firstAbcSecondAbcDebugReverseMetadataValues       : <empty>
-                    firstAbcSecondAbcDebugRuntimeClasspath  : <empty>
-                    firstAbcSecondAbcDebugRuntimeElements   : <empty>
-                    firstAbcSecondAbcDebugRuntimeOnly       : <empty>
-                    firstAbcSecondAbcDebugUnitTestAnnotationProcessorClasspath  : <empty>
-                    firstAbcSecondAbcDebugUnitTestCompileClasspath    : <empty>
-                    firstAbcSecondAbcDebugUnitTestRuntimeClasspath    : <empty>
-                    firstAbcSecondAbcDebugWearApp : <empty>
-                    firstAbcSecondAbcDebugWearBundling      : <empty>
-                    firstAbcSecondAbcImplementation         : <empty>
-                    firstAbcSecondAbcReleaseAnnotationProcessor       : <empty>
-                    firstAbcSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
-                    firstAbcSecondAbcReleaseApi   : <empty>
-                    firstAbcSecondAbcReleaseApiElements     : <empty>
-                    firstAbcSecondAbcReleaseCompileClasspath          : <empty>
-                    firstAbcSecondAbcReleaseCompileOnly     : <empty>
-                    firstAbcSecondAbcReleaseImplementation  : <empty>
-                    firstAbcSecondAbcReleaseReverseMetadataValues     : <empty>
-                    firstAbcSecondAbcReleaseRuntimeClasspath          : <empty>
-                    firstAbcSecondAbcReleaseRuntimeElements : <empty>
-                    firstAbcSecondAbcReleaseRuntimeOnly     : <empty>
-                    firstAbcSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                    firstAbcSecondAbcReleaseUnitTestCompileClasspath  : <empty>
-                    firstAbcSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
-                    firstAbcSecondAbcReleaseWearApp         : <empty>
-                    firstAbcSecondAbcReleaseWearBundling    : <empty>
-                    firstAbcSecondAbcRuntimeOnly  : <empty>
-                    firstAbcSecondAbcWearApp      : <empty>
-                    firstAbcSecondXyzAnnotationProcessor    : <empty>
-                    firstAbcSecondXyzApi          : <empty>
-                    firstAbcSecondXyzCompileOnly  : <empty>
-                    firstAbcSecondXyzDebugAndroidTestAnnotationProcessorClasspath         : <empty>
-                    firstAbcSecondXyzDebugAndroidTestCompileClasspath : <empty>
-                    firstAbcSecondXyzDebugAndroidTestRuntimeClasspath : <empty>
-                    firstAbcSecondXyzDebugAnnotationProcessor         : <empty>
-                    firstAbcSecondXyzDebugAnnotationProcessorClasspath          : <empty>
-                    firstAbcSecondXyzDebugApi     : <empty>
-                    firstAbcSecondXyzDebugApiElements       : <empty>
-                    firstAbcSecondXyzDebugCompileClasspath  : <empty>
-                    firstAbcSecondXyzDebugCompileOnly       : <empty>
-                    firstAbcSecondXyzDebugImplementation    : <empty>
-                    firstAbcSecondXyzDebugReverseMetadataValues       : <empty>
-                    firstAbcSecondXyzDebugRuntimeClasspath  : <empty>
-                    firstAbcSecondXyzDebugRuntimeElements   : <empty>
-                    firstAbcSecondXyzDebugRuntimeOnly       : <empty>
-                    firstAbcSecondXyzDebugUnitTestAnnotationProcessorClasspath  : <empty>
-                    firstAbcSecondXyzDebugUnitTestCompileClasspath    : <empty>
-                    firstAbcSecondXyzDebugUnitTestRuntimeClasspath    : <empty>
-                    firstAbcSecondXyzDebugWearApp : <empty>
-                    firstAbcSecondXyzDebugWearBundling      : <empty>
-                    firstAbcSecondXyzImplementation         : <empty>
-                    firstAbcSecondXyzReleaseAnnotationProcessor       : <empty>
-                    firstAbcSecondXyzReleaseAnnotationProcessorClasspath        : <empty>
-                    firstAbcSecondXyzReleaseApi   : <empty>
-                    firstAbcSecondXyzReleaseApiElements     : <empty>
-                    firstAbcSecondXyzReleaseCompileClasspath          : <empty>
-                    firstAbcSecondXyzReleaseCompileOnly     : <empty>
-                    firstAbcSecondXyzReleaseImplementation  : <empty>
-                    firstAbcSecondXyzReleaseReverseMetadataValues     : <empty>
-                    firstAbcSecondXyzReleaseRuntimeClasspath          : <empty>
-                    firstAbcSecondXyzReleaseRuntimeElements : <empty>
-                    firstAbcSecondXyzReleaseRuntimeOnly     : <empty>
-                    firstAbcSecondXyzReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                    firstAbcSecondXyzReleaseUnitTestCompileClasspath  : <empty>
-                    firstAbcSecondXyzReleaseUnitTestRuntimeClasspath  : <empty>
-                    firstAbcSecondXyzReleaseWearApp         : <empty>
-                    firstAbcSecondXyzReleaseWearBundling    : <empty>
-                    firstAbcSecondXyzRuntimeOnly  : <empty>
-                    firstAbcSecondXyzWearApp      : <empty>
-                    firstAbcWearApp               : <empty>
-                    firstXyzAnnotationProcessor   : <empty>
-                    firstXyzApi                   : <empty>
-                    firstXyzCompileOnly           : <empty>
-                    firstXyzImplementation        : <empty>
-                    firstXyzRuntimeOnly           : <empty>
-                    firstXyzSecondAbcAnnotationProcessor    : <empty>
-                    firstXyzSecondAbcApi          : <empty>
-                    firstXyzSecondAbcCompileOnly  : <empty>
-                    firstXyzSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
-                    firstXyzSecondAbcDebugAndroidTestCompileClasspath : <empty>
-                    firstXyzSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
-                    firstXyzSecondAbcDebugAnnotationProcessor         : <empty>
-                    firstXyzSecondAbcDebugAnnotationProcessorClasspath          : <empty>
-                    firstXyzSecondAbcDebugApi     : <empty>
-                    firstXyzSecondAbcDebugApiElements       : <empty>
-                    firstXyzSecondAbcDebugCompileClasspath  : <empty>
-                    firstXyzSecondAbcDebugCompileOnly       : <empty>
-                    firstXyzSecondAbcDebugImplementation    : <empty>
-                    firstXyzSecondAbcDebugReverseMetadataValues       : <empty>
-                    firstXyzSecondAbcDebugRuntimeClasspath  : <empty>
-                    firstXyzSecondAbcDebugRuntimeElements   : <empty>
-                    firstXyzSecondAbcDebugRuntimeOnly       : <empty>
-                    firstXyzSecondAbcDebugUnitTestAnnotationProcessorClasspath  : <empty>
-                    firstXyzSecondAbcDebugUnitTestCompileClasspath    : <empty>
-                    firstXyzSecondAbcDebugUnitTestRuntimeClasspath    : <empty>
-                    firstXyzSecondAbcDebugWearApp : <empty>
-                    firstXyzSecondAbcDebugWearBundling      : <empty>
-                    firstXyzSecondAbcImplementation         : <empty>
-                    firstXyzSecondAbcReleaseAnnotationProcessor       : <empty>
-                    firstXyzSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
-                    firstXyzSecondAbcReleaseApi   : <empty>
-                    firstXyzSecondAbcReleaseApiElements     : <empty>
-                    firstXyzSecondAbcReleaseCompileClasspath          : <empty>
-                    firstXyzSecondAbcReleaseCompileOnly     : <empty>
-                    firstXyzSecondAbcReleaseImplementation  : <empty>
-                    firstXyzSecondAbcReleaseReverseMetadataValues     : <empty>
-                    firstXyzSecondAbcReleaseRuntimeClasspath          : <empty>
-                    firstXyzSecondAbcReleaseRuntimeElements : <empty>
-                    firstXyzSecondAbcReleaseRuntimeOnly     : <empty>
-                    firstXyzSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                    firstXyzSecondAbcReleaseUnitTestCompileClasspath  : <empty>
-                    firstXyzSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
-                    firstXyzSecondAbcReleaseWearApp         : <empty>
-                    firstXyzSecondAbcReleaseWearBundling    : <empty>
-                    firstXyzSecondAbcRuntimeOnly  : <empty>
-                    firstXyzSecondAbcWearApp      : <empty>
-                    firstXyzSecondXyzAnnotationProcessor    : <empty>
-                    firstXyzSecondXyzApi          : <empty>
-                    firstXyzSecondXyzCompileOnly  : <empty>
-                    firstXyzSecondXyzDebugAndroidTestAnnotationProcessorClasspath         : <empty>
-                    firstXyzSecondXyzDebugAndroidTestCompileClasspath : <empty>
-                    firstXyzSecondXyzDebugAndroidTestRuntimeClasspath : <empty>
-                    firstXyzSecondXyzDebugAnnotationProcessor         : <empty>
-                    firstXyzSecondXyzDebugAnnotationProcessorClasspath          : <empty>
-                    firstXyzSecondXyzDebugApi     : <empty>
-                    firstXyzSecondXyzDebugApiElements       : <empty>
-                    firstXyzSecondXyzDebugCompileClasspath  : <empty>
-                    firstXyzSecondXyzDebugCompileOnly       : <empty>
-                    firstXyzSecondXyzDebugImplementation    : <empty>
-                    firstXyzSecondXyzDebugReverseMetadataValues       : <empty>
-                    firstXyzSecondXyzDebugRuntimeClasspath  : <empty>
-                    firstXyzSecondXyzDebugRuntimeElements   : <empty>
-                    firstXyzSecondXyzDebugRuntimeOnly       : <empty>
-                    firstXyzSecondXyzDebugUnitTestAnnotationProcessorClasspath  : <empty>
-                    firstXyzSecondXyzDebugUnitTestCompileClasspath    : <empty>
-                    firstXyzSecondXyzDebugUnitTestRuntimeClasspath    : <empty>
-                    firstXyzSecondXyzDebugWearApp : <empty>
-                    firstXyzSecondXyzDebugWearBundling      : <empty>
-                    firstXyzSecondXyzImplementation         : <empty>
-                    firstXyzSecondXyzReleaseAnnotationProcessor       : <empty>
-                    firstXyzSecondXyzReleaseAnnotationProcessorClasspath        : <empty>
-                    firstXyzSecondXyzReleaseApi   : <empty>
-                    firstXyzSecondXyzReleaseApiElements     : <empty>
-                    firstXyzSecondXyzReleaseCompileClasspath          : <empty>
-                    firstXyzSecondXyzReleaseCompileOnly     : <empty>
-                    firstXyzSecondXyzReleaseImplementation  : <empty>
-                    firstXyzSecondXyzReleaseReverseMetadataValues     : <empty>
-                    firstXyzSecondXyzReleaseRuntimeClasspath          : <empty>
-                    firstXyzSecondXyzReleaseRuntimeElements : <empty>
-                    firstXyzSecondXyzReleaseRuntimeOnly     : <empty>
-                    firstXyzSecondXyzReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                    firstXyzSecondXyzReleaseUnitTestCompileClasspath  : <empty>
-                    firstXyzSecondXyzReleaseUnitTestRuntimeClasspath  : <empty>
-                    firstXyzSecondXyzReleaseWearApp         : <empty>
-                    firstXyzSecondXyzReleaseWearBundling    : <empty>
-                    firstXyzSecondXyzRuntimeOnly  : <empty>
-                    firstXyzSecondXyzWearApp      : <empty>
-                    firstXyzWearApp               : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseApi                    : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseWearApp                : <empty>
-                    runtimeOnly                   : <empty>
-                    secondAbcAnnotationProcessor  : <empty>
-                    secondAbcApi                  : <empty>
-                    secondAbcCompileOnly          : <empty>
-                    secondAbcImplementation       : <empty>
-                    secondAbcRuntimeOnly          : <empty>
-                    secondAbcWearApp              : <empty>
-                    secondXyzAnnotationProcessor  : <empty>
-                    secondXyzApi                  : <empty>
-                    secondXyzCompileOnly          : <empty>
-                    secondXyzImplementation       : <empty>
-                    secondXyzRuntimeOnly          : <empty>
-                    secondXyzWearApp              : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFirstAbcAnnotationProcessor         : <empty>
-                    testFirstAbcCompileOnly       : <empty>
-                    testFirstAbcImplementation    : <empty>
-                    testFirstAbcRuntimeOnly       : <empty>
-                    testFirstAbcSecondAbcAnnotationProcessor          : <empty>
-                    testFirstAbcSecondAbcCompileOnly        : <empty>
-                    testFirstAbcSecondAbcDebugAnnotationProcessor     : <empty>
-                    testFirstAbcSecondAbcDebugCompileOnly   : <empty>
-                    testFirstAbcSecondAbcDebugImplementation          : <empty>
-                    testFirstAbcSecondAbcDebugRuntimeOnly   : <empty>
-                    testFirstAbcSecondAbcDebugWearApp       : <empty>
-                    testFirstAbcSecondAbcImplementation     : <empty>
-                    testFirstAbcSecondAbcReleaseAnnotationProcessor   : <empty>
-                    testFirstAbcSecondAbcReleaseCompileOnly : <empty>
-                    testFirstAbcSecondAbcReleaseImplementation        : <empty>
-                    testFirstAbcSecondAbcReleaseRuntimeOnly : <empty>
-                    testFirstAbcSecondAbcReleaseWearApp     : <empty>
-                    testFirstAbcSecondAbcRuntimeOnly        : <empty>
-                    testFirstAbcSecondAbcWearApp  : <empty>
-                    testFirstAbcSecondXyzAnnotationProcessor          : <empty>
-                    testFirstAbcSecondXyzCompileOnly        : <empty>
-                    testFirstAbcSecondXyzDebugAnnotationProcessor     : <empty>
-                    testFirstAbcSecondXyzDebugCompileOnly   : <empty>
-                    testFirstAbcSecondXyzDebugImplementation          : <empty>
-                    testFirstAbcSecondXyzDebugRuntimeOnly   : <empty>
-                    testFirstAbcSecondXyzDebugWearApp       : <empty>
-                    testFirstAbcSecondXyzImplementation     : <empty>
-                    testFirstAbcSecondXyzReleaseAnnotationProcessor   : <empty>
-                    testFirstAbcSecondXyzReleaseCompileOnly : <empty>
-                    testFirstAbcSecondXyzReleaseImplementation        : <empty>
-                    testFirstAbcSecondXyzReleaseRuntimeOnly : <empty>
-                    testFirstAbcSecondXyzReleaseWearApp     : <empty>
-                    testFirstAbcSecondXyzRuntimeOnly        : <empty>
-                    testFirstAbcSecondXyzWearApp  : <empty>
-                    testFirstAbcWearApp           : <empty>
-                    testFirstXyzAnnotationProcessor         : <empty>
-                    testFirstXyzCompileOnly       : <empty>
-                    testFirstXyzImplementation    : <empty>
-                    testFirstXyzRuntimeOnly       : <empty>
-                    testFirstXyzSecondAbcAnnotationProcessor          : <empty>
-                    testFirstXyzSecondAbcCompileOnly        : <empty>
-                    testFirstXyzSecondAbcDebugAnnotationProcessor     : <empty>
-                    testFirstXyzSecondAbcDebugCompileOnly   : <empty>
-                    testFirstXyzSecondAbcDebugImplementation          : <empty>
-                    testFirstXyzSecondAbcDebugRuntimeOnly   : <empty>
-                    testFirstXyzSecondAbcDebugWearApp       : <empty>
-                    testFirstXyzSecondAbcImplementation     : <empty>
-                    testFirstXyzSecondAbcReleaseAnnotationProcessor   : <empty>
-                    testFirstXyzSecondAbcReleaseCompileOnly : <empty>
-                    testFirstXyzSecondAbcReleaseImplementation        : <empty>
-                    testFirstXyzSecondAbcReleaseRuntimeOnly : <empty>
-                    testFirstXyzSecondAbcReleaseWearApp     : <empty>
-                    testFirstXyzSecondAbcRuntimeOnly        : <empty>
-                    testFirstXyzSecondAbcWearApp  : <empty>
-                    testFirstXyzSecondXyzAnnotationProcessor          : <empty>
-                    testFirstXyzSecondXyzCompileOnly        : <empty>
-                    testFirstXyzSecondXyzDebugAnnotationProcessor     : <empty>
-                    testFirstXyzSecondXyzDebugCompileOnly   : <empty>
-                    testFirstXyzSecondXyzDebugImplementation          : <empty>
-                    testFirstXyzSecondXyzDebugRuntimeOnly   : <empty>
-                    testFirstXyzSecondXyzDebugWearApp       : <empty>
-                    testFirstXyzSecondXyzImplementation     : <empty>
-                    testFirstXyzSecondXyzReleaseAnnotationProcessor   : <empty>
-                    testFirstXyzSecondXyzReleaseCompileOnly : <empty>
-                    testFirstXyzSecondXyzReleaseImplementation        : <empty>
-                    testFirstXyzSecondXyzReleaseRuntimeOnly : <empty>
-                    testFirstXyzSecondXyzReleaseWearApp     : <empty>
-                    testFirstXyzSecondXyzRuntimeOnly        : <empty>
-                    testFirstXyzSecondXyzWearApp  : <empty>
-                    testFirstXyzWearApp           : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesFirstAbcAnnotationProcessor : <empty>
-                    testFixturesFirstAbcApi       : <empty>
-                    testFixturesFirstAbcCompileOnly         : <empty>
-                    testFixturesFirstAbcImplementation      : <empty>
-                    testFixturesFirstAbcRuntimeOnly         : <empty>
-                    testFixturesFirstAbcWearApp   : <empty>
-                    testFixturesFirstXyzAnnotationProcessor : <empty>
-                    testFixturesFirstXyzApi       : <empty>
-                    testFixturesFirstXyzCompileOnly         : <empty>
-                    testFixturesFirstXyzImplementation      : <empty>
-                    testFixturesFirstXyzRuntimeOnly         : <empty>
-                    testFixturesFirstXyzWearApp   : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesSecondAbcAnnotationProcessor          : <empty>
-                    testFixturesSecondAbcApi      : <empty>
-                    testFixturesSecondAbcCompileOnly        : <empty>
-                    testFixturesSecondAbcImplementation     : <empty>
-                    testFixturesSecondAbcRuntimeOnly        : <empty>
-                    testFixturesSecondAbcWearApp  : <empty>
-                    testFixturesSecondXyzAnnotationProcessor          : <empty>
-                    testFixturesSecondXyzApi      : <empty>
-                    testFixturesSecondXyzCompileOnly        : <empty>
-                    testFixturesSecondXyzImplementation     : <empty>
-                    testFixturesSecondXyzRuntimeOnly        : <empty>
-                    testFixturesSecondXyzWearApp  : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testSecondAbcAnnotationProcessor        : <empty>
-                    testSecondAbcCompileOnly      : <empty>
-                    testSecondAbcImplementation   : <empty>
-                    testSecondAbcRuntimeOnly      : <empty>
-                    testSecondAbcWearApp          : <empty>
-                    testSecondXyzAnnotationProcessor        : <empty>
-                    testSecondXyzCompileOnly      : <empty>
-                    testSecondXyzImplementation   : <empty>
-                    testSecondXyzRuntimeOnly      : <empty>
-                    testSecondXyzWearApp          : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestFirstAbcAnnotationProcessor  : <empty>
+                        androidTestFirstAbcCompileOnly          : <empty>
+                        androidTestFirstAbcImplementation       : <empty>
+                        androidTestFirstAbcRuntimeOnly          : <empty>
+                        androidTestFirstAbcSecondAbcAnnotationProcessor   : <empty>
+                        androidTestFirstAbcSecondAbcCompileOnly : <empty>
+                        androidTestFirstAbcSecondAbcDebugAnnotationProcessor        : <empty>
+                        androidTestFirstAbcSecondAbcDebugCompileOnly      : <empty>
+                        androidTestFirstAbcSecondAbcDebugImplementation   : <empty>
+                        androidTestFirstAbcSecondAbcDebugRuntimeOnly      : <empty>
+                        androidTestFirstAbcSecondAbcDebugWearApp          : <empty>
+                        androidTestFirstAbcSecondAbcImplementation        : <empty>
+                        androidTestFirstAbcSecondAbcRuntimeOnly : <empty>
+                        androidTestFirstAbcSecondAbcWearApp     : <empty>
+                        androidTestFirstAbcSecondXyzAnnotationProcessor   : <empty>
+                        androidTestFirstAbcSecondXyzCompileOnly : <empty>
+                        androidTestFirstAbcSecondXyzDebugAnnotationProcessor        : <empty>
+                        androidTestFirstAbcSecondXyzDebugCompileOnly      : <empty>
+                        androidTestFirstAbcSecondXyzDebugImplementation   : <empty>
+                        androidTestFirstAbcSecondXyzDebugRuntimeOnly      : <empty>
+                        androidTestFirstAbcSecondXyzDebugWearApp          : <empty>
+                        androidTestFirstAbcSecondXyzImplementation        : <empty>
+                        androidTestFirstAbcSecondXyzRuntimeOnly : <empty>
+                        androidTestFirstAbcSecondXyzWearApp     : <empty>
+                        androidTestFirstAbcWearApp    : <empty>
+                        androidTestFirstXyzAnnotationProcessor  : <empty>
+                        androidTestFirstXyzCompileOnly          : <empty>
+                        androidTestFirstXyzImplementation       : <empty>
+                        androidTestFirstXyzRuntimeOnly          : <empty>
+                        androidTestFirstXyzSecondAbcAnnotationProcessor   : <empty>
+                        androidTestFirstXyzSecondAbcCompileOnly : <empty>
+                        androidTestFirstXyzSecondAbcDebugAnnotationProcessor        : <empty>
+                        androidTestFirstXyzSecondAbcDebugCompileOnly      : <empty>
+                        androidTestFirstXyzSecondAbcDebugImplementation   : <empty>
+                        androidTestFirstXyzSecondAbcDebugRuntimeOnly      : <empty>
+                        androidTestFirstXyzSecondAbcDebugWearApp          : <empty>
+                        androidTestFirstXyzSecondAbcImplementation        : <empty>
+                        androidTestFirstXyzSecondAbcRuntimeOnly : <empty>
+                        androidTestFirstXyzSecondAbcWearApp     : <empty>
+                        androidTestFirstXyzSecondXyzAnnotationProcessor   : <empty>
+                        androidTestFirstXyzSecondXyzCompileOnly : <empty>
+                        androidTestFirstXyzSecondXyzDebugAnnotationProcessor        : <empty>
+                        androidTestFirstXyzSecondXyzDebugCompileOnly      : <empty>
+                        androidTestFirstXyzSecondXyzDebugImplementation   : <empty>
+                        androidTestFirstXyzSecondXyzDebugRuntimeOnly      : <empty>
+                        androidTestFirstXyzSecondXyzDebugWearApp          : <empty>
+                        androidTestFirstXyzSecondXyzImplementation        : <empty>
+                        androidTestFirstXyzSecondXyzRuntimeOnly : <empty>
+                        androidTestFirstXyzSecondXyzWearApp     : <empty>
+                        androidTestFirstXyzWearApp    : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestSecondAbcAnnotationProcessor : <empty>
+                        androidTestSecondAbcCompileOnly         : <empty>
+                        androidTestSecondAbcImplementation      : <empty>
+                        androidTestSecondAbcRuntimeOnly         : <empty>
+                        androidTestSecondAbcWearApp   : <empty>
+                        androidTestSecondXyzAnnotationProcessor : <empty>
+                        androidTestSecondXyzCompileOnly         : <empty>
+                        androidTestSecondXyzImplementation      : <empty>
+                        androidTestSecondXyzRuntimeOnly         : <empty>
+                        androidTestSecondXyzWearApp   : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugApi                      : <empty>
+                        debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
+                        debugImplementation           : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugWearApp                  : <empty>
+                        default                       : <empty>
+                        firstAbcAnnotationProcessor   : <empty>
+                        firstAbcApi                   : <empty>
+                        firstAbcCompileOnly           : <empty>
+                        firstAbcCompileOnlyApi        : <empty>
+                        firstAbcImplementation        : <empty>
+                        firstAbcRuntimeOnly           : <empty>
+                        firstAbcSecondAbcAnnotationProcessor    : <empty>
+                        firstAbcSecondAbcApi          : <empty>
+                        firstAbcSecondAbcCompileOnly  : <empty>
+                        firstAbcSecondAbcCompileOnlyApi         : <empty>
+                        firstAbcSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
+                        firstAbcSecondAbcDebugAndroidTestCompileClasspath : <empty>
+                        firstAbcSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
+                        firstAbcSecondAbcDebugAnnotationProcessor         : <empty>
+                        firstAbcSecondAbcDebugAnnotationProcessorClasspath          : <empty>
+                        firstAbcSecondAbcDebugApi     : <empty>
+                        firstAbcSecondAbcDebugApiElements       : <empty>
+                        firstAbcSecondAbcDebugCompileClasspath  : <empty>
+                        firstAbcSecondAbcDebugCompileOnly       : <empty>
+                        firstAbcSecondAbcDebugCompileOnlyApi    : <empty>
+                        firstAbcSecondAbcDebugImplementation    : <empty>
+                        firstAbcSecondAbcDebugReverseMetadataValues       : <empty>
+                        firstAbcSecondAbcDebugRuntimeClasspath  : <empty>
+                        firstAbcSecondAbcDebugRuntimeElements   : <empty>
+                        firstAbcSecondAbcDebugRuntimeOnly       : <empty>
+                        firstAbcSecondAbcDebugUnitTestAnnotationProcessorClasspath  : <empty>
+                        firstAbcSecondAbcDebugUnitTestCompileClasspath    : <empty>
+                        firstAbcSecondAbcDebugUnitTestRuntimeClasspath    : <empty>
+                        firstAbcSecondAbcDebugWearApp : <empty>
+                        firstAbcSecondAbcDebugWearBundling      : <empty>
+                        firstAbcSecondAbcImplementation         : <empty>
+                        firstAbcSecondAbcReleaseAnnotationProcessor       : <empty>
+                        firstAbcSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
+                        firstAbcSecondAbcReleaseApi   : <empty>
+                        firstAbcSecondAbcReleaseApiElements     : <empty>
+                        firstAbcSecondAbcReleaseCompileClasspath          : <empty>
+                        firstAbcSecondAbcReleaseCompileOnly     : <empty>
+                        firstAbcSecondAbcReleaseCompileOnlyApi  : <empty>
+                        firstAbcSecondAbcReleaseImplementation  : <empty>
+                        firstAbcSecondAbcReleaseReverseMetadataValues     : <empty>
+                        firstAbcSecondAbcReleaseRuntimeClasspath          : <empty>
+                        firstAbcSecondAbcReleaseRuntimeElements : <empty>
+                        firstAbcSecondAbcReleaseRuntimeOnly     : <empty>
+                        firstAbcSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
+                        firstAbcSecondAbcReleaseUnitTestCompileClasspath  : <empty>
+                        firstAbcSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
+                        firstAbcSecondAbcReleaseWearApp         : <empty>
+                        firstAbcSecondAbcReleaseWearBundling    : <empty>
+                        firstAbcSecondAbcRuntimeOnly  : <empty>
+                        firstAbcSecondAbcWearApp      : <empty>
+                        firstAbcSecondXyzAnnotationProcessor    : <empty>
+                        firstAbcSecondXyzApi          : <empty>
+                        firstAbcSecondXyzCompileOnly  : <empty>
+                        firstAbcSecondXyzCompileOnlyApi         : <empty>
+                        firstAbcSecondXyzDebugAndroidTestAnnotationProcessorClasspath         : <empty>
+                        firstAbcSecondXyzDebugAndroidTestCompileClasspath : <empty>
+                        firstAbcSecondXyzDebugAndroidTestRuntimeClasspath : <empty>
+                        firstAbcSecondXyzDebugAnnotationProcessor         : <empty>
+                        firstAbcSecondXyzDebugAnnotationProcessorClasspath          : <empty>
+                        firstAbcSecondXyzDebugApi     : <empty>
+                        firstAbcSecondXyzDebugApiElements       : <empty>
+                        firstAbcSecondXyzDebugCompileClasspath  : <empty>
+                        firstAbcSecondXyzDebugCompileOnly       : <empty>
+                        firstAbcSecondXyzDebugCompileOnlyApi    : <empty>
+                        firstAbcSecondXyzDebugImplementation    : <empty>
+                        firstAbcSecondXyzDebugReverseMetadataValues       : <empty>
+                        firstAbcSecondXyzDebugRuntimeClasspath  : <empty>
+                        firstAbcSecondXyzDebugRuntimeElements   : <empty>
+                        firstAbcSecondXyzDebugRuntimeOnly       : <empty>
+                        firstAbcSecondXyzDebugUnitTestAnnotationProcessorClasspath  : <empty>
+                        firstAbcSecondXyzDebugUnitTestCompileClasspath    : <empty>
+                        firstAbcSecondXyzDebugUnitTestRuntimeClasspath    : <empty>
+                        firstAbcSecondXyzDebugWearApp : <empty>
+                        firstAbcSecondXyzDebugWearBundling      : <empty>
+                        firstAbcSecondXyzImplementation         : <empty>
+                        firstAbcSecondXyzReleaseAnnotationProcessor       : <empty>
+                        firstAbcSecondXyzReleaseAnnotationProcessorClasspath        : <empty>
+                        firstAbcSecondXyzReleaseApi   : <empty>
+                        firstAbcSecondXyzReleaseApiElements     : <empty>
+                        firstAbcSecondXyzReleaseCompileClasspath          : <empty>
+                        firstAbcSecondXyzReleaseCompileOnly     : <empty>
+                        firstAbcSecondXyzReleaseCompileOnlyApi  : <empty>
+                        firstAbcSecondXyzReleaseImplementation  : <empty>
+                        firstAbcSecondXyzReleaseReverseMetadataValues     : <empty>
+                        firstAbcSecondXyzReleaseRuntimeClasspath          : <empty>
+                        firstAbcSecondXyzReleaseRuntimeElements : <empty>
+                        firstAbcSecondXyzReleaseRuntimeOnly     : <empty>
+                        firstAbcSecondXyzReleaseUnitTestAnnotationProcessorClasspath          : <empty>
+                        firstAbcSecondXyzReleaseUnitTestCompileClasspath  : <empty>
+                        firstAbcSecondXyzReleaseUnitTestRuntimeClasspath  : <empty>
+                        firstAbcSecondXyzReleaseWearApp         : <empty>
+                        firstAbcSecondXyzReleaseWearBundling    : <empty>
+                        firstAbcSecondXyzRuntimeOnly  : <empty>
+                        firstAbcSecondXyzWearApp      : <empty>
+                        firstAbcWearApp               : <empty>
+                        firstXyzAnnotationProcessor   : <empty>
+                        firstXyzApi                   : <empty>
+                        firstXyzCompileOnly           : <empty>
+                        firstXyzCompileOnlyApi        : <empty>
+                        firstXyzImplementation        : <empty>
+                        firstXyzRuntimeOnly           : <empty>
+                        firstXyzSecondAbcAnnotationProcessor    : <empty>
+                        firstXyzSecondAbcApi          : <empty>
+                        firstXyzSecondAbcCompileOnly  : <empty>
+                        firstXyzSecondAbcCompileOnlyApi         : <empty>
+                        firstXyzSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
+                        firstXyzSecondAbcDebugAndroidTestCompileClasspath : <empty>
+                        firstXyzSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
+                        firstXyzSecondAbcDebugAnnotationProcessor         : <empty>
+                        firstXyzSecondAbcDebugAnnotationProcessorClasspath          : <empty>
+                        firstXyzSecondAbcDebugApi     : <empty>
+                        firstXyzSecondAbcDebugApiElements       : <empty>
+                        firstXyzSecondAbcDebugCompileClasspath  : <empty>
+                        firstXyzSecondAbcDebugCompileOnly       : <empty>
+                        firstXyzSecondAbcDebugCompileOnlyApi    : <empty>
+                        firstXyzSecondAbcDebugImplementation    : <empty>
+                        firstXyzSecondAbcDebugReverseMetadataValues       : <empty>
+                        firstXyzSecondAbcDebugRuntimeClasspath  : <empty>
+                        firstXyzSecondAbcDebugRuntimeElements   : <empty>
+                        firstXyzSecondAbcDebugRuntimeOnly       : <empty>
+                        firstXyzSecondAbcDebugUnitTestAnnotationProcessorClasspath  : <empty>
+                        firstXyzSecondAbcDebugUnitTestCompileClasspath    : <empty>
+                        firstXyzSecondAbcDebugUnitTestRuntimeClasspath    : <empty>
+                        firstXyzSecondAbcDebugWearApp : <empty>
+                        firstXyzSecondAbcDebugWearBundling      : <empty>
+                        firstXyzSecondAbcImplementation         : <empty>
+                        firstXyzSecondAbcReleaseAnnotationProcessor       : <empty>
+                        firstXyzSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
+                        firstXyzSecondAbcReleaseApi   : <empty>
+                        firstXyzSecondAbcReleaseApiElements     : <empty>
+                        firstXyzSecondAbcReleaseCompileClasspath          : <empty>
+                        firstXyzSecondAbcReleaseCompileOnly     : <empty>
+                        firstXyzSecondAbcReleaseCompileOnlyApi  : <empty>
+                        firstXyzSecondAbcReleaseImplementation  : <empty>
+                        firstXyzSecondAbcReleaseReverseMetadataValues     : <empty>
+                        firstXyzSecondAbcReleaseRuntimeClasspath          : <empty>
+                        firstXyzSecondAbcReleaseRuntimeElements : <empty>
+                        firstXyzSecondAbcReleaseRuntimeOnly     : <empty>
+                        firstXyzSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
+                        firstXyzSecondAbcReleaseUnitTestCompileClasspath  : <empty>
+                        firstXyzSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
+                        firstXyzSecondAbcReleaseWearApp         : <empty>
+                        firstXyzSecondAbcReleaseWearBundling    : <empty>
+                        firstXyzSecondAbcRuntimeOnly  : <empty>
+                        firstXyzSecondAbcWearApp      : <empty>
+                        firstXyzSecondXyzAnnotationProcessor    : <empty>
+                        firstXyzSecondXyzApi          : <empty>
+                        firstXyzSecondXyzCompileOnly  : <empty>
+                        firstXyzSecondXyzCompileOnlyApi         : <empty>
+                        firstXyzSecondXyzDebugAndroidTestAnnotationProcessorClasspath         : <empty>
+                        firstXyzSecondXyzDebugAndroidTestCompileClasspath : <empty>
+                        firstXyzSecondXyzDebugAndroidTestRuntimeClasspath : <empty>
+                        firstXyzSecondXyzDebugAnnotationProcessor         : <empty>
+                        firstXyzSecondXyzDebugAnnotationProcessorClasspath          : <empty>
+                        firstXyzSecondXyzDebugApi     : <empty>
+                        firstXyzSecondXyzDebugApiElements       : <empty>
+                        firstXyzSecondXyzDebugCompileClasspath  : <empty>
+                        firstXyzSecondXyzDebugCompileOnly       : <empty>
+                        firstXyzSecondXyzDebugCompileOnlyApi    : <empty>
+                        firstXyzSecondXyzDebugImplementation    : <empty>
+                        firstXyzSecondXyzDebugReverseMetadataValues       : <empty>
+                        firstXyzSecondXyzDebugRuntimeClasspath  : <empty>
+                        firstXyzSecondXyzDebugRuntimeElements   : <empty>
+                        firstXyzSecondXyzDebugRuntimeOnly       : <empty>
+                        firstXyzSecondXyzDebugUnitTestAnnotationProcessorClasspath  : <empty>
+                        firstXyzSecondXyzDebugUnitTestCompileClasspath    : <empty>
+                        firstXyzSecondXyzDebugUnitTestRuntimeClasspath    : <empty>
+                        firstXyzSecondXyzDebugWearApp : <empty>
+                        firstXyzSecondXyzDebugWearBundling      : <empty>
+                        firstXyzSecondXyzImplementation         : <empty>
+                        firstXyzSecondXyzReleaseAnnotationProcessor       : <empty>
+                        firstXyzSecondXyzReleaseAnnotationProcessorClasspath        : <empty>
+                        firstXyzSecondXyzReleaseApi   : <empty>
+                        firstXyzSecondXyzReleaseApiElements     : <empty>
+                        firstXyzSecondXyzReleaseCompileClasspath          : <empty>
+                        firstXyzSecondXyzReleaseCompileOnly     : <empty>
+                        firstXyzSecondXyzReleaseCompileOnlyApi  : <empty>
+                        firstXyzSecondXyzReleaseImplementation  : <empty>
+                        firstXyzSecondXyzReleaseReverseMetadataValues     : <empty>
+                        firstXyzSecondXyzReleaseRuntimeClasspath          : <empty>
+                        firstXyzSecondXyzReleaseRuntimeElements : <empty>
+                        firstXyzSecondXyzReleaseRuntimeOnly     : <empty>
+                        firstXyzSecondXyzReleaseUnitTestAnnotationProcessorClasspath          : <empty>
+                        firstXyzSecondXyzReleaseUnitTestCompileClasspath  : <empty>
+                        firstXyzSecondXyzReleaseUnitTestRuntimeClasspath  : <empty>
+                        firstXyzSecondXyzReleaseWearApp         : <empty>
+                        firstXyzSecondXyzReleaseWearBundling    : <empty>
+                        firstXyzSecondXyzRuntimeOnly  : <empty>
+                        firstXyzSecondXyzWearApp      : <empty>
+                        firstXyzWearApp               : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseApi                    : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
+                        releaseImplementation         : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseWearApp                : <empty>
+                        runtimeOnly                   : <empty>
+                        secondAbcAnnotationProcessor  : <empty>
+                        secondAbcApi                  : <empty>
+                        secondAbcCompileOnly          : <empty>
+                        secondAbcCompileOnlyApi       : <empty>
+                        secondAbcImplementation       : <empty>
+                        secondAbcRuntimeOnly          : <empty>
+                        secondAbcWearApp              : <empty>
+                        secondXyzAnnotationProcessor  : <empty>
+                        secondXyzApi                  : <empty>
+                        secondXyzCompileOnly          : <empty>
+                        secondXyzCompileOnlyApi       : <empty>
+                        secondXyzImplementation       : <empty>
+                        secondXyzRuntimeOnly          : <empty>
+                        secondXyzWearApp              : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFirstAbcAnnotationProcessor         : <empty>
+                        testFirstAbcCompileOnly       : <empty>
+                        testFirstAbcImplementation    : <empty>
+                        testFirstAbcRuntimeOnly       : <empty>
+                        testFirstAbcSecondAbcAnnotationProcessor          : <empty>
+                        testFirstAbcSecondAbcCompileOnly        : <empty>
+                        testFirstAbcSecondAbcDebugAnnotationProcessor     : <empty>
+                        testFirstAbcSecondAbcDebugCompileOnly   : <empty>
+                        testFirstAbcSecondAbcDebugImplementation          : <empty>
+                        testFirstAbcSecondAbcDebugRuntimeOnly   : <empty>
+                        testFirstAbcSecondAbcDebugWearApp       : <empty>
+                        testFirstAbcSecondAbcImplementation     : <empty>
+                        testFirstAbcSecondAbcReleaseAnnotationProcessor   : <empty>
+                        testFirstAbcSecondAbcReleaseCompileOnly : <empty>
+                        testFirstAbcSecondAbcReleaseImplementation        : <empty>
+                        testFirstAbcSecondAbcReleaseRuntimeOnly : <empty>
+                        testFirstAbcSecondAbcReleaseWearApp     : <empty>
+                        testFirstAbcSecondAbcRuntimeOnly        : <empty>
+                        testFirstAbcSecondAbcWearApp  : <empty>
+                        testFirstAbcSecondXyzAnnotationProcessor          : <empty>
+                        testFirstAbcSecondXyzCompileOnly        : <empty>
+                        testFirstAbcSecondXyzDebugAnnotationProcessor     : <empty>
+                        testFirstAbcSecondXyzDebugCompileOnly   : <empty>
+                        testFirstAbcSecondXyzDebugImplementation          : <empty>
+                        testFirstAbcSecondXyzDebugRuntimeOnly   : <empty>
+                        testFirstAbcSecondXyzDebugWearApp       : <empty>
+                        testFirstAbcSecondXyzImplementation     : <empty>
+                        testFirstAbcSecondXyzReleaseAnnotationProcessor   : <empty>
+                        testFirstAbcSecondXyzReleaseCompileOnly : <empty>
+                        testFirstAbcSecondXyzReleaseImplementation        : <empty>
+                        testFirstAbcSecondXyzReleaseRuntimeOnly : <empty>
+                        testFirstAbcSecondXyzReleaseWearApp     : <empty>
+                        testFirstAbcSecondXyzRuntimeOnly        : <empty>
+                        testFirstAbcSecondXyzWearApp  : <empty>
+                        testFirstAbcWearApp           : <empty>
+                        testFirstXyzAnnotationProcessor         : <empty>
+                        testFirstXyzCompileOnly       : <empty>
+                        testFirstXyzImplementation    : <empty>
+                        testFirstXyzRuntimeOnly       : <empty>
+                        testFirstXyzSecondAbcAnnotationProcessor          : <empty>
+                        testFirstXyzSecondAbcCompileOnly        : <empty>
+                        testFirstXyzSecondAbcDebugAnnotationProcessor     : <empty>
+                        testFirstXyzSecondAbcDebugCompileOnly   : <empty>
+                        testFirstXyzSecondAbcDebugImplementation          : <empty>
+                        testFirstXyzSecondAbcDebugRuntimeOnly   : <empty>
+                        testFirstXyzSecondAbcDebugWearApp       : <empty>
+                        testFirstXyzSecondAbcImplementation     : <empty>
+                        testFirstXyzSecondAbcReleaseAnnotationProcessor   : <empty>
+                        testFirstXyzSecondAbcReleaseCompileOnly : <empty>
+                        testFirstXyzSecondAbcReleaseImplementation        : <empty>
+                        testFirstXyzSecondAbcReleaseRuntimeOnly : <empty>
+                        testFirstXyzSecondAbcReleaseWearApp     : <empty>
+                        testFirstXyzSecondAbcRuntimeOnly        : <empty>
+                        testFirstXyzSecondAbcWearApp  : <empty>
+                        testFirstXyzSecondXyzAnnotationProcessor          : <empty>
+                        testFirstXyzSecondXyzCompileOnly        : <empty>
+                        testFirstXyzSecondXyzDebugAnnotationProcessor     : <empty>
+                        testFirstXyzSecondXyzDebugCompileOnly   : <empty>
+                        testFirstXyzSecondXyzDebugImplementation          : <empty>
+                        testFirstXyzSecondXyzDebugRuntimeOnly   : <empty>
+                        testFirstXyzSecondXyzDebugWearApp       : <empty>
+                        testFirstXyzSecondXyzImplementation     : <empty>
+                        testFirstXyzSecondXyzReleaseAnnotationProcessor   : <empty>
+                        testFirstXyzSecondXyzReleaseCompileOnly : <empty>
+                        testFirstXyzSecondXyzReleaseImplementation        : <empty>
+                        testFirstXyzSecondXyzReleaseRuntimeOnly : <empty>
+                        testFirstXyzSecondXyzReleaseWearApp     : <empty>
+                        testFirstXyzSecondXyzRuntimeOnly        : <empty>
+                        testFirstXyzSecondXyzWearApp  : <empty>
+                        testFirstXyzWearApp           : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesFirstAbcAnnotationProcessor : <empty>
+                        testFixturesFirstAbcApi       : <empty>
+                        testFixturesFirstAbcCompileOnly         : <empty>
+                        testFixturesFirstAbcCompileOnlyApi      : <empty>
+                        testFixturesFirstAbcImplementation      : <empty>
+                        testFixturesFirstAbcRuntimeOnly         : <empty>
+                        testFixturesFirstAbcWearApp   : <empty>
+                        testFixturesFirstXyzAnnotationProcessor : <empty>
+                        testFixturesFirstXyzApi       : <empty>
+                        testFixturesFirstXyzCompileOnly         : <empty>
+                        testFixturesFirstXyzCompileOnlyApi      : <empty>
+                        testFixturesFirstXyzImplementation      : <empty>
+                        testFixturesFirstXyzRuntimeOnly         : <empty>
+                        testFixturesFirstXyzWearApp   : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesSecondAbcAnnotationProcessor          : <empty>
+                        testFixturesSecondAbcApi      : <empty>
+                        testFixturesSecondAbcCompileOnly        : <empty>
+                        testFixturesSecondAbcCompileOnlyApi     : <empty>
+                        testFixturesSecondAbcImplementation     : <empty>
+                        testFixturesSecondAbcRuntimeOnly        : <empty>
+                        testFixturesSecondAbcWearApp  : <empty>
+                        testFixturesSecondXyzAnnotationProcessor          : <empty>
+                        testFixturesSecondXyzApi      : <empty>
+                        testFixturesSecondXyzCompileOnly        : <empty>
+                        testFixturesSecondXyzCompileOnlyApi     : <empty>
+                        testFixturesSecondXyzImplementation     : <empty>
+                        testFixturesSecondXyzRuntimeOnly        : <empty>
+                        testFixturesSecondXyzWearApp  : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testSecondAbcAnnotationProcessor        : <empty>
+                        testSecondAbcCompileOnly      : <empty>
+                        testSecondAbcImplementation   : <empty>
+                        testSecondAbcRuntimeOnly      : <empty>
+                        testSecondAbcWearApp          : <empty>
+                        testSecondXyzAnnotationProcessor        : <empty>
+                        testSecondXyzCompileOnly      : <empty>
+                        testSecondXyzImplementation   : <empty>
+                        testSecondXyzRuntimeOnly      : <empty>
+                        testSecondXyzWearApp          : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
+        sourceSetModel                : DefaultGradleSourceSetModel
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1101,26 +1139,35 @@ MODULE                        : MultiFlavor.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
+        buildType                     : debug
     - basicVariant:               : firstAbcSecondXyzDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondXyz.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondXyz.debug.test
+        buildType                     : debug
     - basicVariant:               : firstXyzSecondAbcDebug
         applicationId                 : com.example.multiflavor.secondAbc.debug
         testApplicationId             : com.example.multiflavor.secondAbc.debug.test
+        buildType                     : debug
     - basicVariant:               : firstXyzSecondXyzDebug
         applicationId                 : com.example.multiflavor.secondXyz.debug
         testApplicationId             : com.example.multiflavor.secondXyz.debug.test
+        buildType                     : debug
     - basicVariant:               : firstAbcSecondAbcRelease
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.release
+        buildType                     : release
     - basicVariant:               : firstAbcSecondXyzRelease
         applicationId                 : com.example.multiflavor.firstAbc.secondXyz.release
+        buildType                     : release
     - basicVariant:               : firstXyzSecondAbcRelease
         applicationId                 : com.example.multiflavor.secondAbc.release
+        buildType                     : release
     - basicVariant:               : firstXyzSecondXyzRelease
         applicationId                 : com.example.multiflavor.secondXyz.release
+        buildType                     : release
     FlavorDimensions              : Dim1
     FlavorDimensions              : Dim2
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -1202,6 +1249,7 @@ MODULE                        : MultiFlavor.app
                 b                             : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -1260,6 +1308,7 @@ MODULE                        : MultiFlavor.app
                 b                             : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -1847,7 +1896,7 @@ MODULE                        : MultiFlavor.app
                     ApkFromBundleTaskName         : extractApksForFirstAbcSecondAbcDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/createFirstAbcSecondAbcDebugApksFromBundleListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugAndroidTestSources
@@ -2088,7 +2137,7 @@ MODULE                        : MultiFlavor.app
                     AssembleTaskName              : assembleFirstAbcSecondAbcDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcDebugAndroidTest/createFirstAbcSecondAbcDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2328,7 +2377,7 @@ MODULE                        : MultiFlavor.app
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : androidx.appcompat:appcompat:1.1.0@aar
                             androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : MultiFlavor.app.androidTest
 MODULE                        : MultiFlavor.app.main

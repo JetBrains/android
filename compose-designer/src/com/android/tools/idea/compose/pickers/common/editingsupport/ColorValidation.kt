@@ -39,7 +39,7 @@ internal object ColorValidation : EditingValidation {
     ) {
       return Pair(
         EditingErrorCategory.ERROR,
-        message("picker.preview.input.validation.color.format")
+        message("picker.preview.input.validation.color.format"),
       )
     }
 
@@ -47,7 +47,7 @@ internal object ColorValidation : EditingValidation {
       colorHexValue.toLongOrNull(16)
         ?: return Pair(
           EditingErrorCategory.ERROR,
-          message("picker.preview.input.validation.color.format")
+          message("picker.preview.input.validation.color.format"),
         )
     if (colorValue > 0xFFFFFFFFL) {
       return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.color.max"))
@@ -55,7 +55,7 @@ internal object ColorValidation : EditingValidation {
     if (colorValue < 0) {
       return Pair(
         EditingErrorCategory.ERROR,
-        message("picker.preview.input.validation.color.negative")
+        message("picker.preview.input.validation.color.negative"),
       )
     }
 
@@ -63,7 +63,7 @@ internal object ColorValidation : EditingValidation {
     if (colorHexValue.length <= 6) {
       return Pair(
         EditingErrorCategory.WARNING,
-        message("picker.preview.input.validation.color.alpha")
+        message("picker.preview.input.validation.color.alpha"),
       )
     }
     return EDITOR_NO_ERROR

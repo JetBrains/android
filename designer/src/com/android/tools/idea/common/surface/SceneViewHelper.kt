@@ -40,7 +40,7 @@ fun SceneView.selectComponentAt(
   @SwingCoordinate y: Int,
   @JdkConstants.InputEventMask modifiersEx: Int,
   allowToggle: Boolean,
-  ignoreIfAlreadySelected: Boolean
+  ignoreIfAlreadySelected: Boolean,
 ): NlComponent? {
 
   val xDip = Coordinates.getAndroidXDip(this, x)
@@ -76,7 +76,7 @@ fun SceneView.selectComponentAt(
 fun SceneView.selectComponent(
   component: NlComponent?,
   allowToggle: Boolean,
-  ignoreIfAlreadySelected: Boolean
+  ignoreIfAlreadySelected: Boolean,
 ) {
   if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
     return

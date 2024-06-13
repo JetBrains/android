@@ -22,11 +22,8 @@
   <vendor url="https://www.android.com">JetBrains, Google</vendor>
 
   <depends>org.jetbrains.android</depends>
+  <depends>com.intellij.java</depends>
   <depends>org.jetbrains.kotlin</depends>
-
-  <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <highlighterExtension implementation="com.android.tools.compose.ComposableHighlightingVisitorExtension"/>
-  </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
@@ -66,9 +63,6 @@
 
     <codeCompletionConfigurable instance="com.android.tools.compose.ComposeCodeCompletionConfigurable"/>
     <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
-
-    <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
-    <postStartupActivity implementation="com.android.tools.compose.ComposeAutoDocumentation$MyStartupActivity"/>
 
     <completion.contributor language="kotlin"
                             id="ComposeCompletionContributor"
@@ -169,6 +163,12 @@
     <codeInsight.inlayActionHandler implementationClass="com.android.tools.compose.code.state.ComposeStateReadInlayActionHandler"
                                     handlerId="compose.state.read" />
   </extensions>
+
+  <projectListeners>
+    <listener class="com.android.tools.compose.ComposeAutoDocumentation$MyLookupManagerListener"
+              topic="com.intellij.codeInsight.lookup.LookupManagerListener"
+              activeInHeadlessMode="false"/>
+  </projectListeners>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
     <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.ComposeTypeResolutionInterceptorExtension"/>

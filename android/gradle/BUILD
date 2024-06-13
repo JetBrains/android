@@ -10,6 +10,7 @@ iml_module(
     test_data = [
         "//prebuilts/studio/jdk:jdk_1_8",
         "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android:test_deps",
@@ -32,7 +33,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -41,7 +43,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
@@ -57,9 +59,10 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
-        "//tools/adt/idea/explainer:intellij.android.explainer[module, test]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
         "//tools/adt/idea/android/gradle:libandroid-core-proto[test]",
+        "//tools/adt/idea/.idea/libraries:agp-version[test]",
     ],
 )
 

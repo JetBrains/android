@@ -31,8 +31,8 @@ class WorkEntry(override val id: String) : BackgroundTaskEntry {
   override val isValid
     get() = _isValid
 
-  override val className
-    get() = work.workerClassName.substringAfterLast('.')
+  override val className: String
+    get() = work.workerClassName
 
   override val status
     get() = work.state.name

@@ -42,7 +42,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
-import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.parentOfTypes
 import java.util.Deque
 
 /**
@@ -58,6 +58,7 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
   val psiElementCopy = AndroidSqlParserDefinition.parseSqlQuery(psiElement.project, psiElement.text)
   val parametersNames = mutableListOf<SqliteParameter>()
 
+  @Suppress("UnstableApiUsage")
   invokeAndWaitIfNeeded {
     runUndoTransparentWriteAction {
       val visitor =
@@ -70,14 +71,14 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
                 bindParameterText
               } else {
                 val parent =
-                  bindParameter.parentOfType(
+                  bindParameter.parentOfTypes(
                     AndroidSqlEquivalenceExpression::class,
-                    AndroidSqlComparisonExpression::class
+                    AndroidSqlComparisonExpression::class,
                   )
 
                 // If there is no parent of type EquivalenceExpression or ComparisonExpression keep
                 // '?' as the variable name.
-                // Otherwise use the name of the column.
+                // Otherwise, use the name of the column.
                 parent
                   ?.children
                   ?.filterIsInstance<AndroidSqlColumnRefExpression>()
@@ -88,7 +89,7 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
             parametersNames.add(SqliteParameter(parameterName, parentIsInExpression(bindParameter)))
             bindParameter.node.replaceChild(
               bindParameter.node.firstChildNode,
-              ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?")
+              ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?"),
             )
           }
         }
@@ -104,11 +105,12 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
 
 fun expandCollectionParameters(
   psiElement: PsiElement,
-  parameterValues: Deque<SqliteParameterValue>
+  parameterValues: Deque<SqliteParameterValue>,
 ): PsiElement {
   // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
   val psiElementCopy = AndroidSqlParserDefinition.parseSqlQuery(psiElement.project, psiElement.text)
 
+  @Suppress("UnstableApiUsage")
   invokeAndWaitIfNeeded {
     runUndoTransparentWriteAction {
       val visitor =
@@ -153,6 +155,7 @@ fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteV
   // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
   val psiElementCopy = AndroidSqlParserDefinition.parseSqlQuery(psiElement.project, psiElement.text)
 
+  @Suppress("UnstableApiUsage")
   invokeAndWaitIfNeeded {
     runUndoTransparentWriteAction {
       val visitor =
@@ -163,7 +166,7 @@ fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteV
                 is SqliteValue.StringValue -> {
                   ASTFactory.leaf(
                     AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL,
-                    AndroidSqlLexer.getValidStringValue(sqliteValue.value)
+                    AndroidSqlLexer.getValidStringValue(sqliteValue.value),
                   )
                 }
                 is SqliteValue.NullValue -> ASTFactory.leaf(AndroidSqlPsiTypes.NULL, "null")
@@ -187,6 +190,7 @@ fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteV
  */
 fun needsBinding(psiElement: PsiElement): Boolean {
   var needsBinding = false
+  @Suppress("UnstableApiUsage")
   invokeAndWaitIfNeeded {
     runUndoTransparentWriteAction {
       val visitor =
@@ -279,7 +283,7 @@ private fun parentIsInExpression(bindParameter: AndroidSqlBindParameter): Boolea
 }
 
 /**
- * @param statementText SQLite statement where parameters have been replaced with '?'
+ * @param statementText A SQLite statement where parameters have been replaced with '?'
  * @param parameters the name of the parameters that have been replaced with '?'
  */
 data class ParsedSqliteStatement(val statementText: String, val parameters: List<SqliteParameter>)

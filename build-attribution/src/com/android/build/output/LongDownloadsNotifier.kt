@@ -63,7 +63,6 @@ class LongDownloadsNotifier(
     }
     val taskFuture = scheduler.scheduleWithFixedDelay(runnable, notificationThresholdInSeconds, notificationRecheckDelayInSeconds, TimeUnit.SECONDS)
     Disposer.register(buildFinishedDisposable) { taskFuture.cancel(false) }
-    Disposer.register(project) { taskFuture.cancel(false) }
   }
 
   fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {

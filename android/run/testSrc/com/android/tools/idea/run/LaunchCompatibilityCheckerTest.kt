@@ -30,7 +30,7 @@ class LaunchCompatibilityCheckerTest {
 
   @Test
   fun create() {
-    val checker = LaunchCompatibilityCheckerImpl.create(projectRule.module.androidFacet!!, null, null)
+    val checker = LaunchCompatibilityCheckerImpl.create(projectRule.module.androidFacet!!)
       as? LaunchCompatibilityCheckerImpl
     assertThat(checker).isNotNull()
     // Verify that we got a non-default AndroidVersion from the model

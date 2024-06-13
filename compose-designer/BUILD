@@ -1,3 +1,4 @@
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
@@ -7,20 +8,20 @@ load("//tools/base/bazel:maven.bzl", "maven_repository")
 iml_module(
     name = "intellij.android.compose-designer",
     # do not sort: must match IML order
-    srcs = [
-        "gen",
-        "src",
-    ],
+    srcs = ["src"],
     iml_files = ["intellij.android.compose-designer.iml"],
+    kotlin_use_compose = True,
     lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
@@ -38,6 +39,9 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
+        "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module]",
     ],
 )
 
@@ -45,6 +49,7 @@ iml_module(
 iml_module(
     name = "intellij.android.compose-designer.tests",
     iml_files = ["intellij.android.compose-designer.tests.iml"],
+    kotlin_use_compose = True,
     split_test_targets = {
         "gradle.fast": {
             "tags": ["cpu:3"],
@@ -73,6 +78,7 @@ iml_module(
         },
         # Can probably be grouped into gradle-other once flakiness is fixed: b/261126651, b/272048512
         "RenderErrorTest": {
+            "shard_count": 3,
             "test_filter": "com.android.tools.idea.compose.gradle.preview.RenderErrorTest",
         },
         "gradle-other": {
@@ -129,10 +135,11 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
@@ -142,6 +149,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -162,6 +170,9 @@ iml_module(
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/adt/idea/preview-designer:intellij.android.preview-designer.tests[module, test]",
+        "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
     ],
 )
 
@@ -216,9 +227,10 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:JUnit",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -228,9 +240,9 @@ iml_module(
 
 compose_preview_data = [
     ":compose_preview_deps",
-    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//tools/adt/idea/compose-designer/testData:composepreview",
-    "//tools/base/build-system:gradle-distrib-7.5",
+    INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
 maven_repository(
@@ -247,11 +259,12 @@ maven_repository(
         "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.3.1",
-        "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
-        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
-        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-parcelize-compiler_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-parcelize-runtime_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],

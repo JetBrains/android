@@ -81,7 +81,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
     // If we have the icon wrapper, there's no need to start a new loading process.
     if (iconsWrapper.get() != null) return
 
-    if (!iconLoadingInProgress.compareAndSet(/* expectedValue = */ false, /* newValue = */ true)) {
+    if (!iconLoadingInProgress.compareAndSet(/* expectedValue= */ false, /* newValue= */ true)) {
       // Icons are already being loaded, so do nothing.
       return
     }
@@ -99,7 +99,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
 
   private fun materialVdIconsLoadedCallback(
     icons: MaterialVdIcons,
-    status: MaterialVdIconsProvider.Status
+    status: MaterialVdIconsProvider.Status,
   ) {
     // Store a wrapper using returned icons. When this callback is called multiple times, each call
     // supersedes the last and contains a
@@ -135,7 +135,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
      */
     private fun callLoadMaterialVdIcons(
       refreshUiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit,
-      parentDisposable: Disposable
+      parentDisposable: Disposable,
     ) {
       MaterialVdIconsProvider.loadMaterialVdIcons(refreshUiCallback, parentDisposable)
     }

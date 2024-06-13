@@ -24,6 +24,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -112,6 +113,8 @@ abstract class WarningsFilterToggleAction(
     templatePresentation.icon = toggleableIcon
     templatePresentation.selectedIcon = toggleableSelectedIcon
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -285,6 +288,8 @@ abstract class TasksFilterToggleAction(
     templatePresentation.icon = toggleableIcon
     templatePresentation.selectedIcon = toggleableSelectedIcon
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     super.update(e)

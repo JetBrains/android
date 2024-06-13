@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.res
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging
 import com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging
-import com.android.utils.TraceUtils
+import com.android.tools.idea.util.toPathString
+import com.android.utils.TraceUtils.simpleId
 import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -29,13 +31,29 @@ import com.google.common.collect.Sets
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
+import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbModeTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiTreeChangeListener
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.Consumer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
@@ -52,21 +70,29 @@ import java.util.function.BiConsumer
  * directory a namespaced and non-namespaced repository may be created, if needed.
  */
 class ResourceFolderRegistry(val project: Project) : Disposable {
-  private val myNamespacedCache = buildCache()
-  private val myNonNamespacedCache = buildCache()
-  private val myCaches = ImmutableList.of(myNamespacedCache, myNonNamespacedCache)
+  private val namespacedCache = buildCache()
+  private val nonNamespacedCache = buildCache()
+  private val cacheList = ImmutableList.of(namespacedCache, nonNamespacedCache)
 
   init {
-    project.messageBus
-      .connect(this)
-      .subscribe(
-        ModuleRootListener.TOPIC,
-        object : ModuleRootListener {
-          override fun rootsChanged(event: ModuleRootEvent) {
-            removeStaleEntries()
-          }
+    val moduleRootListener =
+      object : ModuleRootListener {
+        override fun rootsChanged(event: ModuleRootEvent) {
+          removeStaleEntries()
         }
-      )
+      }
+    val vfsListener = ResourceFolderVfsListener(this)
+    val fileDocumentManagerListener = ResourceFolderFileDocumentManagerListener(this)
+
+    with(project.messageBus.connect(this)) {
+      subscribe(ModuleRootListener.TOPIC, moduleRootListener)
+      subscribe(VirtualFileManager.VFS_CHANGES, vfsListener)
+      subscribe(FileDocumentManagerListener.TOPIC, fileDocumentManagerListener)
+    }
+
+    EditorFactory.getInstance()
+      .eventMulticaster
+      .addDocumentListener(ResourceFolderDocumentListener(project, this), this)
   }
 
   operator fun get(facet: AndroidFacet, dir: VirtualFile) =
@@ -76,10 +102,10 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   operator fun get(
     facet: AndroidFacet,
     dir: VirtualFile,
-    namespace: ResourceNamespace
+    namespace: ResourceNamespace,
   ): ResourceFolderRepository {
     val cache =
-      if (namespace === ResourceNamespace.RES_AUTO) myNonNamespacedCache else myNamespacedCache
+      if (namespace === ResourceNamespace.RES_AUTO) nonNamespacedCache else namespacedCache
     val repository = cache.getAndUnwrap(dir) { createRepository(facet, dir, namespace) }
     assert(repository.namespace == namespace)
 
@@ -94,21 +120,20 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
    * already exist.
    */
   fun getCached(dir: VirtualFile, namespacing: Namespacing): ResourceFolderRepository? {
-    val cache =
-      if (namespacing === Namespacing.REQUIRED) myNamespacedCache else myNonNamespacedCache
+    val cache = if (namespacing === Namespacing.REQUIRED) namespacedCache else nonNamespacedCache
     return cache.getIfPresent(dir)
   }
 
   fun reset(facet: AndroidFacet) {
-    ResourceUpdateTracer.logDirect { "${TraceUtils.getSimpleId(this)}.reset()" }
-    reset(myNamespacedCache, facet)
-    reset(myNonNamespacedCache, facet)
+    ResourceUpdateTracer.logDirect { "$simpleId.reset()" }
+    reset(namespacedCache, facet)
+    reset(nonNamespacedCache, facet)
   }
 
   private fun reset(cache: Cache<VirtualFile, ResourceFolderRepository>, facet: AndroidFacet) {
     val cacheAsMap = cache.asMap()
     if (cacheAsMap.isEmpty()) {
-      ResourceUpdateTracer.logDirect { TraceUtils.getSimpleId(this) + ".reset: cache is empty" }
+      ResourceUpdateTracer.logDirect { "$simpleId.reset: cache is empty" }
       return
     }
 
@@ -123,17 +148,15 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   private fun removeStaleEntries() {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories
     // which are no longer needed.
-    ResourceUpdateTracer.logDirect { "${TraceUtils.getSimpleId(this)}.removeStaleEntries()" }
-    removeStaleEntries(myNamespacedCache)
-    removeStaleEntries(myNonNamespacedCache)
+    ResourceUpdateTracer.logDirect { "$simpleId.removeStaleEntries()" }
+    removeStaleEntries(namespacedCache)
+    removeStaleEntries(nonNamespacedCache)
   }
 
   private fun removeStaleEntries(cache: Cache<VirtualFile, ResourceFolderRepository>) {
     val cacheAsMap = cache.asMap()
     if (cacheAsMap.isEmpty()) {
-      ResourceUpdateTracer.logDirect {
-        TraceUtils.getSimpleId(this) + ".removeStaleEntries: cache is empty"
-      }
+      ResourceUpdateTracer.logDirect { "$simpleId.removeStaleEntries: cache is empty" }
       return
     }
     val facets: MutableSet<AndroidFacet> = Sets.newHashSetWithExpectedSize(cacheAsMap.size)
@@ -147,19 +170,19 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
       }
     }
     ResourceUpdateTracer.logDirect {
-      "${TraceUtils.getSimpleId(this)}.removeStaleEntries retained ${pathsForLogging(newResourceFolders, project)}"
+      "$simpleId.removeStaleEntries retained ${pathsForLogging(newResourceFolders, project)}"
     }
     cacheAsMap.keys.retainAll(newResourceFolders)
   }
 
   override fun dispose() {
-    myNamespacedCache.invalidateAll()
-    myNonNamespacedCache.invalidateAll()
+    namespacedCache.invalidateAll()
+    nonNamespacedCache.invalidateAll()
   }
 
   fun dispatchToRepositories(
     file: VirtualFile,
-    handler: BiConsumer<ResourceFolderRepository?, VirtualFile?>
+    handler: BiConsumer<ResourceFolderRepository, VirtualFile>,
   ) {
     ResourceUpdateTracer.log {
       "ResourceFolderRegistry.dispatchToRepositories(${pathForLogging(file)}, ...) VFS change"
@@ -167,28 +190,22 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     var dir = if (file.isDirectory) file else file.parent
     while (dir != null) {
-      for (cache in myCaches) {
-        val repository = cache.getIfPresent(dir)
-        if (repository != null) {
-          handler.accept(repository, file)
-        }
+      for (cache in cacheList) {
+        cache.getIfPresent(dir)?.let { handler.accept(it, file) }
       }
       dir = dir.parent
     }
   }
 
-  fun dispatchToRepositories(file: VirtualFile, invokeCallback: Consumer<PsiTreeChangeListener?>) {
+  fun dispatchToRepositories(file: VirtualFile, invokeCallback: Consumer<PsiTreeChangeListener>) {
     ResourceUpdateTracer.log {
       "ResourceFolderRegistry.dispatchToRepositories(${pathForLogging(file)}, ...) PSI change"
     }
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     var dir = if (file.isDirectory) file else file.parent
     while (dir != null) {
-      for (cache in myCaches) {
-        val repository = cache.getIfPresent(dir)
-        if (repository != null) {
-          invokeCallback.consume(repository.psiListener)
-        }
+      for (cache in cacheList) {
+        cache.getIfPresent(dir)?.let { invokeCallback.consume(it.psiListener) }
       }
       dir = dir.parent
     }
@@ -201,7 +218,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   private fun createRepository(
     facet: AndroidFacet,
     dir: VirtualFile,
-    namespace: ResourceNamespace
+    namespace: ResourceNamespace,
   ): ResourceFolderRepository {
     // Don't create a persistent cache in tests to avoid unnecessary overhead.
     val executor =
@@ -215,10 +232,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
 
   companion object {
 
-    @JvmStatic
-    fun getInstance(project: Project): ResourceFolderRegistry {
-      return project.getService(ResourceFolderRegistry::class.java)
-    }
+    @JvmStatic fun getInstance(project: Project): ResourceFolderRegistry = project.service()
   }
 
   /** Populate the registry's in-memory ResourceFolderRepository caches (if not already cached). */
@@ -277,5 +291,121 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
         ++numDone
       }
     }
+  }
+}
+
+private class ResourceFolderDocumentListener(
+  private val project: Project,
+  private val registry: ResourceFolderRegistry,
+) : DocumentListener {
+
+  override fun documentChanged(event: DocumentEvent) {
+    // Note that event may arrive from any project, not only from the project parameter.
+    // The project parameter can be temporarily disposed in light tests.
+    if (project.isDisposed) return
+
+    val document = event.document
+    if (PsiDocumentManager.getInstance(project).getCachedPsiFile(document) == null) {
+      val virtualFile = FileDocumentManager.getInstance().getFile(document) ?: return
+      if (virtualFile is LightVirtualFile || !isRelevantFile(virtualFile)) return
+
+      runInWriteAction {
+        registry.dispatchToRepositories(virtualFile) { repo, f -> repo.scheduleScan(f) }
+      }
+    }
+  }
+
+  private fun runInWriteAction(runnable: Runnable) {
+    val application = ApplicationManager.getApplication()
+    if (application.isWriteAccessAllowed) runnable.run()
+    else application.invokeLater { application.runWriteAction(runnable) }
+  }
+}
+
+/**
+ * [BulkFileListener] which handles [VFileEvent]s for resource folder. When an event happens on a
+ * file within a folder with a corresponding [ResourceFolderRepository], the event is delegated to
+ * it.
+ */
+private class ResourceFolderVfsListener(private val registry: ResourceFolderRegistry) :
+  BulkFileListener {
+  @UiThread
+  override fun before(events: List<VFileEvent>) {
+    for (event in events) {
+      when (event) {
+        is VFileMoveEvent -> onFileOrDirectoryRemoved(event.file)
+        is VFileDeleteEvent -> onFileOrDirectoryRemoved(event.file)
+        is VFilePropertyChangeEvent -> if (event.isRename) onFileOrDirectoryRemoved(event.file)
+      }
+    }
+  }
+
+  override fun after(events: List<VFileEvent>) {
+    for (event in events) {
+      when (event) {
+        is VFileCreateEvent -> onFileOrDirectoryCreated(event.parent, event.childName)
+        is VFileCopyEvent -> onFileOrDirectoryCreated(event.newParent, event.newChildName)
+        is VFileMoveEvent -> onFileOrDirectoryCreated(event.newParent, event.file.name)
+        is VFilePropertyChangeEvent ->
+          if (event.isRename) {
+            event.file.parent?.let { onFileOrDirectoryCreated(it, event.newValue as String) }
+          }
+      // VFileContentChangeEvent changes are not handled at the VFS level, but either in
+      // fileWithNoDocumentChanged, documentChanged or MyPsiListener.
+      }
+    }
+  }
+
+  private fun onFileOrDirectoryCreated(parent: VirtualFile?, childName: String) {
+    ResourceUpdateTracer.log {
+      val pathToLog =
+        if (parent == null) childName
+        else pathForLogging(parent.toPathString().resolve(childName), registry.project)
+      "ResourceFolderVfsListener.onFileOrDirectoryCreated($pathToLog)"
+    }
+    val created = parent?.takeIf(VirtualFile::exists)?.findChild(childName) ?: return
+    val resDir = if (created.isDirectory) parent else parent.parent ?: return
+
+    registry.dispatchToRepositories(resDir) { repo, _ -> onFileOrDirectoryCreated(created, repo) }
+  }
+
+  private fun onFileOrDirectoryRemoved(file: VirtualFile) {
+    registry.dispatchToRepositories(file) { repo, f -> repo.onFileOrDirectoryRemoved(f) }
+  }
+
+  companion object {
+    private fun onFileOrDirectoryCreated(
+      created: VirtualFile,
+      repository: ResourceFolderRepository?,
+    ) {
+      if (repository == null) return
+
+      ResourceUpdateTracer.log {
+        "ResourceFolderVfsListener.onFileOrDirectoryCreated($created, ${repository.displayName})"
+      }
+      if (!created.isDirectory) {
+        repository.onFileCreated(created)
+      } else {
+        // ResourceFolderRepository doesn't handle event on a whole folder, so we pass all the
+        // children.
+        for (child in created.children) {
+          if (!child.isDirectory) {
+            // There is no need to visit subdirectories because Android does not support them.
+            // If a base resource directory is created (e.g res/), a whole
+            // ResourceFolderRepository will be created separately, so we don't need to handle
+            // this case here.
+            repository.onFileCreated(child)
+          }
+        }
+      }
+    }
+  }
+}
+
+private class ResourceFolderFileDocumentManagerListener(
+  private val registry: ResourceFolderRegistry
+) : FileDocumentManagerListener {
+  override fun fileWithNoDocumentChanged(file: VirtualFile) {
+    registry.dispatchToRepositories(file) { repo, f -> repo.scheduleScan(f) }
   }
 }

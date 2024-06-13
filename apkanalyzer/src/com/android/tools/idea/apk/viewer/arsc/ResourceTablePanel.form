@@ -8,7 +8,7 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="324c5" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
+      <grid id="324c5" binding="myHeader" layout-manager="FlowLayout" hgap="10" vgap="0" flow-align="0">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>

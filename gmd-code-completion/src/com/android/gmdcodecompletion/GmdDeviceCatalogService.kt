@@ -29,7 +29,7 @@ abstract class GmdDeviceCatalogService<T : GmdDeviceCatalogState>(
   private val emptyDeviceCatalogState: T,
   private val myServiceName: String) : PersistentStateComponent<T> {
 
-  protected abstract var myDeviceCatalogState: T
+  private lateinit var myDeviceCatalogState: T
 
   /**
    * In the load state and get state functions, we are not guaranteed that myDeviceCatalogState
@@ -67,12 +67,18 @@ abstract class GmdDeviceCatalogService<T : GmdDeviceCatalogState>(
      */
     if (myLock.tryLock()) {
       try {
-        return myDeviceCatalogState
+        if (this::myDeviceCatalogState.isInitialized) return myDeviceCatalogState
       }
       finally {
         myLock.unlock()
       }
     }
     return emptyDeviceCatalogState
+  }
+
+  protected fun setState(state: T){
+    myLock.withLock {
+      myDeviceCatalogState = state
+    }
   }
 }

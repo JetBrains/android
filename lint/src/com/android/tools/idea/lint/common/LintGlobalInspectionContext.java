@@ -26,6 +26,7 @@ import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionContext;
+import com.intellij.codeInspection.ex.GlobalInspectionContextBase;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
@@ -130,12 +131,15 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
     }
 
     final Map<Issue, Map<File, List<LintProblemData>>> problemMap = new HashMap<>();
-    AnalysisScope scope = context.getRefManager().getScope();
+    AnalysisScope scope = null;
+    if (context instanceof GlobalInspectionContextBase) {
+      scope = ((GlobalInspectionContextBase)context).getCurrentScope();
+    }
     if (scope == null) {
-      scope = AndroidLintLintBaselineInspection.ourRerunScope;
-      if (scope == null) {
-        return;
-      }
+      scope = context.getRefManager().getScope();
+    }
+    if (scope == null) {
+      return;
     }
 
     LintBatchResult lintResult = new LintBatchResult(project, problemMap, scope, issues);
@@ -274,7 +278,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
         }
       }
       File baselineFile = ideSupport.getBaselineFile(client, module);
-      if (baselineFile != null && !AndroidLintLintBaselineInspection.ourSkipBaselineNextRun) {
+      if (baselineFile != null && !AbstractBaselineInspection.ourSkipBaselineNextRun) {
         if (!baselineFile.isAbsolute()) {
           String path = module.getProject().getBasePath();
           if (path != null) {
@@ -286,7 +290,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
         if (!baselineFile.isFile()) {
           myBaseline.setWriteOnClose(true);
         }
-        else if (AndroidLintLintBaselineInspection.ourUpdateBaselineNextRun) {
+        else if (AbstractBaselineInspection.ourUpdateBaselineNextRun) {
           myBaseline.setRemoveFixed(true);
           myBaseline.setWriteOnClose(true);
         }
@@ -331,7 +335,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    AndroidLintLintBaselineInspection.clearNextRunState();
+    AbstractBaselineInspection.clearNextRunState();
     lint.setAnalysisStartTime(startTime);
     ideSupport.logSession(lint, severityModule, lintResult);
     myResults = problemMap;

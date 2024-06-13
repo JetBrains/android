@@ -26,7 +26,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.PathUtil
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
+import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -48,19 +48,27 @@ class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
     listOf(
       File(
         getComposePluginTestDataPath(),
-        PathUtil.toSystemDependentName(TestProjectPaths.REPO_FOR_SAMPLES_ARTIFACT_TEST)
+        PathUtil.toSystemDependentName(TestProjectPaths.REPO_FOR_SAMPLES_ARTIFACT_TEST),
       )
     )
 
+  /**
+   * core:haptics was chosen arbitrarily. Non-samples dependencies were removed. Library is not KMP.
+   */
   fun testDownloadingAndAttachingSamples() {
     loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
     val libraryFilePaths = LibraryFilePaths.getInstance(myFixture.project)
 
     val androidxSamples =
-      libraryFilePaths.getCachedPathsForArtifact("androidx.ui:lib:3.0")?.sources!!
+      libraryFilePaths
+        .getCachedPathsForArtifact("androidx.core.haptics:haptics:1.0.0-alpha01")
+        ?.sources!!
     assertThat(androidxSamples.map { it.name })
-      .containsExactly("lib-3.0-sources.jar", "lib-3.0-samplesources.jar")
+      .containsExactly(
+        "haptics-1.0.0-alpha01-sources.jar",
+        "haptics-1.0.0-alpha01-samples-sources.jar",
+      )
   }
 
   fun testResolveSampleReference() {
@@ -68,22 +76,21 @@ class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
 
     val file =
       VfsUtil.findFile(
-        Paths.get(project.basePath, "/app/src/main/java/com/example/appforsamplestest/Main.kt"),
-        false
+        Paths.get(project.basePath!!, "/app/src/main/java/com/example/appforsamplestest/Main.kt"),
+        false,
       )
     assume().that(file).isNotNull()
     myFixture.openFileInEditor(file!!)
 
-    myFixture.moveCaret("myFuncti|on").navigationElement
+    myFixture.moveCaret("of|f").navigationElement
     val librarySourceFunction = myFixture.elementAtCaret.navigationElement as KtNamedFunction
     assume().that(librarySourceFunction).isNotNull()
 
     val sampleTag = librarySourceFunction.docComment!!.getDefaultSection().findTagByName("sample")!!
     val sample =
-      PsiTreeUtil.findChildOfType<KDocName>(sampleTag, KDocName::class.java)
-        ?.mainReference
-        ?.resolve()
+      PsiTreeUtil.findChildOfType(sampleTag, KDocName::class.java)!!.mainReference.resolve()
     assume().that(sample).isNotNull()
-    assertThat(sample!!.getKotlinFqName()!!.asString()).isEqualTo("app.samples.sampleFunction")
+    assertThat(sample!!.kotlinFqName!!.asString())
+      .isEqualTo("androidx.core.haptics.samples.PatternWaveform")
   }
 }

@@ -154,7 +154,7 @@ class GmdCodeCompletionContributor : CompletionContributor() {
     ProgressManager.checkCanceled()
     // GMD definition is only available if Gradle build file is inside a module
     parameters.position.module ?: return
-    if (deviceCatalog.isEmpty()) return
+    if (deviceCatalog.isEmptyCatalog) return
 
     val currentPosition = parameters.position
     val configurationParameterName: ConfigurationParameterName? = getCompletionParameterName(currentPosition)

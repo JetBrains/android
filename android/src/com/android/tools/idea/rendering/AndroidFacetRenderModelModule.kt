@@ -25,7 +25,8 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
-import com.android.tools.module.ModuleKeyManager
+import com.android.tools.idea.module.ModuleKeyManager
+import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.api.EnvironmentContext
@@ -84,12 +85,12 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     }
   override val resourceRepositoryManager: StudioResourceRepositoryManager
     get() = StudioResourceRepositoryManager.getInstance(facet)
-  override val info: AndroidModuleInfo
-    get() = StudioAndroidModuleInfo.getInstance(facet)
+  override val info: AndroidModuleInfo?
+    get() = if (facet.isDisposed) null else StudioAndroidModuleInfo.getInstance(facet)
   override val androidPlatform: AndroidPlatform?
     get() = getInstance(facet.module)
   override val resourceIdManager: ResourceIdManager
-    get() = ResourceIdManager.get(facet.module)
+    get() = StudioResourceIdManager.get(facet.module)
   override val moduleKey: ModuleKey
     get() = ModuleKeyManager.getKey(facet.module)
   override val resourcePackage: String?

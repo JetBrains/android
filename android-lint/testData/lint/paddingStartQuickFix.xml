@@ -4,9 +4,9 @@
                 android:layout_height="match_parent">
 
   <TextView
-      <error>android:padd<caret>ingStart</error>="12sp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      <error>android:padd<caret>ingStart</error>="12sp"
   />
 
   <EditText

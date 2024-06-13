@@ -23,18 +23,19 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_NESTED;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.OPEN_FILE;
+import static com.intellij.util.progress.CancellationUtil.sleepCancellable;
 
 import com.android.SdkConstants;
-import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
@@ -50,6 +51,9 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.ScenesOwner;
+import com.android.tools.idea.common.surface.ZoomChange;
+import com.android.tools.idea.common.surface.ZoomListener;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.ActionType;
@@ -76,6 +80,10 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -115,7 +123,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * {@link DesignSurface} for the navigation editor.
  */
-public class NavDesignSurface extends DesignSurface<NavSceneManager> {
+public class NavDesignSurface extends DesignSurface<NavSceneManager> implements ZoomListener {
   private static final int SCROLL_DURATION_MS = 300;
   private static final Object CONNECTION_CLIENT_PROPERTY_KEY = new Object();
   private static final String FAILED_DEPENDENCY = "Failed to add navigation dependency";
@@ -137,6 +145,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
 
   private static final List<GoogleMavenArtifactId> ANDROIDX_NAVIGATION_DEPENDENCIES_KTX =
     ImmutableList.of(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_FRAGMENT_KTX, GoogleMavenArtifactId.ANDROIDX_NAVIGATION_UI_KTX);
+
+  private final NavDesignSurfaceZoomController myZoomController;
 
   @TestOnly
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
@@ -164,6 +174,16 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     });
 
     getSelectionModel().addListener((unused, selection) -> updateCurrentNavigation(selection));
+    myZoomController = new NavDesignSurfaceZoomController(
+      getSize(),
+      getViewport(),
+      this::getSceneManager,
+      this::getSizeFromSceneView,
+      getAnalyticsManager(),
+      getSelectionModel(),
+      (ScenesOwner) this
+    );
+    myZoomController.setZoomListener(this);
   }
 
   @NotNull
@@ -174,6 +194,11 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     //  SceneManager#requestRender() doesn't re-inflate the NlModel.
     SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
     return manager != null ? manager.requestRenderAsync() : CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public @Nullable LayoutManagerSwitcher getLayoutManagerSwitcher() {
+    return null;
   }
 
   @Override
@@ -256,14 +281,23 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
         Futures.addCallback(syncResult, new FutureCallback<Object>() {
           @Override
           public void onSuccess(@Nullable Object unused) {
-            application.executeOnPooledThread(() -> {
-              if (!tryToCreateSchema(facet)) {
+            ProgressManager.getInstance().runProcessWithProgressAsynchronously(new Task.Backgroundable(getProject(), "Waiting for schema to be ready...") {
+              @Override
+              public void run(@NotNull ProgressIndicator indicator) {
+                final int initialAttempts = 3;
+                int attempts = initialAttempts;
+                while (attempts > 0) {
+                  DumbService.getInstance(getProject()).waitForSmartMode();
+                  if (tryToCreateSchema(facet)) {
+                    result.complete(null);
+                    return;
+                  }
+                  attempts--;
+                  sleepCancellable(500L * (initialAttempts - attempts));
+                }
                 showFailToAddMessage(result, model);
               }
-              else {
-                result.complete(null);
-              }
-            });
+            }, new EmptyProgressIndicator());
           }
 
           @Override
@@ -327,6 +361,12 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     if (maybeToken.isEmpty()) return false;
     NavDesignSurfaceToken<AndroidProjectSystem> token = maybeToken.get();
     return token.modifyProject(projectSystem, model);
+  }
+
+  @NotNull
+  @Override
+  public ZoomController getZoomController() {
+    return myZoomController;
   }
 
   @NotNull
@@ -436,7 +476,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
     getSceneManager().update();
     getSceneManager().layout(false);
-    zoomToFit();
+    myZoomController.zoomToFit();
     currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     repaint();
   }
@@ -444,32 +484,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
   @Override
   protected Dimension getScrollToVisibleOffset() {
     return new Dimension(0, 0);
-  }
-
-  @Override
-  public boolean setScale(double scale, int x, int y) {
-    SceneView view = getFocusedSceneView();
-    if (view == null) {
-      // There is no scene view. Nothing we can do.
-      return false;
-    }
-
-    Point oldViewPosition = getScrollPosition();
-    if (x < 0 || y < 0) {
-      x = oldViewPosition.x + getViewport().getViewportComponent().getWidth() / 2;
-      y = oldViewPosition.y + getViewport().getViewportComponent().getHeight() / 2;
-    }
-
-    @AndroidDpCoordinate int androidX = Coordinates.getAndroidXDip(view, x);
-    @AndroidDpCoordinate int androidY = Coordinates.getAndroidYDip(view, y);
-
-    boolean ret = super.setScale(scale, x, y);
-
-    @SwingCoordinate int shiftedX = Coordinates.getSwingXDip(view, androidX);
-    @SwingCoordinate int shiftedY = Coordinates.getSwingYDip(view, androidY);
-    getViewport().setViewPosition(new Point(oldViewPosition.x + shiftedX - x, oldViewPosition.y + shiftedY - y));
-
-    return ret;
   }
 
   @Override
@@ -481,53 +495,15 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     return false;
   }
 
-  @Override
-  protected double getMinScale() {
-    return isEmpty() ? 1.0 : 0.1;
-  }
-
-  @Override
-  protected double getMaxScale() {
-    return isEmpty() ? 1.0 : 3.0;
-  }
-
-  @Override
-  public boolean canZoomToFit() {
-    if (isEmpty()) {
-      return false;
-    }
-
-    Double fitScale = getFitScale();
-    Double scale = getScale();
-
-    return Math.abs(fitScale - scale) > SCALING_THRESHOLD;
-  }
-
-  @Override
-  public double getFitScale() {
-    Dimension size = new Dimension();
-    SceneView view = getFocusedSceneView();
-    if (view != null) {
-      SceneComponent root = view.getScene().getRoot();
-      if (root == null) {
-        size.setSize(0, 0);
-      }
-      else {
-        @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
-        size.setSize(boundingBox.getSize());
-      }
+  private Dimension getSizeFromSceneView(SceneView view) {
+    SceneComponent root = view.getScene().getRoot();
+    if (root == null) {
+      return new Dimension(0, 0);
     }
     else {
-      size.setSize(0, 0);
+      @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
+      return boundingBox.getSize();
     }
-
-    double scale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, size);
-    return Math.min(scale, 1.0);
-  }
-
-  private boolean isEmpty() {
-    NavSceneManager sceneManager = getSceneManager();
-    return sceneManager == null || sceneManager.isEmpty();
   }
 
   @Override
@@ -593,15 +569,12 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     super.notifyComponentActivate(component);
   }
 
-  @UiThread
   @Override
-  public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
-    // track user triggered change
-    getAnalyticsManager().trackZoom(type);
-    boolean scaled = super.zoom(type, x, y);
-    boolean isFitZoom = type == ZoomType.FIT;
+  public void onZoomChange(@NotNull ZoomChange update) {
+    boolean shouldRecenter = update.getZoomType() == ZoomType.FIT || update.getZoomType() == ZoomType.ACTUAL;
+    boolean scaled = update.getHasScaleChanged();
 
-    if (scaled || isFitZoom) {
+    if (scaled || shouldRecenter) {
       // The padding around the nav editor is calculated when NavSceneManager.requestLayout is called. If we have changed the scale
       // or we will re-center the area, we need to re-calculate the bounding box.
       NavSceneManager sceneManager = getSceneManager();
@@ -613,7 +586,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
       }
     }
 
-    if (isFitZoom) {
+    if (shouldRecenter) {
       // The navigation design surface differs from the other design surfaces in that there are
       // still scroll bars visible after doing a zoom to fit. As a result we need to explicitly
       // center the viewport.
@@ -622,7 +595,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
 
       setScrollPosition((size.width - visibleSize.width) / 2, (size.height - visibleSize.height) / 2);
     }
-    return scaled;
   }
 
   @Override
@@ -663,7 +635,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
       @SwingCoordinate int targetSwingY = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY());
 
       setScrollPosition(targetSwingX - pointSwingValue.x, targetSwingY - pointSwingValue.y);
-      setScale((double)zoomLerp.getValue(time), targetSwingX, targetSwingY);
+      getZoomController().setScale((double)zoomLerp.getValue(time), targetSwingX, targetSwingY);
       if (lerpPoint.isComplete(time)) {
         getScheduleRef().get().cancel(false);
         getScheduleRef().set(null);

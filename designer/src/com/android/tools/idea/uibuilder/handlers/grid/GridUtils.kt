@@ -183,7 +183,7 @@ private fun retrieveCellData(nlComponent: NlComponent, isSupportLibrary: Boolean
     getAttribute(SdkConstants.ATTR_LAYOUT_ROW, -1),
     getAttribute(SdkConstants.ATTR_LAYOUT_COLUMN, -1),
     getAttribute(SdkConstants.ATTR_LAYOUT_ROW_SPAN, 1),
-    getAttribute(SdkConstants.ATTR_LAYOUT_COLUMN_SPAN, 1)
+    getAttribute(SdkConstants.ATTR_LAYOUT_COLUMN_SPAN, 1),
   )
 }
 
@@ -192,7 +192,7 @@ private data class InsetsAttributes(
   val left: Pair<String, String>,
   val top: String,
   val right: Pair<String, String>,
-  val bottom: String
+  val bottom: String,
 )
 
 private fun NlComponent.getLiveAndroidAttribute(androidAttribute: String) =
@@ -220,7 +220,7 @@ private val PADDING_ATTRIBUTES =
     Pair(SdkConstants.ATTR_PADDING_START, SdkConstants.ATTR_PADDING_LEFT),
     SdkConstants.ATTR_PADDING_TOP,
     Pair(SdkConstants.ATTR_PADDING_END, SdkConstants.ATTR_PADDING_RIGHT),
-    SdkConstants.ATTR_PADDING_BOTTOM
+    SdkConstants.ATTR_PADDING_BOTTOM,
   )
 
 private val MARGIN_ATTRIBUTES =
@@ -229,7 +229,7 @@ private val MARGIN_ATTRIBUTES =
     Pair(SdkConstants.ATTR_LAYOUT_MARGIN_START, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT),
     SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
     Pair(SdkConstants.ATTR_LAYOUT_MARGIN_END, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT),
-    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
   )
 
 @AndroidCoordinate

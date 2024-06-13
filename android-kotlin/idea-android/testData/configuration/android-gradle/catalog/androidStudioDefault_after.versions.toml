@@ -1,0 +1,7 @@
+[versions]
+kotlin = "$VERSION$"
+[libraries]
+android-support = "com.android.support:support-v4:13.0.0"
+[plugins]
+android-application ={ id = "com.android.application", version = "+" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

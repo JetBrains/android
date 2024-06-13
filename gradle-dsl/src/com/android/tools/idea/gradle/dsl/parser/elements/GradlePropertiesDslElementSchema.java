@@ -35,22 +35,18 @@ public abstract class GradlePropertiesDslElementSchema {
   /**
    * Method supposed to be override in children and returns all block element description for particular Dsl Element
    */
-  @NotNull
-  protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+  protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
     return ImmutableMap.of();
   }
 
-  /**
-   * Returns descriptions filtered by file type (Kts, Groovy, Toml). It is currently used for editor code suggestions
-   */
   @NotNull
-  public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions(GradleDslNameConverter.Kind kind){
-    return getAllBlockElementDescriptions().entrySet().stream().filter(val -> val.getValue().isValidForKind.test(kind))
+  public ImmutableMap<String, PropertiesElementDescription<?>> getBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
+    return getAllBlockElementDescriptions(kind).entrySet().stream()
       .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Nullable
-  public PropertiesElementDescription getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
+  public PropertiesElementDescription<?> getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
     return getBlockElementDescriptions(kind).get(name);
   }
 

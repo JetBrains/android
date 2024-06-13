@@ -57,7 +57,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   private val nameEditorProvider: EditorProvider<N>,
   private val valueType: Class<P>,
   private val valueControlTypeProvider: ControlTypeProvider<P>,
-  private val valueEditorProvider: EditorProvider<P>
+  private val valueEditorProvider: EditorProvider<P>,
 ) : PTableCellEditorProvider {
 
   private val defaultNameEditor = DefaultNameTableCellEditor()
@@ -77,7 +77,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
 
   private fun configureEditorForNewPropertyItemName(
     table: PTable,
-    property: PTableItem
+    property: PTableItem,
   ): PTableCellEditor {
     val newProperty = nameType.cast(property)
     val controlType = nameControlTypeProvider(newProperty)
@@ -90,7 +90,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
       PTableColumn.NAME,
       controlType,
       newModel,
-      EditorPanel(newEditor, border, table.backgroundColor)
+      EditorPanel(newEditor, border, table.backgroundColor),
     )
     newModel.tableSupport = editor
     return editor
@@ -110,7 +110,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
       PTableColumn.VALUE,
       controlType,
       newModel,
-      EditorPanel(newEditor, border, table.backgroundColor)
+      EditorPanel(newEditor, border, table.backgroundColor),
     )
     newModel.tableSupport = editor
     return editor
@@ -162,7 +162,7 @@ class PTableCellEditorImpl : PTableCellEditor, TableSupport {
     val propertyItem = item ?: return
     val editor = editorComponent ?: return
     val tableColumn = column ?: return
-    table?.updateRowHeight(propertyItem, tableColumn, editor.preferredSize.height, scrollIntoView)
+    table?.updateRowHeight(propertyItem, tableColumn, editor, scrollIntoView)
   }
 
   override fun close(oldTable: PTable) {
@@ -187,7 +187,7 @@ class PTableCellEditorImpl : PTableCellEditor, TableSupport {
     newColumn: PTableColumn,
     newControlType: ControlType,
     newModel: PropertyEditorModel,
-    newEditor: EditorPanel
+    newEditor: EditorPanel,
   ) {
     table = newTable
     item = newItem

@@ -46,7 +46,7 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
                                        SourceSetDslElement::new,
                                        SourceSetDslElementSchema::new);
 
-  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aidl", SourceDirectoryDslElement.AIDL},
     {"assets", SourceDirectoryDslElement.ASSETS},
     {"java", SourceDirectoryDslElement.JAVA},
@@ -76,7 +76,9 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
 
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 
@@ -110,9 +112,8 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
       return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
     }
 
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.tools.idea.common.model.DataContextHolder
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
@@ -33,10 +34,10 @@ private fun wearTilePreviewElement(
 ) =
   WearTilePreviewElement(
     displaySettings = displaySettings,
-    previewElementDefinitionPsi = previewElementDefinitionPsi,
-    previewBodyPsi = previewBodyPsi,
+    previewElementDefinition = previewElementDefinitionPsi,
+    previewBody = previewBodyPsi,
     methodFqn = methodFqn,
-    configuration = WearTilePreviewConfiguration.forValues(device = "id:wearos_small_round")
+    configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round")
   )
 
 private class TestModel(override var dataContext: DataContext) : DataContextHolder {
@@ -59,7 +60,7 @@ class WearTilePreviewElementModelAdapterTest {
 
     val adapter = WearTilePreviewElementModelAdapter<TestModel>()
 
-    Assert.assertTrue(adapter.calcAffinity(pe1, pe1) < adapter.calcAffinity(pe1, pe2))
+    Assert.assertTrue(adapter.calcAffinity(pe1, pe1) == adapter.calcAffinity(pe1, pe2))
     Assert.assertTrue(adapter.calcAffinity(pe1, pe2) < adapter.calcAffinity(pe1, pe3))
     Assert.assertTrue(adapter.calcAffinity(pe1, pe3) < adapter.calcAffinity(pe1, null))
     Assert.assertTrue(adapter.calcAffinity(pe1, null) < adapter.calcAffinity(pe1, pe4))
@@ -98,10 +99,10 @@ class WearTilePreviewElementModelAdapterTest {
         .toXml(
           WearTilePreviewElement(
             displaySettings = simplestDisplaySettings(),
-            previewElementDefinitionPsi = null,
-            previewBodyPsi = null,
+            previewElementDefinition = null,
+            previewBody = null,
             methodFqn = "foo",
-            configuration = WearTilePreviewConfiguration.forValues(device = "id:wearos_small_round")
+            configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round")
           )
         )
     )

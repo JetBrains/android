@@ -11,7 +11,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
@@ -21,7 +22,7 @@ iml_module(
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
@@ -64,15 +65,17 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ] + glob(["testData/**"]),
+    test_friends = ["//tools/adt/idea/android-templates:intellij.android.templates"],
     test_srcs = ["testSrc"],
     test_tags = [],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
@@ -98,6 +101,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -105,7 +109,8 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.7.2",
+        "@maven//:androidx.activity.activity-compose_1.7.2",  # Needed for TemplateDiffTest#testNewComposeWearActivity
+        "@maven//:androidx.activity.activity-compose_1.8.0",
         "@maven//:androidx.activity.activity-ktx_1.6.0",  # Still needed from navigation-fragment-ktx:2.5.3
         "@maven//:androidx.activity.activity-ktx_1.7.0",
         "@maven//:androidx.activity.activity-ktx_1.8.0",
@@ -144,12 +149,16 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-tooling_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-unit-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.concurrent.concurrent-futures-ktx_1.2.0-alpha02",
+        "@maven//:androidx.concurrent.concurrent-futures_1.2.0-alpha02",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core-ktx_1.10.0",  # Compose Activity
         "@maven//:androidx.core.core-ktx_1.10.1",
         "@maven//:androidx.core.core-ktx_1.11.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.core.core-ktx_1.11.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.core.core-ktx_1.12.0",
         "@maven//:androidx.core.core-splashscreen_1.0.1",
+        "@maven//:androidx.core.core_1.12.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
@@ -195,6 +204,7 @@ maven_repository(
         "@maven//:androidx.wear.wear_1.2.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",
+        "@maven//:com.google.ai.client.generativeai.generativeai_0.2.2",
         "@maven//:com.google.android.gms.play-services-ads_21.5.0",
         "@maven//:com.google.android.gms.play-services-base_17.6.0",
         "@maven//:com.google.android.gms.play-services-maps_18.1.0",
@@ -212,10 +222,29 @@ maven_repository(
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
         "@maven//:com.google.jimfs.jimfs_1.1",
-        "@maven//:com.google.prefab.cli_2.0.0",
+        "@maven//:com.google.prefab.cli_2.1.0",
         "@maven//:com.squareup.okio.okio-jvm_3.0.0",
+        "@maven//:com.squareup.okio.okio_3.4.0",
         "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-lang.commons-lang_2.4",
+        "@maven//:io.ktor.ktor-client-content-negotiation-jvm_2.3.2",
+        "@maven//:io.ktor.ktor-client-content-negotiation_2.3.2",
+        "@maven//:io.ktor.ktor-client-core-jvm_2.3.2",
+        "@maven//:io.ktor.ktor-client-core_2.3.2",
+        "@maven//:io.ktor.ktor-client-logging-jvm_2.3.2",
+        "@maven//:io.ktor.ktor-client-logging_2.3.2",
+        "@maven//:io.ktor.ktor-client-okhttp-jvm_2.3.2",
+        "@maven//:io.ktor.ktor-client-okhttp_2.3.2",
+        "@maven//:io.ktor.ktor-events_2.3.2",
+        "@maven//:io.ktor.ktor-http_2.3.2",
+        "@maven//:io.ktor.ktor-io_2.3.2",
+        "@maven//:io.ktor.ktor-serialization-kotlinx-json-jvm_2.3.2",
+        "@maven//:io.ktor.ktor-serialization-kotlinx-json_2.3.2",
+        "@maven//:io.ktor.ktor-serialization-kotlinx_2.3.2",
+        "@maven//:io.ktor.ktor-serialization_2.3.2",
+        "@maven//:io.ktor.ktor-utils_2.3.2",
+        "@maven//:io.ktor.ktor-websocket-serialization_2.3.2",
+        "@maven//:io.ktor.ktor-websockets_2.3.2",
         "@maven//:javax.inject.javax.inject_1",
         "@maven//:junit.junit_4.12",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
@@ -243,10 +272,25 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.22",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
+        "@maven//:org.jetbrains.kotlinx.atomicfu-jvm_0.17.0",
+        "@maven//:org.jetbrains.kotlinx.atomicfu_0.17.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.7.3",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.7.3",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-jdk8_1.7.3",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-reactive_1.7.3",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-slf4j_1.7.3",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.7.3",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-serialization-bom_1.6.0",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-serialization-core-jvm_1.6.0",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-serialization-core_1.6.0",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-serialization-json-jvm_1.5.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-serialization-json_1.5.1",
+        "@maven//:org.reactivestreams.reactive-streams_1.0.3",
+        "@maven//:org.slf4j.slf4j-api_1.7.36",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )

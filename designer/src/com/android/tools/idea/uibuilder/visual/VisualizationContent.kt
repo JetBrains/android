@@ -73,7 +73,7 @@ interface VisualizationContentProvider {
 object VisualizationFormProvider : VisualizationContentProvider {
   override fun createVisualizationForm(
     project: Project,
-    toolWindow: ToolWindow
+    toolWindow: ToolWindow,
   ): VisualizationForm {
     val visualizationForm =
       VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
@@ -117,13 +117,14 @@ private object AsyncContentInitializer : VisualizationForm.ContentInitializer {
       initPreviewFormAfterInitialBuild(project, form, onComplete)
     }
     val onError = Runnable { form.showErrorMessage() }
-    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(task, onError)
+    ClearResourceCacheAfterFirstBuild.getInstance(project)
+      .runWhenResourceCacheClean(task, onError, form)
   }
 
   private fun initPreviewFormAfterInitialBuild(
     project: Project,
     form: VisualizationForm,
-    onComplete: () -> Unit
+    onComplete: () -> Unit,
   ) {
     project.runWhenSmartAndSyncedOnEdt(
       form,
@@ -140,10 +141,10 @@ private object AsyncContentInitializer : VisualizationForm.ContentInitializer {
                 form.createContentPanel()
                 onComplete()
               }
-            }
+            },
           )
         }
-      }
+      },
     )
   }
 }

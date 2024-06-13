@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.psi.PsiElement
@@ -40,7 +40,7 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
   override fun getInfo(element: PsiElement): Info? = null
 
   override fun getSlowInfo(element: PsiElement): Info? {
-    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return null
+    if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return null
     // Marker should be in a single LeafPsiElement. We choose the identifier and return null for
     // other elements within the function.
     if (element !is LeafPsiElement) return null
@@ -49,7 +49,7 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
     (element.parent as? KtNamedFunction)
       ?.takeIf { it.isValidComposePreview() }
       ?.let {
-        return Info(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ ->
+        return Info(StudioIcons.GutterIcons.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ ->
           message("run.line.marker.text", it.name!!)
         }
       }

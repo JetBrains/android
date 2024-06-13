@@ -17,9 +17,14 @@ android {
       }
     }
     ndk {
-      abiFilters("abiFilter5")
-      abiFilter("abiFilterZ")
-      abiFilters("abiFilter7")
+      abiFilters += setOf("abiFilter5")
+      abiFilters += setOf("abiFilterZ")
+      abiFilters += setOf("abiFilter7")
+      cFlags = "-DcFlagZ"
+      jobs = 26
+      ldLibs += listOf("ldLibs8", "ldLibsZ", "ldLibs10")
+      moduleName = "ZModule"
+      stl = "ztlport"
     }
   }
 }

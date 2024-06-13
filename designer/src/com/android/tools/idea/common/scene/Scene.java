@@ -23,13 +23,13 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
-import com.android.sdklib.AndroidDpCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.configurations.Configuration;
+import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.idea.common.annotations.InputEventMask;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -41,18 +41,19 @@ import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
-import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.android.tools.rendering.RenderService;
-import com.android.tools.rendering.RenderTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -72,14 +73,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import org.intellij.lang.annotations.JdkConstants;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
@@ -151,8 +152,7 @@ public class Scene implements SelectionListener, Disposable {
     selectionModel.addListener(this);
 
     myHoverListener.setTargetFilter(target -> {
-      if (target instanceof AnchorTarget) {
-        AnchorTarget anchorTarget = (AnchorTarget)target;
+      if (target instanceof AnchorTarget anchorTarget) {
         if (myHitTarget == null) {
           // Not interacting with any Target, avoid to hover to edge AnchorTarget.
           return !anchorTarget.isEdge();
@@ -205,11 +205,7 @@ public class Scene implements SelectionListener, Disposable {
   public boolean isResizeAvailable() {
     Configuration configuration = mySceneManager.getModel().getConfiguration();
     Device device = configuration.getCachedDevice();
-    if (device == null) {
-      return false;
-    }
-
-    return true;
+    return device != null;
   }
 
   public boolean isInRTL() {
@@ -319,12 +315,7 @@ public class Scene implements SelectionListener, Disposable {
     return (modifiersEx & InputEvent.SHIFT_DOWN_MASK) != 0;
   }
 
-  public boolean isAltDown() {
-    int modifiersEx = getModifiersEx();
-    return (modifiersEx & InputEvent.ALT_DOWN_MASK) != 0;
-  }
-
-  @JdkConstants.InputEventMask
+  @InputEventMask
   private int getModifiersEx() {
     return myDesignSurface.getGuiInputHandler().getLastModifiersEx();
   }
@@ -395,24 +386,25 @@ public class Scene implements SelectionListener, Disposable {
   /**
    * Paint the current scene into the given display list
    *
-   * @param displayList
-   * @param time
-   * @return true if we need to repaint the screen
+   * @param displayList {@link DisplayList} to build
+   * @param time frame time to build the display list
    */
-  public void buildDisplayList(@NotNull DisplayList displayList, long time, SceneView sceneView) {
-    buildDisplayList(displayList, time, sceneView.getContext());
+  @TestOnly
+  public void buildDisplayList(@NotNull DisplayList displayList, long time) {
+    layout(time, SceneContext.get());
+    buildDisplayList(displayList, time, SceneContext.get());
   }
 
   /**
    * Paint the current scene into the given display list
    *
-   * @param displayList
-   * @param time
-   * @return true if we need to repaint the screen
+   * @param displayList {@link DisplayList} to build
+   * @param time frame time to build the display list
+   * @param sceneView {@link SceneView} to obtain the {@link SceneContext}
    */
-  public void buildDisplayList(@NotNull DisplayList displayList, long time) {
-    layout(time, SceneContext.get());
-    buildDisplayList(displayList, time, SceneContext.get());
+  @TestOnly
+  public void buildDisplayList(@NotNull DisplayList displayList, long time, @NotNull SceneView sceneView) {
+    buildDisplayList(displayList, time, sceneView.getContext());
   }
 
   public void repaint() {
@@ -422,10 +414,11 @@ public class Scene implements SelectionListener, Disposable {
   /**
    * Paint the current scene into the given display list
    *
-   * @param displayList
-   * @param time
+   * @param displayList {@link DisplayList} to build
+   * @param time frame time to build the display list
+   * @param sceneContext the {@link SceneContext}
    */
-  public void buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
+  void buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
     if (myRoot != null) {
       // clear the objects and release
       sceneContext.getScenePicker().foreachObject(o -> {
@@ -450,8 +443,8 @@ public class Scene implements SelectionListener, Disposable {
   /**
    * Layout targets
    *
-   * @param time
-   * @param sceneContext
+   * @param time frame time to build the display list
+   * @param sceneContext the {@link SceneContext}
    * @return true if we need to repaint the screen
    */
   public boolean layout(long time, SceneContext sceneContext) {
@@ -501,13 +494,14 @@ public class Scene implements SelectionListener, Disposable {
   /**
    * Supports hover
    *
-   * @param x
-   * @param y
+   * @param transform context {@link SceneContext}
+   * @param x current x coordinate
+   * @param y current y coordinate
    */
   public void mouseHover(@NotNull SceneContext transform,
                          @AndroidDpCoordinate int x,
                          @AndroidDpCoordinate int y,
-                         @JdkConstants.InputEventMask int modifiersEx) {
+                         @InputEventMask int modifiersEx) {
     myLastMouseX = x;
     myLastMouseY = y;
     if (myLastHoverConstraintComponent != null) { // clear hover constraint
@@ -659,7 +653,9 @@ public class Scene implements SelectionListener, Disposable {
     }
     try {
       connect = connect.substring("layout_constraint".length(), connect.length() - 2).replace("_to", " to ").toLowerCase();
-      target = target.substring(target.indexOf("/") + 1);
+      if (target != null) {
+        target = target.substring(target.indexOf("/") + 1);
+      }
       tooltip = component.getTooltipText() + " " + connect + " of " + target;
     }
     catch (Exception ex) {
@@ -702,7 +698,7 @@ public class Scene implements SelectionListener, Disposable {
   private void setCursor(@NotNull SceneContext transform,
                          @AndroidDpCoordinate int x,
                          @AndroidDpCoordinate int y,
-                         @JdkConstants.InputEventMask int modifiersEx) {
+                         @InputEventMask int modifiersEx) {
     myMouseCursor = Cursor.getDefaultCursor();
     if (myCurrentComponent != null && myCurrentComponent.isDragging()) {
       myMouseCursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
@@ -795,9 +791,9 @@ public class Scene implements SelectionListener, Disposable {
     NlComponent currentNlComponent = currentComponent.getNlComponent();
     Scene scene = currentComponent.getScene();
     List<SceneComponent> otherComponents = getSelection().stream().filter(it -> it != currentNlComponent)
-      .map(it -> scene.getSceneComponent(it))
-      .filter(it -> it != null)
-      .collect(Collectors.toList());
+      .map(scene::getSceneComponent)
+      .filter(Objects::nonNull)
+      .toList();
 
     for (SceneComponent c : otherComponents) {
       List<Target> targets = c.getTargets();
@@ -812,7 +808,7 @@ public class Scene implements SelectionListener, Disposable {
   public void mouseDown(@NotNull SceneContext transform,
                         @AndroidDpCoordinate int x,
                         @AndroidDpCoordinate int y,
-                        @JdkConstants.InputEventMask int modifiersEx) {
+                        @InputEventMask int modifiersEx) {
     myPressedMouseX = x;
     myPressedMouseY = y;
 
@@ -841,7 +837,7 @@ public class Scene implements SelectionListener, Disposable {
         delegateMouseDownToSelection(x, y, myHitTarget.getComponent());
       }
     }
-    else if (myHitComponent != null && !inCurrentSelection(myHitComponent)) {
+    else if (myHitComponent != null && notInCurrentSelection(myHitComponent)) {
       myNewSelectedComponentsOnDown.add(myHitComponent);
       select(myNewSelectedComponentsOnDown);
     }
@@ -859,7 +855,7 @@ public class Scene implements SelectionListener, Disposable {
                                                        @AndroidDpCoordinate int x,
                                                        @AndroidDpCoordinate int y) {
     Object obj = transform.findClickedGraphics(transform.getSwingXDip(x), transform.getSwingYDip(y));
-    if (obj != null && obj instanceof SecondarySelector) {
+    if (obj instanceof SecondarySelector) {
       return  (SecondarySelector)obj;
     }
     return null;
@@ -868,7 +864,7 @@ public class Scene implements SelectionListener, Disposable {
   public void mouseDrag(@NotNull SceneContext transform,
                         @AndroidDpCoordinate int x,
                         @AndroidDpCoordinate int y,
-                        @JdkConstants.InputEventMask int modifiersEx) {
+                        @InputEventMask int modifiersEx) {
     if (myLastMouseX == x && myLastMouseY == y) {
       return;
     }
@@ -900,7 +896,7 @@ public class Scene implements SelectionListener, Disposable {
       SceneComponent targetComponent = myHitTarget.getComponent();
       if (lassoTarget == null // No need to select LassoTarget's component.
           && targetComponent != null
-          && !inCurrentSelection(targetComponent)) {
+          && notInCurrentSelection(targetComponent)) {
         // Select the target's component when it is first being dragged.
         myNewSelectedComponentsOnRelease.clear();
         myNewSelectedComponentsOnRelease.add(targetComponent);
@@ -941,10 +937,7 @@ public class Scene implements SelectionListener, Disposable {
    */
   public void requestLayoutIfNeeded() {
     if (mNeedsLayout != NO_LAYOUT) {
-      SceneManager manager = myDesignSurface.getSceneManager();
-      if (manager == null) {
-        return;
-      }
+      SceneManager manager = getSceneManager();
 
       // TODO: b/180067858 Clean up the render path. Currently mNeedsLayout is never ANIMATED_LAYOUT.
       if (myIsLiveRenderingEnabled) {
@@ -974,7 +967,7 @@ public class Scene implements SelectionListener, Disposable {
   public void mouseRelease(@NotNull SceneContext transform,
                            @AndroidDpCoordinate int x,
                            @AndroidDpCoordinate int y,
-                           @JdkConstants.InputEventMask int modifiersEx) {
+                           @InputEventMask int modifiersEx) {
     myLastMouseX = x;
     myLastMouseY = y;
 
@@ -1043,12 +1036,13 @@ public class Scene implements SelectionListener, Disposable {
     requestLayoutIfNeeded();
   }
 
-  private boolean inCurrentSelection(@NotNull SceneComponent component) {
+  private boolean notInCurrentSelection(@NotNull SceneComponent component) {
     List<NlComponent> currentSelection = myDesignSurface.getSelectionModel().getSelection();
-    return currentSelection.contains(component.getNlComponent());
+    return !currentSelection.contains(component.getNlComponent());
   }
 
   private boolean sameSelection() {
+    //noinspection SlowListContainsAll
     if (!myNewSelectedComponentsOnRelease.isEmpty()
         && myNewSelectedComponentsOnRelease.size() == myNewSelectedComponentsOnDown.size()
         && myNewSelectedComponentsOnRelease.containsAll(myNewSelectedComponentsOnDown)) {
@@ -1148,7 +1142,7 @@ public class Scene implements SelectionListener, Disposable {
   public Target findTarget(@NotNull SceneContext transform,
                            @AndroidDpCoordinate int x,
                            @AndroidDpCoordinate int y,
-                           @JdkConstants.InputEventMask int modifiersEx) {
+                           @InputEventMask int modifiersEx) {
     if (myRoot == null) {
       return null;
     }
@@ -1264,9 +1258,5 @@ public class Scene implements SelectionListener, Disposable {
     for (SceneComponent child : component.getChildren()) {
       doGetPlaceholders(builder, child, requester, draggedComponents);
     }
-  }
-
-  public void setHitTarget(@Nullable Target hitTarget) {
-    myHitTarget = hitTarget;
   }
 }

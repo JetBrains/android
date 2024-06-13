@@ -51,7 +51,7 @@ class LocalHTMLTest : TestCase() {
       </html>
     """
         .trimIndent(),
-      processed
+      processed,
     )
   }
 }

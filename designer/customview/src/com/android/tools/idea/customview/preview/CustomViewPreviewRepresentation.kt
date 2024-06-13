@@ -32,8 +32,9 @@ import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
-import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.projectsystem.BuildListener
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -82,11 +83,14 @@ fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeight: Bool
 }
 
 fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
-  val gradleState = GradleBuildState.getInstance(project)
-  val prevBuildStatus = gradleState.lastFinishedBuildSummary?.status
+  val buildManager = project.getProjectSystem().getBuildManager()
+  val prevBuildStatus = buildManager.getLastBuildResult()
+  // TODO(?) shouldn't we be doing something different if the last BuildResult is from a
+  //  CLEAN build task?
   return when {
-    gradleState.isBuildInProgress -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
-    prevBuildStatus == null || prevBuildStatus.isBuildSuccessful ->
+    buildManager.isBuilding -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
+    prevBuildStatus.status == ProjectSystemBuildManager.BuildStatus.UNKNOWN ||
+      prevBuildStatus.status == ProjectSystemBuildManager.BuildStatus.SUCCESS ->
       CustomViewVisualStateTracker.BuildState.SUCCESSFUL
     else -> CustomViewVisualStateTracker.BuildState.FAILED
   }
@@ -103,7 +107,7 @@ class CustomViewPreviewRepresentation(
   persistenceProvider: (Project) -> PropertiesComponent = { p ->
     PropertiesComponent.getInstance(p)
   },
-  buildStateProvider: (Project) -> CustomViewVisualStateTracker.BuildState = ::getBuildState
+  buildStateProvider: (Project) -> CustomViewVisualStateTracker.BuildState = ::getBuildState,
 ) :
   PreviewRepresentation,
   CustomViewPreviewManager,
@@ -212,7 +216,6 @@ class CustomViewPreviewRepresentation(
         .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),
       this,
       project,
-      psiFile
     )
   }
 
@@ -278,7 +281,7 @@ class CustomViewPreviewRepresentation(
               }
             }
           }
-        }
+        },
       )
 
     setupBuildListener(
@@ -310,7 +313,7 @@ class CustomViewPreviewRepresentation(
           stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.IN_PROGRESS)
         }
       },
-      this
+      this,
     )
 
     setupChangeListener(
@@ -321,7 +324,7 @@ class CustomViewPreviewRepresentation(
           stateTracker.setFileState(CustomViewVisualStateTracker.FileState.MODIFIED)
         }
       },
-      this
+      this,
     )
   }
 
@@ -425,7 +428,7 @@ class CustomViewPreviewRepresentation(
           configuration.updateScreenSize(
             previewDimensions[0].toInt(),
             previewDimensions[1].toInt(),
-            configuration.device
+            configuration.device,
           )
         }
 
@@ -453,7 +456,7 @@ class CustomViewPreviewRepresentation(
       val screen = configuration.device!!.defaultHardware.screen
       persistenceManager.setList(
         dimensionsPropertyNameForClass(className),
-        listOf("${screen.xDimension}", "${screen.yDimension}")
+        listOf("${screen.xDimension}", "${screen.yDimension}"),
       )
     }
   }

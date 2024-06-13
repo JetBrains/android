@@ -26,9 +26,9 @@ import com.android.resources.ResourceType;
 import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.rendering.api.RenderModelManifest;
+import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.security.RenderSecurityManager;
-import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
@@ -42,6 +42,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -63,7 +64,6 @@ public class ActionBarHandler extends ActionBarCallback {
   @Nullable private final Object myCredential;
   @NotNull private final RenderTask myRenderTask;
 
-  @NotNull private final ResourceRepositoryManager myResourceRepositoryManager;
   @Nullable private ImmutableList<ResourceReference> myMenus;
 
   ActionBarHandler(
@@ -71,7 +71,6 @@ public class ActionBarHandler extends ActionBarCallback {
     @Nullable Object credential) {
     myRenderTask = renderTask;
     myCredential = credential;
-    myResourceRepositoryManager = renderTask.getContext().getModule().getResourceRepositoryManager();
   }
 
   @Override
@@ -144,7 +143,11 @@ public class ActionBarHandler extends ActionBarCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      ResourceNamespace namespace = myResourceRepositoryManager.getNamespace();
+      RenderModelModule renderModule = myRenderTask.getContext().getModule();
+      if (renderModule.isDisposed()) {
+        return Collections.emptyList();
+      }
+      ResourceNamespace namespace = renderModule.getResourceRepositoryManager().getNamespace();
       RenderXmlFile xmlFile = myRenderTask.getXmlFile();
       String commaSeparatedMenus = xmlFile == null ? null : xmlFile.getRootTagAttribute(ATTR_MENU, TOOLS_URI);
       if (commaSeparatedMenus != null) {

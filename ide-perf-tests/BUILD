@@ -55,9 +55,10 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -79,7 +80,7 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.2",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.3",
         "@maven//:androidx.compose.compiler.compiler_1.2.0",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.2.0",
         "@maven//:androidx.compose.ui.ui-tooling_1.2.0",

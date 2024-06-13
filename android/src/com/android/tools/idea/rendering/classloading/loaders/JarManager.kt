@@ -210,6 +210,10 @@ class JarManager {
     return cachedEntry
   }
 
+  fun clearCache() {
+    jarFileCache.invalidateAll()
+  }
+
   companion object {
     @JvmStatic
     fun getInstance(project: Project): JarManager = project.getService(JarManager::class.java)

@@ -67,7 +67,7 @@ private val CONSTRAINT_SECTIONS =
     MotionSceneAttrs.Tags.LAYOUT,
     MotionSceneAttrs.Tags.MOTION,
     MotionSceneAttrs.Tags.PROPERTY_SET,
-    MotionSceneAttrs.Tags.TRANSFORM
+    MotionSceneAttrs.Tags.TRANSFORM,
   )
 
 /** [PropertiesView] for motion layout property editor. */
@@ -89,14 +89,14 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
   constructor(
     private val model: MotionLayoutAttributesModel,
     private val tableUIProvider: TableUIProvider,
-    private val enumSupportProvider: NlEnumSupportProvider
+    private val enumSupportProvider: NlEnumSupportProvider,
   ) : InspectorBuilder<NlPropertyItem> {
 
     private val myDescriptorProvider = AndroidDomElementDescriptorProvider()
 
     override fun attachToInspector(
       inspector: InspectorPanel,
-      properties: PropertiesTable<NlPropertyItem>
+      properties: PropertiesTable<NlPropertyItem>,
     ) {
       val any = properties.first ?: return
       val selection = any.optionalValue1 as MotionSelection? ?: return
@@ -111,7 +111,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
             model,
             true,
             false,
-            showConstraintPanel
+            showConstraintPanel,
           )
           addTransforms(inspector, model, properties)
           val attributes = ArrayList<String>()
@@ -124,7 +124,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
             model,
             "transitionEasing",
             properties,
-            attributes
+            attributes,
           )
           addSubTagSections(inspector, selection, model)
         }
@@ -136,7 +136,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
             model,
             false,
             false,
-            false
+            false,
           )
           val attributes = ArrayList<String>()
           attributes.add("motionInterpolator")
@@ -150,7 +150,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
             model,
             "motionInterpolator",
             properties,
-            attributes
+            attributes,
           )
           addSubTagSections(inspector, selection, model)
         }
@@ -162,7 +162,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
             model,
             false,
             false,
-            false
+            false,
           )
           val allProperties = model.allProperties
           if (allProperties.containsKey("KeyAttribute")) {
@@ -195,7 +195,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
     private fun addTransforms(
       inspector: InspectorPanel,
       model: MotionLayoutAttributesModel,
-      properties: PropertiesTable<NlPropertyItem>
+      properties: PropertiesTable<NlPropertyItem>,
     ) {
       val titleModel =
         inspector.addExpandableTitle(InspectorSection.TRANSFORMS.title, false, emptyList())
@@ -235,7 +235,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
       model: MotionLayoutAttributesModel,
       easingAttributeName: String,
       properties: PropertiesTable<NlPropertyItem>,
-      attributes: ArrayList<String>
+      attributes: ArrayList<String>,
     ) {
       val titleModel = inspector.addExpandableTitle(title.title, false, emptyList())
       inspector.addComponent(EasingCurvePanel(model, easingAttributeName, properties), titleModel)
@@ -252,7 +252,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
     private fun addSubTagSections(
       inspector: InspectorPanel,
       selection: MotionSelection,
-      model: MotionLayoutAttributesModel
+      model: MotionLayoutAttributesModel,
     ) {
       val xmlTag = selection.getXmlTag(selection.motionSceneTag)
       val elementDescriptor =
@@ -270,7 +270,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
             subModel,
             true,
             true,
-            showConstraintWidget
+            showConstraintWidget,
           )
           if (MotionSceneAttrs.Tags.ON_SWIPE == subTagName) {
             val titleModel = inspector.addExpandableTitle("OnSwipe Behaviour", true, emptyList())
@@ -286,7 +286,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
       inspector: InspectorPanel,
       selection: MotionSelection,
       model: MotionLayoutAttributesModel,
-      showDefaultValues: Boolean
+      showDefaultValues: Boolean,
     ) {
       if (!shouldDisplaySection(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, selection)) {
         return
@@ -319,7 +319,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
           false,
           true,
           { true },
-          { false }
+          { false },
         )
       val addFieldAction = AddCustomFieldAction(this.model, selection)
       val deleteFieldAction = DeleteCustomFieldAction()
@@ -335,7 +335,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
 
     private fun findCustomTypeFromName(
       attrName: String,
-      selection: MotionSelection
+      selection: MotionSelection,
     ): CustomAttributeType? {
       val component = selection.componentForCustomAttributeCompletions ?: return null
       for (type in CustomAttributeType.values()) {
@@ -354,7 +354,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
       model: PropertiesModel<NlPropertyItem>,
       showDefaultValues: Boolean,
       showSectionControl: Boolean,
-      showConstraintPanel: Boolean
+      showConstraintPanel: Boolean,
     ) {
       if (sectionTagName == null || !shouldDisplaySection(sectionTagName, selection)) {
         return
@@ -371,7 +371,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
             (model as MotionLayoutAttributesModel),
             model.properties,
             { item: NlPropertyItem -> item.rawValue == null },
-            {}
+            {},
           )
         newProperty.name = name!!
         if (newProperty.delegate != null) {
@@ -390,7 +390,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
           true,
           true,
           { it !is MotionIdPropertyItem },
-          { false }
+          { false },
         )
       val controlAction = SubSectionControlAction(any)
       val addFieldAction = AddMotionFieldAction(this.model, model.properties)
@@ -466,7 +466,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
     private fun addConstraintPanel(
       inspector: InspectorPanel,
       selection: MotionSelection,
-      titleLine: InspectorLineModel
+      titleLine: InspectorLineModel,
     ) {
       val panel = MotionConstraintPanel(listOfNotNull(selection.component))
       panel.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)

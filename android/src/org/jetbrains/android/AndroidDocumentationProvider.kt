@@ -11,7 +11,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
-import com.intellij.facet.ProjectFacetManager
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.lang.documentation.ExternalDocumentationProvider
 import com.intellij.lang.java.JavaDocumentationProvider
@@ -45,9 +45,7 @@ private fun isMyContext(element: PsiElement, project: Project): Boolean {
     return@runReadAction path
       .lowercase()
       .contains("/${SdkConstants.FN_FRAMEWORK_LIBRARY}!/") &&
-      ProjectFacetManager.getInstance(project)
-        .getFacets<AndroidFacet>(AndroidFacet.ID)
-        .isNotEmpty() &&
+      CommonAndroidUtil.getInstance().isAndroidProject(project) &&
       JarFileSystem.getInstance().getVirtualFileForJar(vFile)?.name ==
         SdkConstants.FN_FRAMEWORK_LIBRARY
   }

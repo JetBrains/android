@@ -53,10 +53,7 @@ class ProjectAppMonitorTest {
     fakeProcessTracker.close()
 
     assertThat(messages.await())
-      .containsExactly(
-        startedMessage(1, "com.example.app1"),
-        startedMessage(2, "com.example.app2"),
-      )
+      .containsExactly(startedMessage(1, "com.example.app1"), startedMessage(2, "com.example.app2"))
       .inOrder()
   }
 
@@ -69,11 +66,7 @@ class ProjectAppMonitorTest {
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
 
-    assertThat(messages.await())
-      .containsExactly(
-        startedMessage(1, "com.example.app1"),
-      )
-      .inOrder()
+    assertThat(messages.await()).containsExactly(startedMessage(1, "com.example.app1")).inOrder()
   }
 
   @Test
@@ -85,11 +78,7 @@ class ProjectAppMonitorTest {
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
 
-    assertThat(messages.await())
-      .containsExactly(
-        startedMessage(1, "com.example.app1"),
-      )
-      .inOrder()
+    assertThat(messages.await()).containsExactly(startedMessage(1, "com.example.app1")).inOrder()
   }
 
   @Test
@@ -126,11 +115,7 @@ class ProjectAppMonitorTest {
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
 
-    assertThat(messages.await())
-      .containsExactly(
-        startedMessage(1, "com.example.app1"),
-      )
-      .inOrder()
+    assertThat(messages.await()).containsExactly(startedMessage(1, "com.example.app1")).inOrder()
   }
 
   @Test
@@ -145,10 +130,7 @@ class ProjectAppMonitorTest {
     fakeProcessTracker.close()
 
     assertThat(messages.await())
-      .containsExactly(
-        startedMessage(1, "com.example.app1"),
-        endedMessage(1, "com.example.app1"),
-      )
+      .containsExactly(startedMessage(1, "com.example.app1"), endedMessage(1, "com.example.app1"))
       .inOrder()
   }
 

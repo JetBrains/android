@@ -35,7 +35,7 @@ class LayoutViewElementDomFileDescription :
   CustomLogicResourceDomFileDescription<LayoutViewElement>(
     LayoutViewElement::class.java,
     ResourceFolderType.LAYOUT,
-    "View"
+    "View",
   ) {
 
   override fun checkFile(file: XmlFile, module: Module?): Boolean {
@@ -51,7 +51,7 @@ class MergeDomFileDescription :
   SingleRootResourceDomFileDescription<Merge>(
     Merge::class.java,
     VIEW_MERGE,
-    ResourceFolderType.LAYOUT
+    ResourceFolderType.LAYOUT,
   ) {
 
   companion object {
@@ -64,7 +64,7 @@ class ViewTagDomFileDescription :
   SingleRootResourceDomFileDescription<View>(
     View::class.java,
     VIEW_TAG,
-    ResourceFolderType.LAYOUT
+    ResourceFolderType.LAYOUT,
   ) {
 
   companion object {

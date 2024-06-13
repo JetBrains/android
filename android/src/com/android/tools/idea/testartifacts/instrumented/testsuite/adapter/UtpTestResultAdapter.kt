@@ -34,6 +34,7 @@ import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.openapi.util.io.FileUtil.exists
 import java.io.File
 import java.nio.charset.Charset
+import java.util.Locale
 import java.util.UUID
 
 
@@ -201,7 +202,7 @@ private class AndroidDeviceResolver(private val artifactFileResolver: ArtifactFi
         additionalInfo["Processor"] = deviceInfo.processorsList.joinToString("\n")
       }
       if (deviceInfo.ramInBytes > 0) {
-        additionalInfo["RAM"] = String.format("%.1f GB", deviceInfo.ramInBytes.toFloat() / 1000 / 1000 / 1000)
+        additionalInfo["RAM"] = String.format(Locale.ROOT, "%.1f GB", deviceInfo.ramInBytes.toFloat() / 1000 / 1000 / 1000)
       }
     }
   }

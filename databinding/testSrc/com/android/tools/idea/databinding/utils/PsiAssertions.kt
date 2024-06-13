@@ -25,7 +25,7 @@ import com.intellij.psi.PsiType
 internal fun PsiType.assertExpected(
   project: Project,
   typeName: String,
-  isNullable: Boolean = false
+  isNullable: Boolean = false,
 ) {
   assertThat(presentableText).isEqualTo(typeName)
   if (this !is PsiPrimitiveType) {
@@ -39,7 +39,7 @@ internal fun PsiType.assertExpected(
 internal fun PsiParameter.assertExpected(
   typeName: String,
   name: String,
-  isNullable: Boolean = false
+  isNullable: Boolean = false,
 ) {
   assertThat(this.name).isEqualTo(name)
   assertThat(type.presentableText).isEqualTo(typeName)

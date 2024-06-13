@@ -30,6 +30,7 @@ import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
@@ -61,7 +62,7 @@ class ConstraintLayoutHelperInspectorBuilder(
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     if (properties.isEmpty || !InspectorSection.REFERENCES.visible) {
       return
@@ -146,6 +147,9 @@ class ConstraintLayoutHelperInspectorBuilder(
       val manager = ActionManager.getInstance()
       shortcutSet = manager.getAction(IdeActions.ACTION_DELETE).shortcutSet
     }
+
+    // Running on edt because of the panel data model access
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun update(event: AnActionEvent) {
       val enabled = panel.getDataModel().rowCount > 0

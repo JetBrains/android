@@ -24,14 +24,22 @@ import java.io.File
 import java.net.MalformedURLException
 
 interface HtmlLinkManager {
+  /** Handles a click in the [HtmlLinkManager]. */
+  fun interface Action {
+    /**
+     * Called when the action is clicked. If available, the [module] will be passed as a parameter.
+     */
+    fun actionPerformed(module: Module?)
+  }
+
   fun showNotification(content: String) = Unit
 
   fun handleUrl(
     url: String,
-    module: Module?,
-    file: PsiFile?,
+    module: Module,
+    file: PsiFile,
     hasRenderResult: Boolean,
-    surface: RefreshableSurface
+    surface: RefreshableSurface,
   )
 
   fun createBuildModuleUrl(): String = URL_BUILD_MODULE
@@ -46,7 +54,7 @@ interface HtmlLinkManager {
 
   fun createCommandLink(command: CommandLink): String
 
-  fun createRunnableLink(runnable: Runnable): String
+  fun createActionLink(action: Action): String
 
   fun createShowTagUrl(tag: String): String = "$URL_SHOW_TAG$tag"
 
@@ -56,7 +64,7 @@ interface HtmlLinkManager {
     className: String,
     methodName: String,
     fileName: String,
-    lineNumber: Int
+    lineNumber: Int,
   ): String = "$URL_OPEN$className#$methodName;$fileName:$lineNumber"
 
   fun createReplaceTagsUrl(from: String, to: String): String = "$URL_REPLACE_TAGS$from/$to"
@@ -79,7 +87,7 @@ interface HtmlLinkManager {
   fun createReplaceAttributeValueUrl(
     attribute: String,
     oldValue: String,
-    newValue: String
+    newValue: String,
   ): String = "$URL_REPLACE_ATTRIBUTE_VALUE$attribute/$oldValue/$newValue"
 
   fun createIgnoreFragmentsUrl(): String = URL_ACTION_IGNORE_FRAGMENTS
@@ -124,15 +132,15 @@ interface HtmlLinkManager {
       object : HtmlLinkManager {
         override fun handleUrl(
           url: String,
-          module: Module?,
-          file: PsiFile?,
+          module: Module,
+          file: PsiFile,
           hasRenderResult: Boolean,
-          surface: RefreshableSurface
+          surface: RefreshableSurface,
         ) {}
 
         override fun createCommandLink(command: CommandLink): String = ""
 
-        override fun createRunnableLink(runnable: Runnable): String = ""
+        override fun createActionLink(action: Action): String = ""
       }
 
     @JvmField

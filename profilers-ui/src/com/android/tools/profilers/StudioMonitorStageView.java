@@ -30,10 +30,6 @@ import com.android.tools.profilers.customevent.CustomEventMonitor;
 import com.android.tools.profilers.customevent.CustomEventMonitorTooltip;
 import com.android.tools.profilers.customevent.CustomEventMonitorTooltipView;
 import com.android.tools.profilers.customevent.CustomEventMonitorView;
-import com.android.tools.profilers.energy.EnergyMonitor;
-import com.android.tools.profilers.energy.EnergyMonitorTooltip;
-import com.android.tools.profilers.energy.EnergyMonitorTooltipView;
-import com.android.tools.profilers.energy.EnergyMonitorView;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.event.LifecycleTooltip;
@@ -45,8 +41,6 @@ import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryMonitorTooltipView;
 import com.android.tools.profilers.memory.MemoryMonitorView;
 import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -75,10 +69,6 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     binder.bind(CpuMonitor.class, CpuMonitorView::new);
     binder.bind(MemoryMonitor.class, MemoryMonitorView::new);
     binder.bind(EventMonitor.class, EventMonitorView::new);
-    boolean isEnergyProfilerEnabled = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isEnergyProfilerEnabled();
-    if (isEnergyProfilerEnabled) {
-      binder.bind(EnergyMonitor.class, EnergyMonitorView::new);
-    }
 
     boolean isCustomEventVisualizationEnabled =
       getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCustomEventVisualizationEnabled();
@@ -110,37 +100,13 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
     getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
     getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
-    if (isEnergyProfilerEnabled) {
-      getTooltipBinder().bind(EnergyMonitorTooltip.class, EnergyMonitorTooltipView::new);
-    }
     if (isCustomEventVisualizationEnabled) {
       getTooltipBinder().bind(CustomEventMonitorTooltip.class, CustomEventMonitorTooltipView::new);
     }
 
-    EnergyProfilerMigrationService energyProfilerMigrationService = new EnergyProfilerMigrationService(stage.getStudioProfilers());
-
     myViews = new ArrayList<>(stage.getMonitors().size());
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
-      // If the Power Profiler is enabled, then we show a deprecation message on top of the Energy Profiler.
-      // This message directs the user to use the new Power Profiler within the system trace.
-      // TODO(b/276770117): Remove migration/deprecation message panel.
-      if (monitor instanceof EnergyMonitor && energyProfilerMigrationService.isMigrationEnabled()) {
-        // TODO(b/276845610) Add metric tracking for energy to power profiler migration redirect click.
-        JPanel panel = energyProfilerMigrationService.getMigrationPanel(
-          rowIndex,
-          layout,
-          (Container container, Cursor cursor) -> {
-            Container cursorContainer = getProfilersView().getComponent();
-            cursorContainer.setCursor(cursor);
-            return cursorContainer;
-          }
-        );
-        monitors.add(panel, new TabularLayout.Constraint(rowIndex, 0));
-        rowIndex++;
-        continue;
-      }
-
       ProfilerMonitorView view = binder.build(profilersView, monitor);
       view.registerTooltip(tooltipComponent, stage);
       JComponent component = view.getComponent();

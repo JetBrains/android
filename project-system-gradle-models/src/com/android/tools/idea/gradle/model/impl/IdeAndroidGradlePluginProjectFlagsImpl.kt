@@ -55,6 +55,8 @@ data class IdeAndroidGradlePluginProjectFlagsImpl(
   /** Whether the ML model binding feature is enabled for this project. */
   override val mlModelBindingEnabled: Boolean,
 
+  override val androidResourcesEnabled: Boolean,
+
   /** Whether the Android Test Platform is enabled for this project. */
   override val unifiedTestPlatformEnabled: Boolean,
 

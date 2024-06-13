@@ -305,6 +305,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Shrinker type in selected variant or null if minification is disabled or shrinker cannot be determined.**/
   val codeShrinker: CodeShrinker? get() = null
 
+  val supportsAndroidResources: Boolean get() = true
+
   /**
    * Whether the R class generated for this module is transitive.
    *
@@ -357,7 +359,7 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getModuleNameForCompilation(virtualFile: VirtualFile): String = module.name
 
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
-  val useAndroidX: Boolean get() = false // TODO(270044829): fix tests to make this true by default
+  val useAndroidX: Boolean get() = true
 
   /** Whether [desugarLibraryConfigFiles] can be determined for this AGP version */
   val desugarLibraryConfigFilesKnown: Boolean get() = false
@@ -402,7 +404,8 @@ enum class DependencyScopeType {
   MAIN,
   UNIT_TEST,
   ANDROID_TEST,
-  TEST_FIXTURES
+  TEST_FIXTURES,
+  SCREENSHOT_TEST,
 }
 
 /**
@@ -416,20 +419,21 @@ enum class ScopeType {
   ANDROID_TEST,
   UNIT_TEST,
   TEST_FIXTURES,
+  SCREENSHOT_TEST,
   ;
 
   /** Converts this [ScopeType] to a [Boolean], so it can be used with APIs that don't distinguish between test types. */
   val isForTest
     get() = when (this) {
       MAIN, TEST_FIXTURES -> false
-      ANDROID_TEST, UNIT_TEST -> true
+      ANDROID_TEST, UNIT_TEST, SCREENSHOT_TEST -> true
     }
 
   /** Returns true if this [ScopeType] can contain Android resources. */
   val canHaveAndroidResources
     get() = when (this) {
       TEST_FIXTURES, UNIT_TEST -> false
-      MAIN, ANDROID_TEST -> true
+      MAIN, ANDROID_TEST, SCREENSHOT_TEST -> true
     }
 }
 
@@ -458,30 +462,25 @@ fun Module.getMainModule() : Module = getUserData(CommonAndroidUtil.LINKED_ANDRO
 
 fun Module.isMainModule() : Boolean = getMainModule() == this
 
-fun Module.getUnitTestModule() : Module?  {
-  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this
-  return linkedGroup.unitTest
-}
+fun Module.getUnitTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.unitTest
 
 fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
 
-fun Module.getAndroidTestModule() : Module? {
-  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this
-  return linkedGroup.androidTest
-}
+fun Module.getScreenshotTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.screenshotTest
+
+fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
+
+fun Module.getAndroidTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.androidTest
 
 fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
 
-fun Module.getTestFixturesModule() : Module? {
-  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return null
-  return linkedGroup.testFixtures
-}
+fun Module.getTestFixturesModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.testFixtures
 
 fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
 
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true
- * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest) or the
+ * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest) or the
  * holder module used as the parent of these source set modules.
  */
 fun Module.isLinkedAndroidModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) != null

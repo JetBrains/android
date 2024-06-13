@@ -41,7 +41,6 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationL
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInPackageTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.classTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.methodTest
-import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
@@ -82,7 +81,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
   val applicationIdProvider = configuration.applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
   val apkProvider = getApkProvider(configuration)
   var runner = configuration.INSTRUMENTATION_RUNNER_CLASS.takeIf { it.isNotBlank() }
-               ?: AndroidTestRunConfiguration.getDefaultInstrumentationRunner(facet)
+    ?: AndroidTestRunConfiguration.getDefaultInstrumentationRunner(facet)
 
   /**
    * Returns a target Android process ID to be monitored by [AndroidProcessHandler].
@@ -127,14 +126,6 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     indicator: ProgressIndicator,
     console: AndroidTestSuiteView
   ) = coroutineScope {
-    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
-      RunConfigurationNotifier.notifyWarning(
-        project,
-        "test",
-        "\"Run Android instrumented tests using Gradle\" option was ignored because this module type is not supported yet."
-      )
-    }
-
     RunStats.from(env).apply { setPackage(packageName) }
     printLaunchTaskStartedMessage(console)
 
@@ -170,8 +161,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     val packages = apkProvider.getApks(device)
     val pmInstallOptions = if (device.version.apiLevel >= 23) {
       "-t -g"
-    }
-    else {
+    } else {
       "-t"
     }
     return DeployTask(project, packages, pmInstallOptions, false, false, installPathProvider)

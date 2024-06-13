@@ -358,7 +358,7 @@ class LayoutInspectorTreePanelTest {
     model.update(
       window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) },
       listOf(ROOT, VIEW2),
-      0
+      0,
     )
     UIUtil.dispatchAllInvocationEvents()
     // Still 5: the dimmer is drawn but isn't in the tree
@@ -389,7 +389,7 @@ class LayoutInspectorTreePanelTest {
     model.update(
       window(ROOT, ROOT) { view(VIEW4, layout = android) { view(VIEW1, layout = demo) } },
       listOf(ROOT),
-      0
+      0,
     )
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(tree).blockingGet(1, TimeUnit.SECONDS)
@@ -408,7 +408,7 @@ class LayoutInspectorTreePanelTest {
         view(VIEW3, layout = demo)
       },
       listOf(ROOT, VIEW2),
-      0
+      0,
     )
     UIUtil.dispatchAllInvocationEvents()
     // Still 2: the dimmer is drawn but isn't in the tree
@@ -656,8 +656,8 @@ class LayoutInspectorTreePanelTest {
   fun testSystemNodeWithMultipleChildren() {
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-    val model = InspectorModel(projectRule.project)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val model = InspectorModel(projectRule.project, coroutineScope)
     val clientSettings = InspectorClientSettings(projectRule.project)
     val inspector =
       LayoutInspector(
@@ -670,7 +670,7 @@ class LayoutInspectorTreePanelTest {
         model,
         mock(),
         FakeTreeSettings(),
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     inspector.treeSettings.hideSystemNodes = true
@@ -717,8 +717,8 @@ class LayoutInspectorTreePanelTest {
   fun testSystemNodeInMiddleOfCallStack() {
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-    val model = InspectorModel(projectRule.project)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val model = InspectorModel(projectRule.project, coroutineScope)
     val clientSettings = InspectorClientSettings(projectRule.project)
     val inspector =
       LayoutInspector(
@@ -731,7 +731,7 @@ class LayoutInspectorTreePanelTest {
         model,
         mock(),
         FakeTreeSettings(),
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     inspector.treeSettings.hideSystemNodes = true
@@ -777,8 +777,8 @@ class LayoutInspectorTreePanelTest {
   fun testSemanticTrees() {
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-    val model = InspectorModel(projectRule.project)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val model = InspectorModel(projectRule.project, coroutineScope)
     val clientSettings = InspectorClientSettings(projectRule.project)
     val inspector =
       LayoutInspector(
@@ -791,7 +791,7 @@ class LayoutInspectorTreePanelTest {
         model,
         mock(),
         FakeTreeSettings(),
-        MoreExecutors.directExecutor()
+        MoreExecutors.directExecutor(),
       )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val tree = treePanel.tree
@@ -804,7 +804,7 @@ class LayoutInspectorTreePanelTest {
           compose(
             4,
             "Text",
-            composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS
+            composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS,
           )
           compose(5, "Column", composeFlags = FLAG_HAS_MERGED_SEMANTICS) {
             compose(6, "Row") {
@@ -948,12 +948,21 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testResetRecompositionCounts() {
     val tree = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
+    val treeModel = tree.componentTreeModel as TreeModel
     val inspector = inspectorRule.inspector
     val model = inspector.inspectorModel
     val compose1 = model[COMPOSE1] as ComposeViewNode
     val compose2 = model[COMPOSE2] as ComposeViewNode
     var selectionUpdate = 0
     model.addSelectionListener { _, _, _ -> selectionUpdate++ }
+    var columnDataChanged = 0
+    treeModel.addTreeModelListener(
+      object : TreeTableModelImplAdapter() {
+        override fun columnDataChanged() {
+          columnDataChanged++
+        }
+      }
+    )
 
     assertThat(compose1.recompositions.count).isEqualTo(7)
     assertThat(compose1.recompositions.skips).isEqualTo(14)
@@ -961,9 +970,10 @@ class LayoutInspectorTreePanelTest {
     assertThat(compose2.recompositions.skips).isEqualTo(33)
 
     setToolContext(tree, inspector)
+    assertThat(columnDataChanged).isEqualTo(1)
     UIUtil.pump()
     val table = tree.focusComponent as JTable
-    val component = tree.component
+    val component = tree.component as RootPanel
 
     // connect to a process to add the tree to the UI.
     inspectorRule.launchSynchronously = false
@@ -972,29 +982,19 @@ class LayoutInspectorTreePanelTest {
       MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
     inspectorRule.awaitLaunch()
 
-    waitForCondition(1, TimeUnit.SECONDS) {
-      (component as RootPanel).uiState == RootPanel.UiState.SHOW_TREE
-    }
+    waitForCondition(1, TimeUnit.SECONDS) { component.uiState == RootPanel.UiState.SHOW_TREE }
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { columnDataChanged == 2 }
 
     component.size = Dimension(800, 1000)
     val ui = FakeUi(component, createFakeWindow = true)
     val treeColumnWidth = table.columnModel.getColumn(0).width
-    val treeModel = tree.componentTreeModel as TreeModel
     updateSettingsLatch = ReportingCountDownLatch(1)
-    var columnDataChanged = false
-    treeModel.addTreeModelListener(
-      object : TreeTableModelImplAdapter() {
-        override fun columnDataChanged() {
-          columnDataChanged = true
-        }
-      }
-    )
 
     // Click on the reset recomposition counts button in the table header:
     ui.mouse.click(treeColumnWidth - 8, 8)
 
     // Wait for a Tree column data changed event:
-    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { columnDataChanged }
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { columnDataChanged == 3 }
     // Wait for the update settings event
     updateSettingsLatch?.await(TIMEOUT, TIMEOUT_UNIT)
 

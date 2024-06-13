@@ -49,12 +49,14 @@ import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.not
-import com.intellij.ui.layout.selectedValueMatches
+import com.intellij.ui.layout.selectedValueIs
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
+import java.awt.Dimension
 import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel
+import javax.swing.JList
 
 open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private val project: Project, private val configuration: T) :
   SettingsEditor<T>() {
@@ -104,8 +106,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
             component?.parent?.parent?.apply {
               removeAll()
               layout = BorderLayout()
-              add(JBPanelWithEmptyText().withEmptyText(
-                AndroidBundle.message("android.run.configuration.wear.while.project.is.synchronizing.warning")))
+              add(JBPanelWithEmptyText().withEmptyText(AndroidBundle.message("android.run.configuration.synchronization.warning")))
             }
           }
         }
@@ -134,50 +135,59 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
     runConfiguration.deployOptions.pmInstallFlags = installFlags
   }
 
-  override fun createEditor() = panel {
-    getModuleChooser()
-    getComponentComboBox()
-    getInstallFlagsTextField()
-  }
+  override fun createEditor() =
+    panel {
+      getModuleChooser()
+      getComponentComboBox()
+      getInstallFlagsTextField()
+    }
 
   protected fun Panel.getInstallFlagsTextField() {
-    row(AndroidBundle.message("android.run.configuration.install.flags.label")) {
+    row(AndroidBundle.message("android.run.configuration.wear.install.flags")) {
       textField().bindText(::installFlags).align(AlignX.FILL)
     }
   }
 
   protected fun Panel.getComponentComboBox() {
-    val componentTypeName = configuration.componentLaunchOptions.userVisibleComponentTypeName
-    row("${componentTypeName}:") {
+    row {
+      label(configuration.componentLaunchOptions.userVisibleComponentTypeName + ":")
       wearComponentFqNameComboBox = comboBox(
-        model = DefaultComboBoxModel(emptyArray<String>()),
-        renderer = SimpleListCellRenderer.create { label, value, index ->
-          label.text = when {
-            value != null -> value
-            modulesComboBox.item == null -> AndroidBundle.message("android.run.configuration.module.not.chosen")
-            index == -1 -> AndroidBundle.message("android.run.configuration.component.not.found",
-                                                 configuration.componentLaunchOptions.userVisibleComponentTypeName)
-            else -> AndroidBundle.message("android.run.configuration.component.not.chosen",
-                                          configuration.componentLaunchOptions.userVisibleComponentTypeName)
+        DefaultComboBoxModel(emptyArray<String>()),
+        renderer = object : SimpleListCellRenderer<String>() {
+          override fun customize(list: JList<out String>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
+            text = when {
+              value != null -> value
+              modulesComboBox.item == null -> AndroidBundle.message("android.run.configuration.wear.module.not.chosen")
+              list.selectionModel.maxSelectionIndex == -1 -> AndroidBundle.message("android.run.configuration.wear.component.not.found",
+                                                                                   configuration.componentLaunchOptions.userVisibleComponentTypeName)
+
+              else -> AndroidBundle.message("android.run.configuration.wear.component.not.chosen",
+                                            configuration.componentLaunchOptions.userVisibleComponentTypeName)
+            }
           }
-        }
-      ).bindItem(::componentName)
-        .enabledIf(modulesComboBox.selectedValueMatches { it != null })
+        })
+        .bindItem(::componentName)
+        .enabledIf(modulesComboBox.selectedValueIs(null).not())
+        .align(AlignX.FILL)
         .applyToComponent {
-          setMinimumAndPreferredWidth(400)
+          maximumSize = Dimension(400, maximumSize.height)
+          setMinLength(400)
           addPropertyChangeListener("model") {
             this.isEnabled = (it.newValue as ComboBoxModel<*>).size > 0
           }
         }.component
-    }.layout(RowLayout.PARENT_GRID)
+    }.layout(RowLayout.LABEL_ALIGNED)
   }
 
   protected fun Panel.getModuleChooser() {
-    row(AndroidBundle.message("android.run.configuration.module.label")) {
-      cell(modulesComboBox).applyToComponent {
-        setMinimumAndPreferredWidth(400)
-      }
-    }.layout(RowLayout.PARENT_GRID)
+    row {
+      label(AndroidBundle.message("android.run.configuration.module.label"))
+      cell(modulesComboBox)
+        .align(AlignX.FILL)
+        .applyToComponent {
+          maximumSize = Dimension(400, maximumSize.height)
+        }
+    }.layout(RowLayout.LABEL_ALIGNED)
   }
 
   private fun findAvailableComponents(module: Module): Set<String> {

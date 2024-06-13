@@ -19,63 +19,55 @@ import com.android.SdkConstants
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.preview.PreviewXmlBuilder
+import com.android.tools.preview.applyTo
+import com.android.tools.preview.config.getDefaultPreviewDevice
+import com.android.tools.preview.dimensionToString
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
 private const val PREFIX = "GlancePreview"
-private val GLANCE_PREVIEW_ELEMENT_INSTANCE =
-  DataKey.create<GlancePreviewElement>("$PREFIX.PreviewElement")
+private val PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE =
+  DataKey.create<PsiGlancePreviewElement>("$PREFIX.PreviewElement")
 
 /** [PreviewElementModelAdapter] adapting [GlancePreviewElement] to [NlModel]. */
 abstract class GlancePreviewElementModelAdapter<M : DataContextHolder> :
-  MethodPreviewElementModelAdapter<GlancePreviewElement, M>(GLANCE_PREVIEW_ELEMENT_INSTANCE) {
+  ConfigurablePreviewElementModelAdapter<PsiGlancePreviewElement, M>,
+  MethodPreviewElementModelAdapter<PsiGlancePreviewElement, M>(
+    PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE
+  ) {
 
   override fun applyToConfiguration(
-    previewElement: GlancePreviewElement,
-    configuration: Configuration
-  ) {
-    configuration.target = configuration.settings.highestApiTarget
-  }
+    previewElement: PsiGlancePreviewElement,
+    configuration: Configuration,
+  ) = previewElement.applyTo(configuration) { it.settings.getDefaultPreviewDevice() }
 }
 
 internal const val APP_WIDGET_VIEW_ADAPTER =
   "androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter"
 
 object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
-  override fun toXml(previewElement: GlancePreviewElement) =
-    PreviewXmlBuilder(APP_WIDGET_VIEW_ADAPTER)
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, "wrap_content")
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, "wrap_content")
+  override fun toXml(previewElement: PsiGlancePreviewElement): String {
+    val configuration = previewElement.configuration
+    val width = dimensionToString(configuration.width, SdkConstants.VALUE_WRAP_CONTENT)
+    val height = dimensionToString(configuration.height, SdkConstants.VALUE_WRAP_CONTENT)
+    return PreviewXmlBuilder(APP_WIDGET_VIEW_ADAPTER)
+      .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, width)
+      .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, height)
+      .androidAttribute(SdkConstants.ATTR_MIN_WIDTH, "1px")
+      .androidAttribute(SdkConstants.ATTR_MIN_HEIGHT, "1px")
       .toolsAttribute("composableName", previewElement.methodFqn)
       .buildString()
+  }
 
   override fun createLightVirtualFile(
     content: String,
     backedFile: VirtualFile,
-    id: Long
+    id: Long,
   ): LightVirtualFile =
     GlanceAppWidgetAdapterLightVirtualFile("model-glance-appwidget-$id.xml", content) { backedFile }
-}
-
-internal const val WEAR_TILE_VIEW_ADAPTER =
-  "androidx.glance.wear.tiles.preview.GlanceTileServiceViewAdapter"
-
-object WearTilesModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
-  override fun toXml(previewElement: GlancePreviewElement) =
-    PreviewXmlBuilder(WEAR_TILE_VIEW_ADAPTER)
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, "wrap_content")
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, "wrap_content")
-      .toolsAttribute("composableName", previewElement.methodFqn)
-      .buildString()
-
-  override fun createLightVirtualFile(
-    content: String,
-    backedFile: VirtualFile,
-    id: Long
-  ): LightVirtualFile =
-    GlanceTileAdapterLightVirtualFile("model-glance-weartile-$id.xml", content) { backedFile }
 }

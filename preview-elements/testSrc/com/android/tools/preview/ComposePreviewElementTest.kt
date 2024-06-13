@@ -15,8 +15,6 @@
  */
 package com.android.tools.preview
 
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPsiElementPointer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.fail
@@ -28,33 +26,6 @@ import javax.xml.parsers.DocumentBuilderFactory
 class ComposePreviewElementTest {
 
   @Test
-  fun testPreviewConfigurationCleaner() {
-    assertEquals(
-      PreviewConfiguration.cleanAndGet(-120, null, 1, 1, "", 2f, null, "", 2),
-      PreviewConfiguration.cleanAndGet(-120, null, -2, -10, null, 2f, 0, null, 2)
-    )
-
-    assertEquals(
-      PreviewConfiguration.cleanAndGet(
-        9000,
-        null,
-        MAX_WIDTH,
-        MAX_HEIGHT,
-        null,
-        null,
-        null,
-        "id:device"
-      ),
-      PreviewConfiguration.cleanAndGet(9000, null, 500000, 500000, null, 1f, 0, "id:device")
-    )
-
-    assertEquals(
-      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT, null, null, 123, null, -1),
-      PreviewConfiguration.cleanAndGet(12, null, 120, 500000, null, 1f, 123, null, null)
-    )
-  }
-
-  @Test
   fun testValidXmlForPreview() {
     val previewsToCheck =
       listOf(
@@ -63,29 +34,29 @@ class ComposePreviewElementTest {
           PreviewDisplaySettings("A name", null, false, false, null),
           null,
           null,
-          PreviewConfiguration.cleanAndGet()
+          PreviewConfiguration.cleanAndGet(),
         ),
         SingleComposePreviewElementInstance(
           "composableMethodName",
           PreviewDisplaySettings("A name", "group1", true, true, null),
           null,
           null,
-          PreviewConfiguration.cleanAndGet()
+          PreviewConfiguration.cleanAndGet(),
         ),
         SingleComposePreviewElementInstance(
           "composableMethodName",
           PreviewDisplaySettings("A name", "group1", true, true, "#000"),
           null,
           null,
-          PreviewConfiguration.cleanAndGet()
+          PreviewConfiguration.cleanAndGet(),
         ),
         SingleComposePreviewElementInstance(
           "composableMethodName",
           PreviewDisplaySettings("A name", "group1", true, false, "#000"),
           null,
           null,
-          PreviewConfiguration.cleanAndGet()
-        )
+          PreviewConfiguration.cleanAndGet(),
+        ),
       )
 
     val factory = DocumentBuilderFactory.newDefaultInstance()
@@ -120,10 +91,25 @@ $t
       override val instanceId: String,
       override val methodFqn: String,
       override val displaySettings: PreviewDisplaySettings,
-      override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-      override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-      override val configuration: PreviewConfiguration
-    ) : ComposePreviewElementInstance()
+      override val previewElementDefinition: Unit?,
+      override val previewBody: Unit?,
+      override val configuration: PreviewConfiguration,
+    ) : ComposePreviewElementInstance<Unit>() {
+      override var hasAnimations = false
+
+      override fun createDerivedInstance(
+        displaySettings: PreviewDisplaySettings,
+        config: PreviewConfiguration,
+      ) =
+        TestComposePreviewElementInstance(
+          instanceId = instanceId,
+          methodFqn = methodFqn,
+          displaySettings = displaySettings,
+          previewElementDefinition = previewElementDefinition,
+          previewBody = previewBody,
+          configuration = config,
+        )
+    }
 
     val composable0 =
       SingleComposePreviewElementInstance(
@@ -131,7 +117,7 @@ $t
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable0, just a different instance
@@ -141,7 +127,7 @@ $t
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable0, but with a different name
@@ -151,7 +137,7 @@ $t
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable0, but with a different type
@@ -162,7 +148,7 @@ $t
         PreviewDisplaySettings("A name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     // The same as composable2, but with a different display settings
@@ -173,7 +159,7 @@ $t
         PreviewDisplaySettings("B name", null, false, false, null),
         null,
         null,
-        PreviewConfiguration.cleanAndGet()
+        PreviewConfiguration.cleanAndGet(),
       )
 
     assertEquals(composable0, composable0b)

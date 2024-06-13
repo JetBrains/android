@@ -36,8 +36,10 @@ import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.util.SlowOperations
 import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.Attribute
 import org.jdom.Element
@@ -55,7 +57,7 @@ data class SourceCodeEditorWithMultiRepresentationPreviewState(
   val editorState: FileEditorState = FileEditorState.INSTANCE,
   val previewState: MultiRepresentationPreviewFileEditorState =
     MultiRepresentationPreviewFileEditorState.INSTANCE,
-  val selectedLayout: TextEditorWithPreview.Layout? = null
+  val selectedLayout: TextEditorWithPreview.Layout? = null,
 ) : FileEditorState {
   override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel): Boolean =
     otherState is SourceCodeEditorWithMultiRepresentationPreviewState &&
@@ -86,15 +88,24 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       log.debug("createEditor file=${file.path}")
     }
 
-    val psiFile = PsiManager.getInstance(project).findFile(file)!!
+    val psiFile =
+      SlowOperations.allowSlowOperations(
+        ThrowableComputable { PsiManager.getInstance(project).findFile(file)!! }
+      )
 
-    val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+    val textEditor =
+      SlowOperations.allowSlowOperations(
+        ThrowableComputable {
+          TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+        }
+      )
+
     val multiRepresentationPreview = SourceCodePreview(psiFile, textEditor.editor, providers)
 
     return SourceCodeEditorWithMultiRepresentationPreview(
       project,
       textEditor,
-      multiRepresentationPreview
+      multiRepresentationPreview,
     )
   }
 
@@ -112,9 +123,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       }
 
       // Persist the multi-preview state
-      serialize(state.previewState)?.let {
-        targetElement.addContent(it)
-      }
+      serialize(state.previewState)?.let { targetElement.addContent(it) }
 
       // Persist the current selected layout
       state.selectedLayout?.let {
@@ -126,7 +135,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
   override fun readState(
     sourceElement: Element,
     project: Project,
-    file: VirtualFile
+    file: VirtualFile,
   ): FileEditorState {
     if (accept(project, file)) {
       var editorState: TextEditorState? = null
@@ -157,7 +166,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
         return SourceCodeEditorWithMultiRepresentationPreviewState(
           editorState = editorState ?: FileEditorState.INSTANCE,
           previewState = multiPreviewState ?: MultiRepresentationPreviewFileEditorState.INSTANCE,
-          selectedLayout = selectedLayout
+          selectedLayout = selectedLayout,
         )
       }
     }

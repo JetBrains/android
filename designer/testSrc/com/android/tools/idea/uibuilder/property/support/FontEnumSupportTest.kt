@@ -40,11 +40,11 @@ class FontEnumSupportTest {
     fixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf")
     fixture.copyFileToProject(
       "fonts/my_circular_font_family_1.xml",
-      "res/font/my_circular_font_family_1.xml"
+      "res/font/my_circular_font_family_1.xml",
     )
     fixture.copyFileToProject(
       "fonts/my_circular_font_family_2.xml",
-      "res/font/my_circular_font_family_2.xml"
+      "res/font/my_circular_font_family_2.xml",
     )
     file = fixture.copyFileToProject("fonts/roboto.xml", "res/font/roboto.xml")
   }
@@ -103,7 +103,7 @@ class FontEnumSupportTest {
     enumValue: EnumValue,
     value: String,
     display: String,
-    indented: Boolean = true
+    indented: Boolean = true,
   ) {
     assertThat(enumValue.value).isEqualTo(value)
     assertThat(enumValue.display).isEqualTo(display)

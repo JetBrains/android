@@ -89,5 +89,5 @@ data class RenderResultMetricData(
   var scanMs: Long = -1,
   var renderMs: Long = -1,
   var componentCount: Int = -1,
-  var isRenderResultSuccess: Boolean = false
+  var isRenderResultSuccess: Boolean = false,
 ) {}

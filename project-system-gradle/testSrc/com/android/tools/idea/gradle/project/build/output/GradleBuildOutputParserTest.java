@@ -65,6 +65,7 @@ public class GradleBuildOutputParserTest {
 
     assertThat(fileMessageEvent.getGroup()).isEqualTo("AAPT errors");
     assertThat(fileMessageEvent.getKind()).isEqualTo(MessageEvent.Kind.ERROR);
+    assertThat(fileMessageEvent.getMessage()).isEqualTo("Error message.");
     assertThat(fileMessageEvent.getResult().getDetails()).isEqualTo("Error message.");
   }
 
@@ -87,7 +88,31 @@ public class GradleBuildOutputParserTest {
 
     assertThat(messageEvent.getGroup()).isEqualTo("D8 warnings");
     assertThat(messageEvent.getKind()).isEqualTo(MessageEvent.Kind.WARNING);
+    assertThat(messageEvent.getMessage()).isEqualTo("Warning message.");
     assertThat(messageEvent.getResult().getDetails()).isEqualTo("Warning message.");
+  }
+
+  @Test
+  public void parseWithMultilineWarning() {
+    String line = "AGPBI: {\"kind\":\"warning\",\"text\":\"Warning message.\\nWarning line 1\\nWarning line 2\\nWarning line 3\",\"sources\":[{}],\"tool\":\"D8\"}";
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
+
+    ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
+    String detailLine = "This is a detail line";
+    assertTrue(myParser.parse(line, myReader, myConsumer));
+    assertFalse(myParser.parse(detailLine, myReader, myConsumer));
+    verify(myConsumer).accept(messageCaptor.capture());
+
+    List<MessageEvent> generatedMessages = messageCaptor.getAllValues();
+    assertThat(generatedMessages).hasSize(1);
+    assertThat(generatedMessages.get(0)).isNotInstanceOf(FileMessageEvent.class);
+
+    MessageEvent messageEvent = generatedMessages.get(0);
+
+    assertThat(messageEvent.getGroup()).isEqualTo("D8 warnings");
+    assertThat(messageEvent.getKind()).isEqualTo(MessageEvent.Kind.WARNING);
+    assertThat(messageEvent.getMessage()).isEqualTo("Warning message.");
+    assertThat(messageEvent.getResult().getDetails()).isEqualTo("Warning message.\nWarning line 1\nWarning line 2\nWarning line 3");
   }
 
   @Test
@@ -128,6 +153,7 @@ public class GradleBuildOutputParserTest {
 
     assertThat(messageEvent.getGroup()).isEqualTo("Dex errors");
     assertThat(messageEvent.getKind()).isEqualTo(MessageEvent.Kind.ERROR);
+    assertThat(messageEvent.getMessage()).isEqualTo("Error message.");
     assertThat(messageEvent.getResult().getDetails()).isEqualTo("Error line 1\nError line 2\nError line 3");
   }
 

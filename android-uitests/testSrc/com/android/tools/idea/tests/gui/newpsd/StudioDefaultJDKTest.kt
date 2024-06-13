@@ -29,6 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 
 @RunWith(GuiTestRemoteRunner::class)
 class StudioDefaultJDKTest {
@@ -114,7 +115,7 @@ class StudioDefaultJDKTest {
     Truth.assertThat(gradleJdkPathEditComboBox.target().parent.isVisible).isTrue()
 
     //Change the GRADLE_LOCAL_JAVA_HOME -> any other JDK
-    gradleJDK.selectItem("jbr-17")
+    gradleJDK.selectItem(Pattern.compile("jbr-17"))
     Truth.assertThat(gradleJDK.isEnabled).isTrue()
     // If any other JDK other "GRADLE_LOCAL_JAVA_HOME" is selected,
     // the combo box (GradleJdkPathEditComboBox) should not be visible

@@ -100,7 +100,7 @@ class NlComponentTreeDefinition(
   side: Side,
   split: Split,
   autoHide: AutoHide,
-  isPassThroughQueue: Boolean = false
+  isPassThroughQueue: Boolean = false,
 ) :
   ToolWindowDefinition<DesignSurface<*>>(
     "Component Tree",
@@ -109,7 +109,7 @@ class NlComponentTreeDefinition(
     side,
     split,
     autoHide,
-    { disposable -> ComponentTreePanel(project, isPassThroughQueue, disposable) }
+    { disposable -> ComponentTreePanel(project, isPassThroughQueue, disposable) },
   )
 
 /**
@@ -123,7 +123,7 @@ class NlComponentTreeDefinition(
 private class ComponentTreePanel(
   val project: Project,
   isPassThroughQueue: Boolean,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : AdtSecondaryPanel(BorderLayout()), ToolContent<DesignSurface<*>> {
   private var surface: NlDesignSurface? = null
   private var model: NlModel? = null
@@ -142,7 +142,7 @@ private class ComponentTreePanel(
       null,
       this,
       null,
-      SWING_THREAD
+      SWING_THREAD,
     )
 
   init {
@@ -253,7 +253,7 @@ private class ComponentTreePanel(
     ActionManager.getInstance()
       .createActionPopupMenu(
         ActionPlaces.EDITOR_POPUP,
-        DefaultActionGroup(ActionManager.getInstance().getAction(IdeActions.ACTION_DELETE))
+        DefaultActionGroup(ActionManager.getInstance().getAction(IdeActions.ACTION_DELETE)),
       )
       .component
       .show(componentTree.focusComponent, x, y)
@@ -379,7 +379,7 @@ private class ComponentTreePanel(
       data: Transferable,
       before: Any?,
       isMove: Boolean,
-      draggedFromTree: List<Any>
+      draggedFromTree: List<Any>,
     ): Boolean {
       val model = model ?: return false
       if (!data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) return false
@@ -413,7 +413,7 @@ private class ComponentTreePanel(
       components: List<NlComponent>,
       references: List<String>,
       before: NlComponentReference?,
-      insertType: InsertType
+      insertType: InsertType,
     ) {
       // First add the reference to the constraint helpers reference list:
       val ids = references + components.map { it.ensureLiveId() }

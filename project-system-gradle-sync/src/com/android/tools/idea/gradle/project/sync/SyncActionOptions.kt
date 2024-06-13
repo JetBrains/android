@@ -60,6 +60,12 @@ class AdditionalClassifierArtifactsActionOptions(
 ) : Serializable
 
 data class GradleSyncStudioFlags(
+  /**
+   * The studio latest known AGP version is injected, rather than read from the version jar via the injected classpath, to avoid problems
+   * when the injected jars are cached by gradle using only size and timestamp as the cache key.
+   * See https://issuetracker.google.com/306442910
+   */
+  val studioLatestKnownAgpVersion: String,
   val studioFlagParallelSyncEnabled: Boolean,
   val studioFlagParallelSyncPrefetchVariantsEnabled: Boolean,
   val studioFlagUseV2BuilderModels: Boolean,

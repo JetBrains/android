@@ -99,12 +99,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   /**
    * A map of Session's Id -> {@link Common.SessionMetaData}
    */
-  @NotNull private Map<Long, Common.SessionMetaData> mySessionMetaDatas;
-
-  /**
-   * A map of Session's Id -> {@link ProfilerTaskType}
-   */
-  @NotNull private final Map<Long, ProfilerTaskType> mySessionIdToProfilerTaskType;
+  @VisibleForTesting
+  @NotNull public Map<Long, Common.SessionMetaData> mySessionMetaDatas;
 
   /**
    * A list of session-related items for display in the Sessions panel.
@@ -126,6 +122,17 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * the one that is currently selected (e.g. Users can profile in the background while exploring other sessions history).
    */
   @NotNull private Common.Session myProfilingSession;
+
+  /**
+   * The type of task actively being used by the user. Note that there can only be one current task type at a time, as the user is either
+   * starting or loading one task at any given time.
+   */
+  private ProfilerTaskType myCurrentTaskType = ProfilerTaskType.UNSPECIFIED;
+
+  /**
+   * Whether the current task initiated by the user is to be started on startup of the process or not.
+   */
+  private boolean myIsCurrentTaskStartup = false;
 
   /**
    * A cache of the view ranges that were used by each session before it was unselected. Note that the key represents a Session's id.
@@ -153,10 +160,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
     mySessionItems = new HashMap<>();
     mySessionMetaDatas = new HashMap<>();
-    mySessionIdToProfilerTaskType = new HashMap<>();
     // Always return the SessionMetaData default instance for a Session default instance.
     mySessionMetaDatas.put(Common.Session.getDefaultInstance().getSessionId(), Common.SessionMetaData.getDefaultInstance());
-    mySessionIdToProfilerTaskType.put(Common.Session.getDefaultInstance().getSessionId(), ProfilerTaskType.UNSPECIFIED);
     mySessionArtifacts = new ArrayList<>();
     mySessionViewRangeMap = new HashMap<>();
 
@@ -205,12 +210,12 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     return mySessionMetaDatas.get(mySelectedSession.getSessionId());
   }
 
-  /**
-   * Return the task type of the current selected session
-   */
-  @NotNull
-  public ProfilerTaskType getSelectedSessionProfilerTaskType() {
-    return mySessionIdToProfilerTaskType.get(mySelectedSession.getSessionId());
+  public ProfilerTaskType getCurrentTaskType() {
+    return myCurrentTaskType;
+  }
+
+  public boolean isCurrentTaskStartup() {
+    return myIsCurrentTaskStartup;
   }
 
   @NotNull
@@ -277,7 +282,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .thenComparingLong(g -> g.getEventsCount() > 0 ? g.getEvents(0).getSession().getSessionStarted().getStartTimestampEpochMs() : 0));
     sortedGroups.forEach(group -> {
       SessionItem sessionItem = mySessionItems.get(group.getGroupId());
-      boolean sessionStateChanged = false;
+      boolean newSessionFound = false;
+      boolean sessionNewlyEnded = false;
       Common.Event startEvent = group.getEvents(0);
       // For non-full sessions (e.g. import), we expect to receive both the BEGIN_SESSION and END_SESSION events first before
       // processing them, otherwiser the profiler model might think that it is an ongoing session for a brief moment if all the events
@@ -290,7 +296,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       // We found a new session we process it and update our internal state.
       if (sessionItem == null) {
         sessionItem = processSessionStarted(startEvent);
-        sessionStateChanged = true;
+        newSessionFound = true;
         LogUtils.log(this.getClass(), "Session started (" + sessionItem.getName() + "), support level =" +
                                       myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }
@@ -298,24 +304,26 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       if (group.getEventsCount() == 2 && sessionItem.isOngoing()) {
         Common.Session session = sessionItem.getSession().toBuilder().setEndTimestamp(group.getEvents(1).getTimestamp()).build();
         sessionItem.setSession(session);
-        sessionStateChanged = true;
-        setProfilingSession(Common.Session.getDefaultInstance());
+        sessionNewlyEnded = true;
+
+        // (b/326497871) In session-based UI, importing file shouldn't reset the session with defaultInstance because doing so would
+        // disable the stop profiling session button.
+        if (myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+          setProfilingSession(Common.Session.getDefaultInstance());
+        }
         LogUtils.log(this.getClass(), "Session stopped (" + sessionItem.getName() + "), support level =" +
                                       myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }
-      if (sessionStateChanged) {
-        boolean isTaskBasedUXEnabled = myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
-        // Do not auto-select the imported session (pid == 0) if Task-Based UX is enabled.
-        if (!isTaskBasedUXEnabled || !isSessionImported(sessionItem.getSession())) {
-          setSessionInternal(sessionItem.getSession());
-        }
+
+      boolean shouldSetSession = shouldAutoSelectSession(newSessionFound, sessionNewlyEnded, sessionItem.getSession());
+      if (shouldSetSession) {
+        setSessionInternal(sessionItem.getSession());
         if (sessionItem.isOngoing()) {
           setProfilingSession(sessionItem.getSession());
         }
-        if (!isTaskBasedUXEnabled || !isSessionImported(sessionItem.getSession())) {
-          setSessionInternal(sessionItem.getSession());
-        }
+        setSessionInternal(sessionItem.getSession());
       }
+
       final SessionItem item = sessionItem;
       sessionArtifacts.add(item);
       List<SessionArtifact<?>> artifacts = new ArrayList<>();
@@ -337,6 +345,30 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
       registerImplicitlySelectedArtifactProto(mySessionArtifacts, previousArtifactProtos);
     }
+  }
+
+  /**
+   * Determines whether each session being processed in updateSessionItemsByGroup should be selected or not.
+   */
+  private boolean shouldAutoSelectSession(boolean newSessionFound, boolean sessionNewlyEnded, Common.Session session) {
+    // If Task-Based UX is disabled, then if either a new session was found, or an existing one has completed, selection of the processed
+    // session should be made.
+    boolean shouldSetSession = newSessionFound || sessionNewlyEnded;
+
+    // If Task-Based UX is enabled, then there are two specific instances where selection of the session should be made:
+    // (1) A new session was found, and it is ongoing.
+    // (2) An existing session was found, and it has completed.
+    // Both cases (1) and (2) require that there be a non-UNSPECIFIED `currentTaskType` set and that the session was not imported.
+    //
+    // Note: A newly found and complete session is not auto-selected to prevent Studio from auto-selecting a task recording after soft
+    // restarting Studio.
+    boolean isTaskBasedUXEnabled = myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+    if (isTaskBasedUXEnabled) {
+      shouldSetSession = !isSessionImported(session) &&
+                         myCurrentTaskType != ProfilerTaskType.UNSPECIFIED &&
+                         ((newSessionFound && !sessionNewlyEnded) || (!newSessionFound && sessionNewlyEnded));
+    }
+    return shouldSetSession;
   }
 
   /**
@@ -401,7 +433,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);
     mySessionItems.put(session.getSessionId(), sessionItem);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
-    mySessionIdToProfilerTaskType.put(session.getSessionId(), TaskTypeMappingUtils.convertTaskType(sessionData.getTaskType()));
+    myCurrentTaskType = TaskTypeMappingUtils.convertTaskType(sessionData.getTaskType());
+    myIsCurrentTaskStartup = sessionData.getIsStartupTask();
     return sessionItem;
   }
 
@@ -455,11 +488,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     changed(SessionAspect.PROFILING_SESSION);
   }
 
-  /**
-   * Inserts or updates a mapping from session id to a task type
-   */
-  public void setSessionProfilerTaskType(Long sessionId, ProfilerTaskType taskType) {
-    mySessionIdToProfilerTaskType.put(sessionId, taskType);
+  public void setCurrentTaskType(ProfilerTaskType taskType) {
+    myCurrentTaskType = taskType;
   }
 
   public void registerSelectedArtifactProto(GeneratedMessageV3 selectedArtifactProto) {
@@ -471,7 +501,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   public void beginSession(long streamId, @NotNull Common.Device device, @NotNull Common.Process process) {
-    beginSession(streamId, device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK);
+    beginSession(streamId, device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK, false);
   }
 
   /**
@@ -480,12 +510,14 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   public void beginSession(long streamId,
                            @NotNull Common.Device device,
                            @NotNull Common.Process process,
-                           @NotNull Common.ProfilerTaskType taskType) {
+                           @NotNull Common.ProfilerTaskType taskType,
+                           boolean isStartupTask) {
     BeginSession.Builder requestBuilder = BeginSession.newBuilder()
       .setSessionName(buildSessionName(device, process))
       .setRequestTimeEpochMs(System.currentTimeMillis())
       .setProcessAbi(process.getAbiCpuArch())
-      .setTaskType(taskType);
+      .setTaskType(taskType)
+      .setIsStartupTask(isStartupTask);
     // Attach agent for advanced profiling if JVMTI is enabled and the process is debuggable
     doBeginSession(streamId, device, process, requestBuilder);
   }
@@ -554,7 +586,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
 
     // When deleting a currently selected session, set the session back to default so the profilers will go to the null stage.
-    if (sessionIsSelectedSession) {
+    // In the Task-Based UX, however, the selected session/task remains selected even if it is deleted.
+    if (sessionIsSelectedSession && !myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       setSessionInternal(Common.Session.getDefaultInstance());
     }
 

@@ -40,7 +40,6 @@ class VisualLintTest {
     )
     // Create a new android project, and set a fixed distribution
     project = AndroidProject("tools/adt/idea/designer/testData/projects/visualLintApplication")
-    project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/designer/layout_preview_deps.manifest"))
@@ -59,7 +58,7 @@ class VisualLintTest {
       system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 2 errors found",
         10,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
 
       val notificationsPath: Path =
@@ -69,7 +68,7 @@ class VisualLintTest {
       system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 1 error found",
         10,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
 
       val homePath: Path =
@@ -79,7 +78,7 @@ class VisualLintTest {
       system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 2 errors found",
         10,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
 
       // Make button 100dp wide instead of 0dp (corresponding to match_parent). That should fix one
@@ -88,7 +87,7 @@ class VisualLintTest {
       system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 1 error found",
         10,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
     }
   }

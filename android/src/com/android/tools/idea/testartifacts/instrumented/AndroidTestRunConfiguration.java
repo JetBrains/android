@@ -24,7 +24,6 @@ import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.model.TestOptions;
@@ -37,7 +36,6 @@ import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
-import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
@@ -251,12 +249,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return true;
   }
 
-  @NotNull
-  @Override
-  public TestCompileType getTestCompileMode() {
-    return TestCompileType.ANDROID_TESTS;
-  }
-
   private List<ValidationError> checkTestMethod() {
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     final PsiClass testClass;
@@ -341,14 +333,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public String getExtraInstrumentationOptions(@Nullable AndroidFacet facet) {
     Collection<AndroidTestExtraParam> extraParams;
 
-    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
-      // Extra options defined in build.gradle are always included in AGP, adding them here would duplicate them.
-      extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
-    }
-    else {
-      extraParams = AndroidTestExtraParamKt.merge(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS),
-                                                  AndroidTestExtraParamKt.getAndroidTestExtraParams(facet));
-    }
+    // Extra options defined in build.gradle are always included in AGP, adding them here would duplicate them.
+    extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
 
     return extraParams.stream()
       .map(param -> "-e " + param.getNAME() + " " + param.getVALUE())

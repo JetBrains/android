@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.BidirectionalTextDetector
 class AndroidLintBidiSpoofingInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.bidi.spoofing"),
-    BidirectionalTextDetector.BIDI_SPOOFING
+    BidirectionalTextDetector.BIDI_SPOOFING,
   )

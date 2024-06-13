@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.utils.KotlinPaths
 import java.io.File
 
-
 abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
     fun doTest(path: String) {
         val testFileText = FileUtil.loadFile(File(testDataPath, path))

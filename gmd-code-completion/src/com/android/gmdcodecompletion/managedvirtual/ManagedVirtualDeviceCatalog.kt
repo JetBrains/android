@@ -17,33 +17,16 @@ package com.android.gmdcodecompletion.managedvirtual
 
 import com.android.gmdcodecompletion.AndroidDeviceInfo
 import com.android.gmdcodecompletion.GmdDeviceCatalog
-import com.android.prefs.AndroidLocationsSingleton
-import com.android.sdklib.devices.DeviceManager
-import com.android.sdklib.repository.LoggerProgressIndicatorWrapper
-import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
-import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.StudioSdkUtil
-import com.intellij.openapi.diagnostic.Logger
-import java.util.EnumSet
-
-private val LOGGER = Logger.getInstance(ManagedVirtualDeviceCatalogState::class.java)
-
-// Fix b/272562190 to enable Android TV images
-private const val ANDROID_TV_IMAGE = "tv"
-
-// Fix b/272562193 to enable Android Auto images
-private const val ANDROID_AUTO_IMAGE = "auto"
 
 /**
  * This class fetches and stores information from DeviceManager and RepoManager server to obtain
  * the latest device catalog for managed virtual devices
  */
-class ManagedVirtualDeviceCatalog : GmdDeviceCatalog() {
-
+data class ManagedVirtualDeviceCatalog(
   // Map of <device id, per Android device information>
-  val devices: HashMap<String, AndroidDeviceInfo> = HashMap()
+  val devices: HashMap<String, AndroidDeviceInfo> = HashMap(),
   val apiLevels: ArrayList<ApiVersionInfo> = ArrayList()
+) : GmdDeviceCatalog() {
 
   // Stores all required information for emulator images
   data class ApiVersionInfo(
@@ -53,62 +36,4 @@ class ManagedVirtualDeviceCatalog : GmdDeviceCatalog() {
     // Default is false, On arm machines this value does not have any effect
     val require64Bit: Boolean = false,
   )
-
-  override fun checkEmptyFields(): ManagedVirtualDeviceCatalog {
-    this.isEmptyCatalog = this.devices.isEmpty() &&
-                          this.apiLevels.isEmpty()
-    return this
-  }
-
-  override fun syncDeviceCatalog(): ManagedVirtualDeviceCatalog {
-    val iLogger = LogWrapper(LOGGER)
-    try {
-      // Sync with server to obtain latest SDK list
-      StudioSdkUtil.reloadRemoteSdkWithModalProgress()
-      val progress: LoggerProgressIndicatorWrapper = object : LoggerProgressIndicatorWrapper(iLogger) {
-        override fun logVerbose(s: String) = iLogger.verbose(s)
-      }
-      val repoManager = AndroidSdks.getInstance()?.tryToChooseSdkHandler()?.getSdkManager(progress)
-      val systemImages = repoManager?.packages?.consolidatedPkgs ?: emptyMap()
-      systemImages.filter {
-        it.key.contains("system-images") &&
-        !it.key.contains(ANDROID_TV_IMAGE) &&
-        !it.key.contains(ANDROID_AUTO_IMAGE)
-      }.forEach { (installId, updatablePackage) ->
-        val propertyList = installId.split(";")
-        val apiInfo = propertyList[1].substring(8)
-        val abiInfo = propertyList[3]
-        val apiLevel = ((updatablePackage.local ?: updatablePackage.remote)?.typeDetails as? SysImgDetailsType)?.apiLevel ?: -1
-        val imageSource = propertyList[2].let { if (it == "default") "google" else it }
-
-        if (apiLevel > 0) {
-          this.apiLevels.add(ApiVersionInfo(
-            apiLevel = apiLevel,
-            apiPreview = if (apiInfo.toIntOrNull() == null) apiInfo else "",
-            imageSource = imageSource,
-            require64Bit = (!abiInfo.contains("arm") && abiInfo.contains("64")),
-          ))
-        }
-      }
-
-      val availableApis = this.apiLevels.map { it.apiLevel }
-
-      // Obtain all devices from Device Manager except custom managed devices
-      val allDevices =
-        DeviceManager.createInstance(AndroidLocationsSingleton, AndroidLocationsSingleton.prefsLocation, iLogger)
-          ?.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
-      allDevices?.forEach { device ->
-        if (!device.isDeprecated) {
-          this.devices[device.displayName] = AndroidDeviceInfo(deviceName = "",
-                                                               supportedApis = availableApis,
-                                                               brand = device.manufacturer)
-        }
-      }
-      checkEmptyFields()
-    }
-    catch (e: Exception) {
-      LOGGER.warn("ManagedVirtualDeviceCatalog failed to syncDeviceCatalog", e)
-    }
-    return this
-  }
 }

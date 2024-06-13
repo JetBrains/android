@@ -67,6 +67,7 @@ import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
+import studio.network.inspection.NetworkInspectorProtocol.StartInspectionResponse
 
 @RunsInEdt
 class RuleDetailsViewTest {
@@ -75,7 +76,8 @@ class RuleDetailsViewTest {
     private var latestRegularCommand = InterceptCommand.getDefaultInstance()
     private var latestReorderCommand = InterceptCommand.getDefaultInstance()
 
-    override suspend fun getStartTimeStampNs() = 0L
+    override suspend fun startInspection(): StartInspectionResponse =
+      StartInspectionResponse.getDefaultInstance()
 
     override suspend fun interceptResponse(command: InterceptCommand) {
       if (command.hasReorderInterceptRules()) {
@@ -128,7 +130,7 @@ class RuleDetailsViewTest {
         codeNavigationProvider,
         timer,
         client,
-        IdeNetworkInspectorTracker(projectRule.project)
+        IdeNetworkInspectorTracker(projectRule.project),
       )
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     model =
@@ -138,7 +140,7 @@ class RuleDetailsViewTest {
         scope,
         object : ConnectionDataModel {
           override fun getData(timeCurrentRangeUs: Range) = listOf<HttpData>()
-        }
+        },
       )
     model.detailContent = NetworkInspectorModel.DetailContent.RULE
     val parentPanel = JPanel()
@@ -151,7 +153,7 @@ class RuleDetailsViewTest {
         component,
         services,
         scope,
-        testRootDisposable
+        testRootDisposable,
       )
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel
@@ -621,7 +623,7 @@ class RuleDetailsViewTest {
         "findValue",
         false,
         "replaceName",
-        "replaceValue"
+        "replaceValue",
       )
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
@@ -1219,7 +1221,7 @@ class RuleDetailsViewTest {
         "HEAD",
         "TRACE",
         "CONNECT",
-        "OPTIONS"
+        "OPTIONS",
       )
       .inOrder()
   }

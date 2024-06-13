@@ -65,7 +65,7 @@ class LightActionBuilderClassTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -76,7 +76,7 @@ class LightActionBuilderClassTest {
     Truth.assertThat(
         safeArgsRule.fixture.findClass(
           "test.safeargs.Fragment2Directions.ActionFragment2ToMain",
-          context
+          context,
         )
       )
       .isNull()
@@ -85,7 +85,7 @@ class LightActionBuilderClassTest {
     val actionBuilderClass =
       safeArgsRule.fixture.findClass(
         "test.safeargs.Fragment1Directions.ActionFragment1ToFragment2",
-        context
+        context,
       )
     Truth.assertThat(actionBuilderClass).isInstanceOf(LightActionBuilderClass::class.java)
 
@@ -102,7 +102,7 @@ class LightActionBuilderClassTest {
       methods[0].checkSignaturesAndReturnType(
         name = "setArgOne",
         returnType = "ActionFragment1ToFragment2",
-        parameters = listOf(Parameter("arg", "String"))
+        parameters = listOf(Parameter("arg", "String")),
       )
 
       methods[1].checkSignaturesAndReturnType(name = "getArgOne", returnType = "String")
@@ -156,7 +156,7 @@ class LightActionBuilderClassTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -168,7 +168,7 @@ class LightActionBuilderClassTest {
     Truth.assertThat(
         safeArgsRule.fixture.findClass(
           "test.safeargs.Fragment2Directions.ActionFragment2ToMain",
-          context
+          context,
         )
       )
       .isNull()
@@ -177,7 +177,7 @@ class LightActionBuilderClassTest {
     val actionBuilderClass =
       safeArgsRule.fixture.findClass(
         "test.safeargs.Fragment1Directions.ActionFragment1ToFragment2",
-        context
+        context,
       )
     Truth.assertThat(actionBuilderClass).isInstanceOf(LightActionBuilderClass::class.java)
 
@@ -194,7 +194,7 @@ class LightActionBuilderClassTest {
       methods[0].checkSignaturesAndReturnType(
         name = "setOverriddenArg",
         returnType = "ActionFragment1ToFragment2",
-        parameters = listOf(Parameter("overriddenArg", "String"))
+        parameters = listOf(Parameter("overriddenArg", "String")),
       )
 
       methods[1].checkSignaturesAndReturnType(name = "getOverriddenArg", returnType = "String")
@@ -202,18 +202,18 @@ class LightActionBuilderClassTest {
       methods[2].checkSignaturesAndReturnType(
         name = "setOverriddenArgWithDefaultValue",
         returnType = "ActionFragment1ToFragment2",
-        parameters = listOf(Parameter("overriddenArgWithDefaultValue", "int"))
+        parameters = listOf(Parameter("overriddenArgWithDefaultValue", "int")),
       )
 
       methods[3].checkSignaturesAndReturnType(
         name = "getOverriddenArgWithDefaultValue",
-        returnType = "int"
+        returnType = "int",
       )
 
       methods[4].checkSignaturesAndReturnType(
         name = "setArg",
         returnType = "ActionFragment1ToFragment2",
-        parameters = listOf(Parameter("arg", "String"))
+        parameters = listOf(Parameter("arg", "String")),
       )
 
       methods[5].checkSignaturesAndReturnType(name = "getArg", returnType = "String")
@@ -225,7 +225,7 @@ class LightActionBuilderClassTest {
       constructors[0].checkSignaturesAndReturnType(
         name = "ActionFragment1ToFragment2",
         returnType = PsiTypes.nullType().presentableText,
-        parameters = listOf(Parameter("overriddenArg", "String"), Parameter("arg", "String"))
+        parameters = listOf(Parameter("overriddenArg", "String"), Parameter("arg", "String")),
       )
     }
   }

@@ -34,8 +34,19 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
 
   override fun doSearch(request: SearchRequest): SearchResult {
     val foundArtifacts = mutableListOf<FoundArtifact>()
-    val groupIdPredicate = request.query.groupId?.toWildcardMatchingPredicate() ?: { true }
-    val artifactNamePredicate = request.query.artifactName?.toWildcardMatchingPredicate() ?: { true }
+    val artifactPredicate: (String, String) -> Boolean =
+      when (val query = request.query) {
+        is ModuleQuery -> {
+          val modulePredicate = query.module.toWildcardMatchingPredicate() ?: {true}
+          { group, artifactName -> modulePredicate("$group:$artifactName") }
+        }
+
+        is GroupArtifactQuery -> {
+          val groupIdPredicate = query.groupId?.toWildcardMatchingPredicate() ?: { true }
+          val artifactNamePredicate = query.artifactName?.toWildcardMatchingPredicate() ?: { true }
+          { group, artifactName -> groupIdPredicate(group) && artifactNamePredicate(artifactName) }
+        }
+      }
 
     try {
       walkFileTree(rootLocationPath, object : SimpleFileVisitor<Path>() {
@@ -46,7 +57,7 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
           val groupIdProbe = repositoryRelativeDirectory.parentFile.path.replace(File.separatorChar, '.')
           val artifactNameProbe = visitedDirFile.name
 
-          if (groupIdPredicate(groupIdProbe) && artifactNamePredicate(artifactNameProbe)) {
+          if (artifactPredicate(groupIdProbe, artifactNameProbe)) {
             val versions =
               visitedDirFile
                 .listFiles()

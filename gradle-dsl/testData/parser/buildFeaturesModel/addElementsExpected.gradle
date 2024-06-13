@@ -8,5 +8,6 @@ android {
     renderScript false
     buildConfig false
     aidl false
+    shaders false
   }
 }

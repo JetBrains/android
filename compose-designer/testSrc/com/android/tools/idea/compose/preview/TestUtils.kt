@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.awaitStatus
+import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
@@ -32,8 +36,11 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlin.coroutines.resume
+import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
@@ -56,7 +63,7 @@ internal enum class SimpleComposeAppPaths(val path: String) {
     "lib/src/androidTest/java/google/simpleapplicationlib/AndroidPreviews.kt"
   ),
   LIB_PREVIEWS_UNIT_TEST("lib/src/test/java/google/simpleapplicationlib/UnitPreviews.kt"),
-  APP_BUILD_GRADLE("app/build.gradle")
+  APP_BUILD_GRADLE("app/build.gradle"),
 }
 
 internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"
@@ -81,7 +88,7 @@ internal fun getRepresentationForFile(
   file: PsiFile,
   project: Project,
   fixture: CodeInsightTestFixture,
-  previewProvider: ComposePreviewRepresentationProvider
+  previewProvider: ComposePreviewRepresentationProvider,
 ): PreviewRepresentation {
   ApplicationManager.getApplication().invokeAndWait {
     runWriteAction { fixture.configureFromExistingVirtualFile(file.virtualFile) }
@@ -91,11 +98,7 @@ internal fun getRepresentationForFile(
   }
 
   val multiRepresentationPreview =
-    MultiRepresentationPreview(
-      file,
-      fixture.editor,
-      listOf(previewProvider),
-    )
+    MultiRepresentationPreview(file, fixture.editor, listOf(previewProvider))
   Disposer.register(fixture.testRootDisposable, multiRepresentationPreview)
 
   runBlocking { multiRepresentationPreview.onInit() }
@@ -116,7 +119,7 @@ suspend fun waitForSmartMode(project: Project, logger: Logger? = null) =
 internal data class DebugStatus(
   val status: ComposePreviewManager.Status,
   val renderResult: List<RenderResult>,
-  private val loggerContents: String
+  private val loggerContents: String,
 )
 
 private fun RenderLogger.toDebugString(): String {
@@ -144,6 +147,14 @@ internal fun ComposePreviewRepresentation.debugStatusForTesting(): DebugStatus {
   return DebugStatus(
     status(),
     renderResults,
-    renderResults.joinToString { it.logger.toDebugString() }
+    renderResults.joinToString { it.logger.toDebugString() },
   )
 }
+
+/** Wait for all running refreshes to complete. */
+suspend fun waitForAllRefreshesToFinish(timeout: Duration) =
+  withContext(workerThread) {
+    PreviewRefreshManager.getInstance(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
+      .refreshingTypeFlow
+      .awaitStatus("Timeout waiting for all pending refreshes to finish", timeout) { it == null }
+  }

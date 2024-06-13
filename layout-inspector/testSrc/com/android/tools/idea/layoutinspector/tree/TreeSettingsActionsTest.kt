@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.ToolContent
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -48,6 +46,7 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.treeStructure.Tree
 import org.junit.ClassRule
 import org.junit.Rule
@@ -66,15 +65,14 @@ class TreeSettingsActionsTest {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val recompositionFlagRule =
-    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
+  @get:Rule val disposableRule = DisposableRule()
 
   private val treeSettings = FakeTreeSettings()
   private val model = createModel()
   private val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
   private val capabilities = EnumSet.noneOf(Capability::class.java)
   private var isConnected = false
+  private var inLiveMode = true
 
   @Test
   fun testFilterSystemNodeAction() {
@@ -92,7 +90,7 @@ class TreeSettingsActionsTest {
     HighlightSemanticsAction.testActionVisibility(event, Capability.SUPPORTS_SEMANTICS)
     HighlightSemanticsAction.testToggleAction(
       event,
-      LayoutInspectorTreePanel::updateSemanticsFiltering
+      LayoutInspectorTreePanel::updateSemanticsFiltering,
     ) {
       treeSettings.highlightSemantics
     }
@@ -156,7 +154,14 @@ class TreeSettingsActionsTest {
     assertThat(event.presentation.text)
       .isEqualTo("Show Recomposition Counts (Needs Compose 1.2.1+)")
     capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+
+    inLiveMode = false
     RecompositionCounts.update(event)
+    assertThat(event.presentation.isVisible).isFalse()
+
+    inLiveMode = true
+    RecompositionCounts.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Show Recomposition Counts")
 
@@ -172,6 +177,7 @@ class TreeSettingsActionsTest {
 
     // Disconnect and check modifying setting:
     isConnected = false
+    inLiveMode = false
     assertThat(RecompositionCounts.isSelected(event)).isFalse()
     RecompositionCounts.setSelected(event, true)
     assertThat(RecompositionCounts.isSelected(event)).isTrue()
@@ -181,7 +187,7 @@ class TreeSettingsActionsTest {
 
   private fun AnAction.testActionVisibility(
     event: AnActionEvent,
-    vararg controllingCapabilities: Capability
+    vararg controllingCapabilities: Capability,
   ) {
     // All actions should be visible when not connected; no matter the controlling capability:
     isConnected = false
@@ -224,7 +230,7 @@ class TreeSettingsActionsTest {
     event: AnActionEvent,
     update: (LayoutInspectorTreePanel) -> Unit = LayoutInspectorTreePanel::refresh,
     statsValue: () -> Boolean = DO_NOT_CARE,
-    value: () -> Boolean
+    value: () -> Boolean,
   ) {
     val defaultValue = value()
     assertThat(isSelected(event)).isEqualTo(defaultValue)
@@ -258,6 +264,7 @@ class TreeSettingsActionsTest {
     whenever(client.stats).thenReturn(stats)
     Mockito.doAnswer { capabilities }.whenever(client).capabilities
     Mockito.doAnswer { isConnected }.whenever(client).isConnected
+    Mockito.doAnswer { inLiveMode }.whenever(client).inLiveMode
 
     val dataContext =
       object : DataContext {
@@ -285,7 +292,7 @@ class TreeSettingsActionsTest {
       ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
     val mainLayout =
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
-    return model {
+    return model(disposableRule.disposable) {
       view(ROOT) {
         view(VIEW1, layout = mainLayout) {
           view(VIEW2, layout = screenSimple) { view(VIEW3, layout = appcompatScreenSimple) }

@@ -26,10 +26,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import java.util.List;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public abstract class BaseSplitOptionsModelImpl extends GradleDslBlockModel implements BaseSplitOptionsModel {
   @NonNls public static final String ENABLE = "mEnable";

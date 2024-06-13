@@ -39,7 +39,7 @@ interface DaggerIndexClassWrapper : DaggerIndexAnnotatedWrapper {
 
 internal class KtClassOrObjectWrapper(
   private val ktClassOrObject: KtClassOrObject,
-  private val importHelper: KotlinImportHelper
+  private val importHelper: KotlinImportHelper,
 ) : DaggerIndexAnnotatedKotlinWrapper(ktClassOrObject, importHelper), DaggerIndexClassWrapper {
   override fun getClassId(): ClassId = ktClassOrObject.getClassId()!!
 

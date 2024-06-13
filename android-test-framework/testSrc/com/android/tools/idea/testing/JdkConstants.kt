@@ -29,6 +29,16 @@ object JdkConstants {
   val JDK_EMBEDDED by lazy { JavaSdk.getInstance().suggestSdkName(null, JDK_EMBEDDED_PATH) }
 
   const val JDK_INVALID_PATH = "jdk-invalid-path"
+
+  val JDK_21_PATH by lazy {
+    if(IdeInfo.getInstance().isAndroidStudio) {
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString()
+    } else {
+      TestUtils.getEmbeddedJdk21Path().toString()
+    }
+  }
+
+
   val JDK_17_PATH by lazy {
     if (IdeInfo.getInstance().isAndroidStudio) {
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString()

@@ -44,10 +44,16 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
 
   @NotNull private final T myMonitor;
 
+  // The purpose of having myProfilersView here is that, monitorEnabledChanged method is called in constructor which in turn invokes
+  // populateCustomLoadingPanel (in EventMonitorView) method which uses the myProfilersView. Having myProfilersView field defined in
+  // EventMonitorView will lead to nullPointerException and hence defined here.
+  @NotNull protected final StudioProfilersView myProfilersView;
+
   private JPanel myContainer;
 
-  public ProfilerMonitorView(@NotNull T monitor) {
+  public ProfilerMonitorView(@NotNull StudioProfilersView profilersView, @NotNull T monitor) {
     myMonitor = monitor;
+    myProfilersView = profilersView;
     myContainer = new JBPanel();
     myContainer.setOpaque(true);
     myContainer.setBorder(ProfilerLayout.MONITOR_BORDER);
@@ -123,10 +129,21 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
       populateUi(myContainer);
     }
     else {
-      myContainer.setBackground(getDisabledBackground());
-      populateDisabledView(myContainer);
+      if (hasCustomLoadingPanel()) {
+        populateCustomLoadingPanel(myContainer);
+      }
+      else {
+        myContainer.setBackground(getDisabledBackground());
+        populateDisabledView(myContainer);
+      }
     }
   }
+
+  protected boolean hasCustomLoadingPanel() {
+    return false;
+  }
+
+  protected void populateCustomLoadingPanel(JPanel container) {}
 
   protected void populateDisabledView(JPanel container) {
     TabularLayout layout = new TabularLayout("*,Fit-,*", "*");

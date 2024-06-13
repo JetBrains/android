@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+
 /** A representation of a device used by [DeviceComboBox]. */
 @Suppress("DataClassPrivateConstructor") // Exposed via copy which we use in tests
 data class Device
@@ -27,6 +29,7 @@ private constructor(
   val sdk: Int,
   val featureLevel: Int,
   val model: String,
+  val type: DeviceType?,
 ) {
 
   val isEmulator: Boolean = serialNumber.startsWith("emulator-")
@@ -40,6 +43,7 @@ private constructor(
       manufacturer: String,
       model: String,
       featureLevel: Int = sdk,
+      type: DeviceType? = null,
     ): Device {
       val deviceName = if (model.startsWith(manufacturer)) model else "$manufacturer $model"
       return Device(
@@ -50,7 +54,8 @@ private constructor(
         release.normalizeVersion(),
         sdk,
         featureLevel,
-        model
+        model,
+        type,
       )
     }
 
@@ -61,6 +66,7 @@ private constructor(
       sdk: Int,
       avdName: String,
       featureLevel: Int = sdk,
+      type: DeviceType? = null,
     ): Device {
       return Device(
         deviceId = avdName,
@@ -70,7 +76,8 @@ private constructor(
         release.normalizeVersion(),
         sdk,
         featureLevel,
-        model = ""
+        model = "",
+        type,
       )
     }
   }

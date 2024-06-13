@@ -16,11 +16,8 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
-import com.android.tools.idea.appinspection.ide.ui.RecentProcess
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -33,12 +30,9 @@ import com.android.tools.idea.layoutinspector.pipeline.TransportErrorListener
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionInitializer
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.TransportFlagController
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
-import com.android.tools.idea.transport.TransportDeviceManager
 import com.android.tools.idea.transport.manager.TransportStreamManagerService
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
@@ -77,9 +71,6 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
 
   private var layoutInspector: LayoutInspector? = null
 
-  // TODO(b/289017459): refactor how the connection process works
-  private var globalDeviceModel: DeviceModel? = null
-
   /**
    * Creates an instance of [LayoutInspector]. [LayoutInspector] will automatically connect to the
    * device, so call this method only when Layout Inspector is meant to be used.
@@ -114,16 +105,15 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
     TransportErrorListener(project, notificationModel, LayoutInspectorMetrics, disposable)
 
     val processesModel =
-      createProcessesModel(
-        project,
-        disposable,
-        AppInspectionDiscoveryService.instance.apiServices.processDiscovery,
-        edtExecutor
-      ) {
-        globalDeviceModel
-      }
+      ProcessesModel(
+          executor = edtExecutor,
+          processDiscovery = AppInspectionDiscoveryService.instance.apiServices.processDiscovery,
+        )
+        .also { Disposer.register(disposable, it) }
+
     val scheduledExecutor = createScheduledExecutor(disposable)
-    val model = InspectorModel(project, scheduledExecutor, processesModel)
+    val model =
+      InspectorModel(project, layoutInspectorCoroutineScope, scheduledExecutor, processesModel)
 
     processesModel.addSelectedProcessListeners {
       // Reset notification bar every time active process changes, since otherwise we might leave up
@@ -144,11 +134,10 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
         treeSettings,
         inspectorClientSettings,
         layoutInspectorCoroutineScope,
-        disposable
+        disposable,
       )
 
     val deviceModel = DeviceModel(disposable, processesModel)
-    globalDeviceModel = deviceModel
 
     val foregroundProcessDetection =
       createForegroundProcessDetection(
@@ -156,10 +145,8 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
         project,
         processesModel,
         deviceModel,
-        layoutInspectorCoroutineScope
+        layoutInspectorCoroutineScope,
       )
-
-    registerTransportFlagController(disposable)
 
     return LayoutInspector(
       coroutineScope = layoutInspectorCoroutineScope,
@@ -170,13 +157,8 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
       launcher = launcher,
       layoutInspectorModel = model,
       notificationModel = notificationModel,
-      treeSettings = treeSettings
+      treeSettings = treeSettings,
     )
-  }
-
-  private fun registerTransportFlagController(parentDisposable: Disposable) {
-    val connection = ApplicationManager.getApplication().messageBus.connect(parentDisposable)
-    connection.subscribe(TransportDeviceManager.TOPIC, TransportFlagController())
   }
 
   private fun createScheduledExecutor(disposable: Disposable): ScheduledExecutorService {
@@ -193,7 +175,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
     project: Project,
     processesModel: ProcessesModel,
     deviceModel: DeviceModel,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
   ): ForegroundProcessDetection? {
     return if (LayoutInspectorSettings.getInstance().autoConnectEnabled) {
       ForegroundProcessDetectionInitializer.initialize(
@@ -203,7 +185,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
           deviceModel = deviceModel,
           coroutineScope = coroutineScope,
           streamManager = service<TransportStreamManagerService>().streamManager,
-          metrics = ForegroundProcessDetectionMetrics
+          metrics = ForegroundProcessDetectionMetrics,
         )
         .also { it.start() }
     } else {
@@ -212,46 +194,4 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
   }
 
   override fun dispose() {}
-}
-
-@VisibleForTesting
-fun createProcessesModel(
-  project: Project,
-  disposable: Disposable,
-  processDiscovery: ProcessDiscovery,
-  executor: Executor,
-  deviceModelProvider: () -> DeviceModel?
-): ProcessesModel {
-  return ProcessesModel(
-      executor = executor,
-      processDiscovery = processDiscovery,
-      isPreferred = { processDescriptor ->
-        isPreferredProcess(project, processDescriptor, deviceModelProvider)
-      }
-    )
-    .also { Disposer.register(disposable, it) }
-}
-
-/**
- * If it returns true, it means Layout Inspector should automatically connect to
- * [processDescriptor].
- */
-@VisibleForTesting
-fun isPreferredProcess(
-  project: Project,
-  processDescriptor: ProcessDescriptor,
-  deviceModelProvider: () -> DeviceModel?
-): Boolean {
-  val deviceModel = deviceModelProvider()
-  return if (
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled &&
-      deviceModel?.forcedDeviceSerialNumber != null &&
-      deviceModel.forcedDeviceSerialNumber != processDescriptor.device.serial
-  ) {
-    // When embedded LI is enabled, we don't want to force-connect to a process that doesn't belong
-    // to the selected device.
-    false
-  } else {
-    RecentProcess.isRecentProcess(processDescriptor, project)
-  }
 }

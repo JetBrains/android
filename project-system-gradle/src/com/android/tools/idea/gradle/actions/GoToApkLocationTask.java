@@ -49,6 +49,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -164,13 +165,45 @@ public class GoToApkLocationTask {
   }
 
   @VisibleForTesting
+  static class FileOrDirOpener {
+    @NotNull private final Consumer<File> myOpenFile;
+    @NotNull private final Consumer<File> myOpenDir;
+
+    FileOrDirOpener() {
+      this(RevealFileAction::openFile, RevealFileAction::openDirectory);
+    }
+
+    FileOrDirOpener(@NotNull Consumer<File> openFile, @NotNull Consumer<File> openDir) {
+      myOpenFile = openFile;
+      myOpenDir = openDir;
+    }
+
+    public void openLocation(File fileOrDir) {
+      if (fileOrDir.isFile()) {
+        myOpenFile.accept(fileOrDir);
+      } else {
+        myOpenDir.accept(fileOrDir);
+      }
+    }
+  }
+
+  @VisibleForTesting
   static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Map<String, File> myApkPathsPerModule;
     @NotNull private final Project myProject;
+    @NotNull private final FileOrDirOpener myLocationOpener;
 
     OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule, @NotNull Project project) {
+      this(apkPathsPerModule, project, new FileOrDirOpener());
+    }
+
+    @VisibleForTesting
+    OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule,
+                                   @NotNull Project project,
+                                   @NotNull FileOrDirOpener fileOpener) {
       myApkPathsPerModule = apkPathsPerModule;
       myProject = project;
+      myLocationOpener = fileOpener;
     }
 
     @Override
@@ -196,10 +229,7 @@ public class GoToApkLocationTask {
       else if (description.startsWith(MODULE)) {
         File apkPath = myApkPathsPerModule.get(description.substring(MODULE.length()));
         assert apkPath != null;
-        if (apkPath.isFile()) {
-          apkPath = apkPath.getParentFile();
-        }
-        RevealFileAction.openDirectory(apkPath);
+        myLocationOpener.openLocation(apkPath);
       }
     }
 

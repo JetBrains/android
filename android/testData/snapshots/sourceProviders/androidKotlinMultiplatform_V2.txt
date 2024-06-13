@@ -354,246 +354,248 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typetwo/shaders
                 BaselineProfileDirectories:
                     ./androidLib/src/typetwo/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./androidLib/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/test/assets
-                JavaDirectories:
-                    ./androidLib/src/test/java
-                KotlinDirectories:
-                    ./androidLib/src/test/java
-                    ./androidLib/src/test/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/test/jniLibs
-                ResDirectories:
-                    ./androidLib/src/test/res
-                ResourcesDirectories:
-                    ./androidLib/src/test/resources
-                ShadersDirectories:
-                    ./androidLib/src/test/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/test/baselineProfiles
-            testTypeone
-                Manifest:
-                    ./androidLib/src/testTypeone/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/testTypeone/assets
-                JavaDirectories:
-                    ./androidLib/src/testTypeone/java
-                KotlinDirectories:
-                    ./androidLib/src/testTypeone/java
-                    ./androidLib/src/testTypeone/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/testTypeone/jniLibs
-                ResDirectories:
-                    ./androidLib/src/testTypeone/res
-                ResourcesDirectories:
-                    ./androidLib/src/testTypeone/resources
-                ShadersDirectories:
-                    ./androidLib/src/testTypeone/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/testTypeone/baselineProfiles
-            testModetwo
-                Manifest:
-                    ./androidLib/src/testModetwo/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/testModetwo/assets
-                JavaDirectories:
-                    ./androidLib/src/testModetwo/java
-                KotlinDirectories:
-                    ./androidLib/src/testModetwo/java
-                    ./androidLib/src/testModetwo/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/testModetwo/jniLibs
-                ResDirectories:
-                    ./androidLib/src/testModetwo/res
-                ResourcesDirectories:
-                    ./androidLib/src/testModetwo/resources
-                ShadersDirectories:
-                    ./androidLib/src/testModetwo/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/testModetwo/baselineProfiles
-            testTypeoneModetwo
-                Manifest:
-                    ./androidLib/src/testTypeoneModetwo/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/testTypeoneModetwo/assets
-                JavaDirectories:
-                    ./androidLib/src/testTypeoneModetwo/java
-                KotlinDirectories:
-                    ./androidLib/src/testTypeoneModetwo/java
-                    ./androidLib/src/testTypeoneModetwo/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/testTypeoneModetwo/jniLibs
-                ResDirectories:
-                    ./androidLib/src/testTypeoneModetwo/res
-                ResourcesDirectories:
-                    ./androidLib/src/testTypeoneModetwo/resources
-                ShadersDirectories:
-                    ./androidLib/src/testTypeoneModetwo/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/testTypeoneModetwo/baselineProfiles
-            testDebug
-                Manifest:
-                    ./androidLib/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/testDebug/assets
-                JavaDirectories:
-                    ./androidLib/src/testDebug/java
-                KotlinDirectories:
-                    ./androidLib/src/testDebug/java
-                    ./androidLib/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/testDebug/jniLibs
-                ResDirectories:
-                    ./androidLib/src/testDebug/res
-                ResourcesDirectories:
-                    ./androidLib/src/testDebug/resources
-                ShadersDirectories:
-                    ./androidLib/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/testDebug/baselineProfiles
-            testTypeoneModetwoDebug
-                Manifest:
-                    ./androidLib/src/testTypeoneModetwoDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/testTypeoneModetwoDebug/assets
-                JavaDirectories:
-                    ./androidLib/src/testTypeoneModetwoDebug/java
-                KotlinDirectories:
-                    ./androidLib/src/testTypeoneModetwoDebug/java
-                    ./androidLib/src/testTypeoneModetwoDebug/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/testTypeoneModetwoDebug/jniLibs
-                ResourcesDirectories:
-                    ./androidLib/src/testTypeoneModetwoDebug/resources
-                ShadersDirectories:
-                    ./androidLib/src/testTypeoneModetwoDebug/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/testTypeoneModetwoDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./androidLib/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/androidTest/assets
-                JavaDirectories:
-                    ./androidLib/src/androidTest/java
-                KotlinDirectories:
-                    ./androidLib/src/androidTest/java
-                    ./androidLib/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/androidTest/jniLibs
-                ResDirectories:
-                    ./androidLib/src/androidTest/res
-                ResourcesDirectories:
-                    ./androidLib/src/androidTest/resources
-                ShadersDirectories:
-                    ./androidLib/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/androidTest/baselineProfiles
-            androidTestTypeone
-                Manifest:
-                    ./androidLib/src/androidTestTypeone/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/androidTestTypeone/assets
-                JavaDirectories:
-                    ./androidLib/src/androidTestTypeone/java
-                KotlinDirectories:
-                    ./androidLib/src/androidTestTypeone/java
-                    ./androidLib/src/androidTestTypeone/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/androidTestTypeone/jniLibs
-                ResDirectories:
-                    ./androidLib/src/androidTestTypeone/res
-                ResourcesDirectories:
-                    ./androidLib/src/androidTestTypeone/resources
-                ShadersDirectories:
-                    ./androidLib/src/androidTestTypeone/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/androidTestTypeone/baselineProfiles
-            androidTestModetwo
-                Manifest:
-                    ./androidLib/src/androidTestModetwo/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/androidTestModetwo/assets
-                JavaDirectories:
-                    ./androidLib/src/androidTestModetwo/java
-                KotlinDirectories:
-                    ./androidLib/src/androidTestModetwo/java
-                    ./androidLib/src/androidTestModetwo/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/androidTestModetwo/jniLibs
-                ResDirectories:
-                    ./androidLib/src/androidTestModetwo/res
-                ResourcesDirectories:
-                    ./androidLib/src/androidTestModetwo/resources
-                ShadersDirectories:
-                    ./androidLib/src/androidTestModetwo/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/androidTestModetwo/baselineProfiles
-            androidTestTypeoneModetwo
-                Manifest:
-                    ./androidLib/src/androidTestTypeoneModetwo/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwo/assets
-                JavaDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwo/java
-                KotlinDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwo/java
-                    ./androidLib/src/androidTestTypeoneModetwo/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwo/jniLibs
-                ResDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwo/res
-                ResourcesDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwo/resources
-                ShadersDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwo/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwo/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./androidLib/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./androidLib/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./androidLib/src/androidTestDebug/java
-                    ./androidLib/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./androidLib/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./androidLib/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./androidLib/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/androidTestDebug/baselineProfiles
-            androidTestTypeoneModetwoDebug
-                Manifest:
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/assets
-                JavaDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/java
-                KotlinDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/java
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/kotlin
-                JniLibsDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/jniLibs
-                ResDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/res
-                ResourcesDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/resources
-                ShadersDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/shaders
-                BaselineProfileDirectories:
-                    ./androidLib/src/androidTestTypeoneModetwoDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./androidLib/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/test/assets
+                    JavaDirectories:
+                        ./androidLib/src/test/java
+                    KotlinDirectories:
+                        ./androidLib/src/test/java
+                        ./androidLib/src/test/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/test/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/test/res
+                    ResourcesDirectories:
+                        ./androidLib/src/test/resources
+                    ShadersDirectories:
+                        ./androidLib/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/test/baselineProfiles
+                testTypeone
+                    Manifest:
+                        ./androidLib/src/testTypeone/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/testTypeone/assets
+                    JavaDirectories:
+                        ./androidLib/src/testTypeone/java
+                    KotlinDirectories:
+                        ./androidLib/src/testTypeone/java
+                        ./androidLib/src/testTypeone/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/testTypeone/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/testTypeone/res
+                    ResourcesDirectories:
+                        ./androidLib/src/testTypeone/resources
+                    ShadersDirectories:
+                        ./androidLib/src/testTypeone/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/testTypeone/baselineProfiles
+                testModetwo
+                    Manifest:
+                        ./androidLib/src/testModetwo/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/testModetwo/assets
+                    JavaDirectories:
+                        ./androidLib/src/testModetwo/java
+                    KotlinDirectories:
+                        ./androidLib/src/testModetwo/java
+                        ./androidLib/src/testModetwo/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/testModetwo/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/testModetwo/res
+                    ResourcesDirectories:
+                        ./androidLib/src/testModetwo/resources
+                    ShadersDirectories:
+                        ./androidLib/src/testModetwo/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/testModetwo/baselineProfiles
+                testTypeoneModetwo
+                    Manifest:
+                        ./androidLib/src/testTypeoneModetwo/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/testTypeoneModetwo/assets
+                    JavaDirectories:
+                        ./androidLib/src/testTypeoneModetwo/java
+                    KotlinDirectories:
+                        ./androidLib/src/testTypeoneModetwo/java
+                        ./androidLib/src/testTypeoneModetwo/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/testTypeoneModetwo/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/testTypeoneModetwo/res
+                    ResourcesDirectories:
+                        ./androidLib/src/testTypeoneModetwo/resources
+                    ShadersDirectories:
+                        ./androidLib/src/testTypeoneModetwo/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/testTypeoneModetwo/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./androidLib/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/testDebug/assets
+                    JavaDirectories:
+                        ./androidLib/src/testDebug/java
+                    KotlinDirectories:
+                        ./androidLib/src/testDebug/java
+                        ./androidLib/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/testDebug/res
+                    ResourcesDirectories:
+                        ./androidLib/src/testDebug/resources
+                    ShadersDirectories:
+                        ./androidLib/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/testDebug/baselineProfiles
+                testTypeoneModetwoDebug
+                    Manifest:
+                        ./androidLib/src/testTypeoneModetwoDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/testTypeoneModetwoDebug/assets
+                    JavaDirectories:
+                        ./androidLib/src/testTypeoneModetwoDebug/java
+                    KotlinDirectories:
+                        ./androidLib/src/testTypeoneModetwoDebug/java
+                        ./androidLib/src/testTypeoneModetwoDebug/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/testTypeoneModetwoDebug/jniLibs
+                    ResourcesDirectories:
+                        ./androidLib/src/testTypeoneModetwoDebug/resources
+                    ShadersDirectories:
+                        ./androidLib/src/testTypeoneModetwoDebug/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/testTypeoneModetwoDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./androidLib/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/androidTest/assets
+                    JavaDirectories:
+                        ./androidLib/src/androidTest/java
+                    KotlinDirectories:
+                        ./androidLib/src/androidTest/java
+                        ./androidLib/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/androidTest/res
+                    ResourcesDirectories:
+                        ./androidLib/src/androidTest/resources
+                    ShadersDirectories:
+                        ./androidLib/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/androidTest/baselineProfiles
+                androidTestTypeone
+                    Manifest:
+                        ./androidLib/src/androidTestTypeone/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/androidTestTypeone/assets
+                    JavaDirectories:
+                        ./androidLib/src/androidTestTypeone/java
+                    KotlinDirectories:
+                        ./androidLib/src/androidTestTypeone/java
+                        ./androidLib/src/androidTestTypeone/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/androidTestTypeone/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/androidTestTypeone/res
+                    ResourcesDirectories:
+                        ./androidLib/src/androidTestTypeone/resources
+                    ShadersDirectories:
+                        ./androidLib/src/androidTestTypeone/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/androidTestTypeone/baselineProfiles
+                androidTestModetwo
+                    Manifest:
+                        ./androidLib/src/androidTestModetwo/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/androidTestModetwo/assets
+                    JavaDirectories:
+                        ./androidLib/src/androidTestModetwo/java
+                    KotlinDirectories:
+                        ./androidLib/src/androidTestModetwo/java
+                        ./androidLib/src/androidTestModetwo/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/androidTestModetwo/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/androidTestModetwo/res
+                    ResourcesDirectories:
+                        ./androidLib/src/androidTestModetwo/resources
+                    ShadersDirectories:
+                        ./androidLib/src/androidTestModetwo/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/androidTestModetwo/baselineProfiles
+                androidTestTypeoneModetwo
+                    Manifest:
+                        ./androidLib/src/androidTestTypeoneModetwo/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwo/assets
+                    JavaDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwo/java
+                    KotlinDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwo/java
+                        ./androidLib/src/androidTestTypeoneModetwo/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwo/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwo/res
+                    ResourcesDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwo/resources
+                    ShadersDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwo/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwo/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./androidLib/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./androidLib/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./androidLib/src/androidTestDebug/java
+                        ./androidLib/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./androidLib/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./androidLib/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/androidTestDebug/baselineProfiles
+                androidTestTypeoneModetwoDebug
+                    Manifest:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/assets
+                    JavaDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/java
+                    KotlinDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/java
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/kotlin
+                    JniLibsDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/jniLibs
+                    ResDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/res
+                    ResourcesDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/resources
+                    ShadersDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/shaders
+                    BaselineProfileDirectories:
+                        ./androidLib/src/androidTestTypeoneModetwoDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -680,7 +682,7 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/typeoneModetwo/shaders
                     file://./androidLib/src/debug/shaders
                     file://./androidLib/src/typeoneModetwoDebug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -751,8 +753,8 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/testTypeoneModetwo/shaders
                     file://./androidLib/src/testDebug/shaders
                     file://./androidLib/src/testTypeoneModetwoDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./androidLib/src/androidTest/AndroidManifest.xml
@@ -833,13 +835,13 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out
                 ResDirectoryUrls:
                     file://./androidLib/build/generated/res/resValues/typeoneModetwo/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out
@@ -1185,7 +1187,7 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/typeoneModetwoDebug/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/typeoneModetwoDebug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1310,7 +1312,7 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/testTypeoneModetwoDebug/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/testTypeoneModetwoDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1592,88 +1594,90 @@ MODULE: Kotlin_Multiplatform.app
                     ./app/src/release/shaders
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./app/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/test/assets
-                JavaDirectories:
-                    ./app/src/test/java
-                KotlinDirectories:
-                    ./app/src/test/java
-                    ./app/src/test/kotlin
-                JniLibsDirectories:
-                    ./app/src/test/jniLibs
-                ResDirectories:
-                    ./app/src/test/res
-                ResourcesDirectories:
-                    ./app/src/test/resources
-                ShadersDirectories:
-                    ./app/src/test/shaders
-                BaselineProfileDirectories:
-                    ./app/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./app/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/testDebug/assets
-                JavaDirectories:
-                    ./app/src/testDebug/java
-                KotlinDirectories:
-                    ./app/src/testDebug/java
-                    ./app/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./app/src/testDebug/jniLibs
-                ResDirectories:
-                    ./app/src/testDebug/res
-                ResourcesDirectories:
-                    ./app/src/testDebug/resources
-                ShadersDirectories:
-                    ./app/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./app/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./app/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTest/assets
-                JavaDirectories:
-                    ./app/src/androidTest/java
-                KotlinDirectories:
-                    ./app/src/androidTest/java
-                    ./app/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./app/src/androidTest/jniLibs
-                ResDirectories:
-                    ./app/src/androidTest/res
-                ResourcesDirectories:
-                    ./app/src/androidTest/resources
-                ShadersDirectories:
-                    ./app/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./app/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./app/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./app/src/androidTestDebug/java
-                    ./app/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./app/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./app/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./app/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./app/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./app/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/test/assets
+                    JavaDirectories:
+                        ./app/src/test/java
+                    KotlinDirectories:
+                        ./app/src/test/java
+                        ./app/src/test/kotlin
+                    JniLibsDirectories:
+                        ./app/src/test/jniLibs
+                    ResDirectories:
+                        ./app/src/test/res
+                    ResourcesDirectories:
+                        ./app/src/test/resources
+                    ShadersDirectories:
+                        ./app/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./app/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/testDebug/assets
+                    JavaDirectories:
+                        ./app/src/testDebug/java
+                    KotlinDirectories:
+                        ./app/src/testDebug/java
+                        ./app/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./app/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./app/src/testDebug/res
+                    ResourcesDirectories:
+                        ./app/src/testDebug/resources
+                    ShadersDirectories:
+                        ./app/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./app/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTest/assets
+                    JavaDirectories:
+                        ./app/src/androidTest/java
+                    KotlinDirectories:
+                        ./app/src/androidTest/java
+                        ./app/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./app/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTest/res
+                    ResourcesDirectories:
+                        ./app/src/androidTest/resources
+                    ShadersDirectories:
+                        ./app/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./app/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./app/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./app/src/androidTestDebug/java
+                        ./app/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./app/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./app/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./app/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1718,7 +1722,7 @@ MODULE: Kotlin_Multiplatform.app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
                     file://./app/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1756,8 +1760,8 @@ MODULE: Kotlin_Multiplatform.app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
                     file://./app/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
@@ -1798,13 +1802,13 @@ MODULE: Kotlin_Multiplatform.app
                     file://./app/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -1936,7 +1940,7 @@ MODULE: Kotlin_Multiplatform.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1985,7 +1989,7 @@ MODULE: Kotlin_Multiplatform.app
                     file://./app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2083,26 +2087,28 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     ./kmpFirstLib/src/androidMain/kotlin
                 ResourcesDirectories:
                     ./kmpFirstLib/src/androidMain/resources
-        UnitTest:
-            androidUnitTest
-                Manifest:
-                    ./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
-                JavaDirectories:
-                    ./kmpFirstLib/src/androidUnitTest/java
-                KotlinDirectories:
-                    ./kmpFirstLib/src/androidUnitTest/kotlin
-                ResourcesDirectories:
-                    ./kmpFirstLib/src/androidUnitTest/resources
-        AndroidTest:
-            androidInstrumentedTest
-                Manifest:
-                    ./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
-                JavaDirectories:
-                    ./kmpFirstLib/src/androidInstrumentedTest/java
-                KotlinDirectories:
-                    ./kmpFirstLib/src/androidInstrumentedTest/kotlin
-                ResourcesDirectories:
-                    ./kmpFirstLib/src/androidInstrumentedTest/resources
+        HostTest:
+            UnitTest
+                androidUnitTest
+                    Manifest:
+                        ./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                    JavaDirectories:
+                        ./kmpFirstLib/src/androidUnitTest/java
+                    KotlinDirectories:
+                        ./kmpFirstLib/src/androidUnitTest/kotlin
+                    ResourcesDirectories:
+                        ./kmpFirstLib/src/androidUnitTest/resources
+        DeviceTest:
+            AndroidTest
+                androidInstrumentedTest
+                    Manifest:
+                        ./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    JavaDirectories:
+                        ./kmpFirstLib/src/androidInstrumentedTest/java
+                    KotlinDirectories:
+                        ./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    ResourcesDirectories:
+                        ./kmpFirstLib/src/androidInstrumentedTest/resources
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2130,7 +2136,7 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
                     file://./kmpFirstLib/src/androidMain/resources
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2147,8 +2153,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/resources
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
@@ -2172,11 +2178,11 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
         GeneratedSources:
             GeneratedSources (IDEA)
                 ScopeType: MAIN
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -2227,7 +2233,7 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
                     file://./kmpFirstLib/src/androidMain/resources
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             androidUnitTest (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2244,7 +2250,7 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/resources
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidInstrumentedTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2304,8 +2310,10 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     ./kmpSecondLib/src/androidMain/kotlin
                 ResourcesDirectories:
                     ./kmpSecondLib/src/androidMain/resources
-        UnitTest:
-        AndroidTest:
+        HostTest:
+            UnitTest
+        DeviceTest:
+            AndroidTest
         TestFixtures:
     by IdeaSourceProviders:
         Sources:
@@ -2323,11 +2331,11 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain/kotlin
                 ResourcesDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/resources
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
         TestFixturesSources:
             TestFixturesSources (IDEA)
@@ -2335,12 +2343,8 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
         GeneratedSources:
             GeneratedSources (IDEA)
                 ScopeType: MAIN
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
-                ScopeType: UNIT_TEST
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
-                ScopeType: ANDROID_TEST
+        GeneratedHostTestSources:
+        GeneratedDeviceTestSources:
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2374,8 +2378,8 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain/kotlin
                 ResourcesDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/resources
-        CurrentUnitTestSourceProviders:
-        CurrentAndroidTestSourceProviders:
+        CurrentHostTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: Kotlin_Multiplatform [0]

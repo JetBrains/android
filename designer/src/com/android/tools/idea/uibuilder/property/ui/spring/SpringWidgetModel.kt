@@ -24,11 +24,11 @@ import com.intellij.util.SmartList
  */
 enum class SpringMode(
   @JvmField val displayName: String,
-  @JvmField val parameters: Collection<SpringParameter>
+  @JvmField val parameters: Collection<SpringParameter>,
 ) {
   NORMAL(
     "Normal",
-    listOf(SpringParameter.DURATION, SpringParameter.MAX_ACC, SpringParameter.MAX_VEL)
+    listOf(SpringParameter.DURATION, SpringParameter.MAX_ACC, SpringParameter.MAX_VEL),
   ),
   SPRING_WITH_DAMP_CONSTANT(
     "Spring",
@@ -37,13 +37,13 @@ enum class SpringMode(
       SpringParameter.DAMPING,
       SpringParameter.MASS,
       SpringParameter.STIFFNESS,
-      SpringParameter.THRESHOLD
-    )
+      SpringParameter.THRESHOLD,
+    ),
   ),
   SPRING_WITH_DAMP_RATIO(
     "Spring With Ratio",
-    listOf(SpringParameter.STIFFNESS, SpringParameter.DAMPING_RATIO, SpringParameter.THRESHOLD)
-  )
+    listOf(SpringParameter.STIFFNESS, SpringParameter.DAMPING_RATIO, SpringParameter.THRESHOLD),
+  ),
 }
 
 /** Parameters available to modify for the Spring widget. */
@@ -58,7 +58,7 @@ enum class SpringParameter(@JvmField val displayName: String) {
   DAMPING_RATIO("Ratio"),
   MASS("Mass"),
   STIFFNESS("Stiffness"),
-  THRESHOLD("Threshold")
+  THRESHOLD("Threshold"),
 }
 
 /** Interface used by the Spring widget to read and write data. */

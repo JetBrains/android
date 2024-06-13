@@ -16,7 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.api.process.SimpleProcessListener
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.transport.TransportClient
@@ -25,6 +26,7 @@ import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -38,29 +40,59 @@ object ForegroundProcessDetectionInitializer {
 
   @VisibleForTesting
   fun getDefaultForegroundProcessListener(
+    parentDisposable: Disposable,
     deviceModel: DeviceModel,
-    processModel: ProcessesModel
+    processModel: ProcessesModel,
   ): ForegroundProcessListener {
-    return object : ForegroundProcessListener {
-      override fun onNewProcess(
-        device: DeviceDescriptor,
-        foregroundProcess: ForegroundProcess,
-        isDebuggable: Boolean
-      ) {
+
+    // Variable used to keep track of the latest foreground process that showed up, but was not
+    // found in the app inspection process list. If there is a race between foreground process
+    // detection and app inspection processes, where the foreground process shows up before it's
+    // available in app inspection, this allows us to recover once the process shows up in app
+    // inspection.
+    var missingForegroundProcess: ForegroundProcess? = null
+    val lock = Any()
+
+    val processListener =
+      object : SimpleProcessListener() {
+        override fun onProcessConnected(process: ProcessDescriptor) {
+          synchronized(lock) {
+            if (missingForegroundProcess?.pid == process.pid) {
+              processModel.selectedProcess = process
+              logger.info(
+                "Foreground process restored to \"${process.name}\" " +
+                  "on device \"${process.device.manufacturer} ${process.device.model}\" " +
+                  "API ${process.device.apiLevel}"
+              )
+              missingForegroundProcess = null
+            }
+          }
+        }
+
+        override fun onProcessDisconnected(process: ProcessDescriptor) {}
+      }
+
+    processModel.addProcessListener(processListener)
+    Disposer.register(parentDisposable) { processModel.removeProcessListener(processListener) }
+
+    return ForegroundProcessListener { device, foregroundProcess, isDebuggable ->
+      synchronized(lock) {
         // There could be multiple projects open. Project1 with device1 selected, Project2 with
         // device2 selected.
         // Because every event from the Transport is dispatched to every open project,
         // both Project1 and Project2 are going to receive events from device1 and device2.
         if (device != deviceModel.selectedDevice) {
-          return
+          return@ForegroundProcessListener
         }
 
         if (isDebuggable) {
+          missingForegroundProcess = null
           logger.info(
             "Process descriptor found for foreground process \"${foregroundProcess.processName}\" " +
               "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\""
           )
         } else {
+          missingForegroundProcess = foregroundProcess
           logger.info(
             "Process descriptor not found for foreground process \"${foregroundProcess.processName}\" " +
               "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\""
@@ -89,10 +121,10 @@ object ForegroundProcessDetectionInitializer {
     coroutineScope: CoroutineScope,
     streamManager: TransportStreamManager,
     foregroundProcessListener: ForegroundProcessListener =
-      getDefaultForegroundProcessListener(deviceModel, processModel),
+      getDefaultForegroundProcessListener(parentDisposable, deviceModel, processModel),
     transportClient: TransportClient = getDefaultTransportClient(),
     metrics: ForegroundProcessDetectionMetrics,
-    layoutInspectorMetrics: LayoutInspectorMetrics = LayoutInspectorMetrics
+    layoutInspectorMetrics: LayoutInspectorMetrics = LayoutInspectorMetrics,
   ): ForegroundProcessDetection {
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
@@ -104,7 +136,7 @@ object ForegroundProcessDetectionInitializer {
         layoutInspectorMetrics,
         metrics,
         coroutineScope,
-        streamManager
+        streamManager,
       )
 
     foregroundProcessDetection.addForegroundProcessListener(foregroundProcessListener)

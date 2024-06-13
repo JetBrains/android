@@ -25,14 +25,14 @@ enum class IssueState {
   OPEN,
   OPENING,
   CLOSED,
-  CLOSING
+  CLOSING,
 }
 
 /** Represents discovered issue, including one representative event for it. */
 data class AppInsightsIssue(
   val issueDetails: IssueDetails,
   val sampleEvent: Event,
-  val state: IssueState = IssueState.OPEN
+  val state: IssueState = IssueState.OPEN,
 ) {
   val id: IssueId = issueDetails.id
 
@@ -100,7 +100,7 @@ data class IssueDetails(
   val notesCount: Long,
   // List of annotations for an issue. Annotations provide additional
   // information that may help in diagnosing and fixing the issue.
-  val annotations: List<IssueAnnotation>
+  val annotations: List<IssueAnnotation>,
 )
 
 data class IssueAnnotation(
@@ -108,7 +108,7 @@ data class IssueAnnotation(
   val category: String,
   // e.g. "Slow Binder call"
   val title: String,
-  val body: String
+  val body: String,
 ) {
   companion object
 }
@@ -123,5 +123,5 @@ data class IssueVariant(
   // Number of unique devices.
   val impactedDevicesCount: Long,
   // number of unique events that occur for this issue
-  val eventsCount: Long
+  val eventsCount: Long,
 )

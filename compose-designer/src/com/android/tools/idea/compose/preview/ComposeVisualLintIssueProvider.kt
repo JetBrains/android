@@ -16,20 +16,24 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
+import com.android.tools.idea.compose.preview.util.containingFile
 import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintOrigin
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
-import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSuppressTask
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.Project
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFunction
@@ -39,13 +43,23 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
   VisualLintIssueProvider(parentDisposable) {
 
+  fun onUiCheckStart(instanceId: String) {
+    uiCheckInstanceId = instanceId
+    getIssues().forEach { it.unfreeze() }
+  }
+
+  fun onUiCheckStop() {
+    uiCheckInstanceId = null
+    getIssues().forEach { it.freeze() }
+  }
+
   override fun customizeIssue(issue: VisualLintRenderIssue) {
     val model = issue.models.firstOrNull() ?: return
     val previewElement = model.dataContext.previewElement() ?: return
 
     issue.customizeIsSuppressed {
       val suppressedTypes = runReadAction {
-        previewElement.previewElementDefinitionPsi?.let { pointer ->
+        previewElement.previewElementDefinition?.let { pointer ->
           val annotationEntry = (pointer.element as? KtAnnotationEntry) ?: return@let emptyList()
           val composableFunction =
             annotationEntry.parentOfType<KtFunction>() ?: return@let emptyList()
@@ -66,9 +80,24 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
       Issue.Suppress(
         message("ui.check.mode.suppress.action.title"),
         message("ui.check.mode.suppress.action.description", issue.type),
-        ComposeVisualLintSuppressTask(model, previewElement, issue.type)
+        ComposeVisualLintSuppressTask(model.facet, model.project, previewElement, issue.type),
       )
     )
+
+    if (StudioFlags.COMPOSE_UI_CHECK_AI_QUICK_FIX.get()) {
+      issue.addFix(
+        Issue.Fix(
+          message("ui.check.mode.quick.fix.ai.title"),
+          message("ui.check.mode.quick.fix.ai.description"),
+          ComposeVisualLintAiFix(model.project, issue, runReadAction { previewElement.methodFqn }),
+        )
+      )
+    }
+  }
+
+  override fun dispose() {
+    super.dispose()
+    onUiCheckStop()
   }
 }
 
@@ -78,39 +107,45 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
  * argument to the annotation.
  */
 class ComposeVisualLintSuppressTask(
-  private val model: NlModel,
-  private val previewElement: ComposePreviewElement,
-  private val issueType: VisualLintErrorType
-) : Runnable {
+  private val facet: AndroidFacet,
+  private val project: Project,
+  private val previewElement: PsiComposePreviewElement,
+  private val issueType: VisualLintErrorType,
+) : VisualLintSuppressTask {
 
   override fun run() {
     VisualLintUsageTracker.getInstance()
-      .trackIssueIgnored(issueType, VisualLintOrigin.UI_CHECK, model.facet)
+      .trackIssueIgnored(issueType, VisualLintOrigin.UI_CHECK, facet)
     WriteCommandAction.runWriteCommandAction(
-      model.project,
+      project,
       issueType.toSuppressActionDescription(),
       null,
       {
-        previewElement.previewElementDefinitionPsi?.let { pointer ->
+        previewElement.previewElementDefinition?.let { pointer ->
           val annotationEntry = (pointer.element as? KtAnnotationEntry) ?: return@let
           val composableFunction = annotationEntry.parentOfType<KtFunction>() ?: return@let
           var suppress =
             composableFunction.annotationEntries.find { it.fqNameMatches("kotlin.Suppress") }
           if (suppress != null) {
             suppress.addNewValueArgument(
-              KtPsiFactory(model.project).createArgument("\"${issueType.ignoredAttributeValue}\""),
-              KtPsiFactory(model.project),
+              KtPsiFactory(project).createArgument("\"${issueType.ignoredAttributeValue}\""),
+              KtPsiFactory(project),
             )
           } else {
             suppress =
-              KtPsiFactory(model.project)
+              KtPsiFactory(project)
                 .createAnnotationEntry("@kotlin.Suppress(\"${issueType.ignoredAttributeValue}\")")
             ShortenReferencesFacility.getInstance()
               .shorten(composableFunction.addAnnotationEntry(suppress))
           }
         }
       },
-      previewElement.containingFile
+      previewElement.containingFile,
     )
+  }
+
+  override fun isValid(): Boolean {
+    return previewElement.previewElementDefinition?.let { runReadAction { it.element?.isValid } }
+      ?: false
   }
 }

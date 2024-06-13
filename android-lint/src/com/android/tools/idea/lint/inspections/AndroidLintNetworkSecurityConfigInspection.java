@@ -17,58 +17,10 @@ package com.android.tools.idea.lint.inspections;
 
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.common.RenameAttributeQuickFix;
-import com.android.tools.idea.lint.common.RenameXmlTagQuickFix;
 import com.android.tools.lint.checks.NetworkSecurityConfigDetector;
-import com.android.tools.lint.detector.api.LintFix;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlTag;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintNetworkSecurityConfigInspection extends AndroidLintInspectionBase {
   public AndroidLintNetworkSecurityConfigInspection() {
     super(AndroidLintBundle.message("android.lint.inspections.network.security.config"), NetworkSecurityConfigDetector.ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                         @NotNull PsiElement endElement,
-                                         @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    if (NetworkSecurityConfigDetector.isAttributeSpellingError(message)) {
-      XmlTag parentTag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
-      XmlAttribute currentAttr = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class, false);
-      assert parentTag != null;
-      assert currentAttr != null;
-      List<String> suggestions =
-        NetworkSecurityConfigDetector.getAttributeSpellingSuggestions(currentAttr.getName(), parentTag.getName());
-      LintIdeQuickFix[] attrFixes = new LintIdeQuickFix[suggestions.size()];
-      for (int i = 0; i < attrFixes.length; i++) {
-        attrFixes[i] = new RenameAttributeQuickFix(null /* no namespace */, suggestions.get(i));
-      }
-      return attrFixes;
-    }
-    else if (NetworkSecurityConfigDetector.isTagSpellingError(message)) {
-      XmlTag currentTag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
-      assert currentTag != null;
-      XmlTag parentTag = currentTag.getParentTag();
-      assert parentTag != null;
-      List<String> suggestions =
-        NetworkSecurityConfigDetector.getTagSpellingSuggestions(currentTag.getName(), parentTag.getName());
-      LintIdeQuickFix[] elementQuickFixes = new LintIdeQuickFix[suggestions.size()];
-      for (int i = 0; i < elementQuickFixes.length; i++) {
-        elementQuickFixes[i] = new RenameXmlTagQuickFix(suggestions.get(i));
-      }
-      return elementQuickFixes;
-    }
-    else {
-      return super.getQuickFixes(startElement, endElement, message, fixData);
-    }
   }
 }

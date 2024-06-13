@@ -50,7 +50,7 @@ fun NlModel.addComponentsAndSelectedIfCreated(
   before: NlComponent?,
   insertType: InsertType,
   selectionModel: SelectionModel,
-  attributeUpdatingTask: Runnable? = null
+  attributeUpdatingTask: Runnable? = null,
 ) {
   addComponents(
     toAdd,
@@ -62,7 +62,7 @@ fun NlModel.addComponentsAndSelectedIfCreated(
         selectionModel.setSelection(toAdd)
       }
     },
-    attributeUpdatingTask
+    attributeUpdatingTask,
   )
 }
 
@@ -79,7 +79,7 @@ fun NlModel.createAndSelectComponents(
   receiver: NlComponent,
   before: NlComponent?,
   selectionModel: SelectionModel,
-  attributeUpdatingTask: Runnable? = null
+  attributeUpdatingTask: Runnable? = null,
 ) {
   addComponents(
     toAdd,
@@ -87,6 +87,6 @@ fun NlModel.createAndSelectComponents(
     before,
     InsertType.CREATE,
     { selectionModel.setSelection(toAdd) },
-    attributeUpdatingTask
+    attributeUpdatingTask,
   )
 }

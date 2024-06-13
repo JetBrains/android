@@ -18,8 +18,8 @@ package org.jetbrains.kotlin.android
 
 import com.android.SdkConstants.CLASS_PARCEL
 import com.android.SdkConstants.CLASS_PARCELABLE
+import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.kotlin.isSubclassOf
-import com.android.tools.idea.lint.common.findAnnotation
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
@@ -34,29 +34,8 @@ import org.jetbrains.kotlin.idea.codeinsight.utils.getLeftMostReceiverExpression
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.idea.search.usagesSearch.propertyDescriptor
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtBlockExpression
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtConstructor
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
-import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtPrimaryConstructor
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.KtReferenceExpression
-import org.jetbrains.kotlin.psi.KtSuperExpression
-import org.jetbrains.kotlin.psi.KtSuperTypeList
-import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
-import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.createPrimaryConstructorIfAbsent
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
@@ -81,11 +60,11 @@ private val WRITE_TO_PARCEL_WITH_SUPER_TEXT =
 private val DESCRIBE_CONTENTS_TEXT = "override fun describeContents(): Int {\nreturn 0\n}"
 private val CONSTRUCTOR_TEXT = "constructor($PARCEL_NAME: $CLASS_PARCEL)"
 
-private val PARCELIZE_FQNAME = FqName("kotlinx.parcelize.Parcelize")
-private val PARCELIZE_FQNAME_LEGACY = FqName("kotlinx.android.parcel.Parcelize")
+private val PARCELIZE_CLASS_ID = ClassId.fromString("kotlinx/parcelize/Parcelize")
+private val PARCELIZE_CLASS_ID_LEGACY = ClassId.fromString("kotlinx/android/parcel/Parcelize")
 
 //TODO add test
-fun KtClass.isParcelize() = findAnnotation(PARCELIZE_FQNAME) != null || findAnnotation(PARCELIZE_FQNAME_LEGACY) != null
+fun KtClass.isParcelize() = findAnnotation(PARCELIZE_CLASS_ID) != null || findAnnotation(PARCELIZE_CLASS_ID_LEGACY) != null
 
 fun KtClass.canAddParcelable(): Boolean =
         findParcelableSupertype() == null

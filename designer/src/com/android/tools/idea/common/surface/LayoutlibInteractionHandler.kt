@@ -31,7 +31,7 @@ class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface
   override fun createInteractionOnPressed(
     mouseX: Int,
     mouseY: Int,
-    modifiersEx: Int
+    modifiersEx: Int,
   ): Interaction? {
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     return LayoutlibInteraction(view)
@@ -52,7 +52,7 @@ class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface
   override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {}
 
   override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
-    surface.zoomable.zoom(type, mouseX, mouseY)
+    surface.zoomController.zoom(type, mouseX, mouseY)
   }
 
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {}

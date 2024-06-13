@@ -61,7 +61,7 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
   override fun loadComponentTree(
     data: Any?,
     resourceLookup: ResourceLookup,
-    process: ProcessDescriptor
+    process: ProcessDescriptor,
   ): ComponentTreeData? {
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
     return capture(windowName, updater)?.let { ComponentTreeData(it, 0, emptySet()) }
@@ -85,7 +85,7 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
   @Slow
   private fun capture(
     windowName: String,
-    propertiesUpdater: LegacyPropertiesProvider.Updater
+    propertiesUpdater: LegacyPropertiesProvider.Updater,
   ): AndroidWindow? {
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_HIERARCHY_REQUESTED)
     val ddmClient = client.selectedDdmClient ?: return null
@@ -123,7 +123,7 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
         folderConfiguration,
         theme,
         client.process,
-        fontScaleFromConfig = 1f
+        fontScaleFromConfig = 1f,
       )
     } else {
       client.model.resourceLookup.updateConfiguration(ddmClient.device.density)

@@ -84,7 +84,7 @@ class SelectedViewModelTest {
       PropertySection.VIEW,
       null,
       1L,
-      lookup
+      lookup,
     )
   }
 
@@ -99,7 +99,7 @@ class SelectedViewModelTest {
       PropertySection.VIEW,
       null,
       1L,
-      lookup
+      lookup,
     )
   }
 }

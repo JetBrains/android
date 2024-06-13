@@ -20,6 +20,17 @@ import com.intellij.psi.PsiFile
 /**
  * An interface providing [PreviewViewModel] status to the [PreviewView] entities that model can not
  * update directly (e.g. Actions).
+ *
+ * @property isRefreshing true if the view is currently refreshing.
+ * @property hasErrorsAndNeedsBuild true if the project has any runtime errors that prevent the
+ *   preview being up-to-date. For example missing classes.
+ * @property hasSyntaxErrors true if the preview is displaying content of a file that has syntax
+ *   errors.
+ * @property isOutOfDate true if the preview needs a refresh to be up-to-date.
+ * @property areResourcesOutOfDate true if the preview needs a build to be up-to-date because
+ *   resources are out of date.
+ * @property previewedFile the [PsiFile] that this preview is representing, if any. For cases where
+ *   the preview is rendering synthetic previews or elements from multiple files, this can be null.
  */
 interface PreviewViewModelStatus {
   val isRefreshing: Boolean
@@ -29,6 +40,8 @@ interface PreviewViewModelStatus {
   val hasSyntaxErrors: Boolean
 
   val isOutOfDate: Boolean
+
+  val areResourcesOutOfDate: Boolean
 
   val previewedFile: PsiFile?
 }

@@ -23,6 +23,7 @@ import com.intellij.testFramework.TestDataFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.utils.ExceptionUtilsKt;
 import org.junit.Assert;
@@ -34,25 +35,31 @@ public class KotlinTestUtils {
     return testFile;
   }
 
+  public static void assertEqualsToFile(@NotNull File expectedFile, @NotNull String actual, @NotNull Function<String,String> transform) {
+      try {
+          String actualText = StringUtilsKt.trimTrailingWhitespacesAndAddNewlineAtEOF(StringUtil.convertLineSeparators(actual.trim()));
+
+          if (!expectedFile.exists()) {
+              FileUtil.writeToFile(expectedFile, actualText);
+              Assert.fail("Expected data file did not exist. Generating: " + expectedFile);
+          }
+          String expected = FileUtil.loadFile(expectedFile, CharsetToolkit.UTF8, true);
+
+          String expectedText = transform.apply(
+            StringUtilsKt.trimTrailingWhitespacesAndAddNewlineAtEOF(StringUtil.convertLineSeparators(expected.trim()))
+          );
+
+          if (!Objects.equals(expectedText, actualText)) {
+              throw new FileComparisonFailedError("Actual data differs from file content: " + expectedFile.getName(),
+                                                  expected, actual, expectedFile.getAbsolutePath());
+          }
+      }
+      catch (IOException e) {
+          throw ExceptionUtilsKt.rethrow(e);
+      }
+  }
+
   public static void assertEqualsToFile(@NotNull File expectedFile, @NotNull String actual) {
-    try {
-      String actualText = StringUtilsKt.trimTrailingWhitespacesAndAddNewlineAtEOF(StringUtil.convertLineSeparators(actual.trim()));
-
-      if (!expectedFile.exists()) {
-        FileUtil.writeToFile(expectedFile, actualText);
-        Assert.fail("Expected data file did not exist. Generating: " + expectedFile);
-      }
-      String expected = FileUtil.loadFile(expectedFile, CharsetToolkit.UTF8, true);
-
-      String expectedText = StringUtilsKt.trimTrailingWhitespacesAndAddNewlineAtEOF(StringUtil.convertLineSeparators(expected.trim()));
-
-      if (!Objects.equals(expectedText, actualText)) {
-        throw new FileComparisonFailedError("Actual data differs from file content: " + expectedFile.getName(),
-                                            expected, actual, expectedFile.getAbsolutePath());
-      }
-    }
-    catch (IOException e) {
-      throw ExceptionUtilsKt.rethrow(e);
-    }
+    assertEqualsToFile(expectedFile, actual, (string) -> string);
   }
 }

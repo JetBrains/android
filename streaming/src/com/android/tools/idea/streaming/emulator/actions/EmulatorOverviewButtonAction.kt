@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+
 /**
  * Simulates pressing the Overview button on an Android virtual device.
  */
-class EmulatorOverviewButtonAction : EmulatorPushButtonAction("AppSwitch", configFilter = { !it.isWearOs || it.api < 28 })
+class EmulatorOverviewButtonAction :
+    EmulatorPushButtonAction("AppSwitch",
+                             configFilter = { it.deviceType != DeviceType.AUTOMOTIVE && (it.deviceType != DeviceType.WEAR || it.api < 28) })

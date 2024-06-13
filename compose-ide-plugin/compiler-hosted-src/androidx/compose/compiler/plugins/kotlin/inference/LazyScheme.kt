@@ -28,7 +28,7 @@ class LazyScheme(
     val bindings: Bindings = Bindings(),
 ) {
     val target: Binding = scheme.target.toBinding(bindings, context)
-    private val anyParameters = scheme.anyParameters
+    val anyParameters = scheme.anyParameters
     val parameters = scheme.parameters.map { LazyScheme(it, context, bindings) }
     val result = scheme.result?.let { LazyScheme(it, context, bindings) }
     val closed: Boolean get() = target.token != null &&

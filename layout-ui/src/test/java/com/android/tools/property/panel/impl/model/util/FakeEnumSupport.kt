@@ -24,7 +24,7 @@ import javax.swing.ListCellRenderer
 class FakeEnumSupport(
   vararg elements: String,
   action: AnAction? = null,
-  private val delayed: Boolean = false
+  private val delayed: Boolean = false,
 ) : EnumSupport {
 
   override val values: List<EnumValue>

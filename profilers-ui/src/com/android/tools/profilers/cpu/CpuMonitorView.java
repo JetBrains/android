@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
   public CpuMonitorView(@NotNull StudioProfilersView profilersView, @NotNull CpuMonitor monitor) {
-    super(monitor);
+    super(profilersView, monitor);
   }
 
   @Override

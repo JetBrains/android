@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.GradleDetector
 class AndroidLintUseTomlInsteadInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.use.toml.instead"),
-    GradleDetector.SWITCH_TO_TOML
+    GradleDetector.SWITCH_TO_TOML,
   )

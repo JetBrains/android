@@ -35,7 +35,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider.Companion.isK2Mode
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Before
@@ -73,7 +73,7 @@ class ComposeModifierCompletionContributorTest {
     fun Modifier.extensionFunction():Modifier { return this }
     fun Modifier.extensionFunctionReturnsNonModifier():Int { return 1 }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addFileToProject(
@@ -87,7 +87,7 @@ class ComposeModifierCompletionContributorTest {
       @Composable
       fun myWidgetWithModifier(modifier: Modifier) {}
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -106,7 +106,7 @@ class ComposeModifierCompletionContributorTest {
         val m = Modifier.$caret
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -133,7 +133,7 @@ class ComposeModifierCompletionContributorTest {
         val m = Modifier.extensionFunction().$caret
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -155,7 +155,7 @@ class ComposeModifierCompletionContributorTest {
         modifier.$caret
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -177,7 +177,7 @@ class ComposeModifierCompletionContributorTest {
         Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -246,7 +246,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -270,7 +270,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -299,7 +299,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(modifier = <caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -323,7 +323,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(modifier = Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -351,7 +351,7 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(Modifier1.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -365,7 +365,7 @@ class ComposeModifierCompletionContributorTest {
       myFixture.lookupElements!!.find { it.lookupString.contains("extensionFunction") }
     myFixture.finishLookup('\n')
     // TODO(302558638): Fix this redundant import issue for K1.
-    val redundantImport = if (!KotlinPluginModeProvider.isK2Mode()) "import androidx.compose.ui.Modifier\n      " else ""
+    val redundantImport = if (!isK2Mode()) "import androidx.compose.ui.Modifier\n      " else ""
     myFixture.checkResult(
       """
       package com.example
@@ -400,7 +400,7 @@ class ComposeModifierCompletionContributorTest {
           val myModifier:Modifier = <caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -441,7 +441,7 @@ class ComposeModifierCompletionContributorTest {
           val myModifier:Modifier = Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -463,7 +463,7 @@ class ComposeModifierCompletionContributorTest {
           val myModifier:Modifier = Modifier.extensionFunction().<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -490,7 +490,7 @@ class ComposeModifierCompletionContributorTest {
           val myModifier:Modifier1 = <caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -502,20 +502,31 @@ class ComposeModifierCompletionContributorTest {
 
     myFixture.type("extensionFunction\t")
 
-    // TODO(302569454): Handle import alias for both K1 and K2. In the following code, we do not
-    // actually need `Modifier` because we already have `Modifier1`.
-    myFixture.checkResult(
+    // K1 imports `Modifier` for `Modifier.extensionFunction()` below, but we already have
+    // `Modifier1`, so we don't actually need it. K2 fixes this issue.
+    val imports =
+      if (isK2Mode()) {
+        """
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.extensionFunction
+      import androidx.compose.ui.Modifier as Modifier1
       """
-      package com.example
-
+      } else {
+        """
       import androidx.compose.runtime.Composable
       import androidx.compose.ui.Modifier
       import androidx.compose.ui.extensionFunction
       import androidx.compose.ui.Modifier as Modifier1
+      """
+      }
 
+    myFixture.checkResult(
+      """
+      package com.example
+      $imports
       @Composable
       fun myWidget() {
-          val myModifier:Modifier1 = Modifier.extensionFunction()
+          val myModifier:Modifier1 = ${if (isK2Mode()) "Modifier1" else "Modifier"}.extensionFunction()
       }
       """
         .trimIndent()
@@ -537,13 +548,12 @@ class ComposeModifierCompletionContributorTest {
           myWidgetWithModifier(modifier = Modifier.<caret>
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).contains("extensionFunction")
-    assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
 
     myFixture.lookup.currentItem =
@@ -581,14 +591,14 @@ class ComposeModifierCompletionContributorTest {
       fun Modifier.foo() = extensionFunction().<caret>
 
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
     val lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings).contains("extensionFunction")
-    assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
-    assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
+    assertThat(lookupStrings)
+      .containsAllOf("extensionFunction", "extensionFunctionReturnsNonModifier")
+      .inOrder()
   }
 
   /** Regression test for b/279049842 */
@@ -632,7 +642,7 @@ class ComposeModifierCompletionContributorTest {
             functionNeedingModifier(modifier = MyModifier.)
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     }
 
@@ -648,7 +658,7 @@ class ComposeModifierCompletionContributorTest {
         visibleChildFunctionCompletion,
         emptySet(),
         functionCompletionCall,
-        mockResultSet
+        mockResultSet,
       )
       verify(mockResultSet).passResult(visibleChildFunctionCompletion)
 
@@ -660,7 +670,7 @@ class ComposeModifierCompletionContributorTest {
         notVisibleChildFunctionCompletion,
         emptySet(),
         functionCompletionCall,
-        mockResultSet
+        mockResultSet,
       )
       verify(mockResultSet, never()).passResult(notVisibleChildFunctionCompletion)
     }

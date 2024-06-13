@@ -17,8 +17,10 @@ package com.android.tools.idea.testing.ui
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorNavigatable
@@ -30,12 +32,14 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.ComponentStack
 import org.junit.rules.ExternalResource
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito
 import org.mockito.Mockito.anyBoolean
 import org.mockito.Mockito.never
-import org.mockito.Mockito.timeout
+import org.mockito.Mockito.verify
+import java.util.concurrent.TimeUnit
 
-private const val TIMEOUT = 1000L // milliseconds
+private const val TIMEOUT = 10L // seconds
 
 class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : ExternalResource() {
   private var componentStack: ComponentStack? = null
@@ -56,29 +60,36 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     fileName: String,
     lineNumber: Int,
     text: String,
+    timeout: Long = TIMEOUT,
+    unit: TimeUnit = TimeUnit.SECONDS
   ) {
-    val descriptor = checkEditorOpened(fileName, focusEditor = true)
+    val descriptor = checkEditorOpened(fileName, focusEditor = true, timeout, unit)
     check(descriptor is OpenFileDescriptor) // Downcast needed to extract file offset.
     val line = findLineAtOffset(descriptor.file, descriptor.offset)
-    Truth.assertThat(line.second).isEqualTo(text)
-    Truth.assertThat(line.first.line + 1).isEqualTo(lineNumber)
+    assertThat(line.second).isEqualTo(text)
+    assertThat(line.first.line + 1).isEqualTo(lineNumber)
   }
 
-  fun checkEditorOpened(fileName: String, focusEditor: Boolean): FileEditorNavigatable {
+  fun checkEditorOpened(
+    fileName: String,
+    focusEditor: Boolean,
+    timeout: Long = TIMEOUT,
+    unit: TimeUnit = TimeUnit.SECONDS
+  ): FileEditorNavigatable {
+    waitForCondition(timeout, unit) { Mockito.mockingDetails(fileManager!!).invocations.any { it.method.name == "openFileEditor" }}
     val file = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
-    Mockito.verify(fileManager!!, timeout(TIMEOUT))
-      .openFileEditor(file.capture(), Mockito.eq(focusEditor))
+    verify(fileManager!!).openFileEditor(file.capture(), eq(focusEditor))
     val descriptor = file.value
-    Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
+    assertThat(descriptor.file.name).isEqualTo(fileName)
     return descriptor
   }
 
   fun checkNoNavigation() {
-    Mockito.verify(fileManager!!, never()).openFileEditor(any(), anyBoolean())
+    verify(fileManager!!, never()).openFileEditor(any(), anyBoolean())
   }
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {
-    val text = String(file.contentsToByteArray(), Charsets.UTF_8)
+    val text = FileDocumentManager.getInstance().getDocument(file)!!.text
     val line = StringUtil.offsetToLineColumn(text, offset)
     val lineText = text.substring(offset - line.column, text.indexOf('\n', offset))
     return Pair(line, lineText.trim())

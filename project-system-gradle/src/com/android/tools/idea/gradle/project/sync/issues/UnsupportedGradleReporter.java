@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.tools.idea.gradle.model.IdeSyncIssue.TYPE_GRADLE_TOO_OLD;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
-import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
-
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
@@ -33,16 +29,21 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
-class UnsupportedGradleReporter extends SimpleDeduplicatingSyncIssueReporter {
+import static com.android.tools.idea.gradle.model.IdeSyncIssue.TYPE_GRADLE_TOO_OLD;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
+
+public class UnsupportedGradleReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
-  int getSupportedIssueType() {
+  public int getSupportedIssueType() {
     return TYPE_GRADLE_TOO_OLD;
   }
 

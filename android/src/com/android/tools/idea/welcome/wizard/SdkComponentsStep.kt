@@ -52,10 +52,10 @@ import com.intellij.util.containers.notNullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
+import com.android.tools.sdk.AndroidSdkData
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.LabelPosition
 import com.intellij.ui.dsl.builder.panel
-import com.android.tools.sdk.AndroidSdkData
 import org.jetbrains.annotations.Contract
 import java.awt.BorderLayout
 import java.awt.Container

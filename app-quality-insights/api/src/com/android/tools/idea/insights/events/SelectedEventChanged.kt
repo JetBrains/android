@@ -28,7 +28,7 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     val selection =
       (state.currentEvents as? LoadingState.Ready)?.value
@@ -36,18 +36,18 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
     return if (movement == EventMovement.NEXT && selection.hasNext()) {
       StateTransition(
         newState = state.copy(currentEvents = LoadingState.Ready(selection.next())),
-        action = Action.NONE
+        action = Action.NONE,
       )
     } else if (movement == EventMovement.PREVIOUS && selection.hasPrevious()) {
       StateTransition(
         newState = state.copy(currentEvents = LoadingState.Ready(selection.previous())),
-        action = Action.NONE
+        action = Action.NONE,
       )
     } else if (movement == EventMovement.NEXT && selection.canRequestMoreEvents()) {
       StateTransition(
         newState = state,
         action =
-          Action.ListEvents(state.selectedIssue!!.id, state.selectedVariant?.id, selection.token)
+          Action.ListEvents(state.selectedIssue!!.id, state.selectedVariant?.id, selection.token),
       )
     } else {
       Logger.getInstance(this::class.java)

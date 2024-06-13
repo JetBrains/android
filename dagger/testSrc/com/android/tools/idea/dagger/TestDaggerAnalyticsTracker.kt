@@ -23,7 +23,7 @@ class TestDaggerAnalyticsTracker : DaggerAnalyticsTracker {
   override fun trackNavigation(
     context: DaggerEditorEvent.NavigationMetadata.NavigationContext,
     fromElement: DaggerEditorEvent.ElementType,
-    toElement: DaggerEditorEvent.ElementType
+    toElement: DaggerEditorEvent.ElementType,
   ) {
     calledMethods.add("trackNavigation $context $fromElement $toElement")
   }
@@ -36,7 +36,7 @@ class TestDaggerAnalyticsTracker : DaggerAnalyticsTracker {
 
   override fun trackFindUsagesNodeWasDisplayed(
     ownerElement: DaggerEditorEvent.ElementType,
-    time: Long
+    time: Long,
   ) {
     calledMethods.add("trackFindUsagesNodeWasDisplayed owner: $ownerElement time: $time")
   }

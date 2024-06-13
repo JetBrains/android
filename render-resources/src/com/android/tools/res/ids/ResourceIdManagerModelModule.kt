@@ -22,4 +22,12 @@ interface ResourceIdManagerModelModule {
   val isAppOrFeature: Boolean
 
   val namespacing: ResourceNamespacing
+
+  companion object {
+    @JvmField
+    val NO_NAMESPACING_APP = object : ResourceIdManagerModelModule {
+      override val isAppOrFeature: Boolean = true
+      override val namespacing: ResourceNamespacing = ResourceNamespacing.DISABLED
+    }
+  }
 }

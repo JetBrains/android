@@ -79,7 +79,7 @@ class NextDeviceAction private constructor() : SwitchDeviceAction() {
       }
     config.setDevice(nextDevice, true)
     if (currentDevice != nextDevice) {
-      surface.zoomToFit()
+      surface.zoomController.zoomToFit()
     }
   }
 
@@ -108,7 +108,7 @@ class PreviousDeviceAction private constructor() : SwitchDeviceAction() {
       }
     config.setDevice(previousDevice, true)
     if (currentDevice != previousDevice) {
-      surface.zoomToFit()
+      surface.zoomController.zoomToFit()
     }
   }
 

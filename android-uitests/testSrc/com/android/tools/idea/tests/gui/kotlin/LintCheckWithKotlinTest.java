@@ -16,10 +16,14 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
+import org.fest.swing.core.KeyPressInfo;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +35,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class LintCheckWithKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   /**
    * Verifies Lint errors with Kotlin code.
@@ -55,16 +59,21 @@ public class LintCheckWithKotlinTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void lintCheckWithKotlin() throws Exception {
-    String inspectionResults = guiTest.importProjectAndWaitForProjectSyncToFinish("KotlinInstrumentation")
+    IdeFrameFixture myIdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("KotlinInstrumentation");
+    GuiTests.waitForProjectIndexingToFinish(myIdeFrameFixture.getProject());
+
+    String inspectionResults = myIdeFrameFixture
       .getEditor()
       .open("app/src/main/java/android/com/kotlininstrumentation/MainActivity.kt")
       .moveBetween("setContentView(R.layout.activity_main)", "")
-      .enterText("\nfindViewById<TextView>(0).text=\"st\"")
+      .moveBetween("setContentView(R.layout.activity_main)", "") //Adding to reduce flakiness
+      .pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_ENTER))
+      .typeText("\nfindViewById<TextView>(0).text=\"st\"")
       .getIdeFrame()
       .openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
       .clickButton("Analyze")
       .getResults();
 
-    assertThat(inspectionResults).contains("String literal in 'setText' can not be translated. Use Android resources instead.");
+    assertThat(inspectionResults).contains("String literal in setText can not be translated. Use Android resources instead.");
   }
 }

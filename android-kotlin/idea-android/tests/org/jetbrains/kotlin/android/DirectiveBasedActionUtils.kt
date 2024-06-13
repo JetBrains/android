@@ -75,10 +75,9 @@ object DirectiveBasedActionUtils {
       return
     }
 
-    val kotlinFrontendSpecificPrefix = if (KotlinPluginModeProvider.isK2Mode()) "K2" else "K1"
     val expected =
       InTextDirectivesUtils.findLinesWithPrefixesRemoved(
-        file.text, "// ERROR:", "// ${kotlinFrontendSpecificPrefix}-ERROR:"
+        file.text, "// ERROR:", "// $FRONTEND-ERROR:"
       ).sorted()
     val actual = diagnosticsCollectAndRenderer(file)
 

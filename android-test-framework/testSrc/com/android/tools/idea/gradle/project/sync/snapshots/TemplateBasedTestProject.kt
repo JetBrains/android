@@ -189,6 +189,9 @@ private class PreparedTemplateBasedTestProject(
       options = options
     ) { project ->
       invokeAndWaitIfNeeded {
+        AndroidGradleTests.waitForCreateRunConfigurations(project)
+      }
+      invokeAndWaitIfNeeded {
         AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
       }
       templateBasedTestProject.switchVariant?.let { switchVariant ->

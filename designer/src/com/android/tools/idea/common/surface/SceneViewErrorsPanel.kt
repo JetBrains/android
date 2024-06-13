@@ -40,7 +40,7 @@ class SceneViewErrorsPanel(val styleProvider: () -> Style = { Style.SOLID }) :
     /** The panel is showing and is opaque */
     SOLID,
     /** The panel is showing and is translucent */
-    TRANSLUCENT
+    TRANSLUCENT,
   }
 
   private val size = JBUI.size(150, 35)

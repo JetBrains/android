@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.tools.idea.res.AppLanguageService
+import com.android.tools.idea.streaming.uisettings.data.AppLanguage
+import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
+import com.intellij.openapi.project.Project
 
 /**
  * A controller for the UI settings for a physical device,
@@ -24,15 +28,58 @@ import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
  */
 internal class DeviceUiSettingsController(
   private val deviceController: DeviceController,
+  deviceConfig: DeviceConfiguration,
+  private val project: Project,
   model: UiSettingsModel
-) : UiSettingsController(model) {
+) : UiSettingsController(model, UiSettingsStats(deviceConfig.deviceProperties.deviceInfoProto)) {
 
   override suspend fun populateModel() {
     val response = deviceController.getUiSettings()
     model.inDarkMode.setFromController(response.darkMode)
+    model.gestureOverlayInstalled.setFromController(response.gestureOverlayInstalled)
+    model.gestureNavigation.setFromController(response.gestureNavigation)
+    model.talkBackInstalled.setFromController(response.tackBackInstalled)
+    model.talkBackOn.setFromController(response.talkBackOn)
+    model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
+    model.fontSizeSettable.setFromController(response.fontSizeSettable)
+    model.fontSizeInPercent.setFromController(response.fontSize)
+    model.screenDensitySettable.setFromController(response.densitySettable)
+    model.screenDensity.setFromController(response.density)
+    val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
+    languageInfo[response.foregroundApplicationId]?.localeConfig?.let { config ->
+      addLanguage(response.foregroundApplicationId, config, response.appLocale)
+    }
   }
 
   override fun setDarkMode(on: Boolean) {
     deviceController.sendControlMessage(SetDarkModeMessage(on))
+  }
+
+  override fun setGestureNavigation(on: Boolean) {
+    deviceController.sendControlMessage(SetGestureNavigationMessage(on))
+  }
+
+  override fun setAppLanguage(applicationId: String, language: AppLanguage?) {
+    deviceController.sendControlMessage(SetAppLanguageMessage(applicationId, language?.tag ?: ""))
+  }
+
+  override fun setTalkBack(on: Boolean) {
+    deviceController.sendControlMessage(SetTalkBackMessage(on))
+  }
+
+  override fun setSelectToSpeak(on: Boolean) {
+    deviceController.sendControlMessage(SetSelectToSpeakMessage(on))
+  }
+
+  override fun setFontSize(percent: Int) {
+    deviceController.sendControlMessage(SetFontSizeMessage(percent))
+  }
+
+  override fun setScreenDensity(density: Int) {
+    deviceController.sendControlMessage(SetScreenDensityMessage(density))
+  }
+
+  override fun reset() {
+    // Noop. A device agent will reset all settings when the device is disconnected.
   }
 }

@@ -26,6 +26,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.DefinitionWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixtureKt;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
@@ -43,7 +45,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class QuickDefinitionTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(12, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private FormFactor selectMobileTab = FormFactor.MOBILE;
   private IdeFrameFixture ideFrame;
 
@@ -62,8 +64,9 @@ public class QuickDefinitionTest {
    * <pre>
    *Test Steps:
    *   1) Create a new project using any template / Open existing project.
-   *   1a. Basic Views Activity to validate Java and XML documentation
-   *   1b. Basis Views Activity to validate Kotlin quick documentation
+   *   1a. Basic Views Activity to validate Java
+   *   1b. Basic Views Activity to validate XML documentation
+   *   1c. Basis Views Activity to validate Kotlin quick documentation
    *   2) Click on any class or method name in the java/kotlin or any view like text view in xml file.
    *   3) Press Ctrl + Shift + I."
    *
@@ -87,14 +90,18 @@ public class QuickDefinitionTest {
     waitForQuickDefinitionDialog();
     String javaMethodDocumentationContent = DefinitionWindowFixture.getDefinitionContent(guiTest.ideFrame());
     assertThat(javaMethodDocumentationContent.contains("public void setSupportActionBar(")).isTrue();
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
+  }
 
-    editor = guiTest.ideFrame()
+  @Test
+  public void quickDefinitionForXMLTest() throws Exception {
+    setUpBasicViewActivity(Language.Java);
+
+    EditorFixture editor= guiTest.ideFrame()
       .getEditor()
-      .open("app/src/main/res/layout/fragment_first.xml", EditorFixture.Tab.EDITOR, Wait.seconds(30))
-      .moveBetween("<Text", "View")
-      .pressAndReleaseKey(quickDefinitionKeyPressInfo());
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
+      .open("app/src/main/res/layout/fragment_first.xml");
+    SplitEditorFixture splitEditorFixture = SplitEditorFixtureKt.getSplitEditorFixture(editor);
+    splitEditorFixture.setSplitMode();
+
     editor.moveBetween("<Text", "View")
       .pressAndReleaseKey(quickDefinitionKeyPressInfo());
     waitForQuickDefinitionDialog();

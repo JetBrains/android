@@ -28,7 +28,7 @@ import java.util.function.Consumer
 
 class ConfigurationCacheErrorParser : BuildOutputParser {
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-    if (!line.startsWith("FAILURE: Build failed with an exception.")) return false
+    if (!line.startsWith(BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE)) return false
     // First skip to what went wrong line.
     if (!reader.readLine().isNullOrBlank()) return false
 
@@ -45,23 +45,29 @@ class ConfigurationCacheErrorParser : BuildOutputParser {
 
     // Check if it is a configuration cache error.
     if (firstDescriptionLine != "Configuration cache problems found in this build.") return false
-    val description = StringBuilder().appendln(firstDescriptionLine)
+    val description = StringBuilder().appendLine(firstDescriptionLine)
     // All lines up to '* Try:' block should be a description we want to show.
     while (true) {
       val descriptionLine = reader.readLine() ?: return false
       if (descriptionLine == "* Try:") break
-      description.appendln(descriptionLine)
+      description.appendLine(descriptionLine)
     }
+
+    BuildOutputParserUtils.consumeRestOfOutput(reader)
 
     val buildIssue = object : BuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = "Configuration cache problems found in this build."
+      override val title: String = BUILD_ISSUE_TITLE
 
       override fun getNavigatable(project: Project): Navigatable? = null
 
     }
     messageConsumer.accept(BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR))
     return true
+  }
+
+  companion object {
+    const val BUILD_ISSUE_TITLE: String = "Configuration cache problems found in this build."
   }
 }

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_DEFAULT_NAV_HOST
+import com.android.SdkConstants.ATTR_NAV_GRAPH
+import com.android.SdkConstants.AUTO_URI
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
@@ -26,7 +28,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
-import java.util.*
+import com.intellij.testFramework.PlatformTestUtil.waitForFuture
+import java.util.EnumSet
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.eq
 
@@ -45,13 +48,13 @@ class FragmentHandlerTest : LayoutTestCase() {
                 .id("@+id/navhost")
                 .withAttribute(AUTO_URI, ATTR_NAV_GRAPH, "@navigation/nav")
                 .withBounds(0, 0, 100, 50),
-              component("fragment").id("@+id/regular").withBounds(0, 50, 100, 50)
-            )
+              component("fragment").id("@+id/regular").withBounds(0, 50, 100, 50),
+            ),
         )
         .build()
 
     val surface = NlDesignSurface.build(project, project)
-    surface.model = model
+    waitForFuture(surface.addModelWithoutRender(model))
     val editorManager = FileEditorManager.getInstance(project)
 
     surface.notifyComponentActivate(model.find("regular")!!, 10, 60)
@@ -79,7 +82,7 @@ class FragmentHandlerTest : LayoutTestCase() {
         ViewEditor.displayResourceInput(
           eq(model),
           eq("Navigation Graphs"),
-          eq(EnumSet.of(ResourceType.NAVIGATION))
+          eq(EnumSet.of(ResourceType.NAVIGATION)),
         )
       }
       .thenReturn("@navigation/testNav")
@@ -89,7 +92,7 @@ class FragmentHandlerTest : LayoutTestCase() {
       null,
       null,
       { model.createComponent(tag, model.find("outer"), null, InsertType.CREATE) },
-      model.file
+      model.file,
     )
     val newFragment = model.find("fragment")!!
     assertEquals("@navigation/testNav", newFragment.getAttribute(AUTO_URI, ATTR_NAV_GRAPH))

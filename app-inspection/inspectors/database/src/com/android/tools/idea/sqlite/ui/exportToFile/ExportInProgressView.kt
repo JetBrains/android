@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.sqlite.ui.exportToFile
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
-import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase
 import com.intellij.openapi.progress.util.ProgressWindow
@@ -27,6 +27,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 import org.jetbrains.annotations.VisibleForTesting
 
 interface ExportInProgressView {
@@ -40,10 +41,12 @@ interface ExportInProgressView {
 class ExportInProgressViewImpl(
   private val project: Project,
   private val job: Job,
-  private val taskDispatcher: CoroutineDispatcher
+  private val taskDispatcher: CoroutineDispatcher,
 ) : ExportInProgressView {
   @VisibleForTesting var onShownListener: (ProgressIndicator) -> Unit = {}
   @VisibleForTesting var onClosedListener: () -> Unit = {}
+
+  private val scope = AndroidCoroutineScope(project.getService(ProjectDisposableScope::class.java))
 
   override fun show() {
     val progressWindow = ProgressWindow(true, false, project)
@@ -57,7 +60,7 @@ class ExportInProgressViewImpl(
         }
       }
     )
-    (project as ComponentManagerEx).getCoroutineScope().launch(taskDispatcher) {
+    scope.launch(taskDispatcher) {
       try {
         progressWindow.start()
         progressWindow.text =

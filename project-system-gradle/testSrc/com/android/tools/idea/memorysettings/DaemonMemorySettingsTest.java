@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;

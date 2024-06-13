@@ -22,8 +22,8 @@ import com.android.test.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.MlProjectTestUtil;
+import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -46,28 +46,14 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    StudioFlags.ML_MODEL_BINDING.override(true);
 
     myFixture.setTestDataPath(TestUtils.resolveWorkspacePath("prebuilts/tools/common/mlkit/testData/models").toString());
   }
 
   private VirtualFile setupProject(String mlSourceFile, String mlTargetFile) {
     VirtualFile result = myFixture.copyFileToProject(mlSourceFile, mlTargetFile);
-    MlProjectTestUtil.setupTestMlProject(myFixture, "4.2.0-alpha08", 28);
+    MlProjectTestUtil.setupTestMlProject(myFixture, "4.2.0-alpha08", 28, ImmutableList.of());
     return result;
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      StudioFlags.ML_MODEL_BINDING.clearOverride();
-    }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testViewerOpenEventIsLogged() throws Exception {

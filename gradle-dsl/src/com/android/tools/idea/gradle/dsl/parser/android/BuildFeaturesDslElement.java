@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModel
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.ML_MODEL_BINDING;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.PREFAB;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.RENDER_SCRIPT;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.SHADERS;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.VIEW_BINDING;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
@@ -49,6 +50,7 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"renderScript", property, RENDER_SCRIPT, VAR},
     {"buildConfig", property, BUILD_CONFIG, VAR},
     {"aidl", property, AIDL, VAR},
+    {"shaders", property, SHADERS, VAR},
   }).collect(toModelMap());
 
   public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
@@ -68,6 +70,8 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"buildConfig", exactly(1), BUILD_CONFIG, SET},
     {"aidl", property, AIDL, VAR},
     {"aidl", exactly(1), AIDL, SET},
+    {"shaders", property, SHADERS, VAR},
+    {"shaders", exactly(1), SHADERS, SET},
   }).collect(toModelMap());
 
   public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
@@ -79,6 +83,7 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"renderScript", property, RENDER_SCRIPT, VAR},
     {"buildConfig", property, BUILD_CONFIG, VAR},
     {"aidl", property, AIDL, VAR},
+    {"shaders", property, SHADERS, VAR},
   }).collect(toModelMap());
   public static final PropertiesElementDescription<BuildFeaturesDslElement> BUILD_FEATURES =
     new PropertiesElementDescription<>("buildFeatures",

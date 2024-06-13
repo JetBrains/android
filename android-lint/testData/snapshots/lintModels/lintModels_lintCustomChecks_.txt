@@ -26,7 +26,7 @@ MODULE                        : project.app
             ApplicationId                 : com.example.app
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            - DesugaredMethodFiles        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     artifacts::library            : null => :library@main
@@ -47,7 +47,7 @@ MODULE                        : project.app
         ApplicationId                 : com.example.app.test
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+        - DesugaredMethodFiles        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::app                : null => :app@main
@@ -98,7 +98,7 @@ MODULE                        : project.app
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:library)
                 Identifier                    : :library@main
-                LintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
+                LintJar                       : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                 ProjectPath                   : :library
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
@@ -129,7 +129,7 @@ MODULE                        : project.library
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/library/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/library/build/generated/ap_generated_sources/debug/out [-]
-            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            - DesugaredMethodFiles        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -146,7 +146,7 @@ MODULE                        : project.library
         ApplicationId                 : com.example.library.test
         - GeneratedResourceFolders    : <ROOT>/library/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+        - DesugaredMethodFiles        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::library            : null => :library@main
@@ -192,7 +192,7 @@ MODULE                        : project.library
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:library)
                 Identifier                    : :library@main
-                LintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
+                LintJar                       : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                 ProjectPath                   : :library
 MODULE                        : project.library-remote
     Dir                           : <ROOT>/library-remote
@@ -220,7 +220,7 @@ MODULE                        : project.library-remote
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/library-remote/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/ap_generated_sources/debug/out [-]
-            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            - DesugaredMethodFiles        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -237,7 +237,7 @@ MODULE                        : project.library-remote
         ApplicationId                 : com.example.library.test
         - GeneratedResourceFolders    : <ROOT>/library-remote/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+        - DesugaredMethodFiles        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::library-remote     : null => :library-remote@main
@@ -283,7 +283,7 @@ MODULE                        : project.library-remote
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:library-remote)
                 Identifier                    : :library-remote@main
-                LintJar                       : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
+                LintJar                       : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                 ProjectPath                   : :library-remote
 MODULE                        : project.library-remote.androidTest
 MODULE                        : project.library-remote.main

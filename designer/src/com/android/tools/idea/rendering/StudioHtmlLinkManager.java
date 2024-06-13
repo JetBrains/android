@@ -129,10 +129,8 @@ import org.jetbrains.kotlin.resolve.jvm.JvmClassName;
 public class StudioHtmlLinkManager implements HtmlLinkManager {
   private static final String URL_SHOW_XML = "action:showXml";
   private static final String URL_RUNNABLE = "runnable:";
-  private static final String URL_COMMAND = "command:";
 
-  private SparseArray<Runnable> myLinkRunnables;
-  private SparseArray<CommandLink> myLinkCommands;
+  private SparseArray<Action> myLinkRunnables;
   private int myNextLinkId = 0;
 
   public StudioHtmlLinkManager() {
@@ -236,25 +234,15 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       handleDisableSandboxUrl(module, surface);
     }
     else if (url.startsWith(URL_RUNNABLE)) {
-      Runnable linkRunnable = getLinkRunnable(url);
+      Action linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
-        linkRunnable.run();
+        linkRunnable.actionPerformed(module);
       }
     }
     else if ((url.startsWith(URL_ADD_DEPENDENCY) || url.startsWith(URL_ADD_DEBUG_DEPENDENCY)) && module != null) {
       handleAddDependency(url, module);
       ProjectSystemUtil.getSyncManager(module.getProject())
         .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
-    }
-    else if (url.startsWith(URL_COMMAND)) {
-      if (myLinkCommands != null && url.startsWith(URL_COMMAND)) {
-        String idString = url.substring(URL_COMMAND.length());
-        int id = Integer.decode(idString);
-        CommandLink command = myLinkCommands.get(id);
-        if (command != null) {
-          command.executeCommand();
-        }
-      }
     }
     else if (url.startsWith(URL_REFRESH_RENDER)) {
       surface.handleRefreshRenderUrl();
@@ -303,31 +291,27 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     }
   }
 
+  @NotNull
   @Override
   public String createCommandLink(@NotNull CommandLink command) {
-    String url = URL_COMMAND + myNextLinkId;
-    if (myLinkCommands == null) {
-      myLinkCommands = new SparseArray<>(5);
-    }
-    myLinkCommands.put(myNextLinkId, command);
-    myNextLinkId++;
-    return url;
+    return createActionLink(module -> command.run());
   }
 
+  @NotNull
   @Override
-  public String createRunnableLink(@NotNull Runnable runnable) {
+  public String createActionLink(@NotNull Action action) {
     String url = URL_RUNNABLE + myNextLinkId;
     if (myLinkRunnables == null) {
       myLinkRunnables = new SparseArray<>(5);
     }
-    myLinkRunnables.put(myNextLinkId, runnable);
+    myLinkRunnables.put(myNextLinkId, action);
     myNextLinkId++;
 
     return url;
   }
 
   @Nullable
-  private Runnable getLinkRunnable(String url) {
+  private Action getLinkRunnable(String url) {
     if (myLinkRunnables != null && url.startsWith(URL_RUNNABLE)) {
       String idString = url.substring(URL_RUNNABLE.length());
       int id = Integer.decode(idString);

@@ -68,7 +68,7 @@ interface DatabaseInspectorView {
   fun setRefreshButtonState(state: Boolean)
 
   /**
-   * Shows a panel in the right side of the view that serves as loading indicator for offline mode
+   * Shows a panel on the right side of the view that serves as loading indicator for offline mode
    */
   fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int)
 
@@ -78,19 +78,27 @@ interface DatabaseInspectorView {
    */
   fun showOfflineModeUnavailablePanel()
 
+  fun setForceOpen(forceOpen: Boolean)
+
   interface Listener {
     /** Called when the user wants to open a table */
     fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable)
+
     /** Called when the user wants to close a tab */
     fun closeTabActionInvoked(tabId: TabId)
+
     /** Called when the user wants to open the evaluator tab */
     fun openSqliteEvaluatorTabActionInvoked()
+
     /** Called when the user wants to refresh the schema of all open databases */
     fun refreshAllOpenDatabasesSchemaActionInvoked()
+
     /** Called to request the on-device inspector to force database connections to remain open */
     fun toggleKeepConnectionOpenActionInvoked()
+
     /** Called when the user wants to stop entering offline mode */
     fun cancelOfflineModeInvoked()
+
     /** Called when user wants to export data */
     fun showExportToFileDialogInvoked(exportDialogParams: ExportDialogParams)
   }
@@ -110,7 +118,7 @@ sealed class SchemaDiffOperation
 
 data class AddTable(
   val indexedSqliteTable: IndexedSqliteTable,
-  val columns: List<IndexedSqliteColumn>
+  val columns: List<IndexedSqliteColumn>,
 ) : SchemaDiffOperation()
 
 data class RemoveTable(val tableName: String) : SchemaDiffOperation()
@@ -118,13 +126,13 @@ data class RemoveTable(val tableName: String) : SchemaDiffOperation()
 data class AddColumns(
   val tableName: String,
   val columns: List<IndexedSqliteColumn>,
-  val newTable: SqliteTable
+  val newTable: SqliteTable,
 ) : SchemaDiffOperation()
 
 data class RemoveColumns(
   val tableName: String,
   val columnsToRemove: List<SqliteColumn>,
-  val newTable: SqliteTable
+  val newTable: SqliteTable,
 ) : SchemaDiffOperation()
 
 /**
@@ -135,7 +143,7 @@ sealed class DatabaseDiffOperation {
   data class AddDatabase(
     val viewDatabase: ViewDatabase,
     val schema: SqliteSchema?,
-    val index: Int
+    val index: Int,
   ) : DatabaseDiffOperation()
 
   data class RemoveDatabase(val viewDatabase: ViewDatabase) : DatabaseDiffOperation()

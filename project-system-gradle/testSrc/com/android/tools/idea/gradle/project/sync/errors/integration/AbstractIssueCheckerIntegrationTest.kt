@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,74 +15,41 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
-import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.BuildIssueEvent
+import com.intellij.build.events.FailureResult
+import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
 
-abstract class AbstractIssueCheckerIntegrationTest {
-
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
-
-
-  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
-
-  @Before
-  fun setUp() {
-    UsageTracker.setWriterForTest(usageTracker)
-  }
-
-  @After
-  fun cleanUp() {
-    usageTracker.close()
-    UsageTracker.cleanAfterTesting()
-  }
-
-  protected fun runSyncAndCheckFailure(
+abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrationTest() {
+  protected fun runSyncAndCheckBuildIssueFailure(
     preparedProject: PreparedTestProject,
     verifyBuildIssue: (BuildIssue) -> Unit,
     expectedFailureReported: AndroidStudioEvent.GradleSyncFailure
   ) {
-    var capturedException: Exception? = null
-    val buildEvents = mutableListOf<BuildEvent>()
-    preparedProject.open(
-      updateOptions = {
-        it.copy(
-          verifyOpened = { project ->
-            Truth.assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult())
-              .isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
-          },
-          syncExceptionHandler = { e: Exception ->
-            capturedException = e
-          },
-          syncViewEventHandler = { buildEvent -> buildEvents.add(buildEvent) }
-        )
+    runSyncAndCheckGeneralFailure(
+      preparedProject = preparedProject,
+      verifySyncViewEvents = { buildEvents ->
+        // Make sure no additional error build events are generated
+        expect.that(buildEvents.filterIsInstance<MessageEvent>()).isEmpty()
+        expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()
+        // This Failure is reported to SyncView via finish event failure result failures.
+        buildEvents.filterIsInstance<FinishBuildEvent>().single().let { finishBuildEvent ->
+          (finishBuildEvent.result as FailureResult).failures.let { failures ->
+            expect.that(failures).hasSize(1)
+            (failures.firstOrNull()?.error as? BuildIssueException)?.let {
+               verifyBuildIssue(it.buildIssue)
+            } ?: expect.fail("%s not found in %s", BuildIssueException::class.java.name, FinishBuildEvent::class.java.name)
+          }
+        }
+      },
+      verifyFailureReported = {
+        expect.that(it.gradleSyncFailure).isEqualTo(expectedFailureReported)
+        expect.that(it.buildOutputWindowStats.buildErrorMessagesList).isEmpty()
       }
-    ) {  }
-
-    val buildIssue = (capturedException as BuildIssueException).buildIssue
-    verifyBuildIssue(buildIssue)
-
-    // Make sure no additional error build events are generated
-    Truth.assertThat(buildEvents.filterIsInstance<MessageEvent>()).isEmpty()
-
-    val event = usageTracker.usages
-      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
-
-    Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(expectedFailureReported)
+    )
   }
 }

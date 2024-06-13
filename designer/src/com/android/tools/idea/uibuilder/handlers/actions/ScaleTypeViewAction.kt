@@ -38,14 +38,14 @@ enum class ScaleType(val icon: Icon?, val displayName: String, val attributeValu
 class ScaleTypeViewAction(
   private val namespace: String?,
   private val attribute: String,
-  private val type: ScaleType
+  private val type: ScaleType,
 ) : DirectViewAction(type.icon, type.displayName) {
   override fun perform(
     editor: ViewEditor,
     handler: ViewHandler,
     component: NlComponent,
     selectedChildren: MutableList<NlComponent>,
-    modifiers: Int
+    modifiers: Int,
   ) {
     val attr = component.startAttributeTransaction()
     attr.setAttribute(namespace, attribute, type.attributeValue)
@@ -57,5 +57,5 @@ class ScaleTypesViewActionMenu(namespace: String?, attribute: String) :
   ViewActionMenu(
     "",
     StudioIcons.LayoutEditor.Motion.MAX_SCALE,
-    ScaleType.values().map { ScaleTypeViewAction(namespace, attribute, it) }
+    ScaleType.values().map { ScaleTypeViewAction(namespace, attribute, it) },
   )

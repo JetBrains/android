@@ -29,7 +29,7 @@ import com.intellij.openapi.ui.popup.JBPopup
 class ComposePreviewInspector(
   private val surface: DesignSurface<*>,
   private val composeViewInfoProvider: (SceneView) -> List<ComposeViewInfo>,
-  private val onInspected: (List<ComposeViewInfo>, Int, Int) -> Unit
+  private val onInspected: (List<ComposeViewInfo>, Int, Int) -> Unit,
 ) {
 
   private var currentViewInfo: ComposeViewInfo? = null
@@ -56,7 +56,7 @@ class ComposePreviewInspector(
   /** Find the [ComposeViewInfo] for the given position in Swing coordinate. */
   private fun findComposeViewInfo(
     @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int
+    @SwingCoordinate y: Int,
   ): List<ComposeViewInfo> {
     val sceneView = surface.getSceneViewAt(x, y) ?: return emptyList()
     @AndroidCoordinate val xPx = Coordinates.getAndroidX(sceneView, x)

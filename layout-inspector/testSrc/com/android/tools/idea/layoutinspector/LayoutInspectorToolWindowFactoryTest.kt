@@ -34,7 +34,7 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
-import com.android.tools.idea.sdk.AndroidFacetChecker
+import com.android.tools.idea.sdk.AndroidProjectChecker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.transport.TransportService
@@ -121,7 +121,7 @@ class LayoutInspectorToolWindowFactoryTest {
   private val inspectorRule =
     LayoutInspectorRule(
       listOf(LegacyClientProvider({ projectRule.testRootDisposable })),
-      projectRule
+      projectRule,
     ) {
       it.name == LEGACY_PROCESS.name
     }
@@ -138,7 +138,7 @@ class LayoutInspectorToolWindowFactoryTest {
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString()
+        device.apiLevel.toString(),
       )
     }
   }
@@ -247,7 +247,7 @@ class LayoutInspectorToolWindowFactoryTest {
         it.id == "Layout Inspector"
       } ?: fail("Tool window not found")
 
-    assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidFacetChecker::class.qualifiedName)
+    assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidProjectChecker::class.qualifiedName)
   }
 }
 
@@ -268,7 +268,7 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       device.manufacturer,
       device.model,
       device.version,
-      device.apiLevel.toString()
+      device.apiLevel.toString(),
     )
     ApplicationManager.getApplication()
       .replaceService(AppInspectionDiscoveryService::class.java, mock(), disposableRule.disposable)
@@ -303,7 +303,7 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       val processes = deviceViewPanel.layoutInspector.processModel!!
       RecentProcess.set(
         project,
-        RecentProcess(adbRule.bridge.devices.first().serialNumber, MODERN_PROCESS.name)
+        RecentProcess(adbRule.bridge.devices.first().serialNumber, MODERN_PROCESS.name),
       )
 
       val modelUpdatedLatch = ReportingCountDownLatch(1)

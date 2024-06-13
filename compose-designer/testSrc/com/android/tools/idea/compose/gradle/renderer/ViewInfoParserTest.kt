@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.parseViewInfo
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -50,11 +51,13 @@ class ViewInfoParserTest {
   @Test
   fun testDefaultPreviewRendering() {
     val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val previewStartLine = runReadAction {
       val file =
         VfsUtil.findRelativeFile(
           SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
-          ProjectRootManager.getInstance(project).contentRoots[0]
+          ProjectRootManager.getInstance(project).contentRoots[0],
         )!!
       val ktFile = PsiManager.getInstance(project).findFile(file) as KtFile
       ktFile.declarations
@@ -66,10 +69,12 @@ class ViewInfoParserTest {
 
     renderPreviewElementForResult(
         facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.TwoElementsPreview"
-        )
+        ),
       )
+      .future
       .thenAccept { renderResult ->
         checkNotNull(renderResult)
         ImageIO.write(renderResult.renderedImage.copy, "png", File("/tmp/out.png"))

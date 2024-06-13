@@ -50,7 +50,7 @@ class InspectorBannerTest {
       "key1",
       "There is an error somewhere <a>",
       Status.Error,
-      emptyList()
+      emptyList(),
     )
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isTrue()
@@ -66,7 +66,7 @@ class InspectorBannerTest {
       "key1",
       "There is an error somewhere",
       Status.Error,
-      emptyList()
+      emptyList(),
     )
     notificationModel.clear()
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
@@ -81,7 +81,7 @@ class InspectorBannerTest {
       "key1",
       "There is an error somewhere",
       Status.Error,
-      emptyList()
+      emptyList(),
     )
 
     assertThat(notificationModel.notificationListeners).hasSize(1)

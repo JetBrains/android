@@ -167,7 +167,8 @@ class DetailsViewContentViewTest {
 
     view.setLogcat("")
     view.myLogsView.waitAllRequests()
-    assertThat(view.myLogsView.text).isEqualTo("No logcat output for this device.")
+    assertThat(view.myLogsView.text).isEqualTo("")
+    assertThat(view.logsTab.isHidden).isTrue()
   }
 
   @Test

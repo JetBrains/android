@@ -24,7 +24,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/app-inspection/api:app-inspection.api[module]",
         "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module]",
         "//tools/adt/idea/.idea/libraries:studio-grpc",

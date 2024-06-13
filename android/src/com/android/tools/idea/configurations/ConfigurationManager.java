@@ -30,11 +30,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationFileState;
-import com.android.tools.configurations.ConfigurationModelModule;
-import com.android.tools.configurations.ConfigurationProjectState;
 import com.android.tools.configurations.ConfigurationSettings;
-import com.android.tools.configurations.ConfigurationStateManager;
 import com.android.tools.configurations.ResourceResolverCache;
 import com.android.tools.layoutlib.AndroidTargets;
 import com.android.tools.res.ResourceRepositoryManager;
@@ -82,10 +78,10 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     ConfigurationManager.class.getName() + "ProjectCanonicalKey"
   );
 
-  @NotNull private final ConfigurationModelModule myConfigurationModule;
+  @NotNull private final StudioConfigurationModelModule myConfigurationModule;
 
   @NotNull private final Module myModule;
-  private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
+  private final Map<VirtualFile, ConfigurationForFile> myCache = ContainerUtil.createSoftValueMap();
   private Device myDefaultDevice;
   private Locale myLocale;
   private IAndroidTarget myTarget;
@@ -141,7 +137,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    */
   @Slow
   @NotNull
-  public static Configuration getConfigurationForModule(@NotNull Module module) {
+  public static ConfigurationForFile getConfigurationForModule(@NotNull Module module) {
     Project project = module.getProject();
     ConfigurationManager configurationManager = getOrCreateInstance(module);
 
@@ -152,14 +148,14 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
 
     return configurationManager.getConfiguration(projectFile);
   }
-  protected ConfigurationManager(@NotNull Module module, ConfigurationModelModule config) {
+  protected ConfigurationManager(@NotNull Module module, StudioConfigurationModelModule config) {
     myConfigurationModule = config;
     myModule = module;
     Disposer.register(myModule, this);
   }
 
   protected ConfigurationManager(@NotNull Module module) {
-    this(module,new StudioConfigurationModelModule(module));
+    this(module, new StudioConfigurationModelModule(module));
   }
 
   /**
@@ -169,8 +165,8 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    */
   @Slow
   @NotNull
-  public Configuration getConfiguration(@NotNull VirtualFile file) {
-    Configuration configuration = myCache.get(file);
+  public ConfigurationForFile getConfiguration(@NotNull VirtualFile file) {
+    ConfigurationForFile configuration = myCache.get(file);
     if (configuration == null) {
       configuration = create(file);
       myCache.put(file, configuration);
@@ -191,15 +187,15 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    */
   @Slow
   @NotNull
-  private Configuration create(@NotNull VirtualFile file) {
-    ConfigurationStateManager stateManager = myConfigurationModule.getConfigurationStateManager();
+  private ConfigurationForFile create(@NotNull VirtualFile file) {
+    ConfigurationStateManager stateManager = getStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(file);
     assert file.getParent() != null : file;
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = ConfigurationForFile.create(this, file, fileState, config);
+    ConfigurationForFile configuration = ConfigurationForFile.create(this, file, fileState, config);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
     if (stateManager.getProjectState().getDeviceIds().isEmpty() && fileState == null) {
       matcher.findAndSetCompatibleConfig(false);
@@ -225,14 +221,14 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
    * @return the new configuration
    */
   @NotNull
-  public Configuration createSimilar(@NotNull VirtualFile file, @NotNull VirtualFile baseFile) {
-    ConfigurationStateManager stateManager = myConfigurationModule.getConfigurationStateManager();
+  public ConfigurationForFile createSimilar(@NotNull VirtualFile file, @NotNull VirtualFile baseFile) {
+    ConfigurationStateManager stateManager = getStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(baseFile);
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = ConfigurationForFile.create(this, file, fileState, config);
+    ConfigurationForFile configuration = ConfigurationForFile.create(this, file, fileState, config);
     Configuration baseConfig = myCache.get(file);
     if (baseConfig != null) {
       configuration.setEffectiveDevice(baseConfig.getDevice(), baseConfig.getDeviceState());
@@ -242,6 +238,14 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     myCache.put(file, configuration);
 
     return configuration;
+  }
+
+  /**
+   * Returns the associated persistence manager
+   */
+  @NotNull
+  public ConfigurationStateManager getStateManager() {
+    return StudioConfigurationStateManager.get(myModule.getProject());
   }
 
   /**
@@ -345,13 +349,11 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     return false;
   }
 
-  @Override
   @NotNull
   public final Module getModule() {
     return myModule;
   }
 
-  @Override
   @NotNull
   public Project getProject() {
     return myConfigurationModule.getProject();
@@ -359,7 +361,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
 
   @Override
   @NotNull
-  public final ConfigurationModelModule getConfigModule() {
+  public final StudioConfigurationModelModule getConfigModule() {
     return myConfigurationModule;
   }
 
@@ -431,7 +433,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   @NotNull
   public Locale getLocale() {
     if (myLocale == null) {
-      String localeString = myConfigurationModule.getConfigurationStateManager().getProjectState().getLocale();
+      String localeString = getStateManager().getProjectState().getLocale();
       if (localeString != null) {
         myLocale = fromLocaleString(localeString);
       }
@@ -457,7 +459,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     if (!locale.equals(myLocale)) {
       myLocale = locale;
       myStateVersion++;
-      myConfigurationModule.getConfigurationStateManager().getProjectState().setLocale(toLocaleString(locale));
+      getStateManager().getProjectState().setLocale(toLocaleString(locale));
       for (Configuration configuration : myCache.values()) {
         configuration.updated(CFG_LOCALE);
       }
@@ -471,7 +473,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   @NotNull
   public List<Device> getRecentDevices() {
     List<Device> avdDevices = getAvdDevices();
-    List<String> deviceIds = myConfigurationModule.getConfigurationStateManager().getProjectState().getDeviceIds();
+    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
     if (deviceIds.isEmpty()) {
       return Collections.emptyList();
     }
@@ -501,7 +503,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   public void selectDevice(@NotNull Device device) {
     // Manually move the given device to the front of the eligibility queue
     String id = device.getId();
-    List<String> deviceIds = myConfigurationModule.getConfigurationStateManager().getProjectState().getDeviceIds();
+    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
     deviceIds.remove(id);
     deviceIds.add(0, id);
 
@@ -549,7 +551,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   @Nullable
   public IAndroidTarget getTarget() {
     if (myTarget == null) {
-      ConfigurationProjectState projectState = myConfigurationModule.getConfigurationStateManager().getProjectState();
+      ConfigurationProjectState projectState = getStateManager().getProjectState();
       if (projectState.isPickTarget()) {
         myTarget = getDefaultTarget();
       }
@@ -610,7 +612,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
 
       myTarget = target;
       if (target != null) {
-        myConfigurationModule.getConfigurationStateManager().getProjectState().setTarget(toTargetString(target));
+        getStateManager().getProjectState().setTarget(toTargetString(target));
         myStateVersion++;
         for (Configuration configuration : myCache.values()) {
           configuration.updated(CFG_TARGET);
@@ -651,5 +653,15 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
       .filter(Objects::nonNull)
       .map(this::createDeviceForAvd)
       .collect(Collectors.toList());
+  }
+
+  /**
+   * All {@link Configuration}s in studio has {@link ConfigurationManager} as {@link Configuration#getSettings()} since this is the only
+   * implementation, so this is a safe cast. We can't make {@link ConfigurationManager} as the return type of
+   * {@link Configuration#getSettings()} because {@link Configuration} is also used outside of studio.
+   */
+  @NotNull
+  public static ConfigurationManager getFromConfiguration(@NotNull Configuration configuration) {
+    return (ConfigurationManager)configuration.getSettings();
   }
 }

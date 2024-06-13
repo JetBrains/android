@@ -31,7 +31,7 @@ import java.util.Locale
 import javax.swing.Icon
 
 fun Long.toFormattedTimeString(): String {
-  val formatter = SimpleDateFormat("h:mm:ss a", Locale.getDefault())
+  val formatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
   return if (this == -1L) "-" else formatter.format(Date(this))
 }
 

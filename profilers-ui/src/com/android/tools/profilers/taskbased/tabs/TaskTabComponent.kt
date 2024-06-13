@@ -17,9 +17,9 @@ package com.android.tools.profilers.taskbased.tabs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.awt.ComposePanel
+import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import java.awt.BorderLayout
 import javax.swing.JPanel
 

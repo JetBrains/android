@@ -5,12 +5,12 @@ iml_module(
     name = "intellij.android.device-manager",
     srcs = ["src"],
     iml_files = ["intellij.android.device-manager.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
@@ -22,7 +22,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/intellij.android.device[module]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module]",
-        "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
@@ -44,7 +43,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",

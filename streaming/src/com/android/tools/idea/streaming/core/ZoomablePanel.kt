@@ -20,12 +20,12 @@ import com.android.tools.adtui.actions.ZoomType
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
-private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
-
-private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
+private val ZOOM_LEVELS = doubleArrayOf(0.0625, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0)
+private val SQRT2 = sqrt(2.0)
 
 /**
  * A [BorderLayoutPanel] with zoom support.
@@ -53,16 +53,42 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     get() = Dimension(physicalWidth, physicalHeight)
 
   override val scale: Double
-    get() = computeScaleToFit(computeMaxImageSize())
+    get() = roundDownIfNecessary(computeScaleToFit(computeMaxImageSize()))
 
   override val screenScalingFactor
     get() = screenScale
 
+  internal val explicitlySetPreferredSize: Dimension?
+    get() = if (isPreferredSizeSet) preferredSize else null
+
+  /**
+   * An integer number represented as Double. If zero, indicates that fractional scale above 1
+   * is not allowed. Otherwise, indicates that fractional scale is allowed between
+   * `fractionalScaleRange` and `fractionalScaleRange` + 1.
+   */
+  private var fractionalScaleRange: Double = 0.0
+
+  protected abstract fun computeActualSize(): Dimension
+
+  protected fun roundDownIfNecessary(scale: Double): Double {
+    val roundedScale = roundDownIfGreaterThanOne(scale)
+    return if (roundedScale == fractionalScaleRange) scale else roundedScale
+  }
+
   protected abstract fun canZoom(): Boolean
 
   override fun zoom(type: ZoomType): Boolean {
+    val oldFractionalScaleRange = fractionalScaleRange
+    if (type == ZoomType.FIT) {
+      if (fractionalScaleRange == 0.0) {
+        fractionalScaleRange = roundDownIfGreaterThanOne(computeScaleToFitInParent()) // Allow fractional scale greater than one.
+      }
+    }
+    else {
+      fractionalScaleRange = 0.0
+    }
     val scaledSize = computeZoomedSize(type)
-    if (scaledSize == preferredSize) {
+    if (scaledSize == preferredSize && fractionalScaleRange == oldFractionalScaleRange) {
       return false
     }
     preferredSize = scaledSize
@@ -76,17 +102,33 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   }
 
   override fun canZoomOut(): Boolean {
-    return canZoom() && computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize
+    return canZoom() && (computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale))
   }
 
   override fun canZoomToActual(): Boolean =
-    canZoom() && computeZoomedSize(ZoomType.ACTUAL) != explicitlySetPreferredSize
+    canZoom() && (computeZoomedSize(ZoomType.ACTUAL) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale))
 
-  override fun canZoomToFit(): Boolean =
-    canZoom() && isPreferredSizeSet
+  override fun canZoomToFit(): Boolean {
+    if (!canZoom()) {
+      return false
+    }
+    if (isPreferredSizeSet) {
+      return true
+    }
+    if (fractionalScaleRange != 0.0) {
+      return false
+    }
+    val scaleToFit = computeScaleToFitInParent()
+    val roundedScale = roundDownIfGreaterThanOne(scaleToFit)
+    return roundedScale < scaleToFit
+  }
 
-  internal val explicitlySetPreferredSize: Dimension?
-    get() = if (isPreferredSizeSet) preferredSize else null
+  override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    super.setBounds(x, y, width, height)
+    if (fractionalScaleRange != 0.0 && fractionalScaleRange != roundDownIfGreaterThanOne(computeScaleToFit(computeMaxImageSize()))) {
+      fractionalScaleRange = 0.0
+    }
+  }
 
   /**
    * Computes the maximum allowed size of the device display image in physical pixels.
@@ -101,35 +143,33 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   private fun computeZoomedSize(zoomType: ZoomType): Dimension? {
     val newScale = when (zoomType) {
       ZoomType.IN -> {
-        var nextScale = (ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0)
-        val fitScale = computeScaleToFitInParent()
+        val nextScale = nearestZoomLevel(scale * (2 * SQRT2))
+        val fitScale = roundDownIfGreaterThanOne(computeScaleToFitInParent())
         if (nextScale >= fitScale) {
-          if (fitScale >= MAX_SCALE) {
+          if (fitScale >= ZOOM_LEVELS.last()) {
             return null
-          }
-          if (nextScale > MAX_SCALE) {
-            nextScale = MAX_SCALE
           }
         }
         nextScale
       }
 
       ZoomType.OUT -> {
-        var nextScale = ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0
-        val fitScale = computeScaleToFitInParent()
+        val scale = scale
+        var nextScale = nearestZoomLevel(scale / SQRT2)
+        val fitScale = roundDownIfGreaterThanOne(computeScaleToFitInParent())
         if (fitScale > 1) {
           if (nextScale < 1) {
             nextScale = 1.0
           }
         }
-        else if (nextScale <= fitScale) {
+        else if (nextScale <= fitScale || nextScale >= scale) {
           return null
         }
         nextScale
       }
 
       ZoomType.ACTUAL -> {
-        if (computeScaleToFitInParent() == 1.0) {
+        if (roundDownIfGreaterThanOne(computeScaleToFitInParent()) == 1.0) {
           return null
         }
         1.0
@@ -141,11 +181,29 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     return newScaledSize.scaled(1 / screenScale)
   }
 
+  /** Returns the highest zoom level not exceeding [scale]. */
+  private fun nearestZoomLevel(scale: Double): Double {
+    // Binary search.
+    var low = 0
+    var high = ZOOM_LEVELS.size
+
+    while (low < high) {
+      val mid = low + high ushr 1
+      val level = ZOOM_LEVELS[mid]
+      val cmp = level - scale
+      if (cmp < 0) {
+        low = mid + 1
+      } else if (cmp > 0) {
+        high = mid
+      } else {
+        return level // Found.
+      }
+    }
+    return ZOOM_LEVELS[max(low - 1, 0)]
+  }
+
   private fun computeScaleToFitInParent() =
     computeScaleToFit(computeAvailableSize())
-
-  private fun computeAvailableSize(): Dimension =
-    parent.sizeWithoutInsets.scaled(screenScale)
 
   private fun computeScaleToFit(availableSize: Dimension): Double =
     computeScaleToFit(computeActualSize(), availableSize)
@@ -154,9 +212,15 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     if (actualSize.width == 0 || actualSize.height == 0) {
       return 1.0
     }
-    val scale = min(availableSize.width.toDouble() / actualSize.width, availableSize.height.toDouble() / actualSize.height)
-    return if (scale <= 1.0) scale else floor(scale)
+    return min(availableSize.width.toDouble() / actualSize.width, availableSize.height.toDouble() / actualSize.height)
   }
 
-  protected abstract fun computeActualSize(): Dimension
+  private fun roundDownIfGreaterThanOne(scale: Double): Double =
+    if (scale <= 1.0) scale else floor(scale)
+
+  private fun isFractionalGreaterThanOne(scale: Double): Boolean =
+    scale > 1.0 && floor(scale) != scale
+
+  private fun computeAvailableSize(): Dimension =
+    parent?.sizeWithoutInsets?.scaled(screenScale) ?: Dimension(0, 0)
 }

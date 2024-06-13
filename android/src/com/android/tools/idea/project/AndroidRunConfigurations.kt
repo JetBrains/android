@@ -45,7 +45,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.util.PathUtil
-import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
@@ -92,7 +91,7 @@ class AndroidRunConfigurations {
       // Don't create Wear Apps Configurations, as the user can launch Wear Surfaces from the gutter
       return
     }
-    ApplicationManager.getApplication().invokeAndWait { addAndroidRunConfiguration(facet) }
+    addAndroidRunConfiguration(facet)
   }
 
   @Slow
@@ -126,6 +125,10 @@ class AndroidRunConfigurations {
 
   private fun addAndroidRunConfiguration(facet: AndroidFacet) {
     val module = facet.mainModule
+    if (module.project.isDisposed) {
+      return
+    }
+
     val runManager = RunManager.getInstance(module.project)
     val projectNameInExternalSystemStyle = PathUtil.suggestFileName(module.project.name, true, false)
     val moduleName = module.getHolderModule().name
@@ -142,10 +145,8 @@ class AndroidRunConfigurations {
 
     configuration.deployTargetContext.targetSelectionMode = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
 
-    if (!module.project.isDisposed) {
-      runManager.addConfiguration(settings)
-      runManager.selectedConfiguration = settings
-    }
+    runManager.addConfiguration(settings)
+    runManager.selectedConfiguration = settings
   }
 
   private fun hasDefaultLauncherActivity(facet: AndroidFacet): Boolean {

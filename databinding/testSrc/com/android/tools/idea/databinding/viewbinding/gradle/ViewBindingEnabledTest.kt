@@ -75,7 +75,7 @@ class ViewBindingEnabledTest {
       preLoad = { projectRoot ->
         buildFile = File(projectRoot, "app/build.gradle")
         enableViewBinding(buildFile, false)
-      }
+      },
     )
 
     // Trigger resource repository initialization
@@ -85,13 +85,13 @@ class ViewBindingEnabledTest {
     // Context needed for searching for light classes
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
-    var lastModificationCount = ViewBindingEnabledTrackingService.instance.modificationCount
+    var lastModificationCount = ViewBindingEnabledTrackingService.getInstance().modificationCount
 
     assertThat(facet.isViewBindingEnabled()).isFalse()
     assertThat(
         fixture.findClass(
           "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context
+          context,
         )
       )
       .isNull()
@@ -100,13 +100,13 @@ class ViewBindingEnabledTest {
     projectRule.requestSyncAndWait()
 
     assertThat(facet.isViewBindingEnabled()).isTrue()
-    assertThat(ViewBindingEnabledTrackingService.instance.modificationCount)
+    assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount)
       .isGreaterThan(lastModificationCount)
-    lastModificationCount = ViewBindingEnabledTrackingService.instance.modificationCount
+    lastModificationCount = ViewBindingEnabledTrackingService.getInstance().modificationCount
     assertThat(
         fixture.findClass(
           "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context
+          context,
         )
       )
       .isNotNull()
@@ -115,12 +115,12 @@ class ViewBindingEnabledTest {
     projectRule.requestSyncAndWait()
 
     assertThat(facet.isViewBindingEnabled()).isFalse()
-    assertThat(ViewBindingEnabledTrackingService.instance.modificationCount)
+    assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount)
       .isGreaterThan(lastModificationCount)
     assertThat(
         fixture.findClass(
           "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context
+          context,
         )
       )
       .isNull()

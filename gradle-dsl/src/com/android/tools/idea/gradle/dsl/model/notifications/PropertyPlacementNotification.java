@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model.notifications;
 
-import static com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType.PROPERTY_PLACEMENT;
-
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType.PROPERTY_PLACEMENT;
 
 public class PropertyPlacementNotification implements BuildModelNotification {
   public PropertyPlacementNotification() {

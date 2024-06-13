@@ -46,7 +46,7 @@ class DisableToolsVisibilityAndPositionInPreviewActionTest {
       "DesignSurface",
       disableToolsAction.templatePresentation.clone(),
       actionManager,
-      0
+      0,
     )
   }
 

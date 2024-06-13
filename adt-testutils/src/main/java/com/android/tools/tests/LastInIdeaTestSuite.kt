@@ -15,6 +15,7 @@
  */
 package com.android.tools.tests
 
+import com.intellij.openapi.util.SystemInfo
 import org.junit.Assume
 import org.junit.Test
 
@@ -28,6 +29,7 @@ class LastInIdeaTestSuite {
    */
   @Test
   fun checkForLeaks() {
+    Assume.assumeFalse(SystemInfo.isWindows) // TODO(b/330534295): debug leaked projects on Windows with IntelliJ 2024.1.
     Assume.assumeTrue(System.getProperty("idea.leak.check.enabled", "true").toBoolean())
     try {
       LeakCheckerRule.checkForLeaks()

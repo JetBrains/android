@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.naveditor.actions
 
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ActivateSelectionAction(val surface: DesignSurface<*>) : AnAction() {
+class ActivateSelectionAction : AnAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabled = e.getData(DESIGN_SURFACE) is NavDesignSurface
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getRequiredData(DESIGN_SURFACE)
     surface.selectionModel.selection.let {
       if (it.size == 1) {
         surface.notifyComponentActivate(it[0])

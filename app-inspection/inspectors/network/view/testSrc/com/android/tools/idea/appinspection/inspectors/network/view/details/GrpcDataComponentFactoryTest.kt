@@ -57,7 +57,7 @@ private val PROTO_FILE =
       message Foo {
       }
     """
-      .trimIndent()
+      .trimIndent(),
   )
 
 /** Tests for [GrpcDataComponentFactory] */
@@ -74,10 +74,10 @@ internal class GrpcDataComponentFactoryTest {
       ApplicationServiceRule(FileDocumentManager::class.java, FakeFileDocumentManager()),
       ApplicationServiceRule(
         FileTypeManager::class.java,
-        MockFileTypeManager(FakeProtoTextFileType)
+        MockFileTypeManager(FakeProtoTextFileType),
       ),
       EdtRule(),
-      disposableRule
+      disposableRule,
     )
 
   private val project
@@ -150,7 +150,7 @@ internal class GrpcDataComponentFactoryTest {
     val factory =
       grpcDataComponentFactory(
         responsePayloadText = PROTO,
-        protoFileFinder = { listOf(PROTO_FILE) }
+        protoFileFinder = { listOf(PROTO_FILE) },
       )
 
     val component = factory.createBodyComponent(RESPONSE)
@@ -223,7 +223,7 @@ internal class GrpcDataComponentFactoryTest {
     requestPayload: String = requestPayloadText,
     responsePayloadText: String = "",
     responsePayload: String = responsePayloadText,
-    protoFileFinder: ProtoFileFinder = ProtoFileFinder { emptyList() }
+    protoFileFinder: ProtoFileFinder = ProtoFileFinder { emptyList() },
   ) =
     GrpcDataComponentFactory(
       project,
@@ -233,7 +233,7 @@ internal class GrpcDataComponentFactoryTest {
         requestPayload = ByteString.copyFrom(requestPayload.toByteArray()),
         requestPayloadText = requestPayloadText,
         responsePayload = ByteString.copyFrom(responsePayload.toByteArray()),
-        responsePayloadText = responsePayloadText
+        responsePayloadText = responsePayloadText,
       ),
       protoFileFinder = protoFileFinder,
     )

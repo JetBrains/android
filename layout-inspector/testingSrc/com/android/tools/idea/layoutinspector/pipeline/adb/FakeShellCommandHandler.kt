@@ -18,10 +18,8 @@ package com.android.tools.idea.layoutinspector.pipeline.adb
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
-import kotlinx.coroutines.CoroutineScope
 import java.net.Socket
-import java.util.ArrayDeque
-import java.util.Deque
+import kotlinx.coroutines.CoroutineScope
 
 class SimpleCommand(val args: List<String>, val result: String?) {
   constructor(command: String, result: String?) : this(command.split(' '), result)
@@ -30,10 +28,7 @@ class SimpleCommand(val args: List<String>, val result: String?) {
 /**
  * A fake handler that intercepts ADB shell commands used at various points by the layout inspector.
  */
-class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewProperties {
-  override var debugViewAttributes: String? = null
-  override var debugViewAttributesApplicationPackage: String? = null
-  override var debugViewAttributesChangesCount: Int = 0
+class FakeShellCommandHandler : DeviceCommandHandler("shell") {
   val extraCommands = mutableListOf<SimpleCommand>()
 
   override fun accept(
@@ -42,7 +37,7 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
     socket: Socket,
     device: DeviceState,
     command: String,
-    args: String
+    args: String,
   ): Boolean {
     val response =
       when (command) {
@@ -62,41 +57,7 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
     return when (args.firstOrNull()) {
       "sh" -> ""
       "echo" -> args.subList(1, args.size).joinToString(" ")
-      "settings" -> handleSettingsCommand(ArrayDeque(args.subList(1, args.size)))
       else -> extraCommands.find { it.args == args }?.result
-    }
-  }
-
-  private fun handleSettingsCommand(args: Deque<String>): String? {
-    val operation = args.poll()
-    if (args.poll() != "global") {
-      return null
-    }
-    val variable =
-      when (args.poll()) {
-        "debug_view_attributes" -> this::debugViewAttributes
-        "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
-        else -> return null
-      }
-    val argument = if (args.isEmpty()) "" else args.poll()
-    if (args.isNotEmpty()) {
-      return null
-    }
-    return when (operation) {
-      "get" -> {
-        variable.get().toString()
-      }
-      "put" -> {
-        variable.set(argument)
-        debugViewAttributesChangesCount++
-        ""
-      }
-      "delete" -> {
-        variable.set(null)
-        debugViewAttributesChangesCount++
-        ""
-      }
-      else -> null
     }
   }
 }

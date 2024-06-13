@@ -67,7 +67,8 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
       },
       onSourceGenerationError = {
         toolWindow.displayWaitingForGoodSync()
-      }
+      },
+      toolWindow.disposable
     )
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }

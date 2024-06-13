@@ -37,15 +37,16 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -675,9 +676,9 @@ class AndroidTestSuiteViewTest {
   fun actionButtonsAreFocusable() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
-    UIUtil.uiTraverser(view.component)
-      .filter(ActionToolbarImpl::class.java)
-      .forEach(ActionToolbarImpl::updateActionsImmediately)
+    for (toolbar in UIUtil.uiTraverser(view.component).filter(ActionToolbar::class.java)) {
+      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    }
 
     val actionButtons = UIUtil.uiTraverser(view.component)
       .filter(ActionButton::class.java)

@@ -16,25 +16,24 @@
 package com.android.tools.idea.common.scene.draw;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.text.StringUtil;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import javax.swing.JTextPane;
+
+import com.intellij.util.SlowOperations;
+import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 /**
  * Base Class for drawing text components
@@ -295,17 +294,19 @@ public class DrawTextRegion extends DrawRegion {
     return alignmentX;
   }
 
+  @Slow
   public static int getFont(NlComponent nlc, String default_dim) {
+    // TODO(b/324574786): Remove the smart mode check. It's only needed here to avoid invoking
+    //  getResourceResolver in non-smart mode.
+    if (DumbService.getInstance(nlc.getModel().getProject()).isDumb()) return -1;
     Configuration configuration = nlc.getModel().getConfiguration();
-    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    ResourceResolver resourceResolver = SlowOperations.allowSlowOperations(configuration::getResourceResolver);
 
     Integer size = null;
 
-    if (resourceResolver != null) {
-      String textSize = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
-      if (textSize != null) {
-        size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
-      }
+    String textSize = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
+    if (textSize != null) {
+      size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
     }
 
     if (size == null) {

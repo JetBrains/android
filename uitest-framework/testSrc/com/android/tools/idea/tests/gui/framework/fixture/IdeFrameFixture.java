@@ -84,6 +84,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JProgressBar;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.WindowAncestorFinder;
@@ -478,7 +479,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     // to 120 seconds). Otherwise, sync timeout may expire
     // too soon.
     GuiTests.waitForProjectIndexingToFinish(ideFixture.getProject());
-
     (waitForSync != null ? waitForSync : Wait.seconds(60))
       .expecting("syncing project '" + project.getName() + "' to finish")
       .until(() -> {
@@ -495,8 +495,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       fail("Sync failed. See logs.");
     }
 
+    // Wait for project indexing
     GuiTests.waitForProjectIndexingToFinish(ideFixture.getProject());
     waitForIdle();
+
+    // Wait for dependencies to be indexed.
+    GuiTests.waitForIndexingDependenciesToFinish(ideFixture.getProject());
+    waitForIdle();
+
     // Wait for other tasks like native sync that might have been triggered.
     GuiTests.waitForBackgroundTasks(ideFixture.robot());
     waitForIdle();
@@ -855,5 +861,44 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   public FindToolWindowFixture.ContentFixture getFindToolWindow(){
     return new FindToolWindowFixture.ContentFixture(this);
+  }
+
+  /**
+   * Wait until progress bar stopped showing in IDE
+   */
+  public void waitUntilProgressBarNotDisplayed() {
+    GuiTests.waitUntilGone(robot(), target(),
+                           Matchers.byType(JProgressBar.class).andIsShowing(),
+                           30);
+  }
+
+  /**
+   * Copy using keyboard (Ctrl+c or Command+c)
+   */
+  public void copyUsingKeyboard(){
+    if (SystemInfo.isMac) {
+      robot().pressKey(KeyEvent.VK_META);
+      robot().pressAndReleaseKey(KeyEvent.VK_C);
+      robot().releaseKey(KeyEvent.VK_META);
+    } else {
+      robot().pressKey(KeyEvent.VK_CONTROL);
+      robot().pressAndReleaseKey(KeyEvent.VK_C);
+      robot().releaseKey(KeyEvent.VK_CONTROL);
+    }
+  }
+
+  /**
+   * Paste using keyboard (Ctrl+v or Command+v)
+   */
+  public void pasteUsingKeyboard(){
+    if (SystemInfo.isMac) {
+      robot().pressKey(KeyEvent.VK_META);
+      robot().pressAndReleaseKey(KeyEvent.VK_V);
+      robot().releaseKey(KeyEvent.VK_META);
+    } else {
+      robot().pressKey(KeyEvent.VK_CONTROL);
+      robot().pressAndReleaseKey(KeyEvent.VK_V);
+      robot().releaseKey(KeyEvent.VK_CONTROL);
+    }
   }
 }

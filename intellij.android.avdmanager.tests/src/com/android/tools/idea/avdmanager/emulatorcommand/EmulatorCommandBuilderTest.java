@@ -18,7 +18,7 @@ package com.android.tools.idea.avdmanager.emulatorcommand;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;

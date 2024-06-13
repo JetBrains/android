@@ -203,7 +203,6 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     return false;
   }
 
-
   /**
    * Create the {@link DefaultActionGroup} used by this dropdown action. This group can be used when all the {@link AnAction}s in the
    * sub-menu are {@link com.intellij.openapi.actionSystem.Toggleable} to prevent dropdown menu not disappear issue.

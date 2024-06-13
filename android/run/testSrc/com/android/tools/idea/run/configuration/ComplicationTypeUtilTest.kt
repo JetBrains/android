@@ -38,6 +38,8 @@ import org.junit.Test
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
+import com.intellij.util.ui.UIUtil
+
 
 class ComplicationTypeUtilsTest {
   @get:Rule
@@ -102,7 +104,7 @@ class ComplicationTypeUtilsTest {
   fun tesGetComplicationTypesFromManifestWhileHoldingReadLockReturnsNullIfNotReady() {
     val module = projectRule.projectRule.project.findAppModule()
     addMergedManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT"))
-
+    UIUtil.pump()
     val readLockIsReady = CountDownLatch(1)
     val testIsComplete = CountDownLatch(1)
 

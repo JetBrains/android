@@ -21,9 +21,11 @@ import com.android.tools.idea.npw.assetstudio.ui.IconPickerDialog;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.intellij.ui.SearchTextField;
+import javax.swing.JComboBox;
 import javax.swing.JTable;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.data.TableCell;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +50,14 @@ public class IconPickerDialogFixture extends IdeaDialogFixture<IconPickerDialog>
     myParentFixture = assetStudioWizardFixture;
   }
 
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
+  public IconPickerDialogFixture waitForLoading() {
+    JComboBoxFixture categoriesComboFixture = new JComboBoxFixture(robot(), robot().finder().findByName("Categories", JComboBox.class));
+    Wait.seconds(60L).expecting("Waiting for icons to load and categories to become enabled").until(categoriesComboFixture::isEnabled);
+    return this;
+  }
+
   @NotNull
   public AssetStudioWizardFixture clickOk() {
     findAndClickOkButton(this);
@@ -55,6 +65,8 @@ public class IconPickerDialogFixture extends IdeaDialogFixture<IconPickerDialog>
   }
 
   public IconPickerDialogFixture filterByNameAndSelect(@NotNull String name) {
+    waitForLoading();
+
     JTableFixture tableFixture =
       new JTableFixture(robot(), robot().finder().findByType(target(), JTable.class));
     Wait.seconds(60L).expecting("Table should be populated.").until(() -> tableFixture.contents().length > 10);

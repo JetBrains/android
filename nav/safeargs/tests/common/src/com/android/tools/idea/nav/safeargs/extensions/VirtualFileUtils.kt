@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.extensions
 
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -24,7 +25,7 @@ fun VirtualFile.replaceWithoutSaving(oldString: String, newString: String, proje
   with(FileDocumentManager.getInstance().getDocument(this)!!) {
     val text = charsSequence.toString().replace(oldString, newString)
     setText(text)
-    PsiDocumentManager.getInstance(project).commitDocument(this)
+    PsiDocumentManager.getInstance(project).commitAndUnblockDocument(this)
   }
 }
 
@@ -32,7 +33,7 @@ fun VirtualFile.replaceWithSaving(oldString: String, newString: String, project:
   with(FileDocumentManager.getInstance().getDocument(this)!!) {
     val text = charsSequence.toString().replace(oldString, newString)
     setText(text)
-    PsiDocumentManager.getInstance(project).commitDocument(this)
+    PsiDocumentManager.getInstance(project).commitAndUnblockDocument(this)
     FileDocumentManager.getInstance().saveDocument(this)
   }
 }
@@ -40,7 +41,12 @@ fun VirtualFile.replaceWithSaving(oldString: String, newString: String, project:
 fun VirtualFile.setText(newString: String, project: Project) {
   with(FileDocumentManager.getInstance().getDocument(this)!!) {
     setText(newString)
-    PsiDocumentManager.getInstance(project).commitDocument(this)
+    PsiDocumentManager.getInstance(project).commitAndUnblockDocument(this)
     FileDocumentManager.getInstance().saveDocument(this)
   }
+}
+
+private fun PsiDocumentManager.commitAndUnblockDocument(document: Document) {
+  commitDocument(document)
+  doPostponedOperationsAndUnblockDocument(document)
 }

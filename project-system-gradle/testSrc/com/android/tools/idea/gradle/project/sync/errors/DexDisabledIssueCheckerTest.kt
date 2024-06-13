@@ -16,10 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8ModuleQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.AbstractSetJavaLanguageLevelQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelModuleQuickFix
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.pom.java.LanguageLevel
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Test
 
@@ -81,7 +84,13 @@ class DexDisabledIssueCheckerTest {
   fun `no task can be found in message`() {
     val quickFixes = verifyBuildIssueAndGetQuickfixes(INVOKE_CUSTOM, "Task failed")
     assertThat(quickFixes).hasSize(1)
-    assertThat(quickFixes[0]).isInstanceOf(SetLanguageLevel8AllQuickFix::class.java)
+    assertThat(quickFixes[0]).isInstanceOf(SetJavaLanguageLevelAllQuickFix::class.java)
+    assertThat((quickFixes[0] as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
+  }
+
+  @Test
+  fun testDexDisabledIssueCheckerIsKnown() {
+    assertThat(GradleIssueChecker.getKnownIssuesCheckList().filterIsInstance(DexDisabledIssueChecker::class.java)).isNotEmpty()
   }
 
   @Test
@@ -132,9 +141,12 @@ class DexDisabledIssueCheckerTest {
   private fun verifyWithModule(pattern: String) {
     val quickFixes = verifyBuildIssueAndGetQuickfixes(pattern, FAILED_TASK_MESSAGE)
     assertThat(quickFixes).hasSize(2)
-    assertThat(quickFixes.filterIsInstance<SetLanguageLevel8AllQuickFix>()).hasSize(1)
-    assertThat(quickFixes.filterIsInstance<SetLanguageLevel8ModuleQuickFix>()).hasSize(1)
-    assertThat(quickFixes.map{it.id}).containsNoDuplicates()
+    assertThat(quickFixes.filterIsInstance<SetJavaLanguageLevelAllQuickFix>()).hasSize(1)
+    assertThat(quickFixes.filterIsInstance<SetJavaLanguageLevelModuleQuickFix>()).hasSize(1)
+    assertThat(quickFixes.map { it.id }).containsNoDuplicates()
+    quickFixes.forEach {
+      assertThat((it as AbstractSetJavaLanguageLevelQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
+    }
   }
 
   private fun verifyBuildIssueAndGetQuickfixes(rootPattern: String, taskPattern: String): List<BuildIssueQuickFix> {
@@ -148,4 +160,4 @@ class DexDisabledIssueCheckerTest {
   }
 }
 
-private class DexArchiveBuilderException(message: String, cause: Throwable): Throwable(message, cause)
+private class DexArchiveBuilderException(message: String, cause: Throwable) : Throwable(message, cause)

@@ -18,9 +18,6 @@
 
 #include <android/keycodes.h>
 #include <sys/socket.h>
-#include <unistd.h>
-
-#include <cassert>
 
 #include "accessors/device_state_manager.h"
 #include "accessors/input_manager.h"
@@ -41,7 +38,7 @@ namespace {
 constexpr int BUFFER_SIZE = 4096;
 constexpr int UTF8_MAX_BYTES_PER_CHARACTER = 4;
 
-constexpr int SOCKET_RECEIVE_TIMEOUT_MILLIS = 200;
+constexpr int SOCKET_RECEIVE_TIMEOUT_MILLIS = 250;
 
 int64_t UptimeMillis() {
   timespec t = { 0, 0 };
@@ -84,10 +81,6 @@ void SetReceiveTimeoutMillis(int timeout_millis, int socket_fd) {
   setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 }
 
-bool ContainsMultipleDeviceStates(const string& states_text) {
-  return states_text.find("DeviceState{") != states_text.rfind("DeviceState{");
-}
-
 bool CheckVideoSize(Size video_resolution) {
   if (video_resolution.width > 0 && video_resolution.height > 0) {
     return true;
@@ -119,18 +112,18 @@ void InjectKeyEvent(Jni jni, const KeyEvent& event, InputEventInjectionSync mode
 Controller::Controller(int socket_fd)
     : socket_fd_(socket_fd),
       input_stream_(socket_fd, BUFFER_SIZE),
-      output_stream_(socket_fd, BUFFER_SIZE),
-      pointer_helper_(),
-      motion_event_start_time_(0),
-      key_character_map_(),
+      output_stream_(SocketWriter(socket_fd, "control"), BUFFER_SIZE),
       clipboard_listener_(this),
-      max_synced_clipboard_length_(0),
-      clipboard_changed_(),
-      device_state_listener_(this),
-      ui_settings_() {
+      device_state_listener_(this) {
   assert(socket_fd > 0);
-  char channel_marker = 'C';
-  write(socket_fd_, &channel_marker, sizeof(channel_marker));  // Control channel marker.
+  try {
+    output_stream_.WriteByte('C');
+    output_stream_.Flush();
+  } catch (EndOfFile& e) {
+    Log::D("Disconnected while writing command channel marker");
+  } catch (IoException& e) {
+    Log::Fatal(SOCKET_IO_ERROR, "%s", "Timed out while writing command channel marker");
+  }
 }
 
 Controller::~Controller() {
@@ -145,6 +138,7 @@ void Controller::Stop() {
   if (device_supports_multiple_states_) {
     DeviceStateManager::RemoveDeviceStateListener(&device_state_listener_);
   }
+  ui_settings_.Reset();
   stopped = true;
 }
 
@@ -169,21 +163,20 @@ void Controller::Initialize() {
     WakeUpDevice();
   }
 
-  string states_text = DeviceStateManager::GetSupportedStates();
-  Log::D("Controller::Initialize: states_text=%s", states_text.c_str());
-  if (ContainsMultipleDeviceStates(states_text)) {
+  const vector<DeviceState>& device_states = DeviceStateManager::GetSupportedDeviceStates(jni_);
+  if (!device_states.empty()) {
     device_supports_multiple_states_ = true;
-    SupportedDeviceStatesNotification supported_device_states_notification(std::move(states_text));
+    DeviceStateManager::AddDeviceStateListener(&device_state_listener_);
+    int32_t device_state_identifier = DeviceStateManager::GetDeviceStateIdentifier(jni_);
+    Log::D("Controller::Initialize: device_state_identifier=%d", device_state_identifier);
+    SupportedDeviceStatesNotification supported_device_states_notification(device_states, device_state_identifier);
     try {
       supported_device_states_notification.Serialize(output_stream_);
       output_stream_.Flush();
     } catch (EndOfFile& e) {
       // The socket has been closed - ignore.
     }
-    DeviceStateManager::AddDeviceStateListener(&device_state_listener_);
-    int32_t device_state = DeviceStateManager::GetDeviceState(jni_);
-    Log::D("Controller::Initialize: device_state=%d", device_state);
-    device_state_ = device_state;
+    device_state_identifier_ = device_state_identifier;
   }
 
   DisplayManager::AddDisplayListener(jni_, this);
@@ -237,7 +230,7 @@ void Controller::Run() {
 
 void Controller::ProcessMessage(const ControlMessage& message) {
   if (message.type() != MotionEventMessage::TYPE) { // Exclude
-    Log::W("Controller::ProcessMessage %d", message.type());
+    Log::I("Controller::ProcessMessage %d", message.type());
   }
   switch (message.type()) {
     case MotionEventMessage::TYPE:
@@ -268,6 +261,14 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       StopVideoStream((const StopVideoStreamMessage&) message);
       break;
 
+    case StartAudioStreamMessage::TYPE:
+      StartAudioStream((const StartAudioStreamMessage&) message);
+      break;
+
+    case StopAudioStreamMessage::TYPE:
+      StopAudioStream((const StopAudioStreamMessage&) message);
+      break;
+
     case StartClipboardSyncMessage::TYPE:
       StartClipboardSync((const StartClipboardSyncMessage&) message);
       break;
@@ -290,6 +291,30 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 
     case SetDarkModeMessage::TYPE:
       SetDarkMode((const SetDarkModeMessage&) message);
+      break;
+
+    case SetFontSizeMessage::TYPE:
+      SetFontSize((const SetFontSizeMessage&) message);
+      break;
+
+    case SetScreenDensityMessage::TYPE:
+      SetScreenDensity((const SetScreenDensityMessage&) message);
+      break;
+
+    case SetTalkBackMessage::TYPE:
+      SetTalkBack((const SetTalkBackMessage&) message);
+      break;
+
+    case SetSelectToSpeakMessage::TYPE:
+      SetSelectToSpeak((const SetSelectToSpeakMessage&) message);
+      break;
+
+    case SetAppLanguageMessage::TYPE:
+      SetAppLanguage((const SetAppLanguageMessage&) message);
+      break;
+
+    case SetGestureNavigationMessage::TYPE:
+      SetGestureNavigation((const SetGestureNavigationMessage&) message);
       break;
 
     default:
@@ -450,15 +475,23 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
   }
 }
 
-void Controller::StopVideoStream(const StopVideoStreamMessage& message) {
-  Agent::StopVideoStream(message.display_id());
-}
-
 void Controller::StartVideoStream(const StartVideoStreamMessage& message) {
   if (CheckVideoSize(message.max_video_size())) {
     Agent::StartVideoStream(message.display_id(), message.max_video_size());
     WakeUpDevice();
   }
+}
+
+void Controller::StopVideoStream(const StopVideoStreamMessage& message) {
+  Agent::StopVideoStream(message.display_id());
+}
+
+void Controller::StartAudioStream(const StartAudioStreamMessage& message) {
+  Agent::StartAudioStream();
+}
+
+void Controller::StopAudioStream(const StopAudioStreamMessage& message) {
+  Agent::StopAudioStream();
 }
 
 void Controller::WakeUpDevice() {
@@ -514,26 +547,28 @@ void Controller::SendClipboardChangedNotification() {
 }
 
 void Controller::RequestDeviceState(const RequestDeviceStateMessage& message) {
-  DeviceStateManager::RequestState(jni_, message.state(), 0);
+  DeviceStateManager::RequestState(jni_, message.state_id(), 0);
 }
 
 void Controller::OnDeviceStateChanged(int32_t device_state) {
   Log::D("Controller::OnDeviceStateChanged(%d)", device_state);
-  int32_t previous_state = device_state_.exchange(device_state);
+  int32_t previous_state = device_state_identifier_.exchange(device_state);
   if (previous_state != device_state) {
     Agent::SetVideoOrientation(PRIMARY_DISPLAY_ID, DisplayStreamer::CURRENT_DISPLAY_ORIENTATION);
   }
 }
 
 void Controller::SendDeviceStateNotification() {
-  int32_t device_state = device_state_;
+  int32_t device_state = device_state_identifier_;
   if (device_state != previous_device_state_) {
     Log::D("Sending DeviceStateNotification(%d)", device_state);
     DeviceStateNotification notification(device_state);
     notification.Serialize(output_stream_);
     output_stream_.Flush();
     previous_device_state_ = device_state;
-    if ((Agent::flags() & B_303684492_WORKAROUND) != 0 && Agent::feature_level() >= 34) {
+    // Many OEMs don't produce QPR releases, so their phones may be affected by b/303684492
+    // that was fixed in Android 14 QPR1.
+    if (Agent::feature_level() == 34 && Agent::device_manufacturer() != "Google") {
       StartDisplayPolling();  // Workaround for b/303684492.
     }
   }
@@ -566,6 +601,30 @@ void Controller::SendUiSettings(const UiSettingsRequest& message) {
 
 void Controller::SetDarkMode(const SetDarkModeMessage& message) {
   ui_settings_.SetDarkMode(message.dark_mode());
+}
+
+void Controller::SetAppLanguage(const SetAppLanguageMessage& message) {
+  ui_settings_.SetAppLanguage(message.application_id(), message.locale());
+}
+
+void Controller::SetGestureNavigation(const SetGestureNavigationMessage& message) {
+  ui_settings_.SetGestureNavigation(message.gesture_navigation());
+}
+
+void Controller::SetTalkBack(const SetTalkBackMessage& message) {
+  ui_settings_.SetTalkBack(message.talkback_on());
+}
+
+void Controller::SetSelectToSpeak(const SetSelectToSpeakMessage& message) {
+  ui_settings_.SetSelectToSpeak(message.select_to_speak_on());
+}
+
+void Controller::SetFontSize(const SetFontSizeMessage& message) {
+  ui_settings_.SetFontSize(message.font_size());
+}
+
+void Controller::SetScreenDensity(const SetScreenDensityMessage& message) {
+  ui_settings_.SetScreenDensity(message.density());
 }
 
 void Controller::OnDisplayAdded(int32_t display_id) {

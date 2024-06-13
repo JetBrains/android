@@ -1,7 +1,7 @@
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "KOTLIN_VERSION_FOR_TESTS")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
-load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -13,7 +13,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[module, test]",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model[module, test]",
@@ -33,11 +34,11 @@ maven_repository(
     name = "openproject_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20-Beta",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_" + KOTLIN_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KOTLIN_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KOTLIN_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + KOTLIN_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],

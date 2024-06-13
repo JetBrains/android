@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.streaming.device.screenshot
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.ImageDiffUtil
 import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpMetadata
-import com.android.tools.idea.ui.screenshot.DeviceType
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import org.junit.Before
 import org.junit.Test
@@ -30,7 +30,7 @@ import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.nio.file.Path
 
 /**
- * Tests for [DeviceScreenshotPostprocessor].
+ * Tests for [DeviceScreenshotDecorator].
  */
 class DeviceScreenshotPostprocessorTest {
 
@@ -39,28 +39,28 @@ class DeviceScreenshotPostprocessorTest {
     WebpMetadata.ensureWebpRegistered()
   }
 
-  private val postprocessor = DeviceScreenshotPostprocessor()
+  private val postprocessor = DeviceScreenshotDecorator()
 
   @Test
   fun testSkinFrame() {
-    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.PHONE, "")
+    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "")
     val skinFolder = DeviceArtDescriptor.getBundledDescriptorsFolder()!!.toPath().resolve("pixel_6")
-    val framedImage = postprocessor.addFrame(screenshotImage, DeviceFramingOption("Pixel 6", skinFolder), null)
+    val framedImage = postprocessor.decorate(screenshotImage, DeviceFramingOption("Pixel 6", skinFolder), null)
     assertImageSimilar("SkinFrame", framedImage)
   }
 
   @Test
   fun testDeviceArtFrame() {
-    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.PHONE, "")
+    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "")
     val artDescriptor = DeviceArtDescriptor.getDescriptors(null).find { it.id == "phone" }!!
-    val framedImage = postprocessor.addFrame(screenshotImage, DeviceFramingOption(artDescriptor), null)
+    val framedImage = postprocessor.decorate(screenshotImage, DeviceFramingOption(artDescriptor), null)
     assertImageSimilar("DeviceArtFrame", framedImage)
   }
 
   @Test
   fun testCircularClip() {
     val screenshotImage = ScreenshotImage(createImage(400, 400, Color.CYAN), 0, DeviceType.WEAR, "DisplayDeviceInfo{..., FLAG_ROUND}")
-    val framedImage = postprocessor.addFrame(screenshotImage, null, null)
+    val framedImage = postprocessor.decorate(screenshotImage, null, null)
     assertImageSimilar("CircularClip", framedImage)
   }
 

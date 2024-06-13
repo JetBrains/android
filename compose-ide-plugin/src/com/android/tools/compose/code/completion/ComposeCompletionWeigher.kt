@@ -78,29 +78,21 @@ class ComposeCompletionWeigher : CompletionWeigher() {
  * Composables in a statement.
  */
 private val PROMOTED_NON_COMPOSABLES_IN_STATEMENTS =
-  setOf(
-    "androidx.compose.material.MaterialTheme",
-    "androidx.compose.material3.MaterialTheme",
-  )
+  setOf("androidx.compose.material.MaterialTheme", "androidx.compose.material3.MaterialTheme")
 
 /**
  * Set of fully-qualified names of non-Composable functions that should be promoted in a value
  * argument.
  */
 private val PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS =
-  setOf(
-    "androidx.compose.material.MaterialTheme",
-    "androidx.compose.material3.MaterialTheme",
-  )
+  setOf("androidx.compose.material.MaterialTheme", "androidx.compose.material3.MaterialTheme")
 
 /**
  * Set of fully-qualified name prefixes of non-Composable functions that should be promoted in a
  * value argument.
  */
 private val PROMOTED_NON_COMPOSABLE_PREFIXES_IN_ARGUMENTS =
-  setOf(
-    "androidx.compose.material.icons.",
-  )
+  setOf("androidx.compose.material.icons.")
 
 private fun LookupElement.isPromotedInStatement(): Boolean {
   val fqName = (psiElement as? KtNamedDeclaration)?.fqName?.asString()

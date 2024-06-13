@@ -16,17 +16,23 @@
 package com.android.tools.idea.glance.preview
 
 import com.android.ide.common.rendering.api.Bridge
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.preview.CommonPreviewRefreshType
+import com.android.tools.idea.preview.PreviewRefreshManager
+import com.android.tools.idea.preview.RefreshType
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
@@ -45,7 +51,7 @@ private class TestPreviewView : PreviewView {
   override fun showErrorMessage(
     message: String,
     recoveryUrl: UrlData?,
-    actionToRecover: ActionData?
+    actionToRecover: ActionData?,
   ) {
     errorMessages.add(message)
   }
@@ -79,6 +85,8 @@ class GlancePreviewViewModelTest {
         MutableStateFlow(ProjectStatus.NotReady)
     }
 
+  private val refreshManager = mock<PreviewRefreshManager>()
+
   private val testView = TestPreviewView()
 
   private val hasRenderErrors =
@@ -97,7 +105,15 @@ class GlancePreviewViewModelTest {
     file = fixture.configureByText("foo.txt", "")
     val filePtr = runReadAction { SmartPointerManager.createPointer(file) }
 
-    viewModel = GlancePreviewViewModel(testView, statusManager, project, filePtr, hasRenderErrors)
+    viewModel =
+      GlancePreviewViewModel(
+        testView,
+        statusManager,
+        refreshManager,
+        project,
+        filePtr,
+        hasRenderErrors,
+      )
   }
 
   @After
@@ -114,7 +130,7 @@ class GlancePreviewViewModelTest {
 
       Assert.assertEquals(
         "A successful build is needed before the preview can be displayed",
-        testView.errorMessages.last()
+        testView.errorMessages.last(),
       )
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(0, testView.showContentCalls)
@@ -124,7 +140,7 @@ class GlancePreviewViewModelTest {
 
       Assert.assertEquals(
         "A successful build is needed before the preview can be displayed",
-        testView.errorMessages.last()
+        testView.errorMessages.last(),
       )
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(0, testView.showContentCalls)
@@ -134,7 +150,7 @@ class GlancePreviewViewModelTest {
 
       Assert.assertEquals(
         "A successful build is needed before the preview can be displayed",
-        testView.errorMessages.last()
+        testView.errorMessages.last(),
       )
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(0, testView.showContentCalls)
@@ -246,28 +262,37 @@ class GlancePreviewViewModelTest {
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(
         "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue.",
-        testView.errorMessages.last()
+        testView.errorMessages.last(),
       )
     }
 
   @Test
   fun testIsRefreshing() {
+    val flow = MutableStateFlow<RefreshType?>(null)
+    whenever(refreshManager.refreshingTypeFlow).thenReturn(flow)
+
     Assert.assertFalse(viewModel.isRefreshing)
 
-    viewModel.refreshStarted()
-
+    // the view model is refreshing while a refresh is happening
+    flow.value = CommonPreviewRefreshType.NORMAL
     Assert.assertTrue(viewModel.isRefreshing)
 
-    viewModel.refreshStarted()
+    flow.value = null
+    Assert.assertFalse(viewModel.isRefreshing)
 
+    // the view model is refreshing while the project is building
+    statusManager.isBuilding = true
     Assert.assertTrue(viewModel.isRefreshing)
 
-    viewModel.refreshFinished()
+    statusManager.isBuilding = false
+    Assert.assertFalse(viewModel.isRefreshing)
 
-    Assert.assertTrue(viewModel.isRefreshing)
+    // The view model is refreshing while in dumb mode
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      Assert.assertTrue(viewModel.isRefreshing)
+    }
 
-    viewModel.refreshFinished()
-
+    DumbModeTestUtils.waitForSmartMode(project)
     Assert.assertFalse(viewModel.isRefreshing)
   }
 

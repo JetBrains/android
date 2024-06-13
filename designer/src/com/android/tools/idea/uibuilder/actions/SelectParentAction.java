@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -30,22 +33,28 @@ import java.util.List;
  * Action which selects the parent, if possible
  */
 public class SelectParentAction extends AnAction {
-  private final NlDesignSurface mySurface;
-
-  public SelectParentAction(@NotNull NlDesignSurface surface) {
+  public SelectParentAction() {
     super("Select Parent", "Select Parent", null);
-    mySurface = surface;
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
+    DesignSurface<?> surface = e.getData(DESIGN_SURFACE);
+    if (surface == null) {
+      return;
+    }
     boolean enabled;
-    if (mySurface.getGuiInputHandler().isInteractionInProgress()) {
+    if (surface.getGuiInputHandler().isInteractionInProgress()) {
       // Interaction should consume escape event first
       enabled = false;
     }
     else {
-      SceneView screenView = mySurface.getFocusedSceneView();
+      SceneView screenView = surface.getFocusedSceneView();
       if (screenView != null) {
         List<NlComponent> selection = screenView.getSelectionModel().getSelection();
         enabled = selection.size() == 1 && !selection.get(0).isRoot();
@@ -59,7 +68,11 @@ public class SelectParentAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    SceneView screenView = mySurface.getFocusedSceneView();
+    DesignSurface<?> surface = e.getData(DESIGN_SURFACE);
+    if (surface == null) {
+      return;
+    }
+    SceneView screenView = surface.getFocusedSceneView();
     if (screenView != null) {
       SelectionModel selectionModel = screenView.getSelectionModel();
       List<NlComponent> selection = selectionModel.getSelection();
@@ -71,7 +84,7 @@ public class SelectParentAction extends AnAction {
           selectionModel.setSelection(Collections.singletonList(parent));
         }
       }
-      mySurface.repaint();
+      surface.repaint();
     }
   }
 }

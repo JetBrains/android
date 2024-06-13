@@ -18,7 +18,9 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.tasks.TaskFinishedState;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
@@ -44,27 +46,27 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
 
 
   @VisibleForTesting
-  public CpuCaptureHandler(@NotNull IdeProfilerServices services,
+  public CpuCaptureHandler(@NotNull StudioProfilers profilers,
                            @NotNull File captureFile,
                            long traceId,
                            @NotNull ProfilingConfiguration configuration,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
-    this(services, captureFile, traceId, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, captureProcessNameHint,
+    this(profilers, captureFile, traceId, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, captureProcessNameHint,
          captureProcessIdHint);
   }
 
-  public CpuCaptureHandler(@NotNull IdeProfilerServices services,
+  public CpuCaptureHandler(@NotNull StudioProfilers profilers,
                            @NotNull File captureFile,
                            long traceId,
                            @NotNull ProfilingConfiguration configuration,
                            CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
-    myCaptureParser = new CpuCaptureParser(services);
+    myCaptureParser = new CpuCaptureParser(profilers);
     myCaptureFile = captureFile;
     myTraceId = traceId;
-    myServices = services;
+    myServices = profilers.getIdeServices();
     myConfiguration = configuration;
     myCaptureProcessIdHint = captureProcessIdHint;
     myCaptureProcessNameHint = captureProcessNameHint;
@@ -120,11 +122,11 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
    * @param captureCompleted The callback will be called on both success and failure to parse. When a failure is encountered the callback
    *                         will be passed a null {@link CpuCapture}.
    */
-  public void parse(Consumer<CpuCapture> captureCompleted) {
+  public void parse(Consumer<CpuCapture> captureCompleted, @NotNull Consumer<TaskFinishedState> trackTaskFinished) {
     myIsParsing = true;
     myParseRange.set(0, 0);
     CompletableFuture<CpuCapture> capture = myCaptureParser.parse(
-      myCaptureFile, myTraceId, myConfiguration.getTraceType(), myCaptureProcessIdHint, myCaptureProcessNameHint);
+      myCaptureFile, myTraceId, myConfiguration.getTraceType(), myCaptureProcessIdHint, myCaptureProcessNameHint, trackTaskFinished);
 
     // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
     capture.handleAsync((parsedCapture, exception) -> {

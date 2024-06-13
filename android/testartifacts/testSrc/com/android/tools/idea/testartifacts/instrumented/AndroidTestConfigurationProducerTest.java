@@ -36,8 +36,10 @@ import com.intellij.execution.PsiLocation;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.SystemInfo;
@@ -48,7 +50,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.IndexingTestUtil;
-import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -225,17 +226,17 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   public void testCanCreateAndroidTestConfigurationWhenOriginalConfigExists() throws Exception {
     loadProject(TEST_ARTIFACTS_KOTLIN);
 
-    MapDataContext dataContext = new MapDataContext();
-    dataContext.put(CommonDataKeys.PROJECT, getProject());
+    SimpleDataContext.Builder dataContext = SimpleDataContext.builder()
+      .add(CommonDataKeys.PROJECT, getProject());
 
     PsiElement element = JavaPsiFacade.getInstance(getProject()).findClass(
       "com.example.android.kotlin.ExampleInstrumentedTest",
       GlobalSearchScope.projectScope(getProject()));
     assertNotNull(element);
-    dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(element));
+    dataContext.add(Location.DATA_KEY, PsiLocation.fromPsiElement(element));
 
     Module module = ModuleUtilCore.findModuleForPsiElement(element);
-    dataContext.put(PlatformCoreDataKeys.MODULE, module);
+    dataContext.add(PlatformCoreDataKeys.MODULE, module);
 
     // This test really is concerned with the case where the context data has an original
     // configuration with module information in it, to simulate the SMTRunnerConsole context
@@ -243,9 +244,10 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     AndroidTestRunConfiguration original =
       new AndroidTestRunConfiguration(getProject(), AndroidTestRunConfigurationType.getInstance().getFactory());
     original.setModule(module);
-    dataContext.put(RunConfiguration.DATA_KEY, original);
+    dataContext.add(RunConfiguration.DATA_KEY, original);
 
-    ConfigurationContext context = ConfigurationContext.getFromContext(dataContext);
+    ConfigurationContext context =
+      ConfigurationContext.getFromContext(dataContext.build(), ActionPlaces.UNKNOWN);
     assertNotNull(context.getOriginalConfiguration(AndroidTestRunConfigurationType.getInstance()));
 
     AndroidTestConfigurationProducer producer = new AndroidTestConfigurationProducer();
@@ -259,7 +261,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     File projectDir = VfsUtilCore.virtualToIoFile(PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.getProject()));
     File newTestFile = new File(projectDir, "app/src/androidTest/java/google/simpleapplication/SomeTest.java");
     Files.createParentDirs(newTestFile);
-    Files.write(
+    Files.asCharSink(newTestFile, StandardCharsets.UTF_8).write(
       "package google.simpleapplication;\n" +
       "\n" +
       "import org.junit.Test;\n" +
@@ -273,9 +275,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
       "    }\n" +
       "    \n" +
       "  }\n" +
-      "}",
-      newTestFile,
-      StandardCharsets.UTF_8);
+      "}");
 
     LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newTestFile);
     IndexingTestUtil.waitUntilIndexesAreReady(getProject());

@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
 import org.jetbrains.annotations.Nullable;
 

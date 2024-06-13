@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
-
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement;
 
 /**
  * Transform for fake elements, the main purpose of this transform is to ensure that

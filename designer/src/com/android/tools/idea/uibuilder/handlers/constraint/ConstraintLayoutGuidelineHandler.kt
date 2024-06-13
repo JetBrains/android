@@ -49,7 +49,7 @@ class ConstraintLayoutGuidelineHandler : ViewHandler() {
     return ImmutableList.of(
       LAYOUT_CONSTRAINT_GUIDE_BEGIN,
       LAYOUT_CONSTRAINT_GUIDE_END,
-      LAYOUT_CONSTRAINT_GUIDE_PERCENT
+      LAYOUT_CONSTRAINT_GUIDE_PERCENT,
     )
   }
 }

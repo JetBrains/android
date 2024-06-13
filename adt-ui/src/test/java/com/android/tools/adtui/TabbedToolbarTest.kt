@@ -25,7 +25,7 @@ import org.junit.Rule
 import org.junit.Test
 import javax.swing.JLabel
 
-@RunsInEdt
+@RunsInEdt(writeIntent = false)
 class TabbedToolbarTest {
   @get:Rule
   val edtRule = EdtRule()

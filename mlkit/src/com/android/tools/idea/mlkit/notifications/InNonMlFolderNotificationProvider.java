@@ -17,7 +17,6 @@ package com.android.tools.idea.mlkit.notifications;
 
 import static com.android.tools.idea.mlkit.viewer.TfliteModelFileType.TFLITE_EXTENSION;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
@@ -67,7 +66,6 @@ public class InNonMlFolderNotificationProvider implements EditorNotificationProv
   @Override
   public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
     if (!TFLITE_EXTENSION.equals(file.getExtension())) return null;
-    if (!StudioFlags.ML_MODEL_BINDING.get()) return null;
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module == null || MlUtils.isModelFileInMlModelsFolder(module, file)) {
       return null;

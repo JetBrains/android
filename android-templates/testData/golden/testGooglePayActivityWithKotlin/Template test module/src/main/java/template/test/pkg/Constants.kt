@@ -38,11 +38,12 @@ object Constants {
      * @value #SUPPORTED_NETWORKS
      */
     val SUPPORTED_NETWORKS = listOf(
-            "AMEX",
-            "DISCOVER",
-            "JCB",
-            "MASTERCARD",
-            "VISA")
+        "AMEX",
+        "DISCOVER",
+        "JCB",
+        "MASTERCARD",
+        "VISA"
+    )
 
     /**
      * The Google Pay API may return cards on file on Google.com (PAN_ONLY) and/or a device token on
@@ -51,8 +52,9 @@ object Constants {
      * @value #SUPPORTED_METHODS
      */
     val SUPPORTED_METHODS = listOf(
-            "PAN_ONLY",
-            "CRYPTOGRAM_3DS")
+        "PAN_ONLY",
+        "CRYPTOGRAM_3DS"
+    )
 
     /**
      * Required by the API, but not visible to the user.
@@ -93,8 +95,8 @@ object Constants {
      * @value #PAYMENT_GATEWAY_TOKENIZATION_PARAMETERS
      */
     val PAYMENT_GATEWAY_TOKENIZATION_PARAMETERS = mapOf(
-            "gateway" to PAYMENT_GATEWAY_TOKENIZATION_NAME,
-            "gatewayMerchantId" to "exampleGatewayMerchantId"
+        "gateway" to PAYMENT_GATEWAY_TOKENIZATION_NAME,
+        "gatewayMerchantId" to "exampleGatewayMerchantId"
     )
 
     /**
@@ -113,7 +115,7 @@ object Constants {
      * @value #DIRECT_TOKENIZATION_PARAMETERS
      */
     val DIRECT_TOKENIZATION_PARAMETERS = mapOf(
-            "protocolVersion" to "ECv1",
-            "publicKey" to DIRECT_TOKENIZATION_PUBLIC_KEY
+        "protocolVersion" to "ECv1",
+        "publicKey" to DIRECT_TOKENIZATION_PUBLIC_KEY
     )
 }

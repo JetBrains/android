@@ -41,7 +41,7 @@ class StartDestinationToolbarActionTest : NavTestCase() {
 
     val action = StartDestinationToolbarAction.instance
     val actionEvent = Mockito.mock(AnActionEvent::class.java)
-    whenever(actionEvent.getRequiredData(DESIGN_SURFACE)).thenReturn(surface)
+    whenever(actionEvent.getData(DESIGN_SURFACE)).thenReturn(surface)
     action.actionPerformed(actionEvent)
 
     assertEquals(

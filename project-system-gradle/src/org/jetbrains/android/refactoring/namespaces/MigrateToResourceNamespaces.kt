@@ -60,10 +60,13 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.util.text.nullize
+import com.intellij.util.xml.ConvertContext
 import com.intellij.util.xml.DomManager
 import com.intellij.util.xml.DomUtil
 import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.WrappingConverter
+import com.intellij.util.xml.impl.ConvertContextFactory
+import com.intellij.util.xml.impl.DomInvocationHandler
 import org.jetbrains.android.dom.converters.AndroidResourceReference
 import org.jetbrains.android.dom.converters.AttrNameConverter
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
@@ -336,13 +339,14 @@ class MigrateToResourceNamespacesProcessor(
             }
             val namespace = findOrCreateNamespacePrefix(tag, inferredPackage)
             val resourceValue = usageInfo.resourceValue
-            val newStringValue = usageInfo.converter.doToString(
+            val newStringValue = usageInfo.converter.toString(
               ResourceValue.referenceTo(
                 resourceValue.prefix,
                 namespace,
                 resourceValue.resourceType,
                 resourceValue.resourceName
-              )
+              ),
+              unchecked<ConvertContext>(null)
             ) ?: ""
 
             when (xmlElement) {
@@ -448,3 +452,6 @@ class MigrateToResourceNamespacesProcessor(
  *                   discussed storing the suggested short prefix in an AAR's metadata, so that library authors can provide a suggestion.
  */
 private fun choosePrefix(packageName: String): String = packageName.substringAfterLast('.')
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> unchecked(t: T?) = t as T

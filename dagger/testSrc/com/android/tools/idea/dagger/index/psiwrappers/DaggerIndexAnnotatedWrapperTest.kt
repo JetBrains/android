@@ -66,7 +66,7 @@ class DaggerIndexAnnotatedWrapperTest {
       @javax.inject.Inject
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtClass = myFixture.findParentElement("Fo|o")
@@ -97,7 +97,7 @@ class DaggerIndexAnnotatedWrapperTest {
       @Bar
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtClass = myFixture.findParentElement("Fo|o")
@@ -123,7 +123,7 @@ class DaggerIndexAnnotatedWrapperTest {
       @dagger.Module
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtClass = myFixture.findParentElement("Fo|o")
@@ -152,7 +152,7 @@ class DaggerIndexAnnotatedWrapperTest {
         @Builder
         interface Foo {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtClassOrObject = myFixture.findParentElement("interface Fo|o")
@@ -177,7 +177,7 @@ class DaggerIndexAnnotatedWrapperTest {
       @Module
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Fo|o")
@@ -201,7 +201,7 @@ class DaggerIndexAnnotatedWrapperTest {
       @dagger.Module
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Fo|o")
@@ -228,7 +228,7 @@ class DaggerIndexAnnotatedWrapperTest {
       @dagger.Module
       class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("Fo|o")
@@ -257,7 +257,7 @@ class DaggerIndexAnnotatedWrapperTest {
         @dagger.Component.Builder
         interface Foo {}
         """
-          .trimIndent()
+          .trimIndent(),
       ) as PsiJavaFile
 
     val element: PsiClass = myFixture.findParentElement("interface Fo|o")

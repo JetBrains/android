@@ -25,7 +25,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.EdtRule;
 import java.util.Collection;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -39,9 +38,8 @@ public class InstantAppUrlFinderIntegTest {
   public final RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
 
   @Test
-  @Ignore("b/303110113")
   public void testHostIsResolved() throws Exception {
-    // Use a plugin with instant app supportp
+    // Use a plugin with instant app support
     projectRule.loadProject(INSTANT_APP_RESOURCE_HOST, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
     Module featureModule = projectRule.getModule("feature");
     Collection<String> urls = new InstantAppUrlFinder(featureModule).getAllUrls();

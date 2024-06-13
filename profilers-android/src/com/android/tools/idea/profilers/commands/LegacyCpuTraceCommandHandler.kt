@@ -283,6 +283,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
       kind = Common.Event.Kind.CPU_TRACE
       timestamp = traceInfo.toTimestamp
       groupId = traceInfo.traceId
+      isEnded = true
       traceData = Trace.TraceData.newBuilder()
         .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo)).build()
     }.build()

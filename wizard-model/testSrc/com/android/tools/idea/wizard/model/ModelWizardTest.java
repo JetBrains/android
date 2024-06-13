@@ -334,6 +334,21 @@ public class ModelWizardTest {
   }
 
   @Test
+  public void wizardCanStayIfProceedingCancelled() {
+    SampleModel sampleModel = new SampleModel();
+
+    ActionCancellationExceptionThrowingStep step1 = new ActionCancellationExceptionThrowingStep(sampleModel);
+    SampleStep step2 = new SampleStep((sampleModel));
+    ModelWizard wizard = new ModelWizard.Builder(step1, step2).build();
+
+    step1.throwOnProceeding(true);
+    assertThat(runInvokerAndGoForward(wizard)).isFalse();
+    assertThat(wizard.getCurrentStep()).isEqualTo(step1);
+
+    Disposer.dispose(wizard);
+  }
+
+  @Test
   public void wizardCantGoBackIfStepPreventsIt() {
     SampleModel sampleModel = new SampleModel();
 
@@ -987,6 +1002,26 @@ public class ModelWizardTest {
     protected void onEntering() {
       if (myThrowOnEntering) {
         throw new FakeStepException(this);
+      }
+    }
+  }
+
+  private static class ActionCancellationExceptionThrowingStep extends NoUiStep<SampleModel> {
+    private boolean myThrowOnProceeding;
+
+    protected ActionCancellationExceptionThrowingStep(@NotNull ModelWizardTest.SampleModel model) {
+      super(model);
+    }
+
+    public ActionCancellationExceptionThrowingStep throwOnProceeding(boolean throwOnProceeding) {
+      myThrowOnProceeding = throwOnProceeding;
+      return this;
+    }
+
+    @Override
+    protected void onProceeding() {
+      if (myThrowOnProceeding) {
+        throw new ModelWizard.ActionCancellationException(null, null);
       }
     }
   }

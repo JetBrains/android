@@ -30,7 +30,7 @@ abstract class AbstractMarginGroup(
   private val top: NlPropertyItem?,
   private val bottom: NlPropertyItem?,
   private val horizontal: NlPropertyItem?,
-  private val vertical: NlPropertyItem?
+  private val vertical: NlPropertyItem?,
 ) : GroupSpec<NlPropertyItem> {
   override val value: String?
     get() =
@@ -67,7 +67,7 @@ abstract class AbstractMarginGroup(
   private fun part(
     property: NlPropertyItem?,
     override: NlPropertyItem? = null,
-    override2: NlPropertyItem? = null
+    override2: NlPropertyItem? = null,
   ): String {
     return override2?.value ?: override?.value ?: property?.value ?: "?"
   }

@@ -42,6 +42,8 @@
 
     <keymapExtension implementation="com.android.tools.idea.streaming.actions.StreamingKeymapExtension"/>
     <notificationGroup id="Android Emulator" displayType="BALLOON"/>
+
+    <applicationService serviceImplementation="com.android.tools.idea.streaming.device.AudioSystemService"/>
   </extensions>
 
   <actions>
@@ -160,7 +162,7 @@
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
       <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.actions.StreamingUiSettingsAction"
-              icon="StudioIcons.Common.SETTINGS" text="Common Android Settings" description="Shortcuts to common Android settings"/>
+              icon="StudioIcons.Emulator.Toolbar.DEVICE_SETTINGS" text="Common Android Settings" description="Shortcuts to common Android settings"/>
     </group>
     <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
             icon="StudioIcons.Shell.Menu.PROFILER" text="Benchmark Streaming Device"
@@ -169,33 +171,39 @@
     </action>
 
     <group id="StreamingToolbarVirtualDevice">
-      <reference ref="android.device.power.button"/>
-      <reference ref="android.device.volume.up.button"/>
-      <reference ref="android.device.volume.down.button"/>
-      <reference ref="android.device.rotate.left"/>
-      <reference ref="android.device.rotate.right"/>
-      <reference ref="android.device.postures"/>
-      <reference ref="android.device.wear1.button"/>
-      <reference ref="android.device.wear2.button"/>
-      <reference ref="android.device.sleep"/>
-      <reference ref="android.emulator.tilt"/>
-      <reference ref="android.device.back.button"/>
-      <reference ref="android.device.home.button"/>
-      <reference ref="android.device.overview.button"/>
-      <reference ref="android.streaming.ui.settings"/>
-      <reference ref="android.device.screenshot"/>
-      <reference ref="android.device.screen.record"/>
       <group id="android.emulator.display.mode" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeActionGroup"
-              text="Display Mode" description="Select display mode" popup="true">
+             text="Display Mode" description="Select display mode" popup="true">
         <reference ref="android.emulator.display.mode.phone"/>
         <reference ref="android.emulator.display.mode.foldable"/>
         <reference ref="android.emulator.display.mode.tablet"/>
         <separator/>
       </group>
+      <separator/>
+      <reference ref="android.device.power.button"/>
+      <reference ref="android.device.volume.up.button"/>
+      <reference ref="android.device.volume.down.button"/>
+      <reference ref="android.device.wear1.button"/>
+      <reference ref="android.device.wear2.button"/>
+      <separator/>
+      <reference ref="android.device.rotate.left"/>
+      <reference ref="android.device.rotate.right"/>
+      <reference ref="android.device.postures"/>
+      <separator/>
+      <reference ref="android.device.sleep"/>
+      <reference ref="android.emulator.tilt"/>
+      <reference ref="android.device.back.button"/>
+      <reference ref="android.device.home.button"/>
+      <reference ref="android.device.overview.button"/>
+      <separator/>
+      <reference ref="android.streaming.ui.settings"/>
+      <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
+      <group id="android.emulator.wear.health.services"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
       <reference ref="android.emulator.snapshots"/>
       <reference ref="android.streaming.hardware.input"/>
-      <!-- Placeholder group to maintain ordering of WHS button, button is registered in wear-whs module -->
-      <group id="android.device.wear.whs.placeholder"/>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
@@ -203,18 +211,23 @@
       <reference ref="android.device.power.button"/>
       <reference ref="android.device.volume.up.button"/>
       <reference ref="android.device.volume.down.button"/>
+      <reference ref="android.device.wear1.button"/>
+      <reference ref="android.device.wear2.button"/>
+      <separator/>
       <reference ref="android.device.rotate.left"/>
       <reference ref="android.device.rotate.right"/>
       <reference ref="android.device.postures"/>
-      <reference ref="android.device.wear1.button"/>
-      <reference ref="android.device.wear2.button"/>
+      <separator/>
       <reference ref="android.device.sleep"/>
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
+      <separator/>
       <reference ref="android.streaming.ui.settings"/>
+      <separator/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
+      <separator/>
       <reference ref="android.streaming.hardware.input"/>
       <reference ref="android.device.reservation.extend"/>
     </group>

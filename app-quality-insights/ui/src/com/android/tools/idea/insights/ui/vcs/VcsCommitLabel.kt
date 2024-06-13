@@ -68,10 +68,10 @@ class VcsCommitLabel : JPanel() {
             add(JBLabel("No data", AllIcons.Vcs.CommitNode, SwingConstants.LEFT))
             add(infoIconForCommitLabel)
           },
-          BorderLayout.WEST
+          BorderLayout.WEST,
         )
       },
-      DATA_ABSENT_CARD
+      DATA_ABSENT_CARD,
     )
   }
 

@@ -17,22 +17,23 @@ package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.animation.AnimationCard
-import com.android.tools.idea.compose.preview.animation.NoopAnimationTracker
-import com.android.tools.idea.compose.preview.animation.TestUtils
+import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
-import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
-import com.android.tools.idea.compose.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.AnimationCard
+import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
+import com.android.tools.idea.preview.animation.TestUtils.findToolbar
+import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
+import java.awt.Dimension
+import javax.swing.JPanel
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Dimension
-import javax.swing.JPanel
 
 class SingleStateTest {
 
@@ -44,7 +45,7 @@ class SingleStateTest {
   fun createCard() {
     var callbacks = 0
     val state =
-      SingleState(NoopAnimationTracker) { callbacks++ }
+      SingleState(NoopComposeAnimationTracker) { callbacks++ }
         .apply {
           updateStates(setOf("One", "Two", "Three"))
           setStartState("One")
@@ -52,11 +53,12 @@ class SingleStateTest {
         }
     val card =
       AnimationCard(
-          TestUtils.testPreviewState(),
+          createTestSlider(),
           Mockito.mock(DesignSurface::class.java),
-          ElementState("Title"),
+          MutableStateFlow(ElementState()),
+          "Title",
           state.extraActions,
-          NoopAnimationTracker
+          NoopComposeAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }
 
@@ -67,31 +69,31 @@ class SingleStateTest {
           layoutAndDispatchEvents()
         }
 
-      val toolbarComponents = card.findToolbar("AnimationCard").component.components
-      assertEquals(3, toolbarComponents.size)
+      val toolbar = card.findToolbar("AnimationCard")
+      assertEquals(3, toolbar.components.size)
       // All components are visible
-      toolbarComponents.forEach { assertBigger(minimumSize, it.size) }
+      toolbar.components.forEach { assertBigger(minimumSize, it.size) }
       // Default state.
-      assertEquals("One", (toolbarComponents[2] as JPanel).findComboBox().text)
+      assertEquals("One", (toolbar.components[2] as JPanel).findComboBox().text)
       assertEquals("One", state.getState(0))
       val hash = state.stateHashCode()
       // Swap state.
-      ui.clickOn(toolbarComponents[1])
+      ui.clickOn(toolbar.components[1])
       // State hashCode has changed.
       assertNotEquals(hash, state.stateHashCode())
       // The states swapped.
       assertEquals(1, callbacks)
-      assertEquals("Two", (toolbarComponents[2] as JPanel).findComboBox().text)
+      assertEquals("Two", (toolbar.components[2] as JPanel).findComboBox().text)
       assertEquals("Two", state.getState(0))
       // Update states.
       state.updateStates(setOf("Four", "Five", "Six"))
       state.setStartState("Four")
       ui.updateToolbars()
-      assertEquals("Four", (toolbarComponents[2] as JPanel).findComboBox().text)
+      assertEquals("Four", (toolbar.components[2] as JPanel).findComboBox().text)
       assertEquals("Four", state.getState(0))
       // Swap state.
-      ui.clickOn(toolbarComponents[1])
-      assertEquals("Five", (toolbarComponents[2] as JPanel).findComboBox().text)
+      ui.clickOn(toolbar.components[1])
+      assertEquals("Five", (toolbar.components[2] as JPanel).findComboBox().text)
       assertEquals("Five", state.getState(0))
     }
   }

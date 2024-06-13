@@ -66,6 +66,11 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.plugins.add(plugin)
   }
 
+  override fun addPlugin(plugin: String, classpath: String) {
+    context.plugins.add(plugin)
+    context.classpathEntries.add(classpath)
+  }
+
   override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
     context.plugins.add(plugin)
   }

@@ -29,6 +29,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
+import kotlin.test.fail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -67,9 +68,15 @@ object BackgroundTaskViewTestUtils {
 
   fun JComponent.getValueComponent(key: String): Component = getCategoryPanel(key).getComponent(1)
 
+  fun JComponent.getValueOf(key: String): String = namedChild<JLabel>(key).text
+
   fun JComponent.getCategoryPanel(key: String): Container =
     findLabels(key).findFirst().get().parent.parent
 
   fun JComponent.findLabels(text: String): Stream<Component> =
     TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == text }
+
+  inline fun <reified T : Component> JComponent.namedChild(name: String): T =
+    TreeWalker(this).descendants().filterIsInstance<T>().find { it.name == name }
+      ?: fail("Failed to find a ${T::class.java.simpleName} named '$name'")
 }

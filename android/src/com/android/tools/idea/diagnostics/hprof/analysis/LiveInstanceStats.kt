@@ -25,20 +25,20 @@ class LiveInstanceStats {
     val openProjects = ProjectManager.getInstance().openProjects
     val projectsOpenCount = openProjects.size
 
-    appendln("Projects open: $projectsOpenCount")
+    appendLine("Projects open: $projectsOpenCount")
     openProjects.forEachIndexed { projectIndex, project ->
-      appendln("Project ${projectIndex + 1}:")
+      appendLine("Project ${projectIndex + 1}:")
 
       val modulesCount = ModuleManager.getInstance(project).modules.count()
-      appendln("  Module count: $modulesCount")
+      appendLine("  Module count: $modulesCount")
 
       val allEditors = FileEditorManager.getInstance(project).allEditors
       val typeToCount = allEditors.groupingBy { "${it.javaClass.name}[${it.file?.fileType?.javaClass?.name}]" }.eachCount()
-      appendln("  Editors opened: ${allEditors.size}. Counts by type:")
+      appendLine("  Editors opened: ${allEditors.size}. Counts by type:")
       typeToCount.entries.sortedByDescending { it.value }.forEach { (typeString, count) ->
-        appendln("   * $count $typeString")
+        appendLine("   * $count $typeString")
       }
-      appendln()
+      appendLine()
     }
   }
 }

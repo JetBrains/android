@@ -56,7 +56,7 @@ internal class FakePsiShortNamesCache(project: Project, filenames: List<String>)
   override fun getMethodsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
-    maxCount: Int
+    maxCount: Int,
   ): Array<PsiMethod> {
     TODO("Not yet implemented")
   }
@@ -64,7 +64,7 @@ internal class FakePsiShortNamesCache(project: Project, filenames: List<String>)
   override fun getFieldsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
-    maxCount: Int
+    maxCount: Int,
   ): Array<PsiField> {
     TODO("Not yet implemented")
   }
@@ -72,7 +72,7 @@ internal class FakePsiShortNamesCache(project: Project, filenames: List<String>)
   override fun processMethodsWithName(
     name: String,
     scope: GlobalSearchScope,
-    processor: Processor<in PsiMethod>
+    processor: Processor<in PsiMethod>,
   ): Boolean {
     TODO("Not yet implemented")
   }

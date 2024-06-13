@@ -41,7 +41,7 @@ class ModuleNavigationResourcesModificationTracker(val module: Module) :
           if (changedModule == null || changedModule == module) {
             navigationChanged()
           }
-        }
+        },
       )
   }
 

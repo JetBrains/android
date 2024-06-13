@@ -81,7 +81,7 @@ class DeviceViewContentPanel(
   val isLoading: () -> Boolean,
   val isCurrentForegroundProcessDebuggable: () -> Boolean,
   val hasForegroundProcess: () -> Boolean,
-  val coroutineScope: CoroutineScope
+  val coroutineScope: CoroutineScope,
 ) : AdtPrimaryPanel() {
 
   private val renderSettings
@@ -174,13 +174,13 @@ class DeviceViewContentPanel(
         val dataContext = DataManager.getInstance().getDataContext(button)
         selectTargetAction.dropDownAction.templatePresentation.putClientProperty(
           CustomComponentAction.COMPONENT_KEY,
-          button
+          button,
         )
         val event =
           AnActionEvent.createFromDataContext(
             ActionPlaces.TOOLWINDOW_CONTENT,
             selectTargetAction.dropDownAction.templatePresentation,
-            dataContext
+            dataContext,
           )
         selectTargetAction.dropDownAction.actionPerformed(event)
       }
@@ -190,7 +190,7 @@ class DeviceViewContentPanel(
       emptyText.appendLine(
         AllIcons.General.ContextHelp,
         "Using the layout inspector",
-        SimpleTextAttributes.LINK_ATTRIBUTES
+        SimpleTextAttributes.LINK_ATTRIBUTES,
       ) {
         BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector")
       }
@@ -244,7 +244,7 @@ class DeviceViewContentPanel(
               GotItTooltip(
                   "LayoutInspector.RotateViewTooltip",
                   "Click to toggle 3D mode",
-                  disposableParent
+                  disposableParent,
                 )
                 .withShowCount(FRAMES_BEFORE_RESET_TO_BITMAP)
                 .withPosition(Balloon.Position.atLeft)
@@ -260,7 +260,7 @@ class DeviceViewContentPanel(
             GotoDeclarationAction.navigateToSelectedView(
               coroutineScope,
               renderModel.model,
-              renderModel.notificationModel
+              renderModel.notificationModel,
             )
             currentClient()?.stats?.gotoSourceFromRenderDoubleClick()
           } else {
@@ -304,7 +304,7 @@ class DeviceViewContentPanel(
       if (
         (inspectorModel.pictureType == AndroidWindow.ImageType.SKP ||
           inspectorModel.pictureType == AndroidWindow.ImageType.SKP_PENDING) &&
-          currentClient?.isCapturing == true &&
+          currentClient?.inLiveMode == true &&
           !renderModel.isRotated &&
           !inspectorModel.hasHiddenNodes()
       ) {
@@ -316,7 +316,7 @@ class DeviceViewContentPanel(
           // be set to 1.
           currentClient.updateScreenshotType(
             AndroidWindow.ImageType.BITMAP_AS_REQUESTED,
-            renderSettings.scaleFraction.toFloat()
+            renderSettings.scaleFraction.toFloat(),
           )
         }
       } else {
@@ -385,7 +385,7 @@ class DeviceViewContentPanel(
       }
     return Dimension(
       (desiredWidth * renderSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2,
-      (desiredHeight * renderSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2
+      (desiredHeight * renderSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2,
     )
   }
 

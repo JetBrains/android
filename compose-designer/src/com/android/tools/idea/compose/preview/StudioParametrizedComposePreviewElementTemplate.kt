@@ -15,21 +15,25 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.PsiComposePreviewElement
+import com.android.tools.idea.compose.preview.util.containingFile
 import com.android.tools.idea.rendering.StudioModuleRenderContext
-import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ParametrizedComposePreviewElementTemplate
 import com.android.tools.preview.PreviewParameter
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 
 /**
  * [ParametrizedComposePreviewElementTemplate] based on studio-specific [ModuleRenderContext] from
- * [PsiFile] constructor.
+ * [PsiComposePreviewElement] constructor.
  */
 class StudioParametrizedComposePreviewElementTemplate(
-  basePreviewElement: ComposePreviewElement,
-  parameterProviders: Collection<PreviewParameter>
+  basePreviewElement: PsiComposePreviewElement,
+  parameterProviders: Collection<PreviewParameter>,
 ) :
-  ParametrizedComposePreviewElementTemplate(
+  ParametrizedComposePreviewElementTemplate<SmartPsiElementPointer<PsiElement>>(
     basePreviewElement,
     parameterProviders,
-    { file -> file?.let { StudioModuleRenderContext.forFile(it) } },
+    StudioParametrizedComposePreviewElementTemplate::class.java.classLoader,
+    { element -> element.containingFile?.let { StudioModuleRenderContext.forFile(it) } },
   )

@@ -17,10 +17,13 @@ package com.android.tools.idea.serverflags
 
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.CommonMetricsData
+import com.android.tools.idea.analytics.currentIdeBrand
+import com.android.tools.idea.serverflags.protos.Brand
 import com.android.tools.idea.serverflags.protos.OSType
 import com.android.tools.idea.serverflags.protos.ServerFlag
 import com.android.tools.idea.serverflags.protos.ServerFlagData
 import com.google.common.hash.Hashing
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.diagnostic.Logger
 import java.nio.file.Path
 import kotlin.math.abs
@@ -40,7 +43,7 @@ class ServerFlagInitializer {
     @JvmStatic
     fun initializeService(): ServerFlagInitializationData {
       val experiments = System.getProperty(ENABLED_OVERRIDE_KEY)?.split(',') ?: emptyList()
-      val data = initializeService(localCacheDirectory, flagsVersion, CommonMetricsData.osName, experiments)
+      val data = initializeService(localCacheDirectory, flagsVersion, CommonMetricsData.osName, currentIdeBrand(), experiments)
 
       val logger = Logger.getInstance(ServerFlagInitializer::class.java)
       val string = data.flags.keys.toList().joinToString()
@@ -60,15 +63,17 @@ class ServerFlagInitializer {
     fun initializeService(localCacheDirectory: Path,
                           version: String,
                           osName: String,
+                          ideBrand: AndroidStudioEvent.IdeBrand,
                           enabled: Collection<String>): ServerFlagInitializationData {
       val localFilePath = buildLocalFilePath(localCacheDirectory, version)
       val serverFlagList = unmarshalFlagList(localFilePath.toFile())
       val configurationVersion = serverFlagList?.configurationVersion ?: -1
       val list = serverFlagList?.serverFlagsList ?: emptyList()
       val osType = getOsType(osName)
+      val brand = getBrand(ideBrand)
 
       val filter = if (enabled.isEmpty()) {
-        { flag: ServerFlagData -> flag.isOSEnabled(osType) }
+        { flag: ServerFlagData -> flag.isEnabled(osType, brand) }
       }
       else {
         { flag: ServerFlagData -> enabled.contains(flag.name) }
@@ -82,14 +87,22 @@ class ServerFlagInitializer {
   }
 }
 
-private fun ServerFlagData.isOSEnabled(osType: OSType): Boolean {
-  if (this.serverFlag.osTypeCount > 0 && !this.serverFlag.osTypeList.contains(osType)) {
+private fun ServerFlagData.isEnabled(osType: OSType, brand: Brand): Boolean {
+  if (!this.isOSEnabled(osType) || !this.isBrandEnabled(brand)) {
     return false
   }
 
   val key = AnalyticsSettings.userId + this.name
   val hash = Hashing.farmHashFingerprint64().hashString(key, Charsets.UTF_8)
   return (abs(hash.asLong()) % 100).toInt() < this.serverFlag.percentEnabled
+}
+
+private fun ServerFlagData.isOSEnabled(osType: OSType): Boolean {
+  return (this.serverFlag.osTypeCount == 0 || this.serverFlag.osTypeList.contains(osType))
+}
+
+private fun ServerFlagData.isBrandEnabled(brand: Brand): Boolean {
+  return (this.serverFlag.brandCount == 0 || this.serverFlag.brandList.contains(brand))
 }
 
 private fun getOsType(osName: String): OSType {
@@ -105,3 +118,12 @@ private fun getOsType(osName: String): OSType {
     else -> OSType.OS_TYPE_UNKNOWN
   }
 }
+
+private fun getBrand(brand: AndroidStudioEvent.IdeBrand) : Brand {
+  return when (brand) {
+    AndroidStudioEvent.IdeBrand.ANDROID_STUDIO -> Brand.BRAND_ANDROID_STUDIO
+    AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE -> Brand.BRAND_ANDROID_STUDIO_WITH_BLAZE
+    else -> Brand.BRAND_UNKNOWN
+  }
+}
+

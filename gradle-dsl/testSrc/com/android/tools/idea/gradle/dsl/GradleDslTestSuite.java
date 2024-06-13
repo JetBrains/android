@@ -21,4 +21,9 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 public class GradleDslTestSuite extends IdeaTestSuiteBase {
+  static {
+    // TODO(b/333499915): Re-enable when either the race window in service construction is closed, or
+    //  tests changed so that projects last long enough.
+    System.setProperty("idea.leak.check.enabled", "false");
+  }
 }

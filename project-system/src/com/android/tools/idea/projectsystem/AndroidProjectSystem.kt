@@ -45,6 +45,12 @@ import java.nio.file.Path
 interface AndroidProjectSystem: ModuleHierarchyProvider {
   /** The IDE project this project system describes */
   val project: Project
+
+  /**
+   * Are the android-plugin tools likely to do anything useful for this project?
+   */
+  fun isAndroidProject(): Boolean
+
   /**
    * Returns path to android.jar
    */
@@ -262,4 +268,10 @@ fun isUnitTestFile(project: Project, file: VirtualFile?) = runReadAction {
   module?.let { TestArtifactSearchScopes.getInstance(module)?.isUnitTestSource(file) } ?: false
 }
 
-fun isTestFile(project: Project, file: VirtualFile?) = isUnitTestFile(project, file) || isAndroidTestFile(project, file)
+fun isScreenshotTestFile(project: Project, file: VirtualFile?) = runReadAction {
+  val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
+  module?.let { TestArtifactSearchScopes.getInstance(module)?.isScreenshotTestSource(file) } ?: false
+}
+
+fun isTestFile(project: Project, file: VirtualFile?) =
+  isUnitTestFile(project, file) || isAndroidTestFile(project, file) || isScreenshotTestFile(project, file)

@@ -14,7 +14,9 @@
   ~ limitations under the License.
   -->
 
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="/META-INF/android-lint.k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
+
   <extensions defaultExtensionNs="com.intellij">
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAaptCrash" groupName="Android Lint: Correctness" displayName="Potential AAPT crash" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintAaptCrashInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAcceptsUserCertificates" groupName="Android Lint: Security" displayName="Allowing User Certificates" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintAcceptsUserCertificatesInspection"/>
@@ -58,6 +60,7 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintConstantLocale" groupName="Android Lint: Internationalization" displayName="Constant Locale" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintConstantLocaleInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintContentDescription" groupName="Android Lint: Accessibility" displayName="Image without contentDescription" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintContentDescriptionInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintConvertToWebp" groupName="Android Lint: Usability" displayName="Convert to WebP" bundle="messages.AndroidLintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintConvertToWebpInspection"/>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintCredentialDependency" groupName="Android Lint: Correctness" displayName="credentials-play-services-auth is Required" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintCredentialDependencyInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintCustomPermissionTypo" groupName="Android Lint: Security" displayName="Permission appears to be a custom permission with a typo" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintCustomPermissionTypoInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintCustomSplashScreen" groupName="Android Lint: Correctness" displayName="Application-defined Launch Screen" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintCustomSplashScreenInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintCustomViewStyleable" groupName="Android Lint: Correctness" displayName="Mismatched Styleable/Custom View Name" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintCustomViewStyleableInspection"/>
@@ -211,6 +214,7 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintMotionLayoutMissingId" groupName="Android Lint: Correctness" displayName="Views inside MotionLayout require an android:id" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintMotionLayoutMissingIdInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintMotionSceneFileValidationError" groupName="Android Lint: Correctness" displayName="Validation errors in MotionScene files" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintMotionSceneFileValidationErrorInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintMultipleUsesSdk" groupName="Android Lint: Correctness" displayName="Multiple &lt;uses-sdk> elements in the manifest" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintMultipleUsesSdkInspection"/>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintSimilarGradleDependency" groupName="Android Lint: Correctness" displayName="Multiple Versions Gradle Dependency" bundle="messages.LintBundle" enabledByDefault="true" level="INFO" implementationClass="com.android.tools.idea.lint.common.AndroidLintSimilarGradleDependencyInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintMutatingSharedPrefs" groupName="Android Lint: Correctness" displayName="Mutating an Immutable SharedPrefs Set" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintMutatingSharedPrefsInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintNamespaceTypo" groupName="Android Lint: Correctness" displayName="Misspelled namespace declaration" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintNamespaceTypoInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintNegativeMargin" groupName="Android Lint: Usability" displayName="Negative Margins" bundle="messages.AndroidLintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintNegativeMarginInspection"/>
@@ -252,6 +256,7 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintProguard" groupName="Android Lint: Correctness" displayName="Using obsolete ProGuard configuration" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintProguardInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintProguardSplit" groupName="Android Lint: Correctness" displayName="Proguard.cfg file contains generic Android rules" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintProguardSplitInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintProtectedPermissions" groupName="Android Lint: Correctness" displayName="Using system app permission" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintProtectedPermissionsInspection"/>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintPublicKeyCredential" groupName="Android Lint: Correctness" displayName="Creating public key credential" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintPublicKeyCredentialInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintPxUsage" groupName="Android Lint: Correctness" displayName="Using &apos;px&apos; dimension" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintPxUsageInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintQueryAllPackagesPermission" groupName="Android Lint: Compliance" displayName="Using the QUERY_ALL_PACKAGES permission" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintQueryAllPackagesPermissionInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintQueryPermissionsNeeded" groupName="Android Lint: Correctness" displayName="Using APIs affected by query permissions" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintQueryPermissionsNeededInspection"/>
@@ -393,23 +398,6 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWrongThreadInterprocedural" groupName="Android Lint: Correctness" displayName="Wrong Thread (Interprocedural)" bundle="messages.AndroidLintBundle" enabledByDefault="false" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWrongThreadInterproceduralInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWrongViewCast" groupName="Android Lint: Correctness" displayName="Mismatched view type" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWrongViewCastInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintXmlEscapeNeeded" groupName="Android Lint: Correctness" displayName="Missing XML Escape" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintXmlEscapeNeededInspection"/>
-    <intentionAction>
-      <language>UAST</language>
-      <className>com.android.tools.idea.lint.intentions.ImplementParcelableAction</className>
-      <category>Android</category>
-    </intentionAction>
-
-    <intentionAction>
-      <language>UAST</language>
-      <className>com.android.tools.idea.lint.intentions.RemoveParcelableAction</className>
-      <category>Android</category>
-    </intentionAction>
-
-    <intentionAction>
-      <language>UAST</language>
-      <className>com.android.tools.idea.lint.intentions.RedoParcelableAction</className>
-      <category>Android</category>
-    </intentionAction>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintEditedTargetSdkVersion" groupName="Android Lint: Correctness" displayName="Manually Edited TargetSdkVersion" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintEditedTargetSdkVersionInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintProviderReadPermissionOnly" groupName="Android Lint: Security" displayName="Provider with readPermission only and implemented write APIs" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintProviderReadPermissionOnlyInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWearPasswordInput" groupName="Android Lint: Usability" displayName="Wear OS: Using password input" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWearPasswordInputInspection"/>
@@ -421,12 +409,17 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintMutableImplicitPendingIntent" groupName="Android Lint: Security" displayName="Mutable Implicit PendingIntent is disallowed" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintMutableImplicitPendingIntentInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintActivityIconColor" groupName="Android Lint: Usability" displayName="Ongoing activity icon is not white" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintActivityIconColorInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintSelectedPhotoAccess" groupName="Android Lint: Correctness" displayName="Behavior change when requesting photo library access" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintSelectedPhotoAccessInspection"/>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWakelock" groupName="Android Lint: Performance" displayName="Incorrect WakeLock usage" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWakelockInspection"/>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintUnclosedTrace" groupName="Android Lint: Correctness" displayName="Incorrect trace section usage" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintUnclosedTraceInspection"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
     <applicationService
         serviceInterface="com.android.tools.idea.lint.common.LintIdeSupport"
         serviceImplementation="com.android.tools.idea.lint.AndroidLintIdeSupport" />
+    <lang.inspectionSuppressor
+        language="JAVA"
+        implementationClass="com.android.tools.idea.lint.inspections.JavaApiUsageInspectionSuppressor"/>
   </extensions>
 
   <actions>

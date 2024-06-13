@@ -143,7 +143,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   module: Module?,
   private val toolWindowId: String? = null,
   private val runConfiguration: RunConfiguration? = null,
-  private val myClock: Clock = Clock.systemDefaultZone()
+  private val myClock: Clock = Clock.systemDefaultZone(),
+  @VisibleForTesting val myIsImportedResult: Boolean = false
 ) : ConsoleView,
     AndroidTestResultListener,
     AndroidTestResultsTableListener,
@@ -204,8 +205,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   // A timestamp when the test execution is scheduled.
   private var myTestStartTimeMillis: Long = 0
   private var myTestFinishedTimeMillis: Long = 0
-
-  private val myIsImportedResult: Boolean = runConfiguration == null
 
   // If not null, this value is used as the test execution time instead of a measured
   // duration by myClock.
@@ -766,7 +765,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
                              private val propertiesComponentKey: String,
                              private val defaultState: Boolean) : ToggleAction(Supplier { actionText },
                                                                                actionIcon) {
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     var isSelected: Boolean = PropertiesComponent.getInstance(myProject).getBoolean(
       propertiesComponentKey, defaultState)
@@ -787,5 +785,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         .setValue(propertiesComponentKey, isSelected, defaultState)
       myResultsTableView.refreshTable()
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   }
 }

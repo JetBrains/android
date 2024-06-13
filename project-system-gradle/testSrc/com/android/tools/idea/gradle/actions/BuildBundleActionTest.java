@@ -43,7 +43,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
 import org.mockito.Mock;
 
@@ -76,7 +75,8 @@ public class BuildBundleActionTest extends HeavyPlatformTestCase {
           .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
           .withDynamicFeatures(it -> ImmutableList.of(":feature1"))
       ),
-      new AndroidModuleModelBuilder(":feature1", "debug", new AndroidProjectBuilder().withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE))
+      new AndroidModuleModelBuilder(":feature1", "debug",
+                                    new AndroidProjectBuilder().withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE))
     );
     Module[] appModules = new Module[]{gradleModule(getProject(), ":app1")};
     assume().that(appModules).asList().doesNotContain(null);

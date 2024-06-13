@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
+import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
@@ -25,14 +26,14 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 internal class DeviceAndSnapshotComboBoxTarget(
-  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
+  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service
 ) : DeployTarget {
   override fun hasCustomRunProfileState(executor: Executor) = false
 
   override fun getRunProfileState(
     executor: Executor,
     environment: ExecutionEnvironment,
-    state: DeployTargetState
+    state: DeployTargetState,
   ): RunProfileState {
     throw UnsupportedOperationException()
   }
@@ -45,5 +46,11 @@ internal class DeviceAndSnapshotComboBoxTarget(
       }
     }
     return DeviceFutures(devicesAndTargets.selectedTargets.map { it.device.androidDevice })
+  }
+
+  override fun getAndroidDevices(project: Project): List<AndroidDevice> {
+    return devicesSelectedService(project).devicesAndTargets.selectedTargets.map {
+      it.device.androidDevice
+    }
   }
 }

@@ -32,7 +32,7 @@ private const val TIME_BUFFER_US = 1000000
 
 class NetworkInspectorDataSeries<T>(
   private val dataSource: NetworkInspectorDataSource,
-  private val transform: (Event) -> T
+  private val transform: (Event) -> T,
 ) : DataSeries<T> {
 
   override fun getDataForRange(range: Range): List<SeriesData<T>> {

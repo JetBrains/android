@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.core.findComponentForAction
 import com.android.tools.idea.streaming.emulator.EmulatorUiSettingsController
+import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
+import com.android.tools.idea.streaming.uisettings.ui.showUiSettingsPopup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.ui.popup.Balloon
-import com.intellij.openapi.util.Disposer
-import com.intellij.ui.awt.RelativePoint
 import kotlinx.coroutines.launch
 import java.awt.EventQueue
-import javax.swing.JComponent
 
 private val isSettingsPickerEnabled: Boolean
   get() = StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.get()
@@ -36,25 +34,35 @@ private val isSettingsPickerEnabled: Boolean
 /**
  * Opens a picker with UI settings of an emulator.
  */
-internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = { it.api >= 34 && isSettingsPickerEnabled }) {
+internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = { it.api >= 33 && isSettingsPickerEnabled }) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
+  override fun isEnabled(event: AnActionEvent): Boolean {
+    return super.isEnabled(event) && isReadyForAdbCommands(event)
+  }
+
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorView = getEmulatorView(event) ?: return
-    val component = event.findComponentForAction(this) as? JComponent ?: emulatorView
     val project = event.project ?: return
     val serialNumber = getEmulatorController(event)?.emulatorId?.serialNumber ?: return
-    val disposable = Disposer.newDisposable()
-    val model = UiSettingsModel()
-    val controller = EmulatorUiSettingsController(project, serialNumber, model, disposable)
-    val balloon = UiSettingsPanel(model, disposable).createPicker()
-    Disposer.register(balloon, disposable)
+    val config = getEmulatorConfig(event) ?: return
+    val model = UiSettingsModel(config.displaySize, config.density, config.api)
+    val controller = EmulatorUiSettingsController(project, serialNumber, model, config, emulatorView)
     AndroidCoroutineScope(emulatorView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
-        balloon.show(RelativePoint.getCenterOf(component), Balloon.Position.above)
+        val panel = UiSettingsPanel(model, showResetButton = true, isWear = config.deviceType == DeviceType.WEAR)
+        showUiSettingsPopup(panel, this@EmulatorUiSettingsAction, event, emulatorView)
       }
     }
+  }
+
+  private fun isReadyForAdbCommands(event: AnActionEvent): Boolean {
+    getEmulatorView(event) ?: return false
+    getEmulatorConfig(event) ?: return false
+    val project = event.project ?: return false
+    val controller = getEmulatorController(event) ?: return false
+    return isReadyForAdbCommands(project, controller.emulatorId.serialNumber)
   }
 }

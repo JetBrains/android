@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.WatchFaceForAndroidXDetector
 class AndroidLintWatchFaceForAndroidXInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.watch.face.for.android.x"),
-    WatchFaceForAndroidXDetector.ISSUE
+    WatchFaceForAndroidXDetector.ISSUE,
   )

@@ -32,6 +32,6 @@ object ZoomableDrawableFileType :
       SdkConstants.TAG_ROTATE,
       SdkConstants.TAG_SHAPE,
       SdkConstants.TAG_TRANSITION,
-      SdkConstants.TAG_VECTOR
+      SdkConstants.TAG_VECTOR,
     )
   )

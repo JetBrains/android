@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
-import com.android.tools.idea.gradle.dsl.api.crashlytics.CrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
@@ -127,7 +126,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
         return false;
       }
     };
-    //noinspection SSBasedInspection
     return plugins().stream().filter(appliedPredicate).collect(Collectors.toList());
   }
 
@@ -141,7 +139,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     if (pluginsDslElement == null && applyDslElement == null) {
       int at = 0;
       List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
-      if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
+      if (!elements.isEmpty() && elements.get(0) instanceof BuildScriptDslElement) {
         at += 1;
       }
       pluginsDslElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, at);
@@ -189,7 +187,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
     int at = 0;
     List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
-    if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
+    if (!elements.isEmpty() && elements.get(0) instanceof BuildScriptDslElement) {
       at += 1;
     }
     PluginsDslElement pluginsElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, at);
@@ -213,7 +211,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   public @NotNull PluginModel applyPlugin(@NotNull ReferenceTo reference, @Nullable Boolean apply) {
     int at = 0;
     List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
-    if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
+    if (!elements.isEmpty() && elements.get(0) instanceof BuildScriptDslElement) {
       at += 1;
     }
     PluginsDslElement pluginsElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, at);
@@ -289,12 +287,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
   @NotNull
   @Override
-  public CrashlyticsModel crashlytics() {
-    return getModel(CrashlyticsModel.class);
-  }
-
-  @NotNull
-  @Override
   public DependenciesModel dependencies() {
     return getModel(DependenciesModel.class);
   }
@@ -318,15 +310,15 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   }
 
   @Override
-  public <T extends GradleDslModel> @NotNull T getModel(Class<T> klass) {
-    return GradleBlockModelMap.get(myGradleDslFile, GradleBuildModel.class, klass);
-  }
-
-  @Override
   @NotNull
   public Set<GradleFileModel> getInvolvedFiles() {
     return getAllInvolvedFiles().stream().distinct()
       .map(GradleBuildModelImpl::getFileModel).filter(Objects::nonNull).collect(Collectors.toSet());
+  }
+
+  @Override
+  public <T extends GradleDslModel> @NotNull T getModel(Class<T> klass) {
+    return GradleBlockModelMap.get(myGradleDslFile, GradleBuildModel.class, klass);
   }
 
   @Override
@@ -342,11 +334,9 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     GradleSettingsFile settingsFile = context.getOrCreateSettingsFile(projectSettingsFile);
     GradleSettingsModel settingsModel = new GradleSettingsModelImpl(settingsFile);
     File directory = settingsModel.moduleDirectory(myGradleDslFile.getName());
-    if (directory == null) {
-      // The dsl file does not correspond to a known module, so we don't know where the module directory is.
-      // Best-effort result: the directory of the build.gradle file.
-      return myGradleDslFile.getDirectoryPath();
-    }
+    // The dsl file does not correspond to a known module, so we don't know where the module directory is.
+    // Best-effort result: the directory of the build.gradle file.
+    if (directory == null) return myGradleDslFile.getDirectoryPath();
     return directory;
   }
 
@@ -369,8 +359,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
     // Get all the properties and version catalog files.
     for (final GradleDslFile file : new ArrayList<>(files)) {
-      if (file instanceof GradleBuildFile) {
-        final GradleBuildFile buildFile = (GradleBuildFile)file;
+      if (file instanceof GradleBuildFile buildFile) {
         final GradleDslFile sibling = buildFile.getPropertiesFile();
         if (sibling != null) {
           files.add(sibling);

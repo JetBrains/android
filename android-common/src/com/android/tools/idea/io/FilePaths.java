@@ -17,11 +17,13 @@ package com.android.tools.idea.io;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.SdkConstants.EXT_ZIP;
+import static com.intellij.openapi.util.io.FileUtil.extensionEquals;
+import static com.intellij.openapi.vfs.StandardFileSystems.FILE_PROTOCOL;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
+import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.File;
 import java.nio.file.Path;
@@ -31,11 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class FilePaths {
-  private FilePaths() {
-  }
-
   /**
-   * Converts the given path to an URL. The underlying implementation "cheats": it doesn't encode spaces and it just adds the "file"
+   * Converts the given path to a URL. The underlying implementation "cheats": it doesn't encode spaces, and it just adds the "file"
    * protocol at the beginning of this path. We use this method when creating URLs for file paths that will be included in a module's
    * content root, because converting a URL back to a path expects the path to be constructed the way this method does. To obtain a real
    * URL from a file path, use {@link com.android.utils.SdkUtils#fileToUrl(File)}.
@@ -45,10 +44,10 @@ public final class FilePaths {
    */
   public static @NotNull String pathToIdeaUrl(@NotNull File path) {
     String name = path.getName();
-    boolean isJarFile = FileUtil.extensionEquals(name, EXT_JAR) || FileUtil.extensionEquals(name, EXT_ZIP);
+    boolean isJarFile = extensionEquals(name, EXT_JAR) || extensionEquals(name, EXT_ZIP);
     // .jar files require an URL with "jar" protocol.
-    String protocol = isJarFile ? StandardFileSystems.JAR_PROTOCOL : StandardFileSystems.FILE_PROTOCOL;
-    String url = VirtualFileManager.constructUrl(protocol, FileUtilRt.toSystemIndependentName(path.getPath()));
+    String protocol = isJarFile ? JAR_PROTOCOL : FILE_PROTOCOL;
+    String url = VirtualFileManager.constructUrl(protocol, toSystemIndependentName(path.getPath()));
     if (isJarFile) {
       url += JAR_SEPARATOR;
     }
@@ -57,10 +56,10 @@ public final class FilePaths {
 
   public static @Nullable Path getJarFromJarUrl(@NotNull String url) {
     // URLs for jar file start with "jar://" and end with "!/".
-    if (!url.startsWith(StandardFileSystems.JAR_PROTOCOL_PREFIX)) {
+    if (!url.startsWith(JAR_PROTOCOL_PREFIX)) {
       return null;
     }
-    String path = url.substring(StandardFileSystems.JAR_PROTOCOL_PREFIX.length());
+    String path = url.substring(JAR_PROTOCOL_PREFIX.length());
     int index = path.lastIndexOf(JAR_SEPARATOR);
     if (index != -1) {
       path = path.substring(0, index);
@@ -82,5 +81,8 @@ public final class FilePaths {
   @Contract("!null -> !null")
   public static @Nullable File stringToFile(@Nullable String path) {
     return path == null ? null : new File(path);
+  }
+
+  private FilePaths() {
   }
 }

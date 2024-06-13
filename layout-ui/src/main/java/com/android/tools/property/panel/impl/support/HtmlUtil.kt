@@ -28,7 +28,7 @@ fun toHtmlUnderlinedString(value: String): String =
 fun expandableText(
   value: String?,
   tableExpansionState: TableExpansionState,
-  underlined: Boolean = false
+  underlined: Boolean = false,
 ) =
   if (tableExpansionState == TableExpansionState.NORMAL) value
   else value?.let { if (underlined) toHtmlUnderlinedString(it) else toHtmlString(it) }

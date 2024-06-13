@@ -81,7 +81,7 @@ class TextFieldPropertyEditorModelTest {
               override val validation: EditingValidation = {
                 Pair(EditingErrorCategory.ERROR, "Error")
               }
-            }
+            },
         )
       )
     val line = FakeInspectorLineModel(FakeLineType.PROPERTY)

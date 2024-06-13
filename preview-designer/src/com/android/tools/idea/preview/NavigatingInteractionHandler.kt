@@ -45,7 +45,7 @@ import javax.swing.SwingUtilities
 class NavigatingInteractionHandler(
   private val surface: DesignSurface<*>,
   private val navigationHandler: NavigationHandler,
-  private val isSelectionEnabled: () -> Boolean = { false }
+  private val isSelectionEnabled: () -> Boolean = { false },
 ) : NlInteractionHandler(surface) {
 
   private val scope = AndroidCoroutineScope(surface)
@@ -99,7 +99,7 @@ class NavigatingInteractionHandler(
   override fun mouseReleaseWhenNoInteraction(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ) {
     if (isSelectionEnabled()) {
       val sceneView = surface.getSceneViewAt(x, y)
@@ -125,7 +125,7 @@ class NavigatingInteractionHandler(
   override fun createInteractionOnPressed(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    modifiersEx: Int
+    modifiersEx: Int,
   ): Interaction? {
     val interaction = super.createInteractionOnPressed(mouseX, mouseY, modifiersEx)
     // SceneInteractions must be ignored as they impact the selection model following
@@ -169,7 +169,7 @@ class NavigatingInteractionHandler(
   private fun clickPreview(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    needsFocusEditor: Boolean
+    needsFocusEditor: Boolean,
   ) {
     val sceneView = surface.getSceneViewAt(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)

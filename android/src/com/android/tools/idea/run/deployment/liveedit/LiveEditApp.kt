@@ -24,7 +24,13 @@ import com.android.tools.r8.ExtractMarkerCommand
 import java.nio.file.Path
 
 // We store here all information we need when an app is deployed to a device.
-class LiveEditApp(private val apks: Set<Path>, private val deviceAPILevel: ApiLevel) {
+/**
+ * @param buildSystemAPILevels minSdkVersionForDexing values from build system. Empty if that information isn't provided and we should
+ *                        discover that from DEX file markers.
+ */
+class LiveEditApp(private val apks: Set<Path>,
+                  private val deviceAPILevel: ApiLevel,
+                  private val buildSystemAPILevels: MutableSet<MinApiLevel> = mutableSetOf()) {
 
   val minAPI : MinApiLevel by lazy(LazyThreadSafetyMode.NONE) { calculateMinAPI(apks) }
   private val logger = LiveEditLogger("LE App")
@@ -34,17 +40,17 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceAPILevel: ApiLe
 
   private fun calculateMinAPI(apks: Set<Path>) : MinApiLevel {
     val start = System.nanoTime()
-    val minApis : MutableSet<MinApiLevel> = mutableSetOf()
-    apks.forEach{
-      val apk = it
-      val consumer = LiveEditMarkerInfoConsumer()
-      ExtractMarker.run(ExtractMarkerCommand.builder().addProgramFiles(apk).setMarkerInfoConsumer(consumer).build())
-      journal("Apk '${apk.fileName}' contains minAPI = ${consumer.minApis}")
-      minApis.addAll(consumer.minApis)
+    val minApis : MutableSet<MinApiLevel> = if (buildSystemAPILevels.isEmpty()) {
+      mutableSetOf<MinApiLevel>().apply {
+        apks.forEach{ extractMinApiFromDexMarkers(it) }
+      }
+    } else {
+      journal("Build system minSdkVersionForDexing = ${buildSystemAPILevels.joinToString(", ")}")
+      buildSystemAPILevels
     }
 
     if (minApis.size > 1 && !COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK.get()) {
-      badMinAPIError("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
+      throw badMinAPIError("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
     }
 
     if (minApis.isEmpty()) {
@@ -55,6 +61,13 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceAPILevel: ApiLe
     val duration = (System.nanoTime() - start) / 1_000_000
     logger.log("Found minAPI = $minApis in ${duration}ms")
     return minApis.minOf { it }
+  }
+
+  private fun MutableSet<MinApiLevel>.extractMinApiFromDexMarkers(apk: Path) {
+    val consumer = LiveEditMarkerInfoConsumer()
+    ExtractMarker.run(ExtractMarkerCommand.builder().addProgramFiles(apk).setMarkerInfoConsumer(consumer).build())
+    journal("Apk '${apk.fileName}' contains minAPI = ${consumer.minApis}")
+    this.addAll(consumer.minApis)
   }
 
   private fun journal(msg: String) {

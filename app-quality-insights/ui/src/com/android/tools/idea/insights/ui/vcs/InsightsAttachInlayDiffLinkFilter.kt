@@ -65,7 +65,7 @@ import kotlin.math.ceil
 class InsightsAttachInlayDiffLinkFilter(
   private val exceptionInfoCache: InsightsExceptionInfoCache,
   private val containingConsole: ConsoleViewImpl,
-  private val tracker: AppInsightsTracker
+  private val tracker: AppInsightsTracker,
 ) : Filter {
   private val project = containingConsole.project
 
@@ -82,7 +82,7 @@ class InsightsAttachInlayDiffLinkFilter(
   private fun createContextDataForDiff(
     appVcsInfo: AppVcsInfo.ValidInfo,
     virtualFiles: List<VirtualFile>,
-    lineNumber: Int
+    lineNumber: Int,
   ): ContextDataForDiff? {
     // For now, we just pick the first matching vcs info as AGP doesn't support multi-repo case yet.
     val firstVcsInfo =
@@ -98,7 +98,7 @@ class InsightsAttachInlayDiffLinkFilter(
           revision = firstVcsInfo.revision,
           filePath = vFile.toVcsFilePath(),
           lineNumber = lineNumber,
-          origin = fetchAssociatedConnection()
+          origin = fetchAssociatedConnection(),
         )
       }
       .firstOrNull()
@@ -143,7 +143,7 @@ class InsightsAttachInlayDiffLinkFilter(
     private val diffContextData: ContextDataForDiff,
     private val highlightStartOffset: Int,
     private val highlightEndOffset: Int,
-    private val tracker: AppInsightsTracker
+    private val tracker: AppInsightsTracker,
   ) : ResultItem(highlightStartOffset, highlightEndOffset, null), InlayProvider {
     override fun createInlayRenderer(editor: Editor): EditorCustomElementRenderer {
       val factory = PresentationFactory(editor as EditorImpl)
@@ -158,7 +158,7 @@ class InsightsAttachInlayDiffLinkFilter(
             text = ", ",
             textAttributesKey = CodeInsightColors.HYPERLINK_ATTRIBUTES,
             isUnderline = false,
-            editor
+            editor,
           )
           .withLineCentered(editor)
 
@@ -174,7 +174,7 @@ class InsightsAttachInlayDiffLinkFilter(
             text = INLAY_DIFF_LINK_DISPLAY_TEXT,
             textAttributesKey = CodeInsightColors.HYPERLINK_ATTRIBUTES,
             isUnderline = true,
-            editor
+            editor,
           )
           .withLineCentered(editor)
           .withOnClick(this) { _, _ ->
@@ -217,7 +217,7 @@ class InsightsTextInlayPresentation(
   val text: String,
   private val textAttributesKey: TextAttributesKey,
   private val isUnderline: Boolean,
-  private val editor: Editor
+  private val editor: Editor,
 ) : BasePresentation() {
   private var normalTextMetrics: InlayTextMetrics? = null
   override val width: Int
@@ -266,7 +266,7 @@ class InsightsTextInlayPresentation(
     return FontRenderContext(
       editorContext.transform,
       AntialiasingType.getKeyForCurrentScope(false),
-      UISettings.editorFractionalMetricsHint
+      UISettings.editorFractionalMetricsHint,
     )
   }
 
@@ -279,7 +279,7 @@ class InsightsTextInlayPresentation(
       g.font = font
       g.setRenderingHint(
         RenderingHints.KEY_TEXT_ANTIALIASING,
-        AntialiasingType.getKeyForCurrentScope(false)
+        AntialiasingType.getKeyForCurrentScope(false),
       )
       g.color = colorsScheme.getAttributes(textAttributesKey).foregroundColor
       g.drawString(text, 0, metrics.fontBaseline)

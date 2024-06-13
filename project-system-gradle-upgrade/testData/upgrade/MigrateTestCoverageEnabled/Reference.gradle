@@ -1,0 +1,23 @@
+ext {
+  fancyT = true
+  fancyF = false
+}
+
+android {
+  buildTypes {
+    release {
+      testCoverageEnabled fancyF
+    }
+    debug {
+      testCoverageEnabled fancyT
+    }
+    otherF {
+      testCoverageEnabled fancyF
+    }
+    otherT {
+      testCoverageEnabled fancyT
+    }
+    otherMissing {
+    }
+  }
+}

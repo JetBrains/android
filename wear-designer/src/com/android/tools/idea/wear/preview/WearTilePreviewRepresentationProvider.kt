@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.wear.preview
 
-import com.android.tools.idea.common.editor.ToolbarActionGroups
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.FilePreviewElementFinder
-import com.android.tools.idea.preview.PreviewElementProvider
-import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
-import com.android.tools.idea.preview.actions.isPreviewRefreshing
+import com.android.tools.idea.preview.FilePreviewElementProvider
+import com.android.tools.idea.preview.actions.CommonPreviewToolbar
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.google.wireless.android.sdk.stats.LayoutEditorState
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -40,21 +35,12 @@ import com.intellij.psi.PsiFile
 internal class WearTileAdapterLightVirtualFile(
   name: String,
   content: String,
-  originFileProvider: () -> VirtualFile?
+  originFileProvider: () -> VirtualFile?,
 ) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
-internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
-
-  override fun getNorthGroup(): ActionGroup {
-    return DefaultActionGroup(StopInteractivePreviewAction(forceDisable = { isPreviewRefreshing(it.dataContext) }))
-  }
-
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOf())
-}
-
-/** Provider of the [PreviewRepresentation] for Glance App Widget code primitives. */
+/** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
 class WearTilePreviewRepresentationProvider(
-  private val filePreviewElementFinder: FilePreviewElementFinder<WearTilePreviewElement> =
+  private val filePreviewElementFinder: FilePreviewElementFinder<PsiWearTilePreviewElement> =
     WearTilePreviewElementFinder
 ) : PreviewRepresentationProvider {
 
@@ -62,7 +48,7 @@ class WearTilePreviewRepresentationProvider(
     CommonRepresentationEditorFileType(
       WearTileAdapterLightVirtualFile::class.java,
       LayoutEditorState.Type.WEAR_TILE,
-      ::WearTilePreviewToolbar
+      ::CommonPreviewToolbar,
     )
 
   init {
@@ -82,20 +68,12 @@ class WearTilePreviewRepresentationProvider(
   }
 
   /** Creates a [WearTilePreviewRepresentation] for the input [psiFile]. */
-  override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
-    val previewProvider =
-      object : PreviewElementProvider<WearTilePreviewElement> {
-        override suspend fun previewElements(): Sequence<WearTilePreviewElement> =
-          filePreviewElementFinder
-            .findPreviewElements(psiFile.project, psiFile.virtualFile)
-            .asSequence()
-      }
-
+  override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
     return WearTilePreviewRepresentation(
       TILE_SERVICE_VIEW_ADAPTER,
       psiFile,
-      previewProvider,
-      WearTilePreviewElementModelAdapter()
+      { psiFilePointer -> FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder) },
+      WearTilePreviewElementModelAdapter(),
     )
   }
 

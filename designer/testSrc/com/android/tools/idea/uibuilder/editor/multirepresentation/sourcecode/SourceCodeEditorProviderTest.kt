@@ -140,7 +140,7 @@ class SourceCodeEditorProviderTest {
       SourceCodeEditorProvider.forTesting(
         listOf(
           TestPreviewRepresentationProvider("Representation1", true),
-          TestPreviewRepresentationProvider("Representation2", true, representationWithState)
+          TestPreviewRepresentationProvider("Representation2", true, representationWithState),
         )
       )
     val editor =
@@ -159,7 +159,7 @@ class SourceCodeEditorProviderTest {
         serializationProvider.writeState(
           editor.getState(FileEditorStateLevel.FULL),
           fixture.project,
-          rootElement
+          rootElement,
         )
         assertTrue(JDOMUtil.writeElement(rootElement, "\n").isNotBlank())
         val state =
@@ -169,7 +169,7 @@ class SourceCodeEditorProviderTest {
         assertContainsElements(
           state.previewState.representations.map { it.key },
           "Representation1",
-          "Representation2"
+          "Representation2",
         )
         val settings =
           state.previewState.representations.single { it.key == "Representation2" }.settings
@@ -179,7 +179,7 @@ class SourceCodeEditorProviderTest {
         key2 -> value2
       """
             .trimIndent(),
-          settings.map { "${it.key} -> ${it.value}" }.joinToString("\n")
+          settings.map { "${it.key} -> ${it.value}" }.joinToString("\n"),
         )
       } finally {
         Disposer.dispose(editor)

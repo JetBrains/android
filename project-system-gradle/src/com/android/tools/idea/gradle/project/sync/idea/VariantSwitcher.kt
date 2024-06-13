@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -326,9 +327,9 @@ private fun AndroidModules.validateVariants(moduleId: GradleProjectPath, selecte
         head.module.androidModel.selectedVariant(libraryResolver)
           .let {
             it.mainArtifact.compileClasspath.libraries +
-              it.unitTestArtifact?.compileClasspath?.libraries.orEmpty() +
-              it.androidTestArtifact?.compileClasspath?.libraries.orEmpty() +
-              it.testFixturesArtifact?.compileClasspath?.libraries.orEmpty()
+            it.hostTestArtifacts.map { v -> v.compileClasspath.libraries }.flatten() +
+            it.deviceTestArtifacts.find { v -> v.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath?.libraries.orEmpty() +
+            it.testFixturesArtifact?.compileClasspath?.libraries.orEmpty()
           }.filterIsInstance<IdeModuleLibrary>()
           .mapNotNull { library ->
             WorkItem(

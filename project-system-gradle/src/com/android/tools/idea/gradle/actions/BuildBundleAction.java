@@ -48,8 +48,7 @@ public class BuildBundleAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    boolean enabled = StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() &&
-                      isProjectBuildWithGradle(project);
+    boolean enabled = isProjectBuildWithGradle(project);
     e.getPresentation().setEnabledAndVisible(enabled);
   }
 

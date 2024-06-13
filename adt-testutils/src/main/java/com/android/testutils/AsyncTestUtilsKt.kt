@@ -18,24 +18,25 @@ package com.android.testutils
 
 import com.intellij.util.ui.EDT
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-
-@JvmSynthetic
-fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
-  waitForCondition(timeout.inWholeMicroseconds, TimeUnit.MICROSECONDS, condition)
-}
+import kotlin.time.toDuration
+import kotlin.time.toDurationUnit
 
 /**
  * Waits until the given condition is satisfied while processing events.
  */
+@JvmSynthetic
 @Throws(TimeoutException::class)
-fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
-  val timeoutMillis = unit.toMillis(timeout)
+fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
+  val timeoutMillis = timeout.inWholeMilliseconds
   val deadline = System.currentTimeMillis() + timeoutMillis
   var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
   val isEdt = EDT.isCurrentThreadEdt()
@@ -52,18 +53,28 @@ fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
   throw TimeoutException()
 }
 
+@Throws(TimeoutException::class)
+fun waitForCondition(timeout: Long, timeUnit: TimeUnit, condition: () -> Boolean) {
+  waitForCondition(timeout.toDuration(timeUnit.toDurationUnit()), condition)
+}
+
 /**
  * Helper function that will loop until a [condition] is met or a [timeout] is exceeded. In each
  * iteration, the function will delay for a given time and then a given callback will be executed.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 suspend inline fun delayUntilCondition(
   delayPerIterationMs: Long,
   timeout: Duration = 30.seconds,
   crossinline condition: suspend () -> Boolean
 ) {
-  withTimeout(timeout) {
-    while (!condition()) {
-      delay(delayPerIterationMs)
+  // Use withContext and the Default dispatcher to avoid any possible test
+  // dispatcher skipping over this timeout.
+  withContext(Dispatchers.Default.limitedParallelism(1)) {
+    withTimeout(timeout) {
+      while (!condition()) {
+        delay(delayPerIterationMs)
+      }
     }
   }
 }

@@ -101,6 +101,10 @@ class ConstraintSetPanel extends JPanel {
 
   MyAction createConstraint = new MyAction("Create Constraint") {
     @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.createConstraint(mMeModel.myTrack);
       ConstraintSetPanelCommands.createConstraint(mSelectedTag, mConstraintSet);
@@ -109,6 +113,10 @@ class ConstraintSetPanel extends JPanel {
   };
 
   MyAction createAllConstraints = new MyAction("Create All Constraints") {
+    @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.createConstraint(mMeModel.myTrack);
@@ -119,6 +127,10 @@ class ConstraintSetPanel extends JPanel {
 
   MyAction createSectionedConstraint = new MyAction("Create Sectioned Constraint") {
     @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       ConstraintSetPanelCommands.createSectionedConstraint(mMultiSelectedTag, mConstraintSet);
       buildTable();
@@ -126,6 +138,10 @@ class ConstraintSetPanel extends JPanel {
   };
 
   MyAction clearConstraint = new MyAction("Clear Constraint") {
+    @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.clearConstraint(mMeModel.myTrack);
@@ -135,6 +151,10 @@ class ConstraintSetPanel extends JPanel {
   };
   MyAction moveConstraint = new MyAction("Move Constraints to layout") {
     @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       ConstraintSetPanelCommands.moveConstraint(mSelectedTag, mConstraintSet);
     }
@@ -142,12 +162,20 @@ class ConstraintSetPanel extends JPanel {
 
   MyAction overrideConstraint = new MyAction("Convert from sectioned constraints") {
     @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
+    @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e)  {
       ConstraintSetPanelCommands.convertFromSectioned(mSelectedTag, mConstraintSet);
     }
   };
 
   ModifyMenuAction mModifyMenu = new ModifyMenuAction() {
+    @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
     @org.jetbrains.annotations.NotNull
     @Override
     public List<AnAction> getActions() {

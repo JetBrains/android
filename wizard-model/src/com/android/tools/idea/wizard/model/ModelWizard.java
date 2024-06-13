@@ -300,6 +300,9 @@ public final class ModelWizard implements Disposable {
       try {
         prevStep.onProceeding();
       }
+      catch (ModelWizard.ActionCancellationException e) {
+        return false;
+      }
       catch (Exception e) {
         for (WizardListener listener : getListeners()) {
           listener.onWizardAdvanceError(e);
@@ -688,6 +691,20 @@ public final class ModelWizard implements Disposable {
       }
 
       ModelWizard.this.cancel();
+    }
+  }
+
+  /**
+   * Exception class indicating that an action has been canceled.
+   *
+   * <p>This exception can be thrown by ModelWizardStep.onProceeding() to cancel ModelWizard.goForward() and remain on the same page.
+   *
+   * Note this should be used in unusual circumstances: if a ModelWizardStep can determine that it shouldn't be possible to go forward,
+   * it should set the value returned by canGoForward() to false instead of throwing this exception.
+   */
+  public static final class ActionCancellationException extends RuntimeException {
+    public ActionCancellationException(@Nullable String message, @Nullable Throwable cause) {
+      super(message, cause);
     }
   }
 }

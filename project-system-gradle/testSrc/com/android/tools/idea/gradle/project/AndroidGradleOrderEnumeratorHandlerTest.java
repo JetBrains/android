@@ -25,9 +25,13 @@ import static com.intellij.testFramework.UsefulTestCase.assertDoesntContain;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.TestCase.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeArtifactName;
+import com.android.tools.idea.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
@@ -55,113 +59,21 @@ import org.junit.Test;
 
 @RunsInEdt
 public class AndroidGradleOrderEnumeratorHandlerTest {
-
   @Rule
-  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
+  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
 
   @Test
-  public void testAndroidProjectOutputCorrect() {
-    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
-    openPreparedTestProject(preparedProject, project -> {
-      Module module = gradleModule(project, ":app", IdeModuleWellKnownSourceSet.MAIN);
-      Collection<String> result = getAmendedPaths(module, false);
+  public void testAndroidModulesRecursiveAndJavaModulesNot() {
+    projectRule.setupProjectFrom(JavaModuleModelBuilder.getRootModuleBuilder(),
+                                 new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                 new JavaModuleModelBuilder(":jav", true));
 
-      GradleAndroidModel model = GradleAndroidModel.get(module);
-      assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getClassesFolder(),
-                                                            (input) -> input == null ? null : pathToIdeaUrl(input)));
-      assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders(),
-                                                            (input) -> input == null ? null : pathToIdeaUrl(input)));
+    Module appModule = gradleModule(projectRule.getProject(), ":app");
+    Module libModule = gradleModule(projectRule.getProject(), ":jav");
 
-      Collection<String> unitTestClassesFolders =
-        Collections2.transform(
-          model.getSelectedVariant().getUnitTestArtifact().getClassesFolder(),
-          (input) -> input == null ? null : pathToIdeaUrl(input));
-      Collection<String> intersectionMainAndUnitTest = getIntersection(result, unitTestClassesFolders);
-      // Main artifact and unit test artifact may either share the same R.jar or none at all (see bug 133326990).
-      if (!intersectionMainAndUnitTest.isEmpty()) {
-        Assert.assertTrue(intersectionMainAndUnitTest.size() == 1);
-        Assert.assertTrue(intersectionMainAndUnitTest.iterator().next().endsWith("R.jar!/"));
-      }
-
-      assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder(),
-                                                         (input) -> input == null ? null : pathToIdeaUrl(input)));
-      assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
-                                                         (input) -> input == null ? null : pathToIdeaUrl(input)));
-    });
-  }
-
-  @Test
-  public void testAndroidProjectWithTestFixtures() {
-    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.TEST_FIXTURES);
-    openPreparedTestProject(preparedProject, project -> {
-      Module module = gradleModule(project, ":lib", IdeModuleWellKnownSourceSet.TEST_FIXTURES);
-      Set<String> result = new HashSet<>(getAmendedPaths(module, true));
-
-      GradleAndroidModel model = GradleAndroidModel.get(module);
-
-      Set<String> expected = new HashSet<>();
-      // Test Fixtures
-      expected.addAll(Collections2.transform(model.getSelectedVariant().getTestFixturesArtifact().getClassesFolder(),
-                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
-      expected.addAll(Collections2.transform(model.getSelectedVariant().getTestFixturesArtifact().getGeneratedResourceFolders(),
-                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
-
-      assertEquals(expected, result);
-    });
-  }
-
-  @Test
-  public void testAndroidProjectWithTestOutputCorrect() {
-    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
-    openPreparedTestProject(preparedProject, project -> {
-      Module module = gradleModule(project, ":app", IdeModuleWellKnownSourceSet.ANDROID_TEST);
-      Set<String> result = new HashSet<>(getAmendedPaths(module, true));
-
-      GradleAndroidModel model = GradleAndroidModel.get(module);
-      Set<String> expected = new HashSet<>();
-      // Android Test
-      expected.addAll(Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder(),
-                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
-      expected.addAll(Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
-                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
-      assertEquals(expected, result);
-    });
-  }
-
-  @RunsInEdt
-  public static class NonGradle {
-    @Rule
-    public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
-
-    @Test
-    public void testAndroidModulesRecursiveAndJavaModulesNot() {
-      projectRule.setupProjectFrom(JavaModuleModelBuilder.getRootModuleBuilder(),
-                                   new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
-                                   new JavaModuleModelBuilder(":jav", true));
-
-      Module appModule = gradleModule(projectRule.getProject(), ":app");
-      Module libModule = gradleModule(projectRule.getProject(), ":jav");
-
-      OrderEnumerationHandler appHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(appModule);
-      assertTrue(appHandler.shouldProcessDependenciesRecursively());
-      assertFalse(new AndroidGradleOrderEnumeratorHandlerFactory().isApplicable(libModule));
-    }
-  }
-
-  private static List<String> getAmendedPaths(@NotNull Module module, boolean includeTests) {
-    ModuleRootModel moduleRootModel = mock(ModuleRootModel.class);
-    when(moduleRootModel.getModule()).thenReturn(module);
-    OrderEnumerationHandler handler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(module);
-
-    List<String> result = new ArrayList<>();
-    handler.addCustomModuleRoots(OrderRootType.CLASSES, moduleRootModel, result, true, includeTests);
-    return result;
-  }
-
-  @NotNull
-  private static <E> Collection<E> getIntersection(@NotNull Collection<E> collection1, @NotNull Collection<E> collection2) {
-    Collection<E> intersection = new HashSet<>(collection1);
-    intersection.retainAll(collection2);
-    return intersection;
+    OrderEnumerationHandler appHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(appModule);
+    assertTrue(appHandler.shouldProcessDependenciesRecursively());
+    assertFalse(new AndroidGradleOrderEnumeratorHandlerFactory().isApplicable(libModule));
   }
 }
+

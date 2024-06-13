@@ -56,7 +56,7 @@ class InspectorTestUtil(
   projectRule: AndroidProjectRule,
   vararg tags: String,
   parentTag: String = "",
-  fileName: String = "layout.xml"
+  fileName: String = "layout.xml",
 ) : SupportTestUtil(projectRule, *tags, parentTag = parentTag, fileName = fileName) {
 
   private val _properties: Table<String, String, NlPropertyItem> = HashBasedTable.create()
@@ -123,7 +123,7 @@ class FakeEditorProviderImpl(model: NlPropertiesModel) : EditorProvider<NlProper
 
   override fun createEditor(
     property: NlPropertyItem,
-    context: EditorContext
+    context: EditorContext,
   ): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
 

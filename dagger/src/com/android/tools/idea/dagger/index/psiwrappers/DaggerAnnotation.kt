@@ -37,8 +37,7 @@ enum class DaggerAnnotation(val daggerClass: DaggerClass) {
   INJECT(DaggerClasses.Inject),
   MODULE(DaggerClasses.Module),
   PROVIDES(DaggerClasses.Provides),
-  SUBCOMPONENT(DaggerClasses.Subcomponent),
-  ;
+  SUBCOMPONENT(DaggerClasses.Subcomponent);
 
   val classId: ClassId
     get() = daggerClass.classId

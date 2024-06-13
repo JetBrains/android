@@ -52,7 +52,7 @@ class LogcatFilterPsiTest {
       projectRule,
       EdtRule(),
       LogcatFilterLanguageRule(),
-      FlagRule(StudioFlags.LOGCAT_IS_FILTER)
+      FlagRule(StudioFlags.LOGCAT_IS_FILTER),
     )
 
   @Test
@@ -199,10 +199,7 @@ class LogcatFilterPsiTest {
           .trim()
       )
 
-    assertThat(psi.toFilter())
-      .isEqualTo(
-        TopLevelFilter("bar b a r b\\a\\r"),
-      )
+    assertThat(psi.toFilter()).isEqualTo(TopLevelFilter("bar b a r b\\a\\r"))
   }
 
   @Test
@@ -215,10 +212,7 @@ class LogcatFilterPsiTest {
           .trim()
       )
 
-    assertThat(psi.toFilter())
-      .isEqualTo(
-        TopLevelFilter("bar b'a'r b\\a\\r"),
-      )
+    assertThat(psi.toFilter()).isEqualTo(TopLevelFilter("bar b'a'r b\\a\\r"))
   }
 
   @Test
@@ -231,10 +225,7 @@ class LogcatFilterPsiTest {
           .trim()
       )
 
-    assertThat(psi.toFilter())
-      .isEqualTo(
-        TopLevelFilter("bar b\"a\"r b\\a\\r"),
-      )
+    assertThat(psi.toFilter()).isEqualTo(TopLevelFilter("bar b\"a\"r b\\a\\r"))
   }
 
   @Test
@@ -258,11 +249,7 @@ class LogcatFilterPsiTest {
 
     assertThat(psi.toFilter())
       .isEqualTo(
-        AndFilter(
-          KeyFilter("tag", "bar"),
-          TopLevelFilter("foo"),
-          KeyFilter("package", "foobar"),
-        )
+        AndFilter(KeyFilter("tag", "bar"), TopLevelFilter("foo"), KeyFilter("package", "foobar"))
       )
   }
 
@@ -272,11 +259,7 @@ class LogcatFilterPsiTest {
 
     assertThat(psi.toFilter())
       .isEqualTo(
-        OrFilter(
-          KeyFilter("tag", "bar"),
-          TopLevelFilter("foo"),
-          KeyFilter("package", "foobar"),
-        )
+        OrFilter(KeyFilter("tag", "bar"), TopLevelFilter("foo"), KeyFilter("package", "foobar"))
       )
   }
 
@@ -287,14 +270,8 @@ class LogcatFilterPsiTest {
     assertThat(psi.toFilter())
       .isEqualTo(
         OrFilter(
-          AndFilter(
-            TopLevelFilter("f1"),
-            TopLevelFilter("f2"),
-          ),
-          AndFilter(
-            TopLevelFilter("f3"),
-            TopLevelFilter("f4"),
-          ),
+          AndFilter(TopLevelFilter("f1"), TopLevelFilter("f2")),
+          AndFilter(TopLevelFilter("f3"), TopLevelFilter("f4")),
         )
       )
   }
@@ -307,10 +284,7 @@ class LogcatFilterPsiTest {
       .isEqualTo(
         AndFilter(
           TopLevelFilter("f1"),
-          OrFilter(
-            TopLevelFilter("f2"),
-            TopLevelFilter("f3"),
-          ),
+          OrFilter(TopLevelFilter("f2"), TopLevelFilter("f3")),
           TopLevelFilter("f4"),
         )
       )
@@ -324,10 +298,7 @@ class LogcatFilterPsiTest {
       .isEqualTo(
         AndFilter(
           TopLevelFilter("f1"),
-          OrFilter(
-            KeyFilter("tag", "foo"),
-            KeyFilter("tag", "bar"),
-          ),
+          OrFilter(KeyFilter("tag", "foo"), KeyFilter("tag", "bar")),
           TopLevelFilter("f4"),
         )
       )

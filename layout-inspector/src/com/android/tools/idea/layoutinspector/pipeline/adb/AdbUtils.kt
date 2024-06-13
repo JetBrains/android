@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.adb
 
-import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.CollectingOutputReceiver
@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
+import com.intellij.util.concurrency.ThreadingAssertions.assertBackgroundThread
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -49,7 +50,7 @@ fun AndroidDebugBridge.findClient(process: ProcessDescriptor): Client? {
  * Attempts to execute the target [command], returning the output of the command or throwing an
  * exception otherwise
  */
-@Slow
+@WorkerThread
 fun AndroidDebugBridge.executeShellCommand(
   device: DeviceDescriptor,
   command: String,
@@ -65,12 +66,15 @@ fun AndroidDebugBridge.executeShellCommand(
  * Attempts to start running a target [command], returning a [CollectingOutputReceiver] so the
  * caller can have more control over when to cancel it or fetch the results.
  */
-fun AndroidDebugBridge.startShellCommand(
+@WorkerThread
+private fun AndroidDebugBridge.startShellCommand(
   device: DeviceDescriptor,
   command: String,
   timeoutSecs: Long = ADB_NEVER_TIMEOUT,
-  latch: CountDownLatch = CountDownLatch(1)
+  latch: CountDownLatch = CountDownLatch(1),
 ): CollectingOutputReceiver {
+  assertBackgroundThread()
+
   if (findDevice(device) == null) {
     println("Device: ${device.serial} is not found in monitor task list")
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint
 
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.util.IntentionFamilyName
@@ -42,8 +43,15 @@ class ProvideLintFeedbackFix(private val myIssue: String) : LocalQuickFix {
             dialog.show()
           }
         },
-        ModalityState.any()
+        ModalityState.any(),
       )
+  }
+
+  override fun generatePreview(
+    project: Project,
+    previewDescriptor: ProblemDescriptor,
+  ): IntentionPreviewInfo {
+    return IntentionPreviewInfo.EMPTY
   }
 
   override fun startInWriteAction(): Boolean {

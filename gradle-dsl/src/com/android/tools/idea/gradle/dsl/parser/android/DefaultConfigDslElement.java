@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
@@ -38,9 +39,8 @@ public class DefaultConfigDslElement extends AbstractProductFlavorDslElement {
   }
 
   public static final class DefaultConfigDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 

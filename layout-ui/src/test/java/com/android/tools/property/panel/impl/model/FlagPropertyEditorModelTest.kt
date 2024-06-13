@@ -310,7 +310,7 @@ class FlagPropertyEditorModelTest {
       "autoLink",
       listOf("none", "phone", "map", "perm", "all"),
       listOf(0, 1, 2, 4, 7),
-      initialValue
+      initialValue,
     )
   }
 
@@ -320,7 +320,7 @@ class FlagPropertyEditorModelTest {
       ATTR_GRAVITY,
       listOf("left", "center", "right"),
       listOf(1, 2, 4),
-      initialValue
+      initialValue,
     )
   }
 

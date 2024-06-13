@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.editor.AddDestinationMenu
@@ -23,7 +25,7 @@ import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import org.mockito.Mockito.any
+import com.intellij.openapi.actionSystem.Presentation
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -42,8 +44,11 @@ class EmptyDesignerTargetTest : NavTestCase() {
     val actionManager = mock(NavActionManager::class.java)
     val menu = mock(AddDestinationMenu::class.java)
 
+    whenever(surface.selectionModel).thenReturn(NopSelectionModel)
     whenever(surface.actionManager).thenReturn(actionManager)
     doReturn(menu).whenever(actionManager).addDestinationMenu
+    whenever(menu.actionUpdateThread).thenCallRealMethod()
+    whenever(menu.templatePresentation).thenReturn(Presentation())
     whenever(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
@@ -61,6 +66,6 @@ class EmptyDesignerTargetTest : NavTestCase() {
     scene.mouseDown(scene.sceneManager.sceneView.context, x, y, 0)
     scene.mouseRelease(scene.sceneManager.sceneView.context, x, y, 0)
 
-    verify(menu).show()
+    verify(menu).actionPerformed(any())
   }
 }

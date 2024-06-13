@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.gradle.filters;
 
-import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
+import static com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.getConsoleManagerFor;
 import static org.mockito.Mockito.verify;
 
-import com.android.tools.idea.explainer.IssueExplainer;
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager.AndroidReRunSyncFilter;
 import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.studiobot.StudioBot;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
@@ -90,7 +90,7 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
   public void testGetCustomContextActionsAndFilters() {
     var disposable = Disposer.newDisposable("ApplicationServiceRule");
     try {
-      ServiceContainerUtil.registerOrReplaceServiceInstance(ApplicationManager.getApplication(), IssueExplainer.class, myIssueExplainer,
+      ServiceContainerUtil.registerOrReplaceServiceInstance(ApplicationManager.getApplication(), StudioBot.class, myStudioBot,
                                                             disposable);
       var resolveProjectTask = createResolveProjectTask();
       var consoleManager = getConsoleManagerFor(resolveProjectTask);
@@ -109,7 +109,7 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
     }
   }
 
-  private final IssueExplainer myIssueExplainer = new IssueExplainer() {
+  private final StudioBot myStudioBot = new StudioBot.StubStudioBot() {
     @Override
     public boolean isAvailable() {
       return true;

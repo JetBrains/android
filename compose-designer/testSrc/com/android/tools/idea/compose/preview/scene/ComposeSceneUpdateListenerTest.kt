@@ -53,7 +53,7 @@ internal class ComposeSceneUpdateListenerTest {
       PreviewDisplaySettings("A name", null, false, false, null),
       null,
       null,
-      PreviewConfiguration.cleanAndGet()
+      PreviewConfiguration.cleanAndGet(),
     )
 
   @Test
@@ -64,7 +64,7 @@ internal class ComposeSceneUpdateListenerTest {
     assertTrue(composable.hasAnimations)
     assertEquals(
       "type: ANIMATION_INSPECTOR_AVAILABLE",
-      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) }
+      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) },
     )
 
     logTracker.loggedEvents.clear()
@@ -77,7 +77,7 @@ internal class ComposeSceneUpdateListenerTest {
     assertTrue(composable.hasAnimations)
     assertEquals(
       "type: ANIMATION_INSPECTOR_AVAILABLE",
-      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) }
+      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) },
     )
   }
 
@@ -91,7 +91,7 @@ internal class ComposeSceneUpdateListenerTest {
     // Only logged once
     assertEquals(
       "type: ANIMATION_INSPECTOR_AVAILABLE",
-      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) }
+      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) },
     )
 
     logTracker.loggedEvents.clear()
@@ -101,7 +101,7 @@ internal class ComposeSceneUpdateListenerTest {
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     assertEquals(
       "type: ANIMATION_INSPECTOR_AVAILABLE",
-      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) }
+      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) },
     )
   }
 

@@ -45,7 +45,7 @@ import javax.swing.event.PopupMenuEvent
 internal class PsiPropertyDropDown(
   model: PsiDropDownModel,
   context: EditorContext,
-  listCellRenderer: ListCellRenderer<EnumValue>
+  listCellRenderer: ListCellRenderer<EnumValue>,
 ) : JPanel(BorderLayout()) {
   private val comboBox = WrappedComboBox(model, context, listCellRenderer)
 
@@ -60,7 +60,7 @@ internal class PsiPropertyDropDown(
 private class WrappedComboBox(
   model: PsiDropDownModel,
   context: EditorContext,
-  renderer: ListCellRenderer<EnumValue>
+  renderer: ListCellRenderer<EnumValue>,
 ) : CommonComboBox<EnumValue, PsiDropDownModel>(model) {
   private val textField = editor.editorComponent as CommonTextField<*>
   private var inSetup = false
@@ -70,7 +70,7 @@ private class WrappedComboBox(
     @Suppress("UnstableApiUsage")
     putClientProperty(
       USE_LIVE_UPDATE_MODEL,
-      true
+      true,
     ) // Ask Intellij's popup list model to update automatically
     setRenderer(renderer)
     background = secondaryPanelBackground
@@ -87,13 +87,13 @@ private class WrappedComboBox(
       this::transferFocus,
       KeyStrokes.TAB,
       "tab",
-      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     registerActionKey(
       this::transferFocusBackward,
       KeyStrokes.BACKTAB,
       "backtab",
-      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
 
     // We consume the shift, otherwise the popup will show when backtab-ing
@@ -101,14 +101,14 @@ private class WrappedComboBox(
       {},
       KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT, KeyEvent.SHIFT_DOWN_MASK),
       "shift",
-      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
 
     HelpSupportBinding.registerHelpKeyActions(
       this,
       { model.property },
-      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     if (context != EditorContext.STAND_ALONE_EDITOR) {
       putClientProperty("JComboBox.isTableCellEditor", true)

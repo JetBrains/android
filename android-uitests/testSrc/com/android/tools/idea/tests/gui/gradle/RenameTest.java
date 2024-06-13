@@ -21,13 +21,11 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,12 +57,12 @@ public class RenameTest {
     assertWithMessage("Failed to find the main java source root.").that(mainJavaRoot).isNotNull();
 
     PsiDirectory directory = GuiQuery.getNonNull(() -> PsiManager.getInstance(project).findDirectory(mainJavaRoot));
-    DataContext dataContext = SimpleDataContext.getSimpleContext(
-      ImmutableMap.of(CommonDataKeys.PSI_ELEMENT.getName(), directory,
-                      CommonDataKeys.PROJECT.getName(), project,
-                      PlatformCoreDataKeys.MODULE.getName(), appModule),
-      null
-    );
+    DataContext dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PSI_ELEMENT, directory)
+        .add(CommonDataKeys.PROJECT, project)
+        .add(PlatformCoreDataKeys.MODULE, appModule)
+        .build();
 
     for (final RenameHandler handler : RenameHandler.EP_NAME.getExtensionList()) {
       if (handler.isAvailableOnDataContext(dataContext)) {

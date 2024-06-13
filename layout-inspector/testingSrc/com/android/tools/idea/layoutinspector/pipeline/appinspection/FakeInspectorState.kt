@@ -92,8 +92,8 @@ class FakeInspectorState(
       // placeholder for ANIM property
       ViewString(118, "stateListAnimator"), // ANIMATOR
       // placeholder for INTERPOLATOR property
-      // placeholder for DIMENSION property
       ViewString(119, "backgroundTint"), // COLOR
+      ViewString(120, "width"), // DIMENSION
 
       // property values
       ViewString(201, "Next"),
@@ -126,6 +126,10 @@ class FakeInspectorState(
       ViewString(228, "Widget.AppCompat.TextView"),
       ViewString(229, "Base.Widget.AppCompat.TextView"),
       ViewString(230, "Widget.Material.TextView"),
+      ViewString(231, "secondaryValue"),
+      ViewString(232, "tertiaryValue"),
+      ViewString(233, "bottomText"),
+      ViewString(234, "Previous"),
 
       // class names
       ViewString(301, "android.graphics.drawable.VectorDrawable"),
@@ -159,6 +163,12 @@ class FakeInspectorState(
             className = 10
             resource = ViewResource(206, 209, 211)
           }
+          ViewNode {
+            id = 11
+            packageName = 5
+            className = 6
+            resource = ViewResource(206, 209, 233)
+          }
         }
         ViewNode {
           id = 6
@@ -191,13 +201,13 @@ class FakeInspectorState(
         id = 101
         packageName = 11
         className = 12
-      }
+      },
     )
 
   private val propertyGroups =
-    mutableMapOf<Long, List<LayoutInspectorViewProtocol.PropertyGroup>>().apply {
+    mutableMapOf<Long, MutableList<LayoutInspectorViewProtocol.PropertyGroup>>().apply {
       this[layoutTrees[0].id] =
-        listOf(
+        mutableListOf(
           PropertyGroup {
             viewId = 3
             Property {
@@ -223,6 +233,12 @@ class FakeInspectorState(
               namespace = 100
               type = LayoutInspectorViewProtocol.Property.Type.FLOAT
               floatValue = 1.0f
+            }
+            Property {
+              name = 120
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.INT32
+              int32Value = 200
             }
           },
           PropertyGroup {
@@ -331,11 +347,44 @@ class FakeInspectorState(
                 )
               )
             }
-          }
+          },
+          PropertyGroup {
+            viewId = 11
+            Property {
+              name = 115
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.RESOURCE
+              resourceValue = ViewResource(206, 210, 233)
+            }
+            Property {
+              name = 101
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.STRING
+              int32Value = 234
+            }
+            Property {
+              name = 102
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.BOOLEAN
+              int32Value = 0
+            }
+            Property {
+              name = 106
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.FLOAT
+              floatValue = 2.0f
+            }
+            Property {
+              name = 120
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.INT32
+              int32Value = 400
+            }
+          },
         )
       // As tests don't need them, just skip defining properties for anything in the second layout
       // tree
-      this[layoutTrees[1].id] = emptyList()
+      this[layoutTrees[1].id] = mutableListOf()
     }
 
   private val composeStrings =
@@ -543,7 +592,7 @@ class FakeInspectorState(
             }
           }
         }
-      }
+      },
     )
 
   private val expandedStrings =
@@ -701,7 +750,8 @@ class FakeInspectorState(
   /** Map of responses to expected [GetParameterDetailsCommand]s. */
   private val parameterDetailsCommands =
     mutableMapOf<
-      GetParameterDetailsCommand, LayoutInspectorComposeProtocol.GetParameterDetailsResponse
+      GetParameterDetailsCommand,
+      LayoutInspectorComposeProtocol.GetParameterDetailsResponse,
     >()
 
   init {
@@ -797,7 +847,7 @@ class FakeInspectorState(
       layoutTrees.forEach { tree ->
         triggerLayoutCapture(
           rootId = tree.id,
-          isLastCapture = !command.startFetchCommand.continuous
+          isLastCapture = !command.startFetchCommand.continuous,
         )
       }
 
@@ -875,6 +925,29 @@ class FakeInspectorState(
         )
         .build()
     }
+  }
+
+  fun changePropertyValue(rootId: Long, viewId: Long, name: String) {
+    val propertyGroupIndex = propertyGroups[rootId]!!.indexOfFirst { it.viewId == viewId }
+    val propertyGroup = propertyGroups[rootId]!![propertyGroupIndex].toBuilder()
+    val nameId = viewStrings.first { it.str == name }.id
+    val propertyIndex = propertyGroup.propertyList.indexOfFirst { it.name == nameId }
+    val property = propertyGroup.propertyList[propertyIndex].toBuilder()
+    val secondaryId = viewStrings.first { it.str == "secondaryValue" }.id
+    val tertiaryId = viewStrings.first { it.str == "tertiaryValue" }.id
+    when (property.type) {
+      LayoutInspectorViewProtocol.Property.Type.STRING ->
+        property.int32Value = if (property.int32Value == secondaryId) tertiaryId else secondaryId
+      LayoutInspectorViewProtocol.Property.Type.FLOAT ->
+        property.floatValue = if (property.floatValue == 4.0f) 6.7f else 4.0f
+      LayoutInspectorViewProtocol.Property.Type.BOOLEAN ->
+        property.int32Value = if (property.int32Value == 0) 1 else 0
+      LayoutInspectorViewProtocol.Property.Type.INT32 ->
+        property.int32Value = if (property.int32Value == 500) 100 else 500
+      else -> {}
+    }
+    propertyGroup.setProperty(propertyIndex, property)
+    propertyGroups[rootId]!![propertyGroupIndex] = propertyGroup.build()
   }
 
   fun createFakeComposeTree(withSemantics: Boolean = true, latch: CommandLatch? = null) {
@@ -1018,7 +1091,7 @@ class FakeInspectorState(
   fun triggerLayoutCapture(
     rootId: Long,
     isLastCapture: Boolean = false,
-    excludeConfiguration: Boolean = false
+    excludeConfiguration: Boolean = false,
   ) {
     val rootView = layoutTrees.first { it.id == rootId }
     viewInspector.connection.sendEvent {

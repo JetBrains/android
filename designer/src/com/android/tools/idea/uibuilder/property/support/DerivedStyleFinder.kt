@@ -45,7 +45,7 @@ class DerivedStyleFinder(private val facet: AndroidFacet, private val resolver: 
   fun find(
     baseStyle: StyleResourceValue,
     filter: StyleFilter,
-    sortOrder: StyleOrder
+    sortOrder: StyleOrder,
   ): List<StyleResourceValue> {
     return find(listOf(baseStyle), filter, sortOrder)
   }
@@ -53,7 +53,7 @@ class DerivedStyleFinder(private val facet: AndroidFacet, private val resolver: 
   fun find(
     baseStyles: List<StyleResourceValue>,
     filter: StyleFilter,
-    sortOrder: StyleOrder
+    sortOrder: StyleOrder,
   ): List<StyleResourceValue> {
     if (resolver == null) {
       return baseStyles

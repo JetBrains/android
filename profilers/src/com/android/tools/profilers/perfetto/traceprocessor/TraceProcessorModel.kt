@@ -21,6 +21,7 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor.PowerCounterTrac
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
+import com.android.tools.profilers.cpu.systemtrace.ThreadStateModel
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SchedulingEventModel
@@ -34,6 +35,7 @@ import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailDisplayNameMappings
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelUtils.findValueNearKey
 import org.jetbrains.annotations.VisibleForTesting
 import kotlin.math.max
 import kotlin.math.min
@@ -65,7 +67,8 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
       val updatedThreadMap = process.threadById.mapValues { entry ->
         entry.value.copy(
           traceEvents = builder.threadToEventsMap.getOrDefault(entry.key, listOf()),
-          schedulingEvents = builder.threadToScheduling.getOrDefault(entry.key, listOf())
+          schedulingEvents = builder.threadToScheduling.getOrDefault(entry.key, listOf()),
+          threadStateEvents = builder.threadToThreadStates.getOrDefault(entry.key, listOf())
         )
       }.toSortedMap()
 
@@ -121,6 +124,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     internal val coreToScheduling = mutableMapOf<Int, List<SchedulingEventModel>>()
     internal val coreToCpuCounters = mutableMapOf<Int, List<CounterModel>>()
     internal val processToCounters = mutableMapOf<Int, List<CounterModel>>()
+    internal val threadToThreadStates = mutableMapOf<Int, List<ThreadStateModel>>()
     internal val powerCounters = mutableListOf<CounterModel>()
     internal val androidFrameLayers = mutableListOf<Layer>()
     internal val androidFrameTimelineEvents = mutableListOf<AndroidFrameTimelineEvent>()
@@ -156,12 +160,13 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
                                                                          process.id.toInt(),
                                                                          t.name,
                                                                          listOf(),
+                                                                         listOf(),
                                                                          listOf()) }.toSortedMap(),
           mapOf())
       }
 
       for (thread in processMetadataResult.danglingThreadList) {
-        danglingThreads[thread.id.toInt()] = ThreadModel(thread.id.toInt(), 0, thread.name, emptyList(), emptyList())
+        danglingThreads[thread.id.toInt()] = ThreadModel(thread.id.toInt(), 0, thread.name, emptyList(), emptyList(), emptyList())
       }
     }
 
@@ -267,6 +272,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
                                                   startTimestampUs,
                                                   endTimestampUs,
                                                   durationUs,
+                                                  // Parameter `cpuTimeUs` is not used, so just use `durationUs` as a placeholder
                                                   durationUs,
                                                   event.processId.toInt(),
                                                   event.threadId.toInt(),
@@ -334,6 +340,27 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
         CounterModel(counter.name, counter.valueList.associate {
           convertToUs(it.timestampNanoseconds) to it.value
         }.toSortedMap())
+      }
+    }
+
+    fun addThreadStates(states: TraceProcessor.ThreadStatesResult) {
+      val perThreadState = mutableMapOf<Int, MutableList<ThreadStateModel>>()
+
+      states.stateEventList.groupBy { it.threadId }.forEach { (tid, events) ->
+        events.forEach {
+          val threadStateEvent =
+            ThreadStateModel(if (it.state.running) ThreadState.RUNNING_CAPTURED else convertSchedulingState(it.state.nonRunning),
+                             convertToUs(it.timestampNanoseconds),
+                             convertToUs(it.timestampNanoseconds + it.durationNanoseconds))
+          perThreadState.getOrPut(tid.toInt()) { mutableListOf() }.apply {
+            add(threadStateEvent)
+          }
+        }
+      }
+
+      perThreadState.forEach {
+        val previousList = threadToThreadStates[it.key] ?: listOf()
+        threadToThreadStates[it.key] = previousList.plus(it.value).sortedBy { s -> s.startTimestampUs }
       }
     }
 
@@ -449,21 +476,24 @@ fun List<Layer>.groupedByPhase(): List<Phase> = asSequence()
 private fun mapFrameNumber(layers: List<Layer>,
                            timelineEvents: List<AndroidFrameTimelineEvent>,
                            surfaceflingerDisplayTokenToEndNs: Map<Long, Long>): Map<Int, Long> {
-  val lifeCycleEventStartNsToNumber = mutableMapOf<Long, Int>()
+  val lifeCycleEventStartNsToNumber = LinkedHashMap<Long, Int>()
   layers.forEach { layer ->
-    layer.phaseList.forEach { phase ->
-      phase.frameEventList.forEach { event ->
-        lifeCycleEventStartNsToNumber[event.timestampNanoseconds] = event.frameNumber
-      }
+    layer.phaseList.filter {
+      // The "Display" phase contains the entire lifecycle of the frame and thus should be the only phase used to match timestamps.
+      phase -> phase.phaseName == "Display"
+    }.forEach { phase ->
+      phase.frameEventList.forEach { event -> lifeCycleEventStartNsToNumber[event.timestampNanoseconds] = event.frameNumber }
     }
   }
 
   fun getLifecycleFrameNumber(event: AndroidFrameTimelineEvent) : Int? {
     val surfaceflingerEndNs = surfaceflingerDisplayTokenToEndNs[event.displayFrameToken]
-    return lifeCycleEventStartNsToNumber[surfaceflingerEndNs]
+    // A tolerance (1000 ns) is given with timestamp-based matching to account for different clocks used for the different data sources.
+    // The value of 1000 ns is reasonable given a frame display duration will be at least in the millions of nanoseconds (milliseconds).
+    return surfaceflingerEndNs?.let { findValueNearKey(sortedMap = lifeCycleEventStartNsToNumber, targetKey = it, tolerance = 1000L) }
   }
 
   return timelineEvents
     .filter { event -> getLifecycleFrameNumber(event) != null }
-    .associate{ event -> getLifecycleFrameNumber(event)!! to event.surfaceFrameToken }
+    .associate { event -> getLifecycleFrameNumber(event)!! to event.surfaceFrameToken }
 }

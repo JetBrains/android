@@ -18,23 +18,9 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
 class MissingPlatformIssueCheckerTest : AndroidGradleTestCase() {
   private val missingPlatformIssueChecker = MissingPlatformIssueChecker()
-
-  fun testCheckIssue() {
-    loadSimpleApplication()
-
-    val issueDate = GradleIssueData(projectFolderPath.path, IllegalStateException("Failed to find target android-23"), null, null)
-
-    val buildIssue = missingPlatformIssueChecker.check(issueDate)
-    assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains("Failed to find target android-23")
-    assertThat(buildIssue.description).contains("Install missing platform(s) and sync project")
-    assertThat(buildIssue.quickFixes).hasSize(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(InstallPlatformQuickFix::class.java)
-  }
 
   fun testGetMissingPlatform() {
     assertThat(getMissingPlatform("Failed to find target with hash string 'android-21' in: /pat/tp/sdk")).isEqualTo("android-21")

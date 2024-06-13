@@ -26,7 +26,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 class ResolutionStackItem(
   property: InspectorGroupPropertyItem,
   reference: ResourceReference,
-  value: String?
+  value: String?,
 ) :
   InspectorPropertyItem(
     property.namespace,
@@ -37,7 +37,7 @@ class ResolutionStackItem(
     property.section,
     reference,
     property.viewId,
-    property.lookup
+    property.lookup,
   ) {
 
   /** This item need a ResolutionEditor for display */

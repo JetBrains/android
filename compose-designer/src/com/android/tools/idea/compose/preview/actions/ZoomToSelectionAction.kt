@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.sdklib.AndroidCoordinate
+import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.findDeepestHits
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.parseViewInfo
@@ -29,10 +29,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
-import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.Rectangle
-import javax.swing.SwingUtilities
 
 /**
  * [AnAction] that zooms to the component in a given sceneView that corresponds to the deepest
@@ -40,28 +38,17 @@ import javax.swing.SwingUtilities
  * created.
  */
 class ZoomToSelectionAction(
-  private val surface: NlDesignSurface,
-  private val sceneView: SceneView,
-  title: String = message("action.zoom.to.selection")
-) : AnAction(title) {
+  @SwingCoordinate private val x: Int,
+  @SwingCoordinate private val y: Int,
+) : AnAction(message("action.zoom.to.selection")) {
 
   private val logger = Logger.getInstance(ZoomToSelectionAction::class.java)
 
-  @AndroidCoordinate private val x: Int
-  @AndroidCoordinate private val y: Int
-
-  init {
-    // Extract the information relative to the mouse position when creating the action,
-    // not when clicking on "zoom to selection"
-    val mousePosition = MouseInfo.getPointerInfo().location
-    SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
-    x = Coordinates.getAndroidX(sceneView, mousePosition.x)
-    y = Coordinates.getAndroidY(sceneView, mousePosition.y)
-  }
-
   override fun update(e: AnActionEvent) {
+    val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface
+    val sceneView = surface?.getSceneViewAt(x, y)
     e.presentation.isEnabledAndVisible =
-      (sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult != null
+      (sceneView?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -69,12 +56,16 @@ class ZoomToSelectionAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getRequiredData(DESIGN_SURFACE) as NlDesignSurface
+    val sceneView = surface.getSceneViewAt(x, y) ?: return
+    val androidX = Coordinates.getAndroidX(sceneView, x)
+    val androidY = Coordinates.getAndroidY(sceneView, y)
     val deepestViewInfos =
       sceneView.scene.root
         ?.nlComponent
         ?.viewInfo
         ?.let { viewInfo -> parseViewInfo(viewInfo, logger) }
-        ?.findDeepestHits(x, y)
+        ?.findDeepestHits(androidX, androidY)
     if (deepestViewInfos.isNullOrEmpty()) {
       // This is expected for example when the Preview contains showSystemUi=true
       // and the "systemUi" is where the right-click happens.
@@ -92,12 +83,12 @@ class ZoomToSelectionAction(
       val topLeftCorner =
         Point(
           Coordinates.getSwingDimension(sceneView, it.left),
-          Coordinates.getSwingDimension(sceneView, it.top)
+          Coordinates.getSwingDimension(sceneView, it.top),
         )
       val size =
         Dimension(
           Coordinates.getSwingDimension(sceneView, it.width),
-          Coordinates.getSwingDimension(sceneView, it.height)
+          Coordinates.getSwingDimension(sceneView, it.height),
         )
       surface.zoomAndCenter(sceneView, Rectangle(topLeftCorner, size))
     }

@@ -6,20 +6,20 @@ iml_module(
     name = "intellij.android.updater.studio-updater",
     srcs = ["src"],
     iml_files = ["intellij.android.updater.studio-updater.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_srcs = ["testSrc"],
     test_tags = ["manual"],  # Tested via the integration_test target below
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:updater",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
+        "@intellij//:test-framework[test]",
     ],
 )
 

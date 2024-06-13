@@ -59,7 +59,7 @@ interface InteractionHandler {
   fun createInteractionOnPressed(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ): Interaction?
 
   /**
@@ -70,7 +70,7 @@ interface InteractionHandler {
   fun createInteractionOnDrag(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ): Interaction?
 
   /**
@@ -89,7 +89,7 @@ interface InteractionHandler {
   fun mouseReleaseWhenNoInteraction(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   )
 
   /**
@@ -103,7 +103,7 @@ interface InteractionHandler {
   fun singleClick(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   )
 
   /**
@@ -117,7 +117,7 @@ interface InteractionHandler {
   fun doubleClick(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   )
 
   /** Called by [GuiInputHandler] when a zooming event happens. */
@@ -130,7 +130,7 @@ interface InteractionHandler {
   fun hoverWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   )
 
   /**
@@ -152,7 +152,7 @@ interface InteractionHandler {
   fun getCursorWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ): Cursor?
 
   /**
@@ -226,7 +226,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun mouseReleaseWhenNoInteraction(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ) {
     val allowToggle =
       modifiersEx and (InputEvent.SHIFT_MASK or Toolkit.getDefaultToolkit().menuShortcutKeyMask) !=
@@ -235,13 +235,13 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   }
 
   override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
-    surface.zoomable.zoom(type, mouseX, mouseY)
+    surface.zoomController.zoom(type, mouseX, mouseY)
   }
 
   override fun hoverWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ) {
     val sceneView = surface.getSceneViewAtOrPrimary(mouseX, mouseY)
     if (sceneView != null) {
@@ -251,7 +251,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
         context,
         getAndroidXDip(sceneView, mouseX),
         getAndroidYDip(sceneView, mouseY),
-        modifiersEx
+        modifiersEx,
       )
       cursorWhenNoInteraction = sceneView.scene.mouseCursor
     } else {
@@ -292,7 +292,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun singleClick(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ) {
     val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
     if (selectedEditor is DesignToolsSplitEditor) {
@@ -311,7 +311,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun doubleClick(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ) {
     val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
 
@@ -324,7 +324,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
       surface.notifyComponentActivate(
         component,
         Coordinates.getAndroidX(sceneView, x),
-        Coordinates.getAndroidY(sceneView, y)
+        Coordinates.getAndroidY(sceneView, y),
       )
     }
   }
@@ -332,7 +332,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun getCursorWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ): Cursor? {
     return cursorWhenNoInteraction
   }
@@ -364,7 +364,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
           "Delete Components",
           null,
           { modelComponentsMap.forEach { (model, nlComponents) -> model.delete(nlComponents) } },
-          *modelComponentsMap.keys.map { it.file }.toTypedArray()
+          *modelComponentsMap.keys.map { it.file }.toTypedArray(),
         )
       }
     }
@@ -393,7 +393,7 @@ object NopInteractionHandler : InteractionHandler {
   override fun createInteractionOnPressed(
     mouseX: Int,
     mouseY: Int,
-    modifiersEx: Int
+    modifiersEx: Int,
   ): Interaction? = null
 
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
@@ -442,7 +442,7 @@ class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopIntera
   override fun createInteractionOnPressed(
     mouseX: Int,
     mouseY: Int,
-    modifiersEx: Int
+    modifiersEx: Int,
   ): Interaction? = delegate.createInteractionOnPressed(mouseX, mouseY, modifiersEx)
 
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =

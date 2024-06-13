@@ -20,6 +20,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +38,6 @@ public class HtmlBuilderHelper {
   public static String getHeaderFontColor() {
     // See com.intellij.codeInspection.HtmlComposer.appendHeading
     // (which operates on StringBuffers)
-    return UIUtil.isUnderDarcula() ? "#A5C25C" : "#005555";
+    return !JBColor.isBright() ? "#A5C25C" : "#005555";
   }
 }

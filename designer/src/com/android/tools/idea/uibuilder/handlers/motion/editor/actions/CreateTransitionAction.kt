@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateKeyTimeCycle
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateKeyTrigger
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 
 /** Create Transition action. */
 class CreateTransitionAction(private val motionEditor: MotionEditor) :
@@ -33,8 +34,10 @@ class CreateTransitionAction(private val motionEditor: MotionEditor) :
       CreateKeyAttribute(),
       CreateKeyTrigger(),
       CreateKeyCycle(),
-      CreateKeyTimeCycle()
+      CreateKeyTimeCycle(),
     )
 
   override val actions = panels.map { panel -> PanelAction(panel, motionEditor) }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

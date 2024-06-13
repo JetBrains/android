@@ -16,9 +16,9 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
@@ -32,7 +32,7 @@ import org.junit.Test
 
 class InteractiveLabelPanelTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = ApplicationRule()
   private lateinit var parentDisposable: Disposable
 
   @Before

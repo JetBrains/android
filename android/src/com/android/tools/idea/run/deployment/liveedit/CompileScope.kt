@@ -21,8 +21,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiErrorElement
-import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -38,9 +36,6 @@ import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
-import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
@@ -186,13 +181,7 @@ private object CompileScopeImpl : CompileScope {
                               inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
 
     input.firstOrNull { it.module != module }?.let {
-      throw LiveEditUpdateException.internalError("KtFile outside targeted module found in code generation", it) }
-
-    val compilerConfiguration = CompilerConfiguration()
-    compilerConfiguration.languageVersionSettings = input.first().languageVersionSettings
-
-    // Needed so we can diff changes to method parameters and parameter annotations.
-    compilerConfiguration.put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
+      throw LiveEditUpdateException.internalErrorFileOutsideModule(it) }
 
     // The Kotlin compiler is built on top of the PSI parse tree which is used in the IDE.
     // In order to support things like auto-complete when the user is still typing code, the IDE needs to be able to perform
@@ -201,39 +190,18 @@ private object CompileScopeImpl : CompileScope {
     // PsiErrorElement, we need to do a quick pass to check if there are any PsiErrorElement in the tree and prevent Live Edit from
     // sending invalid code to the device. It is important to note that the Analysis phrase would have triggered a full parse of the given
     // file already so this is the best time to check.
-    var errorElement : PsiErrorElement? = null
-    input.forEach() {
-      it.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
-        override fun visitErrorElement(e: PsiErrorElement) {
-          errorElement = e
+    input.checkPsiErrorElement()
+
+    val compilerConfiguration = CompilerConfiguration().apply {
+      put(CommonConfigurationKeys.MODULE_NAME,
+          module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(input[0].originalFile.virtualFile))
+      KotlinFacet.get(module)?.let { kotlinFacet ->
+        (kotlinFacet.configuration.settings.compilerArguments as K2JVMCompilerArguments).moduleName?.let {
+          put(CommonConfigurationKeys.MODULE_NAME, it)
         }
-      })
-    }
-    errorElement?.let { throw LiveEditUpdateException.compilationError(it.errorDescription, it.containingFile, null)}
-
-    compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME,
-                              module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(input[0].originalFile.virtualFile))
-    KotlinFacet.get(module)?.let { kotlinFacet ->
-      (kotlinFacet.configuration.settings.compilerArguments as K2JVMCompilerArguments).moduleName?.let {
-        compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, it)
       }
+      setOptions(input.first().languageVersionSettings)
     }
-
-    // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
-    compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
-
-    // We don't support INVOKE_DYNAMIC in the interpreter at the moment.
-    compilerConfiguration.put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
-    compilerConfiguration.put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
-
-    // Link via signatures and not descriptors.
-    //
-    // This ensures that even if the project has descriptors for basic types from multiple stdlib
-    // versions, they all end up mapping to the basic types from the stdlib used for the current
-    // compilation.
-    //
-    // See b/256957527 for details.
-    compilerConfiguration.put(JVMConfigurationKeys.LINK_VIA_SIGNATURES, true)
 
     val generationStateBuilder = GenerationState.Builder(project,
                                                          ClassBuilderFactories.BINARIES,

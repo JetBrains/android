@@ -110,9 +110,9 @@ internal class PreviewAnnotationCheckTest {
         BadType::class,
         Unknown::class,
         Repeated::class,
-        Missing::class
+        Missing::class,
       ),
-      result.issues.map { it::class }
+      result.issues.map { it::class },
     )
     assertEquals("spec:shape=Normal,width=411,unit=dp,dpi=320,height=891", result.proposedFix)
 
@@ -133,7 +133,7 @@ internal class PreviewAnnotationCheckTest {
     assertEquals(Unknown::class, result.issues[0]::class)
     assertEquals(
       "Must be a Device ID or a Device specification: \"id:...\", \"spec:...\".",
-      result.issues[0].parameterName
+      result.issues[0].parameterName,
     )
     assertEquals("id:pixel_5", result.proposedFix)
   }
@@ -156,7 +156,7 @@ internal class PreviewAnnotationCheckTest {
       )
     assertEquals(
       listOf(BadType::class, BadType::class, Missing::class),
-      result.issues.map { it::class }
+      result.issues.map { it::class },
     )
     assertEquals("spec:width=100dp,isRound=false,height=891dp", result.proposedFix)
 
@@ -194,7 +194,7 @@ internal class PreviewAnnotationCheckTest {
         @Composable
         fun myFun() {}
 """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -227,7 +227,7 @@ internal class PreviewAnnotationCheckTest {
     assertEquals(Failure::class, result.issues[0]::class)
     assertEquals(
       "Preview target must be a composable function or an annotation class",
-      (result.issues[0] as Failure).failureMessage
+      (result.issues[0] as Failure).failureMessage,
     )
   }
 

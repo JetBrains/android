@@ -51,7 +51,7 @@ internal fun List<Track>.extract(): List<Version> {
         buildVersion = versionCode.toString(),
         displayVersion = "",
         displayName = "",
-        tracks = tracks.map { it.second }.toSet()
+        tracks = tracks.map { it.second }.toSet(),
       )
     }
 }
@@ -76,7 +76,7 @@ fun Version.Companion.fromDimensions(dimensions: List<Dimension>): Version {
         buildVersion = versionCode,
         displayVersion = displayValue,
         displayName = displayValue,
-        tracks = emptySet()
+        tracks = emptySet(),
       )
     }
     .single()

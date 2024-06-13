@@ -216,7 +216,7 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
         AnchorTarget.Type.BOTTOM to AnchorTarget.Type.RIGHT,
         AnchorTarget.Type.RIGHT to AnchorTarget.Type.TOP,
         AnchorTarget.Type.RIGHT to AnchorTarget.Type.LEFT,
-        AnchorTarget.Type.RIGHT to AnchorTarget.Type.BOTTOM
+        AnchorTarget.Type.RIGHT to AnchorTarget.Type.BOTTOM,
       )
 
     for ((childEdge, parentEdge) in illegalChildToParentEdgePairs) {
@@ -400,7 +400,7 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
         AnchorTarget.Type.BOTTOM to AnchorTarget.Type.LEFT,
         AnchorTarget.Type.BOTTOM to AnchorTarget.Type.RIGHT,
         AnchorTarget.Type.RIGHT to AnchorTarget.Type.TOP,
-        AnchorTarget.Type.RIGHT to AnchorTarget.Type.BOTTOM
+        AnchorTarget.Type.RIGHT to AnchorTarget.Type.BOTTOM,
       )
 
     for ((childEdge, parentEdge) in illegalWidgetToWidgetEdgePairs) {
@@ -561,8 +561,8 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
               .width("20dp")
               .height("20dp")
               .withAttribute("android:layout_marginLeft", "50dp")
-              .withAttribute("android:layout_marginTop", "50dp")
-          )
+              .withAttribute("android:layout_marginTop", "50dp"),
+          ),
       )
     val model = builder.build()
     assertEquals(1, model.components.size)
@@ -571,7 +571,7 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
         "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +
         "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}\n" +
         "    NlComponent{tag=<TextView>, bounds=[300,600:20x20}",
-      NlTreeDumper.dumpTree(model.components)
+      NlTreeDumper.dumpTree(model.components),
     )
 
     format(model.file)
@@ -608,7 +608,7 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
         "        android:layout_marginTop=\"50dp\" />\n" +
         "\n" +
         "</RelativeLayout>\n",
-      model.file.text
+      model.file.text,
     )
     return builder
   }

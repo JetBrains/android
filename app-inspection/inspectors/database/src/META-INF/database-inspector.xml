@@ -16,8 +16,6 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <fileType name="SQLite" fieldName="INSTANCE" implementationClass="com.android.tools.idea.sqlite.fileType.SqliteFileType"/>
-    <fileTypeDetector implementation="com.android.tools.idea.sqlite.fileType.SqliteFileTypeDetector" />
-    <applicationService serviceImplementation="com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.AndroidSqlFakePsiElementDescriptionProvider"/>
 
     <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator"/>
@@ -41,6 +39,8 @@
                              key="database.inspector"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings"/>
+
+    <notificationGroup id="Database Inspector" displayType="BALLOON"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lang">

@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.KotlinNullnessAnnotationDetector
 class AndroidLintKotlinNullnessAnnotationInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.kotlin.nullness.annotation"),
-    KotlinNullnessAnnotationDetector.ISSUE
+    KotlinNullnessAnnotationDetector.ISSUE,
   )

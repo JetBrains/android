@@ -45,6 +45,7 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -157,7 +158,7 @@ public final class AndroidSdkUtils {
       SdkModificator sdkModificator = sdk.getSdkModificator();
       sdkModificator.removeRoots(SOURCES);
       AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
-      sdkModificator.commitChanges();
+      WriteAction.run(sdkModificator::commitChanges);
     }
   }
 

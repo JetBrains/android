@@ -58,7 +58,7 @@ class ConstraintGroup(properties: PropertiesTable<NlPropertyItem>) : GroupSpec<N
       SdkConstants.ATTR_FLOW_VERTICAL_ALIGN,
       SdkConstants.ATTR_FLOW_VERTICAL_GAP,
       SdkConstants.ATTR_FLOW_LAST_VERTICAL_BIAS,
-      SdkConstants.ATTR_FLOW_LAST_VERTICAL_STYLE
+      SdkConstants.ATTR_FLOW_LAST_VERTICAL_STYLE,
     )
 
   override val name: String

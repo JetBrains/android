@@ -26,6 +26,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.DeviceService
 import com.android.tools.idea.device.explorer.monitor.DeviceServiceListener
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.Service.Level.PROJECT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
@@ -37,10 +40,10 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileNotFoundException
-import java.util.function.Supplier
 
 @UiThread
-class AdbDeviceService @NonInjectable constructor(private val adbSupplier: Supplier<File?>)
+@Service(PROJECT)
+class AdbDeviceService @NonInjectable constructor(private val adbSupplier: () -> File?)
   : Disposable, DeviceService {
 
   @Suppress("unused")
@@ -101,7 +104,7 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: Suppl
     if (state == State.SetupRunning || state == State.SetupDone) {
       return
     }
-    val adb = adbSupplier.get()
+    val adb = adbSupplier()
     if (adb == null) {
       LOGGER.warn("ADB not found")
       throw FileNotFoundException("Android Debug Bridge not found.")

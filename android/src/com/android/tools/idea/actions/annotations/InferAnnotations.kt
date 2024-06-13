@@ -24,7 +24,6 @@ import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.inheritParameterAnnotation
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.transferArgumentToParameter
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.transferReturnToMethod
-import com.android.tools.idea.lint.common.findAnnotation
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
 import com.android.tools.lint.checks.ObjectAnimatorDetector.Companion.KEEP_ANNOTATION
 import com.android.tools.lint.checks.PermissionDetector.Companion.handlesException
@@ -37,6 +36,7 @@ import com.android.tools.lint.client.api.TYPE_FLOAT_WRAPPER
 import com.android.tools.lint.client.api.TYPE_INTEGER_WRAPPER
 import com.android.tools.lint.client.api.TYPE_LONG_WRAPPER
 import com.android.tools.lint.client.api.TYPE_SHORT_WRAPPER
+import com.android.tools.lint.detector.api.ClassContext
 import com.android.tools.lint.detector.api.ConstantEvaluator
 import com.android.tools.lint.detector.api.ResourceEvaluator
 import com.android.tools.lint.detector.api.ResourceEvaluator.ANY_RES_ANNOTATION
@@ -85,8 +85,10 @@ import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
+import org.jetbrains.kotlin.idea.util.addAnnotation
+import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtFunction
@@ -1066,7 +1068,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
         }
         is KtModifierListOwner -> {
           val sites = mutableListOf<AnnotationUseSiteTarget?>()
-          val fqName = FqName(fqn)
+          val classId = ClassId.fromString(ClassContext.getInternalName(fqn))
 
           if (element is KtParameter && element.hasValOrVar() && !element.isPrivate()) {
             // Constructor property.
@@ -1100,8 +1102,8 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
             if (getter == null || !(settings.publicOnly && getter.isPrivate())) {
               sites.add(AnnotationUseSiteTarget.PROPERTY_GETTER)
             }
-          } else if (element is KtPropertyAccessor && element.property.findAnnotationWithUsageSite(
-              fqName,
+          } else if (element is KtPropertyAccessor && element.property.findAnnotation(
+              classId,
               if (element.isGetter) AnnotationUseSiteTarget.PROPERTY_GETTER else AnnotationUseSiteTarget.PROPERTY_SETTER
             ) != null
           ) {
@@ -1115,13 +1117,13 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
             sites.add(null)
           }
 
-          if (element.findAnnotationWithUsageSite(fqName, null) != null) {
+          if (element.findAnnotation(classId, null) != null) {
             // Already annotated with a default-use site annotation
             return
           }
 
           for (site in sites) {
-            insertKotlinAnnotation(code, project, element, fqName, site, site != sites.first())
+            insertKotlinAnnotation(code, project, element, classId, site, site != sites.first())
           }
         }
         else -> {
@@ -1148,7 +1150,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       code: String,
       project: Project,
       element: KtModifierListOwner,
-      fqn: FqName,
+      classId: ClassId,
       useSite: AnnotationUseSiteTarget?,
       sameLine: Boolean
     ): Boolean {
@@ -1156,10 +1158,8 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       val inner = if (index != -1) code.substring(index + 1, code.lastIndexOf(')')) else null
       var added = false
       WriteCommandAction.runWriteCommandAction(project) {
-        // Ideally, we'd just call element.addAnnotation(FqName, ...) here, from modifierListModifactor.kt. Unfortunately,
-        // it does *not* handle annotation use sites correctly so we have a patched version here.
-        added = element.addAnnotationWithUsageSite(
-          fqn, inner, useSiteTarget = useSite,
+        added = element.addAnnotation(
+          classId, inner, useSiteTarget = useSite,
           whiteSpaceText = if (!sameLine && element.isNewLineNeededForAnnotation()) "\n" else " "
         )
       }
@@ -1188,7 +1188,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
         }
         is KtModifierListOwner -> {
           WriteCommandAction.runWriteCommandAction(project) {
-            element.findAnnotation(FqName(fqn))?.delete()
+            element.findAnnotation(ClassId.fromString(ClassContext.getInternalName(fqn)))?.delete()
           }
         }
         else -> {

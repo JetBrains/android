@@ -61,18 +61,18 @@ class BackgroundTaskEntriesView(
   private val client: BackgroundTaskInspectorClient,
   private val selectionModel: EntrySelectionModel,
   scope: CoroutineScope,
-  uiDispatcher: CoroutineDispatcher
+  uiDispatcher: CoroutineDispatcher,
 ) : JPanel() {
   enum class Mode {
     TABLE,
-    GRAPH
+    GRAPH,
   }
 
   private inner class CancelAction :
     AnAction(
       BackgroundTaskInspectorBundle.message("action.cancel.work"),
       "",
-      AllIcons.Actions.Suspend
+      AllIcons.Actions.Suspend,
     ) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -98,7 +98,7 @@ class BackgroundTaskEntriesView(
     DropDownAction(
       BackgroundTaskInspectorBundle.message("action.tag.all"),
       BackgroundTaskInspectorBundle.message("action.tag.tooltip"),
-      null
+      null,
     ) {
     private var selectedTag: String? = null
 
@@ -165,7 +165,7 @@ class BackgroundTaskEntriesView(
     AnAction(
       BackgroundTaskInspectorBundle.message("action.show.graph"),
       "",
-      AllIcons.Graph.Layout
+      AllIcons.Graph.Layout,
     ) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -177,7 +177,7 @@ class BackgroundTaskEntriesView(
         graphView.requestFocusInWindow()
         client.tracker.trackGraphModeSelected(
           AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
-          client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo()
+          client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo(),
         )
       }
     }

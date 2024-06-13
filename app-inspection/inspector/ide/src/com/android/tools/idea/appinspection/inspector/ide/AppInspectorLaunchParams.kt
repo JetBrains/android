@@ -36,5 +36,5 @@ class LibraryInspectorLaunchParams(
    * Information about the library this inspector is targeting, including the minimum version this
    * inspector is compatible with.
    */
-  val minVersionLibraryCoordinate: MinimumArtifactCoordinate
+  val minVersionLibraryCoordinate: MinimumArtifactCoordinate,
 ) : AppInspectorLaunchParams()

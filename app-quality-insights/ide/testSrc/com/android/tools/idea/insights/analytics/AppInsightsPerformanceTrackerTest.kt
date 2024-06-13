@@ -108,7 +108,7 @@ class AppInsightsPerformanceTrackerTest {
             }
           }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     )
   }
@@ -198,7 +198,7 @@ class AppInsightsPerformanceTrackerTest {
         this.whenever<Any> {
             AppExecutorUtil.createBoundedScheduledExecutorService(
               "App Insights Performance Statistics Collector",
-              1
+              1,
             )
           }
           .thenReturn(virtualExecutor)

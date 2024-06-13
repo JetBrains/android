@@ -24,7 +24,7 @@ import com.intellij.xdebugger.XDebuggerManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class NativeDebugSessionFinder {
+public class NativeDebugSessionFinder {
   @NotNull private final XDebuggerManager myDebuggerManager;
 
   NativeDebugSessionFinder(@NotNull Project project) {

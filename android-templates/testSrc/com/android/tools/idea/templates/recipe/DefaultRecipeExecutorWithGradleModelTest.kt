@@ -141,159 +141,6 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
   }
 
   @Test
-  fun testAddDependencyWithVersionCatalog_sameNameExist() {
-    writeToVersionCatalogFile("""
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-lifecycle-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-lifecycle-runtime-ktx" }
-    """)
-
-    recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-
-    applyChanges(recipeExecutor.projectBuildModel!!)
-
-    // Verify avoiding the same name with different module
-    verifyFileContents(myVersionCatalogFile, """
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-lifecycle-lifecycle-runtime-ktx = { group="group", name="name", version.ref = "lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-runtime-ktx" }
-    """)
-    verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME)
-  }
-
-  @Test
-  fun testAddDependencyWithVersionCatalog_sameNameExist_includingGroupName() {
-    writeToVersionCatalogFile("""
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-    """)
-
-    recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-
-    applyChanges(recipeExecutor.projectBuildModel!!)
-
-    // Verify avoiding the same name with different module
-    verifyFileContents(myVersionCatalogFile, """
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-    """)
-    verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_WITH_GROUP)
-  }
-
-  @Test
-  fun testAddDependencyWithVersionCatalog_sameNameExist_finalFallback() {
-    writeToVersionCatalogFile("""
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-    """)
-
-    recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-
-    applyChanges(recipeExecutor.projectBuildModel!!)
-
-    // Verify avoiding the same name with different module
-    verifyFileContents(myVersionCatalogFile, """
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx2 = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx2 = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2" }
-    """)
-    verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK)
-  }
-
-  @Test
-  fun testAddDependencyWithVersionCatalog_sameNameExist_finalFallback_secondLoop() {
-    writeToVersionCatalogFile("""
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx2 = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx2 = { group = "fake.group3", name = "fake.name3", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2" }
-    """)
-
-    recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-
-    applyChanges(recipeExecutor.projectBuildModel!!)
-
-    // Verify avoiding the same name with different module.
-    // The final fallback loop when picking the name in the catalog goes into the second loop
-    verifyFileContents(myVersionCatalogFile, """
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx2 = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx3 = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx2 = { group = "fake.group3", name = "fake.name3", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2" }
-androidx-lifecycle-lifecycle-runtime-ktx3 = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx3" }
-    """)
-    verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP)
-  }
-
-  @Test
-  fun testAddDependencyWithVersionCatalog_differentName_between_versionAndLibrary() {
-    // Only the version has the name that results in having different names between the versions and libraries section
-    // after addDependency is called
-    writeToVersionCatalogFile("""
-[versions]
-lifecycle-runtime-ktx = "2.5.0"
-[libraries]
-    """)
-
-    recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-
-    applyChanges(recipeExecutor.projectBuildModel!!)
-
-    verifyFileContents(myVersionCatalogFile, """
-[versions]
-lifecycle-runtime-ktx = "2.5.0"
-androidx-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-runtime-ktx" }
-    """)
-    verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY)
-  }
-
-  @Test
   fun testAddPlatformDependencyWithVersionCatalog() {
     writeToVersionCatalogFile("""
       [versions]
@@ -369,7 +216,7 @@ pluginManagement {
 [versions]
 kotlin = "1.7.20"
 [plugins]
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
     """)
     verifyFileContents(mySettingsFile, TestFile.APPLY_KOTLIN_PLUGIN_SETTING_FILE)
     verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
@@ -388,7 +235,7 @@ pluginManagement {
 kotlin = "100"
 [libraries]
 [plugins]
-fakePlugin = { id = "fake.plugin", version.ref = "kotlin" }
+fake-plugin = { id = "fake.plugin", version.ref = "kotlin" }
     """)
 
     recipeExecutor.applyPlugin("org.jetbrains.kotlin.android", "1.7.20")
@@ -401,8 +248,8 @@ kotlin = "100"
 kotlinVersion = "1.7.20"
 [libraries]
 [plugins]
-fakePlugin = { id = "fake.plugin", version.ref = "kotlin" }
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
+fake-plugin = { id = "fake.plugin", version.ref = "kotlin" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
     """)
     verifyFileContents(mySettingsFile, TestFile.APPLY_KOTLIN_PLUGIN_SETTING_FILE)
     verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
@@ -455,7 +302,7 @@ pluginManagement {
 agp = "8.0.0"
 [libraries]
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
     """)
     verifyFileContents(mySettingsFile, TestFile.APPLY_AGP_PLUGIN_SETTING_FILE)
     verifyFileContents(myBuildFile, TestFile.APPLY_AGP_PLUGIN_BUILD_FILE)
@@ -475,7 +322,7 @@ pluginManagement {
 fake = "100"
 [libraries]
 [plugins]
-androidApplication = { id = "fake.plugin", version.ref = "fake" }
+android-application = { id = "fake.plugin", version.ref = "fake" }
     """)
 
     recipeExecutor.applyPlugin("com.android.application", "8.0.0")
@@ -488,8 +335,8 @@ fake = "100"
 agp = "8.0.0"
 [libraries]
 [plugins]
-androidApplication = { id = "fake.plugin", version.ref = "fake" }
-comAndroidApplication = { id = "com.android.application", version.ref = "agp" }
+android-application = { id = "fake.plugin", version.ref = "fake" }
+com-android-application = { id = "com.android.application", version.ref = "agp" }
     """)
     verifyFileContents(mySettingsFile, TestFile.APPLY_AGP_PLUGIN_WITH_REVISION_SETTING_FILE)
     verifyFileContents(myBuildFile, TestFile.APPLY_AGP_PLUGIN_WITH_REVISION_BUILD_FILE)
@@ -508,7 +355,7 @@ pluginManagement {
 agp = "8.0.0"
 [libraries]
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
     """)
 
     recipeExecutor.applyPlugin("com.android.library", "8.0.0")
@@ -520,8 +367,8 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 agp = "8.0.0"
 [libraries]
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
     """)
   }
 
@@ -538,7 +385,7 @@ pluginManagement {
 agp = "8.0.0"
 [libraries]
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
     """)
 
     // Apply a plugin with the different version from the existing agp version in the catalog
@@ -552,8 +399,8 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 agp = "8.0.0"
 [libraries]
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
     """)
   }
 
@@ -571,7 +418,7 @@ pluginManagement {
 agp-version = "8.0.0"
 [libraries]
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp-version" }
+android-application = { id = "com.android.application", version.ref = "agp-version" }
     """)
 
     recipeExecutor.applyPlugin("com.android.library", "8.0.0-beta04")
@@ -584,8 +431,8 @@ androidApplication = { id = "com.android.application", version.ref = "agp-versio
 agp-version = "8.0.0"
 [libraries]
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp-version" }
-androidLibrary = { id = "com.android.library", version.ref = "agp-version" }
+android-application = { id = "com.android.application", version.ref = "agp-version" }
+android-library = { id = "com.android.library", version.ref = "agp-version" }
     """)
   }
 
@@ -602,7 +449,7 @@ pluginManagement {
 [versions]
 [libraries]
 [plugins]
-androidApplication = { id = "com.android.application", version = "8.0.0" }
+android-application = { id = "com.android.application", version = "8.0.0" }
     """)
 
     recipeExecutor.applyPlugin("com.android.library", "8.0.0-beta04")
@@ -615,8 +462,8 @@ androidApplication = { id = "com.android.application", version = "8.0.0" }
 agp = "8.0.0-beta04"
 [libraries]
 [plugins]
-androidApplication = { id = "com.android.application", version = "8.0.0" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
+android-application = { id = "com.android.application", version = "8.0.0" }
+android-library = { id = "com.android.library", version.ref = "agp" }
     """)
   }
 
@@ -649,17 +496,13 @@ agpVersion = "8.0.0"
 [libraries]
 [plugins]
 fake-plugin = { id = "fake.plugin", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agpVersion" }
+android-library = { id = "com.android.library", version.ref = "agpVersion" }
     """)
   }
 
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {
     NO_VERSION_CATALOG_ADD_DEPENDENCY("noVersionCatalogAddDependency"),
     VERSION_CATALOG_ADD_DEPENDENCY("versionCatalogAddDependency"),
-    VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME("versionCatalogAddDependencyAvoidSameName"),
-    VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_WITH_GROUP("versionCatalogAddDependencyAvoidSameNameWithGroup"),
-    VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK("versionCatalogAddDependencyAvoidSameNameFinalFallback"),
-    VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP("versionCatalogAddDependencyAvoidSameNameFinalFallbackSecondLoop"),
     VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY("versionCatalogAddPlatformDependency"),
     GET_EXT_VAR_INITIAL("getExtVarInitial"),
     NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_BUILD_FILE("noVersionCatalogApplyKotlinPlugin"),

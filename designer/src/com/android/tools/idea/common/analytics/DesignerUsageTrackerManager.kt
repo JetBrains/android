@@ -33,7 +33,7 @@ import java.util.function.Consumer
 
 class DesignerUsageTrackerManager<T, K : Disposable>(
   private val factory: (Executor, K?, Consumer<AndroidStudioEvent.Builder>) -> T,
-  private val nopTracker: T
+  private val nopTracker: T,
 ) {
 
   private val sTrackersCache =

@@ -21,32 +21,33 @@
  */
 package com.android.tools.idea.gradle.dsl.utils
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.util.registry.Registry
 import java.io.File
 
 internal fun findGradleBuildFile(dirPath: File) : File {
-  if(Registry.`is`("android.gradle.declarative.plugin.studio.support", false)) {
-    val declarativeBuildFile = File(dirPath, FN_DECLARATIVE_BUILD_GRADLE)
-    if (declarativeBuildFile.isFile) return declarativeBuildFile
-  }
   val groovyBuildFile = File(dirPath, FN_BUILD_GRADLE)
   if (groovyBuildFile.isFile) return groovyBuildFile
   val kotlinBuildFile = File(dirPath, FN_BUILD_GRADLE_KTS)
   if (kotlinBuildFile.isFile) return kotlinBuildFile
+  if (Registry.`is`("android.gradle.declarative.plugin.studio.support", false)) {
+    val gradleDeclarativeBuildFile = File(dirPath, FN_BUILD_GRADLE_DECLARATIVE)
+    if (gradleDeclarativeBuildFile.isFile) return gradleDeclarativeBuildFile
+  }
 
   // Default to Groovy if none exist.
   return groovyBuildFile
 }
 
 internal fun findGradleSettingsFile(dirPath: File) : File {
-  if(Registry.`is`("android.gradle.declarative.plugin.studio.support", false)) {
-    val declarativeSettingsFile = File(dirPath, FN_DECLARATIVE_SETTINGS_GRADLE)
-    if (declarativeSettingsFile.isFile) return declarativeSettingsFile
-  }
   val groovySettingsFile = File(dirPath, FN_SETTINGS_GRADLE)
   if (groovySettingsFile.isFile) return groovySettingsFile
   val kotlinSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_KTS)
   if (kotlinSettingsFile.isFile) return kotlinSettingsFile
+  if (Registry.`is`("android.gradle.declarative.plugin.studio.support", false)) {
+    val gradleDeclarativeSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_DECLARATIVE)
+    if (gradleDeclarativeSettingsFile.isFile) return gradleDeclarativeSettingsFile
+  }
 
   // Default to Groovy if none exist.
   return groovySettingsFile

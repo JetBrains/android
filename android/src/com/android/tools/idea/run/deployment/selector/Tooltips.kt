@@ -20,11 +20,12 @@ import com.intellij.ide.HelpTooltip
 import org.jetbrains.android.util.AndroidBundle
 
 internal fun updateTooltip(compatibility: LaunchCompatibility, helpTooltip: HelpTooltip): Boolean {
-  val title = when (compatibility.state) {
-    LaunchCompatibility.State.OK -> return false
-    LaunchCompatibility.State.WARNING -> AndroidBundle.message("warning.level.title")
-    LaunchCompatibility.State.ERROR -> AndroidBundle.message("error.level.title")
-  }
+  val title =
+    when (compatibility.state) {
+      LaunchCompatibility.State.OK -> return false
+      LaunchCompatibility.State.WARNING -> AndroidBundle.message("warning.level.title")
+      LaunchCompatibility.State.ERROR -> AndroidBundle.message("error.level.title")
+    }
 
   helpTooltip.setTitle(title)
   helpTooltip.setDescription(compatibility.reason)

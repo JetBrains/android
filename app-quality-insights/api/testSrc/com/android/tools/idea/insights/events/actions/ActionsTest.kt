@@ -35,7 +35,7 @@ import org.junit.Test
 
 private class CancellationEntry(
   val cancelledBy: List<Single> = listOf(),
-  val notCancelledBy: List<Single> = listOf()
+  val notCancelledBy: List<Single> = listOf(),
 )
 
 private val ID1 = IssueId("1")
@@ -55,26 +55,26 @@ private val CANCELLATION_TABLE =
     FetchDetails(ID1) to
       CancellationEntry(
         cancelledBy = fetchActions + listOf(FetchDetails(ID1), FetchDetails(ID2)),
-        notCancelledBy = nonFetchActions - FetchDetails(ID1)
+        notCancelledBy = nonFetchActions - FetchDetails(ID1),
       ),
     OpenIssue(ID1) to
       CancellationEntry(
         cancelledBy = listOf(OpenIssue(ID1), CloseIssue(ID1)),
-        notCancelledBy = fetchActions + listOf(OpenIssue(ID2), CloseIssue(ID2))
+        notCancelledBy = fetchActions + listOf(OpenIssue(ID2), CloseIssue(ID2)),
       ),
     CloseIssue(ID1) to
       CancellationEntry(
         cancelledBy = listOf(OpenIssue(ID1), CloseIssue(ID1)),
-        notCancelledBy = fetchActions + listOf(OpenIssue(ID2), CloseIssue(ID2))
+        notCancelledBy = fetchActions + listOf(OpenIssue(ID2), CloseIssue(ID2)),
       ),
     FetchNotes(ID1) to
       CancellationEntry(
         cancelledBy = fetchActions + listOf(FetchNotes(ID1), FetchNotes(ID2)),
-        notCancelledBy = nonFetchActions - FetchNotes(ID1)
+        notCancelledBy = nonFetchActions - FetchNotes(ID1),
       ),
     AddNote(NOTE1) to
       CancellationEntry(cancelledBy = listOf(), notCancelledBy = fetchActions + nonFetchActions),
-    DeleteNote(NOTE_ID1) to CancellationEntry(cancelledBy = (listOf(DeleteNote(NOTE_ID1))))
+    DeleteNote(NOTE_ID1) to CancellationEntry(cancelledBy = (listOf(DeleteNote(NOTE_ID1)))),
   )
 
 class ActionsTest {
@@ -117,7 +117,7 @@ class ActionsTest {
           CloseIssue(ID2),
           AddNote(NOTE1),
           Fetch(FetchSource.FILTER),
-          CloseIssue(ID1)
+          CloseIssue(ID1),
         )
       )
   }

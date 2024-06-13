@@ -65,19 +65,20 @@ public class ProjectSyncStatusNotificationProviderTest extends HeavyPlatformTest
   @SuppressWarnings("FieldCanBeLocal")
   private PropertiesComponent myPropertiesComponent;
 
-  @Parameters(name="{0}")
+  @Parameters(name = "{0}")
   public static Iterable<Object[]> getParameters() {
-    return Arrays.asList(new Object[][] {
-      { "build.gradle", true, true },
-      { "build.gradle.kts", true, true },
-      { "settings.gradle", true, true },
-      { "settings.gradle.kts", true, true },
-      { "README.md", false, false },
-      { "src/main/com/example/MyClass.java", false, false },
-      { "gradle/libs.versions.toml", false, true },
-      { ".gradle/config.properties", false, false }
+    return Arrays.asList(new Object[][]{
+      {"build.gradle", true, true},
+      {"build.gradle.kts", true, true},
+      {"settings.gradle", true, true},
+      {"settings.gradle.kts", true, true},
+      {"README.md", false, false},
+      {"src/main/com/example/MyClass.java", false, false},
+      {"gradle/libs.versions.toml", false, true},
+      {".gradle/config.properties", false, false}
     });
   }
+
   @Parameter(0)
   public String myFilepath;
   @Parameter(1)

@@ -48,7 +48,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       assertNotSame(
         "In paged version of ResultSet we should never run the original query ",
         originalQuery,
-        parsed.query.query
+        parsed.query.query,
       )
       return response
     }
@@ -81,7 +81,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       // Assert
       assertEquals(
         listOf(ResultSetSqliteColumn("col1"), ResultSetSqliteColumn("col2")),
-        columnsFromResultSet
+        columnsFromResultSet,
       )
     }
 
@@ -156,14 +156,15 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
 
     // Act
     // Since we are mocking the answer the values passed to getRowBatch don't matter.
-    val rowsFromResultSet = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, Integer.MAX_VALUE))
+    val rowsFromResultSet =
+      pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, Integer.MAX_VALUE)).rows
 
     // Assert
     assertSize(1, rowsFromResultSet)
     assertEquals("column1", rowsFromResultSet.first().values.first().columnName)
     assertEquals(
       SqliteValue.StringValue("a string"),
-      rowsFromResultSet.first().values.first().value
+      rowsFromResultSet.first().values.first().value,
     )
   }
 
@@ -287,7 +288,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     assertInstanceOf(error1.cause, LiveInspectorException::class.java)
     assertEquals(
       "An error has occurred which requires you to restart your app: errorMessage",
-      error1.cause!!.message
+      error1.cause!!.message,
     )
     assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
   }
@@ -322,21 +323,21 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     assertInstanceOf(error1.cause, LiveInspectorException::class.java)
     assertEquals(
       "An error has occurred which might require you to restart your app: errorMessage",
-      error1.cause!!.message
+      error1.cause!!.message,
     )
     assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
   }
 
   private fun createPagedLiveSqliteResultSet(
     statement: SqliteStatement,
-    messenger: AppInspectorMessenger
+    messenger: AppInspectorMessenger,
   ): LiveSqliteResultSet {
     val liveSqliteResultSet =
       PagedLiveSqliteResultSet(
         statement,
         DatabaseInspectorMessenger(messenger, scope, taskExecutor),
         0,
-        taskExecutor
+        taskExecutor,
       )
     Disposer.register(testRootDisposable, liveSqliteResultSet)
     return liveSqliteResultSet

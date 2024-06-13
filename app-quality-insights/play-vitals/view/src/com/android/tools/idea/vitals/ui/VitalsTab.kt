@@ -18,8 +18,10 @@ package com.android.tools.idea.vitals.ui
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -29,6 +31,7 @@ import com.android.tools.idea.insights.ui.OfflineBalloonMaker
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
 import com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction
+import com.android.tools.idea.insights.ui.actions.AppInsightsToggleAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.toTimestamp
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
@@ -60,8 +63,8 @@ import kotlinx.coroutines.launch
 class VitalsTab(
   private val projectController: AppInsightsProjectLevelController,
   private val project: Project,
-  private val clock: Clock,
-  tracker: AppInsightsTracker
+  clock: Clock,
+  tracker: AppInsightsTracker,
 ) : JPanel(BorderLayout()), Disposable {
   private val scope = AndroidCoroutineScope(this)
 
@@ -94,6 +97,13 @@ class VitalsTab(
 
   private val timestampAction = AppInsightsDisplayRefreshTimestampAction(timestamp, clock, scope)
 
+  private val failureTypeFlow =
+    projectController.state
+      .map { state -> state.filters.failureTypeToggles.selected }
+      .distinctUntilChanged()
+  private val crashToggle = failureTypeFlow.map { it.contains(FailureType.FATAL) }
+  private val anrToggle = failureTypeFlow.map { it.contains(FailureType.ANR) }
+
   init {
     add(createToolbar().component, BorderLayout.NORTH)
     add(VitalsContentContainerPanel(projectController, project, tracker, this))
@@ -106,10 +116,34 @@ class VitalsTab(
         VitalsConnectionSelectorAction(
           connections as StateFlow<Selection<VitalsConnection>>,
           scope,
-          projectController::selectConnection
+          projectController::selectConnection,
         )
       )
       addSeparator()
+      if (StudioFlags.CRASHLYTICS_J_UI.get()) {
+        add(
+          AppInsightsToggleAction(
+            "Crash",
+            null,
+            StudioIcons.AppQualityInsights.FATAL,
+            crashToggle,
+            scope,
+          ) {
+            projectController.toggleFailureType(FailureType.FATAL)
+          }
+        )
+        add(
+          AppInsightsToggleAction(
+            "ANR",
+            null,
+            StudioIcons.AppQualityInsights.ANR,
+            anrToggle,
+            scope,
+          ) {
+            projectController.toggleFailureType(FailureType.ANR)
+          }
+        )
+      }
       add(
         AppInsightsDropDownAction(
           "Interval",
@@ -117,7 +151,7 @@ class VitalsTab(
           null,
           intervals,
           null,
-          projectController::selectTimeInterval
+          projectController::selectTimeInterval,
         )
       )
       add(
@@ -127,7 +161,7 @@ class VitalsTab(
           null,
           visibilityTypes,
           null,
-          projectController::selectVisibilityType
+          projectController::selectVisibilityType,
         )
       )
       add(
@@ -144,7 +178,7 @@ class VitalsTab(
               text = "Play Tracks"
               horizontalAlignment = SwingConstants.LEFT
             }
-          }
+          },
         )
       )
       add(
@@ -153,7 +187,7 @@ class VitalsTab(
           flow = devices,
           scope = scope,
           groupNameSupplier = { it.manufacturer },
-          nameSupplier = { it.model.substringAfter("/") },
+          nameSupplier = { it.displayName },
           secondaryGroupSupplier = { setOf(it.deviceType) },
           onSelected = projectController::selectDevices,
           secondaryTitleSupplier = {
@@ -161,7 +195,7 @@ class VitalsTab(
               text = "Device Types"
               horizontalAlignment = SwingConstants.LEFT
             }
-          }
+          },
         )
       )
       add(
@@ -171,7 +205,7 @@ class VitalsTab(
           scope = scope,
           groupNameSupplier = { it.displayName },
           nameSupplier = { it.displayName },
-          onSelected = projectController::selectOperatingSystems
+          onSelected = projectController::selectOperatingSystems,
         )
       )
       addSeparator()

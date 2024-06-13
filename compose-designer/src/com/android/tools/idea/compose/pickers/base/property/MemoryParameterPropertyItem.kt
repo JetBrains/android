@@ -27,7 +27,7 @@ import com.android.tools.idea.compose.pickers.base.editingsupport.PsiEditingSupp
 open class MemoryParameterPropertyItem(
   override var name: String,
   override val defaultValue: String?,
-  inputValidation: EditingValidation = { EDITOR_NO_ERROR }
+  inputValidation: EditingValidation = { EDITOR_NO_ERROR },
 ) : PsiPropertyItem {
   override var value: String? = null
 

@@ -1,23 +1,35 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.google.common.collect.HashBiMap
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
 import java.io.File
@@ -26,14 +38,16 @@ class GradleBlockModelTest : GradleFileModelTestCase() {
 
   override fun setUp() {
     super.setUp()
+    // clean android model map
     ApplicationManager.getApplication().getService(GradleBlockModelMap::class.java).resetCache()
-    GradleBlockModelMap.BlockModelProvider.EP.point.registerExtension(MyTestModelProviderExtension(), testRootDisposable)
-    GradleBlockModelMap.BlockModelProvider.EP.point.registerExtension(MyNestedModelProviderExtension(), testRootDisposable)
+
+    BlockModelProvider.EP.point.registerExtension(MyTestModelProviderExtension(), testRootDisposable)
+    BlockModelProvider.EP.point.registerExtension(MyNestedModelProviderExtension(), testRootDisposable)
   }
 
   @Test
   fun testPluggableBlockCanBeRead() {
-    writeToBuildFile(TestFile.PLUGGABLE_BLOCK)
+    writeToBuildFile(TestFile.PARSE)
 
     val buildModel = gradleBuildModel
     val myTestModel = buildModel.getModel(MyTestDslModel::class.java)
@@ -48,13 +62,13 @@ class GradleBlockModelTest : GradleFileModelTestCase() {
     val myTestModel = buildModel.getModel(MyTestDslModel::class.java)
     myTestModel.setDigit(1)
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFile.PLUGGABLE_BLOCK_WRITE_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.WRITE_EXPECTED)
     assertEquals(1, myTestModel.getDigit())
   }
 
   @Test
   fun testPluggableBlockResolved() {
-    writeToBuildFile(TestFile.PLUGGABLE_BLOCK_RESOLVED)
+    writeToBuildFile(TestFile.RESOLVE)
 
     val buildModel = gradleBuildModel
     val myTestModel = buildModel.getModel(MyTestDslModel::class.java)
@@ -63,7 +77,7 @@ class GradleBlockModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testPluggableNestedBlock() {
-    writeToBuildFile(TestFile.PLUGGABLE_BLOCK_NESTED)
+    writeToBuildFile(TestFile.PARSE_NESTED)
     val buildModel = gradleBuildModel
     val myTestModel = buildModel.getModel(MyTestDslModel::class.java)
     val myNestedTestDslModel = myTestModel.getNestedModel(MyNestedDslModel::class.java)
@@ -80,68 +94,71 @@ class GradleBlockModelTest : GradleFileModelTestCase() {
     val myNestedTestDslModel = myTestModel.getNestedModel(MyNestedDslModel::class.java)
     myNestedTestDslModel.setValue("Qwerty")
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFile.PLUGGABLE_BLOCK_NESTED)
+    verifyFileContents(myBuildFile, TestFile.PARSE_NESTED)
   }
 
 
   @Test
   fun testBlockModelsRegisteredForBuildFile() {
+    writeToBuildFile("")
+    val kind = (gradleBuildModel as GradleBuildModelImpl).dslFile.parser.kind
     val modelMap = ApplicationManager.getApplication().getService(GradleBlockModelMap::class.java)
-    val rootModels = modelMap.childrenOf(GradleBuildModel::class.java)
-    assertContainsElements(rootModels, MyTestDslModel::class.java, AndroidModel::class.java)
+    val rootModels = modelMap.childrenOf(GradleBuildModel::class.java, kind)
+    assertContainsElements(rootModels, MyTestDslModel::class.java)
 
-    val nestedModels = modelMap.childrenOf(MyTestDslModel::class.java)
+    val nestedModels = modelMap.childrenOf(MyTestDslModel::class.java, kind)
     assertSameElements(nestedModels, MyNestedDslModel::class.java)
-    assertEmpty(modelMap.childrenOf(MyNestedDslModel::class.java))
+    assertEmpty(modelMap.childrenOf(MyNestedDslModel::class.java, kind))
   }
 
 
+  @Test
   fun testThrowsExceptionForUnregisteredModel() {
-    UsefulTestCase.assertThrows(IllegalArgumentException::class.java,
-                                "Block model for MyNestedTestDslModel.class is not registered in GradleBuildModel.class") {
-      writeToBuildFile("")
-      val buildModel = gradleBuildModel
-      buildModel.getModel(MyNestedDslModel::class.java)
-    }
+    writeToBuildFile("")
+    val buildModel = gradleBuildModel
+    assertThrows(
+      java.lang.IllegalArgumentException::class.java,
+      "Block model for interface com.android.tools.idea.gradle.dsl.model.MyNestedDslModel is" +
+      " not registered in interface com.android.tools.idea.gradle.dsl.api.GradleBuildModel"
+    ) { buildModel.getModel(MyNestedDslModel::class.java) }
   }
 
-  internal enum class TestFile(private val path: @SystemDependent String) : TestFileName {
-    PLUGGABLE_BLOCK("pluggableBlock/pluggableBlock"),
-    PLUGGABLE_BLOCK_RESOLVED("pluggableBlock/pluggableBlockResolved"),
-    PLUGGABLE_BLOCK_WRITE_EXPECTED("pluggableBlock/pluggableBlockWriteExpected"),
-    PLUGGABLE_BLOCK_NESTED("pluggableBlock/pluggableBlockNested");
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
+    PARSE("parse"),
+    PARSE_NESTED("parseNested"),
+    RESOLVE("resolve"),
+    WRITE_EXPECTED("writeExpected"),
+    ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
-      return super.toFile("$basePath/$path", extension)
+      return super.toFile("$basePath/pluggableBlock/$path", extension)
     }
   }
 }
 
+class MyTestModelProviderExtension : BlockModelProvider<GradleBuildModel, GradleDslFile> {
 
-//========== below classes required to be implemented to create new DSL block for root
+  override val parentClass = GradleBuildModel::class.java
+  override val parentDslClass = GradleDslFile::class.java
 
-class MyTestModelProviderExtension : GradleBlockModelMap.BlockModelProvider<GradleBuildModel, GradleDslFile> {
-
-  override fun getParentClass() = GradleBuildModel::class.java
-
-  override fun availableModels(): List<GradleBlockModelMap.BlockModelBuilder<*, GradleDslFile>> {
+  override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, GradleDslFile>> {
     return ROOT_MODELS
   }
 
-  override fun elementsMap(): Map<String, PropertiesElementDescription<*>> {
+  override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> {
     return ROOT_ELEMENTS_MAP
   }
 
   companion object {
     private val ROOT_MODELS = listOf(
-      object : GradleBlockModelMap.BlockModelBuilder<MyTestDslModel, GradleDslFile> {
+      object : BlockModelBuilder<MyTestDslModel, GradleDslFile> {
         override fun modelClass() = MyTestDslModel::class.java
-        override fun create(file: GradleDslFile) = MyTestDslModelImpl(file.ensurePropertyElement(MyTestDslElement.MYTESTDSL))
+        override fun create(file: GradleDslFile) = MyTestDslModelImpl(file.ensurePropertyElement(MyTestDslElement.MY_TEST_DSL_ELEMENT_DESC))
       }
     )
 
     private val ROOT_ELEMENTS_MAP = mapOf(
-      "myTestDslElement" to MyTestDslElement.MYTESTDSL
+      "myTestDslElement" to MyTestDslElement.MY_TEST_DSL_ELEMENT_DESC
     )
   }
 }
@@ -154,28 +171,28 @@ interface MyTestDslModel : GradleDslModel {
 
 class MyTestDslElement(parent: GradleDslElement, name: GradleNameElement) : GradleDslBlockElement(parent, name) {
   companion object {
-    val MYTESTDSL = PropertiesElementDescription("myTestDslElement", MyTestDslElement::class.java, ::MyTestDslElement)
-    val elementName = "stringVal"
+    val MY_TEST_DSL_ELEMENT_DESC = PropertiesElementDescription("myTestDslElement", MyTestDslElement::class.java, ::MyTestDslElement)
+    const val ELEMENT_NAME = "stringVal"
   }
 
-  override fun getChildPropertiesElementsDescriptionMap(): ImmutableMap<String, PropertiesElementDescription<GradlePropertiesDslElement>> {
-    return GradleBlockModelMap.getInstance().getOrCreateElementMap(MyTestDslElement::class.java)
+  override fun getChildPropertiesElementsDescriptionMap(kind: GradleDslNameConverter.Kind): ImmutableMap<String, PropertiesElementDescription<*>> {
+    return GradleBlockModelMap.instance.getOrCreateElementMap(MyTestDslElement::class.java, kind)
   }
 }
 
-class MyTestDslModelImpl(val dslElement: MyTestDslElement) : MyTestDslModel, GradleDslBlockModel(dslElement) {
+class MyTestDslModelImpl(private val dslElement: MyTestDslElement) : MyTestDslModel, GradleDslBlockModel(dslElement) {
   override fun getDigit(): Int {
     if (PropertyUtil.isPropertiesElementOrMap(myDslElement)) {
-      val value = GradlePropertyModelBuilder.create(myDslElement, MyTestDslElement.elementName).buildResolved().getValue(
+      val value = GradlePropertyModelBuilder.create(myDslElement, MyTestDslElement.ELEMENT_NAME).buildResolved().getValue(
         GradlePropertyModel.STRING_TYPE)
       return map.inverse()[value] ?: throw IllegalStateException(value)
     }
-    return -1;
+    return -1
   }
 
   override fun setDigit(v: Int) {
-    val value = map.get(v) ?: throw IllegalArgumentException()
-    GradlePropertyModelBuilder.create(myDslElement, MyTestDslElement.elementName)
+    val value = map[v] ?: throw IllegalArgumentException()
+    GradlePropertyModelBuilder.create(myDslElement, MyTestDslElement.ELEMENT_NAME)
       .build().setValue(value)
   }
 
@@ -218,17 +235,18 @@ class MyNestedDslModelImpl(dslElement: MyNestedDslElement) : MyNestedDslModel, G
   }
 }
 
-class MyNestedModelProviderExtension : GradleBlockModelMap.BlockModelProvider<MyTestDslModel, MyTestDslElement> {
-  override fun getParentClass() = MyTestDslModel::class.java
-  override fun availableModels(): List<GradleBlockModelMap.BlockModelBuilder<MyNestedDslModel, MyTestDslElement>> = listOf(
-    object : GradleBlockModelMap.BlockModelBuilder<MyNestedDslModel, MyTestDslElement> {
+class MyNestedModelProviderExtension : BlockModelProvider<MyTestDslModel, MyTestDslElement> {
+  override val parentClass = MyTestDslModel::class.java
+  override val parentDslClass = MyTestDslElement::class.java
+  override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, MyTestDslElement>> = listOf(
+    object : BlockModelBuilder<MyNestedDslModel, MyTestDslElement> {
       override fun modelClass() = MyNestedDslModel::class.java
       override fun create(dslElement: MyTestDslElement) = MyNestedDslModelImpl(
         dslElement.ensurePropertyElement(MyNestedDslElement.MYNESTEDDSL))
     }
   )
 
-  override fun elementsMap() = mapOf(
+  override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> = mapOf(
     "nested" to MyNestedDslElement.MYNESTEDDSL
   )
 }

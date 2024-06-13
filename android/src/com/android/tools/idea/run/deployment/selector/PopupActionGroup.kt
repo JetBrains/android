@@ -20,11 +20,14 @@ import com.android.tools.idea.run.deployment.Heading
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 
 internal class ActionGroupSection(val headingActionId: String?, val actions: List<AnAction>)
 
 internal fun DefaultActionGroup.addSection(section: ActionGroupSection) {
-  section.headingActionId?.let { ActionManager.getInstance().getAction(it) }?.let { add(it) }
+  section.headingActionId
+    ?.let { ActionManager.getInstance().getAction(it) }
+    ?.let { add(Separator(it.templateText)) }
   addAll(section.actions)
 }
 
@@ -45,7 +48,7 @@ internal fun createDeviceSelectorActionGroup(
   return createActionGroup(
     ActionGroupSection(
       Heading.RUNNING_DEVICES_ID,
-      devices.filter { it.isConnected }.map { SelectDeviceAction(it) }
+      devices.filter { it.isConnected }.map { SelectDeviceAction(it) },
     ),
     ActionGroupSection(
       Heading.AVAILABLE_DEVICES_ID,
@@ -56,19 +59,19 @@ internal fun createDeviceSelectorActionGroup(
             it.snapshots.isNotEmpty() -> SnapshotActionGroup(it)
             else -> SelectDeviceAction(it)
           }
-        }
+        },
     ),
     ActionGroupSection(
       null,
       listOfNotNull(
         actionManager.getAction(SelectMultipleDevicesAction.ID),
         actionManager.getAction(PairDevicesUsingWiFiAction.ID),
-        actionManager.getAction("Android.DeviceManager")
-      )
+        actionManager.getAction("Android.DeviceManager"),
+      ),
     ),
     ActionGroupSection(
       null,
-      listOfNotNull(actionManager.getAction("DeveloperServices.ConnectionAssistant"))
+      listOfNotNull(actionManager.getAction("DeveloperServices.ConnectionAssistant")),
     ),
   )
 }

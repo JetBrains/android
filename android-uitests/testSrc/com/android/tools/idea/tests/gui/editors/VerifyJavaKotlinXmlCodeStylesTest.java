@@ -259,6 +259,7 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
     // Apply Code Reformat
     Wait.seconds(2).expecting("Wait for code to be reformatted").until(() -> {
       try {
+        editorFixture.open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.EDITOR);
         guiTest.ideFrame().invokeMenuPath("Code", "Reformat Code");
         return true;
       }

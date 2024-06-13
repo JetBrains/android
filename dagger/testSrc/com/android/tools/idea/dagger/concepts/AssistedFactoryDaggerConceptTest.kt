@@ -66,7 +66,7 @@ class AssistedFactoryDaggerConceptTest {
           fun create2(dep3: Dep3, dep4: Dep4): CreatedObject2
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val indexResults = AssistedFactoryDaggerConcept.indexers.runIndexerOn(psiFile)
@@ -76,7 +76,7 @@ class AssistedFactoryDaggerConceptTest {
         MY_ASSISTED_FACTORY_ID.asFqNameString(),
         setOf(AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)),
         "CreatedObject1",
-        setOf(AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1"))
+        setOf(AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1")),
       )
   }
 
@@ -103,7 +103,7 @@ class AssistedFactoryDaggerConceptTest {
 
       interface NotAnAssistedFactory
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val myAssistedFactoryDaggerElement =
@@ -114,12 +114,14 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(myAssistedFactoryDaggerElement)
 
     assertThat(
         AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -141,7 +143,7 @@ class AssistedFactoryDaggerConceptTest {
 
       interface NotAnAssistedFactory {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val myAssistedFactoryDaggerElement =
@@ -150,12 +152,14 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(myAssistedFactoryDaggerElement)
 
     assertThat(
         AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -191,7 +195,7 @@ class AssistedFactoryDaggerConceptTest {
       class Dep2
       class CreatedObject
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val myAssistedFactoryMethodDaggerElement =
@@ -201,6 +205,7 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(myAssistedFactoryMethodDaggerElement)
 
@@ -208,6 +213,7 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryMethodIndexValue(NOT_AN_ASSISTED_FACTORY_ID, "create2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -237,7 +243,7 @@ class AssistedFactoryDaggerConceptTest {
       class Dep2 {}
       class CreatedObject {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val myAssistedFactoryMethodDaggerElement =
@@ -249,6 +255,7 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(myAssistedFactoryMethodDaggerElement)
 
@@ -256,6 +263,7 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryMethodIndexValue(NOT_AN_ASSISTED_FACTORY_ID, "create2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -286,7 +294,7 @@ class AssistedFactoryDaggerConceptTest {
 
       class CreatedObject @AssistedInject constructor(@Assisted dep1: Dep1, @Assisted  dep2: Dep2, dep3: Dep3)
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val assistedFactoryMethodDaggerElement =
@@ -303,7 +311,7 @@ class AssistedFactoryDaggerConceptTest {
           assistedInjectConstructorDaggerElement,
           "AssistedInject constructors",
           "navigate.to.assisted.inject",
-          "CreatedObject"
+          "CreatedObject",
         )
       )
   }

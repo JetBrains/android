@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.explainer.IssueExplainer
-import com.android.tools.idea.explainer.IssueExplainer.RequestKind.LOGCAT
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.studiobot.ChatService
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.MapDataContext
@@ -44,18 +45,24 @@ class AskStudioBotActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  private val mockIssueExplainer =
-    spy(
-      object : IssueExplainer() {
-        override fun isAvailable() = true
-      }
-    )
+  private class MockStudioBot : StudioBot.StubStudioBot() {
+    var available = true
+    var contextAllowed = true
+
+    override fun isAvailable() = available
+
+    override fun isContextAllowed(project: Project) = contextAllowed
+
+    private val _chatService = spy(object : ChatService.StubChatService() {})
+
+    override fun chat(project: Project): ChatService = _chatService
+  }
 
   @get:Rule
   val rule =
     RuleChain(
       ApplicationRule(),
-      ApplicationServiceRule(IssueExplainer::class.java, mockIssueExplainer),
+      ApplicationServiceRule(StudioBot::class.java, MockStudioBot()),
       projectRule,
       logcatEditorRule,
       EdtRule(),
@@ -103,7 +110,7 @@ class AskStudioBotActionTest {
     )
     editor.selectionModel.setSelection(
       editor.document.text.indexOf("<") + 1,
-      editor.document.text.indexOf(">")
+      editor.document.text.indexOf(">"),
     )
     val action = AskStudioBotAction()
 
@@ -115,7 +122,7 @@ class AskStudioBotActionTest {
 
   @Test
   fun update_studioBotNotAvailable() {
-    whenever(mockIssueExplainer.isAvailable()).thenReturn(false)
+    (StudioBot.getInstance() as MockStudioBot).available = false
     val event = testActionEvent(editor)
     logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "Message 1"))
     editor.caretModel.moveToOffset(editor.document.textLength / 2)
@@ -127,6 +134,21 @@ class AskStudioBotActionTest {
   }
 
   @Test
+  fun update_contextNotAllowed() {
+    // The action *should* be available when the context sharing setting is
+    // disabled, but its behavior may change.
+    (StudioBot.getInstance() as MockStudioBot).contextAllowed = false
+    val event = testActionEvent(editor)
+    logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "Message 1"))
+    editor.caretModel.moveToOffset(editor.document.textLength / 2)
+    val action = AskStudioBotAction()
+
+    action.update(event)
+
+    assertThat(event.presentation.isVisible).isTrue()
+  }
+
+  @Test
   fun actionPerformed_noSelection() {
     val event = testActionEvent(editor)
     logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "Message 1"))
@@ -135,7 +157,13 @@ class AskStudioBotActionTest {
 
     action.actionPerformed(event)
 
-    verify(mockIssueExplainer).explain(project, "Message 1 with tag MyTag", LOGCAT)
+    val prompt =
+      buildPrompt(project) {
+        userMessage { text("Explain this log entry: Message 1 with tag MyTag", emptyList()) }
+      }
+
+    verify(StudioBot.getInstance().chat(project))
+      .sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
   }
 
   @Test
@@ -149,16 +177,22 @@ class AskStudioBotActionTest {
 
     action.actionPerformed(event)
 
-    verify(mockIssueExplainer)
-      .explain(
-        project,
-        """
-        Exception
+    val prompt =
+      buildPrompt(project) {
+        userMessage {
+          text(
+            """
+        Explain this crash: Exception
         at com.example(File.kt:1) with tag MyTag
       """
-          .trimIndent(),
-        LOGCAT
-      )
+              .trimIndent(),
+            emptyList(),
+          )
+        }
+      }
+
+    verify(StudioBot.getInstance().chat(project))
+      .sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
   }
 
   @Test
@@ -169,13 +203,36 @@ class AskStudioBotActionTest {
     )
     editor.selectionModel.setSelection(
       editor.document.text.indexOf("<") + 1,
-      editor.document.text.indexOf(">")
+      editor.document.text.indexOf(">"),
     )
     val action = AskStudioBotAction()
 
     action.actionPerformed(event)
 
-    verify(mockIssueExplainer).explain(project, "This is the selection", LOGCAT)
+    val prompt =
+      buildPrompt(project) {
+        userMessage { text("Explain this selection: This is the selection", emptyList()) }
+      }
+
+    verify(StudioBot.getInstance().chat(project))
+      .sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
+  }
+
+  @Test
+  fun actionPerformed_contextNotAllowed() {
+    (StudioBot.getInstance() as MockStudioBot).contextAllowed = false
+    val event = testActionEvent(editor)
+    logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "Message 1"))
+    editor.caretModel.moveToOffset(editor.document.textLength / 2)
+    val action = AskStudioBotAction()
+
+    action.actionPerformed(event)
+
+    verify(StudioBot.getInstance().chat(project))
+      .stageChatQuery(
+        "Explain this log entry: Message 1 with tag MyTag",
+        StudioBot.RequestSource.LOGCAT,
+      )
   }
 
   private fun testActionEvent(editor: EditorEx): AnActionEvent {

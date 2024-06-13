@@ -23,6 +23,7 @@ import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
@@ -31,7 +32,8 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LayersManager extends NlAbstractWindowManager {
+@Service(Service.Level.PROJECT)
+public final class LayersManager extends NlAbstractWindowManager {
   private LayersPanel myLayersPanel;
 
   public LayersManager(@NotNull Project project) {

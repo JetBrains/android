@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui.actions
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
@@ -25,7 +26,6 @@ import com.android.tools.idea.insights.GroupAware
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ui.TreeDropDownPopup
-import com.android.tools.idea.insights.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.ibm.icu.impl.Assert.fail
@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.ThreeStateCheckBox
@@ -82,7 +83,6 @@ class TreeDropDownActionTest {
   private val scope: CoroutineScope
     get() = AndroidCoroutineScope(projectRule.testRootDisposable)
 
-  @org.junit.Ignore("b/250064419")
   @Test
   fun `open popup shows correct selection`(): Unit =
     runBlocking(AndroidDispatchers.uiThread) {
@@ -99,7 +99,7 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -108,7 +108,7 @@ class TreeDropDownActionTest {
         }
       panel.add(toolbar.component, BorderLayout.CENTER)
 
-      toolbar.updateActionsImmediately()
+      fakeUi.updateToolbars()
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
@@ -150,7 +150,7 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -195,10 +195,10 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
 
-      waitForCondition(1000) { dropdown.selectionState.value.items.size == 3 }
+      delayUntilCondition(200) { dropdown.selectionState.value.items.size == 3 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -206,7 +206,7 @@ class TreeDropDownActionTest {
           targetComponent = panel
         }
       panel.add(toolbar.component, BorderLayout.CENTER)
-      toolbar.updateActionsImmediately()
+      fakeUi.updateToolbars()
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
@@ -272,10 +272,10 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
 
-      waitForCondition(1000) { dropdown.selectionState.value.items.size == 2 }
+      delayUntilCondition(200) { dropdown.selectionState.value.items.size == 2 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -283,7 +283,7 @@ class TreeDropDownActionTest {
           targetComponent = panel
         }
       panel.add(toolbar.component, BorderLayout.CENTER)
-      toolbar.updateActionsImmediately()
+      fakeUi.updateToolbars()
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
@@ -308,7 +308,7 @@ class TreeDropDownActionTest {
         MutableStateFlow(
           MultiSelection(
             setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
-            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5)
+            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
           )
         )
 
@@ -320,10 +320,10 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { fakeUi.getPosition(this) }
+          getLocationOnScreen = { fakeUi.getPosition(this) },
         )
 
-      waitForCondition(1000) { dropdown.selectionState.value.items.size == 5 }
+      delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -331,7 +331,9 @@ class TreeDropDownActionTest {
           targetComponent = panel
         }
       panel.add(toolbar.component, BorderLayout.CENTER)
-      toolbar.updateActionsImmediately()
+      fakeUi.updateToolbars()
+
+      delayUntilCondition(200) { toolbar.component.componentCount > 0 }
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
@@ -381,7 +383,7 @@ class TreeDropDownActionTest {
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
-          getLocationOnScreen = { FakeUi(panel).getPosition(this) }
+          getLocationOnScreen = { FakeUi(panel).getPosition(this) },
         )
 
       dropdown.selectionState.first { it.items.size == MAX_DROPDOWN_ITEMS + 1 }
@@ -392,7 +394,7 @@ class TreeDropDownActionTest {
           targetComponent = panel
         }
       panel.add(toolbar.component, BorderLayout.CENTER)
-      toolbar.updateActionsImmediately()
+      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
@@ -417,7 +419,7 @@ class TreeDropDownActionTest {
         MutableStateFlow(
           MultiSelection(
             setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
-            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5)
+            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
           )
         )
       val dropdown =
@@ -431,10 +433,10 @@ class TreeDropDownActionTest {
             setOf(SimpleGroup(if (it.groupingKey == "1") "ONE" else "OTHER"))
           },
           onSelected = {},
-          getLocationOnScreen = { FakeUi(panel).getPosition(this) }
+          getLocationOnScreen = { FakeUi(panel).getPosition(this) },
         )
 
-      waitForCondition(1000) { dropdown.selectionState.value.items.size == 5 }
+      delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -442,7 +444,7 @@ class TreeDropDownActionTest {
           targetComponent = panel
         }
       panel.add(toolbar.component, BorderLayout.CENTER)
-      toolbar.updateActionsImmediately()
+      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
@@ -475,7 +477,7 @@ class TreeDropDownActionTest {
         .filterIsInstance<FakeComponentPopup>()
         .map { it.contentPanel }
         .filterIsInstance<TreeDropDownPopup<SimpleValue, GroupAware.Empty>>()
-        .first()
+        .last()
 }
 
 fun TreeNode.checkedChildren(): List<CheckedTreeNode> =

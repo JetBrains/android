@@ -48,7 +48,7 @@ class ShowQuickFixesActionTest {
     action.update(emptyContextEvent)
     assertEquals(
       ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix",
-      emptyContextEvent.presentation.text
+      emptyContextEvent.presentation.text,
     )
     assertFalse(emptyContextEvent.presentation.isEnabled)
 
@@ -67,7 +67,7 @@ class ShowQuickFixesActionTest {
     action.update(eventWithFix)
     assertEquals(
       ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix",
-      eventWithFix.presentation.text
+      eventWithFix.presentation.text,
     )
     assertTrue(eventWithFix.presentation.isEnabled)
   }
@@ -86,7 +86,7 @@ class ShowQuickFixesActionTest {
         "",
         action.templatePresentation.clone(),
         ActionManager.getInstance(),
-        0
+        0,
       )
 
     assertEquals(0, popupRule.fakePopupFactory.getChildPopups(sourceButton).size)

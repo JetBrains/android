@@ -35,9 +35,9 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
       (ExternalSystemApiUtil.getManager(
         GradleProjectSystemUtil.GRADLE_SYSTEM_ID) as? GradleManager)?.let { gradleManager ->
         val gradleConfigurable = gradleManager.getConfigurable(project)
-        return listOf(ProjectStructureItemGroup("main", IdeSdksConfigurable(project), gradleConfigurable))
+        return listOf(ProjectStructureItemGroup("main", IdeSdksConfigurable(), gradleConfigurable))
       }
-      return listOf(ProjectStructureItemGroup("main", IdeSdksConfigurable(project)))
+      return listOf(ProjectStructureItemGroup("main", IdeSdksConfigurable()))
     }
     val repositorySearchFactory = CachingRepositorySearchFactory()
     val context = PsContextImpl(PsProjectImpl(project, repositorySearchFactory), parentDisposable, false, false, repositorySearchFactory)
@@ -45,7 +45,7 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
     return listOf(
       ProjectStructureItemGroup("main",
                                 ProjectPerspectiveConfigurable(context),
-                                IdeSdksConfigurable(project),
+                                IdeSdksConfigurable(),
                                 VariablesConfigurable(project, context)),
       ProjectStructureItemGroup("modules",
                                 ModulesPerspectiveConfigurable(context),

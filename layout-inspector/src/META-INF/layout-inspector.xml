@@ -59,10 +59,11 @@
         serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver" />
     <notificationGroup id="LAYOUT_INSPECTOR_DISCOVERY" displayType="TOOL_WINDOW" toolWindowId="Running Devices"/>
-  </extensions>
 
-  <extensions defaultExtensionNs="com.android.tools.idea.flags">
-    <experimentalSettingsContributor implementation="com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurableContributor"/>
+    <applicationConfigurable groupId="tools" id="layout.inspector"
+                             bundle="messages.LayoutInspectorBundle"
+                             provider="com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurableProvider"
+                             key="layout.inspector"/>
   </extensions>
 
   <extensionPoints>
@@ -71,9 +72,7 @@
                     area="IDEA_PROJECT"/>
   </extensionPoints>
 
-  <projectListeners>
-    <listener class="com.android.tools.idea.layoutinspector.LayoutInspectorExecutionListener"
-              topic="com.intellij.execution.ExecutionListener"/>
-  </projectListeners>
-
+  <extensions defaultExtensionNs="com.android.tools.idea.transport">
+    <transportConfigContributor implementation="com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.LayoutInspectorTransportConfigContributor" />
+  </extensions>
 </idea-plugin>

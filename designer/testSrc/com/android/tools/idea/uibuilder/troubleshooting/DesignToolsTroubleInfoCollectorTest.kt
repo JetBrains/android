@@ -34,8 +34,8 @@ class DesignToolsTroubleInfoCollectorTest {
 
         Project:
         Module(light_idea_test_case): isLoaded=true type=TYPE_APP isDisposed=false
-          isGradleModule=false isAndroidTest=true isUnitTest=true
-          scopeType=ANDROID_TEST useAndroidX=false rClassTransitive=true
+          isGradleModule=false isAndroidTest=false isUnitTest=false
+          scopeType=MAIN useAndroidX=false rClassTransitive=true
           libDepCount=0
 
 
@@ -46,7 +46,7 @@ class DesignToolsTroubleInfoCollectorTest {
 
       """
         .trimIndent(),
-      output.replace(Regex("timestampMillis=\\d+"), "timestampMillis=123")
+      output.replace(Regex("timestampMillis=\\d+"), "timestampMillis=123"),
     )
   }
 }

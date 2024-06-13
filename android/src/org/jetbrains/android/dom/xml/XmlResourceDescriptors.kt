@@ -49,7 +49,7 @@ object XmlResourceNSDescriptor : XmlNSDescriptorImpl() {
           .toTypedArray()
       CachedValueProvider.Result.create(
         static,
-        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project)
+        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project),
       )
     }
   }
@@ -60,7 +60,7 @@ object XmlResourceNSDescriptor : XmlNSDescriptorImpl() {
 class PreferenceElementDescriptor(
   override val clazz: PsiClass?,
   delegate: XmlElementDescriptor,
-  private val baseGroupClassName: String
+  private val baseGroupClassName: String,
 ) : TagFromClassDescriptor, AndroidXmlTagDescriptor(delegate) {
   override val isContainer by lazy { InheritanceUtil.isInheritor(clazz, baseGroupClassName) }
 

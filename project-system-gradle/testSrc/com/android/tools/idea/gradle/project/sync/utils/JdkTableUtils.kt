@@ -21,10 +21,10 @@ import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.JdkRootsTy
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.JdkRootsType.VALID
 import com.android.tools.idea.sdk.extensions.isEqualTo
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Disposer
@@ -98,8 +98,10 @@ object JdkTableUtils {
   ) {
     jdks.forEach { (name, path, rootsType) ->
       val jdkPath = findOrCreateTempDir(path.orEmpty(), tempDir).path
-      val createdJdk = (JavaSdk.getInstance().createJdk(name, jdkPath) as ProjectJdkImpl).apply {
+      val createdJdk = JavaSdk.getInstance().createJdk(name, jdkPath)
+      createdJdk.sdkModificator.run {
         homePath = path
+        WriteAction.run<Throwable>(::commitChanges)
       }
       when (rootsType) {
         INVALID -> replaceJdkRoots(createdJdk, roots = generateCorruptedJdkRoots(createdJdk, tempDir))
@@ -114,7 +116,7 @@ object JdkTableUtils {
     sdk.sdkModificator.run {
       removeAllRoots()
       addRoots(roots)
-      commitChanges()
+      WriteAction.run<Throwable>(::commitChanges)
     }
   }
 

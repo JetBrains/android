@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.ScreenReader
@@ -42,7 +43,6 @@ import java.awt.Insets
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
@@ -65,7 +65,7 @@ data class LayoutData(
   val modelTooltip: String?,
   val x: Int,
   val y: Int,
-  val scaledSize: Dimension
+  val scaledSize: Dimension,
 ) {
 
   // Used to avoid extra allocations in isValidFor calls
@@ -89,7 +89,7 @@ data class LayoutData(
         sceneView.scene.sceneManager.model.modelTooltip,
         sceneView.x,
         sceneView.y,
-        sceneView.getContentSize(null).scaleBy(sceneView.scale)
+        sceneView.getContentSize(null).scaleBy(sceneView.scale),
       )
   }
 }
@@ -158,7 +158,7 @@ class SceneViewPeerPanel(
             sceneViewMargin.left,
             sceneViewMargin.bottom,
             // The content is aligned on the left
-            sceneViewMargin.right + horizontalPadding
+            sceneViewMargin.right + horizontalPadding,
           )
         } else {
           sceneViewMargin
@@ -182,7 +182,7 @@ class SceneViewPeerPanel(
           x - margin.left,
           y - margin.top,
           cachedScaledContentSize.width + margin.left + margin.right,
-          cachedScaledContentSize.height + margin.top + margin.bottom
+          cachedScaledContentSize.height + margin.top + margin.bottom,
         )
         sceneView.scene.needsRebuildList()
       }
@@ -203,7 +203,7 @@ class SceneViewPeerPanel(
 
   private fun createToolbar(
     actions: List<AnAction>,
-    toolbarCustomization: (ActionToolbar) -> Unit
+    toolbarCustomization: (ActionToolbar) -> Unit,
   ): JComponent? {
     if (actions.isEmpty()) {
       return null
@@ -235,7 +235,7 @@ class SceneViewPeerPanel(
         sceneViewStatusIconAction?.let {
           createToolbar(listOf(sceneViewStatusIconAction)) {
             (it as? ActionToolbarImpl)?.setForceMinimumSize(true)
-            it.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+            it.layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
           }
         }
       val sceneViewStatusIconSize = sceneViewStatusIcon?.minimumSize?.width ?: 0
@@ -274,7 +274,7 @@ class SceneViewPeerPanel(
         maxOf(
           minimumSize.height,
           sceneViewToolbar?.preferredSize?.height ?: 0,
-          sceneViewToolbar?.minimumSize?.height ?: 0
+          sceneViewToolbar?.minimumSize?.height ?: 0,
         )
       minimumSize = Dimension(minWidth, minHeight)
       preferredSize = sceneViewToolbar?.let { Dimension(minWidth, minHeight) }
@@ -399,7 +399,8 @@ class SceneViewPeerPanel(
 
   override fun doLayout() {
     layoutData = LayoutData.fromSceneView(sceneView)
-    labelPanel.layoutData = layoutData
+    labelPanel.updateFromLayoutData(layoutData)
+    labelPanel.doLayout()
 
     //      SceneViewPeerPanel layout:
     //
@@ -424,7 +425,7 @@ class SceneViewPeerPanel(
         0,
         0,
         width + insets.horizontal,
-        sceneViewTopPanel.preferredSize.height
+        sceneViewTopPanel.preferredSize.height,
       )
     }
     val leftSectionWidth = sceneViewLeftPanel.preferredSize.width
@@ -438,25 +439,25 @@ class SceneViewPeerPanel(
       leftSectionWidth,
       sceneViewTopPanel.preferredSize.height,
       width + insets.horizontal - leftSectionWidth,
-      centerPanelHeight
+      centerPanelHeight,
     )
     sceneViewBottomPanel.setBounds(
       0,
       sceneViewTopPanel.preferredSize.height + centerPanelHeight,
       width + insets.horizontal,
-      sceneViewBottomPanel.preferredSize.height
+      sceneViewBottomPanel.preferredSize.height,
     )
     sceneViewLeftPanel.setBounds(
       0,
       sceneViewTopPanel.preferredSize.height,
       sceneViewLeftPanel.preferredSize.width,
-      centerPanelHeight
+      centerPanelHeight,
     )
     sceneViewRightPanel.setBounds(
       sceneViewLeftPanel.preferredSize.width + positionableAdapter.scaledContentSize.width,
       sceneViewTopPanel.preferredSize.height,
       sceneViewRightPanel.preferredSize.width,
-      centerPanelHeight
+      centerPanelHeight,
     )
     super.doLayout()
   }
@@ -485,7 +486,7 @@ class SceneViewPeerPanel(
       sceneViewBottomPanel.preferredSize.height +
         centerPanelHeight +
         sceneViewTopPanel.minimumSize.height +
-        JBUI.scale(20)
+        JBUI.scale(20),
     )
   }
 

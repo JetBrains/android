@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.intellij.openapi.util.text.StringUtil.toTitleCase
 
 /**
  * Characteristics of a mirrored Android device.
@@ -56,11 +57,11 @@ internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false
   if (!model.isNullOrBlank()) {
     if (!model.startsWith("Pixel")) {
       val manufacturer = manufacturer
-      if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
-        name.append(manufacturer).append(' ')
+      if (!manufacturer.isNullOrBlank() && manufacturer != "unknown" && !model.startsWith(manufacturer, ignoreCase = true)) {
+        name.append(normalizeManufacturerName(manufacturer)).append(' ')
       }
     }
-    name.append(model)
+    name.append(if (model.startsWith("Google Pixel")) model.removePrefix("Google ") else model)
   }
   else {
     name.append("unknown")
@@ -71,3 +72,6 @@ internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false
   }
   return name.toString()
 }
+
+private fun normalizeManufacturerName(manufacturer: String): String =
+  if (manufacturer.isNotEmpty() && manufacturer[0].isLowerCase()) toTitleCase(manufacturer) else manufacturer

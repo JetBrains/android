@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.com.android.tools.profilers
+package com.android.tools.profilers
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
@@ -72,17 +72,18 @@ class LiveStageViewTest {
 
   private lateinit var myProfilersView: StudioProfilersView
   private lateinit var myStage: LiveStage
+  private lateinit var spyProfilers: StudioProfilers
 
   @Before
   fun setUp() {
-    val profilers = Mockito.spy(StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer))
-    profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
-    Mockito.doReturn(SupportLevel.PROFILEABLE).whenever(profilers).selectedSessionSupportLevel
+    spyProfilers = Mockito.spy(StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer))
+    spyProfilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
+    Mockito.doReturn(SupportLevel.PROFILEABLE).whenever(spyProfilers).selectedSessionSupportLevel
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    myStage = LiveStage(profilers)
+    myStage = LiveStage(spyProfilers)
     myStage.enter()
-    myProfilersView = SessionProfilersView(profilers, myComponents, disposableRule.disposable)
+    myProfilersView = SessionProfilersView(spyProfilers, myComponents, disposableRule.disposable)
   }
 
   private fun getJPanels() : List<JPanel> {
@@ -168,7 +169,7 @@ class LiveStageViewTest {
     // Top panel has many child JPanel
     assertThat(topPanelComponents.size).isGreaterThan(2)
 
-    val viewPanel = topPanelComponents[2]
+    val viewPanel = topPanelComponents[1]
     assertThat(viewPanel.background).isEqualTo(ProfilerColors.DEFAULT_BACKGROUND)
 
     val treeWalkerViewPanel = TreeWalker(viewPanel)
@@ -184,7 +185,7 @@ class LiveStageViewTest {
     // Top panel has many child JPanel
     assertThat(topPanelComponents.size).isGreaterThan(1)
 
-    val viewPanel = topPanelComponents[2]
+    val viewPanel = topPanelComponents[1]
     assertThat(viewPanel.background).isEqualTo(ProfilerColors.DEFAULT_BACKGROUND)
 
     val treeWalkerViewPanel = TreeWalker(viewPanel)
@@ -205,7 +206,7 @@ class LiveStageViewTest {
     // Top panel has many child JPanel
     assertThat(topPanelComponents.size).isGreaterThan(2)
 
-    val viewPanel = topPanelComponents[2]
+    val viewPanel = topPanelComponents[1]
     assertThat(viewPanel.background).isEqualTo(ProfilerColors.DEFAULT_BACKGROUND)
 
     val treeWalkerViewPanel = TreeWalker(viewPanel)
@@ -226,15 +227,14 @@ class LiveStageViewTest {
 
   @Test
   fun testToolbar() {
-    val stageView = LiveStageView(myProfilersView, myStage)
-    val result = stageView.toolbar
-    val topLevelToolBar = TreeWalker(result.components[0])
+    val stageToolbar = getToolbar(true)
+    val topLevelToolBar = TreeWalker(stageToolbar.components[0])
     val componentsInToolbar = topLevelToolBar.descendants().filterIsInstance(JComponent::class.java)
     // Toolbar should have elements
     assertThat(componentsInToolbar.size).isGreaterThan(0)
 
-    var toolbar = result.getComponent(0) as JPanel
-    // 1st item is garbage collection and 2nd item is stop recording button
+    var toolbar = stageToolbar.getComponent(0) as JPanel
+    // 1st item is garbage collection, 2nd item is stop recording button
     assertThat(toolbar.components).asList().hasSize(2)
 
     val firstElementInToolbar = toolbar.components[0]
@@ -242,16 +242,59 @@ class LiveStageViewTest {
     // Verify garbage collection button is there in toolbar
     val garbageCollectionButtonInToolbar = TreeWalker(firstElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
     assertThat(garbageCollectionButtonInToolbar.size).isEqualTo(1)
+    // Check if garbage collection icon is visible
+    assertThat(garbageCollectionButtonInToolbar[0].isVisible).isTrue()
 
-    val secondElementInToolbar = toolbar.components[0]
-
-    // Verify stop recording button is there in toolbar
+    val secondElementInToolbar = toolbar.components[1]
+    // Verify stop recording icon is there in toolbar
     val stopRecordingButtonInToolbar = TreeWalker(secondElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
     assertThat(stopRecordingButtonInToolbar.size).isEqualTo(1)
+    // Check if stop recording icon is visible
+    assertThat(stopRecordingButtonInToolbar[0].isVisible).isTrue()
   }
 
   @Test
-  fun testDefaultMessage() {
+  fun testStopRecordingButtonClickEndSession() {
+    val stageToolbar = getToolbar(true)
+    val topLevelToolBar = TreeWalker(stageToolbar.components[0])
+    val componentsInToolbar = topLevelToolBar.descendants().filterIsInstance(JComponent::class.java)
+    // Toolbar should have elements
+    assertThat(componentsInToolbar.size).isGreaterThan(0)
+
+    var toolbar = stageToolbar.getComponent(0) as JPanel
+    // 1st item is garbage collection, 2nd item is stop recording button
+    assertThat(toolbar.components).asList().hasSize(2)
+
+    val secondElementInToolbar = toolbar.components[1]
+    // Verify stop recording icon is there in toolbar
+    val stopRecordingButtonInToolbar = TreeWalker(secondElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
+    assertThat(stopRecordingButtonInToolbar.size).isEqualTo(1)
+    // Check stop recording icon is visible
+    assertThat(stopRecordingButtonInToolbar[0].isVisible).isTrue()
+  }
+
+  @Test
+  fun testToolbarForInActiveSession() {
+    val stageToolbar = getToolbar(false)
+    val topLevelToolBar = TreeWalker(stageToolbar.components[0])
+    val componentsInToolbar = topLevelToolBar.descendants().filterIsInstance(JComponent::class.java)
+    // Toolbar should have elements
+    assertThat(componentsInToolbar.size).isGreaterThan(0)
+
+    var toolbar = stageToolbar.getComponent(0) as JPanel
+    // Item is stop recording icon
+    assertThat(toolbar.components).asList().hasSize(1)
+
+    val firstElementInToolbar = toolbar.components[0]
+    // Verify stop recording icon is there in toolbar
+    val stopRecordingButtonInToolbar = TreeWalker(firstElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
+
+    // Check stop recording icon is invisible
+    assertThat(stopRecordingButtonInToolbar[0].isVisible).isFalse()
+  }
+
+  @Test
+  fun testDefaultMessageNotPresent() {
     val topPanelComponents = getTreeWalkerTopPanel(getJPanels()).descendants().filterIsInstance(JPanel::class.java)
     // Top panel has many child JPanel
     assertThat(topPanelComponents.size).isGreaterThan(2)
@@ -261,12 +304,16 @@ class LiveStageViewTest {
     val viewPanelComponents = treeWalkerViewPanel.descendants().filterIsInstance(JPanel::class.java)
     val secondElementInToolbar = viewPanelComponents[0]
 
+    // Make sure that the message section is not available in the live stage
     val messageSectionComponentsLabel = TreeWalker(secondElementInToolbar).descendants().filterIsInstance(JBLabel::class.java)
+    assertThat(messageSectionComponentsLabel).isEmpty()
+  }
 
-    //Default mode is PROFILEABLE, so check for that message
-    assertThat(messageSectionComponentsLabel[0].text).isEqualTo("Profiling with low overhead. " +
-                                                                "Certain profiler features will be unavailable in this mode.")
-    assertThat(messageSectionComponentsLabel[1].text).isEqualTo("Dismiss")
-    assertThat(messageSectionComponentsLabel[2].text).isEqualTo("Learn more")
+  private fun getToolbar(isSessionAlive: Boolean): JComponent {
+    val spySessionManager = Mockito.spy(spyProfilers.sessionsManager)
+    Mockito.doReturn(spySessionManager).whenever(spyProfilers).sessionsManager
+    Mockito.doReturn(isSessionAlive).whenever(spySessionManager).isSessionAlive
+    val stageView = LiveStageView(myProfilersView, myStage)
+    return stageView.toolbar
   }
 }

@@ -39,7 +39,7 @@ class VcsUtilsTest {
       VcsForAppInsights.EP_NAME,
       listOf(fakeVcsForAppInsights),
       disposableRule.disposable,
-      false
+      false,
     )
   }
 

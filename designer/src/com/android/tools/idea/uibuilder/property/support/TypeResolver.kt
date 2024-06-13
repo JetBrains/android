@@ -38,7 +38,7 @@ object TypeResolver {
   fun resolveType(
     name: String,
     attribute: AttributeDefinition?,
-    componentClass: PsiClass?
+    componentClass: PsiClass?,
   ): NlPropertyType {
     return lookupByName(name, componentClass)
       ?: bySpecialType(name)
@@ -173,11 +173,11 @@ object TypeResolver {
       SdkConstants.ATTR_OUT_ANIMATION,
       SdkConstants.ATTR_SHOW_MOTION_SPEC,
       SdkConstants.ATTR_HIDE_MOTION_SPEC,
-      SdkConstants.ATTR_LAYOUT_ANIMATION,
+      SdkConstants.ATTR_LAYOUT_ANIMATION -> NlPropertyType.ANIM
       NavigationSchema.ATTR_ENTER_ANIM,
       NavigationSchema.ATTR_EXIT_ANIM,
       NavigationSchema.ATTR_POP_ENTER_ANIM,
-      NavigationSchema.ATTR_POP_EXIT_ANIM -> NlPropertyType.ANIM
+      NavigationSchema.ATTR_POP_EXIT_ANIM -> NlPropertyType.ANIMATOR
       SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NlPropertyType.ANIMATOR
       SdkConstants.ATTR_AM_PM_BACKGROUND_COLOR,
       SdkConstants.ATTR_AM_PM_TEXT_COLOR,

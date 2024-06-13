@@ -73,7 +73,7 @@ class DesignSurfaceScrollPane private constructor() : JBScrollPane(0) {
     fun createDefaultScrollPane(
       content: JComponent,
       background: Color,
-      onPanningChanged: AdjustmentListener
+      onPanningChanged: AdjustmentListener,
     ): JScrollPane =
       DesignSurfaceScrollPane().apply {
         setViewportView(content)

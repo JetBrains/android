@@ -114,7 +114,7 @@ class EditorUtilsTest {
     assertThat(
         editor.getFilterHint(
           editor.document.text.indexOf("package.name") + width - 1,
-          formattingOptions
+          formattingOptions,
         )
       )
       .isEqualTo(expected)
@@ -125,7 +125,7 @@ class EditorUtilsTest {
     assertThat(
         editor.getFilterHint(
           editor.document.text.indexOf("package.name") + width,
-          formattingOptions
+          formattingOptions,
         )
       )
       .isNotEqualTo(expected)

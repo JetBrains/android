@@ -17,27 +17,30 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
 import com.android.io.writeImage
-import com.android.tools.idea.ui.AndroidAdbUiBundle
+import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
 import java.awt.image.BufferedImage
+import java.io.IOException
 
 /**
  * Captures a screenshot of the device display.
  */
 class ScreenshotAction : DumbAwareAction(
-  AndroidAdbUiBundle.message("screenshot.action.title"),
-  AndroidAdbUiBundle.message("screenshot.action.description"),
+  message("screenshot.action.title"),
+  message("screenshot.action.description"),
   StudioIcons.Common.SCREENSHOT,
 ) {
 
@@ -54,51 +57,46 @@ class ScreenshotAction : DumbAwareAction(
 
     val screenshotSupplier = AdbScreenCapScreenshotSupplier(project, serialNumber, screenshotOptions)
     var disposable: Disposable? = screenshotSupplier
+
     object : ScreenshotTask(project, screenshotSupplier) {
+      var backingFile: VirtualFile? = null
+
+      override fun run(indicator: ProgressIndicator) {
+        super.run(indicator)
+        val screenshot = screenshot ?: return
+        try {
+          val screenshotDecorator = screenshotOptions.screenshotDecorator
+          val framingOptions = screenshotOptions.getFramingOptions(screenshot)
+          val decoration = ScreenshotViewer.getDefaultDecoration(screenshot, screenshotDecorator, framingOptions.firstOrNull(), project)
+          val processedImage = screenshotDecorator.decorate(screenshot, decoration)
+          indicator.checkCanceled()
+          val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+          processedImage.writeImage("PNG", file)
+          indicator.checkCanceled()
+          val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
+              throw IOException(message("screenshot.error.save"))
+          while (virtualFile.length == 0L) {
+            // It's not clear why the file may have zero length after the first refresh, but it was empirically observed.
+            virtualFile.refresh(false, false)
+          }
+          backingFile = virtualFile
+          indicator.checkCanceled()
+        }
+        catch (e: IOException) {
+          indicator.checkCanceled()
+          thisLogger().warn("Error while saving screenshot file", e)
+          error = message("screenshot.error.generic", e)
+        }
+      }
 
       override fun onSuccess() {
-        error?.let { msg ->
-          Messages.showErrorDialog(project, msg, AndroidAdbUiBundle.message("screenshot.action.title"))
+        val error = error
+        if (error != null) {
+          Messages.showErrorDialog(project, error, message("screenshot.action.title"))
           return
         }
 
-        try {
-          val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
-          val screenshotImage = screenshot!!
-          screenshotImage.image.writeImage(SdkConstants.EXT_PNG, backingFile)
-          val screenshotPostprocessor = screenshotOptions.screenshotPostprocessor
-          val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-          val defaultFrame =
-              if (framingOptions.isNotEmpty()) screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage) else 0
-          val viewer: ScreenshotViewer = object : ScreenshotViewer(project,
-                                                                   screenshotImage,
-                                                                   backingFile,
-                                                                   screenshotSupplier,
-                                                                   screenshotPostprocessor,
-                                                                   framingOptions,
-                                                                   defaultFrame,
-                                                                   screenshotOptions.screenshotViewerOptions) {
-            override fun doOKAction() {
-              super.doOKAction()
-              screenshot?.let {
-                LocalFileSystem.getInstance().refreshAndFindFileByNioFile(it)?.let { virtualFile ->
-                  virtualFile.refresh(false, false)
-                  FileEditorManager.getInstance(project).openFile(virtualFile, true)
-                }
-              }
-            }
-          }
-          viewer.show()
-          Disposer.register(viewer.disposable, screenshotSupplier)
-          disposable = null
-        }
-        catch (e: Exception) {
-          thisLogger().warn("Error while displaying screenshot viewer: ", e)
-          Messages.showErrorDialog(
-            project,
-            AndroidAdbUiBundle.message("screenshot.error.generic", e),
-            AndroidAdbUiBundle.message("screenshot.action.title"))
-        }
+        showScreenshotViewer(screenshot!!, backingFile!!)
       }
 
       override fun onFinished() {
@@ -107,6 +105,29 @@ class ScreenshotAction : DumbAwareAction(
         }
       }
 
+      private fun showScreenshotViewer(screenshot: ScreenshotImage, backingFile: VirtualFile) {
+        val screenshotPostprocessor = screenshotOptions.screenshotDecorator
+        val framingOptions = screenshotOptions.getFramingOptions(screenshot)
+        try {
+          val defaultFrame =
+              if (framingOptions.isNotEmpty()) screenshotOptions.getDefaultFramingOption(framingOptions, screenshot) else 0
+          val viewer = ScreenshotViewer(project,
+                                        screenshot,
+                                        backingFile,
+                                        screenshotSupplier,
+                                        screenshotPostprocessor,
+                                        framingOptions,
+                                        defaultFrame,
+                                        screenshotOptions.screenshotViewerOptions)
+          viewer.show()
+          Disposer.register(viewer.disposable, screenshotSupplier)
+          disposable = null
+        }
+        catch (e: Exception) {
+          thisLogger().warn("Error while displaying screenshot viewer", e)
+          Messages.showErrorDialog(project, message("screenshot.error.generic", e), message("screenshot.action.title"))
+        }
+      }
     }.queue()
   }
 
@@ -117,7 +138,7 @@ class ScreenshotAction : DumbAwareAction(
   interface ScreenshotOptions {
     val serialNumber: String
     val screenshotViewerOptions: Set<ScreenshotViewer.Option>
-    val screenshotPostprocessor: ScreenshotPostprocessor
+    val screenshotDecorator: ScreenshotDecorator
 
     fun createScreenshotImage(image: BufferedImage, displayInfo: String, deviceType: DeviceType): ScreenshotImage
 

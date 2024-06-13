@@ -16,25 +16,24 @@
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.memory.AllocationSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.android.tools.profilers.sessions.SessionArtifact
-import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
-import com.android.tools.profilers.tasks.args.singleartifact.memory.AllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils.findTaskArtifact
-import com.intellij.util.asSafely
 
 /**
  * This class defines the task handler to perform a java/kotlin allocations task.
  */
-class JavaKotlinAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTaskHandler(sessionsManager) {
+class JavaKotlinAllocationsTaskHandler(private val sessionsManager: SessionsManager) : MemoryTaskHandler(sessionsManager) {
+
+  val profilers get() = sessionsManager.studioProfilers
+
   override fun startCapture(stage: MainMemoryProfilerStage) {
     stage.startJavaKotlinAllocationCapture()
   }
@@ -47,32 +46,34 @@ class JavaKotlinAllocationsTaskHandler(sessionsManager: SessionsManager) : Memor
     stage.stopMemoryRecording()
   }
 
-  override fun loadTask(args: TaskArgs?): Boolean {
+  override fun loadTask(args: TaskArgs): Boolean {
     if (args !is LegacyJavaKotlinAllocationsTaskArgs && args !is JavaKotlinAllocationsTaskArgs) {
       handleError("The task arguments (TaskArgs) supplied are not of the expected type (JavaKotlinAllocationTaskArgs)")
       return false
     }
+
     val javaKotlinAllocationTaskArgs = args as? LegacyJavaKotlinAllocationsTaskArgs ?: args as JavaKotlinAllocationsTaskArgs
     val javaKotlinAllocationsTaskArtifact = javaKotlinAllocationTaskArgs.getAllocationSessionArtifact()
+    if (javaKotlinAllocationsTaskArtifact == null) {
+      handleError("The task arguments (AllocationsTaskArgs) supplied do not contains a valid artifact to load")
+      return false
+    }
     loadCapture(javaKotlinAllocationsTaskArtifact)
     return true
   }
 
-  override fun createArgs(
-    sessionItems: Map<Long, SessionItem>,
-    selectedSession: Common.Session
-  ): AllocationsTaskArgs<out SessionArtifact<Memory.AllocationsInfo>>? {
-    // Finds the artifact that backs the task identified via its corresponding unique session (selectedSession).
-    val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
+  override fun createStartTaskArgs(isStartupTask: Boolean): TaskArgs {
+    return if (MemoryDataProvider.getIsLiveAllocationTrackingSupported(profilers)) {
+      JavaKotlinAllocationsTaskArgs(false, null)
+    } else {
+      LegacyJavaKotlinAllocationsTaskArgs(false, null)
+    }
+  }
 
-    // Only if the underlying artifact is non-null should the TaskArgs be non-null.
-    return if (supportsArtifact(artifact)) {
-      return artifact.asSafely<LegacyAllocationsSessionArtifact>()?.let { LegacyJavaKotlinAllocationsTaskArgs(it) }
-             ?: artifact.asSafely<AllocationSessionArtifact>()?.let { JavaKotlinAllocationsTaskArgs(it) }
-    }
-    else {
-      null
-    }
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = when (artifact) {
+    is LegacyAllocationsSessionArtifact -> LegacyJavaKotlinAllocationsTaskArgs(false, artifact)
+    is AllocationSessionArtifact -> JavaKotlinAllocationsTaskArgs(false, artifact)
+    else -> throw IllegalStateException("Unexpected artifact type: $artifact")
   }
 
   override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =

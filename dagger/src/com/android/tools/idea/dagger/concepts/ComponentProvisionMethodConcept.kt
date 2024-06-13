@@ -77,14 +77,14 @@ internal object ComponentProvisionMethodConcept : DaggerConcept {
   override val indexers =
     DaggerConceptIndexers(
       methodIndexers = listOf(ComponentProvisionMethodIndexer),
-      fieldIndexers = listOf(ComponentProvisionPropertyIndexer)
+      fieldIndexers = listOf(ComponentProvisionPropertyIndexer),
     )
   override val indexValueReaders: List<IndexValue.Reader> =
     listOf(ComponentProvisionMethodIndexValue.Reader, ComponentProvisionPropertyIndexValue.Reader)
   override val daggerElementIdentifiers =
     DaggerElementIdentifiers.of(
       ComponentProvisionMethodIndexValue.identifiers,
-      ComponentProvisionPropertyIndexValue.identifiers
+      ComponentProvisionPropertyIndexValue.identifiers,
     )
 }
 
@@ -99,12 +99,12 @@ private object ComponentProvisionMethodIndexer : DaggerConceptIndexer<DaggerInde
     if (
       containingClass.getIsAnnotatedWithAnyOf(
         DaggerAnnotation.COMPONENT,
-        DaggerAnnotation.SUBCOMPONENT
+        DaggerAnnotation.SUBCOMPONENT,
       )
     ) {
       indexEntries.addIndexValue(
         returnType.getSimpleName() ?: "",
-        ComponentProvisionMethodIndexValue(containingClass.getClassId(), wrapper.getSimpleName())
+        ComponentProvisionMethodIndexValue(containingClass.getClassId(), wrapper.getSimpleName()),
       )
     }
   }
@@ -122,12 +122,12 @@ private object ComponentProvisionPropertyIndexer : DaggerConceptIndexer<DaggerIn
     if (
       containingClass.getIsAnnotatedWithAnyOf(
         DaggerAnnotation.COMPONENT,
-        DaggerAnnotation.SUBCOMPONENT
+        DaggerAnnotation.SUBCOMPONENT,
       )
     ) {
       indexEntries.addIndexValue(
         propertyType.getSimpleName() ?: "",
-        ComponentProvisionPropertyIndexValue(containingClass.getClassId(), wrapper.getSimpleName())
+        ComponentProvisionPropertyIndexValue(containingClass.getClassId(), wrapper.getSimpleName()),
       )
     }
   }
@@ -136,7 +136,7 @@ private object ComponentProvisionPropertyIndexer : DaggerConceptIndexer<DaggerIn
 @VisibleForTesting
 internal data class ComponentProvisionMethodIndexValue(
   val classId: ClassId,
-  val methodSimpleName: String
+  val methodSimpleName: String,
 ) : IndexValue() {
   override val dataType = Reader.supportedType
 
@@ -180,16 +180,16 @@ internal data class ComponentProvisionMethodIndexValue(
     internal val identifiers =
       DaggerElementIdentifiers(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods.filter { it.name == methodSimpleName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -197,7 +197,7 @@ internal data class ComponentProvisionMethodIndexValue(
 @VisibleForTesting
 internal data class ComponentProvisionPropertyIndexValue(
   val classId: ClassId,
-  val propertySimpleName: String
+  val propertySimpleName: String,
 ) : IndexValue() {
   override val dataType = Reader.supportedType
 
@@ -232,8 +232,8 @@ internal data class ComponentProvisionPropertyIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
-    KotlinFullClassNameIndex.get(classId.asFqNameString(), project, scope).mapNotNull {
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    KotlinFullClassNameIndex[classId.asFqNameString(), project, scope].asSequence().mapNotNull {
       it.findPropertyByName(propertySimpleName)
     }
 

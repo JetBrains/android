@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.streaming.uisettings.binding
 
-import com.intellij.openapi.Disposable
-
 /**
  * General change listener.
  */
@@ -36,19 +34,25 @@ internal interface ReadOnlyProperty<T> {
 
   /**
    * The UI can be notified of changes from the controller by adding a listener.
-   * The disposable specified provides auto removal of the listener.
    */
-  fun addControllerListener(disposable: Disposable, listener: ChangeListener<T>)
-
-  /**
-   * A listener can be removed before the UI is disposed if needed.
-   */
-  fun removeControllerListener(listener: ChangeListener<T>)
+  fun addControllerListener(listener: ChangeListener<T>)
 
   /**
    * The controller should call this function to specify a new value.
    */
   fun setFromController(newValue: T)
+
+  /**
+   * Creates a boolean property that yields true only if both the
+   * current boolean property and [other] is true.
+   */
+  fun and(other: ReadOnlyProperty<Boolean>): ReadOnlyProperty<Boolean>
+
+  /**
+   * Creates a boolean property that yields the opposite value of the
+   * current boolean property.
+   */
+  fun not(): ReadOnlyProperty<Boolean>
 }
 
 /**
@@ -63,7 +67,18 @@ internal interface TwoWayProperty<T> : ReadOnlyProperty<T> {
   var uiChangeListener: ChangeListener<T>
 
   /**
+   * Remove the current uiChangeListener
+   */
+  fun clearUiChangeListener()
+
+  /**
    * The UI should call this function to specify a new value.
    */
   fun setFromUi(newValue: T)
+
+  /**
+   * Create a property of type [U] that maps a value from this property via
+   * the functions: [toTarget] and the inverse function [fromTarget].
+   */
+  fun <U> createMappedProperty(toTarget: (T) -> U, fromTarget: (U) -> T): TwoWayProperty<U>
 }

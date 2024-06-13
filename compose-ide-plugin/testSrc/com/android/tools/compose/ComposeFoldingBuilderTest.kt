@@ -51,7 +51,7 @@ class ComposeFoldingBuilderTest {
       }
     }
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -76,7 +76,7 @@ class ComposeFoldingBuilderTest {
           .adjust()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val res = myFixture.getFoldingDescription(false)

@@ -51,7 +51,7 @@ class RelativeLayoutHandler : ViewGroupHandler() {
     editor: ViewEditor,
     layout: SceneComponent,
     components: List<NlComponent>,
-    type: DragType
+    type: DragType,
   ): DragHandler = CommonDragHandler(editor, this, layout, components, type)
 
   override fun onChildRemoved(layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
@@ -97,7 +97,7 @@ class RelativeLayoutHandler : ViewGroupHandler() {
 
   override fun createChildTargets(
     parentComponent: SceneComponent,
-    childComponent: SceneComponent
+    childComponent: SceneComponent,
   ): List<Target> {
     val listBuilder = ImmutableList.builder<Target>()
 
@@ -118,7 +118,7 @@ class RelativeLayoutHandler : ViewGroupHandler() {
 
   override fun getPlaceholders(
     sceneComponent: SceneComponent,
-    draggedComponents: List<SceneComponent>
+    draggedComponents: List<SceneComponent>,
   ) = listOf(RelativePlaceholder(sceneComponent))
 }
 
@@ -127,7 +127,7 @@ private val RESIZE_TARGETS =
     ResizeBaseTarget.Type.LEFT_TOP,
     ResizeBaseTarget.Type.LEFT_BOTTOM,
     ResizeBaseTarget.Type.RIGHT_TOP,
-    ResizeBaseTarget.Type.RIGHT_BOTTOM
+    ResizeBaseTarget.Type.RIGHT_BOTTOM,
   )
 
 val MARGINS_ATTRS =
@@ -135,5 +135,5 @@ val MARGINS_ATTRS =
     SdkConstants.ATTR_LAYOUT_MARGIN_START,
     SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
     SdkConstants.ATTR_LAYOUT_MARGIN_END,
-    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
   )

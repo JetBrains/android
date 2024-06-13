@@ -30,7 +30,8 @@ import com.android.tools.idea.gradle.project.build.attribution.getAgpAttribution
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
-import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Companion.getInstance
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
@@ -45,9 +46,10 @@ import com.google.common.base.Strings
 import com.google.common.collect.Lists
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES
 import com.intellij.compiler.CompilerConfiguration
 import com.intellij.compiler.CompilerManagerImpl
-import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
@@ -412,24 +414,13 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
       if (!syncedAgpVersions.contains(buildInfo.agpVersion)) {
         val incompatibilityMessage = getAgpIncompatibilityMessage(buildInfo.agpVersion, syncedAgpVersions)
         logger.warn(incompatibilityMessage)
-        val quickFix = SyncProjectWithExtraCommandLineOptionsHyperlink("Sync project", "")
         NotificationGroupManager.getInstance()
           .getNotificationGroup("Android Gradle Sync Issues")
-          .createNotification(
-            "Gradle sync needed",
-            """
-                  $incompatibilityMessage
-                  Please sync the project with Gradle Files.
-
-                  ${quickFix.toHtml()}
-                  """.trimIndent(),
-            NotificationType.ERROR
-          )
+          .createNotification("Gradle sync needed", incompatibilityMessage, NotificationType.ERROR)
+          .addAction(NotificationAction.createSimpleExpiring("Sync project") {
+            getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_USER_STALE_CHANGES), null)
+          })
           .setImportant(true)
-          .setListener { notification: Notification, event: HyperlinkEvent? ->
-            quickFix.executeIfClicked(project, event!!)
-            notification.hideBalloon()
-          }
           .notify(project)
         throw ProcessCanceledException()
       }

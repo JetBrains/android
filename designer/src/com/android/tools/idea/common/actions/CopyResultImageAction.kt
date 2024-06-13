@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.common.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.rendering.RenderResult
 import com.intellij.ide.CopyPasteManagerEx
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -44,23 +47,32 @@ private class BufferedImageTransferable(val image: BufferedImage) : Transferable
 
 /** [AnAction] that copies the result image from the given [LayoutlibSceneManager]. */
 class CopyResultImageAction(
-  private val sceneManagerProvider: () -> LayoutlibSceneManager?,
   title: String = "Copy Image",
-  private val actionCompleteText: String = "Image copied"
+  private val actionCompleteText: String = "Image copied",
 ) : AnAction(title) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isVisible = sceneManagerProvider()?.renderResult != null
+    val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return
+    e.presentation.isVisible = getRenderResult(surface) != null
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val resultImage = sceneManagerProvider()?.renderResult?.renderedImage?.copy ?: return
+    val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return
+    val resultImage = getRenderResult(surface)?.renderedImage?.copy ?: return
     CopyPasteManagerEx.getInstance().setContents(BufferedImageTransferable(resultImage))
 
     e.project?.let {
       Notification(IMAGE_COPIED_ID, actionCompleteText, "", NotificationType.INFORMATION)
         .notify(e.project)
     }
+  }
+
+  private fun getRenderResult(surface: NlDesignSurface): RenderResult? {
+    // Copy the model of the current selected object (if any)
+    val sceneManager =
+      surface.selectionModel.primary?.model?.let { surface.getSceneManager(it) }
+        ?: surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
+    return sceneManager?.renderResult
   }
 }

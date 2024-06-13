@@ -22,29 +22,38 @@ import static org.mockito.Mockito.when;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.mock.MockModule;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.Collections;
+import kotlin.coroutines.EmptyCoroutineContext;
+import kotlinx.coroutines.BuildersKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
  */
-public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCase {
+public class AndroidGradleProjectStartupActivityTest {
+
+  @Rule public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
   private Info myInfo;
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;
   private GradleSyncInvoker.Request myRequest;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    Project project = getProject();
+  @Before
+  public void setUp() throws Exception {
+    Project project = myProjectRule.getProject();
+    Disposable testRootDisposable = myProjectRule.getTestRootDisposable();
     mySyncInvoker = new GradleSyncInvoker.FakeInvoker() {
       @Override
       public void requestProjectSync(@NotNull Project project,
@@ -55,54 +64,63 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
         myRequest = request;
       }
     };
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleSyncInvoker.class, mySyncInvoker, project);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleSyncInvoker.class, mySyncInvoker, testRootDisposable);
     myInfo = mock(Info.class);
-    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, project);
+    ServiceContainerUtil.replaceService(project, Info.class, myInfo, testRootDisposable);
 
     myStartupActivity = new AndroidGradleProjectStartupActivity();
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myInfo = null;
-    }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
-    finally {
-      super.tearDown();
-    }
+  @After
+  public void tearDown() {
+    myInfo = null;
   }
 
+  @Test
   public void testRunActivityWithImportedProject() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio()) return;
 
     when(myInfo.isBuildWithGradle()).thenReturn(true);
 
-    Project project = getProject();
-    myStartupActivity.runActivity(project);
+    Project project = myProjectRule.getProject();
 
-    assertThat(myRequest).isNotNull();
-  }
-
-  public void testRunActivityWithExistingGradleProject() {
-    when(myInfo.isBuildWithGradle()).thenReturn(true);
-    when(myInfo.getAndroidModules()).thenReturn(Collections.singletonList(new MockModule(getTestRootDisposable())));
-
-    Project project = getProject();
-    myStartupActivity.runActivity(project);
+    try {
+      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
+                             (scope, continuation) -> myStartupActivity.execute(project, continuation));
+    }
+    catch(InterruptedException ignored) { }
 
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
-    assertThat(myRequest).isNotNull();
+    assertThat(myRequest).isEqualTo(request);
   }
 
+  @Test
+  public void testRunActivityWithExistingGradleProject() {
+    when(myInfo.isBuildWithGradle()).thenReturn(true);
+    when(myInfo.getAndroidModules()).thenReturn(Collections.singletonList(new MockModule(myProjectRule.getTestRootDisposable())));
+
+    Project project = myProjectRule.getProject();
+    try {
+      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
+                             (scope, continuation) -> myStartupActivity.execute(project, continuation));
+    }
+    catch(InterruptedException ignored) { }
+
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
+    assertThat(myRequest).isEqualTo(request);
+  }
+
+  @Test
   public void testRunActivityWithNonGradleProject() {
     when(myInfo.isBuildWithGradle()).thenReturn(false);
 
-    Project project = getProject();
-    myStartupActivity.runActivity(project);
+    Project project = myProjectRule.getProject();
+    try {
+      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
+                             (scope, continuation) -> myStartupActivity.execute(project, continuation));
+    }
+    catch(InterruptedException ignored) { }
 
     assertThat(myRequest).isNull();
   }

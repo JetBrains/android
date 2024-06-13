@@ -18,10 +18,12 @@ package com.android.tools.idea.fonts
 import com.android.ide.common.fonts.FontFamily
 import com.android.ide.common.fonts.FontLoader
 import com.android.ide.common.fonts.FontProvider
+import com.android.tools.fonts.DownloadableFontCacheService
 import com.android.tools.fonts.DownloadableFontCacheServiceImpl
 import com.android.tools.fonts.FontDirectoryDownloader
 import com.android.tools.fonts.FontDownloader
 import com.android.tools.idea.sdk.AndroidSdks
+import com.intellij.openapi.application.ApplicationManager
 import java.io.File
 
 /** Studio specific version of [DownloadableFontCacheService]. */
@@ -36,4 +38,10 @@ class StudioDownloadableFontCacheService : DownloadableFontCacheServiceImpl(
       FontDirectoryDownloadService(fontLoader, provider, fontCachePath)
   },
   { AndroidSdks.getInstance().tryToChooseSdkHandler().location?.toFile() }
-)
+) {
+  companion object {
+    @JvmStatic
+    fun getInstance(): DownloadableFontCacheServiceImpl =
+      ApplicationManager.getApplication().getService(DownloadableFontCacheService::class.java) as DownloadableFontCacheServiceImpl
+  }
+}

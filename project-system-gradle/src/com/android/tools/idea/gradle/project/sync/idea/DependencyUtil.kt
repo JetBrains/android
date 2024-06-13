@@ -24,6 +24,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
@@ -296,10 +297,10 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   variant.testFixturesArtifact?.also {
     populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.COMPILE)
   }
-  variant.unitTestArtifact?.also {
+  variant.hostTestArtifacts.forEach {
     populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST)
   }
-  variant.androidTestArtifact?.also {
+  variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.also {
     populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST)
   }
 }

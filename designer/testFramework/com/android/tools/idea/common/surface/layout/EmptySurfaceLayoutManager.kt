@@ -25,30 +25,24 @@ import java.awt.Point
  * zoom-to-fit scale as 100%. It also does nothing when [measure] is called.
  */
 class EmptySurfaceLayoutManager : SurfaceLayoutManager {
-  override fun getPreferredSize(
-    content: Collection<PositionableContent>,
-    availableWidth: Int,
-    availableHeight: Int,
-    dimension: Dimension?
-  ): Dimension = Dimension()
 
   override fun getRequiredSize(
     content: Collection<PositionableContent>,
     availableWidth: Int,
     availableHeight: Int,
-    dimension: Dimension?
+    dimension: Dimension?,
   ): Dimension = Dimension()
 
   override fun getFitIntoScale(
     content: Collection<PositionableContent>,
     availableWidth: Int,
-    availableHeight: Int
+    availableHeight: Int,
   ): Double = 1.0
 
   override fun measure(
     content: Collection<PositionableContent>,
     availableWidth: Int,
     availableHeight: Int,
-    keepPreviousPadding: Boolean
+    keepPreviousPadding: Boolean,
   ): Map<PositionableContent, Point> = emptyMap()
 }

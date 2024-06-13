@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.jetbrains.annotations.TestOnly
@@ -121,9 +120,7 @@ class RecompositionData(var count: Int, var skips: Int, var highlightCount: Floa
   }
 
   fun update(newNumbers: RecompositionData) {
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get()) {
-      highlightCount += maxOf(0, newNumbers.count - count)
-    }
+    highlightCount += maxOf(0, newNumbers.count - count)
     count = newNumbers.count
     skips = newNumbers.skips
   }
@@ -174,7 +171,7 @@ class ComposeViewNode(
   var composeFlags: Int,
 
   /** The hash of an anchor which can identify the composable after a recomposition. */
-  var anchorHash: Int
+  var anchorHash: Int,
 ) :
   ViewNode(
     drawId,
@@ -184,7 +181,7 @@ class ComposeViewNode(
     renderBounds,
     viewId,
     textValue,
-    layoutFlags
+    layoutFlags,
   ) {
   @TestOnly
   constructor(
@@ -202,7 +199,7 @@ class ComposeViewNode(
     composeOffset: Int,
     composeLineNumber: Int,
     composeFlags: Int,
-    anchorHash: Int
+    anchorHash: Int,
   ) : this(
     drawId,
     qualifiedName,
@@ -219,7 +216,7 @@ class ComposeViewNode(
     composeOffset,
     composeLineNumber,
     composeFlags,
-    anchorHash
+    anchorHash,
   )
 
   val recompositions = RecompositionData(recomposeCount, recomposeSkips)

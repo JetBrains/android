@@ -32,12 +32,12 @@ class TabLayoutPlaceholderTest : SceneTest() {
     val region = placeholder.region
     assertEquals(
       tabLayout.drawX - com.android.tools.idea.uibuilder.handlers.linear.SIZE,
-      region.left
+      region.left,
     )
     assertEquals(tabLayout.drawY, region.top)
     assertEquals(
       tabLayout.drawX + com.android.tools.idea.uibuilder.handlers.linear.SIZE,
-      region.right
+      region.right,
     )
     assertEquals(tabLayout.drawY + tabLayout.drawHeight, region.bottom)
   }
@@ -84,8 +84,8 @@ class TabLayoutPlaceholderTest : SceneTest() {
             .withBounds(400, 0, 200, 200)
             .id("@id/tabItem3")
             .width("100dp")
-            .height("100dp")
-        )
+            .height("100dp"),
+        ),
     )
   }
 }

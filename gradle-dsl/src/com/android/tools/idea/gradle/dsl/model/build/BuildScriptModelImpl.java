@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
-
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
@@ -40,6 +36,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
+
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
 
 public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildScriptModel {
 

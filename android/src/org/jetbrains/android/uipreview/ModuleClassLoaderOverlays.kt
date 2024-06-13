@@ -20,11 +20,13 @@ import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -32,6 +34,9 @@ import com.intellij.util.io.delete
 import com.intellij.util.lang.UrlClassLoader
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.XCollection
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import java.lang.ref.WeakReference
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -46,12 +51,37 @@ private fun buildClassLoaderForOverlayPath(overlays: List<Path>) = UrlClassLoade
   name = "ModuleClassLoaderOverlays",
   storages = [(Storage(StoragePathMacros.MODULE_FILE))],
 )
-class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: Int = 10) :
+class ModuleClassLoaderOverlays private constructor(module: Module, private val maxNumOverlays: Int) :
   PersistentStateComponent<ModuleClassLoaderOverlays.State>, ClassLoaderOverlays {
+
+  /**
+   * Handles project level notifications of updates in the [ModuleClassLoaderOverlays].
+   */
+  @Service(Service.Level.PROJECT)
+  class NotificationManager {
+    private val modificationTracker: SimpleModificationTracker = SimpleModificationTracker()
+    private val _modificationFlow: MutableStateFlow<Long> = MutableStateFlow(modificationTracker.modificationCount)
+    val modificationFlow: StateFlow<Long>
+      get() = _modificationFlow
+
+    /**
+     * Notifies that a modification has happened to one of the [ModuleClassLoaderOverlays]s in the project.
+     */
+    internal fun fireModification() {
+      modificationTracker.incModificationCount()
+      _modificationFlow.value = modificationTracker.modificationCount
+    }
+
+    companion object {
+      fun getInstance(project: Project): NotificationManager =
+        project.getService(NotificationManager::class.java)
+    }
+  }
 
   @Tag("module-class-overlay-paths")
   class State(@XCollection(propertyElementName = "paths", style = XCollection.Style.v2) val paths: List<String> = listOf())
 
+  private val moduleReference: WeakReference<Module> = WeakReference<Module>(module)
   private val _modificationTracker = SimpleModificationTracker()
   private var overlayClassLoader: DelegatingClassLoader.Loader? = null
 
@@ -72,7 +102,7 @@ class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: 
 
   private val overlayPaths = ArrayDeque<Path>(10)
 
-  constructor(module: Module): this()
+  constructor(module: Module): this(module, 10)
 
   @Synchronized
   fun invalidateOverlayPaths() {
@@ -80,12 +110,18 @@ class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: 
     overlayPaths.clear()
     overlayClassLoader = null
     _modificationTracker.incModificationCount()
+    moduleReference.get()?.project?.let { project ->
+      NotificationManager.getInstance(project).fireModification()
+    } ?: logger.warn("Module was disposed but ModuleClassLoaderOverlay is still referenced")
   }
 
   @Synchronized
   private fun reloadClassLoader() {
     overlayClassLoader = ClassLoaderLoader(buildClassLoaderForOverlayPath(overlayPaths))
     _modificationTracker.incModificationCount()
+    moduleReference.get()?.project?.let { project ->
+      NotificationManager.getInstance(project).fireModification()
+    } ?: logger.warn("Module was disposed but ModuleClassLoaderOverlay is still referenced")
   }
 
   @Synchronized

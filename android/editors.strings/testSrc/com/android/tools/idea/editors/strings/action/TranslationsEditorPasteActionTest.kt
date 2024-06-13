@@ -22,6 +22,7 @@ import com.intellij.mock.MockVirtualFileSystem
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.command.impl.UndoManagerImpl
@@ -37,7 +38,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBTextField
@@ -50,12 +50,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.awt.Font
 import java.awt.datatransfer.StringSelection
-import java.awt.datatransfer.Transferable
 
 @RunWith(JUnit4::class)
 class TranslationsEditorPasteActionTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var project: Project
   private lateinit var pasteAction: TranslationsEditorPasteAction
@@ -67,12 +65,16 @@ class TranslationsEditorPasteActionTest {
     project = projectRule.project
     pasteAction = TranslationsEditorPasteAction()
 
-    val content = """<?xml version="1.0" encoding="utf-8"?>
-    <resources>
-    <string name="app_name">Test App</string>
-    <string name="string1">string 1</string>
-    <string name="string2">string 2</string>
-    </resources>""".trimMargin()
+    val content =
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <resources>
+        <string name="app_name">Test App</string>
+        <string name="string1">string 1</string>
+        <string name="string2">string 2</string>
+      </resources>
+      """
+        .trimMargin()
 
     psiFile = psiFile(content)
     editor = createEditor(psiFile)
@@ -95,7 +97,8 @@ class TranslationsEditorPasteActionTest {
 
   @Test
   fun constructionCopiesShortcutsFromExistingPasteAction() {
-    assertThat(pasteAction.shortcutSet).isEqualTo(ActionManager.getInstance().getAction("EditorPaste").shortcutSet)
+    assertThat(pasteAction.shortcutSet)
+      .isEqualTo(ActionManager.getInstance().getAction("EditorPaste").shortcutSet)
   }
 
   @Test
@@ -158,9 +161,7 @@ class TranslationsEditorPasteActionTest {
     val path = "/values/strings.xml"
     val fileSystem = MockVirtualFileSystem()
     val stringsFile: VirtualFile = fileSystem.file(path, content).refreshAndFindFileByPath(path)!!
-    return runReadAction {
-      PsiManager.getInstance(project).findFile(stringsFile)!!
-    }
+    return runReadAction { PsiManager.getInstance(project).findFile(stringsFile)!! }
   }
 
   private fun createEditor(psiFile: PsiFile): Editor {
@@ -169,19 +170,20 @@ class TranslationsEditorPasteActionTest {
     return runInEdtAndGet { editorFactory.createEditor(document, project) }
   }
 
-  private fun createDataContext(editor: Editor,
-                                content: String? = null,
-  ): DataContext = MapDataContext(mapOf(
-    PasteAction.TRANSFERABLE_PROVIDER to Producer<Transferable> { content?.let { StringSelection(it) } },
-    CommonDataKeys.CARET to editor.caretModel.currentCaret,
-  ))
+  private fun createDataContext(editor: Editor, content: String? = null): DataContext =
+    SimpleDataContext.builder()
+      .add(PasteAction.TRANSFERABLE_PROVIDER, Producer { content?.let { StringSelection(it) } })
+      .add(CommonDataKeys.CARET, editor.caretModel.currentCaret)
+      .build()
 
-  private fun createDataContext(editor: Editor,
-                                psiFile: PsiFile,
-                                content: String? = null,
-  ): DataContext = MapDataContext(mapOf(
-    PasteAction.TRANSFERABLE_PROVIDER to Producer<Transferable> { content?.let { StringSelection(it) } },
-    CommonDataKeys.CARET to editor.caretModel.currentCaret,
-    CommonDataKeys.PSI_FILE to psiFile,
-  ))
+  private fun createDataContext(
+    editor: Editor,
+    psiFile: PsiFile,
+    content: String? = null,
+  ): DataContext =
+    SimpleDataContext.builder()
+      .add(PasteAction.TRANSFERABLE_PROVIDER, Producer { content?.let { StringSelection(it) } })
+      .add(CommonDataKeys.CARET, editor.caretModel.currentCaret)
+      .add(CommonDataKeys.PSI_FILE, psiFile)
+      .build()
 }

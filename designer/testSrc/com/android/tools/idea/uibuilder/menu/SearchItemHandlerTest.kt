@@ -41,7 +41,7 @@ class SearchItemHandlerTest(
   private val projectMinSdk: Int,
   private val dependencies: List<GoogleMavenArtifactId>,
   private val expectedNameSpace: String,
-  private val expectedValue: String
+  private val expectedValue: String,
 ) {
   private val model = mock(NlModel::class.java)
   private val newChild = mock(NlComponent::class.java)
@@ -64,50 +64,50 @@ class SearchItemHandlerTest(
           10,
           listOf<Any>(),
           SdkConstants.ANDROID_URI,
-          "android.support.v7.widget.SearchView"
+          "android.support.v7.widget.SearchView",
         ),
         arrayOf(
           10,
           listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7),
           SdkConstants.AUTO_URI,
-          "android.support.v7.widget.SearchView"
+          "android.support.v7.widget.SearchView",
         ),
         arrayOf(
           10,
           listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7),
           SdkConstants.AUTO_URI,
-          "android.support.v7.widget.SearchView"
+          "android.support.v7.widget.SearchView",
         ),
         arrayOf(
           10,
           listOf<Any>(
             GoogleMavenArtifactId.APP_COMPAT_V7,
-            GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7
+            GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7,
           ),
           SdkConstants.AUTO_URI,
-          "android.support.v7.widget.SearchView"
+          "android.support.v7.widget.SearchView",
         ),
         arrayOf(11, listOf<Any>(), SdkConstants.ANDROID_URI, "android.widget.SearchView"),
         arrayOf(
           11,
           listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7),
           SdkConstants.AUTO_URI,
-          "android.widget.SearchView"
+          "android.widget.SearchView",
         ),
         arrayOf(
           11,
           listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7),
           SdkConstants.AUTO_URI,
-          "android.widget.SearchView"
+          "android.widget.SearchView",
         ),
         arrayOf(
           11,
           listOf<Any>(
             GoogleMavenArtifactId.APP_COMPAT_V7,
-            GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7
+            GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7,
           ),
           SdkConstants.AUTO_URI,
-          "android.widget.SearchView"
+          "android.widget.SearchView",
         ),
       )
   }

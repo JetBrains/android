@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -98,7 +97,7 @@ class AndroidGradleTestsTest {
     ) { project ->
       injectBuildOutputDumpingBuildViewManager(project, project) { if (it.message.contains("BUILD SUCCESSFUL")) buildMessageFound = true }
       GradleBuildInvoker.getInstance(project)
-        .assemble(arrayOf(project.gradleModule(":app")!!), TestCompileType.NONE)
+        .assemble(arrayOf(project.gradleModule(":app")!!))
         .get(120, TimeUnit.SECONDS)
     }
     assertThat(syncMessageFound).named("'This is a simple application!' found").isTrue()

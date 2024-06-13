@@ -25,6 +25,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -38,7 +39,7 @@ class UiCheckDropDownAction :
   DropDownAction(
     message("action.uicheck.toolbar.title"),
     message("action.uicheck.toolbar.description"),
-    AllIcons.General.ChevronDown
+    AllIcons.General.ChevronDown,
   ) {
   init {
     templatePresentation.putClientProperty(ActionButton.HIDE_DROPDOWN_ICON, java.lang.Boolean.TRUE)
@@ -72,13 +73,16 @@ internal class UiCheckFilteringAction(private val previewManager: ComposePreview
 internal class UiCheckReopenTabAction(private val previewManager: ComposePreviewManager) :
   AnAction("Open UI Check Tab in Problems Panel") {
 
+  /** Running on EDT since the update accesses UI state via tabName */
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val problemsWindow =
       ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID) ?: return
-    val previewInstance =
-      (previewManager.mode.value as? PreviewMode.UiCheck)?.baseElement
-        as? ComposePreviewElementInstance ?: return
+    val uiCheckInstance =
+      (previewManager.mode.value as? PreviewMode.UiCheck)?.baseInstance ?: return
+    val previewInstance = uiCheckInstance.baseElement as? ComposePreviewElementInstance ?: return
     val tab =
       problemsWindow.contentManager.contents.firstOrNull {
         it.tabName == previewInstance.instanceId
@@ -86,10 +90,14 @@ internal class UiCheckReopenTabAction(private val previewManager: ComposePreview
     if (tab != null) {
       problemsWindow.contentManager.setSelectedContent(tab)
     } else {
-      (previewManager as? ComposePreviewRepresentation)?.createUiCheckTab(previewInstance)
+      (previewManager as? ComposePreviewRepresentation)?.createUiCheckTab(
+        previewInstance,
+        uiCheckInstance.isWearPreview,
+      )
       VisualLintService.getInstance(project)
         .issueModel
         .updateErrorsList(IssueProviderListener.UI_CHECK)
+      ProblemsViewToolWindowUtils.selectTab(project, previewInstance.instanceId)
     }
     problemsWindow.show()
   }
@@ -99,7 +107,7 @@ internal class UiCheckReopenTabAction(private val previewManager: ComposePreview
     val problemsWindow =
       ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID) ?: return
     val previewInstance =
-      (previewManager.mode.value as? PreviewMode.UiCheck)?.baseElement
+      (previewManager.mode.value as? PreviewMode.UiCheck)?.baseInstance?.baseElement
         as? ComposePreviewElementInstance ?: return
     e.presentation.isEnabled =
       !problemsWindow.isVisible ||

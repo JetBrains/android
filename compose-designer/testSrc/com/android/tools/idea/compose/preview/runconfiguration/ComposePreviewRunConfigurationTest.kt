@@ -72,7 +72,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
             "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
             "--es composable com.mycomposeapp.SomeClass.SomeComposable" +
             " --es parameterProviderClassName com.mycomposeapp.ProviderClass" +
-            " --ei parameterProviderIndex 3",
+            " --ei parameterProviderIndex 3"
         ),
         any(),
         anyLong(),
@@ -123,8 +123,8 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     val config = JDOMUtil.write(testElement)
     assertTrue(
       config.contains(
-        "<compose-preview-run-configuration composable-fqn=\"com.example.MyClassKt.ExampleComposable\" />",
-      ),
+        "<compose-preview-run-configuration composable-fqn=\"com.example.MyClassKt.ExampleComposable\" />"
+      )
     )
   }
 }

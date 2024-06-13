@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
-import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.ID;
 import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.KOTLIN;
 import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.PLUGIN;
+import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.ID;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
 
 import com.android.tools.idea.gradle.dsl.model.PluginModelImpl;

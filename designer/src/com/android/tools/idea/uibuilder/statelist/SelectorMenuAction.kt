@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.editor.AnimatedSelectorToolbar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.primitives.Ints
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -36,6 +37,7 @@ import icons.StudioIcons
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Point
+import java.util.concurrent.TimeUnit
 import javax.swing.BoxLayout
 import javax.swing.ButtonGroup
 import javax.swing.JComponent
@@ -46,6 +48,9 @@ private const val PICKER_WIDTH_PX = 300
 private const val STATE_ITEM_HEIGHT_PX = 35
 
 class SelectorMenuAction : AnAction("State Selector", null, StudioIcons.LayoutEditor.Menu.SWITCH) {
+
+  // Run on EDT since toolbar.isTransitionSelected accesses UI state
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun displayTextInToolbar(): Boolean = true
 
@@ -114,7 +119,7 @@ class StateListMenu(designSurface: DesignSurface<*>, callback: () -> Unit) : JCo
 private fun createStateItem(
   designSurface: DesignSurface<*>,
   state: State,
-  callback: () -> Unit
+  callback: () -> Unit,
 ): JPanel {
   val stateItemPanel =
     JPanel(GridBagLayout()).apply {
@@ -194,15 +199,21 @@ private fun setState(surface: DesignSurface<*>, state: State, enabled: Boolean) 
   if (enabled) {
     if (!Ints.contains(states, stateValue)) {
       sceneManager
-        .executeInRenderSessionAsync {
-          image.setImageState(ArrayUtil.append(states, stateValue), false)
-        }
+        .executeInRenderSessionAsync(
+          { image.setImageState(ArrayUtil.append(states, stateValue), false) },
+          0,
+          TimeUnit.SECONDS,
+        )
         .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
     }
   } else if (Ints.contains(states, stateValue)) {
     val i = Ints.indexOf(states, stateValue)
     sceneManager
-      .executeInRenderSessionAsync { image.setImageState(ArrayUtil.remove(states, i), false) }
+      .executeInRenderSessionAsync(
+        { image.setImageState(ArrayUtil.remove(states, i), false) },
+        0,
+        TimeUnit.SECONDS,
+      )
       .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
   }
 }

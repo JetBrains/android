@@ -61,13 +61,7 @@ class ButtonSizeAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -100,13 +94,7 @@ class ButtonSizeAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)

@@ -17,14 +17,12 @@ package com.android.tools.res.ids.apk
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.resources.ResourceType
-import com.android.tools.res.ResourceNamespacing
 import com.android.tools.res.apk.extractNameAndNamespace
 import com.android.tools.res.apk.forEveryResource
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.res.ids.ResourceIdManagerBase
 import com.android.tools.res.ids.ResourceIdManagerModelModule
-import gnu.trove.TObjectIntHashMap
+import com.android.tools.res.ids.SingleNamespaceIdMapping
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import java.util.function.Consumer
 
@@ -33,10 +31,7 @@ import java.util.function.Consumer
  * [ResourceIdManagerBase] allows it to resolve android framework ids.
  */
 class ApkResourceIdManager : ResourceIdManagerBase(
-  object : ResourceIdManagerModelModule {
-    override val isAppOrFeature: Boolean = true
-    override val namespacing: ResourceNamespacing = ResourceNamespacing.DISABLED
-  },
+  ResourceIdManagerModelModule.NO_NAMESPACING_APP,
   true
 ) {
   private val apkResources = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
@@ -53,7 +48,7 @@ class ApkResourceIdManager : ResourceIdManagerBase(
   }
 
   fun loadApkResources(apkPath: String) {
-    forEveryResource(apkPath) { _, resType: ResourceType, _, resId, typeChunkEntry ->
+    forEveryResource(apkPath) { _, resType, _, resId, typeChunkEntry ->
       val (_, name) = extractNameAndNamespace(typeChunkEntry.key())
       apkResources.fromIdMap.put(resId, resType to name)
       apkResources.toIdMap.getOrPut(resType, ::Object2IntOpenHashMap).put(name, resId)

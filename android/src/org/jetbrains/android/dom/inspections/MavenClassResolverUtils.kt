@@ -32,7 +32,7 @@ import org.jetbrains.android.refactoring.isAndroidx
 internal fun MavenClassRegistryManager.collectFixesFromMavenClassRegistry(
   className: String,
   project: Project,
-  completionFileType: FileType?
+  completionFileType: FileType?,
 ): List<LocalQuickFix> {
   val useAndroidX = project.isAndroidx()
 

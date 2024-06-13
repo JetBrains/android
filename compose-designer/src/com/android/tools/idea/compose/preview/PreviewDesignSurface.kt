@@ -23,9 +23,10 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
+import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
@@ -38,15 +39,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 
-internal val BASE_LAYOUT_MANAGER_OPTIONS =
-  listOf(LIST_LAYOUT_MANAGER_OPTION, GRID_LAYOUT_MANAGER_OPTIONS)
-
 /** List of available layouts for the Compose Preview Surface. */
-internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
-  BASE_LAYOUT_MANAGER_OPTIONS + PREVIEW_LAYOUT_GALLERY_OPTION
-
-/** Default layout manager selected in the preview. */
-internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager
+internal val PREVIEW_LAYOUT_OPTIONS =
+  listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
 
 private val COMPOSE_SUPPORTED_ACTIONS =
   ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
@@ -65,7 +60,7 @@ private fun createPreviewDesignSurfaceBuilder(
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
   screenViewProvider: ScreenViewProvider,
-  isInteractive: () -> Boolean
+  isInteractive: () -> Boolean,
 ): NlDesignSurface.Builder =
   NlDesignSurface.builder(project, parentDisposable)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
@@ -74,12 +69,7 @@ private fun createPreviewDesignSurfaceBuilder(
     .setSceneManagerProvider { surface, model ->
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
-      LayoutlibSceneManager(
-          model,
-          surface,
-          sceneComponentProvider,
-          ComposeSceneUpdateListener(),
-        ) {
+      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()) {
           RealTimeSessionClock()
         }
         .also {
@@ -88,7 +78,7 @@ private fun createPreviewDesignSurfaceBuilder(
           it.setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
           // When the cache successful render image is enabled, the scene manager will retain
           // the last valid image even if subsequent renders fail.
-          it.setCacheSuccessfulRenderImage(StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.get())
+          it.setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get())
         }
     }
     .setDelegateDataProvider(dataProvider)
@@ -102,7 +92,7 @@ private fun createPreviewDesignSurfaceBuilder(
     }
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(screenViewProvider, false)
-    .setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
+    .setMaxZoomToFitLevel(2.0) // Set fit into limit to 200%
     .setMinScale(0.01) // Allow down to 1% zoom level
     .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
 
@@ -120,7 +110,7 @@ internal fun createMainDesignSurfaceBuilder(
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
   screenViewProvider: ScreenViewProvider,
-  isInteractive: () -> Boolean
+  isInteractive: () -> Boolean,
 ) =
   createPreviewDesignSurfaceBuilder(
       project,
@@ -130,6 +120,6 @@ internal fun createMainDesignSurfaceBuilder(
       parentDisposable,
       sceneComponentProvider,
       screenViewProvider,
-      isInteractive
+      isInteractive,
     )
-    .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)
+    .setLayoutOption(DEFAULT_LAYOUT_OPTION)

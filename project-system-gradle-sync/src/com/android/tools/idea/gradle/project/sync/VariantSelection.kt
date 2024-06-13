@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
@@ -72,9 +73,9 @@ internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
 
   fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): List<ModuleConfiguration> {
     return (ideVariant.mainArtifact.compileClasspathCore.dependencies
-      + ideVariant.unitTestArtifact?.compileClasspathCore?.dependencies.orEmpty()
-      + ideVariant.androidTestArtifact?.compileClasspathCore?.dependencies.orEmpty()
-      + ideVariant.testFixturesArtifact?.compileClasspathCore?.dependencies.orEmpty()
+            + ideVariant.hostTestArtifacts.map { it.compileClasspathCore.dependencies }.flatten()
+            + ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspathCore?.dependencies.orEmpty()
+            + ideVariant.testFixturesArtifact?.compileClasspathCore?.dependencies.orEmpty()
       )
       .distinct()
       .mapNotNull{ libraryResolver(it.target) as? IdePreResolvedModuleLibrary }

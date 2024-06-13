@@ -46,12 +46,12 @@ internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
   Tablet("Tablet", StudioIcons.LayoutEditor.Toolbar.DEVICE_TABLET),
   Desktop(
     "Desktop",
-    StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN
+    StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN,
   ), // TODO(b/237375632): Update once there's a proper icon for desktop
   Wear("Wear", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR),
   Tv("Tv", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV),
   Auto("Auto", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE),
-  Generic("Generic Devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE)
+  Generic("Generic Devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE),
 }
 
 /**
@@ -73,14 +73,14 @@ internal class DeviceEnumValueBuilder {
       Pair(DeviceClass.Wear, mutableListOf()),
       Pair(DeviceClass.Tv, mutableListOf()),
       Pair(DeviceClass.Auto, mutableListOf()),
-      Pair(DeviceClass.Generic, mutableListOf())
+      Pair(DeviceClass.Generic, mutableListOf()),
     )
 
   private fun addReferenceDevice(
     name: String,
     description: String?,
     immutableDeviceConfig: DeviceConfig,
-    trackableValue: PreviewPickerValue
+    trackableValue: PreviewPickerValue,
   ): DeviceEnumValueBuilder = apply {
     val deviceSpec = immutableDeviceConfig.deviceSpec()
     val enumValue = PsiEnumValue.withTooltip(deviceSpec, name, description, trackableValue)
@@ -93,7 +93,7 @@ internal class DeviceEnumValueBuilder {
     widthPx: Int,
     heightPx: Int,
     diagonalIn: Double,
-    orientation: Orientation
+    orientation: Orientation,
   ): DeviceEnumValueBuilder = apply {
     val dpi =
       kotlin.run {
@@ -107,7 +107,7 @@ internal class DeviceEnumValueBuilder {
           height = heightPx.toFloat(),
           dimUnit = DimUnit.px,
           dpi = density.dpiValue,
-          orientation = orientation
+          orientation = orientation,
         )
         .deviceSpec()
     val display =
@@ -119,7 +119,7 @@ internal class DeviceEnumValueBuilder {
   private fun addWearDevice(
     isRound: Boolean,
     chinSizePx: Int,
-    displayName: String
+    displayName: String,
   ): DeviceEnumValueBuilder = apply {
     val density = Densities.getCommonScreenDensity(false, 224.0, 300)
     val shape = if (isRound) Shape.Round else Shape.Normal
@@ -130,7 +130,7 @@ internal class DeviceEnumValueBuilder {
           dimUnit = DimUnit.px,
           dpi = density.dpiValue,
           shape = shape,
-          chinSize = chinSizePx.toFloat()
+          chinSize = chinSizePx.toFloat(),
         )
         .deviceSpec()
     val enumValue =
@@ -144,20 +144,20 @@ internal class DeviceEnumValueBuilder {
       widthPx = widthPx,
       heightPx = heightPx,
       diagonalIn = diagonalIn,
-      orientation = Orientation.landscape
+      orientation = Orientation.landscape,
     )
 
   private fun addAutoDevice(
     widthPx: Int,
     heightPx: Int,
-    diagonalIn: Double
+    diagonalIn: Double,
   ): DeviceEnumValueBuilder =
     addDevicePx(
       type = DeviceClass.Auto,
       widthPx = widthPx,
       heightPx = heightPx,
       diagonalIn = diagonalIn,
-      orientation = Orientation.landscape
+      orientation = Orientation.landscape,
     )
 
   fun addPhone(device: Device): DeviceEnumValueBuilder =
@@ -181,20 +181,14 @@ internal class DeviceEnumValueBuilder {
   fun addDesktop(device: Device): DeviceEnumValueBuilder =
     addById(displayName = device.displayName, id = device.id, type = DeviceClass.Desktop)
 
-  private fun addPhoneById(
-    displayName: String,
-    id: String,
-  ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Phone)
+  private fun addPhoneById(displayName: String, id: String): DeviceEnumValueBuilder =
+    addById(displayName, id, DeviceClass.Phone)
 
-  private fun addTabletById(
-    displayName: String,
-    id: String,
-  ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Tablet)
+  private fun addTabletById(displayName: String, id: String): DeviceEnumValueBuilder =
+    addById(displayName, id, DeviceClass.Tablet)
 
-  private fun addGenericById(
-    displayName: String,
-    id: String,
-  ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Generic)
+  private fun addGenericById(displayName: String, id: String): DeviceEnumValueBuilder =
+    addById(displayName, id, DeviceClass.Generic)
 
   private fun addById(displayName: String, id: String, type: DeviceClass): DeviceEnumValueBuilder =
     apply {
@@ -202,7 +196,7 @@ internal class DeviceEnumValueBuilder {
         PsiEnumValue.indented(
           "$DEVICE_BY_ID_PREFIX$id",
           displayName,
-          PreviewPickerValue.DEVICE_REF_NONE
+          PreviewPickerValue.DEVICE_REF_NONE,
         )
       deviceEnumValues[type]?.add(enumValue)
     }
@@ -236,25 +230,25 @@ internal class DeviceEnumValueBuilder {
         "Medium Phone",
         DEVICE_CLASS_PHONE_TOOLTIP,
         ReferencePhoneConfig,
-        PreviewPickerValue.DEVICE_REF_PHONE
+        PreviewPickerValue.DEVICE_REF_PHONE,
       )
       addReferenceDevice(
         "Foldable",
         DEVICE_CLASS_FOLDABLE_TOOLTIP,
         ReferenceFoldableConfig,
-        PreviewPickerValue.DEVICE_REF_FOLDABLE
+        PreviewPickerValue.DEVICE_REF_FOLDABLE,
       )
       addReferenceDevice(
         "Medium Tablet",
         DEVICE_CLASS_TABLET_TOOLTIP,
         ReferenceTabletConfig,
-        PreviewPickerValue.DEVICE_REF_TABLET
+        PreviewPickerValue.DEVICE_REF_TABLET,
       )
       addReferenceDevice(
         "Desktop",
         DEVICE_CLASS_DESKTOP_TOOLTIP,
         ReferenceDesktopConfig,
-        PreviewPickerValue.DEVICE_REF_DESKTOP
+        PreviewPickerValue.DEVICE_REF_DESKTOP,
       )
     }
     if (
@@ -266,7 +260,7 @@ internal class DeviceEnumValueBuilder {
       addWearDevice(
         isRound = true,
         chinSizePx = CHIN_SIZE_PX_FOR_ROUND_CHIN,
-        displayName = "Round Chin"
+        displayName = "Round Chin",
       )
     }
     if (

@@ -17,18 +17,22 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
+import static com.android.SdkConstants.DOT_DECLARATIVE;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.flags.StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -445,6 +449,9 @@ public class GradleProjectSystemUtil {
       else if (buildFileName.endsWith(DOT_KTS)) {
         result.add(DOT_KTS);
       }
+      else if (GRADLE_DECLARATIVE_IDE_SUPPORT.get() && buildFileName.endsWith(DOT_DECLARATIVE)) {
+        result.add(DOT_DECLARATIVE);
+      }
     }
   }
 
@@ -694,6 +701,9 @@ public class GradleProjectSystemUtil {
    */
   @Nullable
   public static VirtualFile findGradleBuildFile(@NotNull VirtualFile parentDir) {
+    if (GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+      return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS, FN_BUILD_GRADLE_DECLARATIVE);
+    }
     return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS);
   }
 
@@ -706,6 +716,9 @@ public class GradleProjectSystemUtil {
    */
   @Nullable
   public static VirtualFile findGradleSettingsFile(@NotNull VirtualFile parentDir) {
+    if (GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+      return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_SETTINGS_GRADLE_DECLARATIVE);
+    }
     return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS);
   }
 

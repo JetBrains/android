@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultTreeSelectionModel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface DeviceExplorerModelListener {

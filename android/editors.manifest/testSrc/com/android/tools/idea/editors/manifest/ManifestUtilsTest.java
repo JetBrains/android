@@ -15,20 +15,13 @@
  */
 package com.android.tools.idea.editors.manifest;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.android.SdkConstants;
 import com.android.manifmerger.Actions;
-import com.android.manifmerger.ManifestModel;
-import com.android.manifmerger.XmlNode;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.model.TestMergedManifestSnapshotBuilder;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.lint.detector.api.Lint;
+import com.android.utils.DomExtensions;
 import com.android.utils.PositionXmlParser;
-import com.google.common.collect.ImmutableList;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -36,16 +29,18 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import java.io.IOException;
+
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.TAG_APPLICATION;
 
 public class ManifestUtilsTest extends AndroidTestCase {
 
@@ -264,15 +259,42 @@ public class ManifestUtilsTest extends AndroidTestCase {
                 "</manifest>");
   }
 
-  /** Test that getRecords() returns the same records for an intent-filter and its children elements and attributes */
-  public void testGetRecordsForIntentFilter() throws Exception {
+  public void testGetRecordsForIntentFilters() throws Exception {
+    // Regression test for https://issuetracker.google.com/335824315
+    //
+    // Previously, child elements of intent filters would have the location of the parent intent
+    // filter element (due to a workaround). Without the workaround, the location of an
+    // action/category/data element would map to the first instance of that element, regardless of
+    // parent intent filter or activity. Also, duplicate intent filters across different activities
+    // would be incorrectly mapped to the first instance.
+    //
+    // We check that the line number of each element under application is increasing to ensure that
+    // elements are not incorrectly mapped back to previous elements.
     MergedManifestSnapshot mergedManifest =
       getMergedManifest(
         "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
         "    package='com.example.app1'>\n" +
         "    <application android:name=\"com.example.app1.TheApp\">\n" +
         "        <activity android:name=\"com.example.app1.Activity1\">\n" +
-        "            <intent-filter>\n" +
+        "            <intent-filter>\n" + // A
+        "                <action android:name=\"android.intent.action.VIEW\"/>\n" +
+        "                <category android:name=\"android.intent.category.DEFAULT\"/>\n" +
+        "                <category android:name=\"android.intent.category.BROWSABLE\"/>\n" +
+        "                <data android:scheme=\"https\"/>\n" +
+        "                <data android:host=\"www.example.com\"/>\n" +
+        "                <data android:path=\"/\"/>\n" +
+        "            </intent-filter>\n" +
+        "            <intent-filter>\n" + // B
+        "                <action android:name=\"android.intent.action.VIEW\"/>\n" +
+        "                <category android:name=\"android.intent.category.DEFAULT\"/>\n" +
+        "                <category android:name=\"android.intent.category.BROWSABLE\"/>\n" +
+        "                <data android:scheme=\"https\"/>\n" +
+        "                <data android:host=\"www.example2.com\"/>\n" + // different host to A
+        "                <data android:path=\"/\"/>\n" +
+        "            </intent-filter>\n" +
+        "        </activity>\n" +
+        "        <activity android:name=\"com.example.app1.Activity2\">\n" +
+        "            <intent-filter>\n" + // Same as A, but under a different activity.
         "                <action android:name=\"android.intent.action.VIEW\"/>\n" +
         "                <category android:name=\"android.intent.category.DEFAULT\"/>\n" +
         "                <category android:name=\"android.intent.category.BROWSABLE\"/>\n" +
@@ -284,26 +306,27 @@ public class ManifestUtilsTest extends AndroidTestCase {
         "    </application>\n" +
         "</manifest>\n");
 
-    Element intentFilterElement = (Element) mergedManifest.getActivities().get(0).getElementsByTagName("intent-filter").item(0);
-    XmlNode.NodeKey nodeKey = XmlNode.NodeKey.fromXml(intentFilterElement, new ManifestModel());
-    Set<XmlNode.NodeKey> nodeKeySet = new HashSet<>(Collections.singletonList(nodeKey));
-
-    Actions mockActions = mock(Actions.class);
-    ImmutableList<Actions.NodeRecord> mockRecordList = ImmutableList.of(mock(Actions.NodeRecord.class));
-    when(mockActions.getNodeKeys()).thenReturn(nodeKeySet);
-    when(mockActions.getNodeRecords(nodeKey)).thenReturn(mockRecordList);
-
-    MergedManifestSnapshot mockMergedManifest = TestMergedManifestSnapshotBuilder.builder(myModule)
-      .setActions(mockActions)
-      .build();
-
-    assertEquals(mockRecordList, ManifestUtils.getRecords(mockMergedManifest, intentFilterElement));
-
-    Element intentFilterChildElement = (Element) intentFilterElement.getElementsByTagName("action").item(0);
-    assertEquals(mockRecordList, ManifestUtils.getRecords(mockMergedManifest, intentFilterChildElement));
-
-    Attr intentFilterChildAttr = intentFilterChildElement.getAttributeNodeNS(ANDROID_URI, "name");
-    assertEquals(mockRecordList, ManifestUtils.getRecords(mockMergedManifest, intentFilterChildAttr));
+    Document document = mergedManifest.getDocument();
+    assertNotNull(document);
+    Element manifest = document.getDocumentElement();
+    assertNotNull(manifest);
+    Element application = (Element) manifest.getElementsByTagName(TAG_APPLICATION).item(0);
+    // Use arrays so we can modify within lambda.
+    final int[] lineNumber = { ManifestUtils.getRecords(mergedManifest, application).get(0).getActionLocation().getPosition().getStartLine() };
+    assertTrue(lineNumber[0] > 0);
+    final int[] count = { 0 };
+    DomExtensions.visitElements(application, (Element element) -> {
+      if (TAG_APPLICATION.equals(element.getLocalName())) return false; // continue
+      List<? extends Actions.Record> records = ManifestUtils.getRecords(mergedManifest, element);
+      assertEquals(1, records.size());
+      int nextLineNumber = records.get(0).getActionLocation().getPosition().getStartLine();
+      assertTrue(nextLineNumber > lineNumber[0]);
+      lineNumber[0] = nextLineNumber;
+      ++count[0];
+      // Return false to continue visiting elements.
+      return false;
+    });
+    assertEquals(23, count[0]);
   }
 
   /**

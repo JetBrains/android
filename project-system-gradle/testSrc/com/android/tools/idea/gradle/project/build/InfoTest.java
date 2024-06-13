@@ -34,7 +34,6 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -67,10 +66,11 @@ public class InfoTest extends HeavyPlatformTestCase {
     createFileInProjectRoot(getProject(), "settings.gradle.kts");
     assertTrue(myInfo.hasTopLevelGradleFile());
   }
+
   public void testHasTopLevelGradleBuildFileUsingNonGradleProject() {
     File projectFolderPath = getBaseDirPath(getProject());
-    String[] filenames = { "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts" };
-    for (String filename : filenames ) {
+    String[] filenames = {"build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts"};
+    for (String filename : filenames) {
       File buildFilePath = new File(projectFolderPath, filename);
       if (buildFilePath.exists()) {
         assertTrue("Failed to delete top-level " + filename + " file", buildFilePath.delete());

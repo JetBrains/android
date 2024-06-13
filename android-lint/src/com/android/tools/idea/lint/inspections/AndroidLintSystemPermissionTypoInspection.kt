@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.PermissionErrorDetector
 class AndroidLintSystemPermissionTypoInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.system.permission.typo"),
-    PermissionErrorDetector.SYSTEM_PERMISSION_TYPO
+    PermissionErrorDetector.SYSTEM_PERMISSION_TYPO,
   )

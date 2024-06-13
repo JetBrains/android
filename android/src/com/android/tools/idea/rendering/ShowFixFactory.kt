@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.rendering.HtmlLinkManager
 import com.android.tools.rendering.RenderProblem
-import com.intellij.openapi.project.Project
 
 /** A [RenderProblem.RunnableFixFactory] that creates [ShowExceptionFix] as the [Runnable] fix. */
-object ShowFixFactory : RenderProblem.RunnableFixFactory {
-  override fun create(project: Project, problem: RenderProblem): Runnable = ShowExceptionFix(project, problem)
+object ShowFixFactory : RenderProblem.ActionFixFactory {
+  override fun create(problem: RenderProblem): HtmlLinkManager.Action = ShowExceptionFix(problem)
 }

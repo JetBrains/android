@@ -33,6 +33,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
@@ -44,7 +45,13 @@ import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
+import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
+import com.android.tools.profilers.tasks.TaskMetadataStatus;
+import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
+import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -88,6 +95,9 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
   @NotNull
   private final Runnable myStopAction;
+
+  @Nullable
+  private final RecordingScreenModel<MainMemoryProfilerStage> myRecordingScreenModel;
 
   @VisibleForTesting
   public Lazy<RecordingOption> lazyHeapDumpRecordingOption =
@@ -165,6 +175,12 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
     myRecordingOptionsModel = new RecordingOptionsModel();
     myStopAction = stopAction;
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      myRecordingScreenModel = new RecordingScreenModel<>(this);
+    }
+    else {
+      myRecordingScreenModel = null;
+    }
   }
 
   public RecordingOptionsModel getRecordingOptionsModel() {
@@ -202,6 +218,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     // Update statuses after recording options model has been initialized
     updateAllocationTrackingStatus();
     updateNativeAllocationTrackingStatus();
+
+    // Register recording screen model updatable so timer can update on tick.
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() && myRecordingScreenModel != null) {
+      getStudioProfilers().getUpdater().register(myRecordingScreenModel);
+    }
   }
 
   @Override
@@ -209,6 +230,10 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     super.exit();
     enableSelectLatestCapture(false, null);
     selectCaptureDuration(null, null);
+    // Deregister recording screen model updatable so timer does not continue in background.
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() && myRecordingScreenModel != null) {
+      getStudioProfilers().getUpdater().unregister(myRecordingScreenModel);
+    }
   }
 
   @NotNull
@@ -238,6 +263,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     long x = captureToSelect.x;
     if (getHeapDumpSampleDurations().getSeries().getSeriesForRange(getTimeline().getDataRange()).stream().anyMatch(s -> s.x == x)) {
       getAspect().changed(MemoryProfilerAspect.HEAP_DUMP_FINISHED);
+      LogUtils.log(getClass(), "Heap dump capture has finished");
     }
     selectCaptureDuration(captureToSelect.value, loadJoiner);
   }
@@ -384,6 +410,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   void nativeAllocationTrackingStart(@NotNull Trace.TraceStartStatus status) {
     switch (status.getStatus()) {
       case SUCCESS:
+        LogUtils.log(getClass(), "Native allocations capture start succeeded");
         myNativeAllocationTracking = true;
         setModelToRecordingNative();
         setPendingCaptureStartTime(status.getStartTimeNs());
@@ -392,7 +419,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         getTimeline().setStreaming(true);
         break;
       case FAILURE:
-        getLogger().error(status.getErrorMessage());
+        getLogger().error("Failure with error code " + status.getErrorCode());
+        TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(),
+                                                   getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                   new TaskStartFailedMetadata(status, null, null)
+        );
         break;
       case UNSPECIFIED:
         break;
@@ -410,43 +441,18 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
     switch (status.getStatus()) {
       case SUCCESS:
+        LogUtils.log(getClass(), "Native allocations capture stop succeeded");
         // stop allocation tracing
         myNativeAllocationTracking = false;
         setTrackingAllocations(false);
-        break;
-      case OTHER_FAILURE:
-        // other_failure encompasses all non-explicit defined failure statuses
-        getLogger().error(status.getErrorMessage());
         break;
       case NO_ONGOING_PROFILING:
         // TODO: Integrate the ongoing profile detection cpu profiler has with memory profiler
         break;
       default:
-        // handle explicitly defined failure statuses
-        handleNativeAllocationStopFailures(status);
-        break;
-    }
-  }
-
-  /**
-   * Placeholder method to handle failure statuses that will be reported as metadata.
-   * TODO: Merge this method with "fromStopStatus" in CpuCaptureMetadata.java
-   */
-  private void handleNativeAllocationStopFailures(@NotNull Trace.TraceStopStatus status) {
-    switch (status.getStatus()) {
-      case UNSPECIFIED:
-      case APP_PROCESS_DIED:
-      case APP_PID_CHANGED:
-      case PROFILER_PROCESS_DIED:
-      case STOP_COMMAND_FAILED:
-      case STILL_PROFILING_AFTER_STOP:
-      case CANNOT_START_WAITING:
-      case WAIT_TIMEOUT:
-      case WAIT_FAILED:
-      case CANNOT_READ_WAIT_EVENT:
-      case CANNOT_COPY_FILE:
-      case CANNOT_FORM_FILE:
-      case CANNOT_READ_FILE:
+        getLogger().error(status.getErrorMessage());
+        TaskEventTrackerUtils.trackStopTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                  new TaskStopFailedMetadata(status, null, null));
         break;
     }
   }
@@ -493,6 +499,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       case SUCCESS:
         setPendingCaptureStartTime(status.getStartTime());
         getAspect().changed(MemoryProfilerAspect.HEAP_DUMP_STARTED);
+        LogUtils.log(getClass(), "Heap dump capture start succeeded");
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", getSessionData().getPid()));
@@ -501,6 +508,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       case NOT_PROFILING:
       case FAILURE_UNKNOWN:
       case UNRECOGNIZED:
+        TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                   new TaskStartFailedMetadata(null, null, status));
         break;
     }
   }
@@ -527,10 +536,20 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         case NOT_ENABLED:
           setTrackingAllocations(false);
           break;
-        case UNSPECIFIED:
-        case NOT_PROFILING:
-        case FAILURE_UNKNOWN:
-        case UNRECOGNIZED:
+        default:
+          if (enable) {
+            // Start task failure
+            TaskEventTrackerUtils.trackStartTaskFailed(
+              getStudioProfilers(),
+              getStudioProfilers().getSessionsManager().isSessionAlive(),
+              new TaskStartFailedMetadata(null, status, null));
+          } else {
+            // Stop task failure
+            TaskEventTrackerUtils.trackStopTaskFailed(
+              getStudioProfilers(),
+              getStudioProfilers().getSessionsManager().isSessionAlive(),
+              new TaskStopFailedMetadata(null, status, null));
+          }
           break;
       }
       getAspect().changed(MemoryProfilerAspect.TRACKING_ENABLED);
@@ -575,6 +594,12 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   @NotNull
   public Runnable getStopAction() {
     return myStopAction;
+  }
+
+  @Nullable
+  @Override
+  public RecordingScreenModel<MainMemoryProfilerStage> getRecordingScreenModel() {
+    return myRecordingScreenModel;
   }
 
   @VisibleForTesting

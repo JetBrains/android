@@ -82,7 +82,7 @@ class MockUiData(
   override var downloadsData: DownloadsAnalyzer.Result = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
   override val showTaskCategoryInfo = createTaskCategoryInfo
   override val criticalPathTaskCategories = mockCriticalPathTaskCategoriesUiData().takeIf { showTaskCategoryInfo }
-  override var windowsDefenderWarningData = WindowsDefenderCheckService.WindowsDefenderWarningData(false, false, emptyList())
+  override var windowsDefenderWarningData = WindowsDefenderCheckService.WindowsDefenderWarningData(false, emptyList())
 
   fun mockBuildOverviewData(
     javaVersionUsed: Int? = null,

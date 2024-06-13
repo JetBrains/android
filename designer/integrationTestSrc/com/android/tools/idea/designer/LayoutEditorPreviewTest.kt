@@ -37,7 +37,7 @@ class LayoutEditorPreviewTest {
     system.installation.ideaLog.waitForMatchingLine(
       ".*RenderResult\\{renderResult=Result\\{status=SUCCESS, errorMessage=null, throwable=null, data=null\\}, sourceFile=XmlFile:$xmlName.*",
       10,
-      TimeUnit.SECONDS
+      TimeUnit.SECONDS,
     )
   }
 
@@ -53,7 +53,6 @@ class LayoutEditorPreviewTest {
   fun setup() {
     // Create a new android project, and set a fixed distribution
     project = AndroidProject("tools/adt/idea/designer/testData/projects/simpleApplication")
-    project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
 
     // Enable additional logging
     system.installation.addVmOption(

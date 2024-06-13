@@ -26,7 +26,12 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleD
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
+import com.intellij.execution.RunManager
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.wm.IdeFocusManager
@@ -46,8 +51,8 @@ class RulesTableView(
   project: Project,
   private val client: NetworkInspectorClient,
   private val scope: CoroutineScope,
-  model: NetworkInspectorModel,
-  usageTracker: NetworkInspectorTracker
+  private val model: NetworkInspectorModel,
+  private val usageTracker: NetworkInspectorTracker,
 ) {
 
   private val persistentStateComponent: RulesPersistentStateComponent = project.service()
@@ -60,31 +65,14 @@ class RulesTableView(
     val decorator =
       ToolbarDecorator.createDecorator(table)
         .setAddAction {
-          val id = newId()
-          val ruleData = createRuleDataWithListener(id)
-          tableModel.addRow(ruleData)
-          val selectedRow = tableModel.rowCount - 1
-          table.selectionModel.setSelectionInterval(selectedRow, selectedRow)
-          model.detailContent = NetworkInspectorModel.DetailContent.RULE
-          scope.launch {
-            client.interceptResponse(
-              NetworkInspectorProtocol.InterceptCommand.newBuilder()
-                .apply {
-                  interceptRuleAddedBuilder.apply {
-                    ruleId = id
-                    rule = ruleData.toProto()
-                  }
-                }
-                .build()
-            )
-          }
-          usageTracker.trackRuleCreated()
+          val ruleData = createRuleDataWithListener(newId())
+          addRule(ruleData)
         }
         .setRemoveAction {
           val isConfirmed =
             MessageDialogBuilder.okCancel(
                 NetworkInspectorBundle.message("confirmation.title"),
-                NetworkInspectorBundle.message("confirmation.rule")
+                NetworkInspectorBundle.message("confirmation.rule"),
               )
               .ask(table)
           if (!isConfirmed) return@setRemoveAction
@@ -108,6 +96,7 @@ class RulesTableView(
             }
           }
         }
+        .addExtraAction(CloneRuleAction())
     component = decorator.createPanel()
     table.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
     table.selectionModel.addListSelectionListener {
@@ -142,6 +131,26 @@ class RulesTableView(
         model.detailContent = NetworkInspectorModel.DetailContent.RULE
       }
     }
+  }
+
+  private fun addRule(ruleData: RuleData) {
+    tableModel.addRow(ruleData)
+    val selectedRow = tableModel.rowCount - 1
+    table.selectionModel.setSelectionInterval(selectedRow, selectedRow)
+    model.detailContent = NetworkInspectorModel.DetailContent.RULE
+    scope.launch {
+      client.interceptResponse(
+        NetworkInspectorProtocol.InterceptCommand.newBuilder()
+          .apply {
+            interceptRuleAddedBuilder.apply {
+              ruleId = ruleData.id
+              rule = ruleData.toProto()
+            }
+          }
+          .build()
+      )
+    }
+    usageTracker.trackRuleCreated()
   }
 
   private fun createNewRuleDataListener() =
@@ -217,6 +226,23 @@ class RulesTableView(
       while (getLatestId() < ruleData.id) {
         newId()
       }
+    }
+  }
+
+  private inner class CloneRuleAction :
+    DumbAwareAction("Clone", "Clone rule", AllIcons.Actions.Copy) {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = table.selectedObject != null
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val oldRule = table.selectedObject ?: return
+      val ruleData = createRuleDataWithListener(newId())
+      ruleData.copyFrom(oldRule)
+      ruleData.name = RunManager.suggestUniqueName(ruleData.name, table.items.map { it.name })
+      addRule(ruleData)
     }
   }
 }

@@ -18,23 +18,26 @@ package com.android.tools.idea.run.deployment.selector
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * The central coordination point between the UI, the DevicesService, and the persistent state.
@@ -72,7 +75,7 @@ internal constructor(
     runConfigurationFlow(project),
     project.service<SelectedTargetStateService>(),
     project.service<DeploymentTargetDevicesService>().loadedDevices,
-    Clock.System
+    Clock.System,
   )
 
   override fun dispose() {}
@@ -85,7 +88,7 @@ internal constructor(
   private val selectionStateUpdateFlow =
     MutableSharedFlow<SelectionState>(
       extraBufferCapacity = 1,
-      onBufferOverflow = BufferOverflow.DROP_OLDEST
+      onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
 
   /**
@@ -95,9 +98,9 @@ internal constructor(
   private val selectionStateFlow =
     merge(
         runConfigurationFlow.map { selectedTargetStateService.getState(it?.configuration) },
-        selectionStateUpdateFlow
+        selectionStateUpdateFlow,
       )
-      .stateIn(coroutineScope, SharingStarted.Lazily, SelectionState())
+      .stateIn(coroutineScope, SharingStarted.Eagerly, SelectionState())
 
   /**
    * The primary output of this class, which is the result of combining the current set of devices
@@ -108,9 +111,19 @@ internal constructor(
       .combine(selectionStateFlow, ::updateState)
       .stateIn(
         coroutineScope,
-        SharingStarted.Lazily,
-        DevicesAndTargets(emptyList(), false, emptyList())
+        // Note that nothing collects this flow at present, so it must be eager for it to be updated
+        SharingStarted.Eagerly,
+        DevicesAndTargets(emptyList(), false, emptyList()),
       )
+
+  init {
+    coroutineScope.launch {
+      devicesAndTargetsFlow
+        .map { it.selectedTargets }
+        .distinctUntilChanged()
+        .collect { ActivityTracker.getInstance().inc() }
+    }
+  }
 
   internal val devicesAndTargets: DevicesAndTargets
     get() = devicesAndTargetsFlow.firstValue()
@@ -122,7 +135,7 @@ internal constructor(
 
   private fun updateState(
     presentDevices: List<DeploymentTargetDevice>,
-    selectionState: SelectionState
+    selectionState: SelectionState,
   ): DevicesAndTargets {
     val presentDevices = presentDevices.sortedWith(DeviceComparator)
     val selectedTargets: List<DeploymentTarget>
@@ -133,7 +146,7 @@ internal constructor(
             updateSingleSelection(
               presentDevices,
               selectionState.dropdownSelection?.target,
-              selectionState.dropdownSelection?.timestamp
+              selectionState.dropdownSelection?.timestamp,
             )
           )
       }
@@ -152,7 +165,7 @@ internal constructor(
     return DevicesAndTargets(
       presentDevices.sortedWith(DeviceComparator),
       selectionState.selectionMode == SelectionMode.DIALOG,
-      selectedTargets
+      selectedTargets,
     )
   }
 
@@ -163,7 +176,7 @@ internal constructor(
   private fun updateSingleSelection(
     presentDevices: List<DeploymentTargetDevice>,
     lastSelectedTargetId: TargetId?,
-    selectionTime: Instant?
+    selectionTime: Instant?,
   ): DeploymentTarget? {
     val lastSelectedTarget = lastSelectedTargetId?.resolve(presentDevices)
     // This relies on presentDevices being sorted by connection time (see DeviceComparator)
@@ -211,7 +224,7 @@ internal constructor(
         // dropdown.
         dialogSelection = DialogSelection(targets = targetsSelectedWithDialog.map { it.id }),
         selectionMode =
-          if (targetsSelectedWithDialog.isEmpty()) SelectionMode.DROPDOWN else SelectionMode.DIALOG
+          if (targetsSelectedWithDialog.isEmpty()) SelectionMode.DROPDOWN else SelectionMode.DIALOG,
       )
     )
   }
@@ -227,7 +240,7 @@ internal constructor(
 internal data class DevicesAndTargets(
   val allDevices: List<DeploymentTargetDevice>,
   val isMultipleSelectionMode: Boolean,
-  val selectedTargets: List<DeploymentTarget>
+  val selectedTargets: List<DeploymentTarget>,
 )
 
 /**

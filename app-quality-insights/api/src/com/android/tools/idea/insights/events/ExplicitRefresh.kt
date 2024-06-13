@@ -28,15 +28,15 @@ object ExplicitRefresh : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> =
     StateTransition(
       state.copy(
         issues = LoadingState.Loading,
         currentIssueVariants = LoadingState.Ready(null),
         currentIssueDetails = LoadingState.Ready(null),
-        currentNotes = LoadingState.Ready(null)
+        currentNotes = LoadingState.Ready(null),
       ),
-      action = Action.Refresh
+      action = Action.Refresh,
     )
 }

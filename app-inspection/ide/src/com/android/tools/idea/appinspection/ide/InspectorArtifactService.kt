@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory as ArtifactResolverFactoryBase
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.io.IdeFileService
 import com.google.common.annotations.VisibleForTesting
@@ -26,7 +27,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import java.nio.file.Path
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory as ArtifactResolverFactoryBase
 
 /**
  * An application service that exposes functionality to find, retrieve and manipulate inspector
@@ -36,7 +36,7 @@ interface InspectorArtifactService {
   /** Gets the cached inspector artifact if it exists, otherwise try to resolve it. */
   suspend fun getOrResolveInspectorArtifact(
     artifactCoordinate: RunningArtifactCoordinate,
-    project: Project
+    project: Project,
   ): Path
 
   companion object {
@@ -48,13 +48,13 @@ interface InspectorArtifactService {
 /** A helper function that returns an [AppInspectorJar] directly instead of a path. */
 suspend fun InspectorArtifactService.getOrResolveInspectorJar(
   project: Project,
-  coordinate: RunningArtifactCoordinate
+  coordinate: RunningArtifactCoordinate,
 ): AppInspectorJar {
   val inspectorPath = getOrResolveInspectorArtifact(coordinate, project)
   return AppInspectorJar(
     inspectorPath.fileName.toString(),
     inspectorPath.parent.toString(),
-    inspectorPath.parent.toString()
+    inspectorPath.parent.toString(),
   )
 }
 
@@ -64,7 +64,7 @@ class InspectorArtifactServiceImpl
 constructor(
   private val fileService: FileService,
   private val artifactResolverFactory: ArtifactResolverFactoryBase =
-    ArtifactResolverFactory(fileService)
+    ArtifactResolverFactory(fileService),
 ) : InspectorArtifactService {
   // Called using reflection by intellij service framework
   constructor() : this(IdeFileService("app-inspection"))
@@ -72,6 +72,6 @@ constructor(
   @WorkerThread
   override suspend fun getOrResolveInspectorArtifact(
     artifactCoordinate: RunningArtifactCoordinate,
-    project: Project
+    project: Project,
   ) = artifactResolverFactory.getArtifactResolver(project).resolveArtifact(artifactCoordinate)
 }

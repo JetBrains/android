@@ -176,11 +176,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
   private UpdateSitesPanel myUpdateSitesPanel;
 
   /**
-   * Link to let you switch to the preview channel if there are previews available.
-   */
-  private HyperlinkLabel myChannelLink;
-
-  /**
    * Tab pane containing {@link #myPlatformComponentsPanel}, {@link #myToolComponentsPanel}, and {@link #myUpdateSitesPanel}.
    */
   private JBTabbedPane myTabPane;
@@ -227,14 +222,12 @@ public class SdkUpdaterConfigPanel implements Disposable {
   /**
    * Construct a new SdkUpdaterConfigPanel.
    *
-   * @param channelChangedCallback Callback to allow us to notify the channel picker panel if we change the selected channel.
    * @param downloader             {@link Downloader} to download remote site lists and for installing packages. If {@code null} we will
    *                               only show local packages.
    * @param settings               {@link SettingsController} for e.g. proxy settings.
    * @param configurable           The {@link SdkUpdaterConfigurable} that created this.
    */
-  public SdkUpdaterConfigPanel(@NotNull final Runnable channelChangedCallback,
-                               @Nullable Downloader downloader,
+  public SdkUpdaterConfigPanel(@Nullable Downloader downloader,
                                @Nullable SettingsController settings,
                                @NotNull SdkUpdaterConfigurable configurable) {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
@@ -254,7 +247,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     setUpDiskCleanupLink();
     myBindingsManager.bindTwoWay(
       mySelectedSdkLocation,
-      new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
+      new AdapterProperty<>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
         @NotNull
         @Override
         protected Optional<File> convertFromSourceType(@NotNull String value) {
@@ -270,16 +263,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
           return value.map(File::getPath).orElse("");
         }
       });
-
-    myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
-    myChannelLink.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-        UpdateSettingsConfigurable settings = new UpdateSettingsConfigurable(false);
-        ShowSettingsUtil.getInstance().editConfigurable(getComponent(), settings);
-        channelChangedCallback.run();
-      }
-    });
 
     myToolComponentsPanel.setConfigurable(myConfigurable);
     myPlatformComponentsPanel.setConfigurable(myConfigurable);
@@ -628,8 +611,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
         toolsPackages.add(info);
       }
     }
-    // TODO: when should we show this?
-    //myChannelLink.setVisible(myHasPreview && !myIncludePreview);
     myPlatformComponentsPanel.setPackages(platformPackages);
     myToolComponentsPanel.setPackages(toolsPackages);
   }

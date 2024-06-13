@@ -43,7 +43,7 @@ interface DesignerEditorFileType {
   /** Returns the toolbar actions that should be present for the given selection. */
   fun getSelectionContextToolbar(
     surface: DesignSurface<*>,
-    selection: List<NlComponent>
+    selection: List<NlComponent>,
   ): DefaultActionGroup = surface.actionManager.getToolbarActions(selection)
 }
 

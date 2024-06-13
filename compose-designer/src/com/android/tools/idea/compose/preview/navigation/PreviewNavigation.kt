@@ -79,7 +79,7 @@ private fun dumpViewInfosToLog(module: Module, viewInfos: List<ComposeViewInfo>,
 fun findComponentHits(
   allViewInfos: List<ComposeViewInfo>,
   @AndroidCoordinate x: Int,
-  @AndroidCoordinate y: Int
+  @AndroidCoordinate y: Int,
 ): List<SourceLocation> {
   return allViewInfos
     .findHitWithDepth(x, y)
@@ -104,7 +104,7 @@ fun findNavigatableComponentHit(
   allViewInfos: List<ComposeViewInfo>,
   @AndroidCoordinate x: Int,
   @AndroidCoordinate y: Int,
-  locationFilter: (SourceLocation) -> Boolean = { true }
+  locationFilter: (SourceLocation) -> Boolean = { true },
 ): Navigatable? {
   val hits = findComponentHits(allViewInfos, x, y).filter(locationFilter)
 
@@ -121,7 +121,7 @@ private fun findNavigatableComponent(
   @SwingCoordinate hitX: Int,
   @SwingCoordinate hitY: Int,
   requestFocus: Boolean,
-  fileName: String
+  fileName: String,
 ): Navigatable? {
   val x = Coordinates.getAndroidX(sceneView, hitX)
   val y = Coordinates.getAndroidY(sceneView, hitY)

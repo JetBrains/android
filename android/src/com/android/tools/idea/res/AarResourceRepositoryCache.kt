@@ -23,7 +23,7 @@ import com.android.resources.aar.AarSourceResourceRepository
 import com.android.resources.aar.CachingData
 import com.android.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.android.tools.concurrency.AndroidIoManager
-import com.android.tools.res.getAndroidPluginVersion
+import com.android.tools.res.CodeVersionAdapter
 import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -69,7 +69,7 @@ open class AarResourceRepositoryCache protected constructor() {
         resFolder.root,
         resFolder.resources,
         library.libraryName(),
-        createCachingData(library)
+        createCachingData(library),
       )
     }
   }
@@ -135,7 +135,7 @@ open class AarResourceRepositoryCache protected constructor() {
     }
     val contentVersion = modificationTime.toString()
 
-    val codeVersion = getAndroidPluginVersion() ?: return null
+    val codeVersion = CodeVersionAdapter.getCodeVersion() ?: return null
 
     val path = resFolder.root
     val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(path.portablePath).toString()
@@ -157,7 +157,7 @@ open class AarResourceRepositoryCache protected constructor() {
     private fun <K, T : AarResourceRepository> getRepository(
       key: K,
       cache: Cache<K, T>,
-      factory: () -> T
+      factory: () -> T,
     ): T {
       return cache.getAndUnwrap(key) { factory() }
     }

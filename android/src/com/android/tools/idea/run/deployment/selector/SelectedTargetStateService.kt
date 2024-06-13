@@ -62,7 +62,7 @@ import kotlinx.datetime.Instant
 @State(
   name = "deploymentTargetSelector",
   // Roaming disabled because AVD identifiers contain local filesystem paths
-  storages = [Storage("deploymentTargetSelector.xml", roamingType = RoamingType.DISABLED)]
+  storages = [Storage("deploymentTargetSelector.xml", roamingType = RoamingType.DISABLED)],
 )
 @Service(Service.Level.PROJECT)
 internal class SelectedTargetStateService(val project: Project) :
@@ -153,7 +153,7 @@ internal data class SelectionState(
       runConfigName,
       selectionMode,
       dropdownSelection?.toXml(),
-      dialogSelection.toXml()
+      dialogSelection.toXml(),
     )
 }
 
@@ -176,7 +176,7 @@ internal data class SelectionStateXml(
 
 internal enum class SelectionMode {
   DROPDOWN,
-  DIALOG
+  DIALOG,
 }
 
 internal data class DropdownSelection(val target: TargetId, val timestamp: Instant?) {
@@ -198,7 +198,7 @@ internal data class DialogSelection(val targets: List<TargetId>) {
 
 @Tag("DialogSelection")
 internal data class DialogSelectionXml(
-  @XCollection(style = XCollection.Style.v2) var targets: List<TargetIdXml> = emptyList(),
+  @XCollection(style = XCollection.Style.v2) var targets: List<TargetIdXml> = emptyList()
 )
 
 internal fun DialogSelectionXml?.fromXml() =
@@ -209,7 +209,7 @@ internal data class TargetIdXml(
   @Tag("handle") var id: DeviceIdXml? = null,
   @Tag("template") var templateId: DeviceIdXml? = null,
   @Attribute("type") var type: TargetType? = null,
-  @Property(surroundWithTag = false) var snapshot: SnapshotXml? = null
+  @Property(surroundWithTag = false) var snapshot: SnapshotXml? = null,
 )
 
 internal enum class TargetType {
@@ -260,7 +260,7 @@ internal data class DeviceIdXml(
 
 internal enum class DeviceIdType {
   HANDLE,
-  TEMPLATE
+  TEMPLATE,
 }
 
 internal fun DeviceId.toXml() =
@@ -270,7 +270,7 @@ internal fun DeviceIdXml.fromXml(): DeviceId? {
   return DeviceId(
     pluginId.takeIf { it.isNotBlank() } ?: return null,
     type == DeviceIdType.TEMPLATE,
-    identifier.takeIf { it.isNotBlank() } ?: return null
+    identifier.takeIf { it.isNotBlank() } ?: return null,
   )
 }
 
@@ -279,7 +279,7 @@ internal fun DeviceIdXml.fromXml(): DeviceId? {
 internal data class SnapshotXml(
   var type: SnapshotType = SnapshotType.LOCAL_EMULATOR,
   var name: String = "",
-  @Attribute(converter = PathConverter::class) var path: Path = Path.of("")
+  @Attribute(converter = PathConverter::class) var path: Path = Path.of(""),
 )
 
 internal enum class SnapshotType {

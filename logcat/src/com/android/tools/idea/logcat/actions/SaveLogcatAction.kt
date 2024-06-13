@@ -53,7 +53,7 @@ internal class SaveLogcatAction :
   DumbAwareAction(
     LogcatBundle.message("logcat.save.log.action.text"),
     null,
-    AllIcons.ToolbarDecorator.Export
+    AllIcons.ToolbarDecorator.Export,
   ) {
 
   override fun update(e: AnActionEvent) {
@@ -72,7 +72,7 @@ internal class SaveLogcatAction :
       FileChooserFactory.getInstance()
         .createSaveFileDialog(
           FileSaverDescriptor(LogcatBundle.message("logcat.save.log.dialog.title"), "", LOGCAT_EXT),
-          project
+          project,
         )
 
     val timestamp = SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.ROOT).format(Date())
@@ -100,7 +100,7 @@ internal class SaveLogcatAction :
         Notification(
             "Logcat",
             LogcatBundle.message("logcat.save.log.notification.text"),
-            NotificationType.INFORMATION
+            NotificationType.INFORMATION,
           )
           .addAction(OpenInEditorAction(virtualFile))
           .addAction(RevealLogcatFileAction(virtualFile))

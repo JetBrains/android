@@ -20,16 +20,14 @@ import com.android.SdkConstants.FQCN_TARGET_API
 import com.android.SdkConstants.TOOLS_URI
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.lint.AndroidLintBundle
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts
-import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeClient
-import com.android.tools.idea.lint.common.addAnnotation
 import com.android.tools.idea.lint.common.isAnnotationTarget
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
 import com.android.tools.idea.res.ensureNamespaceImported
 import com.android.tools.idea.util.mapAndroidxName
 import com.android.tools.lint.checks.ApiLookup
 import com.android.tools.lint.detector.api.ApiConstraint.SdkApiConstraint
+import com.android.tools.lint.detector.api.ClassContext
 import com.android.tools.lint.detector.api.ExtensionSdk
 import com.android.tools.lint.detector.api.ExtensionSdk.Companion.ANDROID_SDK_ID
 import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_API_ANNOTATION
@@ -37,9 +35,13 @@ import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_EXTE
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.codeInsight.intention.AddAnnotationPsiFix
-import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
+import com.intellij.codeInspection.util.IntentionFamilyName
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.xml.XMLLanguage
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModPsiUpdater
+import com.intellij.modcommand.Presentation
+import com.intellij.modcommand.PsiUpdateModCommandAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnonymousClass
@@ -48,12 +50,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.SyntheticElement
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.idea.util.addAnnotation
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
@@ -62,18 +66,19 @@ import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import java.util.Locale
 
 /** Fix which adds a `@TargetApi` annotation at the nearest surrounding method or class. */
+@Suppress("UnstableApiUsage")
 class AddTargetApiQuickFix(
   private val requirements: List<SdkApiConstraint>,
   private val requiresApi: Boolean,
-  private val element: PsiElement,
-  private val requireClass: Boolean = false
-) : DefaultLintQuickFix("") { // overriding getName() below
+  element: PsiElement,  // Do not hold on to element, the super class will maintain a SmartPsiElementPointer for it
+  private val requireClass: Boolean = false,
+) : PsiUpdateModCommandAction<PsiElement>(element) {
 
   private fun getSdkApiString(api: Int, fullyQualified: Boolean): String {
     return AddTargetVersionCheckQuickFix.getVersionField(api, fullyQualified)
   }
 
-  override fun getName(): String {
+  private fun getName(element: PsiElement): String {
     val first = requirements.first()
     return when {
       element.language == XMLLanguage.INSTANCE ->
@@ -85,7 +90,7 @@ class AddTargetApiQuickFix(
       !requiresApi ->
         AndroidLintBundle.message(
           "android.lint.fix.add.target.api",
-          getSdkApiString(first.min(), false)
+          getSdkApiString(first.min(), false),
         )
       requirements.size > 1 ->
         if (requirements.any { it.sdkId == ANDROID_SDK_ID })
@@ -95,35 +100,28 @@ class AddTargetApiQuickFix(
         AndroidLintBundle.message(
           "android.lint.fix.add.requires.sdk.extension",
           ExtensionSdk.getSdkExtensionField(first.sdkId, false),
-          first.minString()
+          first.minString(),
         )
       else ->
         AndroidLintBundle.message(
           "android.lint.fix.add.requires.api",
-          getSdkApiString(first.min(), false)
+          getSdkApiString(first.min(), false),
         )
     }
   }
 
-  override fun isApplicable(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType
-  ): Boolean {
-    return getAnnotationContainer(startElement) != null
-  }
+  override fun getPresentation(context: ActionContext, element: PsiElement) =
+    getAnnotationContainer(element)?.let { Presentation.of(getName(element)) }
 
-  override fun apply(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
-  ) {
-    when (startElement.language) {
-      JavaLanguage.INSTANCE -> handleJava(startElement)
-      KotlinLanguage.INSTANCE -> handleKotlin(startElement)
-      XMLLanguage.INSTANCE -> handleXml(startElement)
+  override fun invoke(context: ActionContext, element: PsiElement, updater: ModPsiUpdater) {
+    when (element.language) {
+      JavaLanguage.INSTANCE -> handleJava(element)
+      KotlinLanguage.INSTANCE -> handleKotlin(element)
+      XMLLanguage.INSTANCE -> handleXml(element)
     }
   }
+
+  override fun getFamilyName(): @IntentionFamilyName String = "AddTargetApi"
 
   private fun handleXml(startElement: PsiElement) {
     // Find nearest method or class; can't add @TargetApi on modifier list owners like variable
@@ -156,7 +154,7 @@ class AddTargetApiQuickFix(
           requiresApi,
           requirement.sdkId,
           requirement.min(),
-          requirement.sdkId == ANDROID_SDK_ID
+          requirement.sdkId == ANDROID_SDK_ID,
         )
       }
     }
@@ -168,7 +166,7 @@ class AddTargetApiQuickFix(
     requiresApi: Boolean,
     sdkId: Int,
     api: Int,
-    replace: Boolean
+    replace: Boolean,
   ) {
     val fqcn: String
     val annotationText: String
@@ -192,11 +190,11 @@ class AddTargetApiQuickFix(
     container: PsiModifierListOwner,
     fqcn: String,
     annotationText: String,
-    replace: Boolean
+    replace: Boolean,
   ) {
     val newAnnotation = elementFactory.createAnnotationFromText(annotationText, container)
     val annotation = if (replace) AnnotationUtil.findAnnotation(container, fqcn) else null
-    if (annotation != null && annotation.isPhysical) {
+    if (annotation != null && annotation !is SyntheticElement) {
       annotation.replace(newAnnotation)
     } else if (!replace && AnnotationUtil.findAnnotation(container, fqcn) != null) {
       // AddAnnotationFix is hardcoded to never insert if the annotation already exists
@@ -207,7 +205,7 @@ class AddTargetApiQuickFix(
         AddAnnotationPsiFix.addPhysicalAnnotationTo(
           fqcn,
           newAnnotation.parameterList.attributes,
-          owner
+          owner,
         )
       if (inserted != null) {
         JavaCodeStyleManager.getInstance(inserted.project).shortenClassReferences(inserted)
@@ -221,9 +219,6 @@ class AddTargetApiQuickFix(
 
   private fun handleKotlin(startElement: PsiElement) {
     val annotationContainer = getAnnotationContainer(startElement) ?: return
-    if (!prepareElementForWrite(annotationContainer)) {
-      return
-    }
     // Reverse order: preserve order, and addAnnotationsKotlin will prepend
     for (requirement in requirements.reversed()) {
       addAnnotationsKotlin(
@@ -231,7 +226,7 @@ class AddTargetApiQuickFix(
         requiresApi,
         requirement.sdkId,
         requirement.min(),
-        requirement.sdkId == ANDROID_SDK_ID
+        requirement.sdkId == ANDROID_SDK_ID,
       )
     }
   }
@@ -241,7 +236,7 @@ class AddTargetApiQuickFix(
     requiresApi: Boolean,
     sdkId: Int,
     api: Int,
-    replace: Boolean
+    replace: Boolean,
   ) {
     val fqn =
       if (requiresApi && sdkId != ANDROID_SDK_ID) {
@@ -270,16 +265,16 @@ class AddTargetApiQuickFix(
     annotationContainer: PsiElement,
     fqn: String,
     inner: String,
-    replace: Boolean
+    replace: Boolean,
   ) {
     if (annotationContainer is KtModifierListOwner) {
       val whiteSpaceText = if (annotationContainer.isNewLineNeededForAnnotation()) "\n" else " "
       annotationContainer.addAnnotation(
-        FqName(fqn),
+        ClassId.fromString(ClassContext.getInternalName(fqn)),
         inner,
         null,
         searchForExistingEntry = replace,
-        whiteSpaceText = whiteSpaceText
+        whiteSpaceText = whiteSpaceText,
       )
     }
   }
@@ -300,7 +295,7 @@ class AddTargetApiQuickFix(
               container,
               PsiMethod::class.java,
               true,
-              PsiClass::class.java
+              PsiClass::class.java,
             )
         }
 

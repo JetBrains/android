@@ -30,6 +30,7 @@ import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
 import com.intellij.facet.ProjectWideFacetListenersRegistry;
@@ -75,7 +76,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.Icon;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -151,7 +151,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @Override
   public boolean isInitiallyVisible() {
-    return AndroidUtils.hasAndroidFacets(myProject);
+    return CommonAndroidUtil.getInstance().isAndroidProject(myProject);
   }
 
   @NotNull

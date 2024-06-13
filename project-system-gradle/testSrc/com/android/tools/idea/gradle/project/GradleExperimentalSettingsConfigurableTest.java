@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT;
-import static com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.flags.ExperimentalConfigurable.ApplyState;
@@ -35,7 +33,6 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    mySettings.TRACE_PROFILE_LOCATION = "";
     myConfigurable = new GradleExperimentalSettingsConfigurable(mySettings);
   }
 
@@ -50,24 +47,6 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
     assertTrue(myConfigurable.isModified());
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
-    assertFalse(myConfigurable.isModified());
-
-    myConfigurable.enableTraceGradleSync(true);
-    mySettings.TRACE_GRADLE_SYNC = false;
-    assertTrue(myConfigurable.isModified());
-    mySettings.TRACE_GRADLE_SYNC = true;
-    assertFalse(myConfigurable.isModified());
-
-    myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
-    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text2.profile";
-    assertTrue(myConfigurable.isModified());
-    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text1.profile";
-    assertFalse(myConfigurable.isModified());
-
-    myConfigurable.setTraceProfileSelection(DEFAULT);
-    mySettings.TRACE_PROFILE_SELECTION = SPECIFIED_LOCATION;
-    assertTrue(myConfigurable.isModified());
-    mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
     assertFalse(myConfigurable.isModified());
 
     myConfigurable.enableParallelSync(true);
@@ -102,24 +81,6 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
     assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
 
-    myConfigurable.enableTraceGradleSync(true);
-    mySettings.TRACE_GRADLE_SYNC = false;
-    assertEquals(ApplyState.RESTART, myConfigurable.preApplyCallback());
-    mySettings.TRACE_GRADLE_SYNC = true;
-    assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
-
-    myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
-    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text2.profile";
-    assertEquals(ApplyState.RESTART, myConfigurable.preApplyCallback());
-    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text1.profile";
-    assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
-
-    myConfigurable.setTraceProfileSelection(DEFAULT);
-    mySettings.TRACE_PROFILE_SELECTION = SPECIFIED_LOCATION;
-    assertEquals(ApplyState.RESTART, myConfigurable.preApplyCallback());
-    mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
-    assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
-
     myConfigurable.enableParallelSync(true);
     mySettings.ENABLE_PARALLEL_SYNC = false;
     assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
@@ -142,9 +103,6 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
   public void testApply() throws ConfigurationException {
     myConfigurable.enableUseMultiVariantExtraArtifacts(true);
     myConfigurable.enableConfigureAllGradleTasks(false);
-    myConfigurable.enableTraceGradleSync(true);
-    myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
-    myConfigurable.setTraceProfileSelection(DEFAULT);
     myConfigurable.enableParallelSync(true);
     myConfigurable.enableGradleApiOptimization(true);
     myConfigurable.enableDeriveRuntimeClasspathsForLibraries(true);
@@ -153,18 +111,11 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
 
     assertTrue(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
-    assertTrue(mySettings.TRACE_GRADLE_SYNC);
-    assertEquals("/tmp/text1.profile", mySettings.TRACE_PROFILE_LOCATION);
-    assertEquals(DEFAULT, mySettings.TRACE_PROFILE_SELECTION);
-    assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertTrue(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     assertTrue(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
 
     myConfigurable.enableUseMultiVariantExtraArtifacts(false);
     myConfigurable.enableConfigureAllGradleTasks(true);
-    myConfigurable.enableTraceGradleSync(false);
-    myConfigurable.setTraceProfileLocation("/tmp/text2.profile");
-    myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
     myConfigurable.enableParallelSync(false);
     myConfigurable.enableGradleApiOptimization(false);
     myConfigurable.enableDeriveRuntimeClasspathsForLibraries(false);
@@ -173,9 +124,6 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
 
     assertFalse(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     assertFalse(mySettings.SKIP_GRADLE_TASKS_LIST);
-    assertFalse(mySettings.TRACE_GRADLE_SYNC);
-    assertEquals("/tmp/text2.profile", mySettings.TRACE_PROFILE_LOCATION);
-    assertEquals(SPECIFIED_LOCATION, mySettings.TRACE_PROFILE_SELECTION);
     assertFalse(mySettings.ENABLE_PARALLEL_SYNC);
     assertFalse(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     assertFalse(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
@@ -184,9 +132,6 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
   public void testReset() {
     mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = true;
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
-    mySettings.TRACE_GRADLE_SYNC = true;
-    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text1.profile";
-    mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
     mySettings.ENABLE_PARALLEL_SYNC = true;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = true;
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
@@ -195,18 +140,12 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
 
     assertTrue(myConfigurable.isUseMultiVariantExtraArtifact());
     assertFalse(myConfigurable.isConfigureAllGradleTasksEnabled());
-    assertTrue(myConfigurable.isTraceGradleSyncEnabled());
-    assertEquals("/tmp/text1.profile", myConfigurable.getTraceProfileLocation());
-    assertEquals(DEFAULT, myConfigurable.getTraceProfileSelection());
     assertTrue(myConfigurable.isParallelSyncEnabled());
     assertTrue(myConfigurable.isGradleApiOptimizationEnabled());
     assertTrue(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
 
     mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = false;
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
-    mySettings.TRACE_GRADLE_SYNC = false;
-    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text2.profile";
-    mySettings.TRACE_PROFILE_SELECTION = SPECIFIED_LOCATION;
     mySettings.ENABLE_PARALLEL_SYNC = false;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = false;
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
@@ -215,24 +154,9 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
 
     assertFalse(myConfigurable.isUseMultiVariantExtraArtifact());
     assertTrue(myConfigurable.isConfigureAllGradleTasksEnabled());
-    assertFalse(myConfigurable.isTraceGradleSyncEnabled());
-    assertEquals("/tmp/text2.profile", myConfigurable.getTraceProfileLocation());
-    assertEquals(SPECIFIED_LOCATION, myConfigurable.getTraceProfileSelection());
+    assertFalse(myConfigurable.isParallelSyncEnabled());
     assertFalse(myConfigurable.isParallelSyncEnabled());
     assertFalse(myConfigurable.isGradleApiOptimizationEnabled());
     assertFalse(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
-  }
-
-  public void testIsTraceProfileValid() {
-    myConfigurable.enableTraceGradleSync(true);
-    myConfigurable.setTraceProfileLocation("");
-    myConfigurable.setTraceProfileSelection(DEFAULT);
-    assertFalse(myConfigurable.isTraceProfileInvalid());
-    assertEquals(ApplyState.RESTART, myConfigurable.preApplyCallback());
-
-    myConfigurable.setTraceProfileLocation("");
-    myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
-    assertTrue(myConfigurable.isTraceProfileInvalid());
-    assertEquals(ApplyState.BLOCK, myConfigurable.preApplyCallback());
   }
 }

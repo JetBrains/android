@@ -32,15 +32,16 @@ import com.android.tools.profiler.proto.Trace.TraceInfo
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.android.tools.profiler.proto.Transport.TimeRequest
+import com.android.tools.profilers.ImportedSessionUtils.importFileWithArtifactEvent
+import com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfiler
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
-import com.android.tools.profilers.ImportedSessionUtils.importFileWithArtifactEvent
-import com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.intellij.openapi.diagnostic.Logger
 import java.io.File
 import java.io.IOException
@@ -92,11 +93,27 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
       // Early return if the session is not valid/alive.
       Common.Session.getDefaultInstance() == session || session.endTimestamp != Long.MAX_VALUE -> {}
       // Early return if JVMTI agent is not attached.
-      !profilers.isAgentAttached -> {}
+      !profilers.isAgentAttached -> {
+        if (Common.AgentData.Status.UNATTACHABLE == profilers.agentData.status &&
+            profilers.sessionsManager.isSessionAlive &&
+            profilers.stage is AllocationStage && !(profilers.stage as AllocationStage).hasStartedTracking) {
+          // Agent is currently unattachable. This indicates that the allocation stage has not begun allocation tracking, suggesting the
+          // agent has moved from unspecified to unattachable state.
+          (profilers.stage as AllocationStage).stopTrackingDueToUnattachableAgent()
+        }
+      }
       else -> try {
-        // Attempts to stop an existing tracking session.
-        // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
-        trackAllocations(profilers, session, false, false, null)
+        if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled &&
+            profilers.sessionsManager.isSessionAlive &&
+            profilers.sessionsManager.currentTaskType == ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS &&
+            profilers.stage is AllocationStage && !(profilers.stage as AllocationStage).hasStartedTracking) {
+          // If, current stage is allocation stage and tracking has not started, then start the tracking
+          (profilers.stage as AllocationStage).startTracking()
+        } else {
+          // Attempts to stop an existing tracking session.
+          // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
+          trackAllocations(profilers, session, false, false, null)
+        }
       }
       catch (e: StatusRuntimeException) {
         logger.info(e)

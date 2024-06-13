@@ -27,7 +27,6 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.NavigateAction
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.module.Module
@@ -38,6 +37,8 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
+import icons.StudioIcons
+import javax.swing.Icon
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
@@ -45,7 +46,6 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
-import javax.swing.Icon
 
 /**
  * LineMarkerProvider for the @Preview annotation for Compose.
@@ -57,7 +57,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
 
   override fun getName(): String = message("picker.preview.annotator.name")
 
-  override fun getIcon(): Icon = AllIcons.Actions.InlayGear
+  override fun getIcon(): Icon = StudioIcons.GutterIcons.PREVIEW_SETTINGS
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
     if (suppressAndroidPlugin()) return null
@@ -90,7 +90,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       info,
       message("picker.preview.annotator.action.title"),
       null,
-      icon
+      icon,
     )
     return info
   }
@@ -108,14 +108,14 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     textRange: TextRange,
     project: Project,
     module: Module,
-    previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?
+    previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
   ): LineMarkerInfo<PsiElement> {
     // Make sure there's a configuration available
     ConfigurationManager.getOrCreateInstance(module)
     return LineMarkerInfo<PsiElement>(
       element,
       textRange,
-      AllIcons.Actions.InlayGear,
+      icon,
       { message("picker.preview.annotator.tooltip") },
       { mouseEvent, _ ->
         val model =
@@ -123,16 +123,16 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
             project,
             module,
             previewElementDefinitionPsi,
-            PreviewPickerTracker()
+            PreviewPickerTracker(),
           )
         PsiPickerManager.show(
           location = RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint,
           displayTitle = message("picker.preview.title"),
-          model = model
+          model = model,
         )
       },
       GutterIconRenderer.Alignment.LEFT,
-      { message("picker.preview.annotator.tooltip") }
+      { message("picker.preview.annotator.tooltip") },
     )
   }
 }

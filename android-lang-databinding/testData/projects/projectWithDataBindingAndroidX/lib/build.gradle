@@ -21,6 +21,14 @@ android {
 }
 
 dependencies {
+  constraints {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
+      because("from kotlin 1.8 stdlib-jdk7 and stdlib-jdk8 have been merged")
+    }
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0") {
+      because("from kotlin 1.8 stdlib-jdk7 and stdlib-jdk8 have been merged")
+    }
+  }
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.activity:activity:+'
     implementation 'androidx.appcompat:appcompat:+'

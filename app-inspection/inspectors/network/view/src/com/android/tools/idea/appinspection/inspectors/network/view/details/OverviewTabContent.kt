@@ -28,7 +28,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.connections
 import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionsStateChart
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkState
 import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType
-import com.android.tools.inspectors.common.ui.dataviewer.ImageDataViewer
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -46,7 +45,6 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.image.BufferedImage
 import java.util.concurrent.TimeUnit
 import java.util.function.LongFunction
 import javax.swing.BoxLayout
@@ -93,8 +91,7 @@ internal class OverviewTabContent : TabContent() {
       responsePayloadComponent.name = ID_RESPONSE_PAYLOAD_VIEWER
       contentPanel.add(responsePayloadComponent, TabularLayout.Constraint(row++, 0))
     }
-    val image = if (payloadViewer is ImageDataViewer) payloadViewer.image else null
-    contentPanel.add(createFields(data, image), TabularLayout.Constraint(row, 0))
+    contentPanel.add(createFields(data), TabularLayout.Constraint(row, 0))
     updateRowSizing()
   }
 
@@ -179,7 +176,7 @@ internal class OverviewTabContent : TabContent() {
     @VisibleForTesting const val ID_OTHER_THREADS = "OTHER_THREADS"
     @VisibleForTesting const val ID_RESPONSE_PAYLOAD_VIEWER = "RESPONSE_PAYLOAD_VIEWER"
 
-    private fun createFields(data: ConnectionData, image: BufferedImage?): JComponent {
+    private fun createFields(data: ConnectionData): JComponent {
       val myFieldsPanel = JPanel(TabularLayout("Fit-,40px,*").setVGap(SECTION_VGAP))
 
       var row = 0
@@ -193,13 +190,6 @@ internal class OverviewTabContent : TabContent() {
       myFieldsPanel.add(NoWrapBoldLabel("Status"), TabularLayout.Constraint(row, 0))
       val statusCode = JLabel(data.status)
       myFieldsPanel.add(statusCode, TabularLayout.Constraint(row, 2))
-
-      if (image != null) {
-        row++
-        myFieldsPanel.add(NoWrapBoldLabel("Dimension"), TabularLayout.Constraint(row, 0))
-        val dimension = JLabel(String.format("%d x %d", image.width, image.height))
-        myFieldsPanel.add(dimension, TabularLayout.Constraint(row, 2))
-      }
 
       val requestType = data.requestType
       if (requestType.isNotEmpty()) {
@@ -291,7 +281,7 @@ internal class OverviewTabContent : TabContent() {
           data.requestStartTimeUs.toDouble(),
           (if (data.connectionEndTimeUs > 0) data.connectionEndTimeUs
             else data.requestStartTimeUs + 1)
-            .toDouble()
+            .toDouble(),
         )
       val connectionsChart = ConnectionsStateChart(data, range)
       connectionsChart.component.minimumSize = Dimension(0, JBUI.scale(28))
@@ -322,15 +312,15 @@ internal class OverviewTabContent : TabContent() {
         sentLegend,
         LegendConfig(
           LegendConfig.IconType.BOX,
-          connectionsChart.colors.getColor(NetworkState.SENDING)
-        )
+          connectionsChart.colors.getColor(NetworkState.SENDING),
+        ),
       )
       legend.configure(
         receivedLegend,
         LegendConfig(
           LegendConfig.IconType.BOX,
-          connectionsChart.colors.getColor(NetworkState.RECEIVING)
-        )
+          connectionsChart.colors.getColor(NetworkState.RECEIVING),
+        ),
       )
       panel.add(legend)
       return panel

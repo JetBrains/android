@@ -53,7 +53,7 @@ class ErrorBalloonTest {
         projectRule.project,
         MessageType.ERROR,
         msg,
-        hyperlinkListener
+        hyperlinkListener,
       )
     }
 
@@ -86,12 +86,12 @@ class ErrorBalloonTest {
               ArgumentMatchers.argThat(
                 TransferableArgumentMatcher("Update: I managed to reproduce this issue.")
               ),
-              ArgumentMatchers.isNull()
+              ArgumentMatchers.isNull(),
             )
           balloonShown = true
         }
       },
-      controllerRule.disposable
+      controllerRule.disposable,
     )
 
     val testIssue = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(notesCount = 1))
@@ -100,7 +100,7 @@ class ErrorBalloonTest {
         LoadingState.Ready(
           IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
         ),
-      notesState = LoadingState.Ready(listOf(NOTE1))
+      notesState = LoadingState.Ready(listOf(NOTE1)),
     )
 
     controllerRule.controller.addNote(testIssue, NOTE2_BODY)

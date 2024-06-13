@@ -18,6 +18,7 @@ package com.android.tools.compose.analysis
 import com.android.tools.compose.COMPOSABLE_CALL_TEXT_TYPE
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.testFramework.ExpectedHighlightingData
 import junit.framework.Assert.assertEquals
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assume.assumeTrue
@@ -97,7 +98,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
       """
         import androidx.compose.runtime.*
         @Composable fun C() { }
-        <warning descr="[NOTHING_TO_INLINE] Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of functional types">inline</warning> fun NoinlineNC(noinline lambda: () -> Unit) { lambda() }
+        <warning descr="$nothingToInline">inline</warning> fun NoinlineNC(noinline lambda: () -> Unit) { lambda() }
         @Composable fun C3() {
             NoinlineNC {
                 <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>()
@@ -195,7 +196,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
     import androidx.compose.runtime.*
     @Composable fun C(): Int { return 123 }
     val ncProp: Int = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>()
-    <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'top level property with backing field'">@Composable</error> val cProp: Int = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>()
+    <error descr="${wrongAnnotationTargetError("top level property with backing field")}">@Composable</error> val cProp: Int = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>()
     """
     )
 
@@ -237,7 +238,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
         // We should infer `ComposableFunction0<Unit>` for `T`
         val cl = identity(@Composable {})
-        val l: () -> Unit = <error descr="[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>" textAttributesKey="ERRORS_ATTRIBUTES">cl</error>
+        val l: () -> Unit = <error descr="[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected 'kotlin.Function0<kotlin.Unit>', actual 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>'." textAttributesKey="ERRORS_ATTRIBUTES">cl</error>
         """
     )
   }
@@ -254,7 +255,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
         // Explicitly instantiate `T` with `ComposableFunction0<Unit>`
         val cl = identity<@Composable () -> Unit> { A() }
-        val l: () -> Unit = <error descr="[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>" textAttributesKey="ERRORS_ATTRIBUTES">cl</error>
+        val l: () -> Unit = <error descr="[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected 'kotlin.Function0<kotlin.Unit>', actual '@Composable() androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>'." textAttributesKey="ERRORS_ATTRIBUTES">cl</error>
         """
     )
   }
@@ -287,7 +288,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
         // We should infer `T` as `Function0<Unit>` from the context and
         // reject the lambda which is explicitly typed as `ComposableFunction...`.
-        val cl: () -> Unit = identity(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is kotlin/Function0<ERROR CLASS: Unknown return lambda parameter type> but androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit> was expected" textAttributesKey="ERRORS_ATTRIBUTES">{}</error>)
+        val cl: () -> Unit = identity(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'kotlin.Function0<ERROR CLASS: Unknown return lambda parameter type>', but 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>' was expected." textAttributesKey="ERRORS_ATTRIBUTES">{}</error>)
         """
     )
   }
@@ -302,7 +303,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
         fun <T> identity(value: T): T = value
 
         // We should infer `Function0<Unit>` for `T`
-        val lambda = identity<() -> Unit>(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is kotlin/Function0<ERROR CLASS: Unknown return lambda parameter type> but androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit> was expected" textAttributesKey="ERRORS_ATTRIBUTES">{}</error>)
+        val lambda = identity<() -> Unit>(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'kotlin.Function0<ERROR CLASS: Unknown return lambda parameter type>', but 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>' was expected." textAttributesKey="ERRORS_ATTRIBUTES">{}</error>)
         """
     )
   }
@@ -531,7 +532,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
       if (!KotlinPluginModeProvider.isK2Mode()) {
         "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
       } else {
-        "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>"
+        "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected 'kotlin.Function0<kotlin.Unit>', actual 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>'."
       }
     doTest(
       """
@@ -697,7 +698,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
       if (!KotlinPluginModeProvider.isK2Mode()) {
         "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
       } else {
-        "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>"
+        "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected 'kotlin.Function0<kotlin.Unit>', actual '@Composable() androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>'."
       }
     doTest(
       """
@@ -772,13 +773,13 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
       if (!KotlinPluginModeProvider.isK2Mode()) {
         "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is () -> Unit but @Composable () -> Unit was expected"
       } else {
-        "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>, actual kotlin/Function0<kotlin/Unit>"
+        "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected '@Composable() androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', actual 'kotlin.Function0<kotlin.Unit>'."
       }
     val argumentTypeMismatchMessage =
       if (!KotlinPluginModeProvider.isK2Mode()) {
         "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
       } else {
-        "[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit> but kotlin/Function0<kotlin/Unit> was expected"
+        "[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is '@Composable() androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', but 'kotlin.Function0<kotlin.Unit>' was expected."
       }
     doTest(
       """
@@ -934,8 +935,10 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
     doTest(
       """
           import androidx.compose.runtime.*
-          fun foo(<error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'value parameter'">@Composable</error> bar: ()->Unit) {
-              print(bar)
+          fun foo(<error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'value parameter'${
+        if (KotlinPluginModeProvider.isK2Mode()) "." else ""
+      }">@Composable</error> bar: ()->Unit) {
+              println(bar)
           }
           """
     )
@@ -959,38 +962,25 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testComposableReporting051() {
-    val expressionToCheckReferenceResolution =
-      if (!KotlinPluginModeProvider.isK2Mode()) {
-        """
-              <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: with">with</error>(a) {
-                  <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: bar">bar</error>
-                  <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: bam">bam</error>
-              }
-      """
-      } else {
-        """
-              with(a) {
-                  bar
-                  bam
-              }
-      """
-      }
     doTest(
       """
         import androidx.compose.runtime.*;
 
         class A {
-            <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'member property without backing field or delegate'">@Composable</error> val bar get() = 123
+            <error descr="${wrongAnnotationTargetError("member property without backing field or delegate")}">@Composable</error> val bar get() = 123
         }
 
-        <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'top level property without backing field or delegate'">@Composable</error> val A.bam get() = 123
+        <error descr="${wrongAnnotationTargetError("top level property without backing field or delegate")}">@Composable</error> val A.bam get() = 123
 
         @Composable
         fun App() {
             val a = A()
             a.bar
             a.bam
-            $expressionToCheckReferenceResolution
+            with(a) {
+                bar
+                bam
+            }
         }
         """
     )
@@ -1043,7 +1033,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
               val x = object {
                 val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">a</error> get() =
                 <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">remember</error> { mutableStateOf(2) }
-                <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'member property without backing field or delegate'">@Composable</error> val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">c</error> get() = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">remember</error> { mutableStateOf(4) }
+                <error descr="${wrongAnnotationTargetError("member property without backing field or delegate")}">@Composable</error> val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">c</error> get() = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">remember</error> { mutableStateOf(4) }
                 @Composable fun bar() { Foo() }
                 fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">foo</error>() {
                   <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">Foo</error>()
@@ -1052,7 +1042,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
               class Bar {
                 val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">b</error> get() =
                 <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">remember</error> { mutableStateOf(6) }
-                <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'member property without backing field or delegate'">@Composable</error> val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">c</error> get() = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">remember</error> { mutableStateOf(7) }
+                <error descr="${wrongAnnotationTargetError("member property without backing field or delegate")}">@Composable</error> val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">c</error> get() = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">remember</error> { mutableStateOf(7) }
               }
               fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">Bam</error>() {
                   <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">Foo</error>()
@@ -1277,55 +1267,62 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testComposableValueOperator() {
-    doTest(
+    val testCode =
       """
-            import androidx.compose.runtime.Composable
-            import kotlin.reflect.KProperty
+      import androidx.compose.runtime.Composable
+      import kotlin.reflect.KProperty
 
-            class Foo
-            class FooDelegate {
-                @Composable
-                operator fun getValue(thisObj: Any?, property: KProperty<*>) {}
-                @Composable
-                operator fun <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
-            }
-            @Composable operator fun Foo.getValue(thisObj: Any?, property: KProperty<*>) {}
-            @Composable operator fun Foo.<error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
+      class Foo
+      class FooDelegate {
+          @Composable
+          operator fun getValue(thisObj: Any?, property: KProperty<*>) {}
+          @Composable
+          operator fun <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
+      }
+      @Composable operator fun Foo.getValue(thisObj: Any?, property: KProperty<*>) {}
+      @Composable operator fun Foo.<error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
 
-            fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES">nonComposable</error>() {
-                val fooValue = Foo()
-                val foo by fooValue
-                val fooDelegate by FooDelegate()
-                var mutableFoo by <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">fooValue</error>
-                val bar = Bar()
+      fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES"><error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES"><error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES"><error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES">nonComposable</error></error></error></error>() {
+          val fooValue = Foo()
+          val foo by fooValue
+          val fooDelegate by FooDelegate()
+          var mutableFoo by <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES"><error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported." textAttributesKey="ERRORS_ATTRIBUTES">fooValue</error></error>
+          val bar = Bar()
 
-                println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">foo</error>)
-                println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">fooDelegate</error>)
-                println(bar.<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">foo</error>)
+          println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">foo</error>)
+          println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">fooDelegate</error>)
+          println(bar.<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">foo</error>)
 
-                <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">mutableFoo</error> = Unit
-            }
+          <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function" textAttributesKey="ERRORS_ATTRIBUTES">mutableFoo</error> = Unit
+      }
 
-            @Composable
-            fun TestComposable() {
-                val fooValue = Foo()
-                val foo by fooValue
-                val fooDelegate by FooDelegate()
-                val bar = Bar()
+      @Composable
+      fun TestComposable() {
+          val fooValue = Foo()
+          val foo by fooValue
+          val fooDelegate by FooDelegate()
+          val bar = Bar()
 
-                println(foo)
-                println(fooDelegate)
-                println(bar.foo)
-            }
+          println(foo)
+          println(fooDelegate)
+          println(bar.foo)
+      }
 
-            class Bar {
-                val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES">foo</error> by Foo()
+      class Bar {
+          val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation" textAttributesKey="ERRORS_ATTRIBUTES">foo</error> by Foo()
 
-                @get:Composable
-                val foo2 by Foo()
-            }
-            """
-    )
+          @get:Composable
+          val foo2 by Foo()
+      }
+      """
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      // As explained in https://b.corp.google.com/issues/301340542#comment12, we have duplicated
+      // errors because we have 3 different reasons to report the diagnostic. Technically, it is
+      // not wrong, but it can be inconvenient to users.
+      ExpectedHighlightingData.expectedDuplicatedHighlighting { doTest(testCode) }
+    } else {
+      doTest(testCode)
+    }
   }
 
   @Test
@@ -1366,7 +1363,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
     @Composable fun C2(a: Int, lambdaC: @Composable () -> Unit) {
       lambdaC()
     }
-    @Composable <warning descr="[NOTHING_TO_INLINE] Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of functional types">inline</warning> fun InlineC() {}
+    @Composable <warning descr="$nothingToInline">inline</warning> fun InlineC() {}
     inline fun InlineNC(lambda: () -> Unit) { lambda() }
 
     @Composable fun C3() {
@@ -1400,9 +1397,34 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
           .trimIndent(),
         highlights
           .filter { (highlight, _) -> highlight.type == COMPOSABLE_CALL_TEXT_TYPE }
-          .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" }
+          .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" },
       )
     }
+
+  @Test
+  fun testComposableCallInsideNonComposableNonInlinedLambda() {
+    val errorMessage =
+      if (!KotlinPluginModeProvider.isK2Mode()) {
+        "<</error><error descr=\"[DEBUG] Reference is not resolved to anything, but is not marked unresolved\">!</error><error descr=\"[UNRESOLVED_REFERENCE] Unresolved reference: COMPOSABLE_INVOCATION\">"
+      } else {
+        "<</error>!<error descr=\"[UNRESOLVED_REFERENCE] Unresolved reference 'COMPOSABLE_INVOCATION'.\">"
+      }
+    doTest(
+      """
+    import androidx.compose.runtime.Composable
+
+    @Composable fun ComposableFunction() {}
+
+    fun functionThatTakesALambda(content: () -> Unit) { content() }
+
+    fun NonComposableFunction() {
+        functionThatTakesALambda {
+            <error descr="Expecting an element">${errorMessage}COMPOSABLE_INVOCATION</error><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">!>ComposableFunction<!>()</error>  // invocation
+        }
+    }
+    """
+    )
+  }
 
   @Before
   fun setUp() {

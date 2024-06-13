@@ -41,6 +41,7 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
     if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
       toolWindow.component.putClientProperty(ToolWindowContentUi.ALLOW_DND_FOR_TABS, true)
     }
+    toolWindow.component.putClientProperty(ToolWindowContentUi.DONT_HIDE_TOOLBAR_IN_HEADER, true)
     StreamingToolWindowManager(toolWindow)
   }
 

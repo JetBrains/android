@@ -24,6 +24,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.res.StudioResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.rendering.RenderService;
@@ -31,6 +32,7 @@ import com.android.tools.res.ids.ResourceIdManager;
 import com.android.utils.Pair;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.RateLimiter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -78,6 +80,11 @@ public class MotionLayoutComponentHelper {
   private String myCachedEndState = null;
   private float myCachedProgress = 0;
   private boolean myCachedIsInTransition = false;
+  /**
+   * Limiter to to avoid calling isInTransition too many times.
+   */
+  @SuppressWarnings("UnstableApiUsage")
+  private final RateLimiter myCachedIsInTransitionRateLimiter = RateLimiter.create(20);
   private long myCachedMaxTimeMs = 0L;
   private final HashMap<String, KeyframePos> myCachedKeyframePos = new HashMap<>();
   private final HashMap<String, KeyframeInfo> myCachedKeyframeInfo = new HashMap<>();
@@ -666,6 +673,7 @@ public class MotionLayoutComponentHelper {
     if (isMyDesignToolNotAvailable()) {
       return;
     }
+
     if (myCallIsInTransition == null) {
       try {
         myCallIsInTransition = myDesignTool.getClass().getMethod("isInTransition");
@@ -676,6 +684,10 @@ public class MotionLayoutComponentHelper {
         return;
       }
     }
+
+    //noinspection UnstableApiUsage
+    if (!myCachedIsInTransitionRateLimiter.tryAcquire()) return;
+
     try {
       RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
         try {
@@ -692,47 +704,11 @@ public class MotionLayoutComponentHelper {
     }
   }
 
-  public long getMaxTimeMs() {
-    cachedGetMaxTimeMs();
-    return myCachedMaxTimeMs;
-  }
-
-  private void cachedGetMaxTimeMs() {
-    if (isMyDesignToolNotAvailable()) {
-      return;
-    }
-    if (myGetMaxTimeMethod == null) {
-      try {
-        myGetMaxTimeMethod = myDesignTool.getClass().getMethod("getTransitionTimeMs");
-      }
-      catch (NoSuchMethodException e) {
-        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
-      }
-    }
-
-    if (myGetMaxTimeMethod != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCachedMaxTimeMs = (long)myGetMaxTimeMethod.invoke(myDesignTool);
-          }
-          catch (IllegalAccessException | InvocationTargetException e) {
-            myGetMaxTimeMethod = null;
-            Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
-          }
-        });
-      }
-      catch (Exception e) {
-        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
-      }
-    }
-  }
-
   /**
    * Make sure we have usable Ids, even if only temporary
    */
   private void updateIds(@NotNull NlComponent component) {
-    ResourceIdManager manager = ResourceIdManager.get(component.getModel().getModule());
+    ResourceIdManager manager = StudioResourceIdManager.get(component.getModel().getModule());
     updateId(manager, component);
     if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CLASS_MOTION_LAYOUT)) {
       for (NlComponent child : component.getChildren()) {
@@ -765,7 +741,7 @@ public class MotionLayoutComponentHelper {
   public void updateLiveAttributes(ComponentModification modification, String state) {
     final Configuration configuration = modification.getComponent().getModel().getConfiguration();
     final int dpiValue = configuration.getDensity().getDpiValue();
-    ResourceIdManager manager = ResourceIdManager.get(modification.getComponent().getModel().getModule());
+    ResourceIdManager manager = StudioResourceIdManager.get(modification.getComponent().getModel().getModule());
     ViewInfo info = NlComponentHelperKt.getViewInfo(modification.getComponent());
 
     if (info == null || info.getViewObject() == null) {

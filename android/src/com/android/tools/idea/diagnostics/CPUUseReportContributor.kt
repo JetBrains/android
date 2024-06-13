@@ -86,7 +86,7 @@ class CPUUseReportContributor : DiagnosticReportContributor {
     for ((id, cpuUse) in threadsWithCpuUse) {
       if (cpuUse < 0.01) continue
       val threadInfo = threadBean.getThreadInfo(id)
-      val cpuUseString = String.format("%.2f", cpuUse)
+      val cpuUseString = String.format(null, "%.2f", cpuUse)
       if (threadInfo != null) {
         sb.appendLine("Thread #$id - ${threadInfo.threadName}: $cpuUseString%")
       } else {
@@ -94,7 +94,7 @@ class CPUUseReportContributor : DiagnosticReportContributor {
       }
     }
     val totalLoad = Arrays.stream(cpuUsagePerThreadId).filter { d -> d >= 0.0 }.sum()
-    val totalLoadString = String.format("%.2f", totalLoad)
+    val totalLoadString = String.format(null, "%.2f", totalLoad)
     sb.appendLine()
     sb.appendLine("Duration by uptime: ${durationMs}ms")
     sb.appendLine("CPU count: $cpuCount")

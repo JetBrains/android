@@ -11,7 +11,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
@@ -20,6 +21,7 @@ iml_module(
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
         "//tools/adt/idea/.idea/libraries:asm-tools",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
     ],
 )
 
@@ -65,7 +67,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",

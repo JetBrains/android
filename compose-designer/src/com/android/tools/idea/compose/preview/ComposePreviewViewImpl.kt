@@ -23,18 +23,23 @@ import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
-import com.android.tools.idea.compose.preview.gallery.GalleryModeWrapperPanel
+import com.android.tools.idea.compose.PsiComposePreviewElement
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.idea.preview.gallery.GalleryModeProperty
+import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
@@ -42,7 +47,6 @@ import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.ComposePreviewElement
-import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
@@ -62,32 +66,20 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import java.awt.BorderLayout
 import java.awt.Insets
 import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
 
 /** Interface that isolates the view of the Compose view so it can be replaced for testing. */
-interface ComposePreviewView {
-
-  val mainSurface: NlDesignSurface
-
-  /**
-   * Returns the [JComponent] containing this [ComposePreviewView] that can be used to embed it
-   * other panels.
-   */
-  val component: JComponent
-
-  /**
-   * Allows replacing the bottom panel in the [ComposePreviewView]. Used to display the animations
-   * component.
-   */
-  var bottomPanel: JComponent?
+interface ComposePreviewView : PreviewRepresentationView {
 
   /**
    * Sets whether the panel has content to display. If it does not, it will display an overlay with
@@ -100,12 +92,6 @@ interface ComposePreviewView {
 
   /** If true, the contents have been at least rendered once. */
   var hasRendered: Boolean
-
-  /**
-   * If Gallery Mode is enabled, null if mode is disabled. In Gallery Mode only one preview at a
-   * time is rendered. It is always on for Essentials Mode.
-   */
-  var galleryMode: ComposeGalleryMode?
 
   /** Method called to force an update on the notifications for the given [FileEditor]. */
   fun updateNotifications(parentEditor: FileEditor)
@@ -143,7 +129,7 @@ interface ComposePreviewView {
    */
   suspend fun updatePreviewsAndRefresh(
     reinflate: Boolean,
-    previewElements: Collection<ComposePreviewElementInstance>,
+    previewElements: Collection<PsiComposePreviewElementInstance>,
     psiFile: PsiFile,
     progressIndicator: ProgressIndicator,
     onRenderCompleted: (Int) -> Unit,
@@ -151,8 +137,9 @@ interface ComposePreviewView {
     modelUpdater: NlModel.NlModelUpdaterInterface,
     navigationHandler: PreviewNavigationHandler,
     configureLayoutlibSceneManager:
-      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
-  ): List<ComposePreviewElementInstance> {
+      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
+    refreshEventBuilder: PreviewRefreshEventBuilder?,
+  ): List<PsiComposePreviewElementInstance> {
 
     return mainSurface.updatePreviewsAndRefresh(
       // Don't reuse models when in gallery mode to avoid briefly showing an unexpected/mixed
@@ -168,7 +155,8 @@ interface ComposePreviewView {
       previewElementModelAdapter,
       modelUpdater,
       navigationHandler,
-      configureLayoutlibSceneManager
+      configureLayoutlibSceneManager,
+      refreshEventBuilder,
     )
   }
 
@@ -183,18 +171,20 @@ interface ComposePreviewView {
   @Slow
   suspend fun refreshExistingPreviewElements(
     progressIndicator: ProgressIndicator,
-    modelToPreview: NlModel.() -> ComposePreviewElement?,
+    modelToPreview: NlModel.() -> PsiComposePreviewElement?,
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
     refreshFilter: (LayoutlibSceneManager) -> Boolean,
-    refreshOrder: (LayoutlibSceneManager) -> Int
+    refreshOrder: (LayoutlibSceneManager) -> Int,
+    refreshEventBuilder: PreviewRefreshEventBuilder?,
   ) {
     mainSurface.refreshExistingPreviewElements(
       progressIndicator,
       modelToPreview,
       configureLayoutlibSceneManager,
       refreshFilter,
-      refreshOrder
+      refreshOrder,
+      refreshEventBuilder,
     )
   }
 }
@@ -206,7 +196,7 @@ fun interface ComposePreviewViewProvider {
     projectBuildStatusManager: ProjectBuildStatusManager,
     dataProvider: DataProvider,
     mainDesignSurfaceBuilder: NlDesignSurface.Builder,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): ComposePreviewView
 }
 
@@ -247,13 +237,15 @@ internal class ComposePreviewViewImpl(
   private val projectBuildStatusManager: ProjectBuildStatusManager,
   dataProvider: DataProvider,
   mainDesignSurfaceBuilder: NlDesignSurface.Builder,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : ComposePreviewView, Pannable, DataProvider {
 
   private val workbench =
     WorkBench<DesignSurface<*>>(project, "Compose Preview", null, parentDisposable, 0)
 
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
+
+  private val scope = AndroidCoroutineScope(parentDisposable)
 
   override val mainSurface =
     mainDesignSurfaceBuilder
@@ -272,7 +264,7 @@ internal class ComposePreviewViewImpl(
       .apply {
         // Set the initial scale value to 0.25, so the preview is not large before first
         // zoom-to-fit is triggered.
-        setScale(0.25)
+        zoomController.setScale(0.25)
       }
 
   private fun getDataInBackground(dataId: String): Any? {
@@ -328,10 +320,15 @@ internal class ComposePreviewViewImpl(
       val actionDataText =
         "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
       return ActionData(actionDataText) {
-        psiFilePointer.element?.virtualFile?.let { project.requestBuild(it) }
-        workbench
-          .repaint() // Repaint the workbench, otherwise the text and link will keep displaying if
-        // the mouse is hovering the link
+        val virtualFile = psiFilePointer.element?.virtualFile
+        scope.launch(workerThread) {
+          if (virtualFile != null) project.requestBuild(virtualFile)
+          withContext(uiThread) {
+            // Repaint the workbench, otherwise the text and link will keep displaying if the mouse
+            // is hovering the link
+            workbench.repaint()
+          }
+        }
       }
     }
 
@@ -363,9 +360,6 @@ internal class ComposePreviewViewImpl(
 
     mainPanelSplitter.firstComponent = contentPanel
 
-    IssuePanelService.getInstance(project)
-      .registerFileToSurface(psiFilePointer.virtualFile, mainSurface)
-
     workbench.init(mainPanelSplitter, mainSurface, listOf(), false)
     workbench.hideContent()
     val projectStatus = projectBuildStatusManager.statusFlow.value
@@ -394,28 +388,7 @@ internal class ComposePreviewViewImpl(
     Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
 
-  override var galleryMode: ComposeGalleryMode? = null
-    set(value) {
-      // Avoid repeated values.
-      if (value == field) return
-      // If essentials mode is enabled,disabled or updated - components should be rearranged.
-      // Remove components from its existing places.
-      if (field == null) {
-        content.remove(mainSurface)
-      } else {
-        content.components.filterIsInstance<GalleryModeWrapperPanel>().firstOrNull()?.let {
-          it.remove(mainSurface)
-          content.remove(it)
-        }
-      }
-      // Add components to new places.
-      if (value == null) {
-        content.add(mainSurface, BorderLayout.CENTER)
-      } else {
-        content.add(GalleryModeWrapperPanel(value.component, mainSurface), BorderLayout.CENTER)
-      }
-      field = value
-    }
+  override var galleryMode by GalleryModeProperty(content, mainSurface)
 
   override fun updateProgress(message: String) =
     UIUtil.invokeLaterIfNeeded {
@@ -499,7 +472,7 @@ internal class ComposePreviewViewImpl(
               message("panel.no.previews.defined"),
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
-              null
+              null,
             )
           }
         }

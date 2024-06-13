@@ -25,6 +25,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.idea.actions.TargetMenuAction.getRenderingTargetLabel
 import com.android.tools.idea.actions.createFilter
 import com.android.tools.idea.actions.getFrameworkThemeNames
 import com.android.tools.idea.actions.getProjectThemeNames
@@ -66,7 +67,7 @@ private const val FIELD_VERTICAL_BORDER = 3
 class CustomConfigurationAttributeCreationPalette(
   private val file: VirtualFile,
   private val module: Module,
-  private val createdCallback: (CustomConfigurationAttribute) -> Unit
+  private val createdCallback: (CustomConfigurationAttribute) -> Unit,
 ) : AdtPrimaryPanel(BorderLayout()) {
 
   private var configurationName: String = DEFAULT_CUSTOM_PREVIEW_NAME
@@ -92,7 +93,7 @@ class CustomConfigurationAttributeCreationPalette(
             selectedLocale?.toString(),
             selectedTheme,
             selectedUiMode,
-            selectedNightMode
+            selectedNightMode,
           )
         )
       }
@@ -191,12 +192,21 @@ class CustomConfigurationAttributeCreationPalette(
 
   private fun createApiOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    val apiLevels = ConfigurationManager.getOrCreateInstance(module).targets.reversed()
+    val targets = ConfigurationManager.getOrCreateInstance(module).targets
+    val levelToTargetMap = mutableMapOf<String, IAndroidTarget>()
+    targets.forEach { target ->
+      val name = getRenderingTargetLabel(target, true)
+      val existingTarget = levelToTargetMap[name]
+      if (existingTarget == null || existingTarget.revision < target.revision) {
+        levelToTargetMap[name] = target
+      }
+    }
+    val apiLevels = levelToTargetMap.values.reversed()
     if (apiLevels.isEmpty()) {
       val noApiLevelLabel = JBLabel("No available API Level")
       panel.add(noApiLevelLabel, BorderLayout.CENTER)
     } else {
-      val boxModel = MyComboBoxModel<IAndroidTarget>(apiLevels, { it.version.apiLevel.toString() })
+      val boxModel = MyComboBoxModel(apiLevels, { getRenderingTargetLabel(it, true) })
       val box = CommonComboBox(boxModel)
       box.addActionListener { selectedApiTarget = boxModel.selectedValue }
       selectedApiTarget = boxModel.selectedValue
@@ -230,7 +240,7 @@ class CustomConfigurationAttributeCreationPalette(
       MyComboBoxModel(
         locales,
         { it?.toLocaleId() ?: Locale.getLocaleLabel(it, false) },
-        { Locale.getLocaleLabel(it, false)!! }
+        { Locale.getLocaleLabel(it, false)!! },
       )
     val box = CommonComboBox(boxModel)
     box.addActionListener { selectedLocale = boxModel.selectedValue }
@@ -330,7 +340,7 @@ class CustomConfigurationAttributeCreationPalette(
 private class MyComboBoxModel<T>(
   items: List<T>,
   selectedNameFunc: (T) -> String,
-  optionNameFunc: (T) -> String = selectedNameFunc
+  optionNameFunc: (T) -> String = selectedNameFunc,
 ) : DefaultComboBoxModel<MyBoxItemWrapper<T>>(), CommonComboBoxModel<MyBoxItemWrapper<T>> {
   init {
     items.forEach { addElement(MyBoxItemWrapper(it, optionNameFunc)) }

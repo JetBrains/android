@@ -37,7 +37,7 @@ internal class CommonDragHandler(
   handler: ViewGroupHandler,
   layout: SceneComponent,
   components: List<NlComponent>,
-  type: DragType
+  type: DragType,
 ) : DragHandler(editor, handler, layout, components, type) {
 
   private val dragTarget: CommonDragTarget
@@ -71,7 +71,7 @@ internal class CommonDragHandler(
     @AndroidDpCoordinate x: Int,
     @AndroidDpCoordinate y: Int,
     modifiers: Int,
-    sceneContext: SceneContext
+    sceneContext: SceneContext,
   ): String? {
     val result = super.update(x, y, modifiers, sceneContext)
     dragTarget.mouseDrag(x, y, emptyList(), sceneContext)
@@ -84,7 +84,7 @@ internal class CommonDragHandler(
     @AndroidCoordinate x: Int,
     @AndroidCoordinate y: Int,
     modifiers: Int,
-    insertType: InsertType
+    insertType: InsertType,
   ) {
     dragTarget.insertType = insertType
     @AndroidDpCoordinate val dx = editor.pxToDp(x)

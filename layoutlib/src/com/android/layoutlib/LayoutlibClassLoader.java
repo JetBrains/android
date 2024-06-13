@@ -38,7 +38,7 @@ import org.jetbrains.org.objectweb.asm.commons.Remapper;
 public class LayoutlibClassLoader extends ClassLoader {
   private static final Logger LOG = Logger.getInstance(LayoutlibClassLoader.class);
 
-  LayoutlibClassLoader(@NotNull ClassLoader parent) {
+  public LayoutlibClassLoader(@NotNull ClassLoader parent) {
     super(parent);
 
     // Define the android.os.Build and all inner classes by renaming everything in android.os._Original_Build

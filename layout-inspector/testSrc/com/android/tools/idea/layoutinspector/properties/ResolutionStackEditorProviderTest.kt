@@ -27,8 +27,8 @@ import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.impl.ui.IconWithFocusBorder
+import com.android.tools.property.panel.impl.ui.PropertyLabel
 import com.android.tools.property.panel.impl.ui.PropertyLink
-import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.android.tools.property.panel.impl.ui.PropertyTextFieldWithLeftButton
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -73,13 +73,13 @@ class ResolutionStackEditorProviderTest {
         PropertySection.DECLARED,
         null,
         2,
-        mock()
+        mock(),
       )
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
       ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
-    assertThat(editor).isInstanceOf(PropertyTextField::class.java)
+    assertThat(editor).isInstanceOf(PropertyLabel::class.java)
   }
 
   @Test
@@ -93,7 +93,7 @@ class ResolutionStackEditorProviderTest {
         PropertySection.DECLARED,
         null,
         2,
-        mock()
+        mock(),
       )
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
@@ -118,7 +118,7 @@ class ResolutionStackEditorProviderTest {
         "",
         34,
         34,
-        mock()
+        mock(),
       )
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
@@ -139,7 +139,7 @@ class ResolutionStackEditorProviderTest {
           PropertySection.DECLARED,
           null,
           2,
-          mock()
+          mock(),
         )
       )
     val property =
@@ -153,7 +153,7 @@ class ResolutionStackEditorProviderTest {
         null,
         1,
         mock(),
-        children
+        children,
       )
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =

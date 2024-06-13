@@ -27,11 +27,26 @@ fun executeCapturingLoggedErrors(runnable: ThrowableRunnable<RuntimeException>):
   return errorProcessor.errorMessages
 }
 
+/**
+ * Executes the given runnable and returns the warning messages.
+ */
+fun executeCapturingLoggedWarnings(runnable: ThrowableRunnable<RuntimeException>): List<String> {
+  val errorProcessor = LoggedErrorCapturer()
+  LoggedErrorProcessor.executeWith(errorProcessor, runnable)
+  return errorProcessor.warningMessages
+}
+
 private class LoggedErrorCapturer : LoggedErrorProcessor() {
   val errorMessages = mutableListOf<String>()
+  val warningMessages = mutableListOf<String>()
 
   override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
     errorMessages.add(message)
     return Action.NONE
+  }
+
+  override fun processWarn(category: String, message: String, t: Throwable?): Boolean {
+    warningMessages.add(message)
+    return super.processWarn(category, message, t)
   }
 }

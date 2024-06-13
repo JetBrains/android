@@ -76,7 +76,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     LayoutBindingModuleCache.getInstance(androidFacet).dataBindingMode = mode
@@ -95,7 +95,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
     val context = fixture.addClass("public class MainActivity {}")
 
@@ -131,7 +131,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
           </LinearLayout>
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
     val context = fixture.addClass("public class MainActivity {}")
 
@@ -173,7 +173,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -194,7 +194,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -215,7 +215,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -245,7 +245,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)

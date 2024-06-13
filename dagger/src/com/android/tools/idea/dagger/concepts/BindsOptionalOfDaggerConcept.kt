@@ -136,23 +136,23 @@ internal data class BindsOptionalOfIndexValue(val classId: ClassId, val methodSi
     internal val identifiers =
       DaggerElementIdentifiers(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods.filter { it.name == methodSimpleName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
 
 internal data class BindsOptionalOfProviderDaggerElement(
   override val psiElement: PsiElement,
-  private val providedPsiType: PsiType
+  private val providedPsiType: PsiType,
 ) : ProviderDaggerElementBase() {
 
   constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())

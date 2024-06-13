@@ -28,12 +28,12 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 data class IssueToggled(
   val issue: IssueId,
   val issueState: IssueState,
-  private val isUndo: Boolean = false
+  private val isUndo: Boolean = false,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     if ((issueState == IssueState.OPEN || issueState == IssueState.CLOSED) && !isUndo) {
       state.connections.selected?.appId?.let { appId ->
@@ -50,7 +50,7 @@ data class IssueToggled(
                   AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange
                     .CLOSED
             }
-            .build()
+            .build(),
         )
       }
     }
@@ -67,9 +67,9 @@ data class IssueToggled(
                     selected
                   }
                 },
-                issues.items.map { if (it.id == issue) it.copy(state = issueState) else it }
+                issues.items.map { if (it.id == issue) it.copy(state = issueState) else it },
               ),
-              time
+              time,
             )
           }
       ),
@@ -78,7 +78,7 @@ data class IssueToggled(
           IssueState.OPENING -> Action.OpenIssue(issue)
           IssueState.CLOSING -> Action.CloseIssue(issue)
           else -> Action.NONE
-        }
+        },
     )
   }
 }

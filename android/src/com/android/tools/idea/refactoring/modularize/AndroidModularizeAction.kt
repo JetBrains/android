@@ -16,19 +16,18 @@
 package com.android.tools.idea.refactoring.modularize
 
 import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
-import org.jetbrains.kotlin.idea.KotlinFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.refactoring.actions.BaseJavaRefactoringAction
 import com.intellij.refactoring.actions.BaseRefactoringAction
-import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 // open for testing
@@ -42,7 +41,7 @@ open class AndroidModularizeAction : BaseRefactoringAction() {
     return file != null && // file exists
            ( file.fileType == JavaFileType.INSTANCE ||
              file.fileType == KotlinFileType.INSTANCE ) && // is Java or Kotlin
-           AndroidUtils.hasAndroidFacets(file.project) // and is Android
+      CommonAndroidUtil.getInstance().isAndroidProject(file.project) // and is Android
   }
 
   private val Project.isLastSyncSuccessful get() = getSyncManager().getLastSyncResult().isSuccessful

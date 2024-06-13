@@ -51,11 +51,7 @@ class AccessibilityLintIntegratorTest {
     val integrator = AccessibilityLintIntegrator(issueModel)
     assertTrue(integrator.issues.isEmpty())
 
-    integrator.createIssue(
-      createTestIssue(),
-      ScannerTestHelper().buildNlComponent(mockModel),
-      mockModel
-    )
+    integrator.createIssue(createTestIssue(), ScannerTestHelper().buildNlComponent(mockModel))
 
     assertEquals(1, integrator.issues.size)
   }
@@ -69,7 +65,7 @@ class AccessibilityLintIntegratorTest {
     assertTrue(integrator.issues.isEmpty())
     for (i in 0 until numberOfIssues) {
       val issue = ScannerTestHelper.createTestIssueBuilder().setMsg(i.toString()).build()
-      integrator.createIssue(issue, ScannerTestHelper().buildNlComponent(mockModel), mockModel)
+      integrator.createIssue(issue, ScannerTestHelper().buildNlComponent(mockModel))
     }
     assertEquals(numberOfIssues, integrator.issues.size)
 
@@ -83,11 +79,7 @@ class AccessibilityLintIntegratorTest {
   fun disableAccessibilityLint() {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
     val integrator = AccessibilityLintIntegrator(issueModel)
-    integrator.createIssue(
-      createTestIssue(),
-      ScannerTestHelper().buildNlComponent(mockModel),
-      mockModel
-    )
+    integrator.createIssue(createTestIssue(), ScannerTestHelper().buildNlComponent(mockModel))
     assertEquals(1, integrator.issues.size)
 
     integrator.clear()
@@ -98,11 +90,7 @@ class AccessibilityLintIntegratorTest {
   fun populateLints() {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
     val integrator = AccessibilityLintIntegrator(issueModel)
-    integrator.createIssue(
-      createTestIssue(),
-      ScannerTestHelper().buildNlComponent(mockModel),
-      mockModel
-    )
+    integrator.createIssue(createTestIssue(), ScannerTestHelper().buildNlComponent(mockModel))
     assertEquals(1, integrator.issues.size)
 
     integrator.populateLints()

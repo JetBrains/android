@@ -68,7 +68,7 @@ class AddTargetVersionCheckQuickFix(
   project: Project,
   private val api: Int,
   private val sdkId: Int,
-  private val minSdk: ApiConstraint
+  private val minSdk: ApiConstraint,
 ) :
   DefaultLintQuickFix(
     if (sdkId == ANDROID_SDK_ID)
@@ -80,7 +80,7 @@ class AddTargetVersionCheckQuickFix(
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType
+    contextType: AndroidQuickfixContexts.ContextType,
   ): Boolean {
     // Don't offer this unless we're in an Android module
     if (AndroidFacet.getInstance(endElement) == null) {
@@ -102,7 +102,7 @@ class AddTargetVersionCheckQuickFix(
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context
+    context: AndroidQuickfixContexts.Context,
   ) {
     if (!prepareElementForWrite(startElement)) {
       return
@@ -129,12 +129,12 @@ class AddTargetVersionCheckQuickFix(
       if (sdkId == ANDROID_SDK_ID) {
         getKotlinSurrounder(
           targetExpression,
-          "\"VERSION.SDK_INT < ${getVersionField(api, false)}\""
+          "\"VERSION.SDK_INT < ${getVersionField(api, false)}\"",
         )
       } else {
         getKotlinSurrounder(
           targetExpression,
-          "\"SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)}) < $api\""
+          "\"SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)}) < $api\"",
         )
       }
     val conditionRange =
@@ -152,7 +152,7 @@ class AddTargetVersionCheckQuickFix(
     ShortenReferencesFacility.getInstance()
       .shorten(
         documentManager.getPsiFile(document) as KtFile,
-        TextRange.from(conditionRange.startOffset, conditionText.length)
+        TextRange.from(conditionRange.startOffset, conditionText.length),
       )
   }
 

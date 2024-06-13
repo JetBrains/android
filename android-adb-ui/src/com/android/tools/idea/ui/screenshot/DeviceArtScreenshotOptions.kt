@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION
@@ -33,7 +34,7 @@ class DeviceArtScreenshotOptions(
 
   override val screenshotViewerOptions: EnumSet<ScreenshotViewer.Option> = EnumSet.of(ALLOW_IMAGE_ROTATION)
 
-  override val screenshotPostprocessor: ScreenshotPostprocessor = DeviceArtScreenshotPostprocessor()
+  override val screenshotDecorator: ScreenshotDecorator = DeviceArtScreenshotDecorator()
 
   override fun createScreenshotImage(image: BufferedImage, displayInfo: String, deviceType: DeviceType): ScreenshotImage {
     return ScreenshotImage(image, 0, deviceType, displayInfo)

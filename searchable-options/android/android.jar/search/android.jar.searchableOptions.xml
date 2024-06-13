@@ -1,6 +1,5 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
-    <option name="" path="ActionManager" hit="" />
     <option name="agp" path="ActionManager" hit="AGP Upgrade Assistant..." />
     <option name="assistant" path="ActionManager" hit="AGP Upgrade Assistant..." />
     <option name="upgrade" path="ActionManager" hit="AGP Upgrade Assistant..." />
@@ -91,13 +90,14 @@
     <option name="apk" path="ActionManager" hit="Build APK(s)" />
     <option name="build" path="ActionManager" hit="Build APK(s)" />
     <option name="s" path="ActionManager" hit="Build APK(s)" />
+    <option name="apk" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
+    <option name="app" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
+    <option name="build" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
+    <option name="bundle" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
+    <option name="s" path="ActionManager" hit="Build App Bundle(s) / APK(s)" />
     <option name="build" path="ActionManager" hit="Build Bundle(s)" />
     <option name="bundle" path="ActionManager" hit="Build Bundle(s)" />
     <option name="s" path="ActionManager" hit="Build Bundle(s)" />
-    <option name="apk" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
-    <option name="build" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
-    <option name="bundle" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
-    <option name="s" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="build" path="ActionManager" hit="Build Entire Project" />
     <option name="entire" path="ActionManager" hit="Build Entire Project" />
     <option name="project" path="ActionManager" hit="Build Entire Project" />
@@ -258,10 +258,6 @@
     <option name="dependencies" path="ActionManager" hit="Edit Libraries and Dependencies..." />
     <option name="edit" path="ActionManager" hit="Edit Libraries and Dependencies..." />
     <option name="libraries" path="ActionManager" hit="Edit Libraries and Dependencies..." />
-    <option name="apps" path="ActionManager" hit="Enable Instant Apps Support..." />
-    <option name="enable" path="ActionManager" hit="Enable Instant Apps Support..." />
-    <option name="instant" path="ActionManager" hit="Enable Instant Apps Support..." />
-    <option name="support" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="buildconfig" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
     <option name="enable" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
     <option name="for" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
@@ -283,13 +279,6 @@
     <option name="the" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
     <option name="to" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
     <option name="transparent" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
-    <option name="a" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="apps" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="enables" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="for" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="instant" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="module" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="support" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="and" path="ActionManager" hit="End reservation and return device" />
     <option name="device" path="ActionManager" hit="End reservation and return device" />
     <option name="end" path="ActionManager" hit="End reservation and return device" />
@@ -323,10 +312,11 @@
     <option name="entire" path="ActionManager" hit="Generate Entire App Baseline Profile" />
     <option name="generate" path="ActionManager" hit="Generate Entire App Baseline Profile" />
     <option name="profile" path="ActionManager" hit="Generate Entire App Baseline Profile" />
-    <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK…" />
-    <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
-    <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
-    <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK…" />
+    <option name="apk" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
+    <option name="app" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
+    <option name="bundle" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
+    <option name="generate" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
+    <option name="signed" path="ActionManager" hit="Generate Signed App Bundle / APK…" />
     <option name="a" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="always" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="and" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
@@ -419,15 +409,6 @@
     <option name="edit" path="ActionManager" hit="Live Edit Notification Actions" />
     <option name="live" path="ActionManager" hit="Live Edit Notification Actions" />
     <option name="notification" path="ActionManager" hit="Live Edit Notification Actions" />
-    <option name="and" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
-    <option name="android" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
-    <option name="debug" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
-    <option name="for" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
-    <option name="load" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
-    <option name="retention" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
-    <option name="set" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
-    <option name="test" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
-    <option name="up" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
     <option name="make" path="ActionManager" hit="Make Module(s)" />
     <option name="module" path="ActionManager" hit="Make Module(s)" />
     <option name="s" path="ActionManager" hit="Make Module(s)" />
@@ -492,20 +473,6 @@
     <option name="resources" path="ActionManager" hit="Moves classes and their associated resources to another module" />
     <option name="their" path="ActionManager" hit="Moves classes and their associated resources to another module" />
     <option name="to" path="ActionManager" hit="Moves classes and their associated resources to another module" />
-    <option name="card" path="ActionManager" hit="Navigate to SD card folder" />
-    <option name="folder" path="ActionManager" hit="Navigate to SD card folder" />
-    <option name="navigate" path="ActionManager" hit="Navigate to SD card folder" />
-    <option name="sd" path="ActionManager" hit="Navigate to SD card folder" />
-    <option name="to" path="ActionManager" hit="Navigate to SD card folder" />
-    <option name="database" path="ActionManager" hit="Navigate to database folder" />
-    <option name="folder" path="ActionManager" hit="Navigate to database folder" />
-    <option name="navigate" path="ActionManager" hit="Navigate to database folder" />
-    <option name="to" path="ActionManager" hit="Navigate to database folder" />
-    <option name="folder" path="ActionManager" hit="Navigate to shared preferences folder" />
-    <option name="navigate" path="ActionManager" hit="Navigate to shared preferences folder" />
-    <option name="preferences" path="ActionManager" hit="Navigate to shared preferences folder" />
-    <option name="shared" path="ActionManager" hit="Navigate to shared preferences folder" />
-    <option name="to" path="ActionManager" hit="Navigate to shared preferences folder" />
     <option name="module" path="ActionManager" hit="New Module…" />
     <option name="new" path="ActionManager" hit="New Module…" />
     <option name="new" path="ActionManager" hit="New Project" />
@@ -542,10 +509,6 @@
     <option name="past" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
     <option name="results" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
     <option name="s" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
-    <option name="device" path="ActionManager" hit="Open Device Explorer help" />
-    <option name="explorer" path="ActionManager" hit="Open Device Explorer help" />
-    <option name="help" path="ActionManager" hit="Open Device Explorer help" />
-    <option name="open" path="ActionManager" hit="Open Device Explorer help" />
     <option name="editor" path="ActionManager" hit="Open Translations Editor" />
     <option name="open" path="ActionManager" hit="Open Translations Editor" />
     <option name="translations" path="ActionManager" hit="Open Translations Editor" />
@@ -590,8 +553,14 @@
     <option name="palm" path="ActionManager" hit="Palm" />
     <option name="logcat" path="ActionManager" hit="Pause Logcat" />
     <option name="pause" path="ActionManager" hit="Pause Logcat" />
+    <option name="logcat" path="ActionManager" hit="Pause/Resume the Logcat panel" />
+    <option name="panel" path="ActionManager" hit="Pause/Resume the Logcat panel" />
+    <option name="pause" path="ActionManager" hit="Pause/Resume the Logcat panel" />
+    <option name="resume" path="ActionManager" hit="Pause/Resume the Logcat panel" />
+    <option name="the" path="ActionManager" hit="Pause/Resume the Logcat panel" />
     <option name="phone" path="ActionManager" hit="Phone" />
     <option name="power" path="ActionManager" hit="Power" />
+    <option name="+" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
     <option name="menu" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
     <option name="power" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
     <option name="up" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
@@ -692,7 +661,7 @@
     <option name="the" path="ActionManager" hit="Record a video of the device display" />
     <option name="video" path="ActionManager" hit="Record a video of the device display" />
     <option name="refresh" path="ActionManager" hit="Refresh" />
-    <option name="c" path="ActionManager" hit="Refresh Linked C++ Projects" />
+    <option name="c++" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="linked" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="projects" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="refresh" path="ActionManager" hit="Refresh Linked C++ Projects" />
@@ -710,14 +679,6 @@
     <option name="replaces" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="style" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="where" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
-    <option name="180" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="device" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="duration" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="for" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="maximum" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="minutes" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="reserve" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
-    <option name="the" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
     <option name="data" path="ActionManager" hit="Reset Data Sharing User Identifier" />
     <option name="identifier" path="ActionManager" hit="Reset Data Sharing User Identifier" />
     <option name="reset" path="ActionManager" hit="Reset Data Sharing User Identifier" />
@@ -789,11 +750,6 @@
     <option name="them" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
     <option name="to" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
     <option name="your" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
-    <option name="android" path="ActionManager" hit="Set up Android Test Retention" />
-    <option name="retention" path="ActionManager" hit="Set up Android Test Retention" />
-    <option name="set" path="ActionManager" hit="Set up Android Test Retention" />
-    <option name="test" path="ActionManager" hit="Set up Android Test Retention" />
-    <option name="up" path="ActionManager" hit="Set up Android Test Retention" />
     <option name="android" path="ActionManager" hit="Shortcuts to common Android settings" />
     <option name="common" path="ActionManager" hit="Shortcuts to common Android settings" />
     <option name="settings" path="ActionManager" hit="Shortcuts to common Android settings" />
@@ -836,50 +792,6 @@
     <option name="tilt" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
     <option name="snapshots" path="ActionManager" hit="Snapshots" />
     <option name="soft-wrap" path="ActionManager" hit="Soft-Wrap" />
-    <option name="callstack" path="ActionManager" hit="Start Callstack Sample" />
-    <option name="sample" path="ActionManager" hit="Start Callstack Sample" />
-    <option name="start" path="ActionManager" hit="Start Callstack Sample" />
-    <option name="start" path="ActionManager" hit="Start System Trace" />
-    <option name="system" path="ActionManager" hit="Start System Trace" />
-    <option name="trace" path="ActionManager" hit="Start System Trace" />
-    <option name="a" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
-    <option name="callstack" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
-    <option name="current" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
-    <option name="in" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
-    <option name="profiling" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
-    <option name="sample" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
-    <option name="session" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
-    <option name="start" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
-    <option name="the" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
-    <option name="a" path="ActionManager" hit="Start a system trace in the current profiling session" />
-    <option name="current" path="ActionManager" hit="Start a system trace in the current profiling session" />
-    <option name="in" path="ActionManager" hit="Start a system trace in the current profiling session" />
-    <option name="profiling" path="ActionManager" hit="Start a system trace in the current profiling session" />
-    <option name="session" path="ActionManager" hit="Start a system trace in the current profiling session" />
-    <option name="start" path="ActionManager" hit="Start a system trace in the current profiling session" />
-    <option name="system" path="ActionManager" hit="Start a system trace in the current profiling session" />
-    <option name="the" path="ActionManager" hit="Start a system trace in the current profiling session" />
-    <option name="trace" path="ActionManager" hit="Start a system trace in the current profiling session" />
-    <option name="capture" path="ActionManager" hit="Stop CPU Capture" />
-    <option name="cpu" path="ActionManager" hit="Stop CPU Capture" />
-    <option name="stop" path="ActionManager" hit="Stop CPU Capture" />
-    <option name="profiling" path="ActionManager" hit="Stop Profiling Session" />
-    <option name="session" path="ActionManager" hit="Stop Profiling Session" />
-    <option name="stop" path="ActionManager" hit="Stop Profiling Session" />
-    <option name="a" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
-    <option name="capture" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
-    <option name="cpu" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
-    <option name="current" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
-    <option name="in" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
-    <option name="profiling" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
-    <option name="session" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
-    <option name="stop" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
-    <option name="the" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
-    <option name="current" path="ActionManager" hit="Stop the current profiling session" />
-    <option name="profiling" path="ActionManager" hit="Stop the current profiling session" />
-    <option name="session" path="ActionManager" hit="Stop the current profiling session" />
-    <option name="stop" path="ActionManager" hit="Stop the current profiling session" />
-    <option name="the" path="ActionManager" hit="Stop the current profiling session" />
     <option name="style" path="ActionManager" hit="Style..." />
     <option name="feedback" path="ActionManager" hit="Submit Feedback" />
     <option name="submit" path="ActionManager" hit="Submit Feedback" />
@@ -1010,10 +922,6 @@
     <option name="existing" hit=" Existing ADB server port:" />
     <option name="port" hit=" Existing ADB server port:" />
     <option name="server" hit=" Existing ADB server port:" />
-    <option name="adb" hit="ADB server lifecycle management" />
-    <option name="lifecycle" hit="ADB server lifecycle management" />
-    <option name="management" hit="ADB server lifecycle management" />
-    <option name="server" hit="ADB server lifecycle management" />
     <option name="adb" hit="Android Debug Bridge (adb)" />
     <option name="android" hit="Android Debug Bridge (adb)" />
     <option name="bridge" hit="Android Debug Bridge (adb)" />
@@ -1023,20 +931,16 @@
     <option name="manage" hit="Automatically start and manage server" />
     <option name="server" hit="Automatically start and manage server" />
     <option name="start" hit="Automatically start and manage server" />
-    <option name="adb" hit="Enable adb mDNS for wireless debugging" />
-    <option name="debugging" hit="Enable adb mDNS for wireless debugging" />
-    <option name="enable" hit="Enable adb mDNS for wireless debugging" />
-    <option name="for" hit="Enable adb mDNS for wireless debugging" />
-    <option name="mdns" hit="Enable adb mDNS for wireless debugging" />
-    <option name="wireless" hit="Enable adb mDNS for wireless debugging" />
     <option name="existing" hit="Use existing manually managed server" />
     <option name="managed" hit="Use existing manually managed server" />
     <option name="manually" hit="Use existing manually managed server" />
     <option name="server" hit="Use existing manually managed server" />
     <option name="use" hit="Use existing manually managed server" />
-    <option name="backend" hit="Use libusb backend" />
-    <option name="libusb" hit="Use libusb backend" />
-    <option name="use" hit="Use libusb backend" />
+    <option name="bonjour" hit="bonjour" />
+    <option name="default" hit="default" />
+    <option name="libusb" hit="libusb" />
+    <option name="native" hit="native" />
+    <option name="openscreen" hit="openscreen" />
   </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
@@ -1107,15 +1011,6 @@
     <option name="you" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
     <option name="your" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
   </configurable>
-  <configurable id="testing.instrumented.configuration" configurable_name="Testing">
-    <option name="android" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="gradle" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="instrumented" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="run" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="tests" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="using" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="testing" hit="Testing" />
-  </configurable>
   <configurable id="live.edit.configurable" configurable_name="Live Edit">
     <option name="" hit="(deprecated) Live Edit of literals" />
     <option name="deprecated" hit="(deprecated) Live Edit of literals" />
@@ -1129,16 +1024,15 @@
     <option name="automatically" hit="Push Edits Automatically" />
     <option name="edits" hit="Push Edits Automatically" />
     <option name="push" hit="Push Edits Automatically" />
-    <option name="ctrl" hit="Push Edits Manually (Ctrl+\)" />
+    <option name="ctrl+" hit="Push Edits Manually (Ctrl+\)" />
     <option name="edits" hit="Push Edits Manually (Ctrl+\)" />
     <option name="manually" hit="Push Edits Manually (Ctrl+\)" />
     <option name="push" hit="Push Edits Manually (Ctrl+\)" />
-    <option name="ctrl" hit="Push Edits Manually on Save (Ctrl+S)" />
+    <option name="ctrl+s" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="edits" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="manually" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="on" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="push" hit="Push Edits Manually on Save (Ctrl+S)" />
-    <option name="s" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="save" hit="Push Edits Manually on Save (Ctrl+S)" />
   </configurable>
   <configurable id="database.inspector" configurable_name="Database Inspector">
@@ -1272,9 +1166,6 @@
     <option name="do" hit="Do not delete" />
     <option name="not" hit="Do not delete" />
     <option name="emulator" hit="Emulator" />
-    <option name="clipboard" hit="Enable clipboard sharing" />
-    <option name="enable" hit="Enable clipboard sharing" />
-    <option name="sharing" hit="Enable clipboard sharing" />
     <option name="devices" hit="Launch in the Running Devices tool window" />
     <option name="in" hit="Launch in the Running Devices tool window" />
     <option name="launch" hit="Launch in the Running Devices tool window" />
@@ -1306,6 +1197,8 @@
     <option name="control" hit="Show camera control prompts" />
     <option name="prompts" hit="Show camera control prompts" />
     <option name="show" hit="Show camera control prompts" />
+    <option name="clipboard" hit="Synchronize clipboard" />
+    <option name="synchronize" hit="Synchronize clipboard" />
     <option name="camera" hit="Velocity control keys for virtual scene camera:" />
     <option name="control" hit="Velocity control keys for virtual scene camera:" />
     <option name="for" hit="Velocity control keys for virtual scene camera:" />
@@ -1361,21 +1254,50 @@
     <option name="when" hit="Activate mirroring when launching an app on a physical device" />
     <option name="device" hit="Device Mirroring" />
     <option name="mirroring" hit="Device Mirroring" />
-    <option name="clipboard" hit="Enable clipboard sharing" />
-    <option name="enable" hit="Enable clipboard sharing" />
-    <option name="sharing" hit="Enable clipboard sharing" />
     <option name="clipboard" hit="Maximum length of synchronized clipboard text:" />
     <option name="length" hit="Maximum length of synchronized clipboard text:" />
     <option name="maximum" hit="Maximum length of synchronized clipboard text:" />
     <option name="of" hit="Maximum length of synchronized clipboard text:" />
     <option name="synchronized" hit="Maximum length of synchronized clipboard text:" />
     <option name="text" hit="Maximum length of synchronized clipboard text:" />
+    <option name="audio" hit="Redirect audio from local devices" />
+    <option name="devices" hit="Redirect audio from local devices" />
+    <option name="from" hit="Redirect audio from local devices" />
+    <option name="local" hit="Redirect audio from local devices" />
+    <option name="redirect" hit="Redirect audio from local devices" />
+    <option name="clipboard" hit="Synchronize clipboard" />
+    <option name="synchronize" hit="Synchronize clipboard" />
     <option name="device" hit="Turn off device display while mirroring" />
     <option name="display" hit="Turn off device display while mirroring" />
     <option name="mirroring" hit="Turn off device display while mirroring" />
     <option name="off" hit="Turn off device display while mirroring" />
     <option name="turn" hit="Turn off device display while mirroring" />
     <option name="while" hit="Turn off device display while mirroring" />
+  </configurable>
+  <configurable id="layout.inspector" configurable_name="Layout Inspector">
+    <option name="a" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="android" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="auto" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="connect" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="enable" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="of" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="requires" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="restart" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="studio" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="a" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="android" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="embedded" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="enable" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="inspector" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="layout" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="of" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="requires" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="restart" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="studio" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="inspector" hit="Layout Inspector" />
+    <option name="layout" hit="Layout Inspector" />
+    <option name="learn" hit="Learn More" />
+    <option name="more" hit="Learn More" />
   </configurable>
   <configurable id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider" configurable_name="Logcat">
     <option name="" hit=" KB" />
@@ -1497,6 +1419,35 @@
     <option name="memory" hit="Memory Settings" />
     <option name="settings" hit="Memory Settings" />
   </configurable>
+  <configurable id="preferences.sourceCode.Gradle Declarative Configuration Language" configurable_name="Gradle Declarative Configuration Language">
+    <option name="continuation" path="Tabs and Indents" hit="Continuation indent:" />
+    <option name="indent" path="Tabs and Indents" hit="Continuation indent:" />
+    <option name="disable" hit="Disable" />
+    <option name="configuration" hit="Gradle Declarative Configuration Language" />
+    <option name="declarative" hit="Gradle Declarative Configuration Language" />
+    <option name="gradle" hit="Gradle Declarative Configuration Language" />
+    <option name="language" hit="Gradle Declarative Configuration Language" />
+    <option name="indent" path="Tabs and Indents" hit="Indent:" />
+    <option name="empty" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="indents" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="keep" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="lines" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="on" path="Tabs and Indents" hit="Keep indents on empty lines" />
+    <option name="loading" hit="Loading..." />
+    <option name="scheme" hit="Scheme:" />
+    <option name="from" hit="Set from..." />
+    <option name="set" hit="Set from..." />
+    <option name="smart" path="Tabs and Indents" hit="Smart tabs" />
+    <option name="tabs" path="Tabs and Indents" hit="Smart tabs" />
+    <option name="size" path="Tabs and Indents" hit="Tab size:" />
+    <option name="tab" path="Tabs and Indents" hit="Tab size:" />
+    <option name="and" path="Tabs and Indents" hit="Tabs and Indents" />
+    <option name="indents" path="Tabs and Indents" hit="Tabs and Indents" />
+    <option name="tabs" path="Tabs and Indents" hit="Tabs and Indents" />
+    <option name="character" path="Tabs and Indents" hit="Use tab character" />
+    <option name="tab" path="Tabs and Indents" hit="Use tab character" />
+    <option name="use" path="Tabs and Indents" hit="Use tab character" />
+  </configurable>
   <configurable id="experimental" configurable_name="Experimental">
     <option name="" hit=" Note: These settings are for features that are considered experimental." />
     <option name="are" hit=" Note: These settings are for features that are considered experimental." />
@@ -1514,8 +1465,6 @@
     <option name="jetpack" hit="Jetpack Compose" />
     <option name="editor" hit="Layout Editor" />
     <option name="layout" hit="Layout Editor" />
-    <option name="inspector" hit="Layout Inspector" />
-    <option name="layout" hit="Layout Inspector" />
   </configurable>
   <configurable id="experimental" configurable_name="Experimental">
     <option name="all" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
@@ -1528,8 +1477,6 @@
     <option name="sync" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
     <option name="tasks" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
     <option name="this" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
-    <option name="default" hit="Default profile" />
-    <option name="profile" hit="Default profile" />
     <option name="application" hit="Derive runtime classpaths for libraries from application modules" />
     <option name="classpaths" hit="Derive runtime classpaths for libraries from application modules" />
     <option name="derive" hit="Derive runtime classpaths for libraries from application modules" />
@@ -1557,13 +1504,6 @@
     <option name="only" hit="Optimize build for target device API level only" />
     <option name="optimize" hit="Optimize build for target device API level only" />
     <option name="target" hit="Optimize build for target device API level only" />
-    <option name="location" hit="Specified location" />
-    <option name="specified" hit="Specified location" />
-    <option name="gradle" hit="Trace Gradle import with profile:" />
-    <option name="import" hit="Trace Gradle import with profile:" />
-    <option name="profile" hit="Trace Gradle import with profile:" />
-    <option name="trace" hit="Trace Gradle import with profile:" />
-    <option name="with" hit="Trace Gradle import with profile:" />
   </configurable>
   <configurable id="experimental" configurable_name="Experimental">
     <option name="enable" hit="Enable @Preview picker" />
@@ -1584,29 +1524,6 @@
   <configurable id="experimental" configurable_name="Experimental">
     <option name="quality" hit="Quality Setting" />
     <option name="setting" hit="Quality Setting" />
-  </configurable>
-  <configurable id="experimental" configurable_name="Experimental">
-    <option name="a" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="android" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="auto" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="connect" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="enable" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="of" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="requires" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="restart" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="studio" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="a" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="android" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="embedded" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="enable" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="inspector" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="layout" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="of" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="requires" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="restart" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="studio" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="learn" hit="Learn More" />
-    <option name="more" hit="Learn More" />
   </configurable>
   <configurable id="gradle.compiler" configurable_name="Gradle-Android Compiler">
     <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />

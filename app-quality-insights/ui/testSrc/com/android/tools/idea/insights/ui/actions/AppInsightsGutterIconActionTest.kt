@@ -122,18 +122,18 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
         listOf(AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), VITALS_KEY) {}),
         listOf(
           AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), CRASHLYTICS_KEY) {},
-          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), CRASHLYTICS_KEY) {}
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), CRASHLYTICS_KEY) {},
         ),
         listOf(
           AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), VITALS_KEY) {},
-          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), VITALS_KEY) {}
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), VITALS_KEY) {},
         ),
         listOf(
           AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), CRASHLYTICS_KEY) {},
           AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), CRASHLYTICS_KEY) {},
           AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), VITALS_KEY) {},
           AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), VITALS_KEY) {},
-        )
+        ),
       )
   }
 }

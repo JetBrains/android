@@ -198,7 +198,6 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO("listPropertiesFromAppliedFilesAppliedFileTwo"),
     APPLY_FROM_BLOCK("applyFromBlock"),
     APPLY_FROM_BLOCK_APPLIED("applyFromBlockApplied"),
-    DELETE("delete")
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

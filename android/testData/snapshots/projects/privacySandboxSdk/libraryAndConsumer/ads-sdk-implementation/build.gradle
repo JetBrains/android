@@ -5,11 +5,11 @@ plugins {
 
 android {
     namespace 'com.example.ads_sdk_implementation'
-    compileSdkPreview = 'TiramisuPrivacySandbox'
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 33
-        targetSdkPreview = 'TiramisuPrivacySandbox'
+        targetSdk = 34
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

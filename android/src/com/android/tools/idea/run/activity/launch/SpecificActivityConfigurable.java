@@ -19,7 +19,6 @@ import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.ide.util.TreeClassChooser;
-import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.module.Module;
@@ -40,6 +39,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidTreeClassChooserFactory;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,9 +78,9 @@ public class SpecificActivityConfigurable implements LaunchOptionConfigurable<Sp
         }
         PsiClass initialSelection =
           facade.findClass(myActivityField.getChildComponent().getText(), module.getModuleWithDependenciesScope());
-        TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project)
-          .createInheritanceClassChooser("Select Activity Class", module.getModuleWithDependenciesScope(), activityBaseClass,
-                                         initialSelection, null);
+        TreeClassChooser chooser = AndroidTreeClassChooserFactory.INSTANCE.createInheritanceClassChooser(
+          project, "Select Activity Class", module.getModuleWithDependenciesScope(), activityBaseClass, initialSelection, null
+        );
         chooser.showDialog();
         PsiClass selClass = chooser.getSelected();
         if (selClass != null) {

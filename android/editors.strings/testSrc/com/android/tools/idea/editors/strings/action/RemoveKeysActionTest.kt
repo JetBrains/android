@@ -41,7 +41,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.testFramework.MapDataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -63,18 +63,18 @@ class RemoveKeysActionTest {
   private val table: StringResourceTable = mock()
   private val model: StringResourceTableModel = mock()
   private val repository: StringResourceRepository = mock()
-  private val mapDataContext = MapDataContext()
   private val removeKeysAction = RemoveKeysAction(stringResourceWriter)
   private lateinit var event: AnActionEvent
 
-
   @Before
   fun setUp() {
-    event = AnActionEvent(null, mapDataContext, "place", Presentation(), ActionManager.getInstance(), 0)
-    mapDataContext.apply {
-      put(CommonDataKeys.PROJECT, projectRule.project)
-      put(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+        .build()
+    event =
+      AnActionEvent(null, dataContext, "place", Presentation(), ActionManager.getInstance(), 0)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -121,10 +121,11 @@ class RemoveKeysActionTest {
 
     val callbackRunnableCaptor: ArgumentCaptor<Runnable> = argumentCaptor()
     verify(stringResourceWriter)
-        .safeDelete(
-            eq(projectRule.project),
-            eq(resourceItems[index]),
-            capture(callbackRunnableCaptor))
+      .safeDelete(
+        eq(projectRule.project),
+        eq(resourceItems[index]),
+        capture(callbackRunnableCaptor),
+      )
     verify(panel, never()).reloadData()
     callbackRunnableCaptor.value.run()
     verify(panel).reloadData()
@@ -135,25 +136,29 @@ class RemoveKeysActionTest {
     /**
      * Creates a bunch of resource items to use in the test.
      *
-     * These look like
-     *   "resource 1a", "resource 1b", ...
-     *   "resource 2a", "resource 2b", ...
-     *   ...
+     * These look like "resource 1a", "resource 1b", ... "resource 2a", "resource 2b", ... ...
      */
     private val resourceItems: List<List<ResourceItem>> =
-        IntRange(0, 10).map { index ->
-          CharRange('a', 'e').map { char -> createFakeStringResourceItem("resource $index$char") }
-        }
+      IntRange(0, 10).map { index ->
+        CharRange('a', 'e').map { char -> createFakeStringResourceItem("resource $index$char") }
+      }
 
     private fun createFakeStringResourceItem(resourceName: String): ResourceItem {
       return object : ResourceItem {
         override fun getName(): String = resourceName
+
         override fun getType(): ResourceType = ResourceType.STRING
+
         override fun getNamespace(): ResourceNamespace = ResourceNamespace.RES_AUTO
+
         override fun getLibraryName(): String? = null
+
         override fun getResourceValue(): ResourceValue? = null
+
         override fun getSource(): PathString? = null
+
         override fun isFileBased(): Boolean = false
+
         override fun getConfiguration(): FolderConfiguration = FolderConfiguration()
       }
     }

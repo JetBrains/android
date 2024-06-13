@@ -54,7 +54,7 @@ class MorphComponentActionTest {
               android:attribute2="value2">
             </LinearLayout>
         """
-          .trimIndent()
+          .trimIndent(),
       )
     }
 
@@ -93,7 +93,7 @@ class MorphComponentActionTest {
         Suggestion3
       """
         .trimIndent(),
-      componentListString.toString().trim()
+      componentListString.toString().trim(),
     )
 
     fakeUi
@@ -109,7 +109,7 @@ class MorphComponentActionTest {
         </Suggestion1>
       """
         .trimIndent(),
-      runReadAction { xmlTag.text }
+      runReadAction { xmlTag.text },
     )
   }
 }

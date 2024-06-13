@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
@@ -22,7 +23,7 @@ import com.android.tools.idea.naveditor.model.effectiveDestination
 import com.android.tools.idea.naveditor.model.isAction
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.TestActionEvent
 import org.mockito.Mockito
 
 class ToSelfActionTest : NavTestCase() {
@@ -35,7 +36,7 @@ class ToSelfActionTest : NavTestCase() {
     }
     TestNavUsageTracker.create(model).use { tracker ->
       val f2 = model.find("f2")!!
-      ToSelfAction(model.surface, f2).actionPerformed(Mockito.mock(AnActionEvent::class.java))
+      ToSelfAction(f2).actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null })
       val action = f2.children.first { it.isAction }
       assertEquals(f2, action.effectiveDestination)
       assertSameElements(model.surface.selectionModel.selection, action)

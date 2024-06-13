@@ -16,13 +16,14 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8ModuleQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelModuleQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getParentModulePath
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.project.Project
+import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -35,7 +36,7 @@ private const val STATIC_INTERFACE_METHOD = "Static interface methods are only s
 private val FAILED_TASK_PATTERN = Pattern.compile("Execution failed for task '(.+)'.")
 private val EXCEPTION_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.RuntimeException(.*)")
 
-class DexDisabledIssueChecker: GradleIssueChecker {
+class DexDisabledIssueChecker : GradleIssueChecker {
   /**
    * Looks for errors related to DexArchiveBuilderException caused when desugaring is not enabled. The expected errors have a root cause
    * with a message like these:
@@ -69,9 +70,9 @@ class DexDisabledIssueChecker: GradleIssueChecker {
     }
     val modulePath = extractModulePathFromError(issueData.error)
     if (modulePath != null) {
-      issueComposer.addQuickFix(SetLanguageLevel8ModuleQuickFix(modulePath, setJvmTarget = false))
+      issueComposer.addQuickFix(SetJavaLanguageLevelModuleQuickFix(modulePath, LanguageLevel.JDK_1_8, setJvmTarget = false))
     }
-    issueComposer.addQuickFix(SetLanguageLevel8AllQuickFix(setJvmTarget = false))
+    issueComposer.addQuickFix(SetJavaLanguageLevelAllQuickFix(LanguageLevel.JDK_1_8, setJvmTarget = false))
     return DexDisabledIssue(issueComposer.composeBuildIssue())
   }
 
@@ -82,12 +83,12 @@ class DexDisabledIssueChecker: GradleIssueChecker {
                                                 parentEventId: Any,
                                                 messageConsumer: Consumer<in BuildEvent>): Boolean {
     return stacktrace != null && EXCEPTION_TRACE_PATTERN.matcher(stacktrace).find() &&
-      (failureCause.startsWith("Error: $INVOKE_CUSTOM") || failureCause.startsWith("Error: $DEFAULT_INTERFACE_METHOD") ||
-      failureCause.startsWith("Error: $STATIC_INTERFACE_METHOD"))
+           (failureCause.startsWith("Error: $INVOKE_CUSTOM") || failureCause.startsWith("Error: $DEFAULT_INTERFACE_METHOD") ||
+            failureCause.startsWith("Error: $STATIC_INTERFACE_METHOD"))
   }
 }
 
-class DexDisabledIssue(private val buildIssue: BuildIssue): BuildIssue {
+class DexDisabledIssue(private val buildIssue: BuildIssue) : BuildIssue {
   override val title = buildIssue.title
   override val description = buildIssue.description
   override val quickFixes = buildIssue.quickFixes

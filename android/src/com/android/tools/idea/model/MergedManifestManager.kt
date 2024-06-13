@@ -158,7 +158,7 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
     }
 
     logger<MergedManifestSupplier>().warn(
-        "Infinite recursion detected when computing merged manifest for module ${module.name}\n" + TraceUtils.getCurrentStack())
+        "Infinite recursion detected when computing merged manifest for module ${module.name}\n" + TraceUtils.currentStack)
     return MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module)
   }
 

@@ -46,28 +46,28 @@ class ComposeViewSingleWordFilterTest {
     val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) surface else null }
     val filter = ComposeViewSingleWordFilter()
     filter.filter("My", dataContext)
-    verify(myView1, times(1)).setVisible(true)
-    verify(myView2, times(1)).setVisible(true)
-    verify(yourView1, times(1)).setVisible(false)
-    verify(yourView2, times(1)).setVisible(false)
+    verify(myView1, times(1)).isVisible = true
+    verify(myView2, times(1)).isVisible = true
+    verify(yourView1, times(1)).isVisible = false
+    verify(yourView2, times(1)).isVisible = false
 
     filter.filter("Your", dataContext)
-    verify(myView1, times(1)).setVisible(false)
-    verify(myView2, times(1)).setVisible(false)
-    verify(yourView1, times(1)).setVisible(true)
-    verify(yourView2, times(1)).setVisible(true)
+    verify(myView1, times(1)).isVisible = false
+    verify(myView2, times(1)).isVisible = false
+    verify(yourView1, times(1)).isVisible = true
+    verify(yourView2, times(1)).isVisible = true
 
     filter.filter("View", dataContext)
-    verify(myView1, times(2)).setVisible(true)
-    verify(myView2, times(2)).setVisible(true)
-    verify(yourView1, times(2)).setVisible(true)
-    verify(yourView2, times(2)).setVisible(true)
+    verify(myView1, times(2)).isVisible = true
+    verify(myView2, times(2)).isVisible = true
+    verify(yourView1, times(2)).isVisible = true
+    verify(yourView2, times(2)).isVisible = true
 
     filter.filter("XXX", dataContext)
-    verify(myView1, times(2)).setVisible(false)
-    verify(myView2, times(2)).setVisible(false)
-    verify(yourView1, times(2)).setVisible(false)
-    verify(yourView2, times(2)).setVisible(false)
+    verify(myView1, times(2)).isVisible = false
+    verify(myView2, times(2)).isVisible = false
+    verify(yourView1, times(2)).isVisible = false
+    verify(yourView2, times(2)).isVisible = false
   }
 
   @Test
@@ -81,22 +81,22 @@ class ComposeViewSingleWordFilterTest {
     val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) surface else null }
     val filter = ComposeViewSingleWordFilter()
     filter.filter("", dataContext)
-    verify(myView1, times(1)).setVisible(true)
-    verify(myView2, times(1)).setVisible(true)
-    verify(yourView1, times(1)).setVisible(true)
-    verify(yourView2, times(1)).setVisible(true)
+    verify(myView1, times(1)).isVisible = true
+    verify(myView2, times(1)).isVisible = true
+    verify(yourView1, times(1)).isVisible = true
+    verify(yourView2, times(1)).isVisible = true
 
     filter.filter("  ", dataContext)
-    verify(myView1, times(2)).setVisible(true)
-    verify(myView2, times(2)).setVisible(true)
-    verify(yourView1, times(2)).setVisible(true)
-    verify(yourView2, times(2)).setVisible(true)
+    verify(myView1, times(2)).isVisible = true
+    verify(myView2, times(2)).isVisible = true
+    verify(yourView1, times(2)).isVisible = true
+    verify(yourView2, times(2)).isVisible = true
 
     filter.filter(null, dataContext)
-    verify(myView1, times(3)).setVisible(true)
-    verify(myView2, times(3)).setVisible(true)
-    verify(yourView1, times(3)).setVisible(true)
-    verify(yourView2, times(3)).setVisible(true)
+    verify(myView1, times(3)).isVisible = true
+    verify(myView2, times(3)).isVisible = true
+    verify(yourView1, times(3)).isVisible = true
+    verify(yourView2, times(3)).isVisible = true
   }
 
   @Test
@@ -109,8 +109,8 @@ class ComposeViewSingleWordFilterTest {
     val filter = ComposeViewSingleWordFilter()
     filter.filter("  View1  ", dataContext)
 
-    verify(view1, times(1)).setVisible(true)
-    verify(view2, times(1)).setVisible(false)
+    verify(view1, times(1)).isVisible = true
+    verify(view2, times(1)).isVisible = false
   }
 
   private fun createTestSurface(vararg views: SceneView): DesignSurface<*> {

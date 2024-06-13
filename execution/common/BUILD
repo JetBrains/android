@@ -6,12 +6,12 @@ iml_module(
     name = "intellij.android.execution.common",
     srcs = ["src"],
     iml_files = ["intellij.android.execution.common.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
@@ -37,6 +37,7 @@ iml_module(
     split_test_targets = {
         "applychanges": {
             "test_filter": "com.android.tools.idea.execution.common.applychanges",
+            "tags": ["no_windows"],
         },
     },
     test_class = "com.android.tools.idea.execution.common.AndroidExecutionCommonTestSuite",
@@ -57,8 +58,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",

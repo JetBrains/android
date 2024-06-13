@@ -63,7 +63,6 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -159,8 +158,7 @@ public class IdeSdks {
    */
   @Nullable
   public File getAndroidSdkPath() {
-    String path = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
-    Path sdkPath = path != null ? Paths.get(path) : null;
+    Path sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
     if (sdkPath != null) {
       File candidate = sdkPath.toFile();
       if (AndroidSdkPath.isValid(candidate)) {
@@ -396,7 +394,7 @@ public class IdeSdks {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
 
       // Store default sdk path for the application as well in order to be able to re-use it for other ide projects if necessary.
-      AndroidSdkPathStore.getInstance().setAndroidSdkPath(path.getAbsolutePath());
+      AndroidSdkPathStore.getInstance().setAndroidSdkPath(path.toPath());
 
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
       // If we don't force this update, AndroidSdks will still use the old SDK until all SDKs are properly deleted.
@@ -1022,7 +1020,9 @@ public class IdeSdks {
       if (shouldUpdate) {
         ProjectJdkTable.getInstance().updateJdk(jdkInTable, updatedJdk);
       }
-      Disposer.dispose((ProjectJdkImpl)updatedJdk);
+      if (updatedJdk instanceof Disposable disposableJdk) {
+        Disposer.dispose(disposableJdk);
+      }
     } else {
       // Could not find JDK in JDK table, add as new entry
       jdkTable.addJdk(updatedJdk);

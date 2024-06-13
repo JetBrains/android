@@ -24,6 +24,7 @@ import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.util.BaselineProfileUtil.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.UsedFeatureRawText
@@ -38,20 +39,20 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.projectsystem.getSyncManager
-import com.android.tools.idea.run.configuration.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.jetbrains.rd.util.firstOrNull
-import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComboBox
 import javax.swing.JPanel
+import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.VisibleForTesting
 
 
 private val USES_FEATURE_OTHER_FORM_FACTORS = setOf(

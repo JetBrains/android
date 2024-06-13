@@ -56,7 +56,7 @@ private fun <T> NodeType<T>.insert(
   data: Transferable,
   before: Any?,
   isMove: Boolean,
-  draggedFromTree: List<Any>
+  draggedFromTree: List<Any>,
 ): Boolean {
   return insert(clazz.cast(item), data, before, isMove, draggedFromTree)
 }
@@ -83,7 +83,7 @@ private fun <T> NodeType<T>.createDragImage(item: Any): Image? {
 class TreeTableModelImpl(
   val columns: List<ColumnInfo>,
   private val nodeTypeLookupMap: Map<Class<*>, NodeType<*>>,
-  private val invokeLater: (Runnable) -> Unit
+  private val invokeLater: (Runnable) -> Unit,
 ) : ComponentTreeModel, TreeTableModel, BaseTreeModel<Any>() {
   private val rendererCache: MutableMap<Class<*>, TreeCellRenderer> = mutableMapOf()
   private val modelListeners: MutableList<TreeModelListener> = ContainerUtil.createConcurrentList()
@@ -103,6 +103,7 @@ class TreeTableModelImpl(
   }
 
   override fun columnDataChanged() = fireColumnDataChanged()
+
   // endregion
 
   // region TreeTableModel implementation
@@ -142,6 +143,7 @@ class TreeTableModelImpl(
   override fun setValueAt(aValue: Any?, node: Any?, column: Int) {}
 
   override fun setTree(tree: JTree?) {}
+
   // endregion
 
   /** Find the parent node of the given [node] using the relevant [NodeType]. */
@@ -172,7 +174,7 @@ class TreeTableModelImpl(
     data: Transferable,
     before: Any? = null,
     isMove: Boolean,
-    draggedFromTree: List<Any>
+    draggedFromTree: List<Any>,
   ): Boolean {
     return node?.let { typeOf(it).insert(it, data, before, isMove, draggedFromTree) } ?: false
   }
@@ -232,7 +234,7 @@ class TreeTableModelImpl(
         this,
         toPath(changedNode),
         rootChanged,
-        toExpand.mapNotNull { toPath(it) }
+        toExpand.mapNotNull { toPath(it) },
       )
     modelListeners.forEach { (it as? TreeTableModelImplListener)?.treeChanged(event) }
   }

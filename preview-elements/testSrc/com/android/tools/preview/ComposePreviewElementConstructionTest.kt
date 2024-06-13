@@ -19,6 +19,7 @@ import com.android.tools.preview.config.PARAMETER_BACKGROUND_COLOR
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class ComposePreviewElementConstructionTest {
   private class BackgroundColorProvider<B>(
@@ -38,10 +39,10 @@ class ComposePreviewElementConstructionTest {
 
   @Test
   fun testPreviewAnnotationToPreviewElement_backgroundColor() {
-    val annotatedMethod = object : AnnotatedMethod {
+    val annotatedMethod = object : AnnotatedMethod<Unit> {
       override val name = "Method"
       override val qualifiedName = "com.test.Method"
-      override val psiPointer = null
+      override val methodBody = null
       override val parameterAnnotations = emptyList<Pair<String, AnnotationAttributesProvider>>()
     }
     val encodedBackgroundColors = listOf<Any?>(123456, 123456L, "123456", 123456.0f, null)
@@ -60,5 +61,52 @@ class ComposePreviewElementConstructionTest {
       assertNotNull(previewElement)
       assertEquals(expectedColor, previewElement.displaySettings.backgroundColor)
     }
+  }
+
+  private class PreviewParameterProvider : AnnotationAttributesProvider {
+    override fun <T> getAttributeValue(attributeName: String): T? = null
+    override fun getIntAttribute(attributeName: String): Int? = if (attributeName == "limit") { 42 } else { null }
+    override fun getStringAttribute(attributeName: String): String? = null
+    override fun getFloatAttribute(attributeName: String): Float? = null
+    override fun getBooleanAttribute(attributeName: String): Boolean? = null
+    override fun <T> getDeclaredAttributeValue(attributeName: String): T? = null
+    override fun findClassNameValue(name: String): String? = if (name == "provider") {
+      "foo.bar.Provider"
+    } else {
+      null
+    }
+  }
+
+  @Test
+  fun testPreviewAnnotationToPreviewElement_PreviewParam_limit() {
+    val annotatedMethod = object : AnnotatedMethod<Unit> {
+      override val name = "Method"
+      override val qualifiedName = "com.test.Method"
+      override val methodBody = null
+      override val parameterAnnotations = listOf<Pair<String, AnnotationAttributesProvider>>(
+        "param1" to PreviewParameterProvider()
+      )
+    }
+
+    val previewElement = previewAnnotationToPreviewElement(
+      object : AnnotationAttributesProvider {
+        override fun <T> getAttributeValue(attributeName: String): T? = null
+        override fun getIntAttribute(attributeName: String): Int? = null
+        override fun getStringAttribute(attributeName: String): String? = null
+        override fun getFloatAttribute(attributeName: String): Float? = null
+        override fun getBooleanAttribute(attributeName: String): Boolean? = null
+        override fun <T> getDeclaredAttributeValue(attributeName: String): T? = null
+        override fun findClassNameValue(name: String): String? = null
+      },
+      annotatedMethod,
+      null,
+      { instance, params -> ParametrizedComposePreviewElementTemplate(instance, params) { null } }
+    )
+
+    assertNotNull(previewElement)
+    assertTrue(previewElement is ParametrizedComposePreviewElementTemplate)
+    assertEquals(1, previewElement.parameterProviders.size)
+    assertEquals(42, previewElement.parameterProviders.first().limit)
+    assertEquals("foo.bar.Provider", previewElement.parameterProviders.first().providerClassFqn)
   }
 }

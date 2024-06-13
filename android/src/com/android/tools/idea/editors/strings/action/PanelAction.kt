@@ -43,13 +43,12 @@ abstract class PanelAction(
     get() = (getRequiredData(PlatformDataKeys.FILE_EDITOR) as StringResourceEditor).panel
   /** The non-`null` [Project] associated with `this` [AnActionEvent]. */
   protected val AnActionEvent.requiredProject: Project
-    get() = requireNotNull(getData(CommonDataKeys.PROJECT))
+    get() = getRequiredData(CommonDataKeys.PROJECT)
 
   private fun AnActionEvent.hasRequiredData(): Boolean =
       (getData(PlatformDataKeys.FILE_EDITOR) is StringResourceEditor) && (project != null)
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
-
   final override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = e.hasRequiredData() && doUpdate(e)
   }

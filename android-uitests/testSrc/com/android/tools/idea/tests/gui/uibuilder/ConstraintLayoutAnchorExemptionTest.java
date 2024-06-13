@@ -21,10 +21,13 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixtureKt;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,6 +36,7 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ConstraintLayoutAnchorExemptionTest {
@@ -83,7 +87,9 @@ public class ConstraintLayoutAnchorExemptionTest {
   public void constraintLayoutAnchorExemption() throws Exception {
 
     EditorFixture editor = ideFrameFixture.getEditor()
-      .open(ACTIVITY_FILE, EditorFixture.Tab.EDITOR);
+      .open(ACTIVITY_FILE);
+    SplitEditorFixture splitEditorFixture = SplitEditorFixtureKt.getSplitEditorFixture(editor);
+    splitEditorFixture.setSplitMode();
     editor.replaceText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                        "<androidx.constraintlayout.widget.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                        "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
@@ -97,7 +103,8 @@ public class ConstraintLayoutAnchorExemptionTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     editor.selectEditorTab(EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture design = editor.getLayoutEditor()
+    NlEditorFixture design = editor.getLayoutEditor().waitForRenderToFinish(Wait.seconds(30))
+      .waitForSurfaceToLoad()
       .dragComponentToSurface("Text", "TextView")
       .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button")

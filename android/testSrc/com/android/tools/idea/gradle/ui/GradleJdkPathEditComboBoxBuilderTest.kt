@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.ui
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
@@ -64,12 +65,12 @@ class GradleJdkPathEditComboBoxBuilderTest: LightPlatformTestCase() {
     }
   }
 
-  private fun createMockSdk(homePath: String): Sdk {
+  private fun createMockSdk(mockHomePath: String): Sdk {
     val sdk = ProjectJdkTable.getInstance().createSdk("mockJdk", JavaSdk.getInstance())
-    sdk.sdkModificator.let {
-      it.homePath = homePath
-      it.versionString = "mockVersion"
-      it.commitChanges()
+    sdk.sdkModificator.apply {
+      homePath = mockHomePath
+      versionString = "mockVersion"
+      runWriteAction(::commitChanges)
     }
     return sdk
   }

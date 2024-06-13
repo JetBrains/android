@@ -8,7 +8,7 @@
             </intent-filter>
         </activity>
 
-      <receiver android:name=".MyBroadcastReceiver" android:enabled="true">
+      <receiver android:name=".MyBroadcastReceiver" android:enabled="true" android:exported="true">
         <intent-filter android:priority="999">
           <action android:name="com.example.applychanges.MyBroadcastReceiver.intent.TEST"/>
         </intent-filter>

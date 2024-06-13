@@ -64,7 +64,7 @@ interface ModuleClassLoaderManager<T : ModuleClassLoader> {
     moduleRenderContext: ModuleRenderContext,
     additionalProjectTransformation: ClassTransform = ClassTransform.identity,
     additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
-    onNewModuleClassLoader: Runnable = Runnable {}
+    onNewModuleClassLoader: Runnable = Runnable {},
   ): Reference<T>
 
   // Workaround for interfaces not currently supporting @JvmOverloads
@@ -76,7 +76,7 @@ interface ModuleClassLoaderManager<T : ModuleClassLoader> {
     parent: ClassLoader?,
     moduleRenderContext: ModuleRenderContext,
     additionalProjectTransformation: ClassTransform = ClassTransform.identity,
-    additionalNonProjectTransformation: ClassTransform = ClassTransform.identity
+    additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
   ): Reference<T>
 
   fun getPrivate(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext): Reference<T> =

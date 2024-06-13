@@ -48,7 +48,7 @@ class StyleRenderer : TreeCellRenderer {
     expanded: Boolean,
     leaf: Boolean,
     row: Int,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ): Component {
     label.text = (value as? Style)?.name ?: ""
     return label

@@ -154,88 +154,90 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/release/shaders
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/app/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./TestCompositeLib1/app/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib1/app/src/test/assets
-                JavaDirectories:
-                    ./TestCompositeLib1/app/src/test/java
-                KotlinDirectories:
-                    ./TestCompositeLib1/app/src/test/kotlin
-                    ./TestCompositeLib1/app/src/test/java
-                JniLibsDirectories:
-                    ./TestCompositeLib1/app/src/test/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib1/app/src/test/res
-                ResourcesDirectories:
-                    ./TestCompositeLib1/app/src/test/resources
-                ShadersDirectories:
-                    ./TestCompositeLib1/app/src/test/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib1/app/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./TestCompositeLib1/app/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/assets
-                JavaDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/java
-                KotlinDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/kotlin
-                    ./TestCompositeLib1/app/src/testDebug/java
-                JniLibsDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/res
-                ResourcesDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/resources
-                ShadersDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./TestCompositeLib1/app/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/assets
-                JavaDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/java
-                KotlinDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/kotlin
-                    ./TestCompositeLib1/app/src/androidTest/java
-                JniLibsDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/res
-                ResourcesDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/resources
-                ShadersDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./TestCompositeLib1/app/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/kotlin
-                    ./TestCompositeLib1/app/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./TestCompositeLib1/app/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib1/app/src/test/assets
+                    JavaDirectories:
+                        ./TestCompositeLib1/app/src/test/java
+                    KotlinDirectories:
+                        ./TestCompositeLib1/app/src/test/kotlin
+                        ./TestCompositeLib1/app/src/test/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib1/app/src/test/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib1/app/src/test/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib1/app/src/test/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib1/app/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib1/app/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./TestCompositeLib1/app/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib1/app/src/testDebug/assets
+                    JavaDirectories:
+                        ./TestCompositeLib1/app/src/testDebug/java
+                    KotlinDirectories:
+                        ./TestCompositeLib1/app/src/testDebug/kotlin
+                        ./TestCompositeLib1/app/src/testDebug/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib1/app/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib1/app/src/testDebug/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib1/app/src/testDebug/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib1/app/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib1/app/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./TestCompositeLib1/app/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib1/app/src/androidTest/assets
+                    JavaDirectories:
+                        ./TestCompositeLib1/app/src/androidTest/java
+                    KotlinDirectories:
+                        ./TestCompositeLib1/app/src/androidTest/kotlin
+                        ./TestCompositeLib1/app/src/androidTest/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib1/app/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib1/app/src/androidTest/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib1/app/src/androidTest/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib1/app/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib1/app/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./TestCompositeLib1/app/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib1/app/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./TestCompositeLib1/app/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./TestCompositeLib1/app/src/androidTestDebug/kotlin
+                        ./TestCompositeLib1/app/src/androidTestDebug/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib1/app/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib1/app/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib1/app/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib1/app/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib1/app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -282,7 +284,7 @@ MODULE: TestCompositeLib1.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/shaders
                     file://./TestCompositeLib1/app/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -320,8 +322,8 @@ MODULE: TestCompositeLib1.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/test/shaders
                     file://./TestCompositeLib1/app/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/androidTest/AndroidManifest.xml
@@ -368,13 +370,13 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./TestCompositeLib1/app/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./TestCompositeLib1/app/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -510,7 +512,7 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -559,7 +561,7 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -765,88 +767,90 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/release/shaders
                 BaselineProfileDirectories:
                     ./TestCompositeLib1/lib/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./TestCompositeLib1/lib/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib1/lib/src/test/assets
-                JavaDirectories:
-                    ./TestCompositeLib1/lib/src/test/java
-                KotlinDirectories:
-                    ./TestCompositeLib1/lib/src/test/kotlin
-                    ./TestCompositeLib1/lib/src/test/java
-                JniLibsDirectories:
-                    ./TestCompositeLib1/lib/src/test/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib1/lib/src/test/res
-                ResourcesDirectories:
-                    ./TestCompositeLib1/lib/src/test/resources
-                ShadersDirectories:
-                    ./TestCompositeLib1/lib/src/test/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib1/lib/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/assets
-                JavaDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/java
-                KotlinDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/kotlin
-                    ./TestCompositeLib1/lib/src/testDebug/java
-                JniLibsDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/res
-                ResourcesDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/resources
-                ShadersDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./TestCompositeLib1/lib/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/assets
-                JavaDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/java
-                KotlinDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/kotlin
-                    ./TestCompositeLib1/lib/src/androidTest/java
-                JniLibsDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/res
-                ResourcesDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/resources
-                ShadersDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/kotlin
-                    ./TestCompositeLib1/lib/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./TestCompositeLib1/lib/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib1/lib/src/test/assets
+                    JavaDirectories:
+                        ./TestCompositeLib1/lib/src/test/java
+                    KotlinDirectories:
+                        ./TestCompositeLib1/lib/src/test/kotlin
+                        ./TestCompositeLib1/lib/src/test/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib1/lib/src/test/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib1/lib/src/test/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib1/lib/src/test/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib1/lib/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib1/lib/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib1/lib/src/testDebug/assets
+                    JavaDirectories:
+                        ./TestCompositeLib1/lib/src/testDebug/java
+                    KotlinDirectories:
+                        ./TestCompositeLib1/lib/src/testDebug/kotlin
+                        ./TestCompositeLib1/lib/src/testDebug/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib1/lib/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib1/lib/src/testDebug/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib1/lib/src/testDebug/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib1/lib/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib1/lib/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./TestCompositeLib1/lib/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib1/lib/src/androidTest/assets
+                    JavaDirectories:
+                        ./TestCompositeLib1/lib/src/androidTest/java
+                    KotlinDirectories:
+                        ./TestCompositeLib1/lib/src/androidTest/kotlin
+                        ./TestCompositeLib1/lib/src/androidTest/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib1/lib/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib1/lib/src/androidTest/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib1/lib/src/androidTest/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib1/lib/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib1/lib/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/kotlin
+                        ./TestCompositeLib1/lib/src/androidTestDebug/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib1/lib/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -893,7 +897,7 @@ MODULE: TestCompositeLib1.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/shaders
                     file://./TestCompositeLib1/lib/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -931,8 +935,8 @@ MODULE: TestCompositeLib1.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/test/shaders
                     file://./TestCompositeLib1/lib/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/AndroidManifest.xml
@@ -979,13 +983,13 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./TestCompositeLib1/lib/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -1121,7 +1125,7 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1170,7 +1174,7 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1376,88 +1380,90 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/release/shaders
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/app/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./TestCompositeLib3/app/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib3/app/src/test/assets
-                JavaDirectories:
-                    ./TestCompositeLib3/app/src/test/java
-                KotlinDirectories:
-                    ./TestCompositeLib3/app/src/test/kotlin
-                    ./TestCompositeLib3/app/src/test/java
-                JniLibsDirectories:
-                    ./TestCompositeLib3/app/src/test/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib3/app/src/test/res
-                ResourcesDirectories:
-                    ./TestCompositeLib3/app/src/test/resources
-                ShadersDirectories:
-                    ./TestCompositeLib3/app/src/test/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib3/app/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./TestCompositeLib3/app/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/assets
-                JavaDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/java
-                KotlinDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/kotlin
-                    ./TestCompositeLib3/app/src/testDebug/java
-                JniLibsDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/res
-                ResourcesDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/resources
-                ShadersDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./TestCompositeLib3/app/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/assets
-                JavaDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/java
-                KotlinDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/kotlin
-                    ./TestCompositeLib3/app/src/androidTest/java
-                JniLibsDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/res
-                ResourcesDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/resources
-                ShadersDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./TestCompositeLib3/app/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/kotlin
-                    ./TestCompositeLib3/app/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./TestCompositeLib3/app/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib3/app/src/test/assets
+                    JavaDirectories:
+                        ./TestCompositeLib3/app/src/test/java
+                    KotlinDirectories:
+                        ./TestCompositeLib3/app/src/test/kotlin
+                        ./TestCompositeLib3/app/src/test/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib3/app/src/test/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib3/app/src/test/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib3/app/src/test/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib3/app/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib3/app/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./TestCompositeLib3/app/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib3/app/src/testDebug/assets
+                    JavaDirectories:
+                        ./TestCompositeLib3/app/src/testDebug/java
+                    KotlinDirectories:
+                        ./TestCompositeLib3/app/src/testDebug/kotlin
+                        ./TestCompositeLib3/app/src/testDebug/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib3/app/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib3/app/src/testDebug/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib3/app/src/testDebug/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib3/app/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib3/app/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./TestCompositeLib3/app/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib3/app/src/androidTest/assets
+                    JavaDirectories:
+                        ./TestCompositeLib3/app/src/androidTest/java
+                    KotlinDirectories:
+                        ./TestCompositeLib3/app/src/androidTest/kotlin
+                        ./TestCompositeLib3/app/src/androidTest/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib3/app/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib3/app/src/androidTest/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib3/app/src/androidTest/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib3/app/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib3/app/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./TestCompositeLib3/app/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib3/app/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./TestCompositeLib3/app/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./TestCompositeLib3/app/src/androidTestDebug/kotlin
+                        ./TestCompositeLib3/app/src/androidTestDebug/java
+                    JniLibsDirectories:
+                        ./TestCompositeLib3/app/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib3/app/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib3/app/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib3/app/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib3/app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1504,7 +1510,7 @@ MODULE: TestCompositeLib3.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/shaders
                     file://./TestCompositeLib3/app/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1542,8 +1548,8 @@ MODULE: TestCompositeLib3.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/test/shaders
                     file://./TestCompositeLib3/app/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/androidTest/AndroidManifest.xml
@@ -1590,13 +1596,13 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./TestCompositeLib3/app/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/app/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -1732,7 +1738,7 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1781,7 +1787,7 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1987,88 +1993,90 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/release/shaders
                 BaselineProfileDirectories:
                     ./TestCompositeLib3/lib/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./TestCompositeLib3/lib/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib3/lib/src/test/assets
-                JavaDirectories:
-                    ./TestCompositeLib3/lib/src/test/java
-                KotlinDirectories:
-                    ./TestCompositeLib3/lib/src/test/java
-                    ./TestCompositeLib3/lib/src/test/kotlin
-                JniLibsDirectories:
-                    ./TestCompositeLib3/lib/src/test/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib3/lib/src/test/res
-                ResourcesDirectories:
-                    ./TestCompositeLib3/lib/src/test/resources
-                ShadersDirectories:
-                    ./TestCompositeLib3/lib/src/test/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib3/lib/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./TestCompositeLib3/lib/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/assets
-                JavaDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/java
-                KotlinDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/java
-                    ./TestCompositeLib3/lib/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/res
-                ResourcesDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/resources
-                ShadersDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./TestCompositeLib3/lib/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/assets
-                JavaDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/java
-                KotlinDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/java
-                    ./TestCompositeLib3/lib/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/res
-                ResourcesDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/resources
-                ShadersDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/java
-                    ./TestCompositeLib3/lib/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./TestCompositeLib3/lib/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib3/lib/src/test/assets
+                    JavaDirectories:
+                        ./TestCompositeLib3/lib/src/test/java
+                    KotlinDirectories:
+                        ./TestCompositeLib3/lib/src/test/java
+                        ./TestCompositeLib3/lib/src/test/kotlin
+                    JniLibsDirectories:
+                        ./TestCompositeLib3/lib/src/test/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib3/lib/src/test/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib3/lib/src/test/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib3/lib/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib3/lib/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./TestCompositeLib3/lib/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib3/lib/src/testDebug/assets
+                    JavaDirectories:
+                        ./TestCompositeLib3/lib/src/testDebug/java
+                    KotlinDirectories:
+                        ./TestCompositeLib3/lib/src/testDebug/java
+                        ./TestCompositeLib3/lib/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./TestCompositeLib3/lib/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib3/lib/src/testDebug/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib3/lib/src/testDebug/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib3/lib/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib3/lib/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./TestCompositeLib3/lib/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib3/lib/src/androidTest/assets
+                    JavaDirectories:
+                        ./TestCompositeLib3/lib/src/androidTest/java
+                    KotlinDirectories:
+                        ./TestCompositeLib3/lib/src/androidTest/java
+                        ./TestCompositeLib3/lib/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./TestCompositeLib3/lib/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib3/lib/src/androidTest/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib3/lib/src/androidTest/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib3/lib/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib3/lib/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/java
+                        ./TestCompositeLib3/lib/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./TestCompositeLib3/lib/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2115,7 +2123,7 @@ MODULE: TestCompositeLib3.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/shaders
                     file://./TestCompositeLib3/lib/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2153,8 +2161,8 @@ MODULE: TestCompositeLib3.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/test/shaders
                     file://./TestCompositeLib3/lib/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/AndroidManifest.xml
@@ -2201,13 +2209,13 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./TestCompositeLib3/lib/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/lib/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -2343,7 +2351,7 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2392,7 +2400,7 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2598,88 +2606,90 @@ MODULE: project.app
                     ./app/src/release/shaders
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./app/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/test/assets
-                JavaDirectories:
-                    ./app/src/test/java
-                KotlinDirectories:
-                    ./app/src/test/kotlin
-                    ./app/src/test/java
-                JniLibsDirectories:
-                    ./app/src/test/jniLibs
-                ResDirectories:
-                    ./app/src/test/res
-                ResourcesDirectories:
-                    ./app/src/test/resources
-                ShadersDirectories:
-                    ./app/src/test/shaders
-                BaselineProfileDirectories:
-                    ./app/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./app/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/testDebug/assets
-                JavaDirectories:
-                    ./app/src/testDebug/java
-                KotlinDirectories:
-                    ./app/src/testDebug/kotlin
-                    ./app/src/testDebug/java
-                JniLibsDirectories:
-                    ./app/src/testDebug/jniLibs
-                ResDirectories:
-                    ./app/src/testDebug/res
-                ResourcesDirectories:
-                    ./app/src/testDebug/resources
-                ShadersDirectories:
-                    ./app/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./app/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./app/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTest/assets
-                JavaDirectories:
-                    ./app/src/androidTest/java
-                KotlinDirectories:
-                    ./app/src/androidTest/kotlin
-                    ./app/src/androidTest/java
-                JniLibsDirectories:
-                    ./app/src/androidTest/jniLibs
-                ResDirectories:
-                    ./app/src/androidTest/res
-                ResourcesDirectories:
-                    ./app/src/androidTest/resources
-                ShadersDirectories:
-                    ./app/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./app/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./app/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./app/src/androidTestDebug/kotlin
-                    ./app/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./app/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./app/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./app/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./app/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./app/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/test/assets
+                    JavaDirectories:
+                        ./app/src/test/java
+                    KotlinDirectories:
+                        ./app/src/test/kotlin
+                        ./app/src/test/java
+                    JniLibsDirectories:
+                        ./app/src/test/jniLibs
+                    ResDirectories:
+                        ./app/src/test/res
+                    ResourcesDirectories:
+                        ./app/src/test/resources
+                    ShadersDirectories:
+                        ./app/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./app/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/testDebug/assets
+                    JavaDirectories:
+                        ./app/src/testDebug/java
+                    KotlinDirectories:
+                        ./app/src/testDebug/kotlin
+                        ./app/src/testDebug/java
+                    JniLibsDirectories:
+                        ./app/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./app/src/testDebug/res
+                    ResourcesDirectories:
+                        ./app/src/testDebug/resources
+                    ShadersDirectories:
+                        ./app/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./app/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTest/assets
+                    JavaDirectories:
+                        ./app/src/androidTest/java
+                    KotlinDirectories:
+                        ./app/src/androidTest/kotlin
+                        ./app/src/androidTest/java
+                    JniLibsDirectories:
+                        ./app/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTest/res
+                    ResourcesDirectories:
+                        ./app/src/androidTest/resources
+                    ShadersDirectories:
+                        ./app/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./app/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./app/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./app/src/androidTestDebug/kotlin
+                        ./app/src/androidTestDebug/java
+                    JniLibsDirectories:
+                        ./app/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./app/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./app/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2726,7 +2736,7 @@ MODULE: project.app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
                     file://./app/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2764,8 +2774,8 @@ MODULE: project.app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
                     file://./app/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
@@ -2812,13 +2822,13 @@ MODULE: project.app
                     file://./app/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -2954,7 +2964,7 @@ MODULE: project.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3003,7 +3013,7 @@ MODULE: project.app
                     file://./app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -3209,88 +3219,90 @@ MODULE: project.lib
                     ./lib/src/release/shaders
                 BaselineProfileDirectories:
                     ./lib/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./lib/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./lib/src/test/assets
-                JavaDirectories:
-                    ./lib/src/test/java
-                KotlinDirectories:
-                    ./lib/src/test/kotlin
-                    ./lib/src/test/java
-                JniLibsDirectories:
-                    ./lib/src/test/jniLibs
-                ResDirectories:
-                    ./lib/src/test/res
-                ResourcesDirectories:
-                    ./lib/src/test/resources
-                ShadersDirectories:
-                    ./lib/src/test/shaders
-                BaselineProfileDirectories:
-                    ./lib/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./lib/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./lib/src/testDebug/assets
-                JavaDirectories:
-                    ./lib/src/testDebug/java
-                KotlinDirectories:
-                    ./lib/src/testDebug/kotlin
-                    ./lib/src/testDebug/java
-                JniLibsDirectories:
-                    ./lib/src/testDebug/jniLibs
-                ResDirectories:
-                    ./lib/src/testDebug/res
-                ResourcesDirectories:
-                    ./lib/src/testDebug/resources
-                ShadersDirectories:
-                    ./lib/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./lib/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./lib/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./lib/src/androidTest/assets
-                JavaDirectories:
-                    ./lib/src/androidTest/java
-                KotlinDirectories:
-                    ./lib/src/androidTest/kotlin
-                    ./lib/src/androidTest/java
-                JniLibsDirectories:
-                    ./lib/src/androidTest/jniLibs
-                ResDirectories:
-                    ./lib/src/androidTest/res
-                ResourcesDirectories:
-                    ./lib/src/androidTest/resources
-                ShadersDirectories:
-                    ./lib/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./lib/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./lib/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./lib/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./lib/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./lib/src/androidTestDebug/kotlin
-                    ./lib/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./lib/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./lib/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./lib/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./lib/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./lib/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./lib/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./lib/src/test/assets
+                    JavaDirectories:
+                        ./lib/src/test/java
+                    KotlinDirectories:
+                        ./lib/src/test/kotlin
+                        ./lib/src/test/java
+                    JniLibsDirectories:
+                        ./lib/src/test/jniLibs
+                    ResDirectories:
+                        ./lib/src/test/res
+                    ResourcesDirectories:
+                        ./lib/src/test/resources
+                    ShadersDirectories:
+                        ./lib/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./lib/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./lib/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./lib/src/testDebug/assets
+                    JavaDirectories:
+                        ./lib/src/testDebug/java
+                    KotlinDirectories:
+                        ./lib/src/testDebug/kotlin
+                        ./lib/src/testDebug/java
+                    JniLibsDirectories:
+                        ./lib/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./lib/src/testDebug/res
+                    ResourcesDirectories:
+                        ./lib/src/testDebug/resources
+                    ShadersDirectories:
+                        ./lib/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./lib/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./lib/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./lib/src/androidTest/assets
+                    JavaDirectories:
+                        ./lib/src/androidTest/java
+                    KotlinDirectories:
+                        ./lib/src/androidTest/kotlin
+                        ./lib/src/androidTest/java
+                    JniLibsDirectories:
+                        ./lib/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./lib/src/androidTest/res
+                    ResourcesDirectories:
+                        ./lib/src/androidTest/resources
+                    ShadersDirectories:
+                        ./lib/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./lib/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./lib/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./lib/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./lib/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./lib/src/androidTestDebug/kotlin
+                        ./lib/src/androidTestDebug/java
+                    JniLibsDirectories:
+                        ./lib/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./lib/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./lib/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./lib/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./lib/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -3337,7 +3349,7 @@ MODULE: project.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
                     file://./lib/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3375,8 +3387,8 @@ MODULE: project.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/test/shaders
                     file://./lib/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib/src/androidTest/AndroidManifest.xml
@@ -3423,13 +3435,13 @@ MODULE: project.lib
                     file://./lib/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./lib/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -3565,7 +3577,7 @@ MODULE: project.lib
                     file://./lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3614,7 +3626,7 @@ MODULE: project.lib
                     file://./lib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:

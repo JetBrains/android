@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.template.CppStandardType
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
@@ -72,5 +73,5 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
       generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
     }
-  }
+  }.withBorder(JBUI.Borders.empty(6))
 }

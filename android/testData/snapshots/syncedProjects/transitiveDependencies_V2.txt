@@ -21,10 +21,6 @@ PROJECT                       : project
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-            TEST_COMPILE_MODE             : Android tests
-            TEST_COMPILE_MODE             : Unit tests
-            TEST_COMPILE_MODE             : None
     MODULE                        : project.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -72,7 +68,6 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
                 REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
@@ -80,30 +75,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -261,38 +234,13 @@ PROJECT                       : project
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : :app:generateDebugAndroidTestSources
+                ASSEMBLE                      : :app:assembleDebugAndroidTest
+                REBUILD                       : :app:assembleDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :app:generateDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -404,31 +352,6 @@ PROJECT                       : project
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
                 REBUILD                       : :app:assembleDebug, :app:clean
@@ -436,6 +359,8 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.app
@@ -587,38 +512,13 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
+                CLEAN                         : :app:createMockableJar
+                ASSEMBLE                      : :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebugUnitTest, :app:clean
                 COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                SOURCE_GEN                    : :app:createMockableJar
+                BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.javalib1
         ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
@@ -642,22 +542,9 @@ PROJECT                       : project
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
                 REBUILD                       : :javalib1:assemble, :javalib1:clean, :javalib1:testClasses
                 COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :javalib1:assemble
-                REBUILD                       : :javalib1:assemble, :javalib1:clean
-                COMPILE_JAVA                  : :javalib1:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
-                REBUILD                       : :javalib1:assemble, :javalib1:clean, :javalib1:testClasses
-                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :javalib1:assemble
-                REBUILD                       : :javalib1:assemble, :javalib1:clean
-                COMPILE_JAVA                  : :javalib1:compileJava
     MODULE                        : project.javalib1.main
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -687,22 +574,9 @@ PROJECT                       : project
             -                             : file://<PROJECT>/javalib1/build/classes/java/main
             -                             : file://<PROJECT>/javalib1/build/resources/main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
                 REBUILD                       : :javalib1:assemble, :javalib1:clean, :javalib1:testClasses
                 COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :javalib1:assemble
-                REBUILD                       : :javalib1:assemble, :javalib1:clean
-                COMPILE_JAVA                  : :javalib1:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
-                REBUILD                       : :javalib1:assemble, :javalib1:clean, :javalib1:testClasses
-                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :javalib1:assemble
-                REBUILD                       : :javalib1:assemble, :javalib1:clean
-                COMPILE_JAVA                  : :javalib1:compileJava
     MODULE                        : project.javalib1.test
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -732,22 +606,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.javalib1.main
         ORDER_ENTRY                   : project.javalib2.main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
                 REBUILD                       : :javalib1:assemble, :javalib1:clean, :javalib1:testClasses
                 COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :javalib1:assemble
-                REBUILD                       : :javalib1:assemble, :javalib1:clean
-                COMPILE_JAVA                  : :javalib1:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :javalib1:assemble, :javalib1:testClasses
-                REBUILD                       : :javalib1:assemble, :javalib1:clean, :javalib1:testClasses
-                COMPILE_JAVA                  : :javalib1:compileJava, :javalib1:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :javalib1:assemble
-                REBUILD                       : :javalib1:assemble, :javalib1:clean
-                COMPILE_JAVA                  : :javalib1:compileJava
     MODULE                        : project.javalib2
         ExternalModuleGroup           : project
         ExternalModuleVersion         : unspecified
@@ -771,22 +632,9 @@ PROJECT                       : project
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
                 REBUILD                       : :javalib2:assemble, :javalib2:clean, :javalib2:testClasses
                 COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :javalib2:assemble
-                REBUILD                       : :javalib2:assemble, :javalib2:clean
-                COMPILE_JAVA                  : :javalib2:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
-                REBUILD                       : :javalib2:assemble, :javalib2:clean, :javalib2:testClasses
-                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :javalib2:assemble
-                REBUILD                       : :javalib2:assemble, :javalib2:clean
-                COMPILE_JAVA                  : :javalib2:compileJava
     MODULE                        : project.javalib2.main
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -810,22 +658,9 @@ PROJECT                       : project
             -                             : file://<PROJECT>/javalib2/build/classes/java/main
             -                             : file://<PROJECT>/javalib2/build/resources/main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
                 REBUILD                       : :javalib2:assemble, :javalib2:clean, :javalib2:testClasses
                 COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :javalib2:assemble
-                REBUILD                       : :javalib2:assemble, :javalib2:clean
-                COMPILE_JAVA                  : :javalib2:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
-                REBUILD                       : :javalib2:assemble, :javalib2:clean, :javalib2:testClasses
-                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :javalib2:assemble
-                REBUILD                       : :javalib2:assemble, :javalib2:clean
-                COMPILE_JAVA                  : :javalib2:compileJava
     MODULE                        : project.javalib2.test
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -849,22 +684,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : project.javalib2.main
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
                 REBUILD                       : :javalib2:assemble, :javalib2:clean, :javalib2:testClasses
                 COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :javalib2:assemble
-                REBUILD                       : :javalib2:assemble, :javalib2:clean
-                COMPILE_JAVA                  : :javalib2:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :javalib2:assemble, :javalib2:testClasses
-                REBUILD                       : :javalib2:assemble, :javalib2:clean, :javalib2:testClasses
-                COMPILE_JAVA                  : :javalib2:compileJava, :javalib2:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :javalib2:assemble
-                REBUILD                       : :javalib2:assemble, :javalib2:clean
-                COMPILE_JAVA                  : :javalib2:compileJava
     MODULE                        : project.library1
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.library1
@@ -912,30 +734,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
                 ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:assembleDebugUnitTest
                 REBUILD                       : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:assembleDebugUnitTest, :library1:clean
                 COMPILE_JAVA                  : :library1:compileDebugAndroidTestSources, :library1:compileDebugSources, :library1:compileDebugUnitTestSources
                 SOURCE_GEN                    : :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
-                SOURCE_GEN                    : :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :library1:createMockableJar, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugUnitTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugUnitTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library1:createMockableJar, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug
-                REBUILD                       : :library1:assembleDebug, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugSources
-                SOURCE_GEN                    : :library1:generateDebugSources
+                BASELINE_PROFILE_GEN          : :library1:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :library1:generateBaselineProfile
     MODULE                        : project.library1.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.library1
@@ -1095,30 +900,13 @@ PROJECT                       : project
             -                             : jar://<PROJECT>/library1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/library1/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:assembleDebugUnitTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:assembleDebugUnitTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugAndroidTestSources, :library1:compileDebugSources, :library1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
-                SOURCE_GEN                    : :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :library1:createMockableJar, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugUnitTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugUnitTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library1:createMockableJar, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug
-                REBUILD                       : :library1:assembleDebug, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugSources
-                SOURCE_GEN                    : :library1:generateDebugSources
+                CLEAN                         : :library1:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library1:assembleDebugAndroidTest
+                REBUILD                       : :library1:assembleDebugAndroidTest, :library1:clean
+                COMPILE_JAVA                  : :library1:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :library1:generateDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :library1:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :library1:generateBaselineProfile
     MODULE                        : project.library1.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.library1
@@ -1219,30 +1007,13 @@ PROJECT                       : project
             -                             : jar://<PROJECT>/library1/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
             -                             : file://<PROJECT>/library1/build/generated/res/resValues/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:assembleDebugUnitTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:assembleDebugUnitTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugAndroidTestSources, :library1:compileDebugSources, :library1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
-                SOURCE_GEN                    : :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :library1:createMockableJar, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugUnitTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugUnitTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library1:createMockableJar, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :library1:generateDebugSources
                 ASSEMBLE                      : :library1:assembleDebug
                 REBUILD                       : :library1:assembleDebug, :library1:clean
                 COMPILE_JAVA                  : :library1:compileDebugSources
                 SOURCE_GEN                    : :library1:generateDebugSources
+                BASELINE_PROFILE_GEN          : :library1:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :library1:generateBaselineProfile
     MODULE                        : project.library1.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.library1
@@ -1376,30 +1147,13 @@ PROJECT                       : project
             -                             : file://<PROJECT>/library1/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : jar://<PROJECT>/library1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:assembleDebugUnitTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:assembleDebugUnitTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugAndroidTestSources, :library1:compileDebugSources, :library1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library1:createMockableJar, :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugAndroidTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugAndroidTest, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugAndroidTestSources, :library1:compileDebugSources
-                SOURCE_GEN                    : :library1:generateDebugAndroidTestSources, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :library1:createMockableJar, :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug, :library1:assembleDebugUnitTest
-                REBUILD                       : :library1:assembleDebug, :library1:assembleDebugUnitTest, :library1:clean
+                CLEAN                         : :library1:createMockableJar
+                ASSEMBLE                      : :library1:assembleDebugUnitTest
+                REBUILD                       : :library1:assembleDebugUnitTest, :library1:clean
                 COMPILE_JAVA                  : :library1:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library1:createMockableJar, :library1:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :library1:generateDebugSources
-                ASSEMBLE                      : :library1:assembleDebug
-                REBUILD                       : :library1:assembleDebug, :library1:clean
-                COMPILE_JAVA                  : :library1:compileDebugSources
-                SOURCE_GEN                    : :library1:generateDebugSources
+                SOURCE_GEN                    : :library1:createMockableJar
+                BASELINE_PROFILE_GEN          : :library1:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :library1:generateBaselineProfile
     MODULE                        : project.library2
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.library2
@@ -1447,30 +1201,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
                 ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:assembleDebugUnitTest
                 REBUILD                       : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:assembleDebugUnitTest, :library2:clean
                 COMPILE_JAVA                  : :library2:compileDebugAndroidTestSources, :library2:compileDebugSources, :library2:compileDebugUnitTestSources
                 SOURCE_GEN                    : :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
-                SOURCE_GEN                    : :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :library2:createMockableJar, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugUnitTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugUnitTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library2:createMockableJar, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug
-                REBUILD                       : :library2:assembleDebug, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugSources
-                SOURCE_GEN                    : :library2:generateDebugSources
+                BASELINE_PROFILE_GEN          : :library2:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :library2:generateBaselineProfile
     MODULE                        : project.library2.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.library2
@@ -1612,30 +1349,13 @@ PROJECT                       : project
             -                             : jar://<PROJECT>/library2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/library2/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:assembleDebugUnitTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:assembleDebugUnitTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugAndroidTestSources, :library2:compileDebugSources, :library2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
-                SOURCE_GEN                    : :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :library2:createMockableJar, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugUnitTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugUnitTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library2:createMockableJar, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug
-                REBUILD                       : :library2:assembleDebug, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugSources
-                SOURCE_GEN                    : :library2:generateDebugSources
+                CLEAN                         : :library2:generateDebugAndroidTestSources
+                ASSEMBLE                      : :library2:assembleDebugAndroidTest
+                REBUILD                       : :library2:assembleDebugAndroidTest, :library2:clean
+                COMPILE_JAVA                  : :library2:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :library2:generateDebugAndroidTestSources
+                BASELINE_PROFILE_GEN          : :library2:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :library2:generateBaselineProfile
     MODULE                        : project.library2.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.library2
@@ -1739,30 +1459,13 @@ PROJECT                       : project
             -                             : jar://<PROJECT>/library2/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
             -                             : file://<PROJECT>/library2/build/generated/res/resValues/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:assembleDebugUnitTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:assembleDebugUnitTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugAndroidTestSources, :library2:compileDebugSources, :library2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
-                SOURCE_GEN                    : :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :library2:createMockableJar, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugUnitTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugUnitTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library2:createMockableJar, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :library2:generateDebugSources
                 ASSEMBLE                      : :library2:assembleDebug
                 REBUILD                       : :library2:assembleDebug, :library2:clean
                 COMPILE_JAVA                  : :library2:compileDebugSources
                 SOURCE_GEN                    : :library2:generateDebugSources
+                BASELINE_PROFILE_GEN          : :library2:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :library2:generateBaselineProfile
     MODULE                        : project.library2.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.library2
@@ -1902,30 +1605,13 @@ PROJECT                       : project
             -                             : file://<PROJECT>/library2/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : jar://<PROJECT>/library2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:assembleDebugUnitTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:assembleDebugUnitTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugAndroidTestSources, :library2:compileDebugSources, :library2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library2:createMockableJar, :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugAndroidTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugAndroidTest, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugAndroidTestSources, :library2:compileDebugSources
-                SOURCE_GEN                    : :library2:generateDebugAndroidTestSources, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :library2:createMockableJar, :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug, :library2:assembleDebugUnitTest
-                REBUILD                       : :library2:assembleDebug, :library2:assembleDebugUnitTest, :library2:clean
+                CLEAN                         : :library2:createMockableJar
+                ASSEMBLE                      : :library2:assembleDebugUnitTest
+                REBUILD                       : :library2:assembleDebugUnitTest, :library2:clean
                 COMPILE_JAVA                  : :library2:compileDebugUnitTestSources
-                SOURCE_GEN                    : :library2:createMockableJar, :library2:generateDebugSources
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :library2:generateDebugSources
-                ASSEMBLE                      : :library2:assembleDebug
-                REBUILD                       : :library2:assembleDebug, :library2:clean
-                COMPILE_JAVA                  : :library2:compileDebugSources
-                SOURCE_GEN                    : :library2:generateDebugSources
+                SOURCE_GEN                    : :library2:createMockableJar
+                BASELINE_PROFILE_GEN          : :library2:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :library2:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : project.app.main
@@ -1936,111 +1622,111 @@ PROJECT                       : project
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:collections:<VERSION>
             *CLASSES                      : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION>
             *CLASSES                      : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:1.3.9
             *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar!/
         LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1
@@ -2072,7 +1758,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::library1:createMockableJar, <PROJECT>::library1:generateDebugAndroidTestSources, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:createMockableJar, <PROJECT>::library2:generateDebugAndroidTestSources, <PROJECT>::library2:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::javalib1:assemble, <PROJECT>::javalib1:testClasses, <PROJECT>::javalib2:assemble, <PROJECT>::javalib2:testClasses, <PROJECT>::library1:assembleDebug, <PROJECT>::library1:assembleDebugAndroidTest, <PROJECT>::library1:assembleDebugUnitTest, <PROJECT>::library2:assembleDebug, <PROJECT>::library2:assembleDebugAndroidTest, <PROJECT>::library2:assembleDebugUnitTest
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javalib1:assemble, <PROJECT>::javalib1:clean, <PROJECT>::javalib1:testClasses, <PROJECT>::javalib2:assemble, <PROJECT>::javalib2:clean, <PROJECT>::javalib2:testClasses, <PROJECT>::library1:assembleDebug, <PROJECT>::library1:assembleDebugAndroidTest, <PROJECT>::library1:assembleDebugUnitTest, <PROJECT>::library1:clean, <PROJECT>::library2:assembleDebug, <PROJECT>::library2:assembleDebugAndroidTest, <PROJECT>::library2:assembleDebugUnitTest, <PROJECT>::library2:clean
@@ -2080,27 +1765,5 @@ PROJECT                       : project
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::library1:createMockableJar, <PROJECT>::library1:generateDebugAndroidTestSources, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:createMockableJar, <PROJECT>::library2:generateDebugAndroidTestSources, <PROJECT>::library2:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
-        TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::library1:generateDebugAndroidTestSources, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:generateDebugAndroidTestSources, <PROJECT>::library2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::javalib1:assemble, <PROJECT>::javalib2:assemble, <PROJECT>::library1:assembleDebug, <PROJECT>::library1:assembleDebugAndroidTest, <PROJECT>::library2:assembleDebug, <PROJECT>::library2:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::javalib1:assemble, <PROJECT>::javalib1:clean, <PROJECT>::javalib2:assemble, <PROJECT>::javalib2:clean, <PROJECT>::library1:assembleDebug, <PROJECT>::library1:assembleDebugAndroidTest, <PROJECT>::library1:clean, <PROJECT>::library2:assembleDebug, <PROJECT>::library2:assembleDebugAndroidTest, <PROJECT>::library2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::javalib1:compileJava, <PROJECT>::javalib2:compileJava, <PROJECT>::library1:compileDebugAndroidTestSources, <PROJECT>::library1:compileDebugSources, <PROJECT>::library2:compileDebugAndroidTestSources, <PROJECT>::library2:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::library1:generateDebugAndroidTestSources, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:generateDebugAndroidTestSources, <PROJECT>::library2:generateDebugSources
-            BUNDLE                        : :app:bundleDebug
-            APK_FROM_BUNDLE               : :app:extractApksForDebug
-        TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::library1:createMockableJar, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:createMockableJar, <PROJECT>::library2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::javalib1:assemble, <PROJECT>::javalib1:testClasses, <PROJECT>::javalib2:assemble, <PROJECT>::javalib2:testClasses, <PROJECT>::library1:assembleDebug, <PROJECT>::library1:assembleDebugUnitTest, <PROJECT>::library2:assembleDebug, <PROJECT>::library2:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javalib1:assemble, <PROJECT>::javalib1:clean, <PROJECT>::javalib1:testClasses, <PROJECT>::javalib2:assemble, <PROJECT>::javalib2:clean, <PROJECT>::javalib2:testClasses, <PROJECT>::library1:assembleDebug, <PROJECT>::library1:assembleDebugUnitTest, <PROJECT>::library1:clean, <PROJECT>::library2:assembleDebug, <PROJECT>::library2:assembleDebugUnitTest, <PROJECT>::library2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::javalib1:compileJava, <PROJECT>::javalib1:testClasses, <PROJECT>::javalib2:compileJava, <PROJECT>::javalib2:testClasses, <PROJECT>::library1:compileDebugUnitTestSources, <PROJECT>::library2:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::library1:createMockableJar, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:createMockableJar, <PROJECT>::library2:generateDebugSources
-            BUNDLE                        : :app:bundleDebug
-            APK_FROM_BUNDLE               : :app:extractApksForDebug
-        TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::javalib1:assemble, <PROJECT>::javalib2:assemble, <PROJECT>::library1:assembleDebug, <PROJECT>::library2:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::javalib1:assemble, <PROJECT>::javalib1:clean, <PROJECT>::javalib2:assemble, <PROJECT>::javalib2:clean, <PROJECT>::library1:assembleDebug, <PROJECT>::library1:clean, <PROJECT>::library2:assembleDebug, <PROJECT>::library2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::javalib1:compileJava, <PROJECT>::javalib2:compileJava, <PROJECT>::library1:compileDebugSources, <PROJECT>::library2:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::library1:generateDebugSources, <PROJECT>::library2:generateDebugSources
-            BUNDLE                        : :app:bundleDebug
-            APK_FROM_BUNDLE               : :app:extractApksForDebug
+            BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile

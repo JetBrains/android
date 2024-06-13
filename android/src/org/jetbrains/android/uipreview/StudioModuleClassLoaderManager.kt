@@ -19,6 +19,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
+import com.android.tools.idea.rendering.classloading.loaders.JarManager
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
@@ -27,11 +28,8 @@ import com.android.tools.rendering.classloading.ModuleClassLoader
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics
 import com.android.tools.rendering.classloading.combine
-import com.android.tools.rendering.classloading.preload
 import com.android.tools.rendering.log.LogAnonymizerUtil.anonymize
 import com.android.utils.reflection.qualifiedName
-import com.google.common.base.Charsets
-import com.google.common.hash.Hashing
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -44,11 +42,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.util.removeUserData
 import com.intellij.serviceContainer.AlreadyDisposedException
-import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.containers.MultiMap
-import java.lang.ref.SoftReference
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
@@ -90,134 +84,15 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
       ModuleManager.getInstance(project).modules.forEach {
         ModuleClassLoaderManager.get().clearCache(it)
       }
+      JarManager.getInstance(project).clearCache()
     }
   }
 
   override fun dispose() {}
 }
 
-/**
- * This is a wrapper around a class preloading [CompletableFuture] that allows for the proper
- * disposal of the resources used.
- */
-class Preloader(
-  moduleClassLoader: StudioModuleClassLoader,
-  classesToPreload: Collection<String> = emptyList()
-) {
-  private val classLoader = SoftReference(moduleClassLoader)
-  private var isActive = AtomicBoolean(true)
-
-  init {
-    if (classesToPreload.isNotEmpty()) {
-      preload(
-        moduleClassLoader,
-        { isActive.get() && !(classLoader.get()?.isDisposed ?: true) },
-        classesToPreload,
-        getAppExecutorService()
-      )
-    }
-  }
-
-  /** Cancels the on-going preloading. */
-  fun cancel() {
-    isActive.set(false)
-  }
-
-  fun dispose() {
-    cancel()
-    val classLoaderToDispose = classLoader.get()
-    classLoader.clear()
-    classLoaderToDispose?.dispose()
-  }
-
-  fun getClassLoader(): StudioModuleClassLoader? {
-    cancel() // Stop preloading since we are going to use the class loader
-    return classLoader.get()
-  }
-
-  /**
-   * Checks if this [Preloader] loads classes for [cl] [ModuleClassLoader]. This allows for safe
-   * check without the need for share the actual [classLoader] and prevent its use.
-   */
-  fun isLoadingFor(cl: StudioModuleClassLoader) = classLoader.get() == cl
-
-  fun isForCompatible(
-    parent: ClassLoader?,
-    projectTransformations: ClassTransform,
-    nonProjectTransformations: ClassTransform
-  ) = classLoader.get()?.isCompatible(parent, projectTransformations, nonProjectTransformations) ?: false
-
-
-  /**
-   * Returns the number of currently loaded classes for the underlying [StudioModuleClassLoader].
-   * Intended to be used for debugging and diagnostics.
-   */
-  fun getLoadedCount(): Int =
-    classLoader.get()?.let { it.nonProjectLoadedClasses.size + it.projectLoadedClasses.size } ?: 0
-}
-
-private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName<StudioModuleClassLoaderManager>())
+private val PRELOADER: Key<StudioPreloader> = Key.create(::PRELOADER.qualifiedName<StudioModuleClassLoaderManager>())
 val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName<StudioModuleClassLoaderManager>())
-
-private fun calculateTransformationsUniqueId(
-  projectClassesTransformationProvider: ClassTransform,
-  nonProjectClassesTransformationProvider: ClassTransform
-): String? {
-  return Hashing.goodFastHash(64)
-    .newHasher()
-    .putString(projectClassesTransformationProvider.id, Charsets.UTF_8)
-    .putString(nonProjectClassesTransformationProvider.id, Charsets.UTF_8)
-    .hash()
-    .toString()
-}
-
-fun StudioModuleClassLoader.areTransformationsUpToDate(
-  projectClassesTransformationProvider: ClassTransform,
-  nonProjectClassesTransformationProvider: ClassTransform
-): Boolean {
-  return (calculateTransformationsUniqueId(
-    this.projectClassesTransform,
-    this.nonProjectClassesTransform
-  ) ==
-    calculateTransformationsUniqueId(
-      projectClassesTransformationProvider,
-      nonProjectClassesTransformationProvider
-    ))
-}
-
-/**
- * Checks if the [StudioModuleClassLoader] has the same transformations and parent [ClassLoader]
- * making it compatible but not necessarily up-to-date because it does not check the state of user
- * project files. Compatibility means that the [StudioModuleClassLoader] can be used if it did not
- * load any classes from the user source code. This allows for pre-loading the classes from
- * dependencies (which are usually more stable than user code) and speeding up the preview update
- * when user changes the source code (but not dependencies).
- */
-fun StudioModuleClassLoader.isCompatible(
-  parent: ClassLoader?,
-  projectTransformations: ClassTransform,
-  nonProjectTransformations: ClassTransform
-) =
-  when {
-    !this.isCompatibleParentClassLoader(parent) -> {
-      StudioModuleClassLoaderManager.LOG.debug("Parent has changed, discarding ModuleClassLoader")
-      false
-    }
-    !this.areTransformationsUpToDate(projectTransformations, nonProjectTransformations) -> {
-      StudioModuleClassLoaderManager.LOG.debug(
-        "Transformations have changed, discarding ModuleClassLoader"
-      )
-      false
-    }
-    !this.areDependenciesUpToDate() -> {
-      StudioModuleClassLoaderManager.LOG.debug("Files have changed, discarding ModuleClassLoader")
-      false
-    }
-    else -> {
-      StudioModuleClassLoaderManager.LOG.debug("ModuleClassLoader is up to date")
-      true
-    }
-  }
 
 private fun <T> UserDataHolder.getOrCreate(key: Key<T>, factory: () -> T): T {
   getUserData(key)?.let {
@@ -308,7 +183,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
                                                                           combinedProjectTransformations,
                                                                           combinedNonProjectTransformations,
                                                                           createDiagnostics())
-      module?.putUserData(PRELOADER, Preloader(moduleClassLoader))
+      module?.putUserData(PRELOADER, StudioPreloader(moduleClassLoader))
       onNewModuleClassLoader.run()
     }
 
@@ -400,7 +275,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
         val newClassLoader = createCopy(moduleClassLoader) ?: return@let
         // We first load dependencies classes and then project classes since the latter reference the former and not vice versa
         val classesToLoad = moduleClassLoader.nonProjectLoadedClasses + moduleClassLoader.projectLoadedClasses
-        module.putUserData(PRELOADER, Preloader(newClassLoader, classesToLoad))
+        module.putUserData(PRELOADER, StudioPreloader(newClassLoader, classesToLoad))
       }
       if (holders.isEmpty) { // If there are no more users of ModuleClassLoader destroy the hatchery to free the resources
         module.getUserData(HATCHERY)?.destroy()
@@ -442,7 +317,6 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
       else NopModuleClassLoadedDiagnostics
 
     @JvmStatic
-    fun get(): StudioModuleClassLoaderManager =
-      ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java) as StudioModuleClassLoaderManager
+    fun get(): StudioModuleClassLoaderManager = ModuleClassLoaderManager.get() as StudioModuleClassLoaderManager
   }
 }

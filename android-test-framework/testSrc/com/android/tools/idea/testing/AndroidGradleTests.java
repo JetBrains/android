@@ -55,6 +55,7 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.project.AndroidRunConfigurationsManager;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -94,12 +95,15 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import junit.framework.TestCase;
 import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,7 +120,9 @@ public class AndroidGradleTests {
    * Property name that allows adding multiple local repositories via JVM properties
    */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
-  private static final long DEFAULT_TIMEOUT_MILLIS = 1000;
+  private static final long DEFAULT_TIMEOUT_SOURCES_FOLDER_UPDATES_MILLIS = 1000;
+
+  private static final long DEFAULT_TIMEOUT_CREATE_RUN_CONFIGURATIONS_MILLIS = 120000;
   private static final String NDK_VERSION_PLACEHOLDER = "// ndkVersion \"{placeholder}\"";
   @Nullable private static Boolean useRemoteRepositories = null;
 
@@ -125,8 +131,30 @@ public class AndroidGradleTests {
   }
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project, @Nullable Long timeoutMillis) throws Exception {
-    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_MILLIS : timeoutMillis;
+    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_SOURCES_FOLDER_UPDATES_MILLIS : timeoutMillis;
+    // TODO(2025-01-01) Revise and simplify code below after youtrack issue fixed
+    // PlatformTestUtil.waitForFuture() pumps the EDT queue using UIUtil.dispatchAllInvocationEvents(),
+    // which may flush VFS events on the EDT, thus the operationsStates list might get mutated. This all happens in a "callback" during
+    // iteration over operationsStates, so it can trigger a CME (even though everything is happening on the same thread).
+    // b/331382821
+    // https://youtrack.jetbrains.com/issue/IDEA-350259
+    List<Future<?>> pendingRunConfigurations = new ArrayList<>();
     ((SourceFolderManagerImpl)SourceFolderManager.getInstance(project)).consumeBulkOperationsState(future -> {
+      pendingRunConfigurations.add(future);
+      return null;
+    });
+    for (Future<?> future : pendingRunConfigurations) {
+      PlatformTestUtil.waitForFuture(future, timeout);
+    }
+  }
+
+  public static void waitForCreateRunConfigurations(@NotNull Project project) throws Exception {
+    waitForCreateRunConfigurations(project, null);
+  }
+
+  public static void waitForCreateRunConfigurations(@NotNull Project project, @Nullable Long timeoutMillis) throws Exception {
+    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_CREATE_RUN_CONFIGURATIONS_MILLIS : timeoutMillis;
+    AndroidRunConfigurationsManager.getInstance(project).consumeBulkOperationsState((Future<?> future) -> {
       PlatformTestUtil.waitForFuture(future, timeout);
       return null;
     });
@@ -566,8 +594,10 @@ public class AndroidGradleTests {
 
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     TestCase.assertNotNull("Gradle version not found in EmbeddedDistributionPaths. Version = " + gradleVersion, path);
-    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
-    wrapper.updateDistributionUrl(path);
+    if (path != null) {
+      assertAbout(file()).that(path).named("Gradle distribution path").isFile();
+      wrapper.updateDistributionUrl(path);
+    }
   }
 
   /**
@@ -647,7 +677,7 @@ public class AndroidGradleTests {
       ideSdks.setAndroidSdkPath(androidSdkPath);
       Disposer.register(projectDisposable, () -> {
         WriteAction.runAndWait(() -> {
-            AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.getAbsolutePath() : null);
+            AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.toPath() : null);
         });
       });
       IdeSdks.removeJdksOn(projectDisposable);

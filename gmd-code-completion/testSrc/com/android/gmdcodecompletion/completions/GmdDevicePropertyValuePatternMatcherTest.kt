@@ -36,7 +36,7 @@ class GmdDevicePropertyValuePatternMatcherTest : GmdCodeCompletionTestBase() {
         "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
         "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
       ))
-      this.myDeviceCatalog.checkEmptyFields()
+      this.myDeviceCatalog.isEmptyCatalog = false
     }
     managedVirtualDevicePropertyNameCompletionTestHelper(listOf("testDevice1", "testDevice2"), """
       android {
@@ -61,7 +61,7 @@ class GmdDevicePropertyValuePatternMatcherTest : GmdCodeCompletionTestBase() {
         "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
         "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
       ))
-      this.myDeviceCatalog.checkEmptyFields()
+      this.myDeviceCatalog.isEmptyCatalog = false
     }
     managedVirtualDevicePropertyNameCompletionTestHelper(listOf("testDevice1", "testDevice2"), """
       android {
@@ -87,7 +87,7 @@ class GmdDevicePropertyValuePatternMatcherTest : GmdCodeCompletionTestBase() {
         "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testApiLevel)),
         "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
       ))
-      this.myDeviceCatalog.checkEmptyFields()
+      this.myDeviceCatalog.isEmptyCatalog = false
     }
     managedVirtualDevicePropertyNameCompletionTestHelper(listOf("testDevice1"), """
       android {

@@ -15,9 +15,13 @@
  */
 package com.android.tools.inspectors.common.api.ide.stacktrace;
 
+import static com.android.tools.inspectors.common.api.stacktrace.ThreadId.INVALID_THREAD_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.KeyEvent.VK_ENTER;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.Assert.fail;
 
+import com.android.testutils.AsyncTestUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.swing.FakeMouse;
 import com.android.tools.adtui.swing.FakeUi;
@@ -26,17 +30,18 @@ import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.FakeNavSource;
 import com.android.tools.inspectors.common.api.stacktrace.CodeElement;
+import com.android.tools.inspectors.common.api.stacktrace.StackElement;
 import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser;
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
 import com.android.tools.inspectors.common.api.stacktrace.ThreadElement;
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ProjectRule;
-import com.intellij.testFramework.RunsInEdt;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
@@ -45,26 +50,26 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-@RunsInEdt
 public class IntelliJStackTraceViewTest {
   private static final String STACK_STRING =
-    "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)\n" +
-    "com.example.android.displayingbitmaps.util.ImageFetcher.processBitmap(ImageFetcher.java:214)\n" +
-    "com.example.android.displayingbitmaps.util.ImageFetcher.processBitmap(ImageFetcher.java:257)\n" +
-    "com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask.doInBackground(ImageWorker.java:312)\n" +
-    "com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask.doInBackground(ImageWorker.java:257)\n" +
-    "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:313)\n" +
-    "java.util.concurrent.FutureTask.run(FutureTask.java:237)\n" +
-    "java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1133)\n" +
-    "java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:607)\n" +
-    "java.lang.Thread.run(Thread.java:761)";
+    """
+      com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)
+      com.example.android.displayingbitmaps.util.ImageFetcher.processBitmap(ImageFetcher.java:214)
+      com.example.android.displayingbitmaps.util.ImageFetcher.processBitmap(ImageFetcher.java:257)
+      com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask.doInBackground(ImageWorker.java:312)
+      com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask.doInBackground(ImageWorker.java:257)
+      com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:313)
+      java.util.concurrent.FutureTask.run(FutureTask.java:237)
+      java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1133)
+      java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:607)
+      java.lang.Thread.run(Thread.java:761)""";
   private static final List<CodeLocation> CODE_LOCATIONS = StackFrameParser.parseStack(STACK_STRING);
 
   @Rule
-  public final EdtRule myEdtRule = new EdtRule();
+  public final ProjectRule myProjectRule = new ProjectRule();
 
   @Rule
-  public final ProjectRule myProjectRule = new ProjectRule();
+  public final DisposableRule myDisposableRule = new DisposableRule();
 
   private IntelliJStackTraceView myStackView;
 
@@ -73,15 +78,15 @@ public class IntelliJStackTraceViewTest {
         new CodeNavigator(new FakeNavSource(), CodeNavigator.Companion.getTestExecutor()));
   }
 
-  public static IntelliJStackTraceView createStackTraceView(Project project, StackTraceModel model) {
-    return new IntelliJStackTraceView(project, model, (p, location) -> new FakeCodeElement(location));
+  public static IntelliJStackTraceView createStackTraceView(Project project, StackTraceModel model, Disposable disposable) {
+    return new IntelliJStackTraceView(project, model, disposable, (p, location) -> new FakeCodeElement(location));
   }
 
   @Before
   public void before() {
     // Arbitrary size just so we can click on it
     StackTraceModel model = createStackTraceModel();
-    IntelliJStackTraceView view = createStackTraceView(myProjectRule.getProject(), model);
+    IntelliJStackTraceView view = createStackTraceView(myProjectRule.getProject(), model, myDisposableRule.getDisposable());
     view.getComponent().setLocation(0, 0);
     view.getComponent().setSize(100, 400);
     view.getListView().setUI(new HeadlessListUI());
@@ -93,6 +98,7 @@ public class IntelliJStackTraceViewTest {
   public void equalityTest() {
     final String duplicateTestString = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
     CodeLocation positiveTest = StackFrameParser.parseFrame(duplicateTestString);
+    assertThat(positiveTest).isNotNull();
     CodeLocation negativeTest1 = CodeLocation.stub();
     CodeLocation negativeTest2 = new CodeLocation.Builder(positiveTest).setMethodName(positiveTest.getFileName()).build();
     CodeLocation negativeTest3 = new CodeLocation.Builder(positiveTest).setLineNumber(-1).build();
@@ -122,30 +128,38 @@ public class IntelliJStackTraceViewTest {
   @Test
   public void setStackFramesTest() {
     myStackView.getModel().setStackFrames(STACK_STRING);
+    waitForModel();
+
     List<CodeLocation> viewLocations = myStackView.getModel().getCodeLocations();
     assertThat(viewLocations).isEqualTo(CODE_LOCATIONS);
 
-    myStackView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, CODE_LOCATIONS);
+    myStackView.getModel().setStackFrames(INVALID_THREAD_ID, CODE_LOCATIONS);
+    waitForModel();
+
     viewLocations = myStackView.getModel().getCodeLocations();
     assertThat(viewLocations).isEqualTo(CODE_LOCATIONS);
 
     myStackView.getModel().setStackFrames(new ThreadId(5), CODE_LOCATIONS);
+    waitForModel();
+
     viewLocations = myStackView.getModel().getCodeLocations();
     assertThat(viewLocations).isEqualTo(CODE_LOCATIONS);
-    ListModel model = myStackView.getListView().getModel();
-    assertThat(model.getSize()).isEqualTo(CODE_LOCATIONS.size() + 1);
+    ListModel<StackElement> model = myStackView.getListView().getModel();
+
     Object threadElement = model.getElementAt(model.getSize() - 1);
     assertThat(threadElement).isInstanceOf(ThreadElement.class);
     assertThat(((ThreadElement)threadElement).getThreadId()).isEqualTo(new ThreadId(5));
   }
 
   @Test
-  public void setSelectedRowByModel() throws InvocationTargetException, InterruptedException {
+  public void setSelectedRowByModel() {
     final int[] invocationCount = {0};
     myStackView.getModel().setStackFrames(STACK_STRING);
+    waitForModel();
+
     myStackView.getListView().addListSelectionListener(e -> invocationCount[0]++);
 
-    JList list = myStackView.getListView();
+    JList<StackElement> list = myStackView.getListView();
     assertThat(invocationCount[0]).isEqualTo(0);
     assertThat(list.getSelectedIndex()).isEqualTo(-1);
 
@@ -160,18 +174,20 @@ public class IntelliJStackTraceViewTest {
   }
 
   @Test
-  public void doubleClickingStackViewNavigatesToSelectedElement() throws InvocationTargetException, InterruptedException {
+  public void doubleClickingStackViewNavigatesToSelectedElement() {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
     AspectObserver observer = new AspectObserver();
     final int[] invocationCount = {0};
     myStackView.getModel().addDependency(observer).onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> invocationCount[0]++);
 
-    JList list = myStackView.getListView();
+    JList<StackElement> list = myStackView.getListView();
     assertThat(list.getSelectionModel().getSelectionMode()).isEqualTo(ListSelectionModel.SINGLE_SELECTION);
     assertThat(invocationCount[0]).isEqualTo(0);
     assertThat(list.getSelectedIndex()).isEqualTo(-1);
 
     myStackView.getModel().setStackFrames(STACK_STRING);
+    waitForModel();
+
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.doubleClick(5, 5); // First row
@@ -180,18 +196,20 @@ public class IntelliJStackTraceViewTest {
   }
 
   @Test
-  public void rightClickingStackTraceView() throws InvocationTargetException, InterruptedException {
+  public void rightClickingStackTraceView() {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
     AspectObserver observer = new AspectObserver();
     final int[] invocationCount = {0};
     myStackView.getModel().addDependency(observer).onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> invocationCount[0]++);
 
-    JList list = myStackView.getListView();
+    JList<StackElement> list = myStackView.getListView();
     assertThat(list.getSelectionModel().getSelectionMode()).isEqualTo(ListSelectionModel.SINGLE_SELECTION);
     assertThat(invocationCount[0]).isEqualTo(0);
     assertThat(list.getSelectedIndex()).isEqualTo(-1);
 
     myStackView.getModel().setStackFrames(STACK_STRING);
+    waitForModel();
+
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.click(5, 5, FakeMouse.Button.RIGHT); // First row
@@ -205,12 +223,14 @@ public class IntelliJStackTraceViewTest {
     final int[] invocationCount = {0};
     myStackView.getModel().addDependency(observer).onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> invocationCount[0]++);
 
-    JList list = myStackView.getListView();
+    JList<StackElement> list = myStackView.getListView();
     assertThat(list.getSelectionModel().getSelectionMode()).isEqualTo(ListSelectionModel.SINGLE_SELECTION);
     assertThat(invocationCount[0]).isEqualTo(0);
     assertThat(list.getSelectedIndex()).isEqualTo(-1);
 
     myStackView.getModel().setStackFrames(STACK_STRING);
+    waitForModel();
+
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.click(5, 5); // First row
@@ -220,6 +240,19 @@ public class IntelliJStackTraceViewTest {
     fakeUi.keyboard.setFocus(list);
     fakeUi.keyboard.press(VK_ENTER);
     assertThat(invocationCount[0]).isEqualTo(1);
+  }
+
+  private void waitForModel() {
+    ListModel<StackElement> listModel = myStackView.getListView().getModel();
+    List<CodeLocation> locations = myStackView.getModel().getCodeLocations();
+    int expectedElements = locations.size() + (myStackView.getModel().getThreadId() == INVALID_THREAD_ID ? 0 : 1);
+
+    try {
+      AsyncTestUtils.waitForCondition(5, SECONDS, () -> listModel.getSize() == expectedElements);
+    }
+    catch (TimeoutException e) {
+      fail(String.format("Expected %d frames but got %d", expectedElements, listModel.getSize()));
+    }
   }
 
   private static class FakeCodeElement implements CodeElement {

@@ -16,6 +16,8 @@
 
 #include "string_printf.h"
 
+#include "log.h"
+
 namespace screensharing {
 
 using namespace std;
@@ -29,7 +31,10 @@ string StringPrintf(const char* format, ...) {
 }
 
 string StringVPrintf(const char* format, va_list args) {
-  int size_s = vsnprintf(nullptr, 0, format, args);
+  // Since va_list can be used only once, make a copy of it for use in one of the two vsnprintf calls.
+  va_list args_copy;
+  va_copy(args_copy, args);
+  int size_s = vsnprintf(nullptr, 0, format, args_copy);
   if (size_s <= 0) {
     throw runtime_error("Error during formatting.");
   }
@@ -37,6 +42,15 @@ string StringVPrintf(const char* format, va_list args) {
   auto buf = make_unique<char[]>(size);
   vsnprintf(buf.get(), size, format, args);
   return string(buf.get(), buf.get() + size - 1);  // Without the '\0'.
+}
+
+string HexString(const void* buf, size_t size) {
+  string result;
+  result.reserve(size * 2);
+  for (size_t i = 0; i < size; ++i) {
+    result += StringPrintf("%02X", static_cast<const uint8_t*>(buf)[i]);
+  }
+  return result;
 }
 
 }  // namespace screensharing

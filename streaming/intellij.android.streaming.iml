@@ -6,24 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library">
-      <library name="ffmpeg" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg:6.0-1.5.9">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9.jar">
-              <sha256sum>38c437218569f861fd43f15aa810b3eb9af4bdb02a7003f54c4d454590378079</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="studio-grpc" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module-library">
       <library name="ffmpeg-javacpp" type="repository">
         <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp:1.5.9">
@@ -178,22 +163,25 @@
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="studio-grpc" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" />
-    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-crash" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module" module-name="android.sdktools.repository" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module-library">
+      <library name="ffmpeg" type="repository">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg:6.0-1.5.9">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9.jar">
+              <sha256sum>38c437218569f861fd43f15aa810b3eb9af4bdb02a7003f54c4d454590378079</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="caffeine" level="project" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.adb.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />

@@ -391,7 +391,8 @@ public class WidgetConstraintModel implements SelectionListener {
     AndroidFacet facet = component.getModel().getFacet();
     AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(facet);
     int minSdkVersion = info.getMinSdkVersion().getApiLevel();
-    int targetSdkVersion = info.getTargetSdkVersion().getApiLevel();
+    // Libraries might not have target sdk version. We use the minimum version in that case.
+    int targetSdkVersion = Math.max(info.getTargetSdkVersion().getApiLevel(), minSdkVersion);
 
     boolean hasLeftRightAttribute = false;
     for (String rtlAttribute : ourHorizontalConstraintStringPriorToMinApi17) {

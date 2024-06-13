@@ -35,6 +35,9 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.vfs.JarFileSystem
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileFilter
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.VfsTestUtil
@@ -44,6 +47,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -224,12 +228,35 @@ class TypeDefCompletionContributorLibraryTest(private val completionType: Comple
 
   @Before
   fun setUp() {
-    val classesRoot =
+    val jarRoot =
       JarFileSystem.getInstance()
         .refreshAndFindFileByPath(
           AndroidTestBase.getTestDataPath() + "/libs/lang/typedef/Library.jar!/"
-        )
-    PsiTestUtil.addProjectLibrary(fixture.module, "mylib", listOf(classesRoot), listOf(classesRoot))
+        )!!
+    // Analysis APIs are stricter regarding module structure, i.e., source/binary roots.
+    // Merged roots may cause inconsistent module error (like b/279943223#comment2).
+    val (classesRoot, sourceRoot) = if (!KotlinPluginModeProvider.isK2Mode() || completionType.language == JAVA) {
+      listOf(jarRoot) to listOf(jarRoot)
+    } else {
+      val extensions = listOf("kt", "java", "class")
+      val filter = VirtualFileFilter { file ->
+        file.isDirectory || file.extension in extensions
+      }
+      val classesRoot = mutableListOf<VirtualFile>()
+      val sourceRoot = mutableListOf<VirtualFile>()
+      VfsUtilCore.iterateChildrenRecursively(jarRoot, filter) { file ->
+        if (!file.isDirectory) {
+          when (file.extension) {
+            "class" -> classesRoot.add(file)
+            "java",
+            "kt" -> sourceRoot.add(file)
+          }
+        }
+        true
+      }
+      classesRoot to sourceRoot
+    }
+    PsiTestUtil.addProjectLibrary(fixture.module, "mylib", classesRoot, sourceRoot)
       .also(addedLibraries::add)
   }
 

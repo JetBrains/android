@@ -16,7 +16,6 @@
 package com.android.tools.idea.navigator
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.FeatureSurveys
 import com.android.utils.DateProvider
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ProjectViewSelectionChangeEvent
@@ -38,7 +37,6 @@ import java.util.concurrent.TimeUnit
 private const val COOL_DOWN_PERIOD_MS = 10_000L
 private const val BEFORE_INIT_STATE = ""
 const val ANDROID_VIEW_ID = ID
-private const val ANDROID_PROJECT_VIEW_UNSELECTED_SURVEY_NAME = "ANDROID_PROJECT_VIEW_UNSELECTED"
 
 /**
  * When project tool window is registered this class sets up a listener to its content manager to track selections.
@@ -50,13 +48,12 @@ private const val ANDROID_PROJECT_VIEW_UNSELECTED_SURVEY_NAME = "ANDROID_PROJECT
  */
 class ProjectViewListener(
   val project: Project,
-  private val featureSurveys: FeatureSurveys,
   private val scheduler: ScheduledExecutorService,
   private val dateProvider: DateProvider
   ) : ToolWindowManagerListener {
 
   @Suppress("unused")
-  constructor(project: Project) : this(project, FeatureSurveys, EdtExecutorService.getScheduledExecutorInstance(), DateProvider.SYSTEM)
+  constructor(project: Project) : this(project, EdtExecutorService.getScheduledExecutorInstance(), DateProvider.SYSTEM)
 
   @Volatile
   private var addEventTimestamp: Long = 0
@@ -134,13 +131,6 @@ class ProjectViewListener(
         viewAfterChange = viewAfterChangeValue
       }.build()
     })
-
-    if (
-      viewBeforeChangeValue == ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID
-      && ProjectView.getInstance(project).paneIds.contains(ANDROID_VIEW_ID)
-    ) {
-      featureSurveys.triggerSurveyByName(ANDROID_PROJECT_VIEW_UNSELECTED_SURVEY_NAME)
-    }
   }
 
   private fun convertToViewEnum(viewId: String): ProjectViewSelectionChangeEvent.ProjectViewContent = when(viewId) {

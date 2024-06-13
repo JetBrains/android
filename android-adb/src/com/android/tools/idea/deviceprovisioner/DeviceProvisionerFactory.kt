@@ -18,6 +18,7 @@ package com.android.tools.idea.deviceprovisioner
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.PhysicalDeviceProvisionerPlugin
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -73,3 +74,4 @@ class PhysicalDeviceProvisionerFactory : DeviceProvisionerFactory {
 }
 
 @JvmField val DEVICE_HANDLE_KEY = DataKey.create<DeviceHandle>("DeviceHandle")
+@JvmField val DEVICE_TEMPLATE_KEY = DataKey.create<DeviceTemplate>("DeviceTemplate")

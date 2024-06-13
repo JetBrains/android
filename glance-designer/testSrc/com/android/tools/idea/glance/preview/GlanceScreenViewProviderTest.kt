@@ -40,12 +40,12 @@ class GlanceScreenViewProviderTest {
           projectRule.fixture,
           SdkConstants.FD_RES_LAYOUT,
           "model.xml",
-          ComponentDescriptor("LinearLayout")
+          ComponentDescriptor("LinearLayout"),
         )
         .build()
     }
     surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
-    surface.model = model
+    surface.addModelWithoutRender(model).join()
   }
 
   @Test

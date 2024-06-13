@@ -86,7 +86,7 @@ class CommonNlDesignSurfacePreviewViewTest {
             add(previewView.component, BorderLayout.CENTER)
           },
           1.0,
-          true
+          true,
         )
       fakeUi.root.validate()
     }
@@ -122,7 +122,7 @@ class CommonNlDesignSurfacePreviewViewTest {
         previewView.showErrorMessage(
           "error foo happened",
           UrlData("foo url text", "www.foo.bar"),
-          null
+          null,
         )
         fakeUi.root.validate()
       }

@@ -30,7 +30,7 @@ import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.FloatResources;
-import com.android.tools.res.ids.ResourceIdManager;
+import com.android.tools.idea.res.StudioResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
@@ -414,7 +414,7 @@ public class LayoutParamsManager {
 
         if (resourceValue.getResourceType() == ID) {
           // TODO: Remove this wrapping/unwrapping
-          value = String.valueOf(ResourceIdManager.get(module).getOrGenerateId(resourceValue.asReference()));
+          value = String.valueOf(StudioResourceIdManager.get(module).getOrGenerateId(resourceValue.asReference()));
         }
       }
     }

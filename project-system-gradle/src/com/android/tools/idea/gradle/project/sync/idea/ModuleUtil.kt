@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
@@ -40,16 +39,6 @@ object ModuleUtil {
     return artifactName.toWellKnownSourceSet().sourceSetName
   }
 
-  @JvmStatic
-  fun IdeArtifactName.toWellKnownSourceSet(): IdeModuleWellKnownSourceSet {
-    return when (this) {
-      IdeArtifactName.MAIN -> IdeModuleWellKnownSourceSet.MAIN
-      IdeArtifactName.UNIT_TEST -> IdeModuleWellKnownSourceSet.UNIT_TEST
-      IdeArtifactName.ANDROID_TEST -> IdeModuleWellKnownSourceSet.ANDROID_TEST
-      IdeArtifactName.TEST_FIXTURES -> IdeModuleWellKnownSourceSet.TEST_FIXTURES
-    }
-  }
-
   /**
    * Do not use this method outside of project system code.
    *
@@ -57,83 +46,48 @@ object ModuleUtil {
    * It uses user data under the [LINKED_ANDROID_MODULE_GROUP] key to store an instance of [LinkedAndroidModuleGroup] on each module.
    *
    * @param dataToModuleMap a map of external system [ModuleData] to modules required in order to lookup a modules children
+   * @return if android module group was successfully linked
    */
   @JvmStatic
-  fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?) {
-    val holderModule = dataToModuleMap(data) ?: return
-
-    // check if it's a kotlin multiplatform module
-    if (ExternalSystemApiUtil.find(this, KotlinTargetData.KEY)?.data?.externalName == "android") {
-      linkKmpAndroidModuleGroup(dataToModuleMap, holderModule)
-      return
-    }
+  fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?): Boolean {
+    val holderModule = dataToModuleMap(data) ?: return false
     // Clear the links, this prevents old links from being used
     holderModule.putUserData(LINKED_ANDROID_MODULE_GROUP, null)
-    var unitTestModule : Module? = null
-    var androidTestModule : Module? = null
-    var testFixturesModule : Module? = null
-    var mainModule : Module? = null
-    ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).forEach {
-      when(val sourceSetName = it.data.externalName.substringAfterLast(":")) {
-        getModuleName(IdeArtifactName.MAIN) -> mainModule = dataToModuleMap(it.data)
-        getModuleName(IdeArtifactName.UNIT_TEST) -> unitTestModule = dataToModuleMap(it.data)
-        getModuleName(IdeArtifactName.ANDROID_TEST) -> androidTestModule = dataToModuleMap(it.data)
-        getModuleName(IdeArtifactName.TEST_FIXTURES) -> testFixturesModule = dataToModuleMap(it.data)
-        else -> logger<ModuleUtil>().warn("Unknown artifact name: $sourceSetName")
-      }
-    }
-    if (mainModule == null) {
-      logger<ModuleUtil>().error("Unexpected - Android module (${holderModule.name}) is missing a main source set")
-      return
-    }
-    val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, testFixturesModule)
-    androidModuleGroup.getModules().forEach { module ->
-      module?.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
-    }
-  }
 
-  @JvmStatic
-  fun DataNode<out ModuleData>.linkKmpAndroidModuleGroup(
-      dataToModuleMap: (ModuleData) -> Module?,
-      holderModule: Module
-  ) {
-    // Clear the links, this prevents old links from being used
-    holderModule.putUserData(LINKED_ANDROID_MODULE_GROUP, null)
-    var unitTestModule : Module? = null
-    var androidTestModule : Module? = null
-    var mainModule : Module? = null
+    val possibleSourceSetNames = if (ExternalSystemApiUtil.find(this, KotlinTargetData.KEY)?.data?.externalName == "android") {
+      val kotlinMultiplatformAndroidSourceSetData = ExternalSystemApiUtil.findParent(this, ProjectKeys.PROJECT)?.let {
+        ExternalSystemApiUtil.find(it, AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE)
+      }?.data?.sourceSetsByGradleProjectPath?.get(this.data.id)
 
-    val kotlinMultiplatformAndroidSourceSetData = ExternalSystemApiUtil.findParent(
-      this,
-      ProjectKeys.PROJECT
-    )?.let {
-      ExternalSystemApiUtil.find(
-        it,
-        AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE
+      mapOf(
+        kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.MAIN) to IdeArtifactName.MAIN,
+        kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.UNIT_TEST) to IdeArtifactName.UNIT_TEST,
+        kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.ANDROID_TEST) to IdeArtifactName.ANDROID_TEST,
       )
-    }?.data?.sourceSetsByGradleProjectPath?.get(this.data.id)
+    }
+    else {
+      IdeArtifactName.values().associate { getModuleName(it) to it }
+    }
 
-    ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).forEach {
-      when(it.data.externalName.substringAfterLast(":")) {
-        kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.MAIN) ->
-          mainModule = dataToModuleMap(it.data)
-        kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.UNIT_TEST) ->
-          unitTestModule = dataToModuleMap(it.data)
-        kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.ANDROID_TEST) ->
-          androidTestModule = dataToModuleMap(it.data)
-        else -> {
-          // can be anything, just ignore
-        }
-      }
+    val ideArtifactNameToModule = ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).mapNotNull {
+      val sourceSetName = it.data.externalName.substringAfterLast(":")
+      val ideArtifactName = possibleSourceSetNames[sourceSetName] ?: return@mapNotNull null
+      ideArtifactName to dataToModuleMap(it.data)
+    }.toMap()
+
+    val mainModule = ideArtifactNameToModule[IdeArtifactName.MAIN] ?: run {
+      logger<ModuleUtil>().info("Android module (${holderModule.name}) is missing a main source set")
+      return false
     }
-    if (mainModule == null) {
-      logger<ModuleUtil>().error("Unexpected - Android module is missing a main source set")
-      return
-    }
-    val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, null)
+
+    val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule, ideArtifactNameToModule[IdeArtifactName.UNIT_TEST],
+                                                      ideArtifactNameToModule[IdeArtifactName.ANDROID_TEST],
+                                                      ideArtifactNameToModule[IdeArtifactName.TEST_FIXTURES],
+                                                      ideArtifactNameToModule[IdeArtifactName.SCREENSHOT_TEST])
     androidModuleGroup.getModules().forEach { module ->
       module.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
     }
+    return true
   }
 
   @JvmStatic
@@ -149,13 +103,3 @@ object ModuleUtil {
   @JvmStatic
   fun GradleSourceSetData.getIdeModuleSourceSet(): IdeModuleSourceSet = IdeModuleSourceSetImpl.wellKnownOrCreate(moduleName)
 }
-
-private fun String.removeSourceSetSuffix(delimiter: String) : String = IdeArtifactName.values().firstNotNullOfOrNull { artifactName ->
-  val moduleName = getModuleName(artifactName)
-  val suffix = "$delimiter$moduleName"
-  if (this.endsWith(suffix)) {
-    this.removeSuffix(suffix)
-  } else {
-    null
-  }
-} ?: this

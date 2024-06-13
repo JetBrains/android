@@ -140,7 +140,7 @@ public class DependenciesTestUtil {
 
     AddLibraryDependencyDialogFixture addLibraryDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddLibraryDependency();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    addLibraryDependencyFixture.findSearchQueryTextBox().enterText(library);
+    addLibraryDependencyFixture.findSearchQueryTextBox().setText(library);
     addLibraryDependencyFixture.findSearchButton().click();
     addLibraryDependencyFixture.findVersionsView(true); // Wait for search to complete.
     addLibraryDependencyFixture.findConfigurationCombo().selectItem(scope);

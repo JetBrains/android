@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.editor
+package com.android.tools.idea.common.surface
 
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.actions.SelectAllAction
 import com.android.tools.idea.uibuilder.actions.SelectNextAction
@@ -26,9 +26,9 @@ import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito.mock
 
 class SelectActionsTest : LayoutTestCase() {
   fun testSelectNextAction() {
@@ -44,16 +44,16 @@ class SelectActionsTest : LayoutTestCase() {
                 .withBounds(10, 0, 90, 100)
                 .id("@+id/inner")
                 .children(component(TEXT_VIEW).withBounds(10, 0, 10, 10).id("@+id/textView1")),
-              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2")
-            )
+              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2"),
+            ),
         )
         .build()
 
     val surface = NlDesignSurface.build(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
-    val action = SelectNextAction(surface)
+    val action = SelectNextAction()
 
     performAction(action, surface, "outer")
     performAction(action, surface, "button")
@@ -76,16 +76,16 @@ class SelectActionsTest : LayoutTestCase() {
                 .withBounds(10, 0, 90, 100)
                 .id("@+id/inner")
                 .children(component(TEXT_VIEW).withBounds(10, 0, 10, 10).id("@+id/textView1")),
-              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2")
-            )
+              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2"),
+            ),
         )
         .build()
 
     val surface = NlDesignSurface.build(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
-    val action = SelectPreviousAction(surface)
+    val action = SelectPreviousAction()
 
     performAction(action, surface, "textView2")
     performAction(action, surface, "textView1")
@@ -108,13 +108,13 @@ class SelectActionsTest : LayoutTestCase() {
                 .withBounds(10, 0, 90, 100)
                 .id("@+id/inner")
                 .children(component(TEXT_VIEW).withBounds(10, 0, 10, 10).id("@+id/textView1")),
-              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2")
-            )
+              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2"),
+            ),
         )
         .build()
 
     val surface = NlDesignSurface.build(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
     val outer = model.find("outer")!!
@@ -123,17 +123,21 @@ class SelectActionsTest : LayoutTestCase() {
     val textView1 = model.find("textView1")!!
     val textView2 = model.find("textView2")!!
 
-    val action = SelectAllAction(surface)
+    val action = SelectAllAction()
 
-    action.actionPerformed(mock(AnActionEvent::class.java))
+    action.actionPerformed(
+      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    )
     AndroidTestCase.assertEquals(
       listOf(outer, button, inner, textView1, textView2),
-      surface.selectionModel.selection
+      surface.selectionModel.selection,
     )
   }
 
   private fun performAction(action: AnAction, surface: DesignSurface<*>, id: String) {
-    action.actionPerformed(mock(AnActionEvent::class.java))
+    action.actionPerformed(
+      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    )
     val component = surface.model?.find(id)!!
     assertEquals(listOf(component), surface.selectionModel.selection)
   }

@@ -17,6 +17,7 @@ package com.android.tools.idea.actions
 
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import org.jetbrains.android.util.AndroidBundle.message
@@ -26,7 +27,7 @@ class SetScreenViewProviderAction(private val sceneModeProvider: ScreenViewProvi
   ToggleAction(
     sceneModeProvider.displayName,
     message("android.layout.screenview.action.description", sceneModeProvider.displayName),
-    null
+    null,
   ) {
   override fun isSelected(e: AnActionEvent): Boolean {
     val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return false
@@ -36,4 +37,6 @@ class SetScreenViewProviderAction(private val sceneModeProvider: ScreenViewProvi
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     (e.getData(DESIGN_SURFACE) as? NlDesignSurface)?.setScreenViewProvider(sceneModeProvider, true)
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

@@ -63,7 +63,7 @@ private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.C
  *
  * Returns a [CompletableFuture] that completes when the custom disposal process finishes.
  */
-fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Void> {
+fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Void?> {
   var disposeMethod = Optional.empty<Method>()
   var applyObserversRef: WeakReference<MutableCollection<*>?>? = null
   var globalWriteObserversRef: WeakReference<MutableCollection<*>?>? = null
@@ -116,11 +116,9 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
     RenderAsyncActionExecutor.RenderingTopic.CLEAN
   ) {
     finalDisposeMethod.ifPresent { m: Method? ->
-      this@dispose.execute(
-        Runnable {
-          this@dispose.rootViews.forEach(Consumer { v: ViewInfo? -> disposeIfCompose(v!!, m!!) })
-        }
-      )
+      this@dispose.execute {
+        this@dispose.rootViews.forEach(Consumer { v: ViewInfo? -> disposeIfCompose(v!!, m!!) })
+      }
     }
     applyObserversRef?.get()?.clear()
     globalWriteObserversRef?.get()?.clear()
@@ -153,7 +151,37 @@ private fun disposeIfCompose(viewInfo: ViewInfo, disposeMethod: Method) {
 
 private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollection<*>? {
   try {
+    // For some unknown reason sometimes we end up in a situation where ComposeViewAdapter is loaded
+    // but AndroidUiDispatcher.Main is not. This seemed infeasible. However, when it happens this
+    // function is called, and we assume that we are in the Compose preview, but because
+    // AndroidUiDispatcher.Main has never been called, its lazy evaluation is called for the very
+    // first time from the non-UI thread and end-up being stuck in runBlocking(Dispatchers.Main).
+    if (!classLoader.hasLoadedClass(ANDROID_UI_DISPATCHER_FQN)) {
+      LOG.warn(
+        "Unexpected: $CLASS_COMPOSE_VIEW_ADAPTER is loaded and $ANDROID_UI_DISPATCHER_FQN is not"
+      )
+      return null
+    }
     val uiDispatcher = classLoader.loadClass(ANDROID_UI_DISPATCHER_FQN)
+    if (!classLoader.hasLoadedClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)) {
+      LOG.warn(
+        "Unexpected: $ANDROID_UI_DISPATCHER_FQN is loaded and $ANDROID_UI_DISPATCHER_COMPANION_FQN is not"
+      )
+      return null
+    }
+    // This is very hacky, but it might allow us to avoid calling getMain when it has never been
+    // called before.
+    val ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN = "$ANDROID_UI_DISPATCHER_COMPANION_FQN\$Main\$2"
+    if (classLoader.hasLoadedClass(ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN)) {
+      val uiDispatcherCompanionValue =
+        classLoader.loadClass(ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN)
+      try {
+        val instanceField = uiDispatcherCompanionValue.getField("INSTANCE")
+        if (instanceField[null] == null) {
+          LOG.warn("Unexpected: uninitialized AndroidUiDispatcher.Main")
+        }
+      } catch (ignore: ReflectiveOperationException) {}
+    }
     val uiDispatcherCompanion = classLoader.loadClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)
     val uiDispatcherCompanionField = uiDispatcher.getDeclaredField("Companion")
     val uiDispatcherCompanionObj = uiDispatcherCompanionField[null]
@@ -179,7 +207,7 @@ private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollect
 
 private fun findSnapshotKtObserversField(
   classLoader: ModuleClassLoader,
-  fieldName: String
+  fieldName: String,
 ): MutableCollection<*>? {
   try {
     val snapshotKt = classLoader.loadClass(SNAPSHOT_KT_FQN)

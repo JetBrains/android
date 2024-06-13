@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
-import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.compile.fast.OutOfProcessCompilerDaemonClient
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.log.IJLogger
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
@@ -27,41 +29,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineExceptionHandler
+import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.android.uipreview.getLibraryDependenciesJars
-import java.io.File
-import java.io.FileNotFoundException
-import java.nio.file.Path
-import java.util.UUID
-
-/** Command received from the daemon to indicate the result is available. */
-private const val CMD_RESULT = "RESULT"
-
-/** Command sent to the daemon to indicate the request is complete. */
-private const val CMD_DONE = "done"
-private const val SUCCESS_RESULT_CODE = 0
-
-/** Settings passed to the compiler daemon in debug mode. */
-private const val DAEMON_DEBUG_SETTINGS =
-  "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
-
-private val FIXED_COMPILER_ARGS =
-  listOf(
-    "-verbose",
-    "-version",
-    "-no-stdlib",
-    "-no-reflect", // Included as part of the libraries classpath
-    "-Xdisable-default-scripting-plugin",
-    "-jvm-target",
-    "1.8"
-  )
 
 /**
  * Default class path locator that returns the classpath for the module source code (excluding
@@ -87,10 +58,10 @@ private fun defaultModuleDependenciesCompileClassPathLocator(module: Module): Li
 }
 
 /**
- * Finds the `kotlin-compiler-daemon` jar for the given [version] that is included as part of the
- * plugin. This method does not check the path actually exists.
+ * Finds the folder containing `kotlin-compiler-daemon` jar. This method does not check the path
+ * actually exists.
  */
-private fun findDaemonPath(version: String): String {
+private fun findDaemonJarRootPath(): Path {
   val homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath())
   val jarRootPath =
     if (StudioPathManager.isRunningFromSources()) {
@@ -101,11 +72,11 @@ private fun findDaemonPath(version: String): String {
       // via a system property.
       System.getProperty(
         "preview.live.edit.daemon.path",
-        FileUtil.join(homePath, "plugins/design-tools/resources/")
+        FileUtil.join(homePath, "plugins/design-tools/resources/"),
       )
     }
 
-  return FileUtil.join(jarRootPath, "kotlin-compiler-daemon-$version.jar")
+  return Path.of(jarRootPath)
 }
 
 /**
@@ -126,6 +97,8 @@ private fun findDaemonPath(version: String): String {
  *
  * @param scope the [CoroutineScope] to be used by the coroutines in the daemon.
  * @param log [Logger] used to log the debug output of the daemon.
+ *
+ * TODO(b/328608974): move this whole class and file out of compose-designer
  */
 @Suppress("BlockingMethodInNonBlockingContext") // All calls are running within the IO context
 internal class OutOfProcessCompilerDaemonClientImpl(
@@ -135,150 +108,41 @@ internal class OutOfProcessCompilerDaemonClientImpl(
   private val moduleClassPathLocator: (Module) -> List<String> =
     ::defaultModuleCompileClassPathLocator,
   private val moduleDependenciesClassPathLocator: (Module) -> List<String> =
-    ::defaultModuleDependenciesCompileClassPathLocator
+    ::defaultModuleDependenciesCompileClassPathLocator,
 ) : CompilerDaemonClient {
-  private fun getDaemonPath(version: String): String =
-    // Prepare fallback versions
-    linkedSetOf(
-        version,
-        "${version.substringBeforeLast("-")}-fallback", // Find the fallback artifact for this same
-        // version
-        "${version.substringBeforeLast(".")}.0-fallback", // Find the fallback artifact for the same
-        // major version, e.g. 1.1
-        "${version.substringBefore(".")}.0.0-fallback" // Find the fallback artifact for the same
-        // major version, e.g. 1
-      )
-      .asSequence()
-      .map {
-        log.debug("Looking for kotlin daemon version '${version}'")
-        findDaemonPath(it)
-      }
-      .find { FileUtil.exists(it) }
-      ?: throw FileNotFoundException("Unable to find kotlin daemon for version '$version'")
-
-  /** Starts the daemon in the given [daemonPath]. */
-  private fun startDaemon(daemonPath: String): Process {
-    log.info("Starting daemon $daemonPath")
-    val javaCommand =
+  private val daemonClient =
+    OutOfProcessCompilerDaemonClient(
+      version,
+      scope,
       IdeSdks.getInstance().jdk?.homePath?.let { javaHomePath -> "$javaHomePath/bin/java" }
-        ?: throw IllegalStateException("No SDK found")
-    return ProcessBuilder()
-      .command(
-        listOfNotNull(
-          javaCommand,
-          // This flag can be used to start the daemon in debug mode and debug issues on the daemon
-          // JVM.
-          if (StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get()) DAEMON_DEBUG_SETTINGS else null,
-          "-jar",
-          daemonPath
-        )
-      )
-      .redirectError(ProcessBuilder.Redirect.INHERIT)
-      .start()
-  }
+        ?: throw IllegalStateException("No SDK found"),
+      findDaemonJarRootPath(),
+      IJLogger(log),
+      StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get(),
+    )
 
-  private val daemonPath: String = getDaemonPath(version)
-  private val daemonShortId = daemonPath.substringAfterLast("/")
+  override val isRunning: Boolean
+    get() = daemonClient.isRunning
 
-  data class Request(val parameters: List<String>, val onComplete: (CompilationResult) -> Unit) {
-    val id = UUID.randomUUID().toString()
-  }
-
-  private val process: Process = startDaemon(daemonPath)
-  private val writer = process.outputStream.bufferedWriter()
-  private val reader = process.inputStream.bufferedReader()
-
-  /** [Channel] to send the compilation request. */
-  private val channel = Channel<Request>()
-
-  init {
-    val handler = CoroutineExceptionHandler { _, exception ->
-      log.info("Daemon stopped ($daemonShortId)", exception)
-      channel.close(exception)
-    }
-    scope
-      .launch(handler) {
-        log.info("Daemon thread started ($daemonShortId)")
-        while (true) {
-          val call = channel.receive()
-
-          try {
-            log.debug("[${call.id}] New request")
-            val requestStart = System.currentTimeMillis()
-            call.parameters.forEach {
-              writer.write(it)
-              writer.write("\n")
-            }
-            writer.write("$CMD_DONE\n")
-            writer.flush()
-            do {
-              val line = reader.readLine() ?: break
-              log.debug("[${call.id}] $line")
-              if (line.startsWith(CMD_RESULT)) {
-                val resultLine = line.split(" ")
-                val resultCode = resultLine.getOrNull(1)?.toInt() ?: -1
-                log.debug(
-                  "[${call.id}] Result $resultCode in ${System.currentTimeMillis() - requestStart}ms"
-                )
-
-                call.onComplete(
-                  when (resultCode) {
-                    SUCCESS_RESULT_CODE -> CompilationResult.Success
-                    else -> CompilationResult.DaemonError(resultCode)
-                  }
-                )
-                break
-              }
-              ensureActive()
-            } while (true)
-          } catch (t: Throwable) {
-            log.error(t)
-            call.onComplete(CompilationResult.RequestException(t))
-          }
-          ensureActive()
-        }
-      }
-      .apply { start() }
+  override fun dispose() {
+    daemonClient.destroy()
   }
 
   override suspend fun compileRequest(
     files: Collection<PsiFile>,
     module: Module,
     outputDirectory: Path,
-    indicator: ProgressIndicator
+    indicator: ProgressIndicator,
   ): CompilationResult {
     indicator.text = "Building classpath"
     val moduleClassPath = moduleClassPathLocator(module)
     val moduleDependenciesClassPath = moduleDependenciesClassPathLocator(module)
-    val classPathString =
-      (moduleClassPath + moduleDependenciesClassPath).joinToString(File.pathSeparator)
-    val classPathArgs =
-      if (classPathString.isNotBlank()) listOf("-cp", classPathString) else emptyList()
 
-    val inputFilesArgs = files.map { it.virtualFile.path }.toList()
-    val friendPaths = listOf("-Xfriend-paths=${moduleClassPath.joinToString(",")}")
-    val outputAbsolutePath = outputDirectory.toAbsolutePath().toString()
-    val args =
-      FIXED_COMPILER_ARGS +
-        classPathArgs +
-        friendPaths +
-        listOf("-d", outputAbsolutePath) +
-        inputFilesArgs
-    return compile(args)
+    return daemonClient.compile(
+      files.map { it.virtualFile.path }.toList(),
+      moduleClassPath,
+      moduleClassPath + moduleDependenciesClassPath,
+      outputDirectory,
+    )
   }
-
-  override fun dispose() {
-    channel.close()
-    process.destroyForcibly()
-  }
-
-  override val isRunning: Boolean
-    get() = !channel.isClosedForSend && process.isAlive
-
-  private suspend fun compile(args: List<String>): CompilationResult =
-    withContext(scope.coroutineContext) {
-      val result = CompletableDeferred<CompilationResult>()
-      channel.send(Request(args) { result.complete(it) })
-      result.await()
-    }
 }

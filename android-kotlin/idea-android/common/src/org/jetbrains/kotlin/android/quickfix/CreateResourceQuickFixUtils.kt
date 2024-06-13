@@ -20,6 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ALL_VALUE_RESOURCE_TYPES
 import com.android.tools.idea.res.getReferredResourceOrManifestField
+import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.module.ModuleUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -40,14 +41,15 @@ fun getCreateResourceQuickFixActions(expression: KtSimpleNameExpression) : List<
     if (info == null || info.isFromManifest) return emptyList()
 
     val resourceType = ResourceType.fromClassName(info.className) ?: return emptyList()
+    val facetForQuickFix = info.resolvedModule?.androidFacet ?: facet
 
     return buildList {
         if (resourceType in ALL_VALUE_RESOURCE_TYPES) {
-            add(CreateValueResourceQuickFix(facet, resourceType, info.fieldName, contextFile, true))
+            add(CreateValueResourceQuickFix(facetForQuickFix, resourceType, info.fieldName, contextFile))
         }
 
         FolderTypeRelationship.getNonValuesRelatedFolder(resourceType)?.let {
-            add(CreateFileResourceQuickFix(facet, it, info.fieldName, contextFile, true))
+            add(CreateFileResourceQuickFix(facetForQuickFix, it, info.fieldName, contextFile, true))
         }
     }
 }

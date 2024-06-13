@@ -3,22 +3,22 @@ package com.intellij.testGuiFramework.launcher
 
 import com.android.prefs.AbstractAndroidLocations
 import com.android.testutils.TestUtils
+import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.tests.gui.framework.AnalyticsTestUtils
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
 import com.android.tools.tests.IdeaTestSuiteBase
+import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.impl.GuiTestStarter
 import com.intellij.util.lang.JavaVersion
-import org.apache.log4j.Level
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URL
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.jar.Attributes
+import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 
@@ -49,7 +49,7 @@ object GuiTestLauncher {
   private val classpathJar = File(GuiTests.getGuiTestRootDirPath(), "classpath.jar")
 
   init {
-    LOG.setLevel(Level.INFO)
+    LOG.setLevel(LogLevel.INFO)
     buildClasspathJar()
   }
 
@@ -138,6 +138,7 @@ object GuiTestLauncher {
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
       "-Didea.gui.test.port=$port",
+      "-Dide.slow.operations.assertion=false",
     )
     /* b/246634435 */
     if (System.getProperty("embedded.jdk.path") != null) {
@@ -188,6 +189,7 @@ object GuiTestLauncher {
     if (TestUtils.runningFromBazel()) {
       options += "-Didea.system.path=${IdeaTestSuiteBase.createTmpDir("idea/system")}"
       options += "-Didea.config.path=${IdeaTestSuiteBase.createTmpDir("idea/config")}"
+      options += "-Didea.log.path=${TestUtils.getTestOutputDir().resolve("log")}"
       options += "-Dgradle.user.home=${IdeaTestSuiteBase.createTmpDir("home")}"
       options += "-D${AbstractAndroidLocations.ANDROID_PREFS_ROOT}=${IdeaTestSuiteBase.createTmpDir(".android")}"
       options += "-Dlayoutlib.thread.timeout=60000"
@@ -204,27 +206,32 @@ object GuiTestLauncher {
   }
 
   private fun getTestClasspath(): List<File> {
-    val classLoader = this.javaClass.classLoader
-    val urlClassLoaderClass = classLoader.javaClass
-    if (urlClassLoaderClass.name == "com.intellij.util.lang.UrlClassLoader") {
-      val getUrlsMethod = urlClassLoaderClass.methods.firstOrNull { it.name.lowercase() == "geturls" }!!
-      @Suppress("UNCHECKED_CAST")
-      val urlsListOrArray = getUrlsMethod.invoke(classLoader)
-      var urls = (urlsListOrArray as? List<*> ?: (urlsListOrArray as Array<*>).toList()).filterIsInstance(URL::class.java)
-      return urls.filter { !it.toString().contains("android.core.tests") }.map { Paths.get(it.toURI()).toFile() }
-    } else {
-      // under JDK 11, when run from the IDE, the ClassLoader in question here will be ClassLoaders$AppClassLoader.
-      // Fortunately, under these circumstances, java.class.path has everything we need.
-      return System.getProperty("java.class.path").split(File.pathSeparator).map(::File)
+    val classPath = System.getProperty("java.class.path").split(File.pathSeparator).map(::File)
+
+    if (TestUtils.runningFromBazel() && SystemInfo.isWindows && classPath.size == 1) {
+      // We already got a classpath jar from Bazel, but we can't simply reuse it because:
+      // a) PathClassLoader only handles files named "classpath.jar"
+      // b) the Class-Path provided by Bazel is full of relative paths.
+      // Our classpathJar is in a different location under TEST_TMPDIR, so we need to recompute the paths.
+      val prefix = classPath[0].parent
+
+      JarFile(classPath[0]).use { jar ->
+        return jar.manifest.mainAttributes.getValue("Class-Path")
+          .split(" ")
+          .map { File(prefix, it).normalize() }
+      }
+    }
+    else {
+      return classPath
     }
   }
-
 
   private fun buildClasspathJar() {
     val files = getTestClasspath()
     val prefix = if (SystemInfo.isWindows) "file:/" else "file:"
     val classpath = StringBuilder().apply {
       for (file in files) {
+        assertThat(file).exists()
         append(prefix + file.absolutePath.replace(" ", "%20").replace("\\", "/") + if (file.isDirectory) "/ " else " ")
       }
     }

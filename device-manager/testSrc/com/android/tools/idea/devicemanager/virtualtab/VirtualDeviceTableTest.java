@@ -72,6 +72,7 @@ public final class VirtualDeviceTableTest {
                                   Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
+                                  null,
                                   null);
 
     VirtualDevice device = TestVirtualDevices.pixel5Api31(avdInfo);

@@ -93,6 +93,7 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.VfsTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
@@ -107,6 +108,7 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -4671,17 +4673,23 @@ public class ResourceFolderRepositoryTest {
 
   @Test
   public void invalidFilenames() throws Exception {
+    // Semaphore to use as a barrier to ensure the expected number of updates happen before continuing.
+    Semaphore wolfUpdated = new Semaphore(0);
     MockWolfTheProblemSolver wolfTheProblemSolver = new MockWolfTheProblemSolver() {
       final Set<VirtualFile> problemFiles = Sets.newConcurrentHashSet();
 
       @Override
       public void reportProblemsFromExternalSource(@NotNull VirtualFile file, @NotNull Object source) {
+        ThreadingAssertions.assertBackgroundThread();
         problemFiles.add(file);
+        wolfUpdated.release();
       }
 
       @Override
       public void clearProblemsFromExternalSource(@NotNull VirtualFile file, @NotNull Object source) {
+        ThreadingAssertions.assertBackgroundThread();
         problemFiles.remove(file);
+        wolfUpdated.release();
       }
 
       @Override
@@ -4697,6 +4705,8 @@ public class ResourceFolderRepositoryTest {
     VirtualFile invalidButIdentifier = VfsTestUtil.createFile(projectDir, "res/drawable/FooBar.png", new byte[] { 1 });
     VirtualFile invalid = VfsTestUtil.createFile(projectDir, "res/drawable/1st.png", new byte[] { 1 });
     ResourceFolderRepository repository = createRegisteredRepository();
+    // Wait for the two initial updates
+    wolfUpdated.acquire(2);
 
     assertThat(repository.getResourceNames(RES_AUTO, ResourceType.DRAWABLE)).containsExactly("valid", "FooBar");
     assertThat(wolfTheProblemSolver.isProblemFile(valid)).isFalse();
@@ -4708,6 +4718,8 @@ public class ResourceFolderRepositoryTest {
       invalidButIdentifier.rename(this, "also_fixed.png");
     });
     commitAndWaitForUpdates(repository);
+    // Wait for the two initial updates to be cleared
+    wolfUpdated.acquire(2);
 
     assertThat(repository.getResourceNames(RES_AUTO, ResourceType.DRAWABLE)).containsExactly("valid", "fixed", "also_fixed");
     assertThat(wolfTheProblemSolver.isProblemFile(valid)).isFalse();

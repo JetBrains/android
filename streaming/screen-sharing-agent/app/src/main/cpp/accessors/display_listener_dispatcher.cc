@@ -102,10 +102,12 @@ void DisplayListenerDispatcher::Run() {
 
 void DisplayListenerDispatcher::Stop() {
   unique_lock lock(mutex_);
-  if (thread_.joinable()) {
+  if (thread_.get_id() != this_thread::get_id() && thread_.joinable()) {
     Jni jni = Jvm::GetJni();
     JObject looper = looper_promise_.get_future().get();
-    looper.CallVoidMethod(jni, looper.GetClass(jni).GetMethod("quit", "()V"));
+    if (looper.IsNotNull()) {
+      looper.CallVoidMethod(jni, looper.GetClass(jni).GetMethod("quit", "()V"));
+    }
     thread_.join();
   }
 }

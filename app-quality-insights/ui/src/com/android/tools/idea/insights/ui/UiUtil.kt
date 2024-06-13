@@ -19,9 +19,14 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueDetails
+import com.android.tools.idea.insights.ui.actions.InsightAction
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.ui.NewUI
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.UIUtil
@@ -29,6 +34,8 @@ import icons.StudioIcons
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.LayoutManager
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.text.NumberFormat
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -51,7 +58,7 @@ class AppInsightsStatusText(owner: JComponent?, private val checkStatusVisible: 
 val offlineModeIcon =
   ColoredIconGenerator.generateColoredIcon(
     AllIcons.Actions.OfflineMode,
-    UIUtil.getErrorForeground()
+    UIUtil.getErrorForeground(),
   )
 
 fun Long.formatNumberToPrettyString(): String =
@@ -69,7 +76,7 @@ val EMPTY_STATE_TEXT_FORMAT =
 val EMPTY_STATE_LINK_FORMAT =
   SimpleTextAttributes(
     SimpleTextAttributes.STYLE_SMALLER or SimpleTextAttributes.LINK_ATTRIBUTES.style,
-    SimpleTextAttributes.LINK_ATTRIBUTES.fgColor
+    SimpleTextAttributes.LINK_ATTRIBUTES.fgColor,
   )
 
 fun IssueDetails.getDisplayTitle(): Pair<String, String> {
@@ -95,7 +102,7 @@ fun getFatalityIcon(
   fatality: FailureType,
   selected: Boolean,
   foreground: Color,
-  withNote: Boolean = false
+  withNote: Boolean = false,
 ): Icon? {
   val icon =
     if (withNote) {
@@ -111,7 +118,7 @@ fun getFatalityIcon(
     }
   return if (icon == null) {
     null
-  } else if (selected) {
+  } else if (selected && !NewUI.isEnabled()) {
     ColoredIconGenerator.generateColoredIcon(icon, foreground)
   } else {
     icon
@@ -167,3 +174,22 @@ fun String.shortenEventId() =
   substringAfterLast('_').let {
     if (it.length > 15) it.replaceRange(6..it.length - 7, "...") else it
   }
+
+// TODO(b/338138591): Replace action with simple JButton
+fun createInsightToolBar(place: String, target: JComponent) =
+  ActionManager.getInstance()
+    .createActionToolbar(place, DefaultActionGroup(InsightAction), true)
+    .apply {
+      component.border = JBUI.Borders.empty()
+      component.addComponentListener(
+        object : ComponentAdapter() {
+          override fun componentMoved(e: ComponentEvent?) {
+            component.maximumSize = component.preferredSize
+            // toolbarComponent sometimes has a y coordinate value that pushes it above/below the
+            // bounds of the visible region. Set it to 0 to make sure the button is always visible
+            component.setLocation(component.location.x, 0)
+          }
+        }
+      )
+      targetComponent = target
+    }

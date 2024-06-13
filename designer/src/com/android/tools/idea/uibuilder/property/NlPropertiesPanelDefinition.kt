@@ -31,7 +31,7 @@ class NlPropertiesPanelDefinition(
   facet: AndroidFacet,
   side: Side,
   split: Split,
-  autoHide: AutoHide
+  autoHide: AutoHide,
 ) :
   ToolWindowDefinition<DesignSurface<*>>(
     "Attributes",
@@ -43,5 +43,5 @@ class NlPropertiesPanelDefinition(
     DEFAULT_PROPERTY_SIDE_WIDTH,
     DEFAULT_BUTTON_SIZE,
     ALLOW_FLOATING or ALLOW_SPLIT_MODE,
-    { NlPropertiesPanelToolContent(facet, it) }
+    { NlPropertiesPanelToolContent(facet, it) },
   )

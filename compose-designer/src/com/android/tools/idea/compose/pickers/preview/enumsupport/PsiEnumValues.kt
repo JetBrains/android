@@ -53,7 +53,7 @@ internal class UiModeWithNightMaskEnumValue(
   isNight: Boolean,
   uiModeType: String,
   override val display: String,
-  uiModeTypeResolvedValue: String
+  uiModeTypeResolvedValue: String,
 ) : BaseClassEnumValue {
 
   private val nightModeString = if (isNight) "UI_MODE_NIGHT_YES" else "UI_MODE_NIGHT_NO"
@@ -83,7 +83,7 @@ internal class UiModeWithNightMaskEnumValue(
     fun createNotNightUiModeEnumValue(
       uiModeType: String,
       display: String,
-      uiModeTypeResolvedValue: String
+      uiModeTypeResolvedValue: String,
     ) = UiModeWithNightMaskEnumValue(false, uiModeType, display, uiModeTypeResolvedValue)
 
     /**
@@ -93,7 +93,7 @@ internal class UiModeWithNightMaskEnumValue(
     fun createNightUiModeEnumValue(
       uiModeType: String,
       display: String,
-      uiModeTypeResolvedValue: String
+      uiModeTypeResolvedValue: String,
     ) = UiModeWithNightMaskEnumValue(true, uiModeType, display, uiModeTypeResolvedValue)
 
     /** Pre-defined [EnumValue] for `UI_MODE_TYPE_NORMAL` in not night mode (`UI_MODE_NIGHT_NO`) */
@@ -102,7 +102,7 @@ internal class UiModeWithNightMaskEnumValue(
         false,
         UiMode.NORMAL.classConstant,
         UiMode.NORMAL.display,
-        UiMode.NORMAL.resolvedValue
+        UiMode.NORMAL.resolvedValue,
       )
 
     /** Pre-defined [EnumValue] for `UI_MODE_TYPE_NORMAL` in night mode (`UI_MODE_NIGHT_YES`) */
@@ -111,7 +111,7 @@ internal class UiModeWithNightMaskEnumValue(
         true,
         UiMode.NORMAL.classConstant,
         UiMode.NORMAL.display,
-        UiMode.NORMAL.resolvedValue
+        UiMode.NORMAL.resolvedValue,
       )
   }
 }
@@ -123,7 +123,7 @@ internal class UiModeWithNightMaskEnumValue(
 internal enum class UiMode(
   override val classConstant: String,
   override val display: String,
-  override val resolvedValue: String
+  override val resolvedValue: String,
 ) : ClassConstantEnumValue {
   // TODO(154503873): Add proper support to display values as enums, currently, selecting one of
   // these values, will leave the dropwdown
@@ -148,7 +148,7 @@ internal enum class UiMode(
 internal enum class Device(
   override val classConstant: String,
   override val display: String,
-  override val resolvedValue: String
+  override val resolvedValue: String,
 ) : ClassConstantEnumValue {
   DEFAULT("DEFAULT", "Default", ""),
   NEXUS_7("NEXUS_7", "Nexus 7", "id:Nexus 7"),
@@ -196,7 +196,7 @@ internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValu
 internal enum class Wallpaper(
   override val classConstant: String,
   override val display: String,
-  override val resolvedValue: String
+  override val resolvedValue: String,
 ) : ClassConstantEnumValue {
   NONE("NONE", "None", "-1"),
   RED("RED_DOMINATED_EXAMPLE", "Red dominated", "0"),

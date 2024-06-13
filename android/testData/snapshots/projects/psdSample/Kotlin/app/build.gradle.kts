@@ -42,6 +42,9 @@ android {
         setTestFunctionalTest(false)
     }
     buildTypes {
+        debug {
+            isPseudoLocalesEnabled = true
+        }
         getByName("release") {
             applicationIdSuffix = "suffix"
             versionNameSuffix = "vsuffix"

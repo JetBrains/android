@@ -54,7 +54,7 @@ class AppInspectionToolWindowManagerListenerTest {
     project: Project,
     private val toolWindowManager: ToolWindowManager,
     ideServices: AppInspectionIdeServices,
-    inspectionView: AppInspectionView
+    inspectionView: AppInspectionView,
   ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
 
     val listener =
@@ -92,7 +92,7 @@ class AppInspectionToolWindowManagerListenerTest {
         content: String,
         title: String,
         severity: AppInspectionIdeServices.Severity,
-        hyperlinkClicked: () -> Unit
+        hyperlinkClicked: () -> Unit,
       ) {
         notificationText = content
       }
@@ -106,7 +106,7 @@ class AppInspectionToolWindowManagerListenerTest {
   fun testShowBubbleWhenInspectionIsAndIsNotRunning() = runBlocking {
     transportService.setCommandHandler(
       Commands.Command.CommandType.APP_INSPECTION,
-      TestAppInspectorCommandHandler(timer)
+      TestAppInspectorCommandHandler(timer),
     )
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     val inspectionView =
@@ -116,7 +116,7 @@ class AppInspectionToolWindowManagerListenerTest {
           appInspectionServiceRule.apiServices,
           ideServices,
           appInspectionServiceRule.scope,
-          uiDispatcher
+          uiDispatcher,
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }

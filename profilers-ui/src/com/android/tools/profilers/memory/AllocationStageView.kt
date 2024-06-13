@@ -27,15 +27,18 @@ import com.android.tools.profilers.stacktrace.LoadingPanel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
+import java.util.function.DoubleSupplier
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JList
@@ -66,7 +69,14 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
   }
 
   @VisibleForTesting
-  val stopButton = CommonButton(StudioIcons.Profiler.Toolbar.STOP_RECORDING).apply {
+  val stopButton = CommonButton(
+    if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+      StudioIcons.Profiler.Toolbar.STOP_SESSION
+    }
+    else {
+      StudioIcons.Profiler.Toolbar.STOP_RECORDING
+    }
+  ).apply {
     disabledIcon = IconLoader.getDisabledIcon(icon)
     toolTipText = "Stop recording Java / Kotlin allocations"
     addActionListener {
@@ -152,7 +162,7 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     }
     else {
       stage.aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS) { showTrackingeUi() }
-      showLoadingPanel()
+      if (stage.hasAgentError) showErrorPanel() else showLoadingPanel()
     }
     component.add(mainPanel, BorderLayout.CENTER)
 
@@ -191,7 +201,28 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
 
   private fun showTrackingeUi() {
     hideLoadingPanel()
-    mainPanelLayout.show(mainPanel, CARD_TRACKING)
+    if (stage.hasAgentError) showErrorPanel() else mainPanelLayout.show(mainPanel, CARD_TRACKING)
+  }
+
+  private fun getLoadingFailureErrorMessage(): String {
+    return if (profilersView.studioProfilers.device?.isEmulator == true)
+      "There was an error loading this feature. Try cold booting the virtual device." else
+        "There was an error loading this feature. Try restarting the device."
+  }
+
+  private fun showErrorPanel() {
+    hideLiveButtons()
+    val errorMessagePanel = JPanel(BorderLayout())
+    val message = getLoadingFailureErrorMessage()
+    val htmlText =
+      "<html><div style='text-align: center;'> ${StringUtil.escapeXmlEntities(message)} </div></html>"
+    val errorText = JBLabel(htmlText)
+    errorText.horizontalAlignment = JBLabel.CENTER
+    errorText.fontColor = UIUtil.FontColor.BRIGHTER
+    errorMessagePanel.add(errorText, BorderLayout.CENTER)
+    errorMessagePanel.isVisible = true
+    mainPanel.add(errorMessagePanel, CARD_ERROR)
+    mainPanelLayout.show(mainPanel, CARD_ERROR)
   }
 
   private fun showLoadingPanel() {
@@ -236,6 +267,7 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
   private companion object {
     const val CARD_TRACKING = "tracking"
     const val CARD_LOADING = "loading"
+    const val CARD_ERROR = "error"
   }
 }
 
@@ -247,9 +279,9 @@ class AllocationTimelineComponent(stageView: AllocationStageView, timeAxis: JCom
 
   override fun makeScrollbar() = null // the timeline always contains the allocation range, so no need for scrollbar
 
-  override fun makeLineChart() = super.makeLineChart().apply {
+  override fun fillEndSupplier() = DoubleSupplier {
     // Dynamically fill up to the latest point in data-range (instead of all the way to the right by default)
-    setFillEndSupplier { (stage.timeline.dataRange.max - stage.minTrackingTimeUs) / (stage.timeline.viewRange.max - stage.minTrackingTimeUs) }
+    (stage.timeline.dataRange.max - stage.minTrackingTimeUs) / (stage.timeline.viewRange.max - stage.minTrackingTimeUs)
   }
 }
 

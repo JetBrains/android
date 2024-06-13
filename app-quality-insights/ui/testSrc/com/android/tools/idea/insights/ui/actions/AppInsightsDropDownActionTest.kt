@@ -45,7 +45,7 @@ class AppInsightsDropDownActionTest {
   enum class TestValues {
     DEFAULT,
     ONE,
-    TWO
+    TWO,
   }
 
   @Test
@@ -80,7 +80,7 @@ class AppInsightsDropDownActionTest {
           null,
           flow,
           { value -> if (value == TestValues.TWO) ICON else null },
-          {}
+          {},
         )
 
       val fakeUi = initUi(dropdown)
@@ -116,7 +116,6 @@ class AppInsightsDropDownActionTest {
         targetComponent = panel
       }
     panel.add(toolbar.component, BorderLayout.CENTER)
-    toolbar.updateActionsImmediately()
     fakeUi.updateToolbars()
     return fakeUi
   }

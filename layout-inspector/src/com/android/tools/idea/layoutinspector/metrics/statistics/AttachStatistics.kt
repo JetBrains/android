@@ -21,6 +21,9 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProce
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.openapi.diagnostic.Logger
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
 
 /** Attachment information for the current session. */
 class AttachStatistics(
@@ -28,6 +31,7 @@ class AttachStatistics(
   private val multipleProjectsOpen: () -> Boolean,
   private val isAutoConnectEnabled: () -> Boolean,
   private val isEmbeddedLayoutInspector: () -> Boolean,
+  private val clock: Clock = Clock.systemUTC(),
 ) {
   private var success = false
   private var error = false
@@ -36,11 +40,16 @@ class AttachStatistics(
   private var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
   private var composeErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
 
+  private var attachStartTimeMs: Instant? = null
+  private var attachEndTimeMs: Instant? = null
+
   companion object {
     private val logger = Logger.getInstance(AttachStatistics::class.java)
   }
 
   fun start() {
+    attachStartTimeMs = clock.instant()
+
     success = false
     error = false
     errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
@@ -49,6 +58,12 @@ class AttachStatistics(
   }
 
   fun save(dataSupplier: () -> DynamicLayoutInspectorAttachToProcess.Builder) {
+    if (attachEndTimeMs == null) {
+      // If the attach is not successful and there is no error (the attach is cancelled), the end
+      // time is not updated.
+      attachEndTimeMs = clock.instant()
+    }
+
     dataSupplier().let {
       it.clientType = clientType
       it.success = success && !error
@@ -62,6 +77,13 @@ class AttachStatistics(
       it.debuggerPausedDuringAttach = pausedDuringAttach
       it.autoConnectEnabled = isAutoConnectEnabled()
       it.isEmbeddedLayoutInspector = isEmbeddedLayoutInspector()
+      val durationMs =
+        if (attachStartTimeMs != null) {
+          Duration.between(attachStartTimeMs, attachEndTimeMs).toMillis()
+        } else {
+          0
+        }
+      it.attachDurationMs = durationMs
     }
   }
 
@@ -74,17 +96,20 @@ class AttachStatistics(
 
   fun attachSuccess() {
     success = true
+    attachEndTimeMs = clock.instant()
   }
 
   fun attachError(errorCode: AttachErrorCode) {
     assertErrorNotGeneric(errorCode)
     error = true
     this.errorCode = errorCode
+    attachEndTimeMs = clock.instant()
   }
 
   fun composeAttachError(errorCode: AttachErrorCode) {
     assertErrorNotGeneric(errorCode)
     composeErrorCode = errorCode
+    attachEndTimeMs = clock.instant()
   }
 
   fun debuggerInUse(isPaused: Boolean) {

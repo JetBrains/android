@@ -22,6 +22,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationFileUtil;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
@@ -285,12 +286,12 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         assert false;
         return; // Should not happen
       }
-      final VirtualFile file = configuration.getFile();
+      final VirtualFile file = ConfigurationFileUtil.getVirtualFile(configuration);
       if (file == null) {
         assert false;
         return; // Should not happen
       }
-      Project project = configuration.getConfigModule().getProject();
+      Project project = ConfigurationManager.getFromConfiguration(configuration).getProject();
       PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
       XmlFile xmlFile = (XmlFile)psiFile;
       ResourceFolderType folderType = IdeResourcesUtil.getFolderType(xmlFile);
@@ -401,7 +402,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     else {
       // First create a compatible configuration based on the current configuration
       if (configuration != null) {
-        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(configuration.getModule());
+        ConfigurationManager configurationManager = ConfigurationManager.getFromConfiguration(configuration);
         configurationManager.createSimilar(newFile, file);
       }
 

@@ -38,6 +38,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedRotateDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RotateDomFileDescription"/>
     <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.CustomDrawableElementDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedImageDomFileDescription" rootTagName="animated-image"/>
 
     <!-- File descriptions for res/drawable: -->
     <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorGradientDomFileDescription"/>
@@ -108,7 +109,7 @@
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>
     <psi.referenceContributor language="XML" implementation="org.jetbrains.android.dom.AndroidXmlReferenceContributor" />
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
-    <completion.contributor language="XML" implementationClass="org.jetbrains.android.AndroidXmlCompletionContributor"
+    <completion.contributor language="XML" implementationClass="org.jetbrains.android.completion.AndroidXmlCompletionContributor"
                             id="compositieAttributeValues" order="first"/>
     <typedHandler implementation="org.jetbrains.android.dom.AndroidXmlTypedHandler" />
     <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>

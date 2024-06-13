@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.WAKE_LOCK_ACQUIRED
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.WAKE_LOCK_RELEASED
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.AdtUiUtils
@@ -29,11 +32,13 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.FlagsFormatter.intentFlagsAsString
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.FlagsFormatter.pendingIntentFlagsAsString
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.IconButton
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.ActionLink
@@ -42,6 +47,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBUI.Borders
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -52,6 +58,7 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTextArea
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
 import kotlinx.coroutines.CoroutineDispatcher
@@ -64,6 +71,8 @@ private const val BUTTON_SIZE =
   24 // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
 private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON_SIZE))
 
+private typealias PendingIntentProto = BackgroundTaskInspectorProtocol.PendingIntent
+
 class EntryDetailsView(
   private val tab: BackgroundTaskInspectorTab,
   private val client: BackgroundTaskInspectorClient,
@@ -72,7 +81,7 @@ class EntryDetailsView(
   private val entriesView: BackgroundTaskEntriesView,
   uiComponentsProvider: UiComponentsProvider,
   private val scope: CoroutineScope,
-  private val uiDispatcher: CoroutineDispatcher
+  private val uiDispatcher: CoroutineDispatcher,
 ) : JPanel() {
 
   // A configuration map to add extra paddings at the bottom of certain components.
@@ -84,7 +93,7 @@ class EntryDetailsView(
   val stackTraceViews =
     listOf(
       EntryDetailsStackTraceView(uiComponentsProvider),
-      EntryDetailsStackTraceView(uiComponentsProvider)
+      EntryDetailsStackTraceView(uiComponentsProvider),
     )
 
   init {
@@ -163,30 +172,21 @@ class EntryDetailsView(
 
     val descriptions = mutableListOf(buildKeyValuePair("Type", alarmSet.type))
     if (alarmSet.intervalMs > 0) {
-      descriptions.add(
-        buildKeyValuePair("Interval time", StringUtil.formatDuration(alarmSet.intervalMs))
-      )
+      descriptions.add(buildKeyValuePair("Interval time", formatDuration(alarmSet.intervalMs)))
     }
 
     if (alarmSet.triggerMs > 0) {
       descriptions.add(buildKeyValuePair("Trigger time", alarmSet.triggerMs, TimeProvider))
     }
 
-    if (alarmSet.windowMs > 0) {
-      descriptions.add(
-        buildKeyValuePair("Window time", StringUtil.formatDuration(alarmSet.windowMs))
-      )
-    }
+    val windowTime = if (alarmSet.windowMs > 0) formatDuration(alarmSet.windowMs) else "Exact"
+    descriptions.add(buildKeyValuePair("Window time", windowTime))
+
     if (alarmSet.hasListener()) {
       descriptions.add(buildKeyValuePair("Listener tag", alarmSet.listener.tag))
     }
     if (alarmSet.hasOperation()) {
-      val operation = alarmSet.operation
-      if (operation.creatorPackage.isNotEmpty()) {
-        descriptions.add(
-          buildKeyValuePair("Creator", "${operation.creatorPackage} (UID: ${operation.creatorUid})")
-        )
-      }
+      descriptions.add(alarmSet.operation.createPendingIntentPanel())
     }
     detailsPanel.add(buildCategoryPanel("Description", descriptions))
 
@@ -208,10 +208,7 @@ class EntryDetailsView(
           results.add(buildKeyValuePair("Time cancelled", completeTimeMs, TimeProvider))
         }
         results.add(
-          buildKeyValuePair(
-            "Elapsed time",
-            StringUtil.formatDuration(completeTimeMs - alarm.startTimeMs)
-          )
+          buildKeyValuePair("Elapsed time", formatDuration(completeTimeMs - alarm.startTimeMs))
         )
       }
     }
@@ -220,35 +217,101 @@ class EntryDetailsView(
     detailsPanel.addStackTraceViews(alarm.callstacks, listOf("Set", "Cancelled"))
   }
 
+  private fun PendingIntentProto.createPendingIntentPanel(): JPanel {
+    val indentBorder = Borders.emptyLeft(20)
+    val panel = JPanel(VerticalLayout(JBUI.scale(6)))
+    panel.add(JLabel("Pending Intent:"))
+    val pendingIntentPanel =
+      JPanel(VerticalLayout(JBUI.scale(6))).apply {
+        border = indentBorder
+        name = "PendingIntent"
+      }
+    panel.add(pendingIntentPanel)
+    pendingIntentPanel.add(buildKeyValuePair("Type", "$type"))
+    if (creatorPackage.isNotEmpty()) {
+      pendingIntentPanel.add(buildKeyValuePair("Creator", "$creatorPackage (UID: $creatorUid)"))
+    }
+    if (flags != 0) {
+      val hexString = Integer.toHexString(flags)
+      val flagsString = pendingIntentFlagsAsString(flags)
+      pendingIntentPanel.add(buildKeyValuePair("Flags", "0x$hexString ($flagsString)"))
+    }
+    pendingIntentPanel.add(buildKeyValuePair("Request code", "$requestCode"))
+
+    if (hasIntent()) {
+      pendingIntentPanel.add(JLabel("Intent:"))
+      val intentPanel =
+        JPanel(VerticalLayout(JBUI.scale(6))).apply {
+          border = indentBorder
+          name = "Intent"
+        }
+      pendingIntentPanel.add(intentPanel)
+      if (intent.hasAction()) {
+        intentPanel.add(buildKeyValuePair("Action", intent.action))
+      }
+      if (intent.hasData()) {
+        intentPanel.add(buildKeyValuePair("Data", intent.data))
+      }
+      if (intent.categoriesCount > 0) {
+        intentPanel.add(buildKeyValuePair("Categories", intent.categoriesList.joinToString { it }))
+      }
+      if (intent.hasComponentName()) {
+        intentPanel.add(buildKeyValuePair("Component package", intent.componentName.packageName))
+        intentPanel.add(
+          buildKeyValuePair("Component class", intent.componentName.className, classNameProvider)
+        )
+      }
+      if (intent.hasIdentifier()) {
+        intentPanel.add(buildKeyValuePair("Identifier", intent.identifier))
+      }
+      if (intent.hasPackage()) {
+        intentPanel.add(buildKeyValuePair("Package", intent.`package`))
+      }
+      if (intent.hasType()) {
+        intentPanel.add(buildKeyValuePair("Type", intent.type))
+      }
+      if (intent.flags != 0) {
+        val hexString = Integer.toHexString(intent.flags)
+        val flagsString = intentFlagsAsString(intent.flags)
+        intentPanel.add(buildKeyValuePair("Flags", "0x$hexString ($flagsString)"))
+      }
+      if (intent.hasExtras()) {
+        val extrasPanel = JPanel(TabularLayout("155px,*")).apply { border = Borders.empty() }
+        val label = JLabel("Extras").apply { verticalAlignment = JLabel.TOP }
+        extrasPanel.add(label, TabularLayout.Constraint(0, 0))
+        val extras = JTextArea(intent.extras).apply { name = "Extras" }
+        extrasPanel.add(extras, TabularLayout.Constraint(0, 1))
+        intentPanel.add(extrasPanel)
+      }
+    }
+    return panel
+  }
+
   private fun updateSelectedWakeLock(detailsPanel: ScrollablePanel, wakeLock: WakeLockEntry) {
-    val acquired = wakeLock.acquired ?: return
-    val wakeLockAcquired = acquired.backgroundTaskEvent.wakeLockAcquired
     detailsPanel.add(
       buildCategoryPanel(
         "Description",
-        listOf(
-          buildKeyValuePair("Tag", wakeLockAcquired.tag),
-          buildKeyValuePair("Level", wakeLockAcquired.level),
-        )
+        listOf(buildKeyValuePair("Tag", wakeLock.tag), buildKeyValuePair("Level", wakeLock.level)),
       )
     )
 
     val results =
-      mutableListOf(buildKeyValuePair("Time started", wakeLock.startTimeMs, TimeProvider))
-    wakeLock.released?.let { released ->
-      val completeTimeMs = released.timestamp
-      results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
-      results.add(
-        buildKeyValuePair(
-          "Elapsed time",
-          StringUtil.formatDuration(completeTimeMs - wakeLock.startTimeMs)
-        )
-      )
-    }
+      wakeLock.events.mapIndexed { index, event ->
+        when (event.backgroundTaskEvent.metadataCase) {
+          WAKE_LOCK_ACQUIRED -> buildKeyValuePair("Acquired", event.timestamp, TimeProvider)
+          WAKE_LOCK_RELEASED -> buildKeyValuePair("Released", event.timestamp, TimeProvider)
+          else ->
+            throw IllegalStateException(
+              "Unexpected event: ${event.backgroundTaskEvent.metadataCase}"
+            )
+        }
+      }
     detailsPanel.add(buildCategoryPanel("Results", results))
 
     detailsPanel.addStackTraceViews(wakeLock.callstacks, listOf("Acquired", "Released"))
   }
+
+  private val classNameProvider = ClassNameProvider(ideServices, client.scope, client.tracker)
 
   private fun updateSelectedJob(detailsPanel: ScrollablePanel, jobEntry: JobEntry) {
     val job = jobEntry.jobInfo ?: return
@@ -256,13 +319,7 @@ class EntryDetailsView(
     detailsPanel.add(
       buildCategoryPanel(
         "Description",
-        listOf(
-          buildKeyValuePair(
-            "Service",
-            job.serviceName,
-            ClassNameProvider(ideServices, client.scope, client.tracker)
-          )
-        )
+        listOf(buildKeyValuePair("Service", job.serviceName, classNameProvider)),
       )
     )
 
@@ -270,7 +327,7 @@ class EntryDetailsView(
       mutableListOf(
         buildKeyValuePair("Constraints", job, JobConstraintProvider),
         buildKeyValuePair("Frequency", if (job.isPeriodic) "Periodic" else "OneTime"),
-        buildKeyValuePair("State", jobEntry, StateProvider)
+        buildKeyValuePair("State", jobEntry, StateProvider),
       )
     jobEntry.targetWorkId
       ?.let { id -> client.getEntry(id) }
@@ -289,16 +346,13 @@ class EntryDetailsView(
         val completeTimeMs = latestEvent.timestamp
         results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
         results.add(
-          buildKeyValuePair(
-            "Elapsed time",
-            StringUtil.formatDuration(completeTimeMs - jobEntry.startTimeMs)
-          )
+          buildKeyValuePair("Elapsed time", formatDuration(completeTimeMs - jobEntry.startTimeMs))
         )
         if (latestEvent.backgroundTaskEvent.hasJobFinished()) {
           results.add(
             buildKeyValuePair(
               "Needs reschedule",
-              latestEvent.backgroundTaskEvent.jobFinished.needsReschedule
+              latestEvent.backgroundTaskEvent.jobFinished.needsReschedule,
             )
           )
         }
@@ -321,6 +375,10 @@ class EntryDetailsView(
     val idListProvider =
       IdListProvider(client, work) {
         selectionModel.selectedEntry = it
+        scope.launch {
+          ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(it.className))
+          client.tracker.trackJumpedToSource()
+        }
         client.tracker.trackWorkSelected(
           AppInspectionEvent.BackgroundTaskInspectorEvent.Context.DETAILS_CONTEXT
         )
@@ -330,14 +388,10 @@ class EntryDetailsView(
       buildCategoryPanel(
         "Description",
         listOf(
-          buildKeyValuePair(
-            "Class",
-            work.workerClassName,
-            ClassNameProvider(ideServices, client.scope, client.tracker)
-          ),
+          buildKeyValuePair("Class", work.workerClassName, classNameProvider),
           buildKeyValuePair("Tags", work.tagsList.toList(), StringListProvider),
-          buildKeyValuePair("UUID", work.id)
-        )
+          buildKeyValuePair("UUID", work.id),
+        ),
       )
     )
 
@@ -346,11 +400,11 @@ class EntryDetailsView(
         buildKeyValuePair(
           "Enqueued by",
           work.callStack,
-          EnqueuedAtProvider(ideServices, client.scope, client.tracker)
+          EnqueuedAtProvider(ideServices, client.scope, client.tracker),
         ),
         buildKeyValuePair("Constraints", work.constraints, WorkConstraintProvider),
         buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "OneTime"),
-        buildKeyValuePair("State", workEntry, StateProvider)
+        buildKeyValuePair("State", workEntry, StateProvider),
       )
 
     entriesView.tableView.treeModel.getJobUnderWork(work.id)?.let { jobEntry ->
@@ -384,9 +438,9 @@ class EntryDetailsView(
             buildKeyValuePair(
               "Unique work chain",
               client.getOrderedWorkChain(work.id).map { it.id },
-              idListProvider
-            )
-          )
+              idListProvider,
+            ),
+          ),
         )
       )
     }
@@ -396,9 +450,9 @@ class EntryDetailsView(
         "Results",
         listOf(
           buildKeyValuePair("Time started", work.scheduleRequestedAt, TimeProvider),
-          buildKeyValuePair("Retries", work.runAttemptCount),
-          buildKeyValuePair("Output data", work, OutputDataProvider)
-        )
+          buildKeyValuePair("Run count", work.runAttemptCount),
+          buildKeyValuePair("Output data", work, OutputDataProvider),
+        ),
       )
     )
   }
@@ -421,7 +475,7 @@ class EntryDetailsView(
   private fun <T> buildKeyValuePair(
     key: String,
     value: T,
-    componentProvider: ComponentProvider<T> = ToStringProvider()
+    componentProvider: ComponentProvider<T> = ToStringProvider(),
   ): JPanel {
     val panel =
       JPanel(TabularLayout("155px,*")).apply {
@@ -430,16 +484,17 @@ class EntryDetailsView(
     val keyPanel = JPanel(BorderLayout())
     keyPanel.add(
       JBLabel(key),
-      BorderLayout.NORTH
+      BorderLayout.NORTH,
     ) // If value is multi-line, key should stick to the top of its cell
     panel.add(keyPanel, TabularLayout.Constraint(0, 0))
-    panel.add(componentProvider.convert(value), TabularLayout.Constraint(0, 1))
+    val valueComponent = componentProvider.convert(value).apply { name = key }
+    panel.add(valueComponent, TabularLayout.Constraint(0, 1))
     return panel
   }
 
   private fun ScrollablePanel.addStackTraceViews(
     callStacks: List<BackgroundTaskCallStack>,
-    labels: List<String>
+    labels: List<String>,
   ) {
     val labelsToStackTraces =
       (labels zip callStacks)
@@ -478,7 +533,7 @@ class EntryDetailsView(
 class CloseButton(actionListener: ActionListener?) :
   InplaceButton(
     IconButton("Close", AllIcons.Ide.Notification.Close, AllIcons.Ide.Notification.CloseHover),
-    actionListener
+    actionListener,
   ) {
 
   init {

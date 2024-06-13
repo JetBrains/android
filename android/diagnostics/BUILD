@@ -13,6 +13,7 @@ iml_module(
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",
+        "--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
@@ -23,7 +24,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -40,7 +42,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/android/diagnostics:libandroid-core-proto",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
+        "@intellij//:org.jetbrains.kotlin[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],

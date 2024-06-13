@@ -78,7 +78,6 @@ class AutoRefresherForMavenClassRegistry : ProjectActivity {
       // IDE must not hit network on startup
       return
     }
-
     // Start refresher in GMavenIndexRepository at project start-up.
     MavenClassRegistryManager.getInstance()
   }

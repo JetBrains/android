@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.common;
 
+import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Severity;
@@ -23,19 +24,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LintProblemData {
+  private final Incident myIncident;
   private final Issue myIssue;
   private final String myMessage;
   private final TextRange myTextRange;
   private final Severity myConfiguredSeverity;
   private final LintFix myQuickfixData;
 
-  public LintProblemData(@NotNull Issue issue, @NotNull String message, @NotNull TextRange textRange, @Nullable Severity configuredSeverity,
+  public LintProblemData(@NotNull Incident incident,
+                         @NotNull Issue issue,
+                         @NotNull String message,
+                         @NotNull TextRange textRange,
+                         @Nullable Severity configuredSeverity,
                          @Nullable LintFix quickfixData) {
+    myIncident = incident;
     myIssue = issue;
     myTextRange = textRange;
     myMessage = message;
     myConfiguredSeverity = configuredSeverity;
     myQuickfixData = quickfixData;
+  }
+
+  @NotNull
+  public Incident getIncident() {
+    return myIncident;
   }
 
   @NotNull

@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.loadFile;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import java.util.Collections;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import org.mockito.Mock;
+
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.loadFile;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleInitScripts}.
@@ -68,7 +68,8 @@ public class GradleInitScriptsTest extends HeavyPlatformTestCase {
 
   private void setupCreateLocalMavenRepoInitScriptContent() {
     when(myContentCreator.createLocalMavenRepoInitScriptContent(any())).thenAnswer(mock -> {
-      if(mock.getArgument(0).equals(Collections.emptyList())) return null; else return "Test";
+      if (mock.getArgument(0).equals(Collections.emptyList())) return null;
+      else return "Test";
     });
   }
 

@@ -16,10 +16,12 @@
 package com.android.tools.idea.common.lint;
 
 import com.android.tools.idea.common.error.IssueSource;
+import com.android.tools.idea.common.error.NlComponentIssueSource;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.SuppressLintQuickFix;
 import com.android.tools.lint.checks.RtlDetector;
+import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.collect.ArrayListMultimap;
@@ -91,6 +93,7 @@ public class LintAnnotationsModel {
 
   public void addIssue(@NotNull NlComponent component,
                        @Nullable AttributeKey attribute,
+                       @NotNull Incident incident,
                        @NotNull Issue issue,
                        @NotNull String message,
                        @NotNull AndroidLintInspectionBase inspection,
@@ -108,7 +111,7 @@ public class LintAnnotationsModel {
       myIssueList = new ArrayList<>();
     }
 
-    IssueData data = new IssueData(component, attribute, inspection, issue, message, level, startElement, endElement, quickfixData);
+    IssueData data = new IssueData(component, attribute, inspection, incident, issue, message, level, startElement, endElement, quickfixData);
     myIssues.put(component, data);
     myIssueList.add(data); // TODO: Derive from myIssues map when needed?
     if (attribute != null) {
@@ -130,6 +133,7 @@ public class LintAnnotationsModel {
     @NotNull public final HighlightDisplayLevel level;
     @NotNull public final String message;
     @NotNull public final Issue issue;
+    @NotNull public final Incident incident;
     @NotNull public final SmartPsiElementPointer<PsiElement> endElementPointer;
     @NotNull public final SmartPsiElementPointer<PsiElement> startElementPointer;
     @NotNull public final NlComponent component;
@@ -140,6 +144,7 @@ public class LintAnnotationsModel {
     private IssueData(@NotNull NlComponent component,
                       @Nullable AttributeKey attribute,
                       @NotNull AndroidLintInspectionBase inspection,
+                      @NotNull Incident incident,
                       @NotNull Issue issue,
                       @NotNull String message,
                       @NotNull HighlightDisplayLevel level,
@@ -147,9 +152,10 @@ public class LintAnnotationsModel {
                       @NotNull SmartPsiElementPointer<PsiElement> endElementPointer,
                       @Nullable LintFix quickfixData) {
       this.component = component;
-      this.issueSource = IssueSource.fromNlComponent(component);
+      this.issueSource = new NlComponentIssueSource(component);
       this.attribute = attribute;
       this.inspection = inspection;
+      this.incident = incident;
       this.issue = issue;
       this.message = message;
       this.level = level;

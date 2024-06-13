@@ -78,7 +78,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         colorSpace: ColorSpace? = null
       ): Long = 1L
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -101,7 +101,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
@@ -110,7 +110,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         Color(74, 138, 123, 168),
         Color(74, 138, 123, 255),
         Color(87, 173, 40, 255),
-        Color(87, 173, 40, 128)
+        Color(87, 173, 40, 128),
       )
     )
     setNewColor("Co|lor(0xFF4A8A7B)", Color(0xFFAABBCC.toInt()))
@@ -148,14 +148,10 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         val other = Color(0xFFFF0000)
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    checkGutterIconInfos(
-      listOf(
-        Color(255, 0, 0, 255),
-      )
-    )
+    checkGutterIconInfos(listOf(Color(255, 0, 0, 255)))
     setNewColor("Co|lor(0xFFFF0000)", Color(0x0DFF0000, true))
     assertThat(myFixture.editor.document.text)
       .isEqualTo(
@@ -190,7 +186,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
@@ -199,7 +195,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         Color(74, 138, 123, 0),
         Color(74, 138, 123, 128),
         Color(87, 173, 40, 0),
-        Color(87, 173, 40, 64)
+        Color(87, 173, 40, 64),
       )
     )
     setNewColor("Co|lor(0x4A8A7B)", Color(0xFFAABBCC.toInt()))
@@ -243,7 +239,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
@@ -252,7 +248,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         Color(74, 138, 123),
         Color(170, 187, 204),
         Color(87, 173, 40),
-        Color(180, 200, 120)
+        Color(180, 200, 120),
       )
     )
     setNewColor("Co|lor(0x4A, 0x8A, 0x7B)", Color(0xFFAABBCC.toInt()))
@@ -298,7 +294,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
@@ -307,7 +303,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         Color(74, 138, 123),
         Color(170, 187, 204),
         Color(87, 173, 40),
-        Color(64, 120, 192)
+        Color(64, 120, 192),
       )
     )
     setNewColor("Co|lor(0x4A, 0x8A, 0x7B, 0xFF)", Color(0xFFAABBCC.toInt()))
@@ -351,7 +347,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
@@ -360,7 +356,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         Color(77, 138, 122),
         Color(77, 138, 122),
         Color(87, 173, 38),
-        Color(87, 173, 38)
+        Color(87, 173, 38),
       )
     )
     setNewColor("Co|lor(0.3f, 0.54f, 0.48f)", Color(0xFFAABBCC.toInt()))
@@ -404,7 +400,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
@@ -413,13 +409,13 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         Color(189, 35, 77, 215),
         Color(189, 35, 77, 215),
         Color(222, 44, 102, 64),
-        Color(222, 44, 102, 64)
+        Color(222, 44, 102, 64),
       )
     )
     setNewColor("Co|lor(0.74f, 0.138f, 0.3f, 0.845f)", Color(0xFFAABBCC.toInt()))
     setNewColor(
       "Co|lor(alpha = 0.25f, green = 0.173f, blue = 0.4f, red = 0.87f)",
-      Color(0xFFAABBCC.toInt())
+      Color(0xFFAABBCC.toInt()),
     )
     assertThat(myFixture.editor.document.text)
       .isEqualTo(
@@ -463,7 +459,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     // No gutter for color space.
@@ -490,7 +486,7 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         project,
         "Change Color",
         null,
-        { setColorTask.invoke(newColor) }
+        { setColorTask.invoke(newColor) },
       )
     }
   }
@@ -532,7 +528,7 @@ class ComposeColorReferenceAnnotatorTest {
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors.xml")
     myFixture.copyFileToProject(
       "annotator/AndroidManifest.xml",
-      SdkConstants.FN_ANDROID_MANIFEST_XML
+      SdkConstants.FN_ANDROID_MANIFEST_XML,
     )
   }
 
@@ -554,7 +550,7 @@ class ComposeColorReferenceAnnotatorTest {
         val color = R.color.color1
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val icons = myFixture.findAllGutters()

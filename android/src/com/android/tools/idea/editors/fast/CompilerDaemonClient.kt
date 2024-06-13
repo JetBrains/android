@@ -15,67 +15,12 @@
  */
 package com.android.tools.idea.editors.fast
 
+import com.android.tools.compile.fast.CompilationResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile
 import java.nio.file.Path
-
-/**
- * Class that represents the result of a compilation request.
- */
-sealed class CompilationResult {
-  /**
-   * The compilation was successful.
-   */
-  object Success: CompilationResult()
-
-  /**
-   * Failure [CompilationResult] containing an optional [Throwable].
-   */
-  sealed interface WithThrowable {
-    val e: Throwable?
-  }
-
-  /**
-   * The daemon failed to start.
-   */
-  data class DaemonStartFailure(override val e: Throwable? = null): CompilationResult(), WithThrowable
-
-  /**
-   * The daemon returned an error. [code] contains the error code returned by the daemon.
-   */
-  data class DaemonError(val code: Int): CompilationResult()
-
-  /**
-   * An expected compilation error caused by normal user actions. For example, a syntax error would trigger
-   * this. This is recoverable by the user updating the code.
-   */
-  data class CompilationError(override val e: Throwable? = null): CompilationResult(), WithThrowable
-
-  /**
-   * An exception happened while trying to execute the request. This could have happened before the request arrive to the daemon.
-   * [e] will contain the exception if available.
-   */
-  data class RequestException(override val e: Throwable? = null): CompilationResult(), WithThrowable
-
-  /**
-   * The compilation request was aborted. This usually means it was cancelled by a condition that can be retried.
-   */
-  data class CompilationAborted(override val e: Throwable? = null): CompilationResult(), WithThrowable
-}
-
-/**
- * True if this is a [CompilationResult.Success].
- */
-val CompilationResult.isSuccess: Boolean
-  get() = this == CompilationResult.Success
-
-/**
- * True if this is not a success result. [isSuccess] will be false.
- */
-val CompilationResult.isError: Boolean
-  get() = !isSuccess
 
 /**
  * Interface to implement by specific implementations that can talk to compiler daemons.

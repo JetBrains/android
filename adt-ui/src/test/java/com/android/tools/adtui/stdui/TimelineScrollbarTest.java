@@ -19,7 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.adtui.swing.FakeKeyboard;
@@ -73,6 +75,16 @@ public class TimelineScrollbarTest {
   }
 
   @Test
+  public void testInitialization_emptyDefaultTimeline() {
+    TimelineScrollbar scrollbar = new TimelineScrollbar(new DefaultTimeline(), myPanel);
+
+    assertEquals(0, scrollbar.getModel().getMinimum());
+    assertEquals(0, scrollbar.getModel().getMaximum());
+    assertEquals(0, scrollbar.getModel().getValue());
+    assertEquals(0, scrollbar.getModel().getExtent());
+  }
+
+  @Test
   public void testModelChanged() {
     // Note: model units are kept in 1000th of a range unit
     assertEquals(0, myScrollbar.getModel().getMinimum());
@@ -98,7 +110,7 @@ public class TimelineScrollbarTest {
   @Test
   public void testZoom() {
     // Zoom in
-    double delta = myScrollbar.getZoomWheelDelta();
+    double delta = myTimeline.getZoomWheelDelta();
     myUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
 
     myUi.mouse.wheel(50, 50, -1);
@@ -107,14 +119,14 @@ public class TimelineScrollbarTest {
     assertEquals(5000 - delta * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
 
     // Zoom in twice
-    double delta2 = myScrollbar.getZoomWheelDelta() * 2;
+    double delta2 = myTimeline.getZoomWheelDelta() * 2;
     myUi.mouse.wheel(50, 50, -2);
     myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0 + (delta + delta2) * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000 - (delta + delta2) * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
 
     // Zoom out
-    double delta3 = myScrollbar.getZoomWheelDelta();
+    double delta3 = myTimeline.getZoomWheelDelta();
     myUi.mouse.wheel(50, 50, 1);
     myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0 + (delta + delta2 - delta3) * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
@@ -126,7 +138,7 @@ public class TimelineScrollbarTest {
     int initialMax = 10000;
     myTimeline.getViewRange().set(0, initialMax);
     // Zoom in
-    double delta = myScrollbar.getZoomWheelDelta();
+    double delta = myTimeline.getZoomWheelDelta();
     myUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
 
     assertTrue(myScrollbar.isScrollable());
@@ -139,7 +151,7 @@ public class TimelineScrollbarTest {
     myTimeline.getDataRange().setMin(myTimeline.getViewRange().getMin() + 2000);
     assertFalse(myScrollbar.isScrollable());
     // Zoom in again
-    double delta2 = myScrollbar.getZoomWheelDelta() * 2;
+    double delta2 = myTimeline.getZoomWheelDelta() * 2;
     myUi.mouse.wheel(50, 50, -2);
     myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0 + (delta + delta2) * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
@@ -148,7 +160,7 @@ public class TimelineScrollbarTest {
 
   @Test
   public void testPan() {
-    double delta = myScrollbar.getPanWheelDelta();
+    double delta = myTimeline.getPanWheelDelta();
     myUi.mouse.wheel(50, 50, 1);
     // Advance the timer so that the StreamingTimeline update method is called, handling the stored scroll wheel events.
     myTimer.tick(TimeUnit.SECONDS.toNanos(5));
@@ -164,6 +176,64 @@ public class TimelineScrollbarTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000, myTimeline.getViewRange().getMax(), EPSILON);
+  }
+
+  @Test
+  public void testZoom_defaultTimeline() {
+    JPanel panel = new JPanel();
+    panel.setSize(100, 100);
+    DefaultTimeline timeline = new DefaultTimeline();
+    TimelineScrollbar scrollbar = new TimelineScrollbar(timeline, panel);
+    scrollbar.setSize(100, 10);
+    JPanel root = new JPanel(new BorderLayout());
+    root.add(panel, BorderLayout.CENTER);
+    root.add(scrollbar, BorderLayout.SOUTH);
+    root.setSize(100, 110);
+    FakeUi fakeUi = new FakeUi(root);
+    timeline.getViewRange().set(0, 5000);
+    timeline.getDataRange().set(0, 5000);
+
+    // Zoom in
+    fakeUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
+
+    fakeUi.mouse.wheel(50, 50, -1);
+    assertTrue(timeline.getViewRange().isSameAs(new Range(625.0, 4375.0)));
+
+    // Zoom in twice
+    fakeUi.mouse.wheel(50, 50, -2);
+    assertTrue(timeline.getViewRange().isSameAs(new Range(1445.3125, 3554.6875)));
+
+    // Zoom out 3 times
+    fakeUi.mouse.wheel(50, 50, 3);
+    assertTrue(timeline.getViewRange().isSameAs(new Range(0.0, 5000.0)));
+  }
+
+  @Test
+  public void testPan_defaultTimeline() {
+    JPanel panel = new JPanel();
+    panel.setSize(100, 100);
+    DefaultTimeline timeline = new DefaultTimeline();
+    TimelineScrollbar scrollbar = new TimelineScrollbar(timeline, panel);
+    scrollbar.setSize(100, 10);
+    JPanel root = new JPanel(new BorderLayout());
+    root.add(panel, BorderLayout.CENTER);
+    root.add(scrollbar, BorderLayout.SOUTH);
+    root.setSize(100, 110);
+    FakeUi fakeUi = new FakeUi(root);
+    timeline.getViewRange().set(0, 500);
+    timeline.getDataRange().set(0, 5000);
+
+    // Pan right 1 click
+    fakeUi.mouse.wheel(50, 50, 1);
+    assertTrue(timeline.getViewRange().isSameAs(new Range(500.0, 1000.0)));
+
+    // Pan right 2 clicks
+    fakeUi.mouse.wheel(50, 50, 2);
+    assertTrue(timeline.getViewRange().isSameAs(new Range(1500.0, 2000.0)));
+
+    // Pan left 3 clicks
+    fakeUi.mouse.wheel(50, 50, -3);
+    assertTrue(timeline.getViewRange().isSameAs(new Range(0.0, 500.0)));
   }
 
   @Test
@@ -232,7 +302,7 @@ public class TimelineScrollbarTest {
   public void testScrollableAtMaxRange() {
     myTimeline.getViewRange().set(0, 10000);
 
-    double delta = myScrollbar.getZoomWheelDelta();
+    double delta = myTimeline.getZoomWheelDelta();
     myUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
 
     // Zoom out should work but does nothing.

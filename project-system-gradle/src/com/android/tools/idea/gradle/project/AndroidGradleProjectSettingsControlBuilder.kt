@@ -28,6 +28,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil
@@ -297,7 +298,7 @@ class AndroidGradleProjectSettingsControlBuilder(
         val sdkModificator = sdk.sdkModificator
         val name = SdkConfigurationUtil.createUniqueSdkName(sdk.name, editableSdks)
         sdkModificator.name = name
-        sdkModificator.commitChanges()
+        WriteAction.run<Throwable>(sdkModificator::commitChanges)
       }
       processedNames.add(sdk.name)
     }

@@ -54,6 +54,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.ui.dualView.TreeTableView
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -247,18 +248,18 @@ class AndroidTestResultsTableViewTest {
     table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class1", "package1", logcat="logcatE"))
     table.addTestCase(device2, AndroidTestCase("testid3", "method1", "class2", "package1", logcat="logcatF"))
 
-    assertThat(table.getTableViewForTesting().getItem(0).getLogcat(device1)).isEqualTo("logcatA\nlogcatB\nlogcatC")
-    assertThat(table.getTableViewForTesting().getItem(1).getLogcat(device1)).isEqualTo("logcatA\nlogcatB")
+    assertThat(table.getTableViewForTesting().getItem(0).getLogcat(device1)).isEqualTo("")
+    assertThat(table.getTableViewForTesting().getItem(1).getLogcat(device1)).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(2).getLogcat(device1)).isEqualTo("logcatA")
     assertThat(table.getTableViewForTesting().getItem(3).getLogcat(device1)).isEqualTo("logcatB")
-    assertThat(table.getTableViewForTesting().getItem(4).getLogcat(device1)).isEqualTo("logcatC")
+    assertThat(table.getTableViewForTesting().getItem(4).getLogcat(device1)).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(5).getLogcat(device1)).isEqualTo("logcatC")
 
-    assertThat(table.getTableViewForTesting().getItem(0).getLogcat(device2)).isEqualTo("logcatD\nlogcatE\nlogcatF")
-    assertThat(table.getTableViewForTesting().getItem(1).getLogcat(device2)).isEqualTo("logcatD\nlogcatE")
+    assertThat(table.getTableViewForTesting().getItem(0).getLogcat(device2)).isEqualTo("")
+    assertThat(table.getTableViewForTesting().getItem(1).getLogcat(device2)).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(2).getLogcat(device2)).isEqualTo("logcatD")
     assertThat(table.getTableViewForTesting().getItem(3).getLogcat(device2)).isEqualTo("logcatE")
-    assertThat(table.getTableViewForTesting().getItem(4).getLogcat(device2)).isEqualTo("logcatF")
+    assertThat(table.getTableViewForTesting().getItem(4).getLogcat(device2)).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(5).getLogcat(device2)).isEqualTo("logcatF")
   }
 

@@ -18,8 +18,13 @@ package com.android.tools.idea.common.analytics
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.stats.getEditorFileTypeForAnalytics
+import com.google.wireless.android.sdk.stats.EditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.runBlocking
 
 /**
  * Handles analytics that are common across design tools. Acts as an interface between
@@ -30,6 +35,9 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
   open val surfaceType = LayoutEditorState.Surfaces.UNKNOWN_SURFACES
 
   private var panelState: DesignerEditorPanel.State = DesignerEditorPanel.State.DEACTIVATED
+
+  var editorFileType: EditorFileType = EditorFileType.UNKNOWN
+    private set
 
   val editorMode
     get() =
@@ -46,7 +54,7 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
 
   fun trackUnknownEvent() = track(LayoutEditorEvent.LayoutEditorEventType.UNKNOWN_EVENT_TYPE)
 
-  fun trackZoom(type: ZoomType) =
+  open fun trackZoom(type: ZoomType) =
     when (type) {
       ZoomType.ACTUAL -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL)
       ZoomType.IN -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN)
@@ -62,6 +70,14 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
    */
   fun setEditorModeWithoutTracking(panelState: DesignerEditorPanel.State) {
     this.panelState = panelState
+  }
+
+  /**
+   * Sets the [EditorFileType] of the file from the editor. This information will be shared with all
+   * related tracking. Calling this method will not log any events.
+   */
+  fun setEditorFileTypeWithoutTracking(file: VirtualFile, project: Project) {
+    this.editorFileType = runBlocking { getEditorFileTypeForAnalytics(file, project) }
   }
 
   fun trackSelectEditorMode(panelState: DesignerEditorPanel.State) =

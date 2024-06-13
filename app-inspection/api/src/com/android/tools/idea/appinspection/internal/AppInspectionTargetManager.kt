@@ -41,7 +41,7 @@ internal constructor(private val transportClient: TransportClient, parentScope: 
   @VisibleForTesting
   internal class TargetInfo(
     val targetDeferred: Deferred<AppInspectionTarget>,
-    val projectName: String
+    val projectName: String,
   )
 
   @VisibleForTesting internal val targets = ConcurrentHashMap<ProcessDescriptor, TargetInfo>()
@@ -54,7 +54,7 @@ internal constructor(private val transportClient: TransportClient, parentScope: 
     processDescriptor: ProcessDescriptor,
     jarCopier: AppInspectionJarCopier,
     streamChannel: TransportStreamChannel,
-    projectName: String
+    projectName: String,
   ): AppInspectionTarget {
     val targetInfo =
       targets.computeIfAbsent(processDescriptor) {
@@ -75,7 +75,7 @@ internal constructor(private val transportClient: TransportClient, parentScope: 
       throw AppInspectionProcessNoLongerExistsException(
         "Failed to connect to process ${processDescriptor.name}. The process has " +
           "likely ended. Please restart it so App Inspection can reconnect.",
-        e
+        e,
       )
     } catch (e: Throwable) {
       // On any exception, including cancellation, remove the target from the hashmap |targets|.

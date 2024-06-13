@@ -29,7 +29,7 @@ fun JTable.registerEnterKeyAction(action: (ActionEvent) -> Unit) {
     },
     "Press enter",
     KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
   )
 }
 
@@ -40,6 +40,6 @@ fun JTable.registerTabKeyAction(action: (ActionEvent) -> Unit) {
     },
     "Press tab",
     KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
-    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
   )
 }

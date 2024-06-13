@@ -17,6 +17,8 @@ package com.android.tools.idea.lint.common;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME;
 import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static org.junit.Assert.assertSame;
 
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.utils.PositionXmlParser;
@@ -24,6 +26,7 @@ import com.android.utils.XmlUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.UsefulTestCase;
@@ -32,8 +35,10 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -315,5 +320,80 @@ public class DomPsiConverterTest extends UsefulTestCase {
     }
 
     assertEquals(docString.toString(), psiDocString.toString());
+
+    Element firstStyle = (Element)document.getDocumentElement().getFirstChild().getNextSibling();
+    Element lastStyle = (Element)document.getDocumentElement().getLastChild().getPreviousSibling();
+    assertEquals("a", firstStyle.getAttribute("name"));
+    assertEquals("h", lastStyle.getAttribute("name"));
+
+    // Check findNodeAt. We're doing that here because getElementsByTagName used to have a side effect
+    // of modifying the sibling pointers; we want to make sure it doesn't do that.
+    assertEquals(
+      "a",
+      ((Node)DomPsiConverter.findNodeAt(
+        psiDocument,
+        xml.indexOf("<style"))).getAttributes().getNamedItem("name").getNodeValue()
+    );
+    assertEquals(
+      "h",
+      ((Node)DomPsiConverter.findNodeAt(
+        psiDocument,
+        xml.indexOf("name=\"h\""))).getNodeValue()
+    );
+  }
+
+  public void testFindNodeAt() {
+    String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                 "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    android:layout_width=\"match_parent\"\n" +
+                 "    android:layout_height=\"wrap_content\"\n" +
+                 "    android:orientation=\"vertical\" >\n" +
+                 "\n" +
+                 "    <Button\n" +
+                 "        android:id=\"@+id/button1\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:text=\"Button\" />\n" +
+                 "<!-- my comment -->\n" +
+                 "some text\n" +
+                 "\n" +
+                 "</LinearLayout>\n";
+
+    XmlFile xmlFile = (XmlFile)myFixture.configureByText("test.xml", xml);
+    VirtualFile file = xmlFile.getVirtualFile();
+    assertNotNull(file);
+    assertTrue(file.exists());
+    Project project = getProject();
+    assertNotNull(project);
+    final Document psiDocument = DomPsiConverter.convert(xmlFile);
+    assertNotNull(psiDocument);
+
+    Document document = XmlUtils.parseDocumentSilently(xmlFile.getText(), true);
+    assertNotNull(document);
+
+    Element button = (Element)psiDocument.getElementsByTagName("Button").item(0);
+
+    LintIdeClient client = LintIdeSupport.get().createClient(project, new LintIgnoredResult());
+    DomPsiParser parser = new DomPsiParser(client);
+    File ioFile = VfsUtilCore.virtualToIoFile(file);
+    int button1Start = parser.getNodeStartOffset(client, ioFile, button);
+    int button1End = parser.getNodeEndOffset(client, ioFile, button);
+    assertSame(button, parser.findNodeAt(psiDocument, button1Start));
+    assertSame(button, parser.findNodeAt(psiDocument, button1End-1));
+    Attr buttonId = button.getAttributeNodeNS(ANDROID_URI, ATTR_ID);
+    int buttonIdStart = parser.getNodeStartOffset(client, ioFile, buttonId);
+    int buttonIdEnd = parser.getNodeEndOffset(client, ioFile, buttonId);
+    assertSame(buttonId, parser.findNodeAt(psiDocument, buttonIdStart));
+    assertSame(buttonId, parser.findNodeAt(psiDocument, buttonIdEnd - 1));
+
+    Node text = parser.findNodeAt(psiDocument, xml.indexOf("some text"));
+    assertNotNull(text);
+    assertEquals(Node.TEXT_NODE, text.getNodeType());
+    assertEquals("\nsome text\n\n", text.getNodeValue());
+
+    Node comment = parser.findNodeAt(psiDocument, xml.indexOf("comment"));
+    assertNotNull(comment);
+    assertEquals(Node.COMMENT_NODE, comment.getNodeType());
+    assertEquals(" my comment ", comment.getNodeValue());
   }
 }

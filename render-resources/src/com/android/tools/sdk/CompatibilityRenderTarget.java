@@ -15,6 +15,8 @@
  */
 package com.android.tools.sdk;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersionUtils;
@@ -24,8 +26,6 @@ import com.android.sdklib.OptionalLibrary;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A special {@link IAndroidTarget} which simulates a particular given API level,
@@ -47,7 +47,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   private final IAndroidTarget myRealTarget;
   private final String myHashString;
 
-  public CompatibilityRenderTarget(@NotNull IAndroidTarget delegate, int apiLevel, @Nullable IAndroidTarget realTarget) {
+  public CompatibilityRenderTarget(@NonNull IAndroidTarget delegate, int apiLevel, @Nullable IAndroidTarget realTarget) {
     myDelegate = delegate;
     myApiLevel = apiLevel;
     myRealTarget = realTarget;
@@ -63,12 +63,12 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
    * Copies an existing {@link CompatibilityRenderTarget} but updates the the render delegate. It will keep the API level and
    * the real target.
    */
-  public static IAndroidTarget copyWithNewDelegate(@NotNull CompatibilityRenderTarget original, @NotNull IAndroidTarget newDelegate) {
+  public static IAndroidTarget copyWithNewDelegate(@NonNull CompatibilityRenderTarget original, @NonNull IAndroidTarget newDelegate) {
     return new CompatibilityRenderTarget(newDelegate, original.myApiLevel, original.myRealTarget);
   }
 
   /** The {@link IAndroidTarget} we're using for actual rendering */
-  @NotNull
+  @NonNull
   public IAndroidTarget getRenderTarget() {
     return myDelegate;
   }
@@ -83,7 +83,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  @NotNull
+  @NonNull
   public AndroidVersion getVersion() {
     return myVersion;
   }
@@ -99,7 +99,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  public int compareTo(@NotNull IAndroidTarget other) {
+  public int compareTo(@NonNull IAndroidTarget other) {
     int delta = myApiLevel - other.getVersion().getApiLevel();
     if (delta != 0) {
       return delta;
@@ -116,7 +116,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   // Resource tricks
 
   @Override
-  @NotNull
+  @NonNull
   public Path getPath(int pathId) {
     return myDelegate.getPath(pathId);
   }
@@ -124,7 +124,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   // Remainder: Just delegate
 
   @Override
-  @NotNull
+  @NonNull
   public String getLocation() {
     return myDelegate.getLocation();
   }
@@ -170,7 +170,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  @NotNull
+  @NonNull
   public List<String> getBootClasspath() {
     return myDelegate.getBootClasspath();
   }
@@ -181,7 +181,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  @NotNull
+  @NonNull
   public Path[] getSkins() {
     return myDelegate.getSkins();
   }
@@ -193,13 +193,13 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  @NotNull
+  @NonNull
   public List<OptionalLibrary> getOptionalLibraries() {
     return myDelegate.getOptionalLibraries();
   }
 
   @Override
-  @NotNull
+  @NonNull
   public List<OptionalLibrary> getAdditionalLibraries() {
     return myDelegate.getAdditionalLibraries();
   }

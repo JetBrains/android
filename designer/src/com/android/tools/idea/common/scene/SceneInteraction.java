@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Implements a mouse interaction started on a Scene
  */
-public class SceneInteraction extends Interaction {
+public class SceneInteraction implements Interaction {
 
   /**
    * The surface associated with this interaction.
@@ -76,11 +76,9 @@ public class SceneInteraction extends Interaction {
    * @param y         The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx The initial AWT mask for the interaction
    */
-  @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    super.begin(x, y, modifiersEx);
-    int androidX = Coordinates.getAndroidX(mySceneView, myStartX);
-    int androidY = Coordinates.getAndroidY(mySceneView, myStartY);
+    int androidX = Coordinates.getAndroidX(mySceneView, x);
+    int androidY = Coordinates.getAndroidY(mySceneView, y);
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
@@ -111,9 +109,7 @@ public class SceneInteraction extends Interaction {
    * @param y         The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key mask
    */
-  @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    super.update(x, y, modifiersEx);
     int androidX = Coordinates.getAndroidX(mySceneView, x);
     int androidY = Coordinates.getAndroidY(mySceneView, y);
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
@@ -130,8 +126,7 @@ public class SceneInteraction extends Interaction {
     int modifiers;
     if (!(event instanceof MouseReleasedEvent)) {
       Logger.getInstance(getClass()).error("The instance of event should be MouseReleasedEvent but it is " + event.getClass() +
-                                           "; The SceneView is " + mySceneView +
-                                           ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask);
+                                           "; The SceneView is " + mySceneView);
       InteractionInformation info = event.getInfo();
       x = info.getX();
       y = info.getY();
@@ -154,7 +149,6 @@ public class SceneInteraction extends Interaction {
    * @param y         The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key mask
    */
-  @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     final int androidX = Coordinates.getAndroidX(mySceneView, x);
     final int androidY = Coordinates.getAndroidY(mySceneView, y);

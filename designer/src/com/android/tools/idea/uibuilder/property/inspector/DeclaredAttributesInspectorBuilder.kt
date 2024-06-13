@@ -34,6 +34,7 @@ import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.ptable.PTableItem
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
@@ -51,7 +52,7 @@ val androidSortOrder: Comparator<PTableItem> = AttributeComparator { it.name }
 
 class DeclaredAttributesInspectorBuilder(
   private val model: NlPropertiesModel,
-  enumSupportProvider: EnumSupportProvider<NlPropertyItem>
+  enumSupportProvider: EnumSupportProvider<NlPropertyItem>,
 ) : InspectorBuilder<NlPropertyItem> {
 
   private val newPropertyInstance =
@@ -66,13 +67,13 @@ class DeclaredAttributesInspectorBuilder(
       nameControlTypeProvider,
       nameEditorProvider,
       controlTypeProvider,
-      editorProvider
+      editorProvider,
     )
   private val insertOp = ::insertNewItem
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>
+    properties: PropertiesTable<NlPropertyItem>,
   ) {
     if (properties.isEmpty || !InspectorSection.DECLARED.visible) {
       return
@@ -85,7 +86,7 @@ class DeclaredAttributesInspectorBuilder(
         { it.rawValue != null },
         insertOp,
         { it.value = null },
-        androidSortOrder
+        androidSortOrder,
       )
     val addNewRow = AddNewRowAction(newPropertyInstance)
     val deleteRowAction = DeleteRowAction()
@@ -132,6 +133,9 @@ class DeclaredAttributesInspectorBuilder(
       val manager = ActionManager.getInstance()
       shortcutSet = manager.getAction(ACTION_DELETE).shortcutSet
     }
+
+    // Running on edt because of the panel data model access
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun update(event: AnActionEvent) {
       val enabled = lineModel?.tableModel?.items?.isNotEmpty() ?: false

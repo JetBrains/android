@@ -57,7 +57,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
     new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new, AndroidGradlePropertiesDslElementSchema::new);
 
-  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aaptOptions", AaptOptionsDslElement.AAPT_OPTIONS},
     {"androidResources", AndroidResourcesDslElement.ANDROID_RESOURCES},
     {"adbOptions", AdbOptionsDslElement.ADB_OPTIONS},
@@ -88,7 +88,9 @@ public final class AndroidDslElement extends GradleDslBlockElement {
 
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 
@@ -176,9 +178,8 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   }
 
   public static final class AndroidGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 

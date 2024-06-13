@@ -25,7 +25,7 @@ open class FrameResizeTarget(type: Type) : ResizeWithSnapBaseTarget(type) {
   override fun updateAttributes(
     attributes: NlAttributesHolder,
     @AndroidDpCoordinate x: Int,
-    @AndroidDpCoordinate y: Int
+    @AndroidDpCoordinate y: Int,
   ) {
     when (myType) {
       Type.LEFT,

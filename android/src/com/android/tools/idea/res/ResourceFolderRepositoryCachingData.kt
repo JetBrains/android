@@ -33,5 +33,5 @@ class ResourceFolderRepositoryCachingData(
   val cacheFile: Path,
   val cacheIsInvalidated: Boolean,
   val codeVersion: String,
-  val cacheCreationExecutor: Executor? = null
+  val cacheCreationExecutor: Executor? = null,
 )

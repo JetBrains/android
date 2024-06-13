@@ -32,7 +32,9 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
 import java.awt.Component
@@ -44,40 +46,50 @@ import java.awt.event.KeyEvent.VK_E
 
 /** Executes an action related to device streaming. */
 fun executeStreamingAction(actionId: String, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR,
-                           modifiers: Int = CTRL_DOWN_MASK) {
+                           modifiers: Int = CTRL_DOWN_MASK,
+                           extraData: Map<String, Any?> = emptyMap()) {
   val action = ActionManager.getInstance().getAction(actionId)
-  executeStreamingAction(action, source, project, place, modifiers)
+  executeStreamingAction(action, source, project, place = place, modifiers = modifiers, extraData = extraData)
 }
 
 /** Executes an action related to device streaming. */
 fun executeStreamingAction(action: AnAction, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR,
-                           modifiers: Int = CTRL_DOWN_MASK) {
-  val event = createTestEvent(source, project, place, modifiers)
+                           modifiers: Int = CTRL_DOWN_MASK,
+                           extraData: Map<String, Any?> = emptyMap()) {
+  val event = createTestEvent(source, project, place = place, modifiers = modifiers, extraData = extraData)
   action.update(event)
   assertThat(event.presentation.isEnabledAndVisible).isTrue()
   action.actionPerformed(event)
 }
 
 fun updateAndGetActionPresentation(actionId: String, source: Component, project: Project,
-                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
+                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT,
+                                   extraData: Map<String, Any?> = emptyMap()): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
-  return updateAndGetActionPresentation(action, source, project, place)
+  return updateAndGetActionPresentation(action, source, project, place = place, extraData = extraData)
 }
 
 fun updateAndGetActionPresentation(action: AnAction, source: Component, project: Project,
-                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
-  val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone())
+                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT,
+                                   extraData: Map<String, Any?> = emptyMap()): Presentation {
+  val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone(), extraData = extraData)
   action.update(event)
   return event.presentation
 }
 
 fun createTestEvent(source: Component, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
-                    modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation()): AnActionEvent {
+                    modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation(),
+                    extraData: Map<String, Any?> = emptyMap()): AnActionEvent {
   val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
-  return AnActionEvent(inputEvent, TestDataContext(source, project), place, presentation, ActionManager.getInstance(), 0)
+  return AnActionEvent(inputEvent, TestDataContext(source, project, extraData), place, presentation, ActionManager.getInstance(), 0)
 }
 
-private class TestDataContext(private val component: Component, private val project: Project) : DataContext {
+private class TestDataContext(
+  private val component: Component,
+  private val project: Project,
+  private val extraData: Map<String, Any?> = emptyMap(),
+) : CustomizedDataContext() {
+
   private val emulatorView
     get() = component as? EmulatorView
   private val deviceView
@@ -85,7 +97,9 @@ private class TestDataContext(private val component: Component, private val proj
   private val displayView
     get() = component as? AbstractDisplayView
 
-  override fun getData(dataId: String): Any? {
+  override fun getParent(): DataContext = EMPTY_CONTEXT
+
+  override fun getRawCustomData(dataId: String): Any? {
     return when (dataId) {
       EMULATOR_VIEW_KEY.name -> emulatorView
       EMULATOR_CONTROLLER_KEY.name -> emulatorView?.emulator
@@ -96,7 +110,8 @@ private class TestDataContext(private val component: Component, private val proj
       ZOOMABLE_KEY.name -> component as? ZoomablePanel
       SERIAL_NUMBER_KEY.name -> displayView?.deviceSerialNumber
       CommonDataKeys.PROJECT.name -> project
-      else -> null
+      PlatformCoreDataKeys.CONTEXT_COMPONENT.name -> component
+      else -> extraData[dataId]
     }
   }
 }

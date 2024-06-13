@@ -18,9 +18,10 @@ package com.android.tools.idea.gradle.dsl.model.notifications;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 public final class IncompleteParsingNotification implements BuildModelNotification {
   private final List<String> myUnknownElementNames = new ArrayList<>();

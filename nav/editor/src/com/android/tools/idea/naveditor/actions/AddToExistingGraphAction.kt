@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.moveIntoNestedGraph
@@ -24,10 +25,15 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class AddToExistingGraphAction(val surface: NavDesignSurface, name: String, private val graph: NlComponent) : AnAction(name) {
+class AddToExistingGraphAction(name: String, private val graph: NlComponent) : AnAction(name) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabled = e.getData(DESIGN_SURFACE) is NavDesignSurface
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
     if (moveIntoNestedGraph(surface) { graph }) {
       NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.MOVE_TO_GRAPH)
         .withSource(NavEditorEvent.Source.CONTEXT_MENU)

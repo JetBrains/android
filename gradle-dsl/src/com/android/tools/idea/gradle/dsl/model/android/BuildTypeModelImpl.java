@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement.FIREBASE_CRASHLYTICS;
-
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
-import com.android.tools.idea.gradle.dsl.api.crashlytics.FirebaseCrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.model.crashlytics.FirebaseCrashlyticsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
-import com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +39,8 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NonNls public static final String TEST_COVERAGE_ENABLED = "mTestCoverageEnabled";
   @NonNls public static final String USE_PROGUARD = "mUseProguard";
   @NonNls public static final String ZIP_ALIGN_ENABLED = "mZipAlignEnabled";
+  @NonNls public static final String ENABLE_UNIT_TEST_COVERAGE = "mEnableUnitTestCoverage";
+  @NonNls public static final String ENABLE_ANDROID_TEST_COVERAGE = "mEnableAndroidTestCoverage";
 
   public BuildTypeModelImpl(@NotNull BuildTypeDslElement dslElement) {
     super(dslElement);
@@ -128,10 +125,8 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   }
 
   @Override
-  @NotNull
-  public FirebaseCrashlyticsModel firebaseCrashlytics() {
-    FirebaseCrashlyticsDslElement firebaseCrashlyticsDslElement = myDslElement.ensurePropertyElement(FIREBASE_CRASHLYTICS);
-    return new FirebaseCrashlyticsModelImpl(firebaseCrashlyticsDslElement);
-  }
+  public @NotNull ResolvedPropertyModel enableUnitTestCoverage() { return getModelForProperty(ENABLE_UNIT_TEST_COVERAGE); }
 
+  @Override
+  public @NotNull ResolvedPropertyModel enableAndroidTestCoverage() { return getModelForProperty(ENABLE_ANDROID_TEST_COVERAGE); }
 }

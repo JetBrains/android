@@ -16,7 +16,7 @@
 
 #include "video_packet_header.h"
 
-#include <inttypes.h>
+#include <cinttypes>
 
 #include "string_printf.h"
 

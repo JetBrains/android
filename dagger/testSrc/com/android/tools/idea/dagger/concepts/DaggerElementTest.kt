@@ -97,13 +97,11 @@ class DaggerElementTest {
 
       fun someFun<caret>ction() = Foo()
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType =
-      myFixture.elementAtCaret
-        .parentOfType<KtFunction>(/* withSelf = */ true)!!
-        .getReturnedPsiType()
+      myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf= */ true)!!.getReturnedPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -117,12 +115,12 @@ class DaggerElementTest {
 
       class Foo constructo<caret>r() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType =
       myFixture.elementAtCaret
-        .parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!
+        .parentOfType<KtConstructor<*>>(/* withSelf= */ true)!!
         .getReturnedPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
@@ -141,11 +139,11 @@ class DaggerElementTest {
         public Foo fo<caret>o() { return new Foo(); }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType =
-      myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf = */ true)!!.getReturnedPsiType()
+      myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf= */ true)!!.getReturnedPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -161,11 +159,11 @@ class DaggerElementTest {
         public Fo<caret>o() {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiType =
-      myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf = */ true)!!.getReturnedPsiType()
+      myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf= */ true)!!.getReturnedPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -179,10 +177,10 @@ class DaggerElementTest {
 
       class Fo<caret>o
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val classElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!
+    val classElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf= */ true)!!
     assertThat(classElement.classToPsiType().canonicalText).isEqualTo("com.example.Foo")
     assertThat((classElement as PsiElement).classToPsiType().canonicalText)
       .isEqualTo("com.example.Foo")
@@ -198,11 +196,11 @@ class DaggerElementTest {
 
       object Fo<caret>o
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val objectElement =
-      myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf = */ true)!!
+      myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf= */ true)!!
     assertThat(objectElement.classToPsiType().canonicalText).isEqualTo("com.example.Foo")
     assertThat((objectElement as PsiElement).classToPsiType().canonicalText)
       .isEqualTo("com.example.Foo")
@@ -218,10 +216,10 @@ class DaggerElementTest {
 
       public class Fo<caret>o {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val classElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!
+    val classElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf= */ true)!!
     assertThat(classElement.classToPsiType().canonicalText).isEqualTo("com.example.Foo")
     assertThat((classElement as PsiElement).classToPsiType().canonicalText)
       .isEqualTo("com.example.Foo")
@@ -238,7 +236,7 @@ class DaggerElementTest {
 
       public class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertThrows(IllegalArgumentException::class.java) { psiFile.classToPsiType() }
@@ -254,11 +252,11 @@ class DaggerElementTest {
 
       object Fo<caret>o
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val psiElement =
-      myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf = */ true)!!
+      myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -286,10 +284,10 @@ class DaggerElementTest {
 
       class Fo<caret>o
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -319,10 +317,10 @@ class DaggerElementTest {
 
       fun someFun<caret>ction() = Foo()
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtFunctionIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -350,11 +348,10 @@ class DaggerElementTest {
 
       class Foo construct<caret>or() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement =
-      myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtConstructorIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -382,11 +379,10 @@ class DaggerElementTest {
 
       class Foo construct<caret>or() {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement =
-      myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtFunctionIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -416,10 +412,10 @@ class DaggerElementTest {
 
       fun someFunction(fo<caret>o: Foo) {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<KtParameter>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<KtParameter>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtParameterIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -451,10 +447,10 @@ class DaggerElementTest {
         val f<caret>oo: Foo
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<KtProperty>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<KtProperty>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtPropertyIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -482,10 +478,10 @@ class DaggerElementTest {
 
       public class Fo<caret>o {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockPsiClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -517,10 +513,10 @@ class DaggerElementTest {
         public Foo fo<caret>o;
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<PsiField>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<PsiField>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockPsiFieldIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -552,10 +548,10 @@ class DaggerElementTest {
         public Foo fo<caret>o() { return new Foo(); }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockPsiMethodIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -587,10 +583,10 @@ class DaggerElementTest {
         public void foo(Foo f<caret>oo) {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    val psiElement = myFixture.elementAtCaret.parentOfType<PsiParameter>(/* withSelf = */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<PsiParameter>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockPsiParameterIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -619,7 +615,7 @@ class DaggerElementTest {
 
       public class Foo {}
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertThat(mockIdentifiers.getDaggerElement(psiFile)).isNull()

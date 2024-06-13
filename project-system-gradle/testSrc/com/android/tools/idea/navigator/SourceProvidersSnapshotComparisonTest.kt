@@ -74,6 +74,7 @@ data class SourceProvidersTestDef(
       SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK),
       SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT),
       SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
+      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST),
       SourceProvidersTestDef(TestProject.APP_WITH_ML_MODELS),
       SourceProvidersTestDef(TestProject.MULTI_FLAVOR),
       SourceProvidersTestDef(TestProject.PSD_SAMPLE_GROOVY),

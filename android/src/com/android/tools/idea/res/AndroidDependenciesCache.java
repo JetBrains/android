@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
@@ -32,8 +33,6 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.lang.ref.WeakReference;
@@ -49,8 +48,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidDependenciesCache implements Disposable {
-  private static final Key<AndroidDependenciesCache> KEY = Key.create(AndroidDependenciesCache.class.getName());
-
   private final Module myModule;
   private final AtomicReference<List<WeakReference<AndroidFacet>>> myAllDependencies = new AtomicReference<>();
   private final AtomicReference<List<WeakReference<AndroidFacet>>> myAllLibraryDependencies = new AtomicReference<>();
@@ -107,14 +104,7 @@ public class AndroidDependenciesCache implements Disposable {
 
   @NotNull
   public static synchronized AndroidDependenciesCache getInstance(@NotNull Module module) {
-    AndroidDependenciesCache cache = module.getUserData(KEY);
-
-    if (cache == null) {
-      cache = new AndroidDependenciesCache(module);
-      Disposer.register(module, cache);
-      module.putUserData(KEY, cache);
-    }
-    return cache;
+    return module.getService(AndroidDependenciesCache.class);
   }
 
   @NotNull
@@ -239,13 +229,15 @@ public class AndroidDependenciesCache implements Disposable {
     // Loop in the reverse order to resolve dependencies on the libraries, so that if a library
     // is required by two higher level libraries it can be inserted in the correct place.
 
+    boolean isTestModule = ModuleSystemUtil.isAndroidTestModule(module);
     for (int i = entries.length; --i >= 0;) {
       ProgressManager.checkCanceled();
       OrderEntry orderEntry = entries[i];
       if (orderEntry instanceof ModuleOrderEntry) {
         ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
 
-        if (moduleOrderEntry.getScope() == DependencyScope.COMPILE) {
+        DependencyScope dependencyScope = moduleOrderEntry.getScope();
+        if (dependencyScope == DependencyScope.COMPILE || (isTestModule && dependencyScope == DependencyScope.TEST)) {
           Module depModule = moduleOrderEntry.getModule();
 
           if (depModule != null) {

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.hyperlinks.StudioBotFilter
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.studiobot.StudioBot
 import java.time.ZoneId
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
@@ -26,15 +26,13 @@ private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
 /** Formats [LogcatMessage]'s into a [TextAccumulator] */
 internal class MessageFormatter(
   private val logcatColors: LogcatColors,
-  private val zoneId: ZoneId
+  private val zoneId: ZoneId,
 ) {
   // Keeps track of the previous tag, so we can omit on consecutive lines
   // TODO(aalbert): This was borrowed from Pidcat. Should we do it too? Should we also do it for
   // app?
   private var previousTag: String? = null
   private var previousPid: Int? = null
-
-  private val issueExplainer = IssueExplainer.get()
 
   fun formatMessages(
     formattingOptions: FormattingOptions,
@@ -63,7 +61,7 @@ internal class MessageFormatter(
         textAccumulator.accumulate(
           text = formattingOptions.tagFormat.format(tag, previousTag),
           textAttributes =
-            if (formattingOptions.tagFormat.colorize) logcatColors.getTagColor(tag) else null
+            if (formattingOptions.tagFormat.colorize) logcatColors.getTagColor(tag) else null,
         )
         textAccumulator.accumulate(
           text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid)
@@ -77,7 +75,7 @@ internal class MessageFormatter(
 
         val msg =
           when {
-            !issueExplainer.isAvailable() -> message.message
+            StudioBot.getInstance()?.isAvailable() != true -> message.message
             exceptionLinePattern.containsMatchIn(message.message) ->
               insertStudioBotText(message.message)
             else -> message.message
@@ -85,7 +83,7 @@ internal class MessageFormatter(
 
         textAccumulator.accumulate(
           text = msg.replace("\n", newline),
-          textAttributesKey = logcatColors.getMessageKey(header.logLevel)
+          textAttributesKey = logcatColors.getMessageKey(header.logLevel),
         )
         previousTag = tag
         previousPid = header.pid

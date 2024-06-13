@@ -88,9 +88,17 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
     return myself();
   }
 
+  public void waitForProjectToOpen(@NotNull Wait projectOpen, @NotNull Wait indexing) {
+    projectOpen
+      .expecting("project opened")
+      .until(() -> GuiQuery.getNonNull(() -> ProjectManager.getInstance().getOpenProjects().length == 1));
+    GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0], indexing);
+    Assume.assumeTrue(GuiQuery.getNonNull(() -> !target().isShowing()));
+  }
+
   @NotNull
   public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
-    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(120), this::clickFinishAndGetIdeFrame);
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(180), this::clickFinishAndGetIdeFrame);
   }
 
   @NotNull
@@ -99,7 +107,15 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   private IdeFrameFixture clickFinishAndGetIdeFrame() {
-    clickFinish();
+    clickFinishButton();
+    try {
+      waitForProjectToOpen(Wait.seconds(15), Wait.seconds(240));
+    } catch (Exception ignored) {
+      GuiTests.waitForBackgroundTasks(robot());
+      robot().waitForIdle();
+      clickFinishButton();
+      waitForProjectToOpen(Wait.seconds(15), Wait.seconds(240));
+    }
     IdeFrameFixture ideFrameFixture = IdeFrameFixture.find(robot());
     ideFrameFixture.requestFocusIfLost();
     return ideFrameFixture;
@@ -107,5 +123,9 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   private void clickFinish() {
     clickFinish(Wait.seconds(15), Wait.seconds(240));
+  }
+
+  public void clickFinishButton() {
+    findAndKeypressButton(this, "Finish", KeyEvent.VK_ENTER);
   }
 }

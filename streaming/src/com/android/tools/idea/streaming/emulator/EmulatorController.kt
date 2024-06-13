@@ -89,6 +89,7 @@ import java.util.Locale
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.max
 
 /**
  * Controls a running Emulator.
@@ -217,7 +218,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     loadSkins(config)
 
     val maxPixels =
-        config.displayModes.maxOfOrNull { it.displaySize.width * it.displaySize.height } ?: (config.displayWidth * config.displayHeight)
+        config.displayModes.maxOfOrNull { it.displaySize.width * it.displaySize.height } ?:
+        max(config.displayWidth * config.displayHeight, config.additionalDisplays.values.maxOfOrNull { it.width * it.height } ?: 0)
     maxInboundMessageSize = maxPixels * 3 + 100 // Three bytes per pixel.
 
     connectGrpc(maxInboundMessageSize)

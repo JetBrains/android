@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.CONSOLE_READ;
-import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.ENVIRONMENT_VARIABLE;
-import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.PLAIN_TEXT;
-
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import java.util.LinkedHashMap;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.LinkedHashMap;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.*;
 
 public class PasswordPropertyModelImpl extends MultiTypePropertyModelImpl<PasswordType> implements PasswordPropertyModel {
   @NonNls private static final String SYSTEM_GETENV = "System.getenv";

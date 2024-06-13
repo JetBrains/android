@@ -1,0 +1,5 @@
+[versions]
+kotlin = "$VERSION$"
+[plugins]
+android-library = { id = "com.android.library", version = "+" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

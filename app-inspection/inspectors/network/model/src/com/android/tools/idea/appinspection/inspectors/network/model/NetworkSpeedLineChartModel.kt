@@ -25,7 +25,7 @@ import java.util.concurrent.Executor
 class NetworkSpeedLineChartModel(
   timeline: Timeline,
   private val dataSource: NetworkInspectorDataSource,
-  backgroundExecutor: Executor
+  backgroundExecutor: Executor,
 ) : LineChartModel(backgroundExecutor) {
   val trafficRange = Range(0.0, 4.0)
 
@@ -35,7 +35,7 @@ class NetworkSpeedLineChartModel(
       timeline.viewRange,
       trafficRange,
       createSeries(NetworkTrafficLabel.BYTES_RECEIVED),
-      timeline.dataRange
+      timeline.dataRange,
     )
 
   val txSeries =
@@ -44,7 +44,7 @@ class NetworkSpeedLineChartModel(
       timeline.viewRange,
       trafficRange,
       createSeries(NetworkTrafficLabel.BYTES_SENT),
-      timeline.dataRange
+      timeline.dataRange,
     )
 
   init {
@@ -57,5 +57,11 @@ class NetworkSpeedLineChartModel(
       if (trafficType == NetworkTrafficLabel.BYTES_RECEIVED) event.speedEvent.rxSpeed
       else event.speedEvent.txSpeed
     }
+  }
+
+  fun invalidate() {
+    changed(Aspect.LINE_CHART)
+    rxSeries.invalidate()
+    txSeries.invalidate()
   }
 }

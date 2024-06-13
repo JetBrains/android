@@ -34,7 +34,7 @@ class AnimationToolbarAnalyticsManager
 @VisibleForTesting
 constructor(
   private val logger: Consumer<AndroidStudioEvent.Builder>,
-  private val asynchronous: Boolean
+  private val asynchronous: Boolean,
 ) {
   constructor() : this(Consumer { eventBuilder -> UsageTracker.log(eventBuilder) }, true)
 
@@ -77,17 +77,17 @@ constructor(
 interface AnimationToolbarUsageTracker {
   fun logToolbarEvent(
     toolbarType: AnimationPreviewEvent.ToolbarType,
-    userAction: AnimationPreviewEvent.UserAction
+    userAction: AnimationPreviewEvent.UserAction,
   )
 }
 
 private class AsyncTracker(
   private val executor: Executor,
-  val delegator: AnimationToolbarUsageTracker
+  val delegator: AnimationToolbarUsageTracker,
 ) : AnimationToolbarUsageTracker {
   override fun logToolbarEvent(
     toolbarType: AnimationPreviewEvent.ToolbarType,
-    userAction: AnimationPreviewEvent.UserAction
+    userAction: AnimationPreviewEvent.UserAction,
   ) {
     try {
       executor.execute { delegator.logToolbarEvent(toolbarType, userAction) }
@@ -103,7 +103,7 @@ private class AnimationToolbarUsageTrackerImpl(
 
   override fun logToolbarEvent(
     toolbarType: AnimationPreviewEvent.ToolbarType,
-    userAction: AnimationPreviewEvent.UserAction
+    userAction: AnimationPreviewEvent.UserAction,
   ) {
     val animationEvent =
       AnimationPreviewEvent.newBuilder()

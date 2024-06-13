@@ -40,29 +40,25 @@ class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTas
     stage.stopMemoryRecording()
   }
 
-  override fun loadTask(args: TaskArgs?): Boolean {
+  override fun loadTask(args: TaskArgs): Boolean {
     if (args !is NativeAllocationsTaskArgs) {
       handleError("The task arguments (TaskArgs) supplied are not of the expected type (NativeAllocationsTaskArgs)")
       return false
     }
+
     val nativeAllocationsTaskArtifact = args.getMemoryCaptureArtifact()
+    if (nativeAllocationsTaskArtifact == null) {
+      handleError("The task arguments (NativeAllocationsTaskArgs) supplied do not contains a valid artifact to load")
+      return false
+    }
     loadCapture(nativeAllocationsTaskArtifact)
     return true
   }
 
-  override fun createArgs(sessionItems: Map<Long, SessionItem>,
-                          selectedSession: Common.Session): NativeAllocationsTaskArgs? {
-    // Finds the artifact that backs the task identified via its corresponding unique session (selectedSession).
-    val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
+  override fun createStartTaskArgs(isStartupTask: Boolean) = NativeAllocationsTaskArgs(isStartupTask, null)
 
-    // Only if the underlying artifact is non-null should the TaskArgs be non-null.
-    return if (supportsArtifact(artifact)) {
-      artifact.asSafely<HeapProfdSessionArtifact>()?.let { NativeAllocationsTaskArgs(it) }
-    }
-    else {
-      null
-    }
-  }
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = NativeAllocationsTaskArgs(false,
+                                                                                               artifact as HeapProfdSessionArtifact)
 
   override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
     SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_NATIVE_RECORDING)

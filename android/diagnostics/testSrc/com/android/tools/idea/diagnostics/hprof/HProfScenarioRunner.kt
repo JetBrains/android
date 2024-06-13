@@ -31,6 +31,7 @@ import com.android.tools.idea.diagnostics.hprof.util.UByteList
 import com.android.tools.idea.diagnostics.hprof.util.UShortList
 import com.android.tools.idea.diagnostics.hprof.visitors.RemapIDsVisitor
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
+import com.intellij.openapi.util.SystemInfo
 import org.junit.Assert
 import org.junit.rules.TemporaryFolder
 import java.io.File
@@ -163,11 +164,14 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
     }
 
   /**
-   * Get the contents of the baseline file, with system-dependent line endings
+   * Get the contents of the baseline file with UNIX line-endings.
    */
   private fun getBaselineContents(path: Path): String {
-    return String(Files.readAllBytes(path), StandardCharsets.UTF_8)
-      .replace(Regex("(\r\n|\n)"), System.lineSeparator())
+    return if (SystemInfo.isWindows) {
+      String(Files.readAllBytes(path), StandardCharsets.UTF_8).replace(Regex("(\r\n)"), "\n")
+    } else {
+      return String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+    }
   }
 
   /**

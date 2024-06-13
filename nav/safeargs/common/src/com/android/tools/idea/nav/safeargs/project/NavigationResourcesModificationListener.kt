@@ -134,7 +134,7 @@ class NavigationResourcesModificationListener(project: Project) :
       object :
         LazyFileListenerSubscriber<NavigationResourcesModificationListener>(
           NavigationResourcesModificationListener(project),
-          this
+          this,
         ) {
         override fun subscribe() {
           // To receive all changes happening in the VFS. File modifications may

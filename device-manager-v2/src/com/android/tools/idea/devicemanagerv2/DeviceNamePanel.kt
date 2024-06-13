@@ -25,7 +25,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -33,6 +32,7 @@ import java.time.format.FormatStyle
 import javax.swing.GroupLayout
 import javax.swing.LayoutStyle.ComponentPlacement
 import kotlin.math.min
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A panel that renders the name of the device, along with its wear pairing status and a second line

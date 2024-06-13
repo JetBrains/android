@@ -16,9 +16,13 @@
  * limitations under the License.
  */
 
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package androidx.compose.compiler.plugins.kotlin.lower.decoys
 
+import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
 import androidx.compose.compiler.plugins.kotlin.lower.ModuleLoweringPass
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
@@ -26,12 +30,12 @@ import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.KotlinMangler
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.getAnnotation
-import org.jetbrains.kotlin.resolve.BindingTrace
 
 /**
  * Record signatures of the functions created by the [CreateDecoysTransformer] to match them from
@@ -39,18 +43,20 @@ import org.jetbrains.kotlin.resolve.BindingTrace
  * ensure that signature are matching serialized functions.
  */
 class RecordDecoySignaturesTransformer(
-  pluginContext: IrPluginContext,
-  symbolRemapper: DeepCopySymbolRemapper,
-  bindingTrace: BindingTrace,
-  override val signatureBuilder: IdSignatureFactory,
-  metrics: ModuleMetrics,
-  private val mangler: KotlinMangler.IrMangler
+    pluginContext: IrPluginContext,
+    symbolRemapper: DeepCopySymbolRemapper,
+    override val signatureBuilder: IdSignatureFactory,
+    metrics: ModuleMetrics,
+    val mangler: KotlinMangler.IrMangler,
+    stabilityInferencer: StabilityInferencer,
+    featureFlags: FeatureFlags,
 ) : AbstractDecoysLowering(
     pluginContext = pluginContext,
     symbolRemapper = symbolRemapper,
-    bindingTrace = bindingTrace,
     metrics = metrics,
-    signatureBuilder = signatureBuilder
+    signatureBuilder = signatureBuilder,
+    stabilityInferencer = stabilityInferencer,
+    featureFlags = featureFlags,
 ), ModuleLoweringPass {
 
     override fun lower(module: IrModuleFragment) {

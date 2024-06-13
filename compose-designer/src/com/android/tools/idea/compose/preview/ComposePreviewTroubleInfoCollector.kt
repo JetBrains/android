@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.preview.actions.getPreviewManager
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.troubleshooting.TroubleInfoCollector
 
 private fun findAllComposePreviewManagers(project: Project): Collection<ComposePreviewManager> =
-  FileEditorManager.getInstance(project)?.allEditors?.mapNotNull { it.getComposePreviewManager() }
+  FileEditorManager.getInstance(project)?.allEditors?.mapNotNull { it.getPreviewManager() }
     ?: emptyList()
 
 private fun collectComposePreviewManagerInfo(project: Project): String =
   findAllComposePreviewManagers(project).joinToString("\n") {
-    "ComposePreviewManager: previewFile=${it.previewedFile} status=${it.status()} mode=${it.mode}"
+    "ComposePreviewManager: status=${it.status()} mode=${it.mode}"
   }
 
 /** [TroubleInfoCollector] to collect information related to Compose Preview. */
 class ComposePreviewTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project) =
     """
-Compose Preview Essentials Mode enabled: ${ComposePreviewEssentialsModeManager.isEssentialsModeEnabled}
+Preview Essentials Mode enabled: ${PreviewEssentialsModeManager.isEssentialsModeEnabled}
 
 ${collectComposePreviewManagerInfo(project)}
     """

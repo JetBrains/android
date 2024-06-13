@@ -18,10 +18,6 @@ MODULE                        : MultiFlavor
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
-        TEST_COMPILE_MODE             : Android tests
-        TEST_COMPILE_MODE             : Unit tests
-        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
@@ -51,8 +47,6 @@ MODULE                        : MultiFlavor
                 qName                         : :app
                 group                         : MultiFlavor
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -62,244 +56,248 @@ MODULE                        : MultiFlavor
                     testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestFirstAbcAnnotationProcessor  : <empty>
-                    androidTestFirstAbcCompileOnly          : <empty>
-                    androidTestFirstAbcImplementation       : <empty>
-                    androidTestFirstAbcRuntimeOnly          : <empty>
-                    androidTestFirstAbcSecondAbcAnnotationProcessor   : <empty>
-                    androidTestFirstAbcSecondAbcCompileOnly : <empty>
-                    androidTestFirstAbcSecondAbcDebugAnnotationProcessor        : <empty>
-                    androidTestFirstAbcSecondAbcDebugCompileOnly      : <empty>
-                    androidTestFirstAbcSecondAbcDebugImplementation   : <empty>
-                    androidTestFirstAbcSecondAbcDebugRuntimeOnly      : <empty>
-                    androidTestFirstAbcSecondAbcDebugWearApp          : <empty>
-                    androidTestFirstAbcSecondAbcImplementation        : <empty>
-                    androidTestFirstAbcSecondAbcRuntimeOnly : <empty>
-                    androidTestFirstAbcSecondAbcWearApp     : <empty>
-                    androidTestFirstAbcWearApp    : <empty>
-                    androidTestFirstXyzAnnotationProcessor  : <empty>
-                    androidTestFirstXyzCompileOnly          : <empty>
-                    androidTestFirstXyzImplementation       : <empty>
-                    androidTestFirstXyzRuntimeOnly          : <empty>
-                    androidTestFirstXyzWearApp    : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestSecondAbcAnnotationProcessor : <empty>
-                    androidTestSecondAbcCompileOnly         : <empty>
-                    androidTestSecondAbcImplementation      : <empty>
-                    androidTestSecondAbcRuntimeOnly         : <empty>
-                    androidTestSecondAbcWearApp   : <empty>
-                    androidTestSecondXyzAnnotationProcessor : <empty>
-                    androidTestSecondXyzCompileOnly         : <empty>
-                    androidTestSecondXyzImplementation      : <empty>
-                    androidTestSecondXyzRuntimeOnly         : <empty>
-                    androidTestSecondXyzWearApp   : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugApi                      : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugWearApp                  : <empty>
-                    default                       : <empty>
-                    firstAbcAnnotationProcessor   : <empty>
-                    firstAbcApi                   : <empty>
-                    firstAbcCompileOnly           : <empty>
-                    firstAbcImplementation        : <empty>
-                    firstAbcRuntimeOnly           : <empty>
-                    firstAbcSecondAbcAnnotationProcessor    : <empty>
-                    firstAbcSecondAbcApi          : <empty>
-                    firstAbcSecondAbcCompileOnly  : <empty>
-                    - firstAbcSecondAbcDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcDebug/app-firstAbc-secondAbc-debug.aab [-]
-                    firstAbcSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
-                    firstAbcSecondAbcDebugAndroidTestCompileClasspath : <empty>
-                    firstAbcSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
-                    firstAbcSecondAbcDebugAnnotationProcessor         : <empty>
-                    firstAbcSecondAbcDebugAnnotationProcessorClasspath          : <empty>
-                    firstAbcSecondAbcDebugApi     : <empty>
-                    firstAbcSecondAbcDebugApiElements       : <empty>
-                    - firstAbcSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcDebug/apks.zip [-]
-                    firstAbcSecondAbcDebugCompileClasspath  : <empty>
-                    firstAbcSecondAbcDebugCompileOnly       : <empty>
-                    firstAbcSecondAbcDebugImplementation    : <empty>
-                    firstAbcSecondAbcDebugReverseMetadataValues       : <empty>
-                    firstAbcSecondAbcDebugRuntimeClasspath  : <empty>
-                    firstAbcSecondAbcDebugRuntimeElements   : <empty>
-                    firstAbcSecondAbcDebugRuntimeOnly       : <empty>
-                    firstAbcSecondAbcDebugUnitTestAnnotationProcessorClasspath  : <empty>
-                    firstAbcSecondAbcDebugUnitTestCompileClasspath    : <empty>
-                    firstAbcSecondAbcDebugUnitTestRuntimeClasspath    : <empty>
-                    firstAbcSecondAbcDebugWearApp : <empty>
-                    firstAbcSecondAbcDebugWearBundling      : <empty>
-                    firstAbcSecondAbcImplementation         : <empty>
-                    - firstAbcSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcRelease/app-firstAbc-secondAbc-release.aab [-]
-                    firstAbcSecondAbcReleaseAnnotationProcessor       : <empty>
-                    firstAbcSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
-                    firstAbcSecondAbcReleaseApi   : <empty>
-                    firstAbcSecondAbcReleaseApiElements     : <empty>
-                    - firstAbcSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcRelease/apks.zip [-]
-                    firstAbcSecondAbcReleaseCompileClasspath          : <empty>
-                    firstAbcSecondAbcReleaseCompileOnly     : <empty>
-                    firstAbcSecondAbcReleaseImplementation  : <empty>
-                    firstAbcSecondAbcReleaseReverseMetadataValues     : <empty>
-                    firstAbcSecondAbcReleaseRuntimeClasspath          : <empty>
-                    firstAbcSecondAbcReleaseRuntimeElements : <empty>
-                    firstAbcSecondAbcReleaseRuntimeOnly     : <empty>
-                    firstAbcSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                    firstAbcSecondAbcReleaseUnitTestCompileClasspath  : <empty>
-                    firstAbcSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
-                    firstAbcSecondAbcReleaseWearApp         : <empty>
-                    firstAbcSecondAbcReleaseWearBundling    : <empty>
-                    firstAbcSecondAbcRuntimeOnly  : <empty>
-                    firstAbcSecondAbcWearApp      : <empty>
-                    firstAbcWearApp               : <empty>
-                    firstXyzAnnotationProcessor   : <empty>
-                    firstXyzApi                   : <empty>
-                    firstXyzCompileOnly           : <empty>
-                    firstXyzImplementation        : <empty>
-                    firstXyzRuntimeOnly           : <empty>
-                    firstXyzWearApp               : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseApi                    : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseWearApp                : <empty>
-                    runtimeOnly                   : <empty>
-                    secondAbcAnnotationProcessor  : <empty>
-                    secondAbcApi                  : <empty>
-                    secondAbcCompileOnly          : <empty>
-                    secondAbcImplementation       : <empty>
-                    secondAbcRuntimeOnly          : <empty>
-                    secondAbcWearApp              : <empty>
-                    secondXyzAnnotationProcessor  : <empty>
-                    secondXyzApi                  : <empty>
-                    secondXyzCompileOnly          : <empty>
-                    secondXyzImplementation       : <empty>
-                    secondXyzRuntimeOnly          : <empty>
-                    secondXyzWearApp              : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFirstAbcAnnotationProcessor         : <empty>
-                    testFirstAbcCompileOnly       : <empty>
-                    testFirstAbcImplementation    : <empty>
-                    testFirstAbcRuntimeOnly       : <empty>
-                    testFirstAbcSecondAbcAnnotationProcessor          : <empty>
-                    testFirstAbcSecondAbcCompileOnly        : <empty>
-                    testFirstAbcSecondAbcDebugAnnotationProcessor     : <empty>
-                    testFirstAbcSecondAbcDebugCompileOnly   : <empty>
-                    testFirstAbcSecondAbcDebugImplementation          : <empty>
-                    testFirstAbcSecondAbcDebugRuntimeOnly   : <empty>
-                    testFirstAbcSecondAbcDebugWearApp       : <empty>
-                    testFirstAbcSecondAbcImplementation     : <empty>
-                    testFirstAbcSecondAbcReleaseAnnotationProcessor   : <empty>
-                    testFirstAbcSecondAbcReleaseCompileOnly : <empty>
-                    testFirstAbcSecondAbcReleaseImplementation        : <empty>
-                    testFirstAbcSecondAbcReleaseRuntimeOnly : <empty>
-                    testFirstAbcSecondAbcReleaseWearApp     : <empty>
-                    testFirstAbcSecondAbcRuntimeOnly        : <empty>
-                    testFirstAbcSecondAbcWearApp  : <empty>
-                    testFirstAbcWearApp           : <empty>
-                    testFirstXyzAnnotationProcessor         : <empty>
-                    testFirstXyzCompileOnly       : <empty>
-                    testFirstXyzImplementation    : <empty>
-                    testFirstXyzRuntimeOnly       : <empty>
-                    testFirstXyzWearApp           : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesFirstAbcAnnotationProcessor : <empty>
-                    testFixturesFirstAbcApi       : <empty>
-                    testFixturesFirstAbcCompileOnly         : <empty>
-                    testFixturesFirstAbcImplementation      : <empty>
-                    testFixturesFirstAbcRuntimeOnly         : <empty>
-                    testFixturesFirstAbcWearApp   : <empty>
-                    testFixturesFirstXyzAnnotationProcessor : <empty>
-                    testFixturesFirstXyzApi       : <empty>
-                    testFixturesFirstXyzCompileOnly         : <empty>
-                    testFixturesFirstXyzImplementation      : <empty>
-                    testFixturesFirstXyzRuntimeOnly         : <empty>
-                    testFixturesFirstXyzWearApp   : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesSecondAbcAnnotationProcessor          : <empty>
-                    testFixturesSecondAbcApi      : <empty>
-                    testFixturesSecondAbcCompileOnly        : <empty>
-                    testFixturesSecondAbcImplementation     : <empty>
-                    testFixturesSecondAbcRuntimeOnly        : <empty>
-                    testFixturesSecondAbcWearApp  : <empty>
-                    testFixturesSecondXyzAnnotationProcessor          : <empty>
-                    testFixturesSecondXyzApi      : <empty>
-                    testFixturesSecondXyzCompileOnly        : <empty>
-                    testFixturesSecondXyzImplementation     : <empty>
-                    testFixturesSecondXyzRuntimeOnly        : <empty>
-                    testFixturesSecondXyzWearApp  : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testSecondAbcAnnotationProcessor        : <empty>
-                    testSecondAbcCompileOnly      : <empty>
-                    testSecondAbcImplementation   : <empty>
-                    testSecondAbcRuntimeOnly      : <empty>
-                    testSecondAbcWearApp          : <empty>
-                    testSecondXyzAnnotationProcessor        : <empty>
-                    testSecondXyzCompileOnly      : <empty>
-                    testSecondXyzImplementation   : <empty>
-                    testSecondXyzRuntimeOnly      : <empty>
-                    testSecondXyzWearApp          : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        androidApis                   : <empty>
+                        androidJacocoAnt              : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestFirstAbcAnnotationProcessor  : <empty>
+                        androidTestFirstAbcCompileOnly          : <empty>
+                        androidTestFirstAbcImplementation       : <empty>
+                        androidTestFirstAbcRuntimeOnly          : <empty>
+                        androidTestFirstAbcSecondAbcAnnotationProcessor   : <empty>
+                        androidTestFirstAbcSecondAbcCompileOnly : <empty>
+                        androidTestFirstAbcSecondAbcDebugAnnotationProcessor        : <empty>
+                        androidTestFirstAbcSecondAbcDebugCompileOnly      : <empty>
+                        androidTestFirstAbcSecondAbcDebugImplementation   : <empty>
+                        androidTestFirstAbcSecondAbcDebugRuntimeOnly      : <empty>
+                        androidTestFirstAbcSecondAbcDebugWearApp          : <empty>
+                        androidTestFirstAbcSecondAbcImplementation        : <empty>
+                        androidTestFirstAbcSecondAbcRuntimeOnly : <empty>
+                        androidTestFirstAbcSecondAbcWearApp     : <empty>
+                        androidTestFirstAbcWearApp    : <empty>
+                        androidTestFirstXyzAnnotationProcessor  : <empty>
+                        androidTestFirstXyzCompileOnly          : <empty>
+                        androidTestFirstXyzImplementation       : <empty>
+                        androidTestFirstXyzRuntimeOnly          : <empty>
+                        androidTestFirstXyzWearApp    : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestSecondAbcAnnotationProcessor : <empty>
+                        androidTestSecondAbcCompileOnly         : <empty>
+                        androidTestSecondAbcImplementation      : <empty>
+                        androidTestSecondAbcRuntimeOnly         : <empty>
+                        androidTestSecondAbcWearApp   : <empty>
+                        androidTestSecondXyzAnnotationProcessor : <empty>
+                        androidTestSecondXyzCompileOnly         : <empty>
+                        androidTestSecondXyzImplementation      : <empty>
+                        androidTestSecondXyzRuntimeOnly         : <empty>
+                        androidTestSecondXyzWearApp   : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugApi                      : <empty>
+                        debugCompileOnly              : <empty>
+                        debugImplementation           : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugWearApp                  : <empty>
+                        default                       : <empty>
+                        firstAbcAnnotationProcessor   : <empty>
+                        firstAbcApi                   : <empty>
+                        firstAbcCompileOnly           : <empty>
+                        firstAbcImplementation        : <empty>
+                        firstAbcRuntimeOnly           : <empty>
+                        firstAbcSecondAbcAnnotationProcessor    : <empty>
+                        firstAbcSecondAbcApi          : <empty>
+                        firstAbcSecondAbcCompileOnly  : <empty>
+                        - firstAbcSecondAbcDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcDebug/app-firstAbc-secondAbc-debug.aab [-]
+                        firstAbcSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
+                        firstAbcSecondAbcDebugAndroidTestCompileClasspath : <empty>
+                        firstAbcSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
+                        firstAbcSecondAbcDebugAnnotationProcessor         : <empty>
+                        firstAbcSecondAbcDebugAnnotationProcessorClasspath          : <empty>
+                        firstAbcSecondAbcDebugApi     : <empty>
+                        firstAbcSecondAbcDebugApiElements       : <empty>
+                        - firstAbcSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcDebug/apks.zip [-]
+                        firstAbcSecondAbcDebugCompileClasspath  : <empty>
+                        firstAbcSecondAbcDebugCompileOnly       : <empty>
+                        firstAbcSecondAbcDebugImplementation    : <empty>
+                        firstAbcSecondAbcDebugReverseMetadataValues       : <empty>
+                        firstAbcSecondAbcDebugRuntimeClasspath  : <empty>
+                        firstAbcSecondAbcDebugRuntimeElements   : <empty>
+                        firstAbcSecondAbcDebugRuntimeOnly       : <empty>
+                        firstAbcSecondAbcDebugUnitTestAnnotationProcessorClasspath  : <empty>
+                        firstAbcSecondAbcDebugUnitTestCompileClasspath    : <empty>
+                        firstAbcSecondAbcDebugUnitTestRuntimeClasspath    : <empty>
+                        firstAbcSecondAbcDebugWearApp : <empty>
+                        firstAbcSecondAbcDebugWearBundling      : <empty>
+                        firstAbcSecondAbcImplementation         : <empty>
+                        - firstAbcSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcRelease/app-firstAbc-secondAbc-release.aab [-]
+                        firstAbcSecondAbcReleaseAnnotationProcessor       : <empty>
+                        firstAbcSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
+                        firstAbcSecondAbcReleaseApi   : <empty>
+                        firstAbcSecondAbcReleaseApiElements     : <empty>
+                        - firstAbcSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcRelease/apks.zip [-]
+                        firstAbcSecondAbcReleaseCompileClasspath          : <empty>
+                        firstAbcSecondAbcReleaseCompileOnly     : <empty>
+                        firstAbcSecondAbcReleaseImplementation  : <empty>
+                        firstAbcSecondAbcReleaseReverseMetadataValues     : <empty>
+                        firstAbcSecondAbcReleaseRuntimeClasspath          : <empty>
+                        firstAbcSecondAbcReleaseRuntimeElements : <empty>
+                        firstAbcSecondAbcReleaseRuntimeOnly     : <empty>
+                        firstAbcSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
+                        firstAbcSecondAbcReleaseUnitTestCompileClasspath  : <empty>
+                        firstAbcSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
+                        firstAbcSecondAbcReleaseWearApp         : <empty>
+                        firstAbcSecondAbcReleaseWearBundling    : <empty>
+                        firstAbcSecondAbcRuntimeOnly  : <empty>
+                        firstAbcSecondAbcWearApp      : <empty>
+                        firstAbcWearApp               : <empty>
+                        firstXyzAnnotationProcessor   : <empty>
+                        firstXyzApi                   : <empty>
+                        firstXyzCompileOnly           : <empty>
+                        firstXyzImplementation        : <empty>
+                        firstXyzRuntimeOnly           : <empty>
+                        firstXyzWearApp               : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseApi                    : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseImplementation         : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseWearApp                : <empty>
+                        runtimeOnly                   : <empty>
+                        secondAbcAnnotationProcessor  : <empty>
+                        secondAbcApi                  : <empty>
+                        secondAbcCompileOnly          : <empty>
+                        secondAbcImplementation       : <empty>
+                        secondAbcRuntimeOnly          : <empty>
+                        secondAbcWearApp              : <empty>
+                        secondXyzAnnotationProcessor  : <empty>
+                        secondXyzApi                  : <empty>
+                        secondXyzCompileOnly          : <empty>
+                        secondXyzImplementation       : <empty>
+                        secondXyzRuntimeOnly          : <empty>
+                        secondXyzWearApp              : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFirstAbcAnnotationProcessor         : <empty>
+                        testFirstAbcCompileOnly       : <empty>
+                        testFirstAbcImplementation    : <empty>
+                        testFirstAbcRuntimeOnly       : <empty>
+                        testFirstAbcSecondAbcAnnotationProcessor          : <empty>
+                        testFirstAbcSecondAbcCompileOnly        : <empty>
+                        testFirstAbcSecondAbcDebugAnnotationProcessor     : <empty>
+                        testFirstAbcSecondAbcDebugCompileOnly   : <empty>
+                        testFirstAbcSecondAbcDebugImplementation          : <empty>
+                        testFirstAbcSecondAbcDebugRuntimeOnly   : <empty>
+                        testFirstAbcSecondAbcDebugWearApp       : <empty>
+                        testFirstAbcSecondAbcImplementation     : <empty>
+                        testFirstAbcSecondAbcReleaseAnnotationProcessor   : <empty>
+                        testFirstAbcSecondAbcReleaseCompileOnly : <empty>
+                        testFirstAbcSecondAbcReleaseImplementation        : <empty>
+                        testFirstAbcSecondAbcReleaseRuntimeOnly : <empty>
+                        testFirstAbcSecondAbcReleaseWearApp     : <empty>
+                        testFirstAbcSecondAbcRuntimeOnly        : <empty>
+                        testFirstAbcSecondAbcWearApp  : <empty>
+                        testFirstAbcWearApp           : <empty>
+                        testFirstXyzAnnotationProcessor         : <empty>
+                        testFirstXyzCompileOnly       : <empty>
+                        testFirstXyzImplementation    : <empty>
+                        testFirstXyzRuntimeOnly       : <empty>
+                        testFirstXyzWearApp           : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesFirstAbcAnnotationProcessor : <empty>
+                        testFixturesFirstAbcApi       : <empty>
+                        testFixturesFirstAbcCompileOnly         : <empty>
+                        testFixturesFirstAbcImplementation      : <empty>
+                        testFixturesFirstAbcRuntimeOnly         : <empty>
+                        testFixturesFirstAbcWearApp   : <empty>
+                        testFixturesFirstXyzAnnotationProcessor : <empty>
+                        testFixturesFirstXyzApi       : <empty>
+                        testFixturesFirstXyzCompileOnly         : <empty>
+                        testFixturesFirstXyzImplementation      : <empty>
+                        testFixturesFirstXyzRuntimeOnly         : <empty>
+                        testFixturesFirstXyzWearApp   : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesSecondAbcAnnotationProcessor          : <empty>
+                        testFixturesSecondAbcApi      : <empty>
+                        testFixturesSecondAbcCompileOnly        : <empty>
+                        testFixturesSecondAbcImplementation     : <empty>
+                        testFixturesSecondAbcRuntimeOnly        : <empty>
+                        testFixturesSecondAbcWearApp  : <empty>
+                        testFixturesSecondXyzAnnotationProcessor          : <empty>
+                        testFixturesSecondXyzApi      : <empty>
+                        testFixturesSecondXyzCompileOnly        : <empty>
+                        testFixturesSecondXyzImplementation     : <empty>
+                        testFixturesSecondXyzRuntimeOnly        : <empty>
+                        testFixturesSecondXyzWearApp  : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testSecondAbcAnnotationProcessor        : <empty>
+                        testSecondAbcCompileOnly      : <empty>
+                        testSecondAbcImplementation   : <empty>
+                        testSecondAbcRuntimeOnly      : <empty>
+                        testSecondAbcWearApp          : <empty>
+                        testSecondXyzAnnotationProcessor        : <empty>
+                        testSecondXyzCompileOnly      : <empty>
+                        testSecondXyzImplementation   : <empty>
+                        testSecondXyzRuntimeOnly      : <empty>
+                        testSecondXyzWearApp          : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
+        sourceSetModel                : DefaultGradleSourceSetModel
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -366,11 +364,14 @@ MODULE                        : MultiFlavor.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        AndroidResourcesEnabled       : true
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
+        buildType                     : debug
     - basicVariant:               : firstAbcSecondAbcRelease
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.release
+        buildType                     : release
     FlavorDimensions              : Dim1
     FlavorDimensions              : Dim2
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
@@ -455,6 +456,7 @@ MODULE                        : MultiFlavor.app
                 b                             : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -516,6 +518,7 @@ MODULE                        : MultiFlavor.app
                 b                             : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
             RenderscriptOptimLevel        : 3
             IsMinifyEnabled               : false
@@ -896,7 +899,7 @@ MODULE                        : MultiFlavor.app
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>-:app-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : MultiFlavor.app.androidTest
 MODULE                        : MultiFlavor.app.main

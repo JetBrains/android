@@ -21,12 +21,13 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.Function;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
+import java.util.function.Supplier;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link AndroidDevice} represents either a connected {@link IDevice}, or the
@@ -68,7 +69,17 @@ public interface AndroidDevice {
   List<Abi> getAbis();
 
   /**
-   * Returns a unique serial number
+   * Returns the ABI that should be used for apps deployed to this device.
+   * This can be used to test apps built with a non-native (translated) ABI.
+   * If null, the ABI used will be chosen by the build system from among the list returned by {@link #getAbis()}.
+   */
+  @Nullable
+  String getAppPreferredAbi();
+
+  /**
+   * Returns a unique, opaque, identifier for the device, which should be constant even when starting and stopping the underlying device.
+   *
+   * Note this may not be equal to the adb serial for devices that can be started.
    */
   @NotNull
   String getSerial();
@@ -107,12 +118,16 @@ public interface AndroidDevice {
   @NotNull
   LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                              @NotNull IAndroidTarget projectTarget,
-                             @NotNull AndroidFacet facet,
-                             Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
+                             @NotNull Supplier<EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
                              @NotNull Set<Abi> supportedAbis);
 
   /**
    * Returns whether this device is debuggable or not.
    */
   boolean isDebuggable();
+
+  @Nullable
+  default Icon getIcon() {
+    return null;
+  }
 }

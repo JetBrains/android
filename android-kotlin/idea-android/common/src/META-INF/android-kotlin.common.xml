@@ -21,10 +21,6 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <completion.contributor language="kotlin"
-                            implementationClass="org.jetbrains.kotlin.android.AndroidKotlinCompletionContributor"
-                            order="first, before KotlinCompletionContributor"/>
-
     <lang.foldingBuilder language="kotlin"
                          implementationClass="org.jetbrains.kotlin.android.folding.ResourceFoldingBuilder" />
 
@@ -38,6 +34,7 @@
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <projectConfigurator implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleModuleConfigurator"/>
+    <projectConfigurator implementation="org.jetbrains.kotlin.android.configure.KotlinApkModuleConfigurator"/>
     <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
     <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
   </extensions>

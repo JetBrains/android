@@ -4,112 +4,11 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 import zipfile
-
-
-def load_include(include, external_xmls, cwd, index):
-  href = include.get("href")
-  parse = include.get("parse", "xml")
-  if parse != "xml":
-    print("only xml parse is supported")
-    sys.exit(1)
-  xpointer = include.get("xpointer")
-  xpath = None
-  if xpointer:
-    m = re.match(r"xpointer\((.*)\)", xpointer)
-    if not m:
-      print("only xpointers of the form xpointer(xpath) are supported")
-      sys.exit(1)
-    xpath = m.group(1)
-  is_optional = any(child.tag == "{http://www.w3.org/2001/XInclude}fallback" for child in include)
-
-  rel = href[1:] if href.startswith("/") else cwd + "/" + href
-
-  if rel in external_xmls or is_optional:
-    return [], None
-  new_cwd = rel[0:rel.rindex("/")]
-
-  if rel not in index:
-    print("Cannot find file to include %s" % href)
-    sys.exit(1)
-
-  with zipfile.ZipFile(index[rel]) as jar:
-    res = jar.read(rel)
-
-  e = ET.fromstring(res)
-  if not xpath:
-    return [e], new_cwd
-
-  if not xpath.startswith("/"):
-    print("Unexpected xpath %s. Only absolute paths are supported" % xpath)
-    sys.exit(1)
-
-  ret = []
-  root, path = xpath[1:].split("/", 1)
-  if root == e.tag:
-    ret = e.findall("./" + path)
-  if not ret:
-    print("While including %s, the path %s," % (rel, xpath))
-    print("did not produce any elements to include")
-    sys.exit(1)
-
-  return ret, new_cwd
-
-
-def resolve_includes(elem, external_xmls, cwd, index):
-  """ Resolves xincludes in the given xml element. By replacing xinclude tags like
-
-  <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-    <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    ...
-
-  with the xml pointed by href and the xpath given in xpointer.
-  """
-
-  i = 0
-  while i < len(elem):
-    e = elem[i]
-    if e.tag == "{http://www.w3.org/2001/XInclude}include":
-      nodes, new_cwd = load_include(e, external_xmls, cwd, index)
-      subtree = ET.Element("nodes")
-      subtree.extend(nodes)
-      resolve_includes(subtree, external_xmls, new_cwd, index)
-      nodes = list(subtree)
-      if nodes:
-        for node in nodes[:-1]:
-          elem.insert(i, node)
-          i = i + 1
-        node = nodes[len(nodes)-1]
-        if e.tail:
-          node.tail = (node.tail or "") + e.tail
-        elem[i] = node
-    else:
-      resolve_includes(e, external_xmls, cwd, index)
-    i = i + 1
-
+from tools.adt.idea.studio import intellij
 
 def check_plugin(plugin_id, files, deps, external_xmls, out):
-  xmls = {}
-  index = {}
-  for file in files:
-    if file.endswith(".jar"):
-      with zipfile.ZipFile(file) as jar:
-        for jar_entry in jar.namelist():
-          if jar_entry == "META-INF/plugin.xml":
-            xmls[file + "!" + jar_entry] = jar.read(jar_entry)
-          if not jar_entry.endswith("/"):
-            # TODO: Investigate if we can have a strict mode where we fail on duplicate
-            # files across jars in the same plugin. Currently even IJ plugins fail with
-            # such a check as they have even .class files duplicated in the same plugin.
-            index[jar_entry] = file
+  element = intellij.load_plugin_xml(files, external_xmls)
 
-  if len(xmls) != 1:
-    msg = "\n".join(xmls.keys())
-    print("Plugin should have exactly one plugin.xml file (found %d)" % len(xmls))
-    print(msg)
-    sys.exit(1)
-
-  _, xml = list(xmls.items())[0]
-  element = ET.fromstring(xml)
   ids = [id.text for id in element.findall("id")]
 
   if not ids:
@@ -121,10 +20,9 @@ def check_plugin(plugin_id, files, deps, external_xmls, out):
     print("Expected exactly one id, but found [%s]" % ",".join(ids))
     sys.exit(1)
   found_id = ids[0]
-  # We cannot use ElementInclude because it does not support xpointer
-  resolve_includes(element, external_xmls, "META-INF", index)
+
   if plugin_id and found_id != plugin_id:
-    print("Expected plugin id to be %d, but found %s" % (plugin_id, found_id))
+    print("Expected plugin id to be %s, but found %s" % (plugin_id, found_id))
     sys.exit(1)
 
   if element.tag != 'idea-plugin':

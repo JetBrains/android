@@ -50,7 +50,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
 
   override fun findIssues(
     renderResult: RenderResult,
-    model: NlModel
+    model: NlModel,
   ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
@@ -69,7 +69,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     backgroundBounds: Rectangle,
     foregroundBounds: Rectangle,
     model: NlModel,
-    issueList: MutableList<VisualLintIssueContent>
+    issueList: MutableList<VisualLintIssueContent>,
   ) {
     val children =
       view.children.filter {
@@ -95,7 +95,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
             j,
             foregroundBounds,
             model,
-            view
+            view,
           )
         ) {
           issueList.add(createIssueContent(firstView, secondView))
@@ -106,7 +106,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
 
   private fun createIssueContent(
     firstView: ViewInfo,
-    secondView: ViewInfo
+    secondView: ViewInfo,
   ): VisualLintIssueContent {
     val summary = "${nameWithId(firstView)} is covered by ${nameWithId(secondView)}"
     val content = { count: Int ->
@@ -120,7 +120,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     return VisualLintIssueContent(
       view = firstView,
       message = summary,
-      descriptionProvider = content
+      descriptionProvider = content,
     )
   }
 
@@ -137,7 +137,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     j: Int,
     secondBounds: Rectangle,
     model: NlModel,
-    parentViewInfo: ViewInfo
+    parentViewInfo: ViewInfo,
   ): Boolean {
     if (!isFirstViewUnderneath(firstViewInfo, i, secondViewInfo, j, model)) {
       return false
@@ -150,7 +150,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
       secondViewInfo.left,
       secondViewInfo.top,
       secondViewInfo.right - secondViewInfo.left,
-      secondViewInfo.bottom - secondViewInfo.top
+      secondViewInfo.bottom - secondViewInfo.top,
     )
     val intersection = firstBounds.intersection(secondBounds)
     if (intersection.isEmpty) {
@@ -170,7 +170,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     firstViewIndex: Int,
     secondViewInfo: ViewInfo,
     secondViewIndex: Int,
-    model: NlModel
+    model: NlModel,
   ): Boolean {
     val comp1 = componentFromViewInfo(firstViewInfo, model)
     val comp2 = componentFromViewInfo(secondViewInfo, model)
@@ -180,12 +180,12 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
       val elev1 =
         ConstraintComponentUtilities.getDpValue(
           comp1,
-          comp1.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION)
+          comp1.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION),
         )
       val elev2 =
         ConstraintComponentUtilities.getDpValue(
           comp2,
-          comp2.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION)
+          comp2.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION),
         )
 
       if (elev1 < elev2) {
@@ -216,7 +216,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
         ?.extras
         ?.getParcelableArray(
           AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-          RectF::class.java
+          RectF::class.java,
         )
     if (data.isNullOrEmpty()) {
       return
@@ -238,7 +238,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
         left - parentBounds.left,
         top - parentBounds.top,
         right - left,
-        bottom - top
+        bottom - top,
       )
     }
   }

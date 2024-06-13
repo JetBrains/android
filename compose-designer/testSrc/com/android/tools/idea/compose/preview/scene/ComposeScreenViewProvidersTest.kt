@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview.scene
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
+import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -30,13 +30,16 @@ import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.Shape
 import com.android.tools.preview.config.createDeviceInstance
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
+import java.awt.Rectangle
+import java.awt.geom.Ellipse2D
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Rectangle
-import java.awt.geom.Ellipse2D
 
 class ComposeScreenViewProvidersTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -50,12 +53,12 @@ class ComposeScreenViewProvidersTest {
             projectRule.fixture,
             SdkConstants.FD_RES_LAYOUT,
             "model.xml",
-            ComponentDescriptor("LinearLayout")
+            ComponentDescriptor("LinearLayout"),
           )
           .build()
       }
     val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
-    surface.model = model
+    surface.addModelWithoutRender(model).await()
 
     // Create a device with round shape
     val deviceWithRoundFrame =
@@ -64,20 +67,20 @@ class ComposeScreenViewProvidersTest {
           height = 600f,
           dimUnit = DimUnit.px,
           dpi = 480,
-          shape = Shape.Round
+          shape = Shape.Round,
         )
         .createDeviceInstance()
     model.configuration.setDevice(deviceWithRoundFrame, false)
 
     var previewElement =
-      SingleComposePreviewElementInstance.forTesting(
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "TestMethod",
         displayName = "displayName",
-        showDecorations = true
+        showDecorations = true,
       )
     model.dataContext = DataContext {
       when (it) {
-        COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
         else -> null
       }
     }
@@ -96,7 +99,7 @@ class ComposeScreenViewProvidersTest {
       SingleComposePreviewElementInstance.forTesting(
         "TestMethod",
         displayName = "displayName",
-        showDecorations = false
+        showDecorations = false,
       )
     assertTrue(
       composeScreenViewProvider.createPrimarySceneView(surface, surface.sceneManager!!).screenShape

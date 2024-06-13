@@ -34,7 +34,6 @@ import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils;
-import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.AllocationStage;
 import com.android.tools.profilers.memory.CaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
@@ -75,7 +74,6 @@ public class StageNavigationToolbarTest {
 
   @Before
   public void setUp() {
-    myProfilerServices.enableEnergyProfiler(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myStageNavigationToolbar = new StageNavigationToolbar(myProfilers);
@@ -94,7 +92,6 @@ public class StageNavigationToolbarTest {
    * the Energy Profiler option back, we must repeat these set up steps with the Power Profiler disabled.
    */
   private void setUpWithPowerProfilerDisabled() {
-    myProfilerServices.enableEnergyProfiler(true);
     myProfilerServices.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.HIDE);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
@@ -156,12 +153,10 @@ public class StageNavigationToolbarTest {
 
   @Test
   public void menuShowsSupportedStagesForDebuggable() {
+    myProfilerServices.enableTaskBasedUx(false);
+
     assumeFalse(myIsTestingProfileable);
-    // The Power Profiler is enabled by the FakeIdeProfilerServices by default, and thus the Energy Profiler should not be present.
     menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class);
-    // When the Power Profiler is disabled, the Energy Profiler should be present.
-    setUpWithPowerProfilerDisabled();
-    menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class, EnergyProfilerStage.class);
   }
 
   @Test

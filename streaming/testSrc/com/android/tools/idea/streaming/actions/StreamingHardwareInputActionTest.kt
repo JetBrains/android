@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.adtui.swing.popup.FakeJBPopup
-import com.android.tools.adtui.swing.popup.FakeJBPopupFactory
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
@@ -38,12 +38,9 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.keymap.KeymapManager
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RuleChain
-import com.intellij.testFramework.replaceService
-import com.intellij.util.application
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -59,9 +56,10 @@ class StreamingHardwareInputActionTest {
 
   private val emulatorViewRule = EmulatorViewRule()
   private val agentRule = FakeScreenSharingAgentRule()
+  private val popupRule = JBPopupRule()
 
   @get:Rule
-  val rule = RuleChain(emulatorViewRule, agentRule)
+  val rule = RuleChain(emulatorViewRule, agentRule, popupRule)
 
   private val project
     get() = agentRule.project
@@ -69,11 +67,10 @@ class StreamingHardwareInputActionTest {
   private val testRootDisposable
     get() = agentRule.disposable
 
-  private val popupFactory = FakeJBPopupFactory()
+  private val popupFactory = popupRule.fakePopupFactory
 
   @Before
   fun setUp() {
-    application.replaceService(JBPopupFactory::class.java, popupFactory, testRootDisposable)
     Registry.get("ide.tooltip.initialReshowDelay").setValue(0, testRootDisposable)
   }
 

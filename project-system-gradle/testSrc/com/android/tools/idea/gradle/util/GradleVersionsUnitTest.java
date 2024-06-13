@@ -80,4 +80,11 @@ public class GradleVersionsUnitTest {
     GradleVersion gradleVersion = GradleVersions.getGradleVersionFromJar(jarFile);
     assertNull(gradleVersion);
   }
+
+  @Test
+  public void testInferStableGradleVersion() {
+    assertEquals("7.0", GradleVersions.inferStableGradleVersion("7.0"));
+    assertEquals("7.0", GradleVersions.inferStableGradleVersion("7.0-rc-1"));
+    assertEquals("7.0", GradleVersions.inferStableGradleVersion("7.0-20210328000045+0000"));
+  }
 }

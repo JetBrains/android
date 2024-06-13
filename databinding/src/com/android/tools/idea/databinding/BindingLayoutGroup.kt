@@ -16,13 +16,12 @@
 package com.android.tools.idea.databinding
 
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.util.UserDataHolderBase
 
 /**
  * A collection of relevant information for one (or more) related layout XML files - that is, a base
  * layout with possible alternate (e.g. landscape) configurations.
  */
-class BindingLayoutGroup(layouts: Collection<BindingLayout>) : UserDataHolderBase() {
+class BindingLayoutGroup(layouts: Collection<BindingLayout>) {
   init {
     assert(layouts.isNotEmpty())
   }

@@ -4,8 +4,25 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.safemode",
+    srcs = ["src"],
     iml_files = ["intellij.android.safemode.iml"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+    ],
+)
+
+py_binary(
+    name = "generate_safe_mode_scripts",
+    srcs = ["script-generation/generate_safe_mode_scripts.py"],
+    data = [
+        "//tools/adt/idea/studio:android-studio.linux.zip",
+        "//tools/adt/idea/studio:android-studio.mac.zip",
+        "//tools/adt/idea/studio:android-studio.win.zip",
+    ],
 )
 
 py_test(
@@ -45,7 +62,8 @@ iml_module(
     deps = [
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

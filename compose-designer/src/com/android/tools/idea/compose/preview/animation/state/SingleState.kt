@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.state
 
-import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.actions.EnumStateAction
 import com.android.tools.idea.compose.preview.animation.actions.SwapAction
 
@@ -25,7 +25,7 @@ import com.android.tools.idea.compose.preview.animation.actions.SwapAction
  * @param tracker usage tracker for animation tooling
  * @param callback when state has changed
  */
-class SingleState(private val tracker: AnimationTracker, callback: () -> Unit) :
+class SingleState(private val tracker: ComposeAnimationTracker, callback: () -> Unit) :
   AnimationState(callback) {
 
   private val enumState = EnumStateAction(stateCallback)
@@ -39,7 +39,7 @@ class SingleState(private val tracker: AnimationTracker, callback: () -> Unit) :
           ?.let { enumState.currentState = it }
         stateCallback()
       },
-      enumState
+      enumState,
     )
 
   override fun stateHashCode() = enumState.stateHashCode

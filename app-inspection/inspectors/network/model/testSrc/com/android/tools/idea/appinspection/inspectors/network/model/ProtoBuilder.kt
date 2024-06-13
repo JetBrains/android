@@ -73,7 +73,7 @@ internal fun httpResponseStarted(
   id: Long,
   timestampNanos: Long,
   responseCode: Int,
-  headers: List<Header>
+  headers: List<Header>,
 ) =
   httpConnectionEvent(id, timestampNanos) {
       setHttpResponseStarted(
@@ -165,11 +165,7 @@ internal fun grpcStreamCreated(
     }
     .build()
 
-internal fun grpcResponseHeaders(
-  id: Long,
-  timestampNanos: Long,
-  headers: List<GrpcMetadata>,
-) =
+internal fun grpcResponseHeaders(id: Long, timestampNanos: Long, headers: List<GrpcMetadata>) =
   grpcEvent(id, timestampNanos) {
       setGrpcResponseHeaders(GrpcResponseHeaders.newBuilder().addAllResponseHeaders(headers))
     }
@@ -217,7 +213,7 @@ internal fun grpcThread(id: Long, timestampNanos: Long, threadId: Long, threadNa
 private fun httpConnectionEvent(
   id: Long,
   timestampNanos: Long,
-  block: HttpConnectionEvent.Builder.() -> HttpConnectionEvent.Builder
+  block: HttpConnectionEvent.Builder.() -> HttpConnectionEvent.Builder,
 ) =
   NetworkInspectorProtocol.Event.newBuilder()
     .setTimestamp(timestampNanos)
@@ -229,7 +225,7 @@ internal fun httpHeader(key: String, vararg values: String) =
 private fun grpcEvent(
   id: Long,
   timestampNanos: Long,
-  block: GrpcEvent.Builder.() -> GrpcEvent.Builder
+  block: GrpcEvent.Builder.() -> GrpcEvent.Builder,
 ) =
   NetworkInspectorProtocol.Event.newBuilder()
     .setTimestamp(timestampNanos)

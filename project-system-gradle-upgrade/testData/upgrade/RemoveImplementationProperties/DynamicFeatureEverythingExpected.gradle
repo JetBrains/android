@@ -8,6 +8,7 @@ android {
 
     defaultConfig {
         minSdkVersion 21
+        consumerProguardFiles getDefaultProguardFile('cPF1.txt')
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
@@ -15,12 +16,14 @@ android {
         release {
             crunchPngs true
             minifyEnabled false
+            consumerProguardFiles 'release-cPF.txt'
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
     productFlavors {
         xyz {
+            consumerProguardFiles 'xyz-cPF1.txt', 'xyz-cPF2.txt'
         }
     }
 }

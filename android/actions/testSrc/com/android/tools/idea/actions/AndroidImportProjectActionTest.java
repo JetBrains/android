@@ -55,7 +55,7 @@ public class AndroidImportProjectActionTest extends HeavyPlatformTestCase {
   }
 
   @NotNull
-  private VirtualFile createChildFile(@NotNull String name, @NotNull String...contents) throws IOException {
+  private VirtualFile createChildFile(@NotNull String name, @NotNull String... contents) throws IOException {
     File file = new File(myProjectRootDir.getPath(), name);
     assertTrue(FileUtilRt.createIfNotExists(file));
     if (contents.length > 0) {

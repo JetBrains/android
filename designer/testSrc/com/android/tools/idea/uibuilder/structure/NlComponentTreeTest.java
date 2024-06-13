@@ -33,6 +33,7 @@ import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 import static com.android.tools.idea.common.LayoutTestUtilities.findActionForKey;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
@@ -64,6 +65,7 @@ import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -79,6 +81,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.TestActionEvent;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDropEvent;
@@ -431,8 +434,18 @@ public class NlComponentTreeTest extends LayoutTestCase {
     tree.addSelectionRow(2); // Button
     NlDesignSurface surface = tree.getDesignSurface();
     assertThat(surface).isNotNull();
-    AnAction gotoDeclaration = new GotoComponentAction(surface);
-    gotoDeclaration.actionPerformed(mock(AnActionEvent.class));
+    AnAction gotoDeclaration = new GotoComponentAction();
+    DataContext context = new DataContext() {
+      @Override
+      public @Nullable Object getData(@NotNull String dataId) {
+        if (dataId.equals(DESIGN_SURFACE.getName())) {
+          return surface;
+        } else {
+          return null;
+        }
+      }
+    };
+    gotoDeclaration.actionPerformed(TestActionEvent.createTestEvent(context));
     checkEditor(fileManager, "relative.xml", 9, "<Button");
   }
 
@@ -482,8 +495,17 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
     assertThat(action).isNotNull();
 
-    AnActionEvent event = mock(AnActionEvent.class);
-    when(event.getDataContext()).thenReturn(myDataContext);
+    DataContext context = new DataContext() {
+      @Override
+      public @Nullable Object getData(@NotNull String dataId) {
+        if (dataId.equals(CommonDataKeys.PROJECT.getName())) {
+          return getProject();
+        } else {
+          return null;
+        }
+      }
+    };
+    AnActionEvent event = TestActionEvent.createTestEvent(context);
 
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
     selectionModel.toggle(findFirst(model, TEXT_VIEW));

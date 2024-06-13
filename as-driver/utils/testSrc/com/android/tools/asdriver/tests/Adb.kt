@@ -35,7 +35,7 @@ import kotlin.time.toDuration
 
 class Adb private constructor(
   private val sdk: AndroidSdk,
-  private val home: Path,
+  private val env: Map<String, String>,
   private val process: Process? = null,
   private val stdout: Path? = null,
   private val stderr: Path? = null,
@@ -110,40 +110,41 @@ class Adb private constructor(
       // https://cs.android.com/android/platform/superproject/+/fbe41e9a47a57f0d20887ace0fc4d0022afd2f5f:packages/modules/adb/SERVICES.TXT;l=23
       waitForLog("([0-9a-f]{4})?${emulator.serialNumber}\tdevice", duration)
     }
+    runCommand("shell", "svc", "wifi", "disable")
   }
 
   @Throws(IOException::class)
-  fun runCommand(vararg command: String): Adb = exec(sdk, home, *command)
+  fun runCommand(vararg command: String): Adb = exec(sdk, env, *command)
 
   @Throws(IOException::class)
-  fun runCommand(vararg command: String, emulator: Emulator): Adb = exec(sdk, home, *command, emulator=emulator)
+  fun runCommand(vararg command: String, emulator: Emulator): Adb = exec(sdk, env, *command, emulator=emulator)
 
   @JvmSynthetic
   @Throws(IOException::class)
   fun runCommand(vararg command: String, emulator: Emulator? = null, block: (Adb.() -> Unit)) {
-    exec(sdk, home, *command, emulator=emulator).use { with(it, block) }
+    exec(sdk, env, *command, emulator=emulator).use { with(it, block) }
   }
 
   companion object {
     /** Default start for most use cases. */
     @JvmStatic
     @Throws(IOException::class)
-    fun start(sdk: AndroidSdk, home: Path): Adb = start(sdk, home, true, "nodaemon")
+    fun start(sdk: AndroidSdk, env: Map<String, String>): Adb = start(sdk, env, true, "nodaemon")
 
     @JvmStatic
     @Throws(IOException::class)
-    fun start(sdk: AndroidSdk, home: Path, startServer: Boolean, vararg params: String): Adb {
-      if (!startServer) return Adb(sdk, home)
+    fun start(sdk: AndroidSdk, env: Map<String, String>, startServer: Boolean, vararg params: String): Adb {
+      if (!startServer) return Adb(sdk, env)
       val command = arrayOf("server") + params.filter(String::isNotBlank).toTypedArray()
-      return exec(sdk, home, *command)
+      return exec(sdk, env, *command)
     }
 
     @Throws(IOException::class)
-    private fun exec(sdk: AndroidSdk, home: Path, vararg params: String, emulator: Emulator? = null): Adb {
+    private fun exec(sdk: AndroidSdk, env: Map<String, String>, vararg params: String, emulator: Emulator? = null): Adb {
       val logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_logs")
       val stdout = logsDir.resolve("stdout.txt").also { Files.createFile(it) }
       val stderr = logsDir.resolve("stderr.txt").also { Files.createFile(it) }
-      val header = "=== $stdout ${params.joinToString("-")} ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS").format(Date())} ===\n"
+      val header = "=== $stdout ${params.joinToString("-")} ${env.entries.joinToString { "${it.key}=${it.value}" }} ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS").format(Date())} ===\n"
       FileWriter(stdout.toString()).use { it.write(header) }
       FileWriter(stderr.toString()).use { it.write(header) }
       val command = listOf(sdk.sourceDir.resolve(SdkConstants.FD_PLATFORM_TOOLS).resolve(SdkConstants.FN_ADB).toString()) + params
@@ -151,10 +152,10 @@ class Adb private constructor(
       val pb = ProcessBuilder(command).apply {
         redirectOutput(appendTo(stdout.toFile()))
         redirectError(appendTo(stderr.toFile()))
-        environment()["HOME"] = home.toString()
+        environment().putAll(env)
         emulator?.let { environment()["ANDROID_SERIAL"] = emulator.serialNumber }
       }
-      return Adb(sdk, home, pb.start(), stdout, stderr, header.toByteArray().size)
+      return Adb(sdk, env, pb.start(), stdout, stderr, header.toByteArray().size)
     }
   }
 }

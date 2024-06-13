@@ -15,11 +15,13 @@
  */
 package com.android.tools.layoutlib
 
-import com.intellij.openapi.Disposable
+import com.android.tools.idea.layoutlib.LayoutLibrary
 
 /** Context required to create Layoutlib instance. */
 interface LayoutlibContext {
-  val parentDisposable: Disposable
-
+  /** Based on the environment-specific signals detects whether Layoutlib has crashed or not. */
   fun hasLayoutlibCrash(): Boolean
+
+  /** Registers a layoutlib instance. This is done in order to dispose the instance when it is no longer needed. */
+  fun register(layoutlib: LayoutLibrary)
 }

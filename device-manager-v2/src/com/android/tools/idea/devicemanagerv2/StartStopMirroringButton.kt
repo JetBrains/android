@@ -29,10 +29,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** A button for starting and stopping mirroring of a device. */
-internal class StartStopMirroringButton(
-  private val deviceHandle: DeviceHandle,
-  project: Project,
-) : IconButton(EmptyIcon.ICON_16) {
+internal class StartStopMirroringButton(private val deviceHandle: DeviceHandle, project: Project) :
+  IconButton(EmptyIcon.ICON_16) {
 
   private var mirroringHandle: MirroringHandle? = null
 

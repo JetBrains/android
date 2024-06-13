@@ -17,6 +17,7 @@ package com.android.tools.idea.run
 
 import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -30,6 +31,7 @@ import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.RunConfigurationNotifier
 import com.android.tools.idea.execution.common.adb.shell.tasks.launchSandboxSdk
+import com.android.tools.idea.execution.common.attachDebuggerToSandboxSdk
 import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
@@ -127,15 +129,12 @@ class AndroidRunConfigurationExecutor(
             val apks = apkInfosSafe(device)
             val deployResults =
               deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
-            notifyLiveEditService(device, applicationId)
-
-            if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
-              launchSandboxSdk(device, applicationId)
-            }
 
             val mainApp = deployResults.find { it.app.appId == applicationId }
               ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
-            launch(mainApp.app, device, console, isDebug = false)
+            if (launch(mainApp.app, device, console, isDebug = false)) {
+              notifyLiveEditService(device, apks, applicationId)
+            }
           }
         }
       }.awaitAll()
@@ -169,9 +168,9 @@ class AndroidRunConfigurationExecutor(
     return facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP || configuration.DEPLOY_AS_INSTANT
   }
 
-  private fun notifyLiveEditService(device: IDevice, applicationId: String) {
+  private fun notifyLiveEditService(device: IDevice, apkInfos: MutableCollection<ApkInfo>, applicationId: String) {
     try {
-      LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationId, apkProvider, device)
+      LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationId, apkInfos, device)
     } catch (e: Exception) {
 
       // Monitoring should always start successfully.
@@ -182,7 +181,11 @@ class AndroidRunConfigurationExecutor(
   private suspend fun waitPreviousProcessTermination(devices: List<IDevice>, applicationId: String, indicator: ProgressIndicator) =
     coroutineScope {
       indicator.text = "Terminating the app"
-      val results = devices.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
+      val results = devices.filter {
+        // Starting with API33, we will purely rely on Package Manager to handle process termination.
+        !StudioFlags.INSTALL_USE_PM_TERMINATE.get() || !it.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)
+      }.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
+
       if (results.any { !it }) {
         throw ExecutionException("Couldn't terminate previous instance of app")
       }
@@ -223,15 +226,17 @@ class AndroidRunConfigurationExecutor(
 
       //Deploy
       if (configuration.DEPLOY) {
+        if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
+          launchSandboxSdk(device, applicationId, LOG)
+          // TODO: b/305650392 When available, update to use application id given on launch.
+          attachDebuggerToSandboxSdk(device, applicationId, env, indicator, console)
+        }
+
         val apks = apkInfosSafe(device)
         val deployResults =
           deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
 
-        notifyLiveEditService(device, applicationId)
-
-        if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
-          launchSandboxSdk(device, applicationId)
-        }
+        notifyLiveEditService(device, apks, applicationId)
 
         val mainApp = deployResults.find { it.app.appId == applicationId }
           ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
@@ -445,8 +450,9 @@ class AndroidRunConfigurationExecutor(
   }
 
   @Throws(ExecutionException::class)
-  fun launch(app: App, device: IDevice, consoleView: ConsoleView, isDebug: Boolean) {
+  fun launch(app: App, device: IDevice, consoleView: ConsoleView, isDebug: Boolean) : Boolean {
     val amStartOptions = StringBuilder()
+    var didAnything = false
 
     for (taskContributor in AndroidLaunchTaskContributor.EP_NAME.extensionList) {
       val amOptions = taskContributor.getAmStartOptions(app.appId, configuration, device, env.executor)
@@ -454,10 +460,12 @@ class AndroidRunConfigurationExecutor(
     }
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
     try {
-      configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView, RunStats.from(env))
+      didAnything = configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView, RunStats.from(env))
     } catch (e: DeployerException) {
       throw AndroidExecutionException(e.id, e.message)
     }
+
+    return didAnything
   }
 }
 

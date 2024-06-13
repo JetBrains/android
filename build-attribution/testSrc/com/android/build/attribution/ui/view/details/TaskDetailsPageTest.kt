@@ -259,7 +259,6 @@ class TaskDetailsPageTest {
   }
 
   @Test
-  @Ignore("b/303118095")
   @RunsInEdt
   fun testLearnMoreLinkClicked() {
     val taskData = mockTask(":module1", "task1", "myPlugin", 100, criticalPathDurationMs = 1000).apply {

@@ -17,7 +17,7 @@ package com.android.tools.idea.apk.viewer;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.intellij.facet.ProjectFacetManager;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -31,13 +31,17 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+
 public class AnalyzeApkAction extends DumbAwareAction {
   private static final String LAST_APK_PATH = "AnalyzeApkAction.lastApkPath";
+
+  public AnalyzeApkAction() {
+    super("Analyze APK...");
+  }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
@@ -48,7 +52,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
     }
 
     e.getPresentation().setEnabledAndVisible(
-      IdeInfo.getInstance().isAndroidStudio() || ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID));
+      IdeInfo.getInstance().isAndroidStudio() || CommonAndroidUtil.getInstance().isAndroidProject(project));
   }
 
   @Override
@@ -75,9 +79,9 @@ public class AnalyzeApkAction extends DumbAwareAction {
   }
 
   @Nullable
-  private VirtualFile promptUserForApk(Project project) {
+  private static VirtualFile promptUserForApk(Project project) {
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
-      .withDescription(getTemplatePresentation().getDescription())
+      .withDescription("Select APK to analyze")
       .withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
 
     VirtualFile apk = FileChooser.chooseFile(descriptor, project, getLastSelectedApk(project));

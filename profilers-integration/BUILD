@@ -12,7 +12,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -22,7 +23,7 @@ iml_module(
 profilers_test_common_data = [
     ":minapp",
     ":minapp_deps",
-    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     INTEGRATION_TEST_GRADLE_VERSION,
@@ -35,13 +36,16 @@ iml_studio_test(
         "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = ["block-network"],
+    tags_linux = [
+        "very_flaky",  # b/322952709
+        "block-network",
+    ],
     tags_mac = [],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.ProfileWithCompleteDataTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.ProfileWithCompleteDataTest",
 )
 
 iml_studio_test(
@@ -60,7 +64,7 @@ iml_studio_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.ProfileWithLowOverheadTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.ProfileWithLowOverheadTest",
 )
 
 iml_studio_test(
@@ -79,11 +83,30 @@ iml_studio_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.SystemTraceTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.SystemTraceTest",
 )
 
 iml_studio_test(
     name = "CallstackSampleTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "very_flaky",  # b/260867011
+        "block-network",
+    ],
+    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.sessionbased.CallstackSampleTest",
+)
+
+iml_studio_test(
+    name = "HeapDumpTest",
     timeout = "long",
     data = profilers_test_common_data + [
         "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
@@ -98,20 +121,185 @@ iml_studio_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.CallstackSampleTest",
+    test_class = "com.android.tools.profilers.integration.sessionbased.HeapDumpTest",
+)
+
+iml_studio_test(
+    name = "NativeAllocationsTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "very_flaky",  # b/260867011
+        "block-network",
+    ],
+    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.sessionbased.NativeAllocationsTest",
+)
+
+iml_studio_test(
+    name = "SystemTraceTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.SystemTraceTaskTest",
+)
+
+iml_studio_test(
+    name = "HeapDumpTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "very_flaky",  # b/260867011
+        "block-network",
+    ],
+    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.HeapDumpTaskTest",
+)
+
+iml_studio_test(
+    name = "CallstackSampleTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.CallstackSampleTaskTest",
+)
+
+iml_studio_test(
+    name = "NativeAllocationsTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.NativeAllocationsTaskTest",
+)
+
+iml_studio_test(
+    name = "JavaKotlinMethodRecordingTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.JavaKotlinMethodRecordingTaskTest",
+)
+
+iml_studio_test(
+    name = "LiveViewTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.LiveViewTaskTest",
+)
+
+iml_studio_test(
+    name = "SessionBasedProfilingWithApkTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        ":helloworldapk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-31",
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "block-network",
+        "very_flaky",  # b/260867011
+    ],
+    tags_mac = [
+        "no_mac",  # No need to consume Mac resources. Testing on Linux is sufficient.
+    ],
+    tags_windows = [
+        # TODO(b/287284693): Add Windows support for this test.
+        "no_windows",
+    ],
+    test_class = "com.android.tools.profilers.integration.sessionbased.SessionBasedProfilingWithApkTest",
+)
+
+iml_studio_test(
+    name = "TaskBasedProfilingWithApkTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        ":helloworldapk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-31",
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "block-network",
+        "very_flaky",  # b/260867011
+    ],
+    tags_mac = [
+        "no_mac",  # No need to consume Mac resources. Testing on Linux is sufficient.
+    ],
+    tags_windows = [
+        # TODO(b/287284693): Add Windows support for this test.
+        "no_windows",
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.TaskBasedProfilingWithApkTest",
 )
 
 maven_repository(
     name = "minapp_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.aapt2_7.4.1-8841542",
-        "@maven//:com.android.tools.build.gradle_7.4.1",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:com.android.tools.lint.lint-gradle_30.4.1",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java-util_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
@@ -123,4 +311,9 @@ maven_repository(
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
+)
+
+filegroup(
+    name = "helloworldapk",
+    srcs = glob(["testData/helloworldapk/**"]),
 )

@@ -50,55 +50,42 @@ internal interface ResourceItemSource<T : ResourceItem> : Iterable<T> {
 
 /** The [ResourceItemSource] of [PsiResourceItem]s. */
 internal class PsiResourceFile(
-  private var _psiFile: PsiFile,
-  items: Iterable<PsiResourceItem>,
-  private var _resourceFolderType: ResourceFolderType?,
-  override var configuration: RepositoryConfiguration
+  val psiFile: PsiFile,
+  resourceItems: Iterable<PsiResourceItem>,
+  override val folderType: ResourceFolderType?,
+  override val configuration: RepositoryConfiguration,
 ) : ResourceItemSource<PsiResourceItem> {
 
-  private val _items = ArrayListMultimap.create<String, PsiResourceItem>()
+  private val items = ArrayListMultimap.create<String, PsiResourceItem>()
 
   init {
-    items.forEach(this::addItem)
+    resourceItems.forEach(this::addItem)
   }
 
-  override val folderType
-    get() = _resourceFolderType
-
   override val virtualFile: VirtualFile?
-    get() = _psiFile.virtualFile
+    get() = psiFile.virtualFile
 
-  override fun iterator(): Iterator<PsiResourceItem> = _items.values().iterator()
-
-  fun isSourceOf(item: ResourceItem): Boolean = (item as? PsiResourceItem)?.sourceFile == this
+  override fun iterator(): Iterator<PsiResourceItem> = items.values().iterator()
 
   override fun addItem(item: PsiResourceItem) {
     // Setting the source first is important, since an item's key gets the folder configuration from
     // the source (i.e. this).
     item.sourceFile = this
-    _items.put(item.key, item)
+    items.put(item.key, item)
   }
 
   fun removeItem(item: PsiResourceItem) {
-    _items.remove(item.key, item)
+    items.remove(item.key, item)
     item.sourceFile = null
   }
 
-  val name = _psiFile.name
-  val psiFile
-    get() = _psiFile
-
-  fun setPsiFile(psiFile: PsiFile, configuration: RepositoryConfiguration) {
-    this._psiFile = psiFile
-    this._resourceFolderType = getFolderType(psiFile)
-    this.configuration = configuration
-  }
+  val name = psiFile.name
 }
 
 /** The [ResourceItemSource] of [BasicResourceItem]s. */
 internal class VfsResourceFile(
   override val virtualFile: VirtualFile?,
-  override val configuration: RepositoryConfiguration
+  override val configuration: RepositoryConfiguration,
 ) : ResourceSourceFile, ResourceItemSource<BasicResourceItem> {
 
   private val items = ArrayList<BasicResourceItem>()

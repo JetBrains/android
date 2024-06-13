@@ -61,7 +61,7 @@ enum class UiConfig {
   LEFT_VERTICAL,
   LEFT_VERTICAL_SWAP,
   RIGHT_VERTICAL,
-  RIGHT_VERTICAL_SWAP
+  RIGHT_VERTICAL_SWAP,
 }
 
 abstract class UiConfigAction(
@@ -69,7 +69,7 @@ abstract class UiConfigAction(
   private val icon: Icon,
   private val uiConfig: UiConfig,
   @UiThread private val currentConfig: () -> UiConfig,
-  @UiThread private val updateUi: (UiConfig) -> Unit
+  @UiThread private val updateUi: (UiConfig) -> Unit,
 ) : AnAction(title, "", icon) {
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -94,7 +94,7 @@ class VerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) ->
     StudioIcons.LayoutInspector.Panel.VERTICAL_SPLIT,
     UiConfig.VERTICAL,
     currentConfig,
-    updateUi
+    updateUi,
   )
 
 /** Split the UI vertically and swap tree and attributes panel. */
@@ -104,7 +104,7 @@ class SwapVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig
     StudioIcons.LayoutInspector.Panel.VERTICAL_SPLIT_SWAP,
     UiConfig.VERTICAL_SWAP,
     currentConfig,
-    updateUi
+    updateUi,
   )
 
 /** Split the UI horizontally. */
@@ -114,7 +114,7 @@ class HorizontalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) 
     StudioIcons.LayoutInspector.Panel.BOTTOM,
     UiConfig.HORIZONTAL,
     currentConfig,
-    updateUi
+    updateUi,
   )
 
 /** Split the UI horizontally and swap tree and attributes panel. */
@@ -124,7 +124,7 @@ class SwapHorizontalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConf
     StudioIcons.LayoutInspector.Panel.BOTTOM_SWAP,
     UiConfig.HORIZONTAL_SWAP,
     currentConfig,
-    updateUi
+    updateUi,
   )
 
 /**
@@ -137,7 +137,7 @@ class LeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig
     StudioIcons.LayoutInspector.Panel.LEFT_VERTICAL,
     UiConfig.LEFT_VERTICAL,
     currentConfig,
-    updateUi
+    updateUi,
   )
 
 /**
@@ -150,7 +150,7 @@ class SwapLeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiCo
     StudioIcons.LayoutInspector.Panel.LEFT_VERTICAL_SWAP,
     UiConfig.LEFT_VERTICAL_SWAP,
     currentConfig,
-    updateUi
+    updateUi,
   )
 
 /**
@@ -163,7 +163,7 @@ class RightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfi
     StudioIcons.LayoutInspector.Panel.RIGHT_VERTICAL,
     UiConfig.RIGHT_VERTICAL,
     currentConfig,
-    updateUi
+    updateUi,
   )
 
 /**
@@ -176,5 +176,5 @@ class SwapRightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiC
     StudioIcons.LayoutInspector.Panel.RIGHT_VERTICAL_SWAP,
     UiConfig.RIGHT_VERTICAL_SWAP,
     currentConfig,
-    updateUi
+    updateUi,
   )

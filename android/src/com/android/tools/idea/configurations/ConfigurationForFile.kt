@@ -24,8 +24,7 @@ import com.android.resources.ResourceFolderType
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
-import com.android.tools.configurations.ConfigurationFileState
-import com.android.tools.configurations.ConfigurationSettings
+import com.android.tools.configurations.getDeviceState
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.res.getFolderType
 import com.intellij.openapi.application.ApplicationManager
@@ -37,19 +36,17 @@ import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 class ConfigurationForFile(
-  private val file: VirtualFile,
-  manager: ConfigurationSettings,
+  val file: VirtualFile,
+  manager: ConfigurationManager,
   editedConfig: FolderConfiguration
 ) : Configuration(manager, editedConfig) {
   private var psiFile: PsiFile? = null
-
-  override fun getFile(): VirtualFile = file
 
   override fun calculateActivity(): String? {
     return ApplicationManager.getApplication().runReadAction(
         Computable {
           if (psiFile == null) {
-            psiFile = PsiManager.getInstance(mySettings.project).findFile(file);
+            psiFile = PsiManager.getInstance(settings.project).findFile(file);
           }
           val psiXmlFile = psiFile as? XmlFile
           psiXmlFile?.rootTag?.getAttribute(SdkConstants.ATTR_CONTEXT, SdkConstants.TOOLS_URI)?.value
@@ -59,8 +56,8 @@ class ConfigurationForFile(
   override fun computeBestDevice(): Device? {
     for (device in mySettings.recentDevices) {
       val finalStateName = stateName ?: device.defaultState.name
-      val selectedState: State = ConfigurationFileState.getState(device, finalStateName)!!
-      val module = module
+      val selectedState: State = device.getDeviceState(finalStateName)!!
+      val module = settings.module
       val currentConfig = getFolderConfig(mySettings.configModule, selectedState, locale, target) ?: continue
       if (!myEditedConfig.isMatchFor(currentConfig)) continue
       val repositoryManager = mySettings.configModule.resourceRepositoryManager ?: continue
@@ -98,7 +95,7 @@ class ConfigurationForFile(
       else if ("Kotlin" == file.fileType.name) {
         return device
       }
-      else if (file == mySettings.project.projectFile) {
+      else if (file == settings.project.projectFile) {
         return device // Takes care of correct device selection for Theme Editor.
       }
     }
@@ -107,16 +104,17 @@ class ConfigurationForFile(
   }
 
   override fun save() {
-    val stateManager = mySettings.configModule.configurationStateManager
     val fileState = ConfigurationFileState()
     fileState.saveState(this)
-    stateManager.setConfigurationState(file, fileState)
+    settings.stateManager.setConfigurationState(file, fileState)
   }
 
-  override fun clone(): Configuration {
-    val copy = ConfigurationForFile(file, mySettings, FolderConfiguration.copyOf(editedConfig))
-    copy.copyFrom(this)
-    return ConfigurationForFile(file, mySettings, FolderConfiguration.copyOf(editedConfig)).also { it.copyFrom(this) }
+  override fun clone(): ConfigurationForFile {
+    return ConfigurationForFile(file, settings, FolderConfiguration.copyOf(editedConfig)).also { it.copyFrom(this) }
+  }
+
+  override fun getSettings(): ConfigurationManager {
+    return mySettings as ConfigurationManager
   }
 
   companion object {
@@ -124,7 +122,7 @@ class ConfigurationForFile(
     fun create(manager: ConfigurationManager,
                file: VirtualFile,
                fileState: ConfigurationFileState?,
-               editedConfig: FolderConfiguration): Configuration {
+               editedConfig: FolderConfiguration): ConfigurationForFile {
       val configuration = ConfigurationForFile(file, manager, editedConfig)
       configuration.startBulkEditing()
       fileState?.loadState(configuration)
@@ -140,7 +138,7 @@ class ConfigurationForFile(
      * @return a suitable configuration
      */
     @JvmStatic
-    fun create(base: Configuration, file: VirtualFile): Configuration {
+    fun create(base: ConfigurationForFile, file: VirtualFile): ConfigurationForFile {
       // TODO: Figure out whether we need this, or if it should be replaced by a call to ConfigurationManager#createSimilar()
       val configuration = ConfigurationForFile(file, base.settings, FolderConfiguration.copyOf(base.editedConfig))
       configuration.copyFrom(base)

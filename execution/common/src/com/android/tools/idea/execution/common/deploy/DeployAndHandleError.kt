@@ -99,7 +99,7 @@ fun deployAndHandleError(
       RunConfigurationNotifier.notifyErrorWithAction(env.project, env.runProfile.name, bubbleError.toString(), notificationAction)
     }
 
-    throw AndroidExecutionException(e.id, e.message)
+    throw AndroidExecutionException(e.id, "${e.message} ${e.details}")
   }
 }
 

@@ -56,7 +56,7 @@ class MotionLayoutPlaceholder(host: SceneComponent) : Placeholder(host) {
     sceneComponent: SceneComponent,
     attributes: NlAttributesHolder,
     x: Int,
-    y: Int
+    y: Int,
   ) {
     if (ConstraintComponentUtilities.isGuideLine(sceneComponent.authoritativeNlComponent)) {
       val horizontal =

@@ -15,20 +15,15 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.TooltipModel;
-import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.event.UserEvent;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +36,8 @@ public class EventMonitor extends ProfilerMonitor {
   private final LifecycleEventModel myLifecycleEvents;
 
   private boolean myEnabled;
+
+  private Common.AgentData.Status myAgentStatus = Common.AgentData.Status.UNSPECIFIED;
 
   private Supplier<TooltipModel> myTooltipBuilder;
 
@@ -106,11 +103,18 @@ public class EventMonitor extends ProfilerMonitor {
     return myEnabled;
   }
 
+  /**
+   * Before an agent attaches itself to process its status is UNSPECIFIED. If an agent is able to attach itself within a specific timeframe
+   * its status is set to ATTACHED. The timeframe is defined in begin_session.cc (kAgentStatusRateUs, kAgentStatusRetries). If unable to
+   * attach within timeframe it sets its status to UNATTACHABLE.
+   */
   private void onAgentStatusChanged() {
     boolean agentAttached = myProfilers.isAgentAttached();
-    if (myEnabled != agentAttached) {
+    Common.AgentData.Status agentStatus = myProfilers.getAgentData().getStatus();
+    if (myAgentStatus != agentStatus) {
       myEnabled = agentAttached;
       changed(Aspect.ENABLE);
     }
+    myAgentStatus = agentStatus;
   }
 }

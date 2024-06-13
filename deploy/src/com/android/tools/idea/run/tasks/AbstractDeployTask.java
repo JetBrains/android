@@ -17,6 +17,7 @@
 package com.android.tools.idea.run.tasks;
 
 
+import com.android.adblib.AdbSession;
 import com.android.ddmlib.AdbHelper;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.BaselineProfileDetails;
@@ -35,6 +36,7 @@ import com.android.tools.deployer.UIService;
 import com.android.tools.deployer.model.App;
 import com.android.tools.deployer.model.BaselineProfile;
 import com.android.tools.deployer.tasks.Canceller;
+import com.android.tools.idea.adblib.AdbLibService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
 import com.android.tools.idea.log.LogWrapper;
@@ -116,7 +118,11 @@ public abstract class AbstractDeployTask {
     // Wall-clock start time for the deployment.
     long wallClockStartMs = System.currentTimeMillis();
 
-    AdbClient adb = new AdbClient(device, logger);
+    AdbSession adbSession = null;
+    if (StudioFlags.INSTALL_WITH_ADBLIB.get()) {
+      adbSession = AdbLibService.getSession(myProject);
+    }
+    AdbClient adb = new AdbClient(device, logger, adbSession);
 
     AdbHelper.setAbbExecAllowed(StudioFlags.DDMLIB_ABB_EXEC_INSTALL_ENABLE.get());
 

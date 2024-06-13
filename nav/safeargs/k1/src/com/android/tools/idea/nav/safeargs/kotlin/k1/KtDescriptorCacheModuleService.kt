@@ -50,7 +50,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
 
   private data class QualifiedDescriptor(
     val fqName: FqName,
-    val descriptor: PackageFragmentDescriptor
+    val descriptor: PackageFragmentDescriptor,
   )
 
   companion object {
@@ -85,7 +85,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
   private fun createDirectionsPackages(
     navFileInfo: SafeArgsNavFileInfo,
     sourceElement: SourceElement,
-    storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
+    storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS,
   ): Collection<QualifiedDescriptor> {
     return navFileInfo.navEntry.data.resolvedDestinations
       .asSequence()
@@ -108,7 +108,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
                 it as XmlTagImpl,
                 IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
                 className.asString(),
-                packageName.asString()
+                packageName.asString(),
               )
             )
           } ?: sourceElement
@@ -120,7 +120,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
             className,
             destination,
             resolvedSourceElement,
-            storageManager
+            storageManager,
           )
 
         QualifiedDescriptor(packageName, packageDescriptor)
@@ -131,7 +131,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
   private fun createArgsPackages(
     navFileInfo: SafeArgsNavFileInfo,
     sourceElement: SourceElement,
-    storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
+    storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS,
   ): Collection<QualifiedDescriptor> {
     return navFileInfo.navEntry.data.resolvedDestinations
       .asSequence()
@@ -154,7 +154,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
                 it as XmlTagImpl,
                 IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
                 className.asString(),
-                packageName.asString()
+                packageName.asString(),
               )
             )
           } ?: sourceElement
@@ -164,7 +164,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
             packageDescriptor.builtIns.getKotlinType(
               "androidx.navigation.NavArgs",
               null,
-              packageDescriptor.module
+              packageDescriptor.module,
             )
           listOf(ktType)
         }
@@ -177,7 +177,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
             destination,
             superTypesProvider,
             resolvedSourceElement,
-            storageManager
+            storageManager,
           )
 
         QualifiedDescriptor(packageName, packageDescriptor)
@@ -190,5 +190,5 @@ class SafeArgsNavFileInfo(
   val moduleDescriptor: ModuleDescriptor,
   val module: Module,
   val navInfo: NavInfo,
-  val navEntry: NavEntry
+  val navEntry: NavEntry,
 )

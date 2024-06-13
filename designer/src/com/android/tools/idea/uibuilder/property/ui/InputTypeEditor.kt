@@ -218,7 +218,7 @@ class InputTypeEditor(private val property: InputTypePropertyItem) : JPanel(Grid
   private class CheckBoxWithFixedWidth(
     text: String,
     selected: Boolean,
-    private val fixedWidth: Int
+    private val fixedWidth: Int,
   ) : JCheckBox(text, selected) {
     override fun getPreferredSize(): Dimension {
       val size = super.getPreferredSize()

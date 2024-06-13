@@ -44,7 +44,7 @@ class DeviceNamePanelTest {
           DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
           isTransitioning,
           status,
-          null
+          null,
         )
       val handle = mock<DeviceHandle>()
       whenever(handle.state).thenReturn(state)
@@ -66,11 +66,14 @@ class DeviceNamePanelTest {
             "Connected",
             null,
             Instant.parse("2023-02-03T19:15:30.00Z"),
-            null
+            null,
           )
           .line2Text(ZoneId.of("UTC"))
       )
-      .isEqualTo("Connected; device will expire at 7:15 PM")
+      .isAnyOf(
+        "Connected; device will expire at 7:15 PM",
+        "Connected; device will expire at 7:15\u202FPM",
+      )
 
     assertThat(
         Reservation(
@@ -78,11 +81,11 @@ class DeviceNamePanelTest {
             "",
             null,
             Instant.parse("2023-02-03T19:15:30.00Z"),
-            null
+            null,
           )
           .line2Text(ZoneId.of("UTC"))
       )
-      .isEqualTo("Device will expire at 7:15 PM")
+      .isAnyOf("Device will expire at 7:15 PM", "Device will expire at 7:15\u202FPM")
 
     assertThat(
         Reservation(ReservationState.PENDING, "Connection pending", null, null, null)
@@ -122,7 +125,7 @@ class DeviceNamePanelTest {
         error = null,
         handleType = DeviceRowData.HandleType.PHYSICAL,
         wearPairingId = "abcd1234",
-        pairingStatus = emptyList()
+        pairingStatus = emptyList(),
       )
     panel.update(row)
     assertThat(panel.pairedLabel.isVisible).isFalse()
@@ -154,6 +157,6 @@ class DeviceNamePanelTest {
       error = null,
       handleType = DeviceRowData.HandleType.PHYSICAL,
       wearPairingId = "abcd1234",
-      pairingStatus = emptyList()
+      pairingStatus = emptyList(),
     )
 }

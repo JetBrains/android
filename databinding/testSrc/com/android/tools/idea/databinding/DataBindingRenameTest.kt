@@ -78,7 +78,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         <application />
       </manifest>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = dataBindingMode
@@ -88,7 +88,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     val action = RenameElementAction()
     TestActionEvent.createTestEvent(
         action,
-        DataManager.getInstance().getDataContext(fixture.editor.component)
+        DataManager.getInstance().getDataContext(fixture.editor.component),
       )
       .let { event ->
         action.update(event)
@@ -136,7 +136,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         </LinearLayout>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val classFile =
@@ -161,7 +161,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
           }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(classFile.virtualFile)
@@ -176,11 +176,11 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     // Check expected results
     assertEquals(
       javaTextSnapshot.replace("button", "buttonAfterRename"),
-      VfsUtilCore.loadText(classFile.virtualFile)
+      VfsUtilCore.loadText(classFile.virtualFile),
     )
     assertEquals(
       layoutTextSnapshot.replace("button", "button_after_rename"),
-      VfsUtilCore.loadText(layoutFile.virtualFile)
+      VfsUtilCore.loadText(layoutFile.virtualFile),
     )
   }
 
@@ -211,7 +211,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         </LinearLayout>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val classFile =
@@ -227,7 +227,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(classFile.virtualFile)
@@ -242,11 +242,11 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     // Check expected results
     assertEquals(
       javaTextSnapshot.replace("generateStrnig", "generateString"),
-      VfsUtilCore.loadText(classFile.virtualFile)
+      VfsUtilCore.loadText(classFile.virtualFile),
     )
     assertEquals(
       layoutTextSnapshot.replace("generateStrnig", "generateString"),
-      VfsUtilCore.loadText(layoutFile.virtualFile)
+      VfsUtilCore.loadText(layoutFile.virtualFile),
     )
   }
 
@@ -273,7 +273,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         </LinearLayout>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val classFile =
@@ -288,7 +288,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         public String lastName;
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(classFile.virtualFile)
@@ -303,11 +303,11 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     // Check expected results
     assertEquals(
       javaTextSnapshot.replace("fristNaem", "firstName"),
-      VfsUtilCore.loadText(classFile.virtualFile)
+      VfsUtilCore.loadText(classFile.virtualFile),
     )
     assertEquals(
       layoutTextSnapshot.replace("fristNaem", "firstName"),
-      VfsUtilCore.loadText(layoutFile.virtualFile)
+      VfsUtilCore.loadText(layoutFile.virtualFile),
     )
   }
 
@@ -334,7 +334,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         </LinearLayout>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val classFile =
@@ -354,7 +354,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(classFile.virtualFile)
@@ -369,11 +369,11 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     // Check expected results
     assertEquals(
       javaTextSnapshot.replace("getFirstNaem", "getFirstName"),
-      VfsUtilCore.loadText(classFile.virtualFile)
+      VfsUtilCore.loadText(classFile.virtualFile),
     )
     assertEquals(
       layoutTextSnapshot.replace("firstNaem", "firstName"),
-      VfsUtilCore.loadText(layoutFile.virtualFile)
+      VfsUtilCore.loadText(layoutFile.virtualFile),
     )
   }
 
@@ -395,7 +395,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         </resources>
 
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val layoutFile =
@@ -415,7 +415,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
         </LinearLayout>
       </layout>
     """
-          .trimIndent()
+          .trimIndent(),
       )
 
     fixture.configureFromExistingVirtualFile(stringsFile.virtualFile)
@@ -430,11 +430,11 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
     // Check expected results
     assertEquals(
       stringsTextSnapshot.replace("hello_wrld", "hello_world"),
-      VfsUtilCore.loadText(stringsFile.virtualFile)
+      VfsUtilCore.loadText(stringsFile.virtualFile),
     )
     assertEquals(
       layoutTextSnapshot.replace("hello_wrld", "hello_world"),
-      VfsUtilCore.loadText(layoutFile.virtualFile)
+      VfsUtilCore.loadText(layoutFile.virtualFile),
     )
   }
 }

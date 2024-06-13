@@ -23,6 +23,7 @@ import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
 import com.android.sdklib.devices.Storage;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -45,6 +46,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -115,6 +118,9 @@ public class StudioDownloader implements Downloader {
 
   @NotNull private final SettingsController mySettingsController;
 
+  @NonNull private final RepositoryAddonsListVersionUrlFilter myUrlFilter = new RiscVUrlFilter();
+
+
   public StudioDownloader() {
     this(StudioSettingsController.getInstance());
   }
@@ -171,6 +177,11 @@ public class StudioDownloader implements Downloader {
   private void doDownloadFully(@NotNull URL url, @NotNull Path target, @Nullable Checksum checksum,
                             boolean allowNetworkCaches, @NotNull ProgressIndicator indicator)
     throws IOException {
+
+   if (!myUrlFilter.isUrlAllowed(url)) {
+       throw new HttpRequests.HttpStatusException("URL may exist, but is internally disabled by " + myUrlFilter.getClass().getName(), 404, url.toExternalForm());
+   }
+
     if (CancellableFileIo.exists(target) && checksum != null) {
       if (checksum.getValue().equals(Downloader.hash(
         new BufferedInputStream(CancellableFileIo.newInputStream(target)), CancellableFileIo.size(target),
@@ -288,5 +299,64 @@ public class StudioDownloader implements Downloader {
       prepared = "http:" + prepared.substring(6);
     }
     return prepared;
+  }
+
+  /**
+   * Filter URLs that match "{@code https://dl.google.com/android/repository/addons_list-[xxx].xml}",
+   * where "[xxx]" is an integer smaller than or equal to {@link #getMaximumVersionAllowed()}
+   */
+  @VisibleForTesting
+  static abstract class RepositoryAddonsListVersionUrlFilter {
+
+    /**
+     * The official URL is "{@code https://dl.google.com/android/repository/addons_list-6.xml}", but
+     * the "base" URL can be customized via system properties, so we check the last part of the path only.
+     *
+     * @see com.android.repository.impl.sources.RemoteListSourceProviderImpl#getSources(Downloader, ProgressIndicator, boolean)
+     */
+    private static final Pattern addonsListPattern = Pattern.compile("/addons_list-(\\d+).xml$");
+
+    public boolean isUrlAllowed(@NotNull URL url) {
+      int maximumVersionAllowed = getMaximumVersionAllowed();
+      if (maximumVersionAllowed >= 0) {
+        Matcher matcher = addonsListPattern.matcher(url.getPath());
+        if (matcher.find()) {
+          try {
+            int versionNumber = Integer.parseInt(matcher.group(1));
+            if (versionNumber > maximumVersionAllowed) {
+              return false; // URL is *not* supported
+            }
+          }
+          catch (NumberFormatException e) {
+            // If the placeholder is not an integer value, fall-through, i.e. assume the URL is supported
+          }
+        }
+      }
+      return true; // URL is supported
+    }
+
+    /**
+     * Returns the maximum version of `addons-list.xml` allowed, or {@code -1} to allow all versions.
+     */
+    protected abstract int getMaximumVersionAllowed();
+  }
+
+  /**
+   * An {@link RepositoryAddonsListVersionUrlFilter} that filters out repository URLs specific to risc-v system images
+   * (if {@link StudioFlags#RISC_V} is disabled).
+   */
+  @VisibleForTesting
+  static class RiscVUrlFilter extends RepositoryAddonsListVersionUrlFilter {
+
+    @Override
+    protected int getMaximumVersionAllowed() {
+      if (StudioFlags.RISC_V.get()) {
+        return -1;
+      } else {
+        // If risc-v support is disabled, we allow addons-list until v5, as v6 is the first schema containing the definition of
+        // v4 system images, which is the schema version where images supporting the "risc-v" ABI start to appear.
+        return 5;
+      }
+    }
   }
 }

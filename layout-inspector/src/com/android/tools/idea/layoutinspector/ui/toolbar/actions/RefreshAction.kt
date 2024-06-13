@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
@@ -26,6 +27,8 @@ import icons.StudioIcons
 object RefreshAction :
   AnAction({ "Refresh Layout" }, StudioIcons.LayoutEditor.Toolbar.REFRESH),
   TooltipDescriptionProvider {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
     ApplicationManager.getApplication().executeOnPooledThread { inspector.currentClient.refresh() }
@@ -34,7 +37,7 @@ object RefreshAction :
 
   override fun update(event: AnActionEvent) {
     val currentClient = LayoutInspector.get(event)?.currentClient
-    event.presentation.isEnabled = currentClient?.isConnected == true && !currentClient.isCapturing
+    event.presentation.isEnabled = currentClient?.isConnected == true && !currentClient.inLiveMode
     event.presentation.description =
       "When live updates are disabled, click to manually refresh the layout information and images."
   }

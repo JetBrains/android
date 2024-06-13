@@ -57,7 +57,7 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
         CachedValueProvider.Result.create(
           lightClasses,
           ProjectNavigationResourceModificationTracker.getInstance(project),
-          project.safeArgsModeTracker
+          project.safeArgsModeTracker,
         )
       }
 
@@ -65,7 +65,7 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
       cachedValuesManager.createCachedValue {
         CachedValueProvider.Result.create(
           lightClassesCache.value.keys.toTypedArray(),
-          lightClassesCache
+          lightClassesCache,
         )
       }
   }
@@ -88,7 +88,7 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getMethodsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
-    maxCount: Int
+    maxCount: Int,
   ): Array<PsiMethod> {
     return getMethodsByName(name, scope).take(maxCount).toTypedArray()
   }
@@ -96,7 +96,7 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun processMethodsWithName(
     name: String,
     scope: GlobalSearchScope,
-    processor: Processor<in PsiMethod>
+    processor: Processor<in PsiMethod>,
   ): Boolean {
     // We are asked to process each method in turn, aborting if false is ever returned, and passing
     // that result back up the chain.
@@ -110,7 +110,7 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getFieldsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
-    maxCount: Int
+    maxCount: Int,
   ): Array<PsiField> {
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }

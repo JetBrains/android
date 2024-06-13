@@ -55,6 +55,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
@@ -527,7 +528,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
     displayName = displayName,
     apiLevel = androidVersion.featureLevel,
     isEmulator = true,
-    isWearDevice = SystemImageTags.WEAR_TAG == tag,
+    isWearDevice = SystemImageTags.isWearImage(tags),
     state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
   ).apply {
@@ -562,6 +563,8 @@ private fun IDevice.getDeviceName(unknown: String): String {
 }
 
 private val WIFI_DEVICE_SERIAL_PATTERN = Pattern.compile("adb-(.*)-.*\\._adb-tls-connect\\._tcp\\.?")
+@VisibleForTesting
+internal const val PROP_FIREBASE_TEST_LAB_SESSION = "debug.firebase.test.lab.session"
 
 private fun normalizeAvdId(avdId: String) = try {
   Path(avdId.trim()).normalize().toString()
@@ -578,6 +581,7 @@ private fun IDevice.getDeviceID(): String {
     // the ..
     isEmulator && avdData?.isDone == true -> avdData.get()?.path?.let { normalizeAvdId(it) } ?: name
     isEmulator -> EmulatorConsole.getConsole(this)?.avdPath?.let { normalizeAvdId(it) } ?: name
+    getProperty(PROP_FIREBASE_TEST_LAB_SESSION) != null -> getProperty(PROP_FIREBASE_TEST_LAB_SESSION) ?: name
     else -> {
       val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(this.serialNumber)
       if (matcher.matches()) matcher.group(1) else this.serialNumber

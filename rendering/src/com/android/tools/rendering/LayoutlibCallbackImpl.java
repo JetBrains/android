@@ -75,6 +75,7 @@ import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.FileResourceReader;
 import com.android.tools.res.ResourceNamespacing;
+import com.android.tools.res.ids.ResourceIdManagerHelper;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
@@ -118,19 +119,19 @@ import org.xmlpull.v1.XmlPullParserException;
  * Loader for Android Project class in order to use them in the layout editor.
  */
 public class LayoutlibCallbackImpl extends LayoutlibCallback {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.LayoutlibCallback");
+  private static final Logger LOG = Logger.getInstance(LayoutlibCallback.class);
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
   private static final int MAX_PARSER_INCLUDES = 50;
-  private static final AndroidxName CLASS_WINDOR_DECOR_ACTION_BAR =
+  private static final AndroidxName CLASS_WINDOW_DECOR_ACTION_BAR =
     new AndroidxName("android.support.v7.internal.app.WindowDecorActionBar", "androidx.appcompat.internal.app.WindowDecorActionBar");
   /** Class names that are not a view. When instantiating them, errors should be logged by LayoutLib. */
   private static final Set<String> NOT_VIEW = ImmutableSet.of(CLASS_RECYCLER_VIEW_ADAPTER.oldName(),
                                                               CLASS_RECYCLER_VIEW_ADAPTER.newName(),
                                                               CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.oldName(),
                                                               CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.newName(),
-                                                              CLASS_WINDOR_DECOR_ACTION_BAR.oldName(),
-                                                              CLASS_WINDOR_DECOR_ACTION_BAR.newName());
+                                                              CLASS_WINDOW_DECOR_ACTION_BAR.oldName(),
+                                                              CLASS_WINDOW_DECOR_ACTION_BAR.newName());
   /** Directory name for the bundled layoutlib installation */
   public static final String FD_LAYOUTLIB = "layoutlib";
   /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */
@@ -143,13 +144,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private final boolean myHasAndroidXAppCompat;
   private final boolean myShouldUseCustomInflater;
   private final ResourceNamespacing myNamespacing;
-  private final ModuleClassLoader myClassLoader;
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myViewLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private final ActionBarHandler myActionBarHandler;
-  @NotNull private final RenderTask myRenderTask;
+  @NotNull private final RenderContext myRenderContext;
   @NotNull private final DownloadableFontCacheService myFontCacheService;
   private boolean myUsed;
   private Set<PathString> myParserFiles;
@@ -190,12 +190,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable ILayoutPullParserFactory parserFactory,
                                @NotNull ModuleClassLoader moduleClassLoader,
                                boolean shouldUseCustomInflater) {
-    myRenderTask = renderTask;
+    myRenderContext = renderTask.getContext();
     myLayoutLib = layoutLib;
     myRenderModule = renderModule;
     myLogger = logger;
     myCredential = credential;
-    myClassLoader = moduleClassLoader;
     myViewLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
@@ -210,7 +209,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       myImplicitNamespaces = ResourceNamespace.Resolver.EMPTY_RESOLVER;
     }
 
-    myFontCacheService = DownloadableFontCacheService.getInstance();
+    myFontCacheService = renderModule.getEnvironment().getDownloadableFontCacheService();
     ImmutableMap.Builder<String, ResourceValue> fontBuilder = ImmutableMap.builder();
     renderModule.getResourceRepositoryManager().getAppResources().accept(
         new ResourceVisitor() {
@@ -272,7 +271,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   @Override
   @Nullable
-  public Object loadView(@NotNull String className, @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
+  public Object loadView(@NotNull String className, @SuppressWarnings("rawtypes") @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
       throws ClassNotFoundException {
     myUsed = true;
     if (NOT_VIEW.contains(className)) {
@@ -282,7 +281,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Override
-  public Object loadClass(@NotNull String name, @Nullable Class[] constructorSignature, @Nullable Object[] constructorArgs)
+  public Object loadClass(@NotNull String name, @SuppressWarnings("rawtypes") @Nullable Class[] constructorSignature, @Nullable Object[] constructorArgs)
       throws ClassNotFoundException {
     myUsed = true;
     return myViewLoader.loadClass(name, constructorSignature, constructorArgs);
@@ -344,7 +343,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         // this is a special case where we generate a synthetic font-family XML file that points
         // to the cached fonts downloaded by the DownloadableFontCacheService.
         if (myProjectFonts == null) {
-          myProjectFonts = new ProjectFonts(myRenderModule.getResourceRepositoryManager());
+          myProjectFonts =
+            new ProjectFonts(
+              myRenderModule.getEnvironment().getDownloadableFontCacheService(),
+              myRenderModule.getResourceRepositoryManager(),
+              ResourceIdManagerHelper.getResolver(myRenderModule.getResourceIdManager())
+            );
         }
 
         FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
@@ -425,14 +429,13 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     ILayoutPullParser parser;
     if (!myAaptDeclaredResources.isEmpty() && layoutResource.getResourceType() == ResourceType.AAPT) {
       TagSnapshot aaptResource = myAaptDeclaredResources.get(layoutResource.getValue());
+      if (aaptResource == null) return null;
       // TODO(namespaces, b/74003372): figure out where to get the namespace from.
       parser = LayoutRenderPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
     else {
       PathString pathString = ResourcesUtil.toFileResourcePathString(value);
-      if (pathString == null) {
-        return null;
-      }
+      if (pathString == null) return null;
       parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), pathString);
     }
 
@@ -510,8 +513,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
         RenderXmlFile xmlFile = myRenderModule.getEnvironment().getXmlFile(xml);
         if (xmlFile != null) {
-          ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
-          NavGraphResolver navGraphResolver = myRenderTask.getContext().getModule().getEnvironment().getNavGraphResolver(resourceResolver);
+          ResourceResolver resourceResolver = myRenderContext.getConfiguration().getResourceResolver();
+          NavGraphResolver navGraphResolver = myRenderContext.getModule().getEnvironment().getNavGraphResolver(resourceResolver);
           // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
           // layout so we already have a parent.
           LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile,
@@ -521,10 +524,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                                                         myRenderModule.getResourceRepositoryManager(),
                                                                         sampleDataCounter.getAndIncrement());
           parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
-          if (parentName.startsWith(FD_RES_LAYOUT)) {
-            // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.
-            parser.setProvideViewCookies(myRenderTask.getProvideCookiesForIncludedViews());
-          }
           return parser;
         }
 
@@ -558,7 +557,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       String layoutName = SdkUtils.getLayoutName(file);
       layoutToFile.put(layoutName, file);
       try {
-        String xml = Files.toString(file, UTF_8);
+        String xml = Files.asCharSource(file, UTF_8).read();
         Document document = XmlUtils.parseDocumentSilently(xml, true);
         if (document != null) {
           NodeList includeNodeList = document.getElementsByTagName(VIEW_INCLUDE);
@@ -640,7 +639,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static List<String> dfs(String from, Set<String> visiting, Multimap<String,String> includeMap) {
     visiting.add(from);
     Collection<String> includes = includeMap.get(from);
-    if (includes != null && !includes.isEmpty()) {
+    if (!includes.isEmpty()) {
       for (String include : includes) {
         if (visiting.contains(include)) {
           List<String> list = Lists.newLinkedList();
@@ -805,7 +804,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         // This section might access system properties or access disk but it does not leak information back to Layoutlib so it can be
         // executed in safe mode.
         AndroidModuleInfo info = myRenderModule.getInfo();
-        return info == null ? null : info.getPackageName();
+        if (info == null) {
+          return null;
+        }
+        return info.getPackageName();
       });
     }
     catch (Exception e) {

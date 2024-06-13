@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
+import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.Annotation
@@ -44,7 +45,7 @@ class LogcatFilterErrorAnnotatorTest {
       projectRule,
       LogcatFilterLanguageRule(),
       EdtRule(),
-      FlagRule(StudioFlags.LOGCAT_IS_FILTER)
+      FlagRule(StudioFlags.LOGCAT_IS_FILTER),
     )
 
   private val annotator = LogcatFilterErrorAnnotator()
@@ -83,9 +84,17 @@ class LogcatFilterErrorAnnotatorTest {
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *psi.children)
 
     assertThat(annotations.map(Annotation::toAnnotationInfo))
-      .containsExactly(
-        AnnotationInfo(38, 41, "Invalid qualifier: foo", ERROR),
-      )
+      .containsExactly(AnnotationInfo(38, 41, "Invalid qualifier: foo", ERROR))
+  }
+
+  @Test
+  fun is_level_filter() {
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
+    LogLevel.values().forEach {
+      val psi = parse("is:${it.stringValue}")
+      val annotations = CodeInsightTestUtil.testAnnotator(annotator, *psi.children)
+      assertThat(annotations.map(Annotation::toAnnotationInfo)).named(it.name).isEmpty()
+    }
   }
 
   private fun parse(text: String): PsiElement =
@@ -97,7 +106,7 @@ private data class AnnotationInfo(
   val startOffset: Int,
   val endOffset: Int,
   val message: String,
-  val severity: HighlightSeverity
+  val severity: HighlightSeverity,
 )
 
 private fun Annotation.toAnnotationInfo() =

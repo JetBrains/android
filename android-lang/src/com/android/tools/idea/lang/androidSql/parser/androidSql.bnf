@@ -174,7 +174,7 @@ table_definition_name ::= name {
   methods=[getName setName]
 }
 
-database_name ::= name
+database_name ::= name | TEMP
 
 analyze_statement ::= ANALYZE ( database_name | table_or_index_name | database_name '.' table_or_index_name )?
 

@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.CommentDetector
 class AndroidLintStopShipInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.stop.ship"),
-    CommentDetector.STOP_SHIP
+    CommentDetector.STOP_SHIP,
   )

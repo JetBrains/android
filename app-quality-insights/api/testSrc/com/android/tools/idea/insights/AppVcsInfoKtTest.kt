@@ -52,7 +52,7 @@ class AppVcsInfoKtTest {
             RepoInfo(
               vcsKey = VCS_CATEGORY.GIT,
               rootPath = PROJECT_ROOT_PREFIX,
-              revision = REVISION_74081e5f
+              revision = REVISION_74081e5f,
             )
           )
         )

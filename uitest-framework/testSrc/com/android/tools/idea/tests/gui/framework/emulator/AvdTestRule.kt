@@ -217,7 +217,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     val systemImageMan = sdkManager.getSystemImageManager(FakeProgressIndicator())
 
     val availableApiImages = systemImageMan.images.filter {
-      it.androidVersion.apiLevel == apiLevel && it.abiType.lowercase() == avdSpec.systemImageSpec.abiType.lowercase()
+      it.androidVersion.apiLevel == apiLevel && it.primaryAbiType.lowercase() == avdSpec.systemImageSpec.abiType.lowercase()
     }
     if (availableApiImages.isEmpty()) {
       throw IllegalArgumentException("No available system images for API level ${apiLevel}")
@@ -235,6 +235,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
       null,
       null,
       HashMap<String, String>(),
+      null,
       true
     )
   }

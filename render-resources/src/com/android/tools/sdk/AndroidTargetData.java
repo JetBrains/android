@@ -15,6 +15,9 @@
  */
 package com.android.tools.sdk;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
+import com.android.annotations.TestOnly;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -28,6 +31,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.environment.Logger;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
@@ -35,10 +39,6 @@ import com.android.tools.res.FrameworkResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import java.lang.ref.SoftReference;
 import java.io.BufferedReader;
 import java.io.File;
@@ -53,12 +53,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.dom.attrs.AttributeDefinitionsImpl;
 import com.android.tools.dom.attrs.FilteredAttributeDefinitions;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidTargetData {
   private static final Logger LOG = Logger.getInstance(AndroidTargetData.class);
@@ -75,7 +74,7 @@ public class AndroidTargetData {
   private volatile MyStaticConstantsData myStaticConstantsData;
 
   @VisibleForTesting
-  public AndroidTargetData(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
+  public AndroidTargetData(@NonNull AndroidSdkData sdkData, @NonNull IAndroidTarget target) {
     mySdkData = sdkData;
     myTarget = target;
   }
@@ -83,7 +82,7 @@ public class AndroidTargetData {
   /**
    * Filters attributes through the public.xml file
    */
-  @NotNull
+  @NonNull
   public AttributeDefinitions getPublicAttrDefs() {
     AttributeDefinitions attrDefs = getAllAttrDefs();
     return new PublicAttributeDefinitions(attrDefs);
@@ -92,19 +91,20 @@ public class AndroidTargetData {
   /**
    * Returns all attributes
    */
-  @NotNull
+  @NonNull
   public AttributeDefinitions getAllAttrDefs() {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {
-        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES).toString());
-        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES).toString());
+        // to system independent paths
+        String attrsPath = myTarget.getPath(IAndroidTarget.ATTRIBUTES).toString().replace('\\', '/');
+        String attrsManifestPath = myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES).toString().replace('\\', '/');
         myAttrDefs = AttributeDefinitionsImpl.parseFrameworkFiles(new File(attrsPath), new File(attrsManifestPath));
       }
       return myAttrDefs;
     }
   }
 
-  public boolean isResourcePublic(@NotNull ResourceType type, @NotNull String name) {
+  public boolean isResourcePublic(@NonNull ResourceType type, @NonNull String name) {
     ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet());
     if (frameworkResources == null) {
       return false;
@@ -114,15 +114,16 @@ public class AndroidTargetData {
   }
 
   @Slow
-  @NotNull
-  public LayoutLibrary getLayoutLibrary(
-    @NotNull Disposable parentDisposable, @NotNull Supplier<Boolean> hasLayoutlibCrash) throws RenderingException {
+  @NonNull
+  LayoutLibrary getLayoutLibrary(
+    @NonNull Consumer<LayoutLibrary> register,
+    @NonNull Supplier<Boolean> hasLayoutlibCrash) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
         AndroidTargetData targetData = AndroidTargetData.get(mySdkData, target);
         if (targetData != this) {
-          myLayoutLibrary = targetData.getLayoutLibrary(parentDisposable, hasLayoutlibCrash);
+          myLayoutLibrary = targetData.getLayoutLibrary(register, hasLayoutlibCrash);
           return myLayoutLibrary;
         }
       }
@@ -131,7 +132,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the EmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), hasLayoutlibCrash);
-      Disposer.register(parentDisposable, () -> myLayoutLibrary.dispose());
+      register.accept(myLayoutLibrary);
     }
 
     return myLayoutLibrary;
@@ -141,7 +142,7 @@ public class AndroidTargetData {
    * The keys of the returned map are attr names. The values are maps defining numerical values of the corresponding enums or flags.
    */
   @Slow
-  @NotNull
+  @NonNull
   private Map<String, Map<String, Integer>> getFrameworkEnumValues() {
     ResourceRepository resources = getFrameworkResources(ImmutableSet.of());
     if (resources == null) {
@@ -194,12 +195,12 @@ public class AndroidTargetData {
     }
   }
 
-  @NotNull
+  @NonNull
   public IAndroidTarget getTarget() {
     return myTarget;
   }
 
-  @NotNull
+  @NonNull
   public synchronized MyStaticConstantsData getStaticConstantsData() {
     if (myStaticConstantsData == null) {
       myStaticConstantsData = new MyStaticConstantsData();
@@ -218,7 +219,7 @@ public class AndroidTargetData {
    */
   @Slow
   @Nullable
-  public synchronized ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
+  public synchronized ResourceRepository getFrameworkResources(@NonNull Set<String> languages) {
     Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
     if (!Files.exists(resFolderOrJar)) {
       LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar));
@@ -235,17 +236,17 @@ public class AndroidTargetData {
    * This method can return null when the user is changing the SDK setting in their project.
    */
   @Nullable
-  public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @Nullable AndroidPlatform platform) {
+  public static AndroidTargetData getTargetData(@NonNull IAndroidTarget target, @Nullable AndroidPlatform platform) {
     return platform != null ? AndroidTargetData.get(platform.getSdkData(), target) : null;
   }
 
   private class PublicAttributeDefinitions extends FilteredAttributeDefinitions {
-    protected PublicAttributeDefinitions(@NotNull AttributeDefinitions wrappee) {
+    protected PublicAttributeDefinitions(@NonNull AttributeDefinitions wrappee) {
       super(wrappee);
     }
 
     @Override
-    protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
+    protected boolean isAttributeAcceptable(@NonNull ResourceReference attr) {
       return attr.getNamespace().equals(ResourceNamespace.ANDROID)
              && !attr.getName().startsWith("__removed")
              && isResourcePublic(ResourceType.ATTR, attr.getName());
@@ -307,7 +308,7 @@ public class AndroidTargetData {
 
   private static final Map<AndroidSdkData, Map<String, SoftReference<AndroidTargetData>>> myTargetDataCache = new WeakHashMap<>();
 
-  public static AndroidTargetData get(@NotNull AndroidSdkData sdk, @NotNull IAndroidTarget target) {
+  public static AndroidTargetData get(@NonNull AndroidSdkData sdk, @NonNull IAndroidTarget target) {
     Map<String, SoftReference<AndroidTargetData>> targetDataByTarget = myTargetDataCache.computeIfAbsent(sdk, s -> Maps.newHashMap());
     String key = target.hashString();
     final SoftReference<AndroidTargetData> targetDataRef = targetDataByTarget.get(key);
@@ -317,5 +318,10 @@ public class AndroidTargetData {
       targetDataByTarget.put(key, new SoftReference<>(targetData));
     }
     return targetData;
+  }
+
+  @TestOnly
+  public static void clearCache() {
+    myTargetDataCache.clear();
   }
 }

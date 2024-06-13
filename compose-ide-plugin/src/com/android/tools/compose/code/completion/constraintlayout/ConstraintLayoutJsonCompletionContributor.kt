@@ -93,20 +93,20 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       // Complete field names in ConstraintSets
       jsonPropertyName().withConstraintSetsParentAtLevel(CONSTRAINT_SET_PROPERTY_DEPTH),
-      ConstraintSetFieldsProvider
+      ConstraintSetFieldsProvider,
     )
     extend(
       CompletionType.BASIC,
       // Complete constraints field names (width, height, start, end, etc.)
       jsonPropertyName().withConstraintSetsParentAtLevel(CONSTRAINT_BLOCK_PROPERTY_DEPTH),
-      ConstraintsProvider
+      ConstraintsProvider,
     )
     extend(
       CompletionType.BASIC,
       // Complete ConstraintSet names in Extends keyword
       jsonStringValue()
         .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, KeyWords.Extends),
-      ConstraintSetNamesProvider
+      ConstraintSetNamesProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -114,9 +114,9 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       jsonStringValue()
         .withPropertyParentAtLevel(
           BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          SpecialAnchor.values().map { it.keyWord }
+          SpecialAnchor.values().map { it.keyWord },
         ),
-      ConstraintIdsProvider
+      ConstraintIdsProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -126,7 +126,7 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
         // level
         .withParent(psiElement<JsonStringLiteral>().atIndexOfJsonArray(0))
         .insideConstraintArray(),
-      ConstraintIdsProvider
+      ConstraintIdsProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -136,13 +136,13 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
         // this level
         .withParent(psiElement<JsonStringLiteral>().atIndexOfJsonArray(1))
         .insideConstraintArray(),
-      AnchorablesProvider
+      AnchorablesProvider,
     )
     extend(
       CompletionType.BASIC,
       // Complete a clear option within the 'clear' array
       jsonStringValue().insideClearArray(),
-      ClearOptionsProvider
+      ClearOptionsProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -150,16 +150,16 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       jsonStringValue()
         .withPropertyParentAtLevel(
           BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          Dimension.values().map { it.keyWord }
+          Dimension.values().map { it.keyWord },
         ),
-      EnumValuesCompletionProvider(DimBehavior::class)
+      EnumValuesCompletionProvider(DimBehavior::class),
     )
     extend(
       CompletionType.BASIC,
       // Complete Visibility mode values
       jsonStringValue()
         .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, KeyWords.Visibility),
-      EnumValuesCompletionProvider(VisibilityMode::class)
+      EnumValuesCompletionProvider(VisibilityMode::class),
     )
     // endregion
 
@@ -168,7 +168,7 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       // Complete fields of a Transition block
       jsonPropertyName().withTransitionsParentAtLevel(TRANSITION_PROPERTY_DEPTH),
-      TransitionFieldsProvider
+      TransitionFieldsProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -176,13 +176,13 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       jsonStringValue()
         .withPropertyParentAtLevel(
           BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          listOf(TransitionField.From.keyWord, TransitionField.To.keyWord)
+          listOf(TransitionField.From.keyWord, TransitionField.To.keyWord),
         )
         .withTransitionsParentAtLevel(TRANSITION_PROPERTY_DEPTH),
       // TODO(b/207030860): Guarantee that provided names for 'from' or 'to' are distinct from each
       // other,
       //  ie: both shouldn't reference the same ConstraintSet
-      ConstraintSetNamesProvider
+      ConstraintSetNamesProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -190,10 +190,10 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       jsonPropertyName()
         .withPropertyParentAtLevel(
           BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT,
-          TransitionField.KeyFrames.keyWord
+          TransitionField.KeyFrames.keyWord,
         )
         .withTransitionsParentAtLevel(KEYFRAMES_PROPERTY_DEPTH),
-      KeyFramesFieldsProvider
+      KeyFramesFieldsProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -201,10 +201,10 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       jsonPropertyName()
         .withPropertyParentAtLevel(
           BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT,
-          TransitionField.OnSwipe.keyWord
+          TransitionField.OnSwipe.keyWord,
         )
         .withTransitionsParentAtLevel(ONSWIPE_PROPERTY_DEPTH),
-      OnSwipeFieldsProvider
+      OnSwipeFieldsProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -212,16 +212,16 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       jsonStringValue()
         .withPropertyParentAtLevel(
           BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          OnSwipeField.AnchorId.keyWord
+          OnSwipeField.AnchorId.keyWord,
         ),
-      ConstraintIdsProvider
+      ConstraintIdsProvider,
     )
     extend(
       CompletionType.BASIC,
       // Complete the known values for the OnSwipe `side` property
       jsonStringValue()
         .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, OnSwipeField.Side.keyWord),
-      EnumValuesCompletionProvider(OnSwipeSide::class)
+      EnumValuesCompletionProvider(OnSwipeSide::class),
     )
     extend(
       CompletionType.BASIC,
@@ -229,16 +229,16 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       jsonStringValue()
         .withPropertyParentAtLevel(
           BASE_DEPTH_FOR_LITERAL_IN_PROPERTY,
-          OnSwipeField.Direction.keyWord
+          OnSwipeField.Direction.keyWord,
         ),
-      EnumValuesCompletionProvider(OnSwipeDirection::class)
+      EnumValuesCompletionProvider(OnSwipeDirection::class),
     )
     extend(
       CompletionType.BASIC,
       // Complete the known values for the OnSwipe `mode` property
       jsonStringValue()
         .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, OnSwipeField.Mode.keyWord),
-      EnumValuesCompletionProvider(OnSwipeMode::class)
+      EnumValuesCompletionProvider(OnSwipeMode::class),
     )
     extend(
       CompletionType.BASIC,
@@ -247,16 +247,16 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
         // A level deeper considering the array surrounding the object
         .withPropertyParentAtLevel(
           BASE_DEPTH_FOR_NAME_IN_PROPERTY_OBJECT + 1,
-          KeyFrameField.values().map { it.keyWord }
+          KeyFrameField.values().map { it.keyWord },
         ),
-      KeyFrameChildFieldsCompletionProvider
+      KeyFrameChildFieldsCompletionProvider,
     )
     // endregion
   }
 
   override fun fillCompletionVariants(
     parameters: CompletionParameters,
-    result: CompletionResultSet
+    result: CompletionResultSet,
   ) {
     if (
       parameters.position.getModuleSystem()?.usesCompose != true ||

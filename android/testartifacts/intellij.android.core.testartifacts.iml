@@ -5,8 +5,8 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library name="libstudio.android-test-plugin-host-retention-proto" type="repository">
         <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-host-retention-proto:232.1.23.0">
@@ -33,24 +33,10 @@
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="utp-core-proto-jarjar" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-shared" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.ddmlib" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.deployer" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.lint-api" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.lint-checks" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.repository" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />

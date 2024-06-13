@@ -74,8 +74,9 @@ class TableController(
   override val closeTabInvoked: () -> Unit,
   private val showExportDialog: (ExportDialogParams) -> Unit,
   private val edtExecutor: Executor,
-  private val taskExecutor: Executor
+  private val taskExecutor: Executor,
 ) : DatabaseInspectorController.TabController {
+  private var isDisposed: Boolean = false
   private lateinit var resultSet: SqliteResultSet
   private val listener = TableViewListenerImpl()
   private var orderBy: OrderBy = OrderBy.NotOrdered
@@ -135,6 +136,7 @@ class TableController(
   }
 
   override fun dispose() {
+    isDisposed = true
     view.stopTableLoading()
     view.removeListener(listener)
   }
@@ -148,7 +150,7 @@ class TableController(
     val fetchTableDataFuture =
       resultSet.columns
         .transformAsync(edtExecutor) { columns ->
-          if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+          if (isDisposed) throw ProcessCanceledException()
           if (columns != currentCols) {
             // if the columns changed we cannot use the old list of rows as reference for doing the
             // diff.
@@ -196,7 +198,7 @@ class TableController(
     val updateDataFuture = updateDataAndButtons()
     val future =
       updateDataFuture.finallySync(edtExecutor) {
-        if (Disposer.isDisposed(this@TableController)) throw ProcessCanceledException()
+        if (isDisposed) throw ProcessCanceledException()
         view.stopTableLoading()
       }
 
@@ -206,15 +208,15 @@ class TableController(
   /**
    * Fetches rows through the [resultSet] using [rowOffset] and [rowBatchSize]. The view is updated
    * through a list of [RowDiffOperation]. Compared to just recreating the view this approach has
-   * the advantage that the state is not lost. Eg. if the user is navigating the table using the
+   * the advantage that the state is not lost. E.g. if the user is navigating the table using the
    * keyboard we don't want to lose the navigation each time the data has to be updated.
    */
   private fun fetchAndDisplayRows(): ListenableFuture<Unit> {
     return resultSet
       .getRowBatch(rowOffset, rowBatchSize)
-      .transform(edtExecutor) { newRows ->
+      .transform(edtExecutor) { result ->
         val rowDiffOperations = mutableListOf<RowDiffOperation>()
-
+        val newRows = result.rows
         // Update the cells that already exist
         for (rowIndex in 0 until min(currentRows.size, newRows.size)) {
           val rowCellUpdates = performRowsDiff(currentRows[rowIndex], newRows[rowIndex], rowIndex)
@@ -232,6 +234,7 @@ class TableController(
           rowDiffOperations.add(RowDiffOperation.RemoveLastRows(newRows.size))
         }
 
+        view.updateIsForcedBanner(result.isForced)
         view.setRowOffset(rowOffset)
         view.updateRows(rowDiffOperations)
         view.setEditable(isEditable())
@@ -242,13 +245,13 @@ class TableController(
   }
 
   /**
-   * Returns a list of [UpdateCell] commands. A command is added to the list if [oldRow] and
-   * [newRow] have different values in the same position.
+   * Returns a list of [RowDiffOperation.UpdateCell] commands. A command is added to the list if
+   * [oldRow] and [newRow] have different values in the same position.
    */
   private fun performRowsDiff(
     oldRow: SqliteRow,
     newRow: SqliteRow,
-    rowIndex: Int
+    rowIndex: Int,
   ): List<RowDiffOperation.UpdateCell> {
     val cellUpdates = mutableListOf<RowDiffOperation.UpdateCell>()
 
@@ -263,7 +266,7 @@ class TableController(
 
   private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Unit> {
     future.addCallback(edtExecutor, success = {}) { error ->
-      if (Disposer.isDisposed(this)) return@addCallback
+      if (isDisposed) return@addCallback
       view.resetView()
       if (error !is CancellationException && error !is AppInspectionConnectionException) {
         view.reportError("Error retrieving data from table.", error)
@@ -288,7 +291,7 @@ class TableController(
       databaseRepository
         .selectOrdered(databaseId, sqliteStatement, orderBy)
         .transform(edtExecutor) { newResultSet ->
-          if (Disposer.isDisposed(this@TableController)) {
+          if (isDisposed) {
             newResultSet.dispose()
             throw ProcessCanceledException()
           }
@@ -313,7 +316,7 @@ class TableController(
 
       databaseInspectorAnalyticsTracker.trackStatementExecutionCanceled(
         connectivityState,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT,
       )
       // Closing a tab triggers its dispose method, which cancels the future, stopping the running
       // query.
@@ -397,7 +400,7 @@ class TableController(
     override fun updateCellInvoked(
       targetRowIndex: Int,
       targetColumn: ViewColumn,
-      newValue: SqliteValue
+      newValue: SqliteValue,
     ) {
       val targetTable = tableSupplier()
       if (targetTable == null) {
@@ -422,7 +425,7 @@ class TableController(
               view.stopTableLoading()
               view.reportError("Can't execute update: ", t)
             }
-          }
+          },
         )
     }
   }
@@ -440,7 +443,7 @@ class TableController(
     return ViewColumn(
       name,
       schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false,
-      schemaColumn?.isNullable ?: isNullable ?: true
+      schemaColumn?.isNullable ?: isNullable ?: true,
     )
   }
 }

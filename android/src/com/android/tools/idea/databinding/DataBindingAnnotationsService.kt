@@ -39,39 +39,52 @@ import org.jetbrains.plugins.groovy.lang.psi.impl.stringValue
 class DataBindingAnnotationsService(val module: Module) {
   companion object {
     @JvmStatic
-    fun getInstance(facet: AndroidFacet) = facet.module.getService(DataBindingAnnotationsService::class.java)!!
+    fun getInstance(facet: AndroidFacet) =
+      facet.module.getService(DataBindingAnnotationsService::class.java)!!
   }
 
-  // Cache the set of binding adapter attributes for fast lookup during XML markup and autocompletion.
+  // Cache the set of binding adapter attributes for fast lookup during XML markup and
+  // autocompletion.
   // This cache is refreshed on every Java change.
-  private val cachedBindingAdapterAttributes = CachedValuesManager.getManager(module.project).createCachedValue(
-    {
-      CachedValueProvider.Result.create(computeBindingAdapterAttributes(),
-                                        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(module.project))
-    }, false)
+  private val cachedBindingAdapterAttributes =
+    CachedValuesManager.getManager(module.project)
+      .createCachedValue(
+        {
+          CachedValueProvider.Result.create(
+            computeBindingAdapterAttributes(),
+            AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(module.project),
+          )
+        },
+        false,
+      )
 
   /**
-   * Returns the (possibly cached) set of attributes defined by `@BindingAdapter` annotations.
-   * Must be called from a read action.
+   * Returns the (possibly cached) set of attributes defined by `@BindingAdapter` annotations. Must
+   * be called from a read action.
    */
   fun getBindingAdapterAttributes(): Set<String> {
     assert(ApplicationManager.getApplication().isReadAccessAllowed)
     return cachedBindingAdapterAttributes.value
   }
 
-  private fun findJavaAndKotlinAnnotations(fqName: String, scope: GlobalSearchScope, project: Project): List<PsiAnnotation> {
+  private fun findJavaAndKotlinAnnotations(
+    fqName: String,
+    scope: GlobalSearchScope,
+    project: Project,
+  ): List<PsiAnnotation> {
     val facade = JavaPsiFacade.getInstance(project)
     val bindingAdapterAnnotation = facade.findClass(fqName, scope) ?: return emptyList()
     return AnnotatedElementsSearch.searchElements(
-      bindingAdapterAnnotation, scope, PsiMethod::class.java)
-      .mapNotNull { annotatedMethod ->
-        AnnotationUtil.findAnnotation(annotatedMethod, fqName)
-      }
+        bindingAdapterAnnotation,
+        scope,
+        PsiMethod::class.java,
+      )
+      .mapNotNull { annotatedMethod -> AnnotationUtil.findAnnotation(annotatedMethod, fqName) }
   }
 
   /**
-   * Find all @BindingAdapter annotations in the given module, and compute
-   * the associated set of binding adapter attribute names.
+   * Find all @BindingAdapter annotations in the given module, and compute the associated set of
+   * binding adapter attribute names.
    */
   private fun computeBindingAdapterAttributes(): Set<String> {
     val androidFacet = AndroidFacet.getInstance(module) ?: return emptySet()
@@ -82,13 +95,13 @@ class DataBindingAnnotationsService(val module: Module) {
 
     val scope = module.getModuleWithDependenciesAndLibrariesScope(false)
     val annotations = findJavaAndKotlinAnnotations(mode.bindingAdapter, scope, module.project)
-    return annotations.asSequence()
+    return annotations
+      .asSequence()
       .mapNotNull { it.findAttributeValue("value") }
       .map { attributeValue ->
         if (attributeValue is PsiArrayInitializerMemberValue) {
           attributeValue.initializers.toList()
-        }
-        else {
+        } else {
           listOf(attributeValue)
         }
       }

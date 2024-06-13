@@ -23,7 +23,7 @@ enum class TimeGranularity {
   PER_SECOND,
   HOURLY,
   DAILY,
-  FULL_RANGE
+  FULL_RANGE,
 }
 
 internal fun TimeGranularity.toProto(): AggregationPeriod {

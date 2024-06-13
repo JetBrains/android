@@ -46,8 +46,11 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.registerServiceInstance
-import icons.StudioIcons.Misc.DEPENDENCY_CONSUMER
-import icons.StudioIcons.Misc.DEPENDENCY_PROVIDER
+import icons.StudioIcons.GutterIcons.DEPENDENCY_CONSUMER
+import icons.StudioIcons.GutterIcons.DEPENDENCY_PROVIDER
+import java.awt.event.MouseEvent
+import javax.swing.Icon
+import javax.swing.JLabel
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFunction
@@ -57,9 +60,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.awt.event.MouseEvent
-import javax.swing.Icon
-import javax.swing.JLabel
 
 class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
   private lateinit var trackerService: TestDaggerAnalyticsTracker
@@ -87,7 +87,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       @Suppress("UNCHECKED_CAST")
       (icon.lineMarkerInfo.navigationHandler!! as GutterIconNavigationHandler<PsiElement>).navigate(
         MouseEvent(JLabel(), 0, 0, 0, 0, 0, 0, false),
-        icon.lineMarkerInfo.element
+        icon.lineMarkerInfo.element,
       )
     } catch (e: java.awt.HeadlessException) {
       // This error appears when AS tries to open a popup after the click in Headless environment.
@@ -137,7 +137,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           @Provides String provider() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val providerMethod: PsiMethod = myFixture.findParentElement("provi|der()")
@@ -154,7 +154,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         @Inject String ${caret}injectedString;
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val consumerField = myFixture.elementAtCaret
@@ -183,7 +183,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         @Inject val <caret>injectedStringKt:String
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val consumerKtField = myFixture.elementAtCaret
@@ -214,7 +214,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         @Provides fun providerToDisplayAsConsumer(consumer:String)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val consumerParameter: KtParameter = myFixture.findParentElement("cons|umer:String")
@@ -229,7 +229,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       class MyClass2 @Inject constructor(injectedString:String)
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val parameter: KtParameter = myFixture.findParentElement("inj|ectedString")
@@ -248,12 +248,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     val consumerElements = gotoRelatedItems.map { it.element }
 
     assertThat(consumerElements)
-      .containsExactly(
-        consumerField,
-        consumerKtField,
-        parameter,
-        consumerParameter,
-      )
+      .containsExactly(consumerField, consumerKtField, parameter, consumerParameter)
 
     val displayedNames = gotoRelatedItems.map { it.customName }
     assertThat(displayedNames)
@@ -373,7 +368,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           }
         }
       """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -389,7 +384,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         val str:String
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.moveCaret("st|r").parent as KtProperty
@@ -456,7 +451,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         class MyModule {
         }
       """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -514,7 +509,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       .containsExactly(
         "Included in components: MyComponent",
         "Included in modules: MyModule2",
-        "Included in subcomponents: MySubcomponent"
+        "Included in subcomponents: MySubcomponent",
       )
 
     clickOnIcon(icon)
@@ -557,7 +552,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       @Component(dependencies = [MyComponent::class])
       interface MyDependantComponent
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.configureFromExistingVirtualFile(componentFile)
@@ -645,7 +640,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       @Component(modules = [ MyModule::class])
       interface MyComponentKt
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.configureFromExistingVirtualFile(subcomponentFile)
@@ -688,7 +683,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       @Subcomponent
       interface MySubcomponent2
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.addClass(
@@ -734,7 +729,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       .containsAllOf(
         "Subcomponents: MySubcomponent2",
         "Subcomponents: MySubcomponent",
-        "Modules included: MyModule"
+        "Modules included: MyModule",
       )
   }
 
@@ -748,7 +743,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       class Repository @Inject constructor()
     """
-        .trimIndent()
+        .trimIndent(),
     )
     val assistedFactory =
       myFixture
@@ -771,7 +766,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           fun create(id: String): Foo
       }
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .containingFile
         .virtualFile
@@ -798,7 +793,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           @Assisted val id: String
       )
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .containingFile
         .virtualFile
@@ -882,7 +877,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       class Repository @Inject constructor()
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .containingFile
         .virtualFile
@@ -908,7 +903,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       }
 
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .containingFile
         .virtualFile
@@ -935,7 +930,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           @Assisted val id: String
       )
     """
-            .trimIndent()
+            .trimIndent(),
         )
         .containingFile
         .virtualFile
@@ -963,7 +958,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       "constru|ctor()",
       "Repository() provides for Foo",
       listOf("Consumers: repository"),
-      DEPENDENCY_CONSUMER
+      DEPENDENCY_CONSUMER,
     )
 
     checkGutterIcon(
@@ -971,7 +966,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       "@Inject FooFactory myFoo|Factory;",
       "myFooFactory consumes FooFactory",
       listOf("Providers: FooFactory"),
-      DEPENDENCY_PROVIDER
+      DEPENDENCY_PROVIDER,
     )
 
     checkGutterIcon(
@@ -979,7 +974,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       "interface FooF|actory",
       "FooFactory provides for MyClass",
       listOf("Consumers: myFooFactory"),
-      DEPENDENCY_CONSUMER
+      DEPENDENCY_CONSUMER,
     )
 
     checkGutterIcon(
@@ -987,7 +982,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       "val repo|sitory: Repository,",
       "repository consumes Repository()",
       listOf("Providers: Repository"),
-      DEPENDENCY_PROVIDER
+      DEPENDENCY_PROVIDER,
     )
 
     // On the @AssistedInject-annotated constructor, any parameter annotated with @Assisted should
@@ -1003,7 +998,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     caretLocation: String,
     tooltipText: String,
     resultStrings: List<String>,
-    expectedIcon: Icon
+    expectedIcon: Icon,
   ) {
     myFixture.configureFromExistingVirtualFile(virtualFile)
     myFixture.moveCaret(caretLocation)
@@ -1031,7 +1026,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         @Module
         object MyModule
       """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -1050,7 +1045,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           ONE
         }
       """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -1134,7 +1129,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.moveCaret("st|r")
@@ -1285,7 +1280,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           @Provides String provider() {}
         }
       """
-            .trimIndent()
+            .trimIndent(),
         )
         .virtualFile
 
@@ -1368,7 +1363,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       @Component(dependencies = [MyComponent::class])
       interface MyDependentComponent
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     clickOnIcon(
@@ -1418,7 +1413,7 @@ class DaggerRelatedItemLineMarkerProviderTest {
         val property: Int = 0
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertThat(myFixture.moveCaret("cla|ss Foo constructor").canReceiveLineMarker()).isFalse()
@@ -1457,7 +1452,7 @@ class DaggerRelatedItemLineMarkerProviderTest {
         private int property = 0;
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertThat(myFixture.moveCaret("cla|ss Foo").canReceiveLineMarker()).isFalse()
@@ -1487,49 +1482,49 @@ class DaggerRelatedItemLineMarkerProviderTest {
           createMockDaggerElement("ElementName8"),
           "Consumers",
           "navigate.to.consumer",
-          "CustomName8"
+          "CustomName8",
         ),
         DaggerRelatedElement(
           createMockDaggerElement("ElementName7"),
           "Providers",
           "navigate.to.provider",
-          "CustomName7"
+          "CustomName7",
         ),
         DaggerRelatedElement(
           createMockDaggerElement("ElementName4"),
           "Consumers",
           "navigate.to.consumer",
-          null
+          null,
         ),
         DaggerRelatedElement(
           createMockDaggerElement("ElementName3"),
           "Providers",
           "navigate.to.provider",
-          null
+          null,
         ),
         DaggerRelatedElement(
           createMockDaggerElement("ElementName6"),
           "Consumers",
           "navigate.to.consumer",
-          "CustomName6"
+          "CustomName6",
         ),
         DaggerRelatedElement(
           createMockDaggerElement("ElementName5"),
           "Providers",
           "navigate.to.provider",
-          "CustomName5"
+          "CustomName5",
         ),
         DaggerRelatedElement(
           createMockDaggerElement("ElementName2"),
           "Consumers",
           "navigate.to.consumer",
-          null
+          null,
         ),
         DaggerRelatedElement(
           createMockDaggerElement("ElementName1"),
           "Providers",
           "navigate.to.provider",
-          null
+          null,
         ),
       )
 

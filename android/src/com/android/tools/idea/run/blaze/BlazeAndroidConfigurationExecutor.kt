@@ -134,7 +134,7 @@ class BlazeAndroidConfigurationExecutor(
             liveEditService,
             env,
             applicationId,
-            apkProvider,
+            apkProvider.getApks(device),
             device
           ) // Notify listeners of the deployment.
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)

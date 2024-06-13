@@ -34,7 +34,7 @@ typealias EntryUpdateEventListener =
 enum class EntryUpdateEventType {
   ADD,
   UPDATE,
-  REMOVE
+  REMOVE,
 }
 
 sealed class WmiMessengerTarget {
@@ -50,7 +50,7 @@ sealed class WmiMessengerTarget {
 class EventWrapper(val case: Case, data: ByteArray) {
   enum class Case {
     WORK,
-    BACKGROUND_TASK
+    BACKGROUND_TASK,
   }
 
   @TestOnly
@@ -77,7 +77,7 @@ class BackgroundTaskInspectorClient(
   private val btiMessenger: AppInspectorMessenger,
   private val wmiMessengerTarget: WmiMessengerTarget,
   val scope: CoroutineScope,
-  val tracker: BackgroundTaskInspectorTracker
+  val tracker: BackgroundTaskInspectorTracker,
 ) {
   private val listeners = mutableListOf<EntryUpdateEventListener>()
   private val entryMap = ConcurrentHashMap<String, BackgroundTaskEntry>()

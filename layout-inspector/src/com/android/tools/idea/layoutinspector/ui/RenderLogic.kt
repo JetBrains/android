@@ -41,7 +41,7 @@ private val HQ_RENDERING_HINTS =
     RenderingHints.KEY_FRACTIONALMETRICS to RenderingHints.VALUE_FRACTIONALMETRICS_ON,
     RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
     RenderingHints.KEY_INTERPOLATION to RenderingHints.VALUE_INTERPOLATION_BILINEAR,
-    RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE
+    RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE,
   )
 
 /**
@@ -85,7 +85,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
     g: Graphics2D,
     drawInfo: ViewDrawInfo,
     component: Component,
-    foregroundColor: Color
+    foregroundColor: Color,
   ) {
     val hoveredNode = inspectorModel.hoveredNode
     val drawView = drawInfo.node
@@ -112,7 +112,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
         view == hoveredNode,
         inspectorModel,
         renderSettings,
-        renderModel.treeSettings
+        renderModel.treeSettings,
       )
     }
     // the fold has to be drawn over the View that is select/hovered.
@@ -209,14 +209,14 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
         labelBorder * 2,
       icon.iconHeight + labelBorder * 2,
       JBUIScale.scale(5),
-      JBUIScale.scale(5)
+      JBUIScale.scale(5),
     )
     labelGraphics.color = foregroundColor
     icon.paintIcon(component, labelGraphics, labelPosition.x, labelPosition.y)
     labelGraphics.drawString(
       angleText,
       labelPosition.x + icon.iconWidth + iconTextGap,
-      labelPosition.y + labelGraphics.fontMetrics.maxAscent
+      labelPosition.y + labelGraphics.fontMetrics.maxAscent,
     )
   }
 }

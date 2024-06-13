@@ -16,9 +16,11 @@
 
 package com.android.tools.idea.serverflags
 
+import com.android.tools.idea.serverflags.protos.AndroidSdkSupportConfiguration
 import com.android.tools.idea.serverflags.protos.ServerFlag
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.Message
+import com.google.protobuf.TextFormat
 
 class ServerFlagServiceImpl : ServerFlagService {
   override val configurationVersion: Long
@@ -88,10 +90,28 @@ class ServerFlagServiceImpl : ServerFlagService {
 
     val sb = StringBuilder()
     for ((name, flag) in flags.entries.sortedBy { it.key }) {
-      sb.append("Name: $name\nPercentEnabled: ${flag.percentEnabled}\nValue: ${flag.Value}\n\n")
+      sb.append("Name: $name\nPercentEnabled: ${flag.percentEnabled}\nValue: ${prettyPrint(name, flag)}\n\n")
     }
 
     return sb.toString()
+  }
+
+  private fun prettyPrint(name: String, flag: ServerFlag): String  = when {
+    flag.hasStringValue() -> flag.stringValue
+    flag.hasBooleanValue() -> flag.booleanValue.toString()
+    flag.hasFloatValue() -> flag.floatValue.toString()
+    flag.hasIntValue() -> flag.intValue.toString()
+    flag.hasProtoValue() -> prettyPrintProto(name)
+    else -> "No value specified"
+  }
+
+  private fun prettyPrintProto(name: String): String {
+    val type = when(name) {
+      "feature/studio_api_level_support" -> AndroidSdkSupportConfiguration.getDefaultInstance()
+      else -> return "custom proto"
+    }
+    val proto = getProtoOrNull(name, type) ?: return "null"
+    return TextFormat.printer().printToString(proto)
   }
 
   companion object {
@@ -99,16 +119,5 @@ class ServerFlagServiceImpl : ServerFlagService {
   }
 }
 
-private val ServerFlag.Value: String
-  get() {
-    return when {
-      this.hasStringValue() -> this.stringValue
-      this.hasBooleanValue() -> this.booleanValue.toString()
-      this.hasFloatValue() -> this.floatValue.toString()
-      this.hasIntValue() -> this.intValue.toString()
-      this.hasProtoValue() -> "custom proto"
-      else -> "No value specified"
-    }
-  }
 
 

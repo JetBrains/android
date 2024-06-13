@@ -74,7 +74,7 @@ class ViewBindingSamePackageModulesTest {
     assertThat(
         bindingClassFinder.findClasses(
           libBindingClassName,
-          GlobalSearchScope.everythingScope(project)
+          GlobalSearchScope.everythingScope(project),
         )
       )
       .hasLength(2)

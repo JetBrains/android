@@ -5,8 +5,9 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module-library">
       <library name="asdriver_proto" type="repository">
         <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:asdriver_proto:232.1.23.0">
@@ -28,17 +29,13 @@
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.repository" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.as-driver.agent" scope="TEST" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
   </component>
 </module>

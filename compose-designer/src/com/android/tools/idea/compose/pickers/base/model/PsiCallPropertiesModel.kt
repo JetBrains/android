@@ -57,7 +57,7 @@ internal constructor(
   val ktFile: KtFile,
   psiPropertiesProvider: PsiPropertiesProvider,
   override val tracker:
-    ComposePickerTracker // TODO(b/205195408): Refactor tracker to a more general use
+    ComposePickerTracker, // TODO(b/205195408): Refactor tracker to a more general use
 ) : PsiPropertiesModel(), DataProvider {
 
   val psiFactory: KtPsiFactory by lazy(LazyThreadSafetyMode.NONE) { KtPsiFactory(project, true) }

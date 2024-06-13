@@ -1,0 +1,889 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.avdmanager.ui.ConfigureAvdOptionsStep">
+  <grid id="ea2c5" binding="myRoot" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="33" y="32" width="1125" height="1067"/>
+    </constraints>
+    <properties>
+      <minimumSize width="-1" height="-1"/>
+      <preferredSize width="-1" height="-1"/>
+    </properties>
+    <border type="none"/>
+    <children>
+      <scrollpane id="df6ac" class="com.intellij.ui.components.JBScrollPane" binding="myScrollPane">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <autoscrolls value="true"/>
+          <horizontalScrollBarPolicy value="30"/>
+          <verticalScrollBarPolicy value="20"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <grid id="27dc6" binding="myScrollRootPane" layout-manager="GridLayoutManager" row-count="13" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="3" left="3" bottom="3" right="10"/>
+            <constraints/>
+            <properties>
+              <maximumSize width="-1" height="-1"/>
+              <minimumSize width="-1" height="-1"/>
+              <preferredSize width="-1" height="-1"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <grid id="e6aaf" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="77e15" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <labelFor value="7be1e"/>
+                      <text value="AVD name:"/>
+                    </properties>
+                  </component>
+                  <component id="7be1e" class="javax.swing.JTextField" binding="myAvdDisplayName">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value=""/>
+                      <toolTipText value="&lt;html&gt;The name of this AVD.&lt;/html&gt;"/>
+                    </properties>
+                  </component>
+                  <grid id="ba615" binding="myAvdIdRow" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="0" left="0" bottom="0" right="0"/>
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="1cd83" class="com.intellij.ui.components.JBLabel" binding="myAvdIdLabel">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <labelFor value=""/>
+                          <text value="AVD ID:"/>
+                        </properties>
+                      </component>
+                      <component id="7e00f" class="com.intellij.ui.components.JBLabel" binding="myAvdId">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <toolTipText value="&lt;html&gt;Identification name used to save an AVD on disk. This AVD name can also be used with Android command line tools.&lt;/html&gt;"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                </children>
+              </grid>
+              <grid id="4a0c0" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="cea71" class="com.intellij.ui.components.JBLabel" binding="myDeviceName">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="(Device Name)"/>
+                    </properties>
+                  </component>
+                  <component id="52182" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <grid id="a76b0" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="0" left="0" bottom="0" right="0"/>
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="a5443" class="com.intellij.ui.components.JBLabel" binding="myDeviceDetails">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="No Hardware Profile Selected"/>
+                        </properties>
+                      </component>
+                      <component id="d6123" class="javax.swing.JButton" binding="myChangeDeviceButton">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Change..."/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                </children>
+              </grid>
+              <grid id="c6154" binding="myOrientationPanel" layout-manager="GridLayoutManager" row-count="2" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="c1e8d" class="com.intellij.ui.components.JBLabel" binding="myOrientationLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <enabled value="true"/>
+                      <horizontalTextPosition value="10"/>
+                      <text value="Startup orientation:"/>
+                    </properties>
+                  </component>
+                  <component id="ab901" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="cd11c" class="com.android.tools.adtui.ASGallery" binding="myOrientationToggle" custom-create="true">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <toolTipText value="&lt;html&gt;Sets the initial orientation of the device. During AVD emulation you can also rotate the device screen. &lt;/html&gt;"/>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
+              <grid id="e7493" binding="myCameraPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="7939e" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <enabled value="true"/>
+                      <horizontalTextPosition value="10"/>
+                      <text value="Camera"/>
+                    </properties>
+                  </component>
+                  <grid id="ff570" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="0" left="0" bottom="0" right="0"/>
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="f9f26" class="com.intellij.ui.components.JBLabel">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <labelFor value="8ab45"/>
+                          <text value="Front:"/>
+                        </properties>
+                      </component>
+                      <component id="d0158" class="com.intellij.ui.components.JBLabel">
+                        <constraints>
+                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <labelFor value="3ef9c"/>
+                          <text value="Back:"/>
+                        </properties>
+                      </component>
+                      <component id="3ef9c" class="javax.swing.JComboBox" binding="myBackCameraCombo">
+                        <constraints>
+                          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <model>
+                            <item value="None"/>
+                          </model>
+                        </properties>
+                      </component>
+                      <component id="8ab45" class="javax.swing.JComboBox" binding="myFrontCameraCombo">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <model>
+                            <item value="None"/>
+                          </model>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                  <component id="2569d" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
+              <grid id="8ed39" binding="myNetworkPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="4ca3e" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <enabled value="true"/>
+                      <horizontalTextPosition value="10"/>
+                      <text value="Network"/>
+                    </properties>
+                  </component>
+                  <grid id="7ea7a" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="0" left="0" bottom="0" right="0"/>
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="2d493" class="com.intellij.ui.components.JBLabel">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <labelFor value="dac53"/>
+                          <text value="Speed:"/>
+                        </properties>
+                      </component>
+                      <component id="eee9b" class="com.intellij.ui.components.JBLabel">
+                        <constraints>
+                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <labelFor value="1ce78"/>
+                          <text value="Latency:"/>
+                        </properties>
+                      </component>
+                      <component id="1ce78" class="javax.swing.JComboBox" binding="myLatencyCombo">
+                        <constraints>
+                          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <model>
+                            <item value="None"/>
+                          </model>
+                          <toolTipText value="&lt;html&gt;Sets the initial state of the simulated network transfer latency used by AVD. Latency is the delay in processing data across the network. The latency speed can also be adjusted in the emulator.&lt;/html&gt;"/>
+                        </properties>
+                      </component>
+                      <component id="dac53" class="javax.swing.JComboBox" binding="mySpeedCombo">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <model>
+                            <item value="Full"/>
+                          </model>
+                          <toolTipText value="&lt;html&gt;Sets the initial state of the simulated network transfer rate used by AVD. The network speed can also be adjusted in the emulator.&lt;/html&gt;"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                  <component id="e0dad" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
+              <grid id="b7f00" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="937ef" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <enabled value="true"/>
+                      <horizontalTextPosition value="10"/>
+                      <text value="&lt;html&gt;Emulated&lt;br&gt;Performance&lt;/html&gt;"/>
+                    </properties>
+                  </component>
+                  <component id="9a493" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <grid id="2f3f1" layout-manager="GridLayoutManager" row-count="4" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="0" left="0" bottom="0" right="0"/>
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <grid id="d82ee" binding="myQemu2Panel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="3" column="0" row-span="1" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <component id="6290d" class="javax.swing.JSeparator">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties/>
+                          </component>
+                          <grid id="d4530" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                            <margin top="0" left="0" bottom="0" right="0"/>
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="6f3a0" class="javax.swing.JCheckBox" binding="myQemu2CheckBox">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <text value="Multi-Core CPU"/>
+                                  <toolTipText value="&lt;html&gt;Select the number of CPU cores for the emulator to use.&lt;/html&gt;"/>
+                                </properties>
+                              </component>
+                              <component id="7a8a0" class="javax.swing.JComboBox" binding="myCoreCount">
+                                <constraints>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <model/>
+                                  <toolTipText value="&lt;html&gt;Select the number of CPU cores for the emulator to use.&lt;/html&gt;"/>
+                                </properties>
+                              </component>
+                            </children>
+                          </grid>
+                        </children>
+                      </grid>
+                      <grid id="2027e" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="0" column="0" row-span="2" col-span="4" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <component id="217a1" class="com.intellij.ui.components.JBLabel">
+                            <constraints>
+                              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <labelFor value="118ed"/>
+                              <text value="Graphics:"/>
+                            </properties>
+                          </component>
+                          <component id="118ed" class="javax.swing.JComboBox" binding="myHostGraphics">
+                            <constraints>
+                              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <model/>
+                              <toolTipText value="&lt;html&gt;Choose how the graphics should be rendered in the emulator.&lt;br&gt;&lt;br&gt;&lt;b&gt;Hardware&lt;/b&gt;&lt;br&gt;Use your computer's graphics card for faster rendering.&lt;br&gt;&lt;br&gt;&lt;b&gt;Software&lt;/b&gt;&lt;br&gt;Emulate the graphics in software, use this to work around issues with your computer's graphics card.&lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                        </children>
+                      </grid>
+                      <grid id="85b1a" binding="myBootOptionPanel" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Choose from snapshot&lt;/b&gt;&lt;br&gt;Start from the chosen snapshot.&lt;/html&gt;"/>
+                        </properties>
+                        <border type="none"/>
+                        <children>
+                          <component id="96e56" class="com.intellij.ui.components.JBLabel">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="Boot option:"/>
+                            </properties>
+                          </component>
+                          <component id="66a1c" class="javax.swing.JRadioButton" binding="myColdBootRadioButton" default-binding="true">
+                            <constraints>
+                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="Cold boot"/>
+                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Choose from snapshot&lt;/b&gt;&lt;br&gt;Start from the chosen snapshot.&lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                          <component id="bd111" class="javax.swing.JRadioButton" binding="myFastBootRadioButton" default-binding="true">
+                            <constraints>
+                              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <selected value="true"/>
+                              <text value="Quick boot"/>
+                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Choose from snapshot&lt;/b&gt;&lt;br&gt;Start from the chosen snapshot.&lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                          <component id="fda73" class="javax.swing.JRadioButton" binding="myChooseBootRadioButton">
+                            <constraints>
+                              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <selected value="true"/>
+                              <text value="Choose from snapshot"/>
+                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Choose from snapshot&lt;/b&gt;&lt;br&gt;Start from the chosen snapshot.&lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                          <component id="5db9a" class="javax.swing.JComboBox" binding="myChosenSnapshotComboBox">
+                            <constraints>
+                              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="2" use-parent-layout="false"/>
+                            </constraints>
+                            <properties/>
+                          </component>
+                        </children>
+                      </grid>
+                    </children>
+                  </grid>
+                </children>
+              </grid>
+              <grid id="128b9" binding="myStoragePanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="827b0" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <enabled value="true"/>
+                      <horizontalTextPosition value="10"/>
+                      <text value="&lt;html&gt;Memory&lt;br&gt;and&lt;br&gt;Storage&lt;/html&gt;"/>
+                    </properties>
+                  </component>
+                  <grid id="c5228" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="0" left="0" bottom="0" right="0"/>
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="57934" class="com.intellij.ui.components.JBLabel" binding="myRamLabel">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="RAM:"/>
+                        </properties>
+                      </component>
+                      <component id="6b1e9" class="com.intellij.ui.components.JBLabel">
+                        <constraints>
+                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="VM heap:"/>
+                        </properties>
+                      </component>
+                      <component id="89fc4" class="com.intellij.ui.components.JBLabel">
+                        <constraints>
+                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Internal storage:"/>
+                        </properties>
+                      </component>
+                      <component id="95158" class="com.intellij.ui.components.JBLabel">
+                        <constraints>
+                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <anchor value="e383a"/>
+                          <text value="SD card:"/>
+                        </properties>
+                      </component>
+                      <component id="453cb" class="com.android.tools.idea.avdmanager.ui.StorageField" binding="myRamStorage">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <toolTipText value="&lt;html&gt;The amount of physical RAM on the device.&lt;br&gt;1 MB = 1024 KB&lt;br&gt;1 GB = 1024 MB&lt;/html&gt;"/>
+                        </properties>
+                      </component>
+                      <component id="a1563" class="com.android.tools.idea.avdmanager.ui.StorageField" binding="myVmHeapStorage">
+                        <constraints>
+                          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <toolTipText value="&lt;html&gt;The amount of RAM available to Java virtual machine (VM) to allocate to running apps on the device. A larger VM heap allows applications to run longer between garbage collection events.&lt;/html&gt;"/>
+                        </properties>
+                      </component>
+                      <component id="28327" class="com.android.tools.idea.avdmanager.ui.StorageField" binding="myInternalStorage">
+                        <constraints>
+                          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <toolTipText value="&lt;html&gt;The amount of non-removable space available to store data on the device.&lt;/html&gt;"/>
+                        </properties>
+                      </component>
+                      <grid id="8050e" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <component id="ba4f4" class="javax.swing.JRadioButton" binding="myBuiltInRadioButton" default-binding="true">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="Studio-managed"/>
+                              <toolTipText value="&lt;html&gt;The amount of removable space available to store data on the device. We recommend at least 100 MB in order to use the camera in the emulator.&lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                          <component id="7d926" class="javax.swing.JRadioButton" binding="myExternalRadioButton">
+                            <constraints>
+                              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="External file"/>
+                              <toolTipText value="&lt;html&gt;Choose a file path to an existing SD Card image. Using an external SD Card is useful when sharing SD Card data (pictures, media, files, etc.) between Android Virtual Devices. See &lt;a&gt;http://d.android.com/tools/help/mksdcard.html&lt;/a&gt; for more details. &lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                          <component id="6fbb1" class="com.android.tools.idea.avdmanager.ui.StorageField" binding="myBuiltInSdCardStorage">
+                            <constraints>
+                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <toolTipText value="&lt;html&gt;The amount of removable space available to store data on the device. We recommend at least 100 MB in order to use the camera in the emulator.&lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                          <component id="66df9" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myExternalSdCard">
+                            <constraints>
+                              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <toolTipText value="&lt;html&gt;Choose a file path to an existing SD Card image. Using an external SD Card is useful when sharing SD Card data (pictures, media, files, etc.) between Android Virtual Devices. See http://d.android.com/tools/help/mksdcard.html for more details. &lt;/html&gt;"/>
+                              <visible value="true"/>
+                            </properties>
+                          </component>
+                          <component id="ee4c1" class="javax.swing.JRadioButton" binding="myNoSDCardRadioButton" default-binding="true">
+                            <constraints>
+                              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="No SDCard"/>
+                              <toolTipText value="&lt;html&gt;No SDCard available on this device. The amount of removeable space is 0 on this device. &lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                        </children>
+                      </grid>
+                    </children>
+                  </grid>
+                  <component id="cf5cf" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
+              <grid id="ad9b7" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="fb4d3" class="com.intellij.ui.components.JBLabel" binding="myDeviceFrameTitle">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Device Frame"/>
+                    </properties>
+                  </component>
+                  <component id="4ecc6" class="javax.swing.JCheckBox" binding="myDeviceFrameCheckbox">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Enable device frame"/>
+                      <toolTipText value="&lt;html&gt;Enable a frame around the Android emulator window that mimics the look of a real Android device. Click on Show Advanced Settings for more options.&lt;/html&gt;"/>
+                    </properties>
+                  </component>
+                  <component id="874f9" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <grid id="37b87" binding="myCustomSkinPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="0" left="0" bottom="0" right="0"/>
+                    <constraints>
+                      <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="14ec1" class="com.intellij.ui.components.JBLabel" binding="mySkinDefinitionLabel">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Custom skin definition:"/>
+                        </properties>
+                      </component>
+                      <component id="61e9" class="com.intellij.ui.components.BrowserLink" binding="myHardwareSkinHelpLabel" custom-create="true">
+                        <constraints>
+                          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <visible value="true"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                </children>
+              </grid>
+              <grid id="c33dc" binding="myKeyboardPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="3bf7b" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Keyboard"/>
+                    </properties>
+                  </component>
+                  <component id="29def" class="javax.swing.JCheckBox" binding="myEnableComputerKeyboard">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Enable keyboard input"/>
+                      <toolTipText value="&lt;html&gt;Lets you enter text and interact with the AVD using your hardware computer keyboard in addition to the on-screen soft keyboard.&lt;/html&gt;"/>
+                    </properties>
+                  </component>
+                  <component id="893ba" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
+              <grid id="1113e" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="d128b" class="com.intellij.ui.components.JBLabel" binding="mySystemImageName">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="(Image Name)"/>
+                    </properties>
+                  </component>
+                  <component id="1e6cc" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <grid id="6ed39" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="0" left="0" bottom="0" right="0"/>
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="9f3cf" class="com.intellij.ui.components.JBLabel" binding="mySystemImageDetails">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="No System Image Selected"/>
+                        </properties>
+                      </component>
+                      <component id="9f7c8" class="javax.swing.JButton" binding="myChangeSystemImageButton">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Change..."/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                </children>
+              </grid>
+              <grid id="e4259" binding="myCommandLineOptionsPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="11" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties>
+                  <enabled value="true"/>
+                  <visible value="false"/>
+                </properties>
+                <border type="none"/>
+                <children>
+                  <component id="b2a76" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="8c68f" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <labelFor value="31df0"/>
+                      <text value="Command Line"/>
+                    </properties>
+                  </component>
+                  <component id="31df0" class="javax.swing.JTextArea" binding="myCommandLineOptions">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                        <preferred-size width="150" height="50"/>
+                      </grid>
+                    </constraints>
+                    <properties>
+                      <lineWrap value="true"/>
+                      <margin top="5" left="5" bottom="5" right="5"/>
+                      <toolTipText value="&lt;html&gt;&lt;p&gt;The command line options passed to the emulator when running it.&lt;/p&gt;&lt;p&gt;These options can prevent the emulator from starting if entered incorrectly. Options defined here will override any options defined in previous settings.&lt;/p&gt;&lt;p&gt;Any changes to this setting require the emulator to be restarted to take effect.&lt;/p&gt;&lt;/html&gt;"/>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
+              <vspacer id="810d8">
+                <constraints>
+                  <grid row="12" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                </constraints>
+              </vspacer>
+              <grid id="18e91" layout-manager="GridLayoutManager" row-count="2" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="99939" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Preferred ABI:"/>
+                      <toolTipText value="Selects which ABI APKs should use. Select &quot;Optimal&quot; to use the fastest ABI."/>
+                    </properties>
+                  </component>
+                  <component id="c6e9f" class="javax.swing.JSeparator">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="44ca3" class="javax.swing.JComboBox" binding="myPreferredAbi">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <model>
+                        <item value="None"/>
+                      </model>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
+            </children>
+          </grid>
+        </children>
+      </scrollpane>
+      <component id="d9a56" class="javax.swing.JButton" binding="myShowAdvancedSettingsButton" default-binding="true">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value=""/>
+        </properties>
+      </component>
+      <nested-form id="9a2ce" form-file="com/android/tools/idea/avdmanager/ui/AvdConfigurationOptionHelpPanel.form" binding="myAvdConfigurationOptionHelpPanel">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <minimum-size width="350" height="-1"/>
+          </grid>
+        </constraints>
+      </nested-form>
+    </children>
+  </grid>
+  <buttonGroups>
+    <group name="mySdCardButtonGroup">
+      <member id="ba4f4"/>
+      <member id="7d926"/>
+      <member id="ee4c1"/>
+    </group>
+    <group name="myBootOptionRadioButtonGroup">
+      <member id="66a1c"/>
+      <member id="bd111"/>
+      <member id="fda73"/>
+    </group>
+  </buttonGroups>
+</form>

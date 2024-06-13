@@ -192,6 +192,9 @@ public class ShowReferencesAction extends AnAction {
   @Nullable
   private DexElementNode getSelectedNode() {
     TreePath path = myTree.getSelectionPath();
+    if (path == null) {
+      return null;
+    }
     Object component = path.getLastPathComponent();
     return component instanceof DexElementNode ? (DexElementNode)component : null;
   }

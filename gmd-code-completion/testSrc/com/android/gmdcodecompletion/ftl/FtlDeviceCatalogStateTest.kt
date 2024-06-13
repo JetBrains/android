@@ -57,7 +57,7 @@ class FtlDeviceCatalogStateTest {
       val serializedString = converter.toString(testFtlDeviceCatalog)
       val deserializedDeviceCatalog = converter.fromString(serializedString)
       // If there are serialization issues it will throw error before reaching assertTrue
-      assertTrue(deserializedDeviceCatalog.isEmpty() == testFtlDeviceCatalog.isEmpty())
+      assertTrue(deserializedDeviceCatalog.isEmptyCatalog == testFtlDeviceCatalog.isEmptyCatalog)
       assertTrue(deserializedDeviceCatalog.devices == testFtlDeviceCatalog.devices)
       assertTrue(deserializedDeviceCatalog.apiLevels == testFtlDeviceCatalog.apiLevels)
       assertTrue(deserializedDeviceCatalog.orientation == testFtlDeviceCatalog.orientation)

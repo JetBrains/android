@@ -38,29 +38,19 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private val STRING_KEYS =
-  listOf(
-    "line",
-    "message",
-    "package",
-    "tag",
-  )
+private val STRING_KEYS = listOf("line", "message", "package", "tag")
 
 private val ALL_STRING_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten()
 
-private val IS_VALUES = listOf("crash ", "firebase ", "stacktrace ")
+private val IS_VALUES =
+  listOf("crash ", "firebase ", "stacktrace ") + LogLevel.values().map { "${it.stringValue} " }
 
 /** Tests for [LogcatFilterCompletionContributor] */
 class LogcatFilterCompletionContributorTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val chain: RuleChain =
-    RuleChain(
-      projectRule,
-      EdtRule(),
-      FlagRule(StudioFlags.LOGCAT_IS_FILTER),
-    )
+  val chain: RuleChain = RuleChain(projectRule, EdtRule(), FlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   private val fixture: CodeInsightTestFixture by lazy(projectRule::fixture)
   private val history by lazy { AndroidLogcatFilterHistory() }
@@ -73,12 +63,12 @@ class LogcatFilterCompletionContributorTest {
     application.replaceService(
       AndroidLogcatFilterHistory::class.java,
       history,
-      projectRule.fixture.testRootDisposable
+      projectRule.fixture.testRootDisposable,
     )
     application.replaceService(
       AndroidLogcatSettings::class.java,
       settings,
-      projectRule.fixture.testRootDisposable
+      projectRule.fixture.testRootDisposable,
     )
   }
 
@@ -98,7 +88,7 @@ class LogcatFilterCompletionContributorTest {
         "package:",
         "package:mine ",
         "process:",
-        "tag:"
+        "tag:",
       )
   }
 
@@ -325,12 +315,7 @@ class LogcatFilterCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings)
-      .containsExactly(
-        "is:crash ",
-        "is:firebase ",
-        "is:stacktrace ",
-      )
+    assertThat(fixture.lookupElementStrings).containsExactlyElementsIn(IS_VALUES.map { "is:$it" })
   }
 
   @Test
@@ -461,7 +446,7 @@ class LogcatFilterCompletionContributorTest {
           "package:",
           "package:mine ",
           "process:",
-          "tag:"
+          "tag:",
         )
     }
   }
@@ -488,7 +473,7 @@ class LogcatFilterCompletionContributorTest {
     fixture.configure(
       "package:$caret",
       packages = setOf("foo"),
-      androidProjectDetector = FakeAndroidProjectDetector(false)
+      androidProjectDetector = FakeAndroidProjectDetector(false),
     )
 
     fixture.completeBasic()
@@ -517,7 +502,7 @@ private fun CodeInsightTestFixture.configure(
   text: String,
   tags: Set<String> = emptySet(),
   packages: Set<String> = emptySet(),
-  androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true)
+  androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
 ) {
   configureByText(LogcatFilterFileType, text)
   // This can't be done in the setUp() method because the editor is only created when the fixture is
@@ -527,13 +512,13 @@ private fun CodeInsightTestFixture.configure(
       TAGS_PROVIDER_KEY,
       object : TagsProvider {
         override fun getTags(): Set<String> = tags
-      }
+      },
     )
     putUserData(
       PACKAGE_NAMES_PROVIDER_KEY,
       object : PackageNamesProvider {
         override fun getPackageNames(): Set<String> = packages
-      }
+      },
     )
     putUserData(AndroidProjectDetector.KEY, androidProjectDetector)
   }

@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -44,7 +45,7 @@ import javax.swing.JPanel
 
 class VisualizationActionManager(
   surface: NlDesignSurface,
-  private val visualizationModelsProvider: () -> VisualizationModelsProvider
+  private val visualizationModelsProvider: () -> VisualizationModelsProvider,
 ) : NlActionManager(surface) {
   private val zoomInAction: AnAction = ZoomInAction.getInstance()
   private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
@@ -73,14 +74,14 @@ class VisualizationActionManager(
           ColoredIconGenerator.generateColoredIcon(
             StudioIcons.Common.WARNING_INLINE,
             JBColor.background(),
-          ),
+          )
         ) {
         private val issueListener =
           object : IssueListener {
             override fun onIssueSelected(issue: Issue?) {
               isVisible =
                 (issue as? VisualLintHighlightingIssue)?.shouldHighlight(
-                  sceneView.sceneManager.model,
+                  sceneView.sceneManager.model
                 ) ?: false
             }
           }
@@ -109,6 +110,8 @@ class VisualizationActionManager(
   private class RemoveCustomAction(
     private val visualizationModelsProvider: () -> VisualizationModelsProvider
   ) : AnAction(StudioIcons.Common.CLOSE) {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
     override fun actionPerformed(e: AnActionEvent) {
       val visualizationModel = visualizationModelsProvider() as? CustomModelsProvider ?: return
       val model =

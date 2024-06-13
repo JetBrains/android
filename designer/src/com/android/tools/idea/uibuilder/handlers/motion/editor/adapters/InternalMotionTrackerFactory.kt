@@ -42,7 +42,7 @@ internal class InternalMotionTrackerFactory {
         { executor, surface, eventLogger ->
           MotionUsageTrackerImpl(executor, surface, eventLogger)
         },
-        NOP_TRACKER
+        NOP_TRACKER,
       )
 
     /**
@@ -65,7 +65,7 @@ private class MotionUsageTrackerImpl
 internal constructor(
   private val myExecutor: Executor,
   private val surface: DesignSurface<*>?,
-  private val myConsumer: Consumer<AndroidStudioEvent.Builder>
+  private val myConsumer: Consumer<AndroidStudioEvent.Builder>,
 ) : InternalMotionTracker {
 
   override fun track(eventType: MotionLayoutEditorEvent.MotionLayoutEditorEventType) {

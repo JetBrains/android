@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.ExtractVariableWork
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.ui.JBColor
 import javax.swing.JComponent
 
 class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyCore<PropertyT>>(
@@ -54,6 +55,7 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
     form.myScopeField.addActionListener {
       configureFormFor(form, form.myScopeField.selectedItem as String)
     }
+    form.myScopeField.background = JBColor.background()
 
     this.form = form
     return form.myPanel

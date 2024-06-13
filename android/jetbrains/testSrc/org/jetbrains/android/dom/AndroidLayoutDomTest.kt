@@ -1513,8 +1513,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val f = copyFileToProject("bigfile.xml")
     myFixture.configureFromExistingVirtualFile(f)
 
-    PerformanceTestUtil.newPerformanceTest("android custom attrs highlighting") { myFixture.doHighlighting() }.attempts(
-      2).start()
+    PerformanceTestUtil.newPerformanceTest("android custom attrs highlighting", myFixture::doHighlighting).attempts(2).start()
   }
 
   fun testSupportGridLayoutCompletion() {
@@ -2236,14 +2235,15 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.addClass(restrictedView)
     myFixture.addClass(view)
 
-    toTestCompletion("restricted.xml", "restricted_after.xml")
+    toTestFirstCompletion("restricted.xml", "restricted_after.xml")
   }
 
   fun testProtected() {
     myFixture.addClass(protectedView)
     myFixture.addClass(view)
 
-    doTestCompletionVariants("protected.xml", "p1.p2.MyAddedImageView")
+    // A protected class in the same module can be referenced from XML.
+    doTestCompletionVariants("protected.xml", "p1.p2.MyAddedImageView", "p1.p2.MyAddedProtectedImageView")
   }
 
   fun testTagCompletionUsingInnerClass() {

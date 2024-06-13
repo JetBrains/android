@@ -52,11 +52,11 @@ class TestAppInspectorCommandHandler(
     DEFAULT_DISPOSE_INSPECTOR_RESPONSE,
   private val createInspectorResponse:
     (AppInspection.CreateInspectorCommand) -> AppInspection.AppInspectionResponse.Builder =
-    DEFAULT_CREATE_INSPECTOR_RESPONSE
+    DEFAULT_CREATE_INSPECTOR_RESPONSE,
 ) : CommandHandler(timer) {
   private fun createResponse(
     command: Commands.Command,
-    appInspectionResponse: AppInspection.AppInspectionResponse
+    appInspectionResponse: AppInspection.AppInspectionResponse,
   ) =
     Common.Event.newBuilder()
       .setKind(Common.Event.Kind.APP_INSPECTION_RESPONSE)
@@ -75,7 +75,7 @@ class TestAppInspectorCommandHandler(
             command,
             createInspectorResponse(command.appInspectionCommand.createInspectorCommand)
               .setCommandId(command.appInspectionCommand.commandId)
-              .build()
+              .build(),
           )
         )
       }
@@ -85,7 +85,7 @@ class TestAppInspectorCommandHandler(
             command,
             disposeInspectorResponse(command.appInspectionCommand.disposeInspectorCommand)
               .setCommandId(command.appInspectionCommand.commandId)
-              .build()
+              .build(),
           )
         )
       }
@@ -97,7 +97,7 @@ class TestAppInspectorCommandHandler(
               it(command.appInspectionCommand.rawInspectorCommand)
                 .setCommandId(command.appInspectionCommand.commandId)
                 .build()
-            } ?: getDefaultRawResponse(command)
+            } ?: getDefaultRawResponse(command),
           )
         )
       }
@@ -112,7 +112,7 @@ class TestAppInspectorCommandHandler(
                   it(command.appInspectionCommand.getLibraryCompatibilityInfoCommand)
                 } ?: getDefaultLibraryVersionsResponse(command)
               )
-              .build()
+              .build(),
           )
         )
       }
@@ -125,7 +125,7 @@ class TestAppInspectorCommandHandler(
 private val DEFAULT_CREATE_INSPECTOR_RESPONSE =
   createCreateInspectorResponse(
     AppInspection.AppInspectionResponse.Status.SUCCESS,
-    AppInspection.CreateInspectorResponse.Status.SUCCESS
+    AppInspection.CreateInspectorResponse.Status.SUCCESS,
   )
 
 private val DEFAULT_DISPOSE_INSPECTOR_RESPONSE = { _: AppInspection.DisposeInspectorCommand ->
@@ -165,7 +165,7 @@ private fun getDefaultRawResponse(command: Commands.Command): AppInspection.AppI
 fun createCreateInspectorResponse(
   status: AppInspection.AppInspectionResponse.Status,
   createStatus: AppInspection.CreateInspectorResponse.Status,
-  error: String? = null
+  error: String? = null,
 ): (AppInspection.CreateInspectorCommand) -> AppInspection.AppInspectionResponse.Builder {
 
   return {
@@ -193,7 +193,7 @@ fun AppInspection.CreateInspectorCommand.createResponse(
       createCreateInspectorResponse(
         AppInspection.AppInspectionResponse.Status.ERROR,
         responseStatus,
-        error
+        error,
       )
     }
   return delegateCreator(this)
@@ -201,7 +201,7 @@ fun AppInspection.CreateInspectorCommand.createResponse(
 
 fun createRawResponse(
   status: AppInspection.AppInspectionResponse.Status,
-  content: String
+  content: String,
 ): (AppInspection.RawCommand) -> AppInspection.AppInspectionResponse.Builder {
   return {
     AppInspection.AppInspectionResponse.newBuilder()

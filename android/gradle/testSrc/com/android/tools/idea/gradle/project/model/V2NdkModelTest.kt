@@ -19,6 +19,7 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.google.common.truth.Truth
@@ -27,7 +28,7 @@ import java.io.File
 import java.nio.file.Files
 
 class V2NdkModelTest {
-  val modelCache = ModelCache.createForTests(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get())
+  val modelCache = ModelCache.createForTests(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(), AgpVersion.parse("4.2.0-alpha02"))
   private val tempDir = Files.createTempDirectory("V2NdkModelTest").toFile()
   private val nativeModule = object : NativeModule {
     override val name: String = "moduleName"

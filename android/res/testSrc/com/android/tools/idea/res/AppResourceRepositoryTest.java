@@ -28,6 +28,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.DynamicResourceValue;
+import com.android.resources.AarTestUtils;
 import com.android.resources.ResourceType;
 import com.android.resources.aar.AarSourceResourceRepository;
 import com.android.tools.res.LocalResourceRepository;
@@ -69,18 +70,12 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testStringOrder() {
-    VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
+    myFixture.copyFileToProject(VALUES, "res/values/values.xml");
+    LocalResourceRepository<VirtualFile> appResources = StudioResourceRepositoryManager.getInstance(myFacet).getAppResources();
 
-    ModuleResourceRepository moduleRepository =
-        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1), RES_AUTO, null);
-    ProjectResourceRepository projectResources =
-        ProjectResourceRepository.createForTest(myFacet, Collections.singletonList(moduleRepository));
-    AppResourceRepository appResources =
-        AppResourceRepository.createForTest(myFacet, Collections.singletonList(projectResources), Collections.emptyList());
-
-    assertOrderedEquals(appResources.getResources(RES_AUTO, ResourceType.STRING).keySet(),
-                        ImmutableList.of("app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom",
-                                         "title_layout_changes", "title_template_step", "ellipsis"));
+    assertThat(appResources.getResources(RES_AUTO, ResourceType.STRING).keySet()).containsExactly(
+      "app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom",
+      "title_layout_changes", "title_template_step", "ellipsis").inOrder();
   }
 
   /**
@@ -101,7 +96,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
     // res3 is not used as an overlay here; instead we use it to simulate an AAR library below
     ModuleResourceRepository moduleRepository =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO);
     ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
         myFacet, Collections.singletonList(moduleRepository));
 
@@ -118,7 +113,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertFalse(moduleRepository.hasResources(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
     AarSourceResourceRepository aar1 = AarSourceResourceRepository.create(VfsUtilCore.virtualToIoFile(res3).toPath(), "aar1");
-    appResources.updateRoots(ImmutableList.of(projectResources), ImmutableList.of(aar1));
+    appResources.refreshChildren(ImmutableList.of(projectResources), ImmutableList.of(aar1));
 
     assertTrue(appResources.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
     assertTrue(aar1.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
@@ -169,9 +164,9 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
     // res2 is not used as an overlay here; instead we use it to simulate an AAR library below
     ModuleResourceRepository moduleRepository1 =
-        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1), RES_AUTO);
     ModuleResourceRepository moduleRepository2 =
-        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res2), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res2), RES_AUTO);
     ProjectResourceRepository projectResources =
         ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository1, moduleRepository2));
     AppResourceRepository appResources =
@@ -183,10 +178,10 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
   public void testGetItemsOfTypeIdIncludeAar() {
     VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/some_layout.xml").getParent().getParent();
-    LocalResourceRepository<VirtualFile> moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1), RES_AUTO, null);
+    LocalResourceRepository<VirtualFile> moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1), RES_AUTO);
     LocalResourceRepository<VirtualFile> projectResources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository));
 
-    AarSourceResourceRepository aar = ResourcesTestsUtil.getTestAarRepositoryFromExplodedAar();
+    AarSourceResourceRepository aar = AarTestUtils.getTestAarRepositoryFromExplodedAar();
     AppResourceRepository appResources =
         AppResourceRepository.createForTest(myFacet, ImmutableList.of(projectResources), ImmutableList.of(aar));
 

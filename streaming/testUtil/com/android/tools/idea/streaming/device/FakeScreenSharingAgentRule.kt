@@ -27,6 +27,7 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.FakeAdbServiceRule
@@ -146,6 +147,7 @@ class FakeScreenSharingAgentRule : TestRule {
                     displaySize: Dimension,
                     foldedSize: Dimension? = null,
                     roundDisplay: Boolean = false,
+                    screenDensity: Int? = null,
                     abi: String = "arm64-v8a",
                     additionalDeviceProperties: Map<String, String> = emptyMap(),
                     manufacturer: String = "Google",
@@ -154,7 +156,8 @@ class FakeScreenSharingAgentRule : TestRule {
     val release = "Sweet dessert"
     val deviceState = fakeAdbRule.attachDevice(serialNumber, manufacturer, model, release, apiLevel.toString(), abi,
                                                additionalDeviceProperties, hostConnectionType)
-    val device = FakeDevice(serialNumber, displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
+    val device = FakeDevice(serialNumber, displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize,
+                            screenDensity = screenDensity)
     devices.add(device)
     return device
   }
@@ -179,6 +182,7 @@ class FakeScreenSharingAgentRule : TestRule {
                    val deviceState: DeviceState,
                    val roundDisplay: Boolean = false,
                    foldedSize: Dimension? = null,
+                   private val screenDensity: Int? = null,
   ) {
     val agent: FakeScreenSharingAgent =
       FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
@@ -197,6 +201,8 @@ class FakeScreenSharingAgentRule : TestRule {
           DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
           else -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
         }
+        resolution = Resolution(displaySize.width, displaySize.height)
+        density = screenDensity
       }
     }
   }
@@ -213,7 +219,7 @@ class FakeScreenSharingAgentRule : TestRule {
       val connectedDevice = mock<ConnectedDevice>().apply {
         whenever(deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(device.serialNumber, ONLINE)))
       }
-      return ProvisionerDeviceState.Connected(deviceProperties, connectedDevice, null)
+      return ProvisionerDeviceState.Connected(deviceProperties, connectedDevice)
     }
   }
 }

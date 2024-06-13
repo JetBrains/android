@@ -170,7 +170,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     final var oldAndroidSdkPath = ideSdks.getAndroidSdkPath();
     Disposer.register(getTestRootDisposable(), () -> {
       WriteAction.runAndWait(() -> {
-        AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.getAbsolutePath() : null);
+        AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.toPath() : null);
       });
     });
   }
@@ -472,11 +472,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected void requestSyncAndWait() throws SyncIssuesPresentError, Exception {
     requestSyncAndWait(GradleSyncInvoker.Request.testRequest());
-  }
-
-  @NotNull
-  protected String requestSyncAndGetExpectedFailure() throws Exception {
-    return requestSyncAndGetExpectedFailure(request -> { });
   }
 
   @NotNull

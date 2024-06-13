@@ -42,7 +42,7 @@ class VersionKtTest {
         Version(buildVersion = "1", tracks = setOf(PlayTrack.PRODUCTION, PlayTrack.INTERNAL)),
         Version(buildVersion = "2", tracks = setOf(PlayTrack.INTERNAL, PlayTrack.OPEN_TESTING)),
         Version(buildVersion = "3", tracks = setOf(PlayTrack.INTERNAL, PlayTrack.CLOSED_TESTING)),
-        Version(buildVersion = "4", tracks = setOf(PlayTrack.INTERNAL, PlayTrack.CLOSED_TESTING))
+        Version(buildVersion = "4", tracks = setOf(PlayTrack.INTERNAL, PlayTrack.CLOSED_TESTING)),
       )
   }
 }

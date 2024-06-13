@@ -16,15 +16,19 @@
 package com.android.tools.profilers.tasks
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.FakeIdeProfilerServices
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class ProfilerTaskLauncherTest {
+
+  private val ideProfilerServices = FakeIdeProfilerServices()
+
   @Test
   fun `launch profiler task with undefined task type throws error`() {
     assertThrows(AssertionError::class.java) {
-      ProfilerTaskLauncher.launchProfilerTask(ProfilerTaskType.UNSPECIFIED, emptyMap(), Common.Session.getDefaultInstance(),
-                                              emptyMap()) { _, _ -> /* Do nothing */ }
+      ProfilerTaskLauncher.launchProfilerTask(ProfilerTaskType.UNSPECIFIED, false, emptyMap(), Common.Session.getDefaultInstance(),
+                                              emptyMap(), { _, _ -> /* Do nothing */ }, ideProfilerServices)
     }
   }
 }

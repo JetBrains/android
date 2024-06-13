@@ -207,6 +207,36 @@ class AndroidDeviceSpecUtilTest {
     assertThat(specResizable.abis).contains("x86_64")
   }
 
+  @Test
+  fun `test preferred ABI is respected`() {
+    val preferredAbiDevice = mockDevice(version = AndroidVersion.DEFAULT, density = Density.XXHIGH, resizeable = true, abis = listOf(Abi.X86, Abi.RISCV64), preferredAbi = Abi.RISCV64.toString())
+    val spec = createSpec(listOf(preferredAbiDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+
+    assertThat(spec.abis).containsExactly(Abi.RISCV64.toString())
+  }
+
+  @Test
+  fun `test no preferred ABI falls back to supported ABIs`() {
+    val preferredAbiDevice = mockDevice(version = AndroidVersion.DEFAULT, density = Density.XXHIGH, resizeable = true, abis = listOf(Abi.X86, Abi.RISCV64))
+    val spec = createSpec(listOf(preferredAbiDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+
+    assertThat(spec.abis).containsExactly(Abi.X86.toString(), Abi.RISCV64.toString())
+  }
+
+  @Test
+  fun `test multiple ABIs creates warning`() {
+    val device1 = mockDevice(version = AndroidVersion.DEFAULT, density = Density.XXHIGH, resizeable = true, abis = listOf(Abi.X86, Abi.X86_64))
+    val device2 = mockDevice(version = AndroidVersion.DEFAULT, density = Density.XXHIGH, resizeable = true, abis = listOf(Abi.X86, Abi.RISCV64), preferredAbi = Abi.RISCV64.toString())
+    var called = false
+    val spec = createSpec(listOf(device1, device2), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS) { _, msg ->
+      assertThat(msg).isEqualTo("Preferred ABI may not be respected when building for multiple devices.")
+      called = true
+    }!!
+
+    assertThat(called).isTrue()
+    assertThat(spec.abis).isEmpty()
+  }
+
   private fun createJsonFile(fetchLanguages: Boolean, vararg devices: AndroidDevice): File {
     val spec = createSpec(devices.asList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     return spec!!.writeToJsonTempFile(fetchLanguages)
@@ -229,6 +259,7 @@ class AndroidDeviceSpecUtilTest {
         Pair(AVD_INI_DEVICE_NAME, name)
       )
     )
+    whenever(avdInfo.userSettings).thenReturn(mapOf())
     return avdInfo
   }
 
@@ -236,6 +267,7 @@ class AndroidDeviceSpecUtilTest {
     version: AndroidVersion,
     density: Density = Density.create(260),
     abis: List<Abi> = listOf(Abi.MIPS),
+    preferredAbi: String? = null,
     config: String = EXAMPLE_DEVICE_CONFIG,
     resizeable: Boolean = false,
     supportsPrivacySandbox: Boolean = false,
@@ -244,6 +276,7 @@ class AndroidDeviceSpecUtilTest {
     whenever(device.version).thenReturn(version)
     whenever(device.density).thenReturn(density.dpiValue)
     whenever(device.abis).thenReturn(abis)
+    whenever(device.appPreferredAbi).thenReturn(preferredAbi)
     whenever(device.supportsMultipleScreenFormats()).thenReturn(resizeable)
     whenever(device.supportsSdkRuntime).thenReturn(supportsPrivacySandbox)
     val launchedDevice = mock(IDevice::class.java)

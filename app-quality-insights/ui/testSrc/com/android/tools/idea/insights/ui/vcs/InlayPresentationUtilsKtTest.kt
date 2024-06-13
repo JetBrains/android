@@ -94,7 +94,7 @@ class InlayPresentationUtilsKtTest {
         text = "show diff",
         textAttributesKey = CodeInsightColors.HYPERLINK_ATTRIBUTES,
         isUnderline = true,
-        editor
+        editor,
       )
       .withTooltip(tooltip, factory = PresentationFactory(editor as EditorImpl))
   }

@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.actions;
 
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 import static org.jetbrains.kotlin.idea.util.application.ApplicationUtilsKt.isUnitTestMode;
 
+import com.android.ide.common.gradle.Component;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
@@ -56,7 +57,6 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Factory;
@@ -182,7 +182,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       }
       boolean dependencyFound = false;
       DependenciesModel dependenciesModel = buildModel.dependencies();
-      for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(IMPLEMENTATION)) {
+      for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(CommonConfigurationNames.IMPLEMENTATION)) {
         String notation = dependency.compactNotation();
         if (notation.startsWith(GoogleMavenArtifactId.APP_COMPAT_V7.toString()) ||
             notation.startsWith(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7.toString()) ||
@@ -227,9 +227,14 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
                                              GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
                                              GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
-          String annotationsComponentIdentifier = manager.getArtifactComponentIdentifier(annotation, true);
-          for (Module module : modulesWithoutAnnotations) {
-            addDependency(module, annotationsComponentIdentifier);
+          Component annotationsComponent = manager.getArtifactComponent(annotation, true);
+          if (annotationsComponent != null) {
+            String annotationsIdentifier = annotationsComponent.toIdentifier();
+            if (annotationsIdentifier != null) {
+              for (Module module : modulesWithoutAnnotations) {
+                addDependency(module, annotationsIdentifier);
+              }
+            }
           }
 
           syncAndRestartAnalysis(project, scope);
@@ -349,18 +354,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     };
   }
 
-  private static void addDependency(@NotNull Module module, @Nullable String libraryCoordinate) {
-    if (isNotEmpty(libraryCoordinate)) {
-      ModuleRootModificationUtil.updateModel(module, model -> {
-        ProjectBuildModel projectModel = ProjectBuildModel.get(module.getProject());
-        GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
-        if (buildModel != null) {
-          DependenciesHelper helper = new DependenciesHelper(projectModel);
-          helper.addDependency(IMPLEMENTATION, libraryCoordinate, buildModel);
-          projectModel.applyChanges();
-          buildModel.applyChanges();
-        }
-      });
+  private static void addDependency(@NotNull Module module, @NotNull String libraryIdentifier) {
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(libraryIdentifier);
+    if (coordinate != null) {
+      ProjectSystemUtil.getModuleSystem(module).registerDependency(coordinate, DependencyType.IMPLEMENTATION);
     }
   }
 

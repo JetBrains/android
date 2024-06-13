@@ -134,7 +134,8 @@ class DeviceFileExplorerControllerTest {
   private lateinit var myDevice2: MockDeviceFileSystem
   private lateinit var myFooDir: MockDeviceFileEntry
   private lateinit var myFooDirLink: MockDeviceFileEntry
-  private lateinit var dataDir: MockDeviceFileEntry
+  private lateinit var myDataDir: MockDeviceFileEntry
+  private lateinit var myDataFile: MockDeviceFileEntry
   private var myInitialTestDialog: TestDialog? = null
   private var myInitialTestInputDialog: TestInputDialog? = null
   private lateinit var myEdtExecutor: FutureCallbackExecutor
@@ -176,7 +177,8 @@ class DeviceFileExplorerControllerTest {
     myFile1 = myDevice1.root.addFile("file1.txt")
     myFile2 = myDevice1.root.addFile("file2.txt")
     myDevice1.root.addFile("file3.txt")
-    dataDir = myDevice1.data.addDirectory("testApp")
+    myDataDir = myDevice1.data.addDirectory("testApp")
+    myDataFile = myDataDir.addFile("dataFile.txt")
     myDevice2 = createMockFileSystem("TestDevice-2", myEdtExecutor)
     myDevice2.root.addDirectory("Foo2")
     myDevice2.root.addFile("foo2File1.txt")
@@ -378,6 +380,32 @@ class DeviceFileExplorerControllerTest {
       fireDoubleClick(myMockView.tree, pathBounds.x, pathBounds.y)
       pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
     }
+    pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
+  }
+
+  @Test
+  fun downloadFileWithPackageFilterOn() {
+    // Prepare
+    val controller = createController()
+    controller.setPackageFilter(true)
+    packageNameProvider.setApplicationIds("testApp")
+    controller.packageNamesProvider = packageNameProvider
+    controller.setup()
+    controller.setActiveDevice(myDevice1)
+    checkMockViewActiveDevice()
+    expandEntry(myDataDir)
+
+    // Act
+    downloadFile(myDataFile) {
+      val path = getFileEntryPath(myDataFile)
+      val pathBounds = checkNotNull(myMockView.tree.getPathBounds(path))
+
+      // Fire double-click event
+      fireDoubleClick(myMockView.tree, pathBounds.x, pathBounds.y)
+      pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
+    }
+
+    // Verify
     pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
   }
 

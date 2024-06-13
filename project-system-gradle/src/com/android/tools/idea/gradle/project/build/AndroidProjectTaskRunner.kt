@@ -5,7 +5,6 @@ import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.isAndroidProject
 import com.google.common.util.concurrent.ListenableFuture
@@ -24,6 +23,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
+import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.nio.file.Path
 
@@ -44,14 +44,13 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
   }
 
   override fun canRun(projectTask: ProjectTask): Boolean {
-    if (Registry.`is`("android.task.runner.restricted")) {
-      assert(!IdeInfo.getInstance().isAndroidStudio) { "This code is not expected to be executed in Android Studio" }
-      return projectTask is ModuleBuildTask && AndroidFacet.getInstance(projectTask.module) != null
+    return if (Registry.`is`("android.task.runner.restricted") || !isAndroidStudio || (projectTask is ModuleBuildTask && projectTask.module.isMultiPlatformModule)) {
+      projectTask is ModuleBuildTask && AndroidFacet.getInstance(projectTask.module) != null
     }
     else {
-      return projectTask is ModuleBuildTask &&
-             (isAndroidStudio || projectTask.module.project.isAndroidProject) &&
-             ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, projectTask.module)
+      projectTask is ModuleBuildTask &&
+      projectTask.module.project.isAndroidProject &&
+      ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, projectTask.module)
     }
   }
 
@@ -69,7 +68,7 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
 
     fun findTasks(buildMode: BuildMode, modules: List<Module>): Map<TaskGroup, Collection<String>> {
       return taskFinder
-        .findTasksToExecute(modules.toTypedArray(), buildMode, TestCompileType.ALL)
+        .findTasksToExecute(modules.toTypedArray(), buildMode)
         .asMap()
         .mapKeys { TaskGroup(buildMode, it.key) }
     }

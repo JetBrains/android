@@ -122,7 +122,7 @@ data class NavXmlData(val root: NavNavigationData) {
 
   private fun NavNavigationData.traverse(
     globalActions: List<NavActionData>,
-    allDestinations: MutableList<NavDestinationData>
+    allDestinations: MutableList<NavDestinationData>,
   ): List<NavDestinationData> {
     allDestinations.addIfNotNull(this.toDestination()?.withGlobalActions(globalActions))
 

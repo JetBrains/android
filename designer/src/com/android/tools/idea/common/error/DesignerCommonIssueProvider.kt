@@ -38,6 +38,10 @@ interface DesignerCommonIssueProvider<T> : Disposable {
 
   fun update()
 
+  fun activate()
+
+  fun deactivate()
+
   fun interface Filter : (Issue) -> Boolean
 }
 
@@ -74,7 +78,7 @@ class DesignToolsIssueProvider(
   parentDisposable: Disposable,
   project: Project,
   private val issueFilter: DesignerCommonIssueProvider.Filter,
-  val instanceId: String?
+  instanceId: String,
 ) : DesignerCommonIssueProvider<Any> {
   private val mapLock = Any()
 
@@ -91,17 +95,23 @@ class DesignToolsIssueProvider(
       listeners.forEach { it.run() }
     }
 
+  private var isActive: Boolean = true
+
   init {
     Disposer.register(parentDisposable, this)
     val topic =
-      if (instanceId != null) IssueProviderListener.UI_CHECK else IssueProviderListener.TOPIC
+      if (instanceId == SHARED_ISSUE_PANEL_TAB_ID) IssueProviderListener.TOPIC
+      else IssueProviderListener.UI_CHECK
     messageBusConnection.subscribe(
       topic,
       IssueProviderListener { source, issues ->
+        if (!isActive) {
+          return@IssueProviderListener
+        }
         // If in UI Check, only update if issues come from the preview that this provider is
         // associated with
         if (
-          instanceId != null &&
+          instanceId != SHARED_ISSUE_PANEL_TAB_ID &&
             (source !is VisualLintIssueModel || source.uiCheckInstanceId != instanceId)
         )
           return@IssueProviderListener
@@ -113,7 +123,7 @@ class DesignToolsIssueProvider(
           }
         }
         listeners.forEach { it.run() }
-      }
+      },
     )
 
     // This is a workaround to make issue panel update the tree, because the displaying issues need
@@ -124,14 +134,28 @@ class DesignToolsIssueProvider(
       FileEditorManagerListener.FILE_EDITOR_MANAGER,
       object : FileEditorManagerListener {
         override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+          if (!isActive) {
+            return
+          }
           listeners.forEach { it.run() }
         }
 
         override fun selectionChanged(event: FileEditorManagerEvent) {
+          if (!isActive) {
+            return
+          }
           listeners.forEach { it.run() }
         }
-      }
+      },
     )
+  }
+
+  override fun activate() {
+    isActive = true
+  }
+
+  override fun deactivate() {
+    isActive = false
   }
 
   override fun getFilteredIssues(): List<Issue> {

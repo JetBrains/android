@@ -31,6 +31,7 @@ import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.isScreenshotTestModule
 import com.android.tools.idea.projectsystem.isTestFixturesModule
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.intellij.openapi.module.Module
@@ -65,6 +66,7 @@ fun findDependenciesWithResources(module: Module): Map<String, ExternalAndroidLi
     module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
     module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
     module.isTestFixturesModule() -> DependencyScopeType.TEST_FIXTURES
+    module.isScreenshotTestModule() -> DependencyScopeType.SCREENSHOT_TEST
     else -> DependencyScopeType.MAIN
   }
   return moduleSystem

@@ -47,7 +47,7 @@ internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
 
   fun filter(
     messages: List<LogcatMessage>,
-    zoneId: ZoneId = ZoneId.systemDefault()
+    zoneId: ZoneId = ZoneId.systemDefault(),
   ): List<LogcatMessage> {
     if (logcatFilter == null) {
       return messages.filter { !it.isSpam() }
@@ -143,8 +143,7 @@ internal enum class LogcatFilterField(val displayName: String) {
   },
   PROCESS(message("logcat.filter.completion.hint.key.process")) {
     override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.processName
-  },
-  ;
+  };
 
   abstract fun getValue(message: LogcatMessageWrapper): String
 }
@@ -232,15 +231,21 @@ internal data class NegatedRegexFilter(
     !regex.containsMatchIn(field.getValue(message))
 }
 
-internal data class LevelFilter(
-  val level: LogLevel,
-  override val textRange: TextRange,
-) : LogcatFilter(textRange) {
+internal data class LevelFilter(val level: LogLevel, override val textRange: TextRange) :
+  LogcatFilter(textRange) {
   override val displayText: String =
     message("logcat.filter.completion.hint.level.value", level.name)
 
   override fun matches(message: LogcatMessageWrapper) =
     message.logcatMessage.header.logLevel >= level
+}
+
+internal data class ExactLevelFilter(val level: LogLevel, override val textRange: TextRange) :
+  LogcatFilter(textRange) {
+  override val displayText: String = message("logcat.filter.completion.hint.is.level", level.name)
+
+  override fun matches(message: LogcatMessageWrapper) =
+    message.logcatMessage.header.logLevel == level
 }
 
 internal data class AgeFilter(
@@ -272,17 +277,17 @@ internal data class AgeFilter(
         'm' ->
           Pair(
             TimeUnit.MINUTES.toSeconds(count),
-            pluralize(message("logcat.filter.completion.hint.age.minute"), count)
+            pluralize(message("logcat.filter.completion.hint.age.minute"), count),
           )
         'h' ->
           Pair(
             TimeUnit.HOURS.toSeconds(count),
-            pluralize(message("logcat.filter.completion.hint.age.hour"), count)
+            pluralize(message("logcat.filter.completion.hint.age.hour"), count),
           )
         'd' ->
           Pair(
             TimeUnit.DAYS.toSeconds(count),
-            pluralize(message("logcat.filter.completion.hint.age.day"), count)
+            pluralize(message("logcat.filter.completion.hint.age.day"), count),
           )
         else ->
           throw LogcatFilterParseException(
@@ -315,7 +320,7 @@ internal class ProjectAppFilter(
         else ->
           message(
             "logcat.filter.completion.hint.package.mine.items",
-            projectApplicationIdsProvider.getPackageNames().joinToString("<br/>&nbsp;&nbsp;")
+            projectApplicationIdsProvider.getPackageNames().joinToString("<br/>&nbsp;&nbsp;"),
           )
       }
 
@@ -375,10 +380,8 @@ internal data class CrashFilter(override val textRange: TextRange) : LogcatFilte
   }
 }
 
-internal data class NameFilter(
-  val name: String,
-  override val textRange: TextRange,
-) : LogcatFilter(textRange) {
+internal data class NameFilter(val name: String, override val textRange: TextRange) :
+  LogcatFilter(textRange) {
   override val filterName: String = name
 
   override val displayText: String = message("logcat.filter.completion.hint.name.value", name)

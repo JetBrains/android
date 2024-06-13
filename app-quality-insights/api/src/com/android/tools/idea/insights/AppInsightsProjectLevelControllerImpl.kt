@@ -81,7 +81,7 @@ private val LOG = Logger.getInstance(AppInsightsProjectLevelControllerImpl::clas
 
 private data class ProjectState(
   val currentState: AppInsightsState,
-  val lastGoodState: AppInsightsState?
+  val lastGoodState: AppInsightsState?,
 )
 
 class AppInsightsProjectLevelControllerImpl(
@@ -98,7 +98,7 @@ class AppInsightsProjectLevelControllerImpl(
   private val project: Project,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
-  cache: AppInsightsCache
+  cache: AppInsightsCache,
 ) : AppInsightsProjectLevelController {
 
   override val state: SharedFlow<AppInsightsState>
@@ -113,7 +113,7 @@ class AppInsightsProjectLevelControllerImpl(
       defaultFilters,
       cache,
       ::doEmit,
-      onErrorAction
+      onErrorAction,
     )
 
   /**
@@ -162,9 +162,9 @@ class AppInsightsProjectLevelControllerImpl(
           LoadingState.Ready(null),
           LoadingState.Ready(null),
           Permission.NONE,
-          ConnectionMode.ONLINE
+          ConnectionMode.ONLINE,
         ),
-        null
+        null,
       )
 
     @Suppress("RequiredOptIn")
@@ -172,7 +172,7 @@ class AppInsightsProjectLevelControllerImpl(
       merge(
           eventFlow.map { wrapAdapters(it) },
           connectionsFlow,
-          offlineStatusManager.offlineStatus.map { it.toEvent() }
+          offlineStatusManager.offlineStatus.map { it.toEvent() },
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
           LOG.debug("Got event $event for $project.")
@@ -191,7 +191,7 @@ class AppInsightsProjectLevelControllerImpl(
                     newState.currentNotes is LoadingState.Ready
                 )
                   newState
-                else lastGoodState
+                else lastGoodState,
             )
             .also { (currentState, lastGoodState) ->
               actionDispatcher.dispatch(ActionContext(action, currentState, lastGoodState))
@@ -305,15 +305,12 @@ class AppInsightsProjectLevelControllerImpl(
         stackFrame = issueInFrame.crashFrame.frame,
         cause = issueInFrame.crashFrame.cause,
         provider = key,
-        markAsSelectedCallback = selectIssueCallback
+        markAsSelectedCallback = selectIssueCallback,
       )
     }
   }
 
-  override fun insightsInFile(
-    file: PsiFile,
-    analyzer: StackTraceAnalyzer,
-  ) {
+  override fun insightsInFile(file: PsiFile, analyzer: StackTraceAnalyzer) {
     issuesForFile(file)
       .also { issues ->
         if (issues.isEmpty()) return@also
@@ -380,10 +377,10 @@ private fun computeIssuesPerFilename(
                   CrashFrame(
                     frame,
                     if (previousFrame == null) Cause.Throwable(exception.type)
-                    else Cause.Frame(previousFrame)
+                    else Cause.Frame(previousFrame),
                   ),
-                  issue
-                )
+                  issue,
+                ),
               )
             }
             previousFrame = frame

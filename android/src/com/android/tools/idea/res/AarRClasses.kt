@@ -64,7 +64,7 @@ class SmallAarRClass(
   packageName: String,
   private val aarResources: ResourceRepository,
   private val resourceNamespace: ResourceNamespace,
-  aarAddress: String
+  aarAddress: String,
 ) : AndroidRClassBase(psiManager, packageName) {
 
   init {
@@ -95,7 +95,7 @@ private class SmallAarInnerRClass(
   parent: PsiClass,
   resourceType: ResourceType,
   private val resourceNamespace: ResourceNamespace,
-  private val aarResources: ResourceRepository
+  private val aarResources: ResourceRepository,
 ) : InnerRClassBase(parent, resourceType) {
 
   override fun doGetFields(): Array<PsiField> {
@@ -130,7 +130,7 @@ class TransitiveAarRClass(
   library: Library,
   packageName: String,
   private val symbolFile: File,
-  aarAddress: String
+  aarAddress: String,
 ) : AndroidRClassBase(psiManager, packageName) {
 
   init {
@@ -188,7 +188,7 @@ class TransitiveAarRClass(
 private class TransitiveAarInnerRClass(
   parent: PsiClass,
   resourceType: ResourceType,
-  symbolTable: SymbolTable
+  symbolTable: SymbolTable,
 ) : InnerRClassBase(parent, resourceType) {
 
   private val otherFields: Map<String, ResourceVisibility>
@@ -218,9 +218,9 @@ private class TransitiveAarInnerRClass(
                 ResourceReference(
                   ResourceNamespace.RES_AUTO,
                   ResourceType.STYLEABLE,
-                  symbol.canonicalName
+                  symbol.canonicalName,
                 ),
-                ResourceReference.attr(attrNamespace, attrName)
+                ResourceReference.attr(attrNamespace, attrName),
               )
             )
           }
@@ -260,7 +260,7 @@ private class TransitiveAarInnerRClass(
       styleableAttrFields,
       resourceType,
       this,
-      FieldModifier.NON_FINAL
+      FieldModifier.NON_FINAL,
     )
   }
 

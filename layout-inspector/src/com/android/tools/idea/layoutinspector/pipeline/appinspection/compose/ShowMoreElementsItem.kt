@@ -37,7 +37,7 @@ class ShowMoreElementsItem(val array: ParameterGroupItem) :
     array.viewId,
     array.lookup,
     array.rootId,
-    array.lastRealChildReferenceIndex + 1
+    array.lastRealChildReferenceIndex + 1,
   ),
   LinkPropertyItem {
   override val link =

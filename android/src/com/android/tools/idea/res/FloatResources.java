@@ -108,8 +108,9 @@ public class FloatResources {
             // no unit when required? Use dp and out an error.
             applyUnit(sUnitNames[1], outValue);
             computeTypedValue(outValue, f, sFloatOut[0]);
-
-            LOG.warn(String.format(DIMENSION_ERROR_FORMAT, value));
+            if (!value.equals("-1") && !value.equals("-2")) { // -1 and -2 are special values commonly used without units.
+              LOG.warn(String.format(DIMENSION_ERROR_FORMAT, value));
+            }
           }
           return true;
         }

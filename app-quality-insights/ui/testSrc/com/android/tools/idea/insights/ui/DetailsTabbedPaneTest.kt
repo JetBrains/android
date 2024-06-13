@@ -24,6 +24,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBTabbedPane
 import javax.swing.JButton
+import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
@@ -55,7 +56,7 @@ class DetailsTabbedPaneTest {
       listOf(
         TabbedPaneDefinition("Stack trace", stackTraceConsole.consoleView.component),
         TabbedPaneDefinition("Panel", panel),
-        TabbedPaneDefinition("Button", button)
+        TabbedPaneDefinition("Button", button),
       )
 
     val detailsTabbedPane = DetailsTabbedPane("name", definitions, stackTraceConsole)
@@ -63,11 +64,14 @@ class DetailsTabbedPaneTest {
 
     val tabbedPane = fakeUi.findComponent<JBTabbedPane>()!!
     assertThat(tabbedPane.tabCount).isEqualTo(3)
-    assertThat(tabbedPane.getComponentAt(0)).isEqualTo(stackTraceConsole.consoleView.component)
-    assertThat(tabbedPane.getComponentAt(1)).isEqualTo(panel)
-    assertThat(tabbedPane.getComponentAt(2)).isEqualTo(button)
+    assertThat(tabbedPane.getComponentAtIdx(0)).isEqualTo(stackTraceConsole.consoleView.component)
+    assertThat(tabbedPane.getComponentAtIdx(1)).isEqualTo(panel)
+    assertThat(tabbedPane.getComponentAtIdx(2)).isEqualTo(button)
     assertThat(tabbedPane.getTitleAt(0)).isEqualTo("Stack trace")
     assertThat(tabbedPane.getTitleAt(1)).isEqualTo("Panel")
     assertThat(tabbedPane.getTitleAt(2)).isEqualTo("Button")
   }
+
+  private fun JBTabbedPane.getComponentAtIdx(idx: Int) =
+    (getComponentAt(idx) as JComponent).components.last()
 }

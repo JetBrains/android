@@ -41,8 +41,8 @@ class ComponentImageLoaderTest {
         listOf(
           SkiaViewNode(1, image1),
           SkiaViewNode(2, listOf(SkiaViewNode(2, image2))),
-          SkiaViewNode(4, listOf(SkiaViewNode(4, image4)))
-        )
+          SkiaViewNode(4, listOf(SkiaViewNode(4, image4))),
+        ),
       )
 
     val window =
@@ -88,7 +88,7 @@ class ComponentImageLoaderTest {
         listOf(
           SkiaViewNode(
             2,
-            listOf(SkiaViewNode(2, image3), SkiaViewNode(6, listOf(SkiaViewNode(6, image6))))
+            listOf(SkiaViewNode(2, image3), SkiaViewNode(6, listOf(SkiaViewNode(6, image6)))),
           ),
           SkiaViewNode(1, image1),
           SkiaViewNode(
@@ -96,10 +96,10 @@ class ComponentImageLoaderTest {
             listOf(
               SkiaViewNode(4, listOf(SkiaViewNode(4, image4))),
               SkiaViewNode(1, image2),
-              SkiaViewNode(5, listOf(SkiaViewNode(5, image5)))
-            )
-          )
-        )
+              SkiaViewNode(5, listOf(SkiaViewNode(5, image5))),
+            ),
+          ),
+        ),
       )
 
     val window =

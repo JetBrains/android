@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.deviceprovisioner.DeviceActionException;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.util.concurrent.Futures;
@@ -132,8 +133,8 @@ public class EmulatorConnectionListener {
         Uninterruptibles.sleepUninterruptibly(1, POLL_TIMEUNIT);
       }
 
-      String msg = "Timed out after " + POLL_TIMEUNIT.toSeconds(myTimeout) + "seconds waiting for emulator to come online.";
-      myDeviceFuture.setException(new TimeoutException(msg));
+      String msg = "Timed out after " + POLL_TIMEUNIT.toSeconds(myTimeout) + " seconds waiting for emulator to come online.";
+      myDeviceFuture.setException(new DeviceActionException(msg));
       Logger.getInstance(EmulatorConnectionListener.class).warn(msg);
     }
 
@@ -152,7 +153,7 @@ public class EmulatorConnectionListener {
     }
   }
 
-  private static class EmulatorTerminatedException extends RuntimeException  {
+  private static class EmulatorTerminatedException extends DeviceActionException {
     private EmulatorTerminatedException(String message) {
       super(message);
     }

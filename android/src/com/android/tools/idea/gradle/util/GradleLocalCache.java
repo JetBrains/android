@@ -23,6 +23,7 @@ import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.RichVersion;
 import com.android.ide.common.gradle.Version;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.ArrayList;
@@ -52,6 +53,8 @@ public class GradleLocalCache {
         Version version = findLatestVersionInGradleCache(gradleServicePath, group, name, dependency.getVersion());
         if (version != null && (latest == null || latest.compareTo(version) < 0)) {
           latest = version;
+          Logger.getInstance(GradleLocalCache.class)
+            .info("Possibly found " + dependency + " from Gradle service path " + gradleServicePath);
         }
       }
     }
@@ -81,7 +84,7 @@ public class GradleLocalCache {
           continue;
         }
         for (File versionFile : notNullize(versionFolder.listFiles())) {
-          Version version = Version.Companion.parse(versionFile.getName());
+          Version version = Version.parse(versionFile.getName());
           if (richVersion == null || richVersion.accepts(version)) {
             versions.add(version);
           }

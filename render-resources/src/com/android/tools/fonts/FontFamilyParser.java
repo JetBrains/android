@@ -15,11 +15,12 @@
  */
 package com.android.tools.fonts;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.QueryParser;
-import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.environment.Logger;
+import java.io.InputStream;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -27,7 +28,6 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -43,35 +43,35 @@ import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
  */
 public class FontFamilyParser {
 
-  @NotNull
-  public static QueryParser.ParseResult parseFontFamily(@NotNull File xmlFile) {
+  @NonNull
+  public static QueryParser.ParseResult parseFontFamily(@NonNull InputStream xmlStream, @NonNull String fileName) {
     try {
-      return parseFontReference(xmlFile);
+      return parseFontReference(xmlStream, fileName);
     }
     catch (QueryParser.FontQueryParserError ex) {
       return new ParseErrorResult(ex.getMessage());
     }
     catch (SAXException | ParserConfigurationException | IOException ex) {
-      String message = "Could not parse font xml file " + xmlFile;
+      String message = "Could not parse font xml file " + fileName;
       Logger.getInstance(FontFamilyParser.class).debug(message, ex);
       return new ParseErrorResult(message);
     }
   }
 
-  private static QueryParser.ParseResult parseFontReference(@NotNull File xmlFile)
+  private static QueryParser.ParseResult parseFontReference(@NonNull InputStream xmlStream, @NonNull String fileName)
     throws SAXException, ParserConfigurationException, IOException {
     SAXParserFactory factory = SAXParserFactory.newInstance();
     factory.setNamespaceAware(true);
     SAXParser parser = factory.newSAXParser();
-    FontFamilyHandler handler = new FontFamilyHandler(xmlFile);
-    parser.parse(xmlFile, handler);
+    FontFamilyHandler handler = new FontFamilyHandler(fileName);
+    parser.parse(xmlStream, handler);
     return handler.getResult();
   }
 
   static class ParseErrorResult extends QueryParser.ParseResult {
     private final String myMessage;
 
-    ParseErrorResult(@NotNull String message) {
+    ParseErrorResult(@NonNull String message) {
       myMessage = message;
     }
 
@@ -90,14 +90,14 @@ public class FontFamilyParser {
     private static final String ATTR_FONT_WIDTH = "fontWidth";
     private static final String ATTR_FONT_STYLE = "fontStyle";
 
-    private final File myFile;
+    private final String myFileName;
     private QueryParser.ParseResult myResult;
 
-    private FontFamilyHandler(@NotNull File file) {
-      myFile = file;
+    private FontFamilyHandler(@NonNull String fileName) {
+      myFileName = fileName;
     }
 
-    @NotNull
+    @NonNull
     private QueryParser.ParseResult getResult() {
       if (myResult == null) {
         myResult = new ParseErrorResult("The font file is empty");
@@ -106,7 +106,7 @@ public class FontFamilyParser {
     }
 
     @Override
-    public void startElement(@NotNull String uri, @NotNull String localName, @NotNull String name, @NotNull Attributes attributes)
+    public void startElement(@NonNull String uri, @NonNull String localName, @NonNull String name, @NonNull Attributes attributes)
       throws SAXException {
       switch (name) {
         case FONT_FAMILY:
@@ -122,13 +122,13 @@ public class FontFamilyParser {
           myResult = addFont(fontName, weight, width, italics, hasExplicitStyle);
           break;
         default:
-          Logger.getInstance(FontFamilyParser.class).warn("Unrecognized tag: " + name + " in file: " + myFile);
+          Logger.getInstance(FontFamilyParser.class).warn("Unrecognized tag: " + name + " in file: " + myFileName);
           break;
       }
     }
 
     @Nullable
-    private static String getAttributeValue(@NotNull Attributes attributes, @NotNull String attrName) {
+    private static String getAttributeValue(@NonNull Attributes attributes, @NonNull String attrName) {
       String value = attributes.getValue(ANDROID_URI, attrName);
       if (value != null) {
         return value;
@@ -191,12 +191,12 @@ public class FontFamilyParser {
       myFonts = new LinkedHashMap<>();
     }
 
-    @NotNull
+    @NonNull
     public Map<String, MutableFontDetail> getFonts() {
       return myFonts;
     }
 
-    private void addFont(@NotNull String fontName, int weight, int width, boolean italics, boolean hasExplicitStyle) {
+    private void addFont(@NonNull String fontName, int weight, int width, boolean italics, boolean hasExplicitStyle) {
       myFonts.put(fontName, new MutableFontDetail(weight, width, italics, hasExplicitStyle));
     }
   }

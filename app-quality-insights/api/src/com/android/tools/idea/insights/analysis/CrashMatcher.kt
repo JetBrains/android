@@ -34,7 +34,7 @@ fun interface CrashMatcher {
  */
 class DelegatingConfidenceMatcher(
   private val matchers: List<CrashMatcher>,
-  private val minConfidence: Confidence
+  private val minConfidence: Confidence,
 ) : CrashMatcher {
   companion object {
     private val log: Logger

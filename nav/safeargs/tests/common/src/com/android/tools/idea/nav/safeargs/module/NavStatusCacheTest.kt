@@ -33,7 +33,7 @@ class NavStatusCacheTest {
         navInfoFetcherFactory = factory@{
             invalidate = it
             return@factory fetcher
-          }
+          },
       )
     setNavInfo(0L)
   }

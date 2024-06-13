@@ -126,7 +126,7 @@ class NewCustomAttributePanelTest {
   private class NewCustomAttributeWrapper(
     propertiesModel: MotionLayoutAttributesModel,
     selection: MotionSelection,
-    lineModel: TableLineModel
+    lineModel: TableLineModel,
   ) : NewCustomAttributePanel(propertiesModel, selection, lineModel) {
     private lateinit var window: Window
 

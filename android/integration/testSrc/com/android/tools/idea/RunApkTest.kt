@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea
 
+import com.android.tools.asdriver.tests.AndroidProjectWithoutGradle
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import org.junit.Rule

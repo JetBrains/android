@@ -104,6 +104,15 @@ public class ReflectionUtil implements DoNotTrace {
     return cached;
   }
 
+  // Get an accessible version of a (possibly private) field from the cache (or populate this class's field cache entry if absent).
+  public static Field getField(@NotNull Class<?> aClass, @NotNull String fieldName) {
+    Field[] fields = getAllFields(aClass);
+    for (Field f : fields) {
+      if (f.getName().equals(fieldName)) return f;
+    }
+    return null;
+  }
+
   private static boolean isTrivial(@NotNull Class<?> type) {
     return type.isPrimitive() || type == Class.class;
   }

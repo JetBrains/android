@@ -48,7 +48,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
         CoordinatorPlaceholder(
           coordinatorLayout,
           frameLayout,
-          CoordinatorPlaceholder.Type.RIGHT_BOTTOM
+          CoordinatorPlaceholder.Type.RIGHT_BOTTOM,
         )
       val region = placeholder.region
       assertEquals(frameLayout.drawX + frameLayout.drawWidth - SIZE, region.left)
@@ -97,14 +97,14 @@ class CoordinatorPlaceholderTest : SceneTest() {
     assertEquals(frameLayout.drawY, textView.drawY)
     assertEquals(
       "@+id/frame",
-      textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR)
+      textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR),
     )
     assertEquals(
       "start|top",
       textView.nlComponent.getAttribute(
         SdkConstants.AUTO_URI,
-        SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY
-      )
+        SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY,
+      ),
     )
   }
 
@@ -120,7 +120,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
       CoordinatorPlaceholder(
         coordinatorLayout,
         frameLayout,
-        CoordinatorPlaceholder.Type.RIGHT_BOTTOM
+        CoordinatorPlaceholder.Type.RIGHT_BOTTOM,
       )
     applyPlaceholderToSceneComponent(textView, placeholder)
 
@@ -131,14 +131,14 @@ class CoordinatorPlaceholderTest : SceneTest() {
     assertEquals(frameLayout.drawY + +frameLayout.drawHeight - textView.drawHeight, textView.drawY)
     assertEquals(
       "@+id/frame",
-      textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR)
+      textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR),
     )
     assertEquals(
       "end|bottom",
       textView.nlComponent.getAttribute(
         SdkConstants.AUTO_URI,
-        SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY
-      )
+        SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY,
+      ),
     )
   }
 
@@ -186,8 +186,8 @@ class CoordinatorPlaceholderTest : SceneTest() {
             .withBounds(400, 0, 60, 60)
             .id("@id/textView")
             .width("30dp")
-            .height("30dp")
-        )
+            .height("30dp"),
+        ),
     )
   }
 }

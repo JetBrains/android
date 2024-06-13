@@ -15,15 +15,29 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.layoutlib.LayoutlibContext
-import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.util.Disposer
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** Studio-specific implementation of [LayoutlibContext]. */
 class StudioLayoutlibContext(private val project: Project) : LayoutlibContext {
-  override val parentDisposable: Disposable
-    get() = (project as ProjectEx).earlyDisposable
+  private val hasRegistered = AtomicBoolean(false)
 
   override fun hasLayoutlibCrash(): Boolean = hasStudioLayoutlibCrash()
+  override fun register(layoutlib: LayoutLibrary) {
+    if (!hasRegistered.getAndSet(true)) {
+      if (!project.isDisposed)
+        Disposer.register((project as ProjectEx).earlyDisposable) { layoutlib.dispose() }
+      else {
+        Logger.getInstance(StudioLayoutlibContext::class.java).error("$project had already been disposed")
+        layoutlib.dispose()
+      }
+    } else {
+      Logger.getInstance(StudioLayoutlibContext::class.java).error("A duplicate Layoutlib is created for project $project")
+    }
+  }
 }

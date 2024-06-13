@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.flags.junit.FlagRule
-import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -36,14 +33,12 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.testFramework.ApplicationRule
+import java.awt.event.MouseEvent
+import java.util.EnumSet
 import org.junit.Before
 import org.junit.ClassRule
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.Mockito.doAnswer
-import java.awt.event.InputEvent
-import java.util.EnumSet
 
 class RenderSettingsActionTest {
   private lateinit var event: AnActionEvent
@@ -51,12 +46,6 @@ class RenderSettingsActionTest {
   companion object {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
-
-  @get:Rule
-  val rules: RuleChain =
-    RuleChain.outerRule(MockitoCleanerRule())
-      .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true))
-      .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true))
 
   private val treeSettings = FakeTreeSettings().apply { showRecompositions = true }
   private val fakeRenderSettings = FakeRenderSettings()
@@ -110,7 +99,7 @@ class RenderSettingsActionTest {
         0x479345 to "Green",
         0xFFC66D to "Yellow",
         0x871094 to "Purple",
-        0xE1A336 to "Orange"
+        0xE1A336 to "Orange",
       )
     val highlightColorAction = HighlightColorAction { fakeRenderSettings }
 
@@ -146,14 +135,14 @@ class RenderSettingsActionTest {
       }
     }
     val actionManager: ActionManager = mock()
-    val inputEvent = mock<InputEvent>()
+    val inputEvent = mock<MouseEvent>()
     return AnActionEvent(
       inputEvent,
       dataContext,
       ActionPlaces.UNKNOWN,
       Presentation(),
       actionManager,
-      0
+      0,
     )
   }
 }

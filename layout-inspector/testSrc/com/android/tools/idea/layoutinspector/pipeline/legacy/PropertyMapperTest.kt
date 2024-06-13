@@ -44,7 +44,7 @@ class PropertyMapperTest {
     application.registerServiceInstance(
       PropertiesComponent::class.java,
       PropertiesComponentMock(),
-      disposableRule.disposable
+      disposableRule.disposable,
     )
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
   }
@@ -56,154 +56,154 @@ class PropertyMapperTest {
       "id/textView",
       SdkConstants.ATTR_LAYOUT_TO_LEFT_OF,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_rightOf",
       "false/NOID",
       SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF,
       PropertyType.RESOURCE,
-      ""
+      "",
     )
     check(
       "layout_mRules_above",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ABOVE,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_below",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_BELOW,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignBaseline",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignLeft",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_LEFT,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignTop",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_TOP,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignRight",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignBottom",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignParentLeft",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignParentTop",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignParentRight",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_RIGHT,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignParentBottom",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_center",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_centerHorizontal",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_centerVertical",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_startOf",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_TO_START_OF,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_endOf",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_TO_END_OF,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignStart",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_START,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignEnd",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_END,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignParentStart",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
     check(
       "layout_mRules_alignParentEnd",
       "id/textView",
       SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END,
       PropertyType.RESOURCE,
-      "@id/textView"
+      "@id/textView",
     )
   }
 
@@ -215,35 +215,35 @@ class PropertyMapperTest {
       "10",
       SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
       PropertyType.DIMENSION,
-      "10"
+      "10",
     )
     check(
       "layout_leftMargin",
       "0",
       SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
       PropertyType.DIMENSION,
-      "0"
+      "0",
     )
     check(
       "layout_rightMargin",
       "50",
       SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
       PropertyType.DIMENSION,
-      "50"
+      "50",
     )
     check(
       "layout_startMargin",
       "-2147483648",
       SdkConstants.ATTR_LAYOUT_MARGIN_START,
       PropertyType.DIMENSION,
-      "-2147483648"
+      "-2147483648",
     )
     check(
       "layout_endMargin",
       "40",
       SdkConstants.ATTR_LAYOUT_MARGIN_END,
       PropertyType.DIMENSION,
-      "40"
+      "40",
     )
   }
 
@@ -254,14 +254,14 @@ class PropertyMapperTest {
       (GRAVITY_LEFT or GRAVITY_RIGHT).toString(10),
       SdkConstants.ATTR_LAYOUT_GRAVITY,
       PropertyType.GRAVITY,
-      "fill_horizontal"
+      "fill_horizontal",
     )
     check(
       "mGravity",
       (GRAVITY_TOP or GRAVITY_RIGHT).toString(10),
       SdkConstants.ATTR_GRAVITY,
       PropertyType.GRAVITY,
-      "top|right"
+      "top|right",
     )
   }
 
@@ -274,7 +274,7 @@ class PropertyMapperTest {
       "-1979711488",
       SdkConstants.ATTR_FOREGROUND,
       PropertyType.COLOR,
-      "#8A000000"
+      "#8A000000",
     )
   }
 
@@ -285,14 +285,14 @@ class PropertyMapperTest {
       "RESOLVED_DIRECTION_LTR",
       "layoutDirection",
       PropertyType.STRING,
-      "ltr"
+      "ltr",
     )
     check(
       "getLayoutDirection()",
       "RESOLVED_DIRECTION_RTL",
       "layoutDirection",
       PropertyType.STRING,
-      "rtl"
+      "rtl",
     )
     check("getLayoutDirection()", "", "layoutDirection", PropertyType.STRING, "")
   }
@@ -304,28 +304,28 @@ class PropertyMapperTest {
       "INSIDE_INSET",
       "scrollbarStyle",
       PropertyType.STRING,
-      "insideInset"
+      "insideInset",
     )
     check(
       "getScrollBarStyle()",
       "INSIDE_OVERLAY",
       "scrollbarStyle",
       PropertyType.STRING,
-      "insideOverlay"
+      "insideOverlay",
     )
     check(
       "getScrollBarStyle()",
       "OUTSIDE_INSET",
       "scrollbarStyle",
       PropertyType.STRING,
-      "outsideInset"
+      "outsideInset",
     )
     check(
       "getScrollBarStyle()",
       "OUTSIDE_OVERLAY",
       "scrollbarStyle",
       PropertyType.STRING,
-      "outsideOverlay"
+      "outsideOverlay",
     )
     check("getScrollBarStyle()", "", "scrollbarStyle", PropertyType.STRING, "")
   }
@@ -337,42 +337,42 @@ class PropertyMapperTest {
       "TEXT_START",
       SdkConstants.ATTR_TEXT_ALIGNMENT,
       PropertyType.STRING,
-      "textStart"
+      "textStart",
     )
     check(
       "getTextAlignment()",
       "TEXT_END",
       SdkConstants.ATTR_TEXT_ALIGNMENT,
       PropertyType.STRING,
-      "textEnd"
+      "textEnd",
     )
     check(
       "getTextAlignment()",
       "CENTER",
       SdkConstants.ATTR_TEXT_ALIGNMENT,
       PropertyType.STRING,
-      "center"
+      "center",
     )
     check(
       "getTextAlignment()",
       "VIEW_START",
       SdkConstants.ATTR_TEXT_ALIGNMENT,
       PropertyType.STRING,
-      "viewStart"
+      "viewStart",
     )
     check(
       "getTextAlignment()",
       "VIEW_END",
       SdkConstants.ATTR_TEXT_ALIGNMENT,
       PropertyType.STRING,
-      "viewEnd"
+      "viewEnd",
     )
     check(
       "getTextAlignment()",
       "INHERIT",
       SdkConstants.ATTR_TEXT_ALIGNMENT,
       PropertyType.STRING,
-      "inherit"
+      "inherit",
     )
   }
 
@@ -388,14 +388,14 @@ class PropertyMapperTest {
       "FIRST_STRONG_LTR",
       "textDirection",
       PropertyType.STRING,
-      "firstStrongLtr"
+      "firstStrongLtr",
     )
     check(
       "getTextDirection()",
       "FIRST_STRONG_RTL",
       "textDirection",
       PropertyType.STRING,
-      "firstStrongRtl"
+      "firstStrongRtl",
     )
     check("getTextDirection()", "INHERIT", "textDirection", PropertyType.STRING, "inherit")
     check("getTextDirection()", "", "textDirection", PropertyType.STRING, "")
@@ -408,21 +408,21 @@ class PropertyMapperTest {
       "FOCUS_BEFORE_DESCENDANTS",
       "descendantFocusability",
       PropertyType.STRING,
-      "beforeDescendants"
+      "beforeDescendants",
     )
     check(
       "getDescendantFocusability()",
       "FOCUS_AFTER_DESCENDANTS",
       "descendantFocusability",
       PropertyType.STRING,
-      "afterDescendants"
+      "afterDescendants",
     )
     check(
       "getDescendantFocusability()",
       "FOCUS_BLOCK_DESCENDANTS",
       "descendantFocusability",
       PropertyType.STRING,
-      "blocksDescendants"
+      "blocksDescendants",
     )
     check("getDescendantFocusability()", "", "descendantFocusability", PropertyType.STRING, "")
   }
@@ -444,28 +444,28 @@ class PropertyMapperTest {
       "NONE",
       "persistentDrawingCache",
       PropertyType.STRING,
-      "none"
+      "none",
     )
     check(
       "getPersistentDrawingCache()",
       "ANIMATION",
       "persistentDrawingCache",
       PropertyType.STRING,
-      "animation"
+      "animation",
     )
     check(
       "getPersistentDrawingCache()",
       "SCROLLING",
       "persistentDrawingCache",
       PropertyType.STRING,
-      "scrolling"
+      "scrolling",
     )
     check(
       "getPersistentDrawingCache()",
       "ALL",
       "persistentDrawingCache",
       PropertyType.STRING,
-      "all"
+      "all",
     )
     check("getPersistentDrawingCache()", "", "persistentDrawingCache", PropertyType.STRING, "")
   }
@@ -477,14 +477,14 @@ class PropertyMapperTest {
       "match_parent",
       SdkConstants.ATTR_LAYOUT_HEIGHT,
       PropertyType.DIMENSION,
-      "match_parent"
+      "match_parent",
     )
     check(
       "layout_height",
       "wrap_content",
       SdkConstants.ATTR_LAYOUT_HEIGHT,
       PropertyType.DIMENSION,
-      "wrap_content"
+      "wrap_content",
     )
     check("layout_height", "40", SdkConstants.ATTR_LAYOUT_HEIGHT, PropertyType.DIMENSION, "40")
     check(
@@ -492,14 +492,14 @@ class PropertyMapperTest {
       "match_parent",
       SdkConstants.ATTR_LAYOUT_WIDTH,
       PropertyType.DIMENSION,
-      "match_parent"
+      "match_parent",
     )
     check(
       "layout_width",
       "wrap_content",
       SdkConstants.ATTR_LAYOUT_WIDTH,
       PropertyType.DIMENSION,
-      "wrap_content"
+      "wrap_content",
     )
     check("layout_width", "40", SdkConstants.ATTR_LAYOUT_WIDTH, PropertyType.DIMENSION, "40")
   }
@@ -518,7 +518,7 @@ class PropertyMapperTest {
       "NOT_FOCUSABLE",
       SdkConstants.ATTR_FOCUSABLE,
       PropertyType.STRING,
-      "false"
+      "false",
     )
     check("getFocusable()", "FOCUSABLE", SdkConstants.ATTR_FOCUSABLE, PropertyType.STRING, "true")
     check(
@@ -526,7 +526,7 @@ class PropertyMapperTest {
       "FOCUSABLE_AUTO",
       SdkConstants.ATTR_FOCUSABLE,
       PropertyType.STRING,
-      "auto"
+      "auto",
     )
     check("getFocusable()", "", SdkConstants.ATTR_FOCUSABLE, PropertyType.STRING, "")
   }
@@ -538,7 +538,7 @@ class PropertyMapperTest {
       "NORMAL",
       SdkConstants.ATTR_TEXT_STYLE,
       PropertyType.STRING,
-      "normal"
+      "normal",
     )
     check("getTypefaceStyle()", "BOLD", SdkConstants.ATTR_TEXT_STYLE, PropertyType.STRING, "bold")
     check(
@@ -546,14 +546,14 @@ class PropertyMapperTest {
       "ITALIC",
       SdkConstants.ATTR_TEXT_STYLE,
       PropertyType.STRING,
-      "italic"
+      "italic",
     )
     check(
       "getTypefaceStyle()",
       "BOLD_ITALIC",
       SdkConstants.ATTR_TEXT_STYLE,
       PropertyType.STRING,
-      "bold|italic"
+      "bold|italic",
     )
     check("getTypefaceStyle()", "", SdkConstants.ATTR_TEXT_STYLE, PropertyType.STRING, "")
   }
@@ -565,14 +565,14 @@ class PropertyMapperTest {
       "0",
       SdkConstants.ATTR_ORIENTATION,
       PropertyType.STRING,
-      SdkConstants.VALUE_HORIZONTAL
+      SdkConstants.VALUE_HORIZONTAL,
     )
     check(
       "mOrientation",
       "1",
       SdkConstants.ATTR_ORIENTATION,
       PropertyType.STRING,
-      SdkConstants.VALUE_VERTICAL
+      SdkConstants.VALUE_VERTICAL,
     )
     check("mOrientation", "", SdkConstants.ATTR_ORIENTATION, PropertyType.STRING, "")
   }
@@ -582,7 +582,7 @@ class PropertyMapperTest {
     value: String,
     expectedAttribute: String,
     expectedType: PropertyType,
-    expectedValue: String
+    expectedValue: String,
   ) {
     val definition =
       PropertyMapper.mapPropertyName(property) ?: error("Property: $property NOT found")

@@ -42,16 +42,17 @@ val LEGACY_DEVICE =
 
 fun DeviceDescriptor.createProcess(
   name: String = "com.example",
+  packageName: String = name,
   pid: Int = 1,
   streamId: Long = 13579,
-  isRunning: Boolean = true
+  isRunning: Boolean = true,
 ): ProcessDescriptor {
   val device = this
   return object : ProcessDescriptor {
     override val device = device
     override val abiCpuArch = "x86_64"
     override val name = name
-    override val packageName = name
+    override val packageName = packageName
     override val isRunning = isRunning
     override val pid = pid
     override val streamId = streamId
@@ -73,5 +74,14 @@ class RecentProcessTest {
     assertThat(p2.matches(LEGACY_DEVICE.createProcess("p2"))).isTrue()
     assertThat(p2.matches(MODERN_DEVICE.createProcess("p2"))).isFalse()
     assertThat(p2.matches(LEGACY_DEVICE.createProcess("p1"))).isFalse()
+  }
+
+  @Test
+  fun testPreferredProcessMatchesByPackageName() {
+    val p1 = RecentProcess("123456", "package1")
+
+    assertThat(p1.matches(MODERN_DEVICE.createProcess("process1", "package1"))).isTrue()
+    assertThat(p1.matches(MODERN_DEVICE.createProcess("process2", "package1"))).isTrue()
+    assertThat(p1.matches(MODERN_DEVICE.createProcess("process1", "package2"))).isFalse()
   }
 }

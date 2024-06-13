@@ -40,16 +40,12 @@ class FilterKeysAction : ComboBoxAction() {
   init {
     templatePresentation.text = NO_FILTER_TITLE // Prevents UI pop-in.
   }
-
+  override fun getActionUpdateThread(): ActionUpdateThread  = ActionUpdateThread.BGT
   override fun update(event: AnActionEvent) {
     val editor = event.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
     val filter = editor.panel.table.rowFilter
     event.presentation.icon = filter?.getIcon()
     event.presentation.text = filter?.getDescription() ?: NO_FILTER_TITLE
-  }
-
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.EDT
   }
 
   override fun createPopupActionGroup(button: JComponent, dataContext: DataContext): DefaultActionGroup {

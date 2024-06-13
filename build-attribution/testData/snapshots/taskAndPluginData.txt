@@ -109,6 +109,11 @@ Task                          : :app:mergeDebugShaders
     PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mergeDebugStartupProfile
+    TaskType                      : com.android.build.gradle.internal.tasks.MergeStartupProfileTask
+    PrimaryTaskCategory           : ART_PROFILE
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:minifyDebugWithR8
     TaskType                      : com.android.build.gradle.internal.tasks.R8Task
     PrimaryTaskCategory           : OPTIMIZATION
@@ -204,10 +209,6 @@ Task                          : :lib:bundleLibRuntimeToJarDebug
     PrimaryTaskCategory           : COMPILED_CLASSES
     SecondaryTaskCategories       : ZIPPING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:checkKotlinGradlePluginConfigurationErrors
-    TaskType                      : org.jetbrains.kotlin.gradle.plugin.diagnostics.CheckKotlinGradlePluginConfigurationErrors
-    PrimaryTaskCategory           : KOTLIN
-    Plugin                        : binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 Task                          : :lib:compileDebugJavaWithJavac
     TaskType                      : org.gradle.api.tasks.compile.JavaCompile
     PrimaryTaskCategory           : JAVA
@@ -265,11 +266,6 @@ Task                          : :lib:javaPreCompileDebug
     PrimaryTaskCategory           : JAVA
     SecondaryTaskCategories       : COMPILATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:kaptDebugKotlin
-    TaskType                      : org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask
-    PrimaryTaskCategory           : KOTLIN
-    SecondaryTaskCategories       : COMPILATION
-    Plugin                        : binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 Task                          : :lib:kaptGenerateStubsDebugKotlin
     TaskType                      : org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
     PrimaryTaskCategory           : KOTLIN

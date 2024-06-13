@@ -20,7 +20,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.adtui.TextAccessors;
 import com.android.tools.adtui.actions.DropDownActionTestUtil;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.actions.TargetMenuAction;
@@ -95,9 +94,12 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     return this;
   }
 
-  public void requireTheme(@NotNull String theme) {
-    Wait.seconds(1).expecting("theme to be updated")
-      .until(() -> theme.equals(TextAccessors.getTextAccessor(findToolbarButton("Theme for Preview")).getText()));
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> requireTheme(@NotNull String theme) {
+    Wait.seconds(1).expecting("Theme to be updated")
+      .until(() -> theme.equals(findToolbarButton("Theme for Preview").getPresentation().getText()));
+    return this;
   }
 
   /**
@@ -199,6 +201,18 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     // If there is any Portrait variation, the text of Action Button will become "Portrait -> [variation_folder]/[layout_name].xml"
     // Use String.startsWith() to cover that case.
     selectDropDownActionButtonItem("Orientation for Preview (O)", item -> item.startsWith("Portrait"));
+    return this;
+  }
+
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> setLocale(@NotNull String localeName) {
+    selectDropDownActionButtonItem("Locale for Preview", item -> item.equals(localeName));
+    return this;
+  }
+
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> setTheme(@NotNull String theme) {
+    selectDropDownActionButtonItem("Theme for Preview", item -> item.equals(theme));
     return this;
   }
 

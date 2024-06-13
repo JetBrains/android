@@ -54,7 +54,7 @@ class ConnectionsStateChart(dataList: List<ConnectionData>, range: Range) {
 
   private fun createChart(
     dataList: Collection<ConnectionData>,
-    range: Range
+    range: Range,
   ): StateChart<NetworkState> {
     val series = DefaultDataSeries<NetworkState>()
     series.add(0, NetworkState.NONE)
@@ -77,7 +77,7 @@ class ConnectionsStateChart(dataList: List<ConnectionData>, range: Range) {
             override fun getColor(isMouseOver: Boolean, value: NetworkState): Color {
               return colors.getColor(value)
             }
-          }
+          },
       )
     // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current
     // session
@@ -90,5 +90,5 @@ enum class NetworkState {
   SENDING,
   RECEIVING,
   WAITING,
-  NONE
+  NONE,
 }

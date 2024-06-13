@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.External
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.intellij.psi.PsiElement;
 import java.util.regex.Pattern;
@@ -31,7 +32,7 @@ public interface GradleDslNameConverter {
     GROOVY,
     KOTLIN,
     CATALOG_TOML,
-    DECLARATIVE_TOML
+    DECLARATIVE
   }
 
   /**
@@ -124,12 +125,22 @@ public interface GradleDslNameConverter {
   }
 
   /**
+   * Returns external language name as a String, based on canonical name. Ie: `android` (canonical name) block for Something declarative
+   * has name `androidApplication` (external name). So we store it in model as `android` but need to get external language name
+   * once we about to write it to a file.
+   */
+  @NotNull
+  default String externalNameForPropertiesParent(@NotNull String modelName, @NotNull GradlePropertiesDslElement context) {
+    return modelName;
+  }
+
+  /**
    * Returns the regex pattern for the syntax allowed in injections without the need of {} when injected.
    */
   // TODO(b/173698662): improve the regexp patterns for complex injections.
   default @Nullable Pattern getPatternForUnwrappedVariables() {
     return null;
-  };
+  }
 
   /**
    * Returns the regex pattern for the syntax needing to be wrapped by {}  when injected.
@@ -137,7 +148,7 @@ public interface GradleDslNameConverter {
   // TODO(b/173698662): improve the regexp patterns for complex injections.
   default @Nullable Pattern getPatternForWrappedVariables() {
     return null;
-  };
+  }
 
   /**
    * Converts a single external name part to a description of the Model property it is associated with.

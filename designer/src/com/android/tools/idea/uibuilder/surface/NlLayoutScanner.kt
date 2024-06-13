@@ -135,7 +135,7 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
           if (component == null) {
             issuesWithoutSources++
           } else {
-            lintIntegrator.createIssue(it, component, model, atfIssueEventListener)
+            lintIntegrator.createIssue(it, component, atfIssueEventListener)
           }
         }
         // TODO: b/180069618 revisit metrics. Should log each issue.

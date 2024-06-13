@@ -44,7 +44,7 @@ class ComposeDebuggerSettings :
           "reference.idesettings.debugger.compose",
           ComposeBundle.message("compose"),
           ComposeDebuggerSettingsUi::class.java,
-          this
+          this,
         )
       )
     } else listOf()

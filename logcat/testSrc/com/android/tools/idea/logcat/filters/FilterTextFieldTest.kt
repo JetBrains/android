@@ -247,21 +247,14 @@ class FilterTextFieldTest {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
       fakeLogcatPresenter.processMessages(
-        listOf(
-          logcatMessage(tag = "foobar"),
-          logcatMessage(tag = "bar"),
-        )
+        listOf(logcatMessage(tag = "foobar"), logcatMessage(tag = "bar"))
       )
 
       val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
       advanceUntilIdle()
 
       assertThat(historyList.renderToStrings())
-        .containsExactly(
-          "*: foo ( 1 )",
-          "----------------------------------",
-          " : bar ( 2 )",
-        )
+        .containsExactly("*: foo ( 1 )", "----------------------------------", " : bar ( 2 )")
         .inOrder() // Order is reverse of the order added
     }
 
@@ -273,20 +266,14 @@ class FilterTextFieldTest {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = true)
       fakeLogcatPresenter.processMessages(
-        listOf(
-          logcatMessage(tag = "foobar"),
-          logcatMessage(tag = "bar"),
-        )
+        listOf(logcatMessage(tag = "foobar"), logcatMessage(tag = "bar"))
       )
 
       val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
       advanceUntilIdle()
 
       assertThat(historyList.renderToStrings())
-        .containsExactly(
-          "*: bar ( 2 )",
-          "*: foo ( 1 )",
-        )
+        .containsExactly("*: bar ( 2 )", "*: foo ( 1 )")
         .inOrder() // Order is reverse of the order added
     }
 
@@ -298,20 +285,14 @@ class FilterTextFieldTest {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = false)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
       fakeLogcatPresenter.processMessages(
-        listOf(
-          logcatMessage(tag = "foobar"),
-          logcatMessage(tag = "bar"),
-        )
+        listOf(logcatMessage(tag = "foobar"), logcatMessage(tag = "bar"))
       )
 
       val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
       advanceUntilIdle()
 
       assertThat(historyList.renderToStrings())
-        .containsExactly(
-          " : bar ( 2 )",
-          " : foo ( 1 )",
-        )
+        .containsExactly(" : bar ( 2 )", " : foo ( 1 )")
         .inOrder() // Order is reverse of the order added
     }
 
@@ -326,11 +307,7 @@ class FilterTextFieldTest {
       val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
       advanceUntilIdle()
 
-      assertThat(historyList.renderToStrings())
-        .containsExactly(
-          " : Foo ( 1 )",
-        )
-        .inOrder()
+      assertThat(historyList.renderToStrings()).containsExactly(" : Foo ( 1 )").inOrder()
     }
 
   @Suppress("OPT_IN_USAGE") // runTest is experimental
@@ -341,10 +318,7 @@ class FilterTextFieldTest {
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foobar", isFavorite = false)
       fakeLogcatPresenter.processMessages(
-        listOf(
-          logcatMessage(tag = "Foo"),
-          logcatMessage(tag = "FooBar"),
-        )
+        listOf(logcatMessage(tag = "Foo"), logcatMessage(tag = "FooBar"))
       )
       fakeLogcatPresenter.processMessages(listOf())
 
@@ -352,10 +326,7 @@ class FilterTextFieldTest {
       advanceUntilIdle()
 
       assertThat(historyList.renderToStrings())
-        .containsExactly(
-          " : Foo: tag:Foobar ( 1 )",
-          " : Foo: tag:Foo ( 2 )",
-        )
+        .containsExactly(" : Foo: tag:Foobar ( 1 )", " : Foo: tag:Foo ( 2 )")
         .inOrder() // Order is reverse of the order added
     }
 
@@ -382,7 +353,7 @@ class FilterTextFieldTest {
           "*: Foo: named favorite ( 0 )",
           "----------------------------------",
           " : Foo: named ( 0 )",
-          " : unnamed ( 0 )"
+          " : unnamed ( 0 )",
         )
         .inOrder() // Order is reverse of the order added
     }
@@ -514,7 +485,7 @@ class FilterTextFieldTest {
         filterParser,
         initialText,
         matchCase,
-        androidProjectDetector
+        androidProjectDetector,
       )
       .apply {
         addNotify() // Creates editor

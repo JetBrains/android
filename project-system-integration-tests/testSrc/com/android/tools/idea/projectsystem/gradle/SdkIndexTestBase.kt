@@ -52,7 +52,6 @@ open class SdkIndexTestBase {
                                              beforeClose: (() -> Unit)?,
                                              expectedIssues: Set<String>) {
     val project = AndroidProject(testProjectPath)
-    project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo(testRepoManifest))
 

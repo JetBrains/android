@@ -87,15 +87,15 @@ class ConstraintPlaceholderTest : SceneTest() {
       "50dp",
       textView.nlComponent.getAttribute(
         SdkConstants.TOOLS_URI,
-        SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X
-      )
+        SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+      ),
     )
     assertEquals(
       "60dp",
       textView.nlComponent.getAttribute(
         SdkConstants.TOOLS_URI,
-        SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y
-      )
+        SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
+      ),
     )
   }
 
@@ -106,19 +106,19 @@ class ConstraintPlaceholderTest : SceneTest() {
     textView2.nlComponent.let {
       assertEquals(
         "parent",
-        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF)
+        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF),
       )
       assertEquals(
         "linear",
-        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF)
+        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF),
       )
       assertEquals(
         "0.632",
-        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS)
+        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS),
       )
       assertEquals(
         "0dp",
-        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X),
       )
     }
 
@@ -160,8 +160,8 @@ class ConstraintPlaceholderTest : SceneTest() {
         "300dp",
         nlComponent.getAttribute(
           SdkConstants.SHERPA_URI,
-          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
-        )
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
+        ),
       )
       assertNull(
         nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END)
@@ -169,7 +169,7 @@ class ConstraintPlaceholderTest : SceneTest() {
       assertNull(
         nlComponent.getAttribute(
           SdkConstants.SHERPA_URI,
-          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
         )
       )
     }
@@ -179,12 +179,12 @@ class ConstraintPlaceholderTest : SceneTest() {
       NlWriteCommandActionUtil.run(nlComponent, "") {
         nlComponent.removeAttribute(
           SdkConstants.SHERPA_URI,
-          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
         )
         nlComponent.setAttribute(
           SdkConstants.SHERPA_URI,
           SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END,
-          "50dp"
+          "50dp",
         )
       }
 
@@ -195,17 +195,17 @@ class ConstraintPlaceholderTest : SceneTest() {
       assertNull(
         nlComponent.getAttribute(
           SdkConstants.SHERPA_URI,
-          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
         )
       )
       assertEquals(
         "100dp",
-        nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END)
+        nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END),
       )
       assertNull(
         nlComponent.getAttribute(
           SdkConstants.SHERPA_URI,
-          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
         )
       )
     }
@@ -215,12 +215,12 @@ class ConstraintPlaceholderTest : SceneTest() {
       NlWriteCommandActionUtil.run(nlComponent, "") {
         nlComponent.removeAttribute(
           SdkConstants.SHERPA_URI,
-          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END,
         )
         nlComponent.setAttribute(
           SdkConstants.SHERPA_URI,
           SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
-          "0.2"
+          "0.2",
         )
       }
 
@@ -231,7 +231,7 @@ class ConstraintPlaceholderTest : SceneTest() {
       assertNull(
         nlComponent.getAttribute(
           SdkConstants.SHERPA_URI,
-          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
         )
       )
       assertNull(
@@ -241,8 +241,8 @@ class ConstraintPlaceholderTest : SceneTest() {
         "0.7",
         nlComponent.getAttribute(
           SdkConstants.SHERPA_URI,
-          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
-        )
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
+        ),
       )
     }
   }
@@ -255,7 +255,7 @@ class ConstraintPlaceholderTest : SceneTest() {
             .withBounds(0, 0, 100, 100)
             .id("@id/match_parent_linear")
             .matchParentWidth()
-            .matchParentHeight()
+            .matchParentHeight(),
         )
         .build()
 
@@ -273,25 +273,25 @@ class ConstraintPlaceholderTest : SceneTest() {
       tempSceneComponent,
       transaction,
       root.drawX + 30,
-      root.drawY + 250
+      root.drawY + 250,
     )
     NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
 
     assertEquals(
       "16dp",
-      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X),
     )
     assertEquals(
       "116dp",
-      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y),
     )
     assertEquals(
       "68dp",
-      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH)
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH),
     )
     assertEquals(
       "368dp",
-      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT)
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT),
     )
 
     Scout.setMargin(Scout.DEFAULT_MARGIN)
@@ -305,7 +305,7 @@ class ConstraintPlaceholderTest : SceneTest() {
             .withBounds(0, 0, 100, 100)
             .id("@id/match_parent_linear")
             .matchParentWidth()
-            .matchParentHeight()
+            .matchParentHeight(),
         )
         .build()
 
@@ -323,25 +323,25 @@ class ConstraintPlaceholderTest : SceneTest() {
       tempSceneComponent,
       transaction,
       root.drawX + 480,
-      root.drawY + 50
+      root.drawY + 50,
     )
     NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
 
     assertEquals(
       "417dp",
-      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X),
     )
     assertEquals(
       "16dp",
-      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y),
     )
     assertEquals(
       "67dp",
-      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH)
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH),
     )
     assertEquals(
       "68dp",
-      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT)
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT),
     )
 
     Scout.setMargin(Scout.DEFAULT_MARGIN)
@@ -369,18 +369,18 @@ class ConstraintPlaceholderTest : SceneTest() {
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-              "parent"
+              "parent",
             )
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-              "linear"
+              "linear",
             )
             .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, "0.632")
             .withAttribute(
               SdkConstants.TOOLS_URI,
               SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-              "0dp"
+              "0dp",
             ),
           component(SdkConstants.LINEAR_LAYOUT)
             .withBounds(200, 200, 800, 800)
@@ -390,12 +390,12 @@ class ConstraintPlaceholderTest : SceneTest() {
             .withAttribute(
               SdkConstants.TOOLS_URI,
               SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-              "100dp"
+              "100dp",
             )
             .withAttribute(
               SdkConstants.TOOLS_URI,
               SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-              "100dp"
+              "100dp",
             ),
           component(AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.newName())
             .withBounds(800, 0, 1, 1000)
@@ -405,14 +405,14 @@ class ConstraintPlaceholderTest : SceneTest() {
             .withAttribute(
               SdkConstants.ANDROID_URI,
               SdkConstants.ATTR_ORIENTATION,
-              SdkConstants.VALUE_VERTICAL
+              SdkConstants.VALUE_VERTICAL,
             )
             .withAttribute(
               SdkConstants.SHERPA_URI,
               SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
-              "400dp"
-            )
-        )
+              "400dp",
+            ),
+        ),
     )
   }
 }

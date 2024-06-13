@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintableName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBasicVariant
@@ -80,6 +81,7 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
+import org.jetbrains.plugins.gradle.model.DefaultExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
 
@@ -192,6 +194,17 @@ private val jbModelDumpers = listOf(
       }
     }
   },
+  SpecializedDumper<DefaultExternalSourceSet> { externalSourceSet ->
+    head(propertyName)
+    nest {
+      prop("sourceCompatibility", externalSourceSet.sourceCompatibility)
+      prop("targetCompatibility", externalSourceSet.targetCompatibility)
+      prop("jdkInstallationPath", externalSourceSet.javaToolchainHome)
+      prop("artifacts", externalSourceSet.artifacts)
+      prop("dependencies", externalSourceSet.dependencies)
+      prop("sources", externalSourceSet.sources.toSortedMap())
+    }
+  },
   SpecializedDumper(property = KotlinMPPGradleModel::dependencies) { holder, dependencies ->
     head(propertyName)
     nest {
@@ -218,7 +231,7 @@ private val jbModelDumpers = listOf(
   },
 )
 
-const val KOTLIN_VERSION_FOR_TESTS = "1.9.20"
+const val KOTLIN_VERSION_FOR_TESTS = "2.0.0-RC1"
 fun String.replaceKgpForTestVersion(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KGP_VERSION>")
 
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
@@ -298,10 +311,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       nest {
         prop("applicationId") { ideBasicVariant.applicationId }
         prop("testApplicationId") { ideBasicVariant.testApplicationId }
+        prop("buildType") { ideBasicVariant.buildType }
       }
     }
 
     fun dump(ideVariant: IdeVariant) {
+      fun String.toPrintableArtifactName() = "${this}Artifact"
+
       head("IdeVariant")
       nest {
         prop("Name") { ideVariant.name }
@@ -349,20 +365,20 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         nest {
           dump(ideVariant.mainArtifact)
         }
-        ideVariant.androidTestArtifact?.let {
-          head("AndroidTestArtifact")
+        ideVariant.deviceTestArtifacts.forEach {
+          head("${it.name.toPrintableName()}Artifact")
           nest {
             dump(it)
           }
         }
-        ideVariant.unitTestArtifact?.let {
-          head("UnitTestArtifact")
+        ideVariant.hostTestArtifacts.forEach {
+          head("${it.name.toPrintableName()}Artifact")
           nest {
             dump(it)
           }
         }
         ideVariant.testFixturesArtifact?.let {
-          head("TestFixturesArtifact")
+          head("${it.name.toPrintableName()}Artifact")
           nest {
             dump(it)
           }
@@ -642,6 +658,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         dump(ideBuildTypeContainer.buildType as IdeBaseConfig)
         prop("IsDebuggable") { ideBuildTypeContainer.buildType.isDebuggable.toString() }
         prop("IsJniDebuggable") { ideBuildTypeContainer.buildType.isJniDebuggable.toString() }
+        prop("IsPseudoLocalesEnabled") { ideBuildTypeContainer.buildType.isPseudoLocalesEnabled.toString() }
         prop("IsRenderscriptDebuggable") { ideBuildTypeContainer.buildType.isRenderscriptDebuggable.toString() }
         prop("RenderscriptOptimLevel") { ideBuildTypeContainer.buildType.renderscriptOptimLevel.toString() }
         prop("IsMinifyEnabled") { ideBuildTypeContainer.buildType.isMinifyEnabled.toString() }
@@ -753,6 +770,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("UseAndroidX") { agpFlags.useAndroidX.toString() }
         prop("UsesCompose") { agpFlags.usesCompose.toString() }
         prop("MlModelBindingEnabled") { agpFlags.mlModelBindingEnabled.toString() }
+        prop("AndroidResourcesEnabled") { agpFlags.androidResourcesEnabled.toString() }
       }
     }
 

@@ -80,7 +80,7 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
     }
   }
 
-  override fun isApplicable(project: Project): Boolean {
+  override suspend fun isApplicableAsync(project: Project): Boolean {
     return true
   }
 
@@ -99,7 +99,7 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
 
           override fun selectionChanged(event: FileEditorManagerEvent) =
             updateAvailable(toolWindow, event.newFile)
-        }
+        },
       )
     // The file editor may be opened before the listener is registered. But we cannot change the
     // availability in this init() function.
@@ -110,7 +110,7 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
       object : ToolWindowManagerListener {
         override fun toolWindowsRegistered(
           ids: MutableList<String>,
-          toolWindowManager: ToolWindowManager
+          toolWindowManager: ToolWindowManager,
         ) {
           if (ids.contains(TOOL_WINDOW_ID)) {
             connect.disconnect()
@@ -118,7 +118,7 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
             UIUtil.invokeLaterIfNeeded { toolWindow.isAvailable = hasSelectedLayoutFile }
           }
         }
-      }
+      },
     )
   }
 
@@ -141,7 +141,7 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
     val handler =
       AsyncVisualizationEditorChangeHandler(
         toolWindow.disposable,
-        SyncVisualizationEditorChangeHandler(VisualizationFormProvider)
+        SyncVisualizationEditorChangeHandler(VisualizationFormProvider),
       )
 
     toolWindow.isAutoHide = false
@@ -149,13 +149,13 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
       .connect(toolWindow.disposable)
       .subscribe(
         FileEditorManagerListener.FILE_EDITOR_MANAGER,
-        MyFileEditorManagerListener(project, toolWindow, handler)
+        MyFileEditorManagerListener(project, toolWindow, handler),
       )
     // Process editor change task to have initial status.
     handler.onFileEditorChange(
       FileEditorManager.getInstance(project).selectedEditor,
       project,
-      toolWindow
+      toolWindow,
     )
   }
 }
@@ -166,7 +166,7 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
  */
 private class AsyncVisualizationEditorChangeHandler(
   parentDisposable: Disposable,
-  private val delegator: VisualizationEditorChangeHandler
+  private val delegator: VisualizationEditorChangeHandler,
 ) : VisualizationEditorChangeHandler by delegator {
 
   private val toolWindowUpdateQueue: MergingUpdateQueue by lazy {
@@ -176,7 +176,7 @@ private class AsyncVisualizationEditorChangeHandler(
   override fun onFileEditorChange(
     newEditor: FileEditor?,
     project: Project,
-    toolWindow: ToolWindow
+    toolWindow: ToolWindow,
   ) {
     toolWindowUpdateQueue.cancelAllUpdates()
     toolWindowUpdateQueue.queue(
@@ -192,7 +192,7 @@ private class AsyncVisualizationEditorChangeHandler(
 private class MyFileEditorManagerListener(
   private val project: Project,
   private val toolWindow: ToolWindow,
-  private val visualizationEditorChangeHandler: VisualizationEditorChangeHandler
+  private val visualizationEditorChangeHandler: VisualizationEditorChangeHandler,
 ) : FileEditorManagerListener {
   override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
     if (!file.isValid) {

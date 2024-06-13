@@ -61,9 +61,10 @@ class CheckoutActivity : AppCompatActivity() {
             googlePayButton.visibility = View.VISIBLE
         } else {
             Toast.makeText(
-                    this,
-                    "Unfortunately, Google Pay is not available on this device",
-                    Toast.LENGTH_LONG).show()
+                this,
+                "Unfortunately, Google Pay is not available on this device",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -134,17 +135,24 @@ class CheckoutActivity : AppCompatActivity() {
 
         try {
             // Token will be null if PaymentDataRequest was not constructed using fromJson(String).
-            val paymentMethodData = JSONObject(paymentInformation).getJSONObject("paymentMethodData")
+            val paymentMethodData =
+                JSONObject(paymentInformation).getJSONObject("paymentMethodData")
             val billingName = paymentMethodData.getJSONObject("info")
-                    .getJSONObject("billingAddress").getString("name")
+                .getJSONObject("billingAddress").getString("name")
             Log.d("BillingName", billingName)
 
-            Toast.makeText(this, getString(R.string.payments_show_name, billingName), Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                getString(R.string.payments_show_name, billingName),
+                Toast.LENGTH_LONG
+            ).show()
 
             // Logging token string.
-            Log.d("GooglePaymentToken", paymentMethodData
+            Log.d(
+                "GooglePaymentToken", paymentMethodData
                     .getJSONObject("tokenizationData")
-                    .getString("token"))
+                    .getString("token")
+            )
 
         } catch (error: JSONException) {
             Log.e("handlePaymentSuccess", "Error: $error")

@@ -8,40 +8,16 @@
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/testResources" type="java-test-resource" />
     </content>
-    <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="module-library">
-      <library name="logcat-proto" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:logcat-proto:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/logcat-proto/232.1.23.0/logcat-proto-232.1.23.0.jar">
-              <sha256sum>226e5663cc17846a7a9a3b6a59215734d2d2e98bfc49464b0ff84075b84efc25</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/logcat-proto/232.1.23.0/logcat-proto-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" />
-    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="android.sdktools.process-monitor" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.adb.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
@@ -80,5 +56,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.xml.frontback" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" />
   </component>
 </module>

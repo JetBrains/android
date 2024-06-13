@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.editor.navigation
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.testFramework.EditorTestUtil
@@ -30,8 +30,8 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
     super.setUp()
     project.replaceService(
       FileEditorManager::class.java,
-      FileEditorManagerImpl(project, (project as ComponentManagerEx).getCoroutineScope()),
-      testRootDisposable
+      FileEditorManagerImpl(project, project.coroutineScope),
+      testRootDisposable,
     )
   }
 
@@ -42,7 +42,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
       class AA {}
 
       class BV extends A<caret>A {}"""
-        .trimIndent()
+        .trimIndent(),
     )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_DECLARATION)
     myFixture.checkResult(

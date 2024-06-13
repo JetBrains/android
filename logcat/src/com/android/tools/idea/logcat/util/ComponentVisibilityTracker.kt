@@ -16,13 +16,13 @@
 package com.android.tools.idea.logcat.util
 
 import com.intellij.ui.AncestorListenerAdapter
+import javax.swing.JComponent
+import javax.swing.event.AncestorEvent
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import javax.swing.JComponent
-import javax.swing.event.AncestorEvent
 
 /**
  * Tracks the visibility of a [JComponent] by creating a [Flow<Boolean>] where each item represents

@@ -1,0 +1,15 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.5.+'
+    }
+}
+plugins {
+    id 'org.android.application' apply false
+}
+
+repositories {
+    mavenCentral()
+}

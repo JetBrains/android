@@ -87,7 +87,7 @@ public class WizardStepHeaderPanel extends JPanel {
 
     PropertyChangeListener listener = propertyChangeEvent -> {
       // Force an update of static JBColor.DARK. This is required to show the correct color after a LookAndFeel change.
-      JBColor.setDark(UIUtil.isUnderDarcula());
+      JBColor.setDark(!JBColor.isBright());
       panel.setBackground(headerColor);
 
       // The font size was not set correctly after a LookAndFeel change from Darcula to Standard.

@@ -8,12 +8,20 @@
         <td width="24" height="24" style="background-color: #ffffff; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
         </td>
         <td>
+          <a href='<PROJECT_DIR>/lib/src/main/res/navigation/lib_nav.xml'>lib_nav.xml</a>
+          navigation file
+        </td>
+      </tr>
+      <tr>
+        <td width="24" height="24" style="background-color: #eaffe2; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
+        </td>
+        <td>
           <a href='<PROJECT_DIR>/app/src/main/AndroidManifest.xml'>navgraph.app
           main</a> manifest (this file)
         </td>
       </tr>
       <tr>
-        <td width="24" height="24" style="background-color: #eaffe2; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
+        <td width="24" height="24" style="background-color: #e3e2df; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
         </td>
         <td>
           <a href='<PROJECT_DIR>/lib/src/main/AndroidManifest.xml'>navgraph.lib</a>
@@ -21,15 +29,15 @@
         </td>
       </tr>
       <tr>
-        <td width="24" height="24" style="background-color: #e3e2df; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
+        <td width="24" height="24" style="background-color: #d9e4f9; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
         </td>
         <td>
-          <a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.5.0/AndroidManifest.xml'>core:1.5.0</a>
+          <a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.5.0/AndroidManifest.xml'>core:1.5.0</a>
           manifest
         </td>
       </tr>
       <tr>
-        <td width="24" height="24" style="background-color: #d9e4f9; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
+        <td width="24" height="24" style="background-color: #f3dff3; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
         </td>
         <td>
           <a href='<PROJECT_DIR>/app/build.gradle'>build.gradle</a>
@@ -39,49 +47,48 @@
     </table>
     <br>
     <u><b>Other Manifest Files</b></u><br>(Included in merge, but did not
-    contribute any elements)<br><a href='<PROJECT_DIR>/lib/src/main/res/navigation/lib_nav.xml'>lib_nav.xml</a>
-    navigation file<br><a href='<PROJECT_DIR>/app/src/main/res/navigation/app_nav.xml'>main
-    app_nav.xml</a> navigation file<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/AndroidManifest.xml'>activity:1.2.3</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0/AndroidManifest.xml'>annotation-experimental:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/AndroidManifest.xml'>appcompat-resources:1.3.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/AndroidManifest.xml'>appcompat:1.3.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml'>asynclayoutinflater:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cardview-1.0.0/AndroidManifest.xml'>cardview:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/AndroidManifest.xml'>constraintlayout:1.1.3</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml'>coordinatorlayout:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml'>core-runtime:2.1.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml'>cursoradapter:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.1.0/AndroidManifest.xml'>customview:1.1.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/AndroidManifest.xml'>documentfile:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.1.1/AndroidManifest.xml'>drawerlayout:1.1.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.4/AndroidManifest.xml'>fragment:1.3.4</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml'>interpolator:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml'>legacy-support-core-ui:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml'>legacy-support-core-utils:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-v4-1.0.0/AndroidManifest.xml'>legacy-support-v4:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/AndroidManifest.xml'>lifecycle-livedata-core:2.3.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml'>lifecycle-livedata:2.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/AndroidManifest.xml'>lifecycle-runtime:2.3.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/AndroidManifest.xml'>lifecycle-viewmodel-savedstate:2.3.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/AndroidManifest.xml'>lifecycle-viewmodel:2.3.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml'>loader:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml'>localbroadcastmanager:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/material-1.0.0/AndroidManifest.xml'>material:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/media-1.0.0/AndroidManifest.xml'>media:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-common-2.3.5/AndroidManifest.xml'>navigation-common:2.3.5</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-fragment-2.3.5/AndroidManifest.xml'>navigation-fragment:2.3.5</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-runtime-2.3.5/AndroidManifest.xml'>navigation-runtime:2.3.5</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-ui-2.3.5/AndroidManifest.xml'>navigation-ui:2.3.5</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/AndroidManifest.xml'>print:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/recyclerview-1.0.0/AndroidManifest.xml'>recyclerview:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/AndroidManifest.xml'>savedstate:1.1.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml'>slidingpanelayout:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml'>swiperefreshlayout:1.0.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/AndroidManifest.xml'>transition:1.3.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml'>vectordrawable-animated:1.1.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml'>vectordrawable:1.1.0</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/AndroidManifest.xml'>versionedparcelable:1.1.1</a>
-    manifest<br><a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml'>viewpager:1.0.0</a>
+    contribute any elements)<br><a href='<PROJECT_DIR>/app/src/main/res/navigation/app_nav.xml'>main
+    app_nav.xml</a> navigation file<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/AndroidManifest.xml'>activity:1.2.3</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0/AndroidManifest.xml'>annotation-experimental:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/AndroidManifest.xml'>appcompat-resources:1.3.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/AndroidManifest.xml'>appcompat:1.3.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml'>asynclayoutinflater:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cardview-1.0.0/AndroidManifest.xml'>cardview:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/AndroidManifest.xml'>constraintlayout:1.1.3</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml'>coordinatorlayout:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml'>core-runtime:2.1.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml'>cursoradapter:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.1.0/AndroidManifest.xml'>customview:1.1.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/AndroidManifest.xml'>documentfile:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.1.1/AndroidManifest.xml'>drawerlayout:1.1.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.4/AndroidManifest.xml'>fragment:1.3.4</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml'>interpolator:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml'>legacy-support-core-ui:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml'>legacy-support-core-utils:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-v4-1.0.0/AndroidManifest.xml'>legacy-support-v4:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/AndroidManifest.xml'>lifecycle-livedata-core:2.3.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml'>lifecycle-livedata:2.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/AndroidManifest.xml'>lifecycle-runtime:2.3.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/AndroidManifest.xml'>lifecycle-viewmodel-savedstate:2.3.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/AndroidManifest.xml'>lifecycle-viewmodel:2.3.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml'>loader:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml'>localbroadcastmanager:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/material-1.0.0/AndroidManifest.xml'>material:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/media-1.0.0/AndroidManifest.xml'>media:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-common-2.3.5/AndroidManifest.xml'>navigation-common:2.3.5</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-fragment-2.3.5/AndroidManifest.xml'>navigation-fragment:2.3.5</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-runtime-2.3.5/AndroidManifest.xml'>navigation-runtime:2.3.5</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-ui-2.3.5/AndroidManifest.xml'>navigation-ui:2.3.5</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/AndroidManifest.xml'>print:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/recyclerview-1.0.0/AndroidManifest.xml'>recyclerview:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/AndroidManifest.xml'>savedstate:1.1.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml'>slidingpanelayout:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml'>swiperefreshlayout:1.0.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/AndroidManifest.xml'>transition:1.3.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml'>vectordrawable-animated:1.1.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml'>vectordrawable:1.1.0</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/AndroidManifest.xml'>versionedparcelable:1.1.1</a>
+    manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml'>viewpager:1.0.0</a>
     manifest<br><br><br>
   </body>
 </html>

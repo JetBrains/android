@@ -53,7 +53,7 @@ class VitalsConnectionSelectorPopupTest {
       MutableStateFlow(
         Selection(
           TEST_CONNECTION_1,
-          listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3)
+          listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3),
         )
       )
     val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
@@ -135,7 +135,7 @@ class VitalsConnectionSelectorPopupTest {
       MutableStateFlow(
         Selection(
           TEST_CONNECTION_1,
-          listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3)
+          listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3),
         )
       )
     val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })

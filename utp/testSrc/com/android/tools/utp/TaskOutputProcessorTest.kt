@@ -16,10 +16,10 @@
 package com.android.tools.utp
 
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.protobuf.Any
-import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.android.tools.utp.plugins.result.listener.gradle.proto.GradleAndroidTestResultListenerProto
 import com.google.common.truth.Truth.assertThat
+import com.android.tools.idea.protobuf.Any
+import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
@@ -52,7 +52,7 @@ class TaskOutputProcessorTest {
       There are no UTP test result tag in this test input.
       So the input text should be returned as-is.
       """.trimIndent()
-    val processor = TaskOutputProcessor(mapOf("" to listOf(mockListener)))
+    val processor = TaskOutputProcessor(mapOf("" to mockListener))
 
     val processed = processor.process(input)
 
@@ -70,7 +70,7 @@ class TaskOutputProcessorTest {
       ${testSuiteFinishedEvent()}
       > Task :app:connectedDebugAndroidTest
       """.trimIndent()
-    val processor = TaskOutputProcessor(mapOf("" to listOf(mockListener)))
+    val processor = TaskOutputProcessor(mapOf("" to mockListener))
 
     val processed = processor.process(input)
 

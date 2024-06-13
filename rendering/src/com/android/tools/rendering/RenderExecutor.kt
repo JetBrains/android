@@ -55,7 +55,7 @@ class RenderExecutor
 private constructor(
   private val maxQueueingTasks: Int,
   private val renderingExecutorService: SingleThreadExecutorService,
-  private val scheduledExecutorService: ScheduledExecutorService
+  private val scheduledExecutorService: ScheduledExecutorService,
 ) : RenderAsyncActionExecutor {
   private val pendingActionsQueueLock: Lock = ReentrantLock()
   private val runningRenderLock: Lock = ReentrantLock()
@@ -106,10 +106,11 @@ private constructor(
   private fun scheduleTimeoutAction(
     timeout: Long,
     unit: TimeUnit,
-    action: () -> Unit
+    action: () -> Unit,
   ): ScheduledFuture<*> = scheduledExecutorService.schedule(action, timeout, unit)
 
-  override fun getExecutedRenderActionCount(): Long = executedRenderActions.toLong()
+  override val executedRenderActionCount
+    get() = executedRenderActions.toLong()
 
   override fun <T : Any?> runAsyncActionWithTimeout(
     queueingTimeout: Long,
@@ -117,7 +118,7 @@ private constructor(
     actionTimeout: Long,
     actionTimeoutUnit: TimeUnit,
     renderingTopic: RenderingTopic,
-    callable: Callable<T>
+    callable: Callable<T>,
   ): CompletableFuture<T> {
     val future =
       object : PriorityCompletableFuture<T>(renderingTopic) {
@@ -220,7 +221,7 @@ private constructor(
 
   override fun cancelActionsByTopic(
     topicsToCancel: List<RenderingTopic>,
-    mayInterruptIfRunning: Boolean
+    mayInterruptIfRunning: Boolean,
   ): Int {
     var numberOfCancelledActions = 0
     pendingActionsQueueLock.withLock {
@@ -286,7 +287,7 @@ private constructor(
             "Layoutlib Render Thread",
             ThreadProfileSettings(
               scheduledExecutorService = scheduledExecutorService,
-              onSlowThread = { Logger.getInstance(RenderExecutor::class.java).warn(it) }
+              onSlowThread = { Logger.getInstance(RenderExecutor::class.java).warn(it) },
             ),
           ),
         scheduledExecutorService = scheduledExecutorService,
@@ -296,7 +297,7 @@ private constructor(
     @TestOnly
     fun createForTests(
       executorService: SingleThreadExecutorService,
-      scheduledExecutorService: ScheduledExecutorService
+      scheduledExecutorService: ScheduledExecutorService,
     ) = RenderExecutor(DEFAULT_MAX_QUEUED_TASKS, executorService, scheduledExecutorService)
   }
 

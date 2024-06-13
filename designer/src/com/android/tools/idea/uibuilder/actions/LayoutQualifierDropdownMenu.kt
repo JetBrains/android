@@ -22,6 +22,8 @@ import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.virtualFile
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.getResourceVariations
 import com.android.tools.idea.ui.designer.EditorDesignSurface
@@ -56,7 +58,7 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?) :
   DropDownAction(
     generateLayoutAndQualifierTitle(file),
     "Action to switch and create qualifiers for layout files",
-    null
+    null,
   ) {
 
   /**
@@ -93,16 +95,16 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?) :
   }
 
   private fun createVariationsActions(configuration: Configuration, surface: EditorDesignSurface) {
-    val virtualFile = configuration.file
+    val virtualFile = configuration.virtualFile
     if (virtualFile != null) {
-      val project = configuration.configModule.project
+      val project = ConfigurationManager.getFromConfiguration(configuration).project
       val variations = getResourceVariations(virtualFile, true)
       for (file in variations) {
         val title = generateLayoutAndQualifierTitle(file)
         add(SwitchToVariationAction(title, project, file, virtualFile == file))
       }
       addSeparator()
-      val folderType = getFolderType(configuration.file)
+      val folderType = getFolderType(configuration.virtualFile)
       if (folderType == ResourceFolderType.LAYOUT) {
         var haveLandscape = false
         var haveTablet = false
@@ -150,7 +152,7 @@ class SwitchToVariationAction(
   private val title: String,
   private val myProject: Project,
   private val myFile: VirtualFile,
-  private val selected: Boolean
+  private val selected: Boolean,
 ) : AnAction(title, null, null), Toggleable {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -169,7 +171,7 @@ class SwitchToVariationAction(
 class CreateVariationAction(
   private val mySurface: EditorDesignSurface,
   title: String,
-  private val myNewFolder: String?
+  private val myNewFolder: String?,
 ) : AnAction(title, null, null) {
   override fun actionPerformed(e: AnActionEvent) {
     OverrideResourceAction.forkResourceFile(mySurface, myNewFolder, true)

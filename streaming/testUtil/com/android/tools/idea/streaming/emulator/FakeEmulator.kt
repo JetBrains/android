@@ -116,6 +116,7 @@ import java.util.function.Predicate
 import javax.imageio.ImageIO
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 import com.android.emulator.control.DisplayMode as DisplayModeMessage
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 
@@ -183,6 +184,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
   var displayMode = config.displayModes.firstOrNull { it.width == config.displayWidth && it.height == config.displayHeight }
+  val avdName: String
+    get() = config.avdName
 
   @Volatile var extendedControlsVisible = false
 
@@ -229,13 +232,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val embeddedFlags = if (standalone) "" else """ "-qt-hide-window" "-idle-grpc-timeout" "300""""
 
     return """
-        port.serial=${serialPort}
+        port.serial=$serialPort
         port.adb=${serialPort + 1}
-        avd.name=${avdId}
-        avd.dir=${avdFolder}
-        avd.id=${avdId}
+        avd.name=$avdName
+        avd.dir=$avdFolder
+        avd.id=$avdId
         cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "$avdId" $embeddedFlags
-        grpc.port=${grpcPort}
+        grpc.port=$grpcPort
         grpc.token=RmFrZSBnUlBDIHRva2Vu
         """.trimIndent()
   }
@@ -320,8 +323,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
    */
   @UiThread
   @Throws(TimeoutException::class)
-  fun getNextGrpcCall(timeout: Long, unit: TimeUnit, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord =
-      grpcCallLog.get(timeout, unit, filter)
+  fun getNextGrpcCall(timeout: Duration, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord =
+      grpcCallLog.get(timeout, filter)
 
   /**
    * Clears the gRPC call log.
@@ -847,17 +850,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     /** Completed or cancelled when the gRPC call is completed or cancelled. */
     val completion: SettableFuture<Unit> = SettableFuture.create()
 
-    fun waitForResponse(timeout: Long, unit: TimeUnit) {
-      responseMessageCounter.poll(timeout, unit)
+    fun waitForResponse(timeout: Duration) {
+      responseMessageCounter.poll(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
     }
 
-    private fun waitForCompletion(timeout: Long, unit: TimeUnit) {
-      completion.get(timeout, unit)
+    private fun waitForCompletion(timeout: Duration) {
+      completion.get(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
     }
 
-    fun waitForCancellation(timeout: Long, unit: TimeUnit) {
+    fun waitForCancellation(timeout: Duration) {
       try {
-        waitForCompletion(timeout, unit)
+        waitForCompletion(timeout)
         fail("The $methodName call was not cancelled")
       }
       catch (_: CancellationException) {
@@ -872,7 +875,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @UiThread
     @Throws(TimeoutException::class)
-    fun getNextRequest(timeout: Long, unit: TimeUnit): MessageOrBuilder = requestMessages.get(timeout, unit)
+    fun getNextRequest(timeout: Duration): MessageOrBuilder = requestMessages.get(timeout)
 
     override fun toString(): String {
       return requestMessages.firstOrNull()?.let { "$methodName(${shortDebugString(it)})" } ?: methodName
@@ -1543,6 +1546,115 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
+    /**
+     * Creates a fake Automotive AVD.
+     */
+    @JvmStatic
+    fun createAutomotiveAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 32): Path {
+      val avdId = "Automotive_1024p_landscape_API_$api"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+      val systemImage = "system-images/android-$api/android-automotive-playstore/x86_64/"
+      val systemImageFolder = sdkFolder.resolve(systemImage)
+
+      val configIni = """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=x86_64
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=6442450944
+          hw.accelerometer=no
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=no
+          hw.camera.back=None
+          hw.camera.front=None
+          hw.cpu.arch=x86_64
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.manufacturer = Google
+          hw.device.name=automotive_1024p_landscape
+          hw.gps=yes
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=landscape
+          hw.keyboard=yes
+          hw.lcd.density = 160
+          hw.lcd.height = 768
+          hw.lcd.width = 1024
+          hw.mainKeys=no
+          hw.ramSize=2048
+          hw.sdCard=yes
+          hw.sensors.orientation=no
+          hw.sensors.proximity=no
+          hw.trackBall=no
+          hw.display6.width=400
+          hw.display6.height=600
+          hw.display6.density=120
+          hw.display6.flag=0
+          hw.display7.width=3000
+          hw.display7.height=600
+          hw.display7.density=120
+          hw.display7.flag=0
+          image.sysdir.1=$systemImage
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.path=${avdFolder}/sdcard.img
+          showDeviceFrame=no
+          skin.dynamic=yes
+          skin.path=_no_skin
+          tag.display = Automotive with Play Store
+          tag.id = android-automotive-playstore
+          """.trimIndent()
+
+      val hardwareIni = """
+          hw.cpu.arch = x86_64
+          hw.cpu.model = qemu32
+          hw.cpu.ncore = 4
+          hw.lcd.density = 160
+          hw.lcd.width = 1024
+          hw.lcd.height = 768
+          hw.ramSize = 2048
+          hw.multi_display_window = false
+          hw.hotplug_multi_display = false
+          hw.screen = multi-touch
+          hw.display6.width=400
+          hw.display6.height=600
+          hw.display6.density=120
+          hw.display6.flag=0
+          hw.display7.width=3000
+          hw.display7.height=600
+          hw.display7.density=120
+          hw.display7.flag=0
+          hw.dPad = false
+          hw.rotaryInput = false
+          hw.gsmModem = true
+          hw.gps = true
+          hw.battery = false
+          hw.accelerometer = false
+          hw.sensors.gyroscope_uncalibrated = true
+          hw.audioInput = true
+          hw.audioOutput = true
+          hw.sdCard = false
+          android.sdk.root = $sdkFolder
+          """.trimIndent()
+
+      val sourceProperties = """
+          Pkg.Desc=System Image x86_64 with Google Play Store.
+          AndroidVersion.ApiLevel=$api
+          SystemImage.Abi=x86_64
+          SystemImage.TagId=android-automotive-playstore
+          SystemImage.TagDisplay=Automotive with Play Store
+          SystemImage.GpuSupport=true
+          Addon.VendorId=google
+          Addon.VendorDisplay=Google Inc.
+          """.trimIndent()
+
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
+    }
+
     private fun createSystemImage(systemImageFolder: Path, api: Int, sourceProperties: String) {
       if (Files.exists(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))) {
         return
@@ -1597,8 +1709,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @UiThread
     @Throws(TimeoutException::class)
-    private fun <T> LinkedBlockingDeque<T>.get(timeout: Long, unit: TimeUnit, filter: Predicate<T> = alwaysTrue()): T {
-      val timeoutMillis = unit.toMillis(timeout)
+    private fun <T> LinkedBlockingDeque<T>.get(timeout: Duration, filter: Predicate<T> = alwaysTrue()): T {
+      val timeoutMillis = timeout.inWholeMilliseconds
       val deadline = System.currentTimeMillis() + timeoutMillis
       var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
       while (waitUnit > 0) {

@@ -19,10 +19,10 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
@@ -38,9 +38,9 @@ import org.jetbrains.annotations.VisibleForTesting
 @VisibleForTesting
 fun updateAnimationInspectorToolbarIcon(
   viewObj: Any,
-  previewManager: ComposePreviewManager,
-  previewElement: ComposePreviewElementInstance,
-  animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker
+  previewManager: PreviewModeManager,
+  previewElement: ComposePreviewElementInstance<*>,
+  animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker,
 ) {
   if (!previewManager.mode.value.isNormal) return
   try {

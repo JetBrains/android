@@ -23,8 +23,8 @@ android {
 
 dependencies {
     compile("com.android.support:appcompat-v7:+")
-    freeCompile("<warning>com.google.guava:guava:11.0.2</warning>")
-    compile("<warning>com.android.support:appcompat-v7:13.0.0</warning>")
+    freeCompile(<warning descr="A newer version of com.google.guava:guava than 11.0.2 is available: 21.0">"com.google.guava:guava:11.0.2"</warning>)
+    compile(<warning descr="A newer version of com.android.support:appcompat-v7 than 13.0.0 is available: 28.0.0">"com.android.support:appcompat-v7:13.0.0"</warning>)
 }
 
 

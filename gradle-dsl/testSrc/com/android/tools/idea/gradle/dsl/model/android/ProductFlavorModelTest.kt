@@ -1948,6 +1948,11 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     var ndk = defaultConfig.ndk()
     ndk.abiFilters().getListValue("abiFilter6")!!.setValue("abiFilterZ")
+    ndk.cFlags().setValue("-DcFlagZ")
+    ndk.jobs().setValue(26)
+    ndk.ldLibs().getListValue("ldLibs9")!!.setValue("ldLibsZ")
+    ndk.moduleName().setValue("ZModule")
+    ndk.stl().setValue("ztlport")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.EDIT_NATIVE_ELEMENTS_EXPECTED)
@@ -2056,6 +2061,11 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     val ndk = defaultConfig.ndk()
     ndk.abiFilters().delete()
+    ndk.cFlags().delete()
+    ndk.jobs().delete()
+    ndk.ldLibs().delete()
+    ndk.moduleName().delete()
+    ndk.stl().delete()
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, "")
@@ -2090,6 +2100,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     var ndk = defaultConfig.ndk()
     ndk.abiFilters().getListValue("abiFilter6")!!.delete()
+    ndk.ldLibs().getListValue("ldLibs9")!!.delete()
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.REMOVE_ONE_OF_NATIVE_ELEMENTS_IN_THE_LIST_EXPECTED)
@@ -2142,6 +2153,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     val ndk = defaultConfig.ndk()
     assertEquals("ndk-abiFilters", listOf("abiFilterZ"), ndk.abiFilters())
+    assertEquals("ndk-ldLibs", listOf("ldLibsZ"), ndk.ldLibs())
 
     cmake.abiFilters().getListValue("abiFilterX")!!.delete()
     cmake.arguments().getListValue("argumentX")!!.delete()
@@ -2156,6 +2168,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ndkBuild.targets().getListValue("targetY")!!.delete()
 
     ndk.abiFilters().getListValue("abiFilterZ")!!.delete()
+    ndk.ldLibs().getListValue("ldLibsZ")!!.delete()
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, "")
@@ -2185,6 +2198,11 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     val ndk = defaultConfig.ndk()
     assertEquals("ndk-abiFilters", listOf("abiFilter5", "abiFilter6", "abiFilter7"), ndk.abiFilters())
+    assertEquals("ndk-cFlags", "-DcFlags", ndk.cFlags())
+    assertEquals("ndk-jobs", 12, ndk.jobs())
+    assertEquals("ndk-ldLibs", listOf("ldLibs8", "ldLibs9", "ldLibs10"), ndk.ldLibs())
+    assertEquals("ndk-moduleName", "myModule", ndk.moduleName())
+    assertEquals("ndk-stl", "stlport", ndk.stl())
   }
 
   private fun verifyNullNativeElements() {
@@ -2211,6 +2229,11 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     val ndk = defaultConfig.ndk()
     assertMissingProperty("ndk-abiFilters", ndk.abiFilters())
+    assertMissingProperty("ndk-cFlags", ndk.cFlags())
+    assertMissingProperty("ndk-jobs", ndk.jobs())
+    assertMissingProperty("ndk-ldLibs", ndk.ldLibs())
+    assertMissingProperty("ndk-moduleName", ndk.moduleName())
+    assertMissingProperty("ndk-stl", ndk.stl())
     checkForInvalidPsiElement(ndk, NdkOptionsModelImpl::class.java)
   }
 

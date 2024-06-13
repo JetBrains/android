@@ -41,7 +41,7 @@ class VisualizationToolWindowFactoryTest {
     val toolManager =
       VisualizationTestToolWindowManager(
         projectRule.project,
-        projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable,
       )
     projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
     assertNotNull(
@@ -148,7 +148,7 @@ class VisualizationToolWindowFactoryTest {
       .syncPublisher(ToolWindowManagerListener.TOPIC)
       .toolWindowsRegistered(
         listOf(VisualizationToolWindowFactory.TOOL_WINDOW_ID),
-        ToolWindowManager.getInstance(projectRule.project)
+        ToolWindowManager.getInstance(projectRule.project),
       )
 
     // The bus might add events to the UI queue so ensure we process them.
@@ -157,7 +157,9 @@ class VisualizationToolWindowFactoryTest {
   }
 }
 
-@Language("kotlin") private const val KT_FILE_TEXT = """
+@Language("kotlin")
+private const val KT_FILE_TEXT =
+  """
 package my_test_project
 object SomeFile
 """

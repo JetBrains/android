@@ -28,7 +28,6 @@ import com.android.tools.idea.dagger.index.writeClassId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.search.GlobalSearchScope
@@ -67,12 +66,12 @@ internal object BindsInstanceDaggerConcept : DaggerConcept {
   override val indexValueReaders =
     listOf(
       BindsInstanceBuilderMethodIndexValue.Reader,
-      BindsInstanceFactoryMethodParameterIndexValue.Reader
+      BindsInstanceFactoryMethodParameterIndexValue.Reader,
     )
   override val daggerElementIdentifiers =
     DaggerElementIdentifiers.of(
       BindsInstanceBuilderMethodIndexValue.identifiers,
-      BindsInstanceFactoryMethodParameterIndexValue.identifiers
+      BindsInstanceFactoryMethodParameterIndexValue.identifiers,
     )
 }
 
@@ -91,7 +90,7 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
   private fun addIndexEntriesForBuilder(
     wrapper: DaggerIndexMethodWrapper,
     containingClass: DaggerIndexClassWrapper,
-    indexEntries: IndexEntries
+    indexEntries: IndexEntries,
   ) {
     if (!wrapper.getIsAnnotatedWith(DaggerAnnotation.BINDS_INSTANCE)) return
 
@@ -99,14 +98,14 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
 
     indexEntries.addIndexValue(
       singleParameter.getType()?.getSimpleName() ?: "",
-      BindsInstanceBuilderMethodIndexValue(containingClass.getClassId(), wrapper.getSimpleName())
+      BindsInstanceBuilderMethodIndexValue(containingClass.getClassId(), wrapper.getSimpleName()),
     )
   }
 
   private fun addIndexEntriesForFactory(
     wrapper: DaggerIndexMethodWrapper,
     containingClass: DaggerIndexClassWrapper,
-    indexEntries: IndexEntries
+    indexEntries: IndexEntries,
   ) {
     val bindsInstanceParameters =
       wrapper.getParameters().filter { it.getIsAnnotatedWith(DaggerAnnotation.BINDS_INSTANCE) }
@@ -118,8 +117,8 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
         BindsInstanceFactoryMethodParameterIndexValue(
           containingClass.getClassId(),
           wrapper.getSimpleName(),
-          parameterSimpleName
-        )
+          parameterSimpleName,
+        ),
       )
     }
   }
@@ -128,7 +127,7 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
 @VisibleForTesting
 internal data class BindsInstanceBuilderMethodIndexValue(
   val classId: ClassId,
-  val methodSimpleName: String
+  val methodSimpleName: String,
 ) : IndexValue() {
 
   override val dataType = Reader.supportedType
@@ -176,16 +175,16 @@ internal data class BindsInstanceBuilderMethodIndexValue(
     internal val identifiers =
       DaggerElementIdentifiers(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods.filter { it.name == methodSimpleName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -194,7 +193,7 @@ internal data class BindsInstanceBuilderMethodIndexValue(
 internal data class BindsInstanceFactoryMethodParameterIndexValue(
   val classId: ClassId,
   val methodSimpleName: String,
-  val parameterSimpleName: String
+  val parameterSimpleName: String,
 ) : IndexValue() {
 
   override val dataType = Reader.supportedType
@@ -212,7 +211,7 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
       BindsInstanceFactoryMethodParameterIndexValue(
         input.readClassId(),
         input.readString(),
-        input.readString()
+        input.readString(),
       )
   }
 
@@ -242,18 +241,19 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
     internal val identifiers =
       DaggerElementIdentifiers(
         ktParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
-        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify))
+        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods
-      .filter { it.name == methodSimpleName }
-      .flatMap { it.parameterList.parameters.filter { p -> p.name == parameterSimpleName } }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName }
+      ?.flatMap {
+        it.parameterList.parameters.asSequence().filter { p -> p.name == parameterSimpleName }
+      } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }

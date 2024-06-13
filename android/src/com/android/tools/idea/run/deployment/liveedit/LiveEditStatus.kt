@@ -28,6 +28,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.P
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.UNRECOVERABLE_ERROR
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
+import java.lang.Exception
 import javax.swing.Icon
 
 open class LiveEditStatus(
@@ -40,7 +41,8 @@ open class LiveEditStatus(
   val descriptionManualMode: String? = null,
   val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
-) : ComposeStatus {
+  override val shouldSimplify: Boolean = false,
+  ) : ComposeStatus {
   companion object {
     // A simple priority system that is used when multiple LiveEditStatus need to be merged.
     // The high the value is, the more important the status is, and thus takes precedence.
@@ -97,6 +99,20 @@ open class LiveEditStatus(
           name, if (message.length > 120) message.substring(0, 120) + "..." else message
         ),
         if (recoverable) RECOVERABLE_ERROR else UNRECOVERABLE_ERROR,
+        redeployMode = RedeployMode.RERUN,
+        actionId = SHOW_LOGCAT_ACTION_ID
+      )
+    }
+
+    @JvmStatic
+    fun createRecomposeRetrievalErrorStatus(exception: Exception): LiveEditStatus {
+      return LiveEditStatus(
+        null,
+        message("le.status.error.recompose.title"),
+        String.format(
+          "%s during recomposition status retrieval.", exception.javaClass.name
+        ),
+        RECOVERABLE_ERROR,
         redeployMode = RedeployMode.RERUN,
         actionId = SHOW_LOGCAT_ACTION_ID
       )
@@ -166,7 +182,8 @@ open class LiveEditStatus(
       AnimatedIcon.Default.INSTANCE,
       message("le.status.loading.title"),
       message("le.status.loading.description"),
-      REFRESHING
+      REFRESHING,
+      shouldSimplify = true
     )
 
   object InProgress :
@@ -174,7 +191,8 @@ open class LiveEditStatus(
       AnimatedIcon.Default.INSTANCE,
       message("le.status.in_progress.title"),
       message("le.status.in_progress.description"),
-      REFRESHING
+      REFRESHING,
+      shouldSimplify = true
     )
 
   object CopyingPsi :
@@ -182,7 +200,8 @@ open class LiveEditStatus(
       AnimatedIcon.Default.INSTANCE,
       message("le.status.pre_compiling.title"),
       message("le.status.pre_compiling.description"),
-      REFRESHING
+      REFRESHING,
+      shouldSimplify = true
     )
 
   object UpToDate :
@@ -192,6 +211,7 @@ open class LiveEditStatus(
       message("le.status.up_to_date.description"),
       DEFAULT,
       descriptionManualMode = "App is up to date. Code changes will be applied to the running app on Refresh.",
+      shouldSimplify = true
     )
 
   object SyncNeeded :

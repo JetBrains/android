@@ -27,6 +27,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPaletteFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixtureKt;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.Dimension;
 import java.io.File;
@@ -386,7 +388,8 @@ public class AddAllLayoutItemsFromPaletteTest {
 
   private void cleanLayoutFile(){
     // To clean or remove the added items from palette.
-    editor.switchToTab("Text");
+    SplitEditorFixture splitEditorFixture = SplitEditorFixtureKt.getSplitEditorFixture(editor);
+    splitEditorFixture.setCodeMode();
     editor.replaceText("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                        "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                        "    android:layout_width=\"match_parent\"\n" +

@@ -28,13 +28,13 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 /** Any change to the available connections is propagated here. */
 data class ConnectionsChanged(
   val connections: List<Connection>,
-  private val defaultFilters: Filters
+  private val defaultFilters: Filters,
 ) : ChangeEvent {
 
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     val activeConnection = findActiveConnection(state)
     val activeConnectionChanged = activeConnection != state.connections.selected
@@ -47,18 +47,18 @@ data class ConnectionsChanged(
           currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
-          filters = defaultFilters
+          filters = defaultFilters,
         ),
         action =
           Action.Fetch(
             AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
               .PROJECT_SELECTION
-          )
+          ),
       )
     } else {
       StateTransition(
         state.copy(connections = Selection(activeConnection, connections)),
-        action = Action.NONE
+        action = Action.NONE,
       )
     }
   }

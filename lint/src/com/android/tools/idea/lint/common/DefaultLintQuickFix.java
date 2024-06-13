@@ -15,33 +15,39 @@
  */
 package com.android.tools.idea.lint.common;
 
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.SmartPsiFileRange;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Legacy base class for Lint quick fixes running on the EDT.
+ */
 public class DefaultLintQuickFix implements LintIdeQuickFix {
   protected final String myName;
   protected final String myFamilyName;
 
-  public DefaultLintQuickFix(String name) {
+  public DefaultLintQuickFix(@Nullable String name) {
     this(name, null);
   }
 
-  public DefaultLintQuickFix(String name, @Nullable String familyName) {
+  public DefaultLintQuickFix(@Nullable String name, @Nullable String familyName) {
+    // Name must not be null unless getName is overridden!
     myName = name;
     myFamilyName = familyName;
   }
 
-  public DefaultLintQuickFix(String name, boolean useAsFamilyNameToo) { // to use as family name, the description must be general
-    myName = name;
-    myFamilyName = useAsFamilyNameToo ? myName : null;
+  public DefaultLintQuickFix(@Nullable String name, boolean useAsFamilyNameToo) { // to use as family name, the description must be general
+    this(name, useAsFamilyNameToo ? name : null);
   }
 
-  @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
   }
 
-  @Override
   public boolean isApplicable(@NotNull PsiElement startElement,
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
@@ -70,5 +76,21 @@ public class DefaultLintQuickFix implements LintIdeQuickFix {
   @Override
   public void setPriority(@NotNull Priority priority) {
     this.priority = priority;
+  }
+
+  /**
+   * Gets a range override to use for this quickfix, if applicable
+   */
+  @Nullable
+  public SmartPsiFileRange getRange() {
+    return null;
+  }
+
+  /**
+   * Returns an override preview for intention actions
+   */
+  @Nullable
+  public IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+    return null;
   }
 }

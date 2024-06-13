@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement
@@ -56,18 +57,15 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
-import org.jetbrains.kotlin.idea.base.psi.isNullExpression
-import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
-import org.jetbrains.kotlin.lexer.KtTokens.LPAR
-import org.jetbrains.kotlin.lexer.KtTokens.WHITESPACES
-import org.jetbrains.kotlin.lexer.KtTokens.WHITE_SPACE
+import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
+import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpressionOrEmptyBlock
+import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtArrayAccessExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
@@ -88,12 +86,13 @@ import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getContentRange
+import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.util.regex.Pattern
 import kotlin.reflect.KClass
@@ -102,15 +101,15 @@ private val LOG = Logger.getInstance("KotlinDslUtil")
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
-internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement): Boolean {
+internal fun KtCallExpression.isBlockElement(converter: GradleDslNameConverter, parent: GradlePropertiesDslElement): Boolean {
   val zeroOrOneClosures = lambdaArguments.size < 2
-  val argumentsList = valueArgumentList?.arguments
+  val argumentsList = (valueArgumentList as? KtValueArgumentList)?.arguments
   val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isValidBlockName(this.name()) } ?: false
   val zeroArguments = argumentsList == null || argumentsList.size == 0
   val knownBlockForParent = zeroArguments &&
                             (listOf("allprojects", APPLY_BLOCK_NAME, EXT.name).contains(this.name()) ||
                              parent is ConfigurationDslElement || // see special-case in SharedParserUtils.getPropertiesElement
-                             parent.getChildPropertiesElementDescription(this.name()) != null)
+                             parent.getChildPropertiesElementDescription(converter, this.name()) != null)
   return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent)
 }
 
@@ -315,7 +314,7 @@ internal fun isValidBlockName(blockName : String?) =
 internal fun PsiElement?.isParentOf(psiElement: PsiElement) : Boolean {
   var psiElement = psiElement
   while (psiElement != this) {
-    psiElement = psiElement.parent ?: return false
+    psiElement = psiElement?.parent ?: return false
   }
   return true
 }
@@ -430,7 +429,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
       else {
         valueText = StringUtil.escapeCharCharacters(value).addQuotes(true)
       }
-      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(valueText)
+      return KtPsiFactory(applyContext.dslFile.project).createExpression(valueText)
     }
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
     // References are canonicals and need to be resolved first before converted to KTS psiElement.
@@ -662,7 +661,7 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
   var psiParent = psiElement?.parent ?: return
   val dslParent = getNextValidParent(containingDslElement)
 
-  if (!psiElement.isValid) {
+  if (!psiElement.isValid()) {
     // SKip deletion.
   }
   else {

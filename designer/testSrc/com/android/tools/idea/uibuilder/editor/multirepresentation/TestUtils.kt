@@ -44,7 +44,7 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   override fun onDeactivate() {
     assertTrue(
       "onDeactivate called more times than onActivate (nActivations = $nActivations)",
-      nActivations > 0
+      nActivations > 0,
     )
     nActivations--
   }
@@ -67,9 +67,10 @@ open class TestPreviewRepresentation : PreviewRepresentation {
 open class TestPreviewRepresentationProvider(
   override val displayName: String,
   var isAccept: Boolean,
-  private val representation: PreviewRepresentation = TestPreviewRepresentation()
+  private val representation: PreviewRepresentation = TestPreviewRepresentation(),
 ) : PreviewRepresentationProvider {
   override suspend fun accept(project: Project, psiFile: PsiFile) = isAccept
 
-  override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation
+  override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation =
+    representation
 }

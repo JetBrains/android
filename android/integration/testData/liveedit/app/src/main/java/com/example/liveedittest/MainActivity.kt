@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+// EASILY SEARCHABLE LINE 00 (this comment exists for the test to be able to find/replace from here until the next comment)
+// END SEARCH 00
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,10 +31,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(name: String) {
-    // EASILY SEARCHABLE LINE (this comment exists for the test to be able to find/replace from here until the next comment)
+    // EASILY SEARCHABLE LINE 01 (this comment exists for the test to be able to find/replace from here until the next comment)
     Log.i("MainActivity", "Before editing")
     Text(text = "Hello, $name!")
-    // END SEARCH
+    // END SEARCH 01
 }
 
 @Composable

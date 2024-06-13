@@ -26,25 +26,33 @@ import com.intellij.openapi.project.Project
  * Tracker implementation that offers default (negative) implementation of [DataBindingTracker].
  * This class should only ever be invoked when data binding is disabled.
  */
-class DataBindingDefaultTracker private constructor(private val project: Project): DataBindingTracker {
+class DataBindingDefaultTracker private constructor(private val project: Project) :
+  DataBindingTracker {
 
   /**
-   * This method could only be called when data binding module is not enabled. The only thing we can track is the enabled bit, which we
-   * always set to false.
+   * This method could only be called when data binding module is not enabled. The only thing we can
+   * track is the enabled bit, which we always set to false.
    */
   override fun trackPolledMetaData() {
-    val studioEventBuilder = AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.DATA_BINDING
-      dataBindingEvent = DataBindingEvent.newBuilder().apply {
-        type = DataBindingEvent.EventType.DATA_BINDING_SYNC_EVENT
-        pollMetadata = DataBindingEvent.DataBindingPollMetadata.newBuilder().apply {
-          dataBindingEnabled = false
-        }.build()
-      }.build()
-    }
+    val studioEventBuilder =
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.DATA_BINDING
+        dataBindingEvent =
+          DataBindingEvent.newBuilder()
+            .apply {
+              type = DataBindingEvent.EventType.DATA_BINDING_SYNC_EVENT
+              pollMetadata =
+                DataBindingEvent.DataBindingPollMetadata.newBuilder()
+                  .apply { dataBindingEnabled = false }
+                  .build()
+            }
+            .build()
+      }
     UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
-  override fun trackDataBindingCompletion(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
-  }
+  override fun trackDataBindingCompletion(
+    eventType: DataBindingEvent.EventType,
+    context: DataBindingEvent.DataBindingContext,
+  ) {}
 }

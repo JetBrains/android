@@ -87,12 +87,7 @@ public final class SkinComboBoxModel extends AbstractListModel<Skin> implements 
 
     @Override
     public void onSuccess(@NotNull Collection<Skin> skins) {
-      var map = Stream.concat(myModel.mySkins.stream(), skins.stream()).collect(Collectors.toMap(Skin::path, skin -> skin, Skin::merge));
-
-      myModel.mySkins = map.values().stream()
-        .sorted()
-        .collect(Collectors.toList());
-
+      myModel.mySkins = merge(myModel.mySkins, skins);
       myModel.fireContentsChanged(myModel, 0, myModel.mySkins.size() - 1);
     }
 
@@ -100,6 +95,17 @@ public final class SkinComboBoxModel extends AbstractListModel<Skin> implements 
     public void onFailure(@NotNull Throwable throwable) {
       Logger.getInstance(SkinComboBoxModel.class).warn(throwable);
     }
+  }
+
+  /**
+   * Concatenates skins1 and skins2, deduplicates skins with the same Path keys, and returns a sorted list of them
+   */
+  public static @NotNull List<@NotNull Skin> merge(@NotNull Collection<@NotNull Skin> skins1, @NotNull Collection<@NotNull Skin> skins2) {
+    var map = Stream.concat(skins1.stream(), skins2.stream()).collect(Collectors.toMap(Skin::path, skin -> skin, Skin::merge));
+
+    return map.values().stream()
+      .sorted()
+      .collect(Collectors.toList());
   }
 
   @NotNull

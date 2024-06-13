@@ -18,12 +18,12 @@ package com.android.tools.profilers.taskbased.common.dividers
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
 @Composable
 fun ToolWindowHorizontalDivider() {
-  Divider(thickness = TaskBasedUxDimensions.PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP, modifier = Modifier.fillMaxWidth(),
-          orientation = Orientation.Horizontal)
+  // TODO (b/334953437): Remove explicit set of color once Jewel's Divider implementation uses correct color by default.
+  Divider(modifier = Modifier.fillMaxWidth(), orientation = Orientation.Horizontal, color = JewelTheme.globalColors.borders.normal)
 }

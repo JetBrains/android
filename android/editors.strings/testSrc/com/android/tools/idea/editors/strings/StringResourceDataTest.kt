@@ -26,7 +26,7 @@ import com.android.tools.idea.editors.strings.StringResourceData.Companion.creat
 import com.android.tools.idea.editors.strings.StringResourceData.Companion.summarizeLocales
 import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.res.DynamicValueResourceRepository
-import com.android.tools.idea.res.createTestModuleRepository
+import com.android.tools.idea.res.ModuleResourceRepository
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.androidFacet
@@ -72,7 +72,8 @@ class StringResourceDataTest {
     val dynamicRepository =
       DynamicValueResourceRepository.createForTest(facet, ResourceNamespace.RES_AUTO, Collections.singletonMap("dynamic_key1", field))
 
-    val moduleRepository = createTestModuleRepository(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO, dynamicRepository)
+    val moduleRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO,
+                                                                  dynamicRepository)
 
     data = create(module.project, Utils.createStringRepository(moduleRepository))
   }

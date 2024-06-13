@@ -48,7 +48,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
   override fun checkFile(
     file: PsiFile,
     manager: InspectionManager,
-    isOnTheFly: Boolean
+    isOnTheFly: Boolean,
   ): Array<ProblemDescriptor>? {
     if (file !is XmlFile) {
       return ProblemDescriptor.EMPTY_ARRAY
@@ -75,7 +75,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
 
   private class MyVisitor(
     private val myInspectionManager: InspectionManager,
-    private val myOnTheFly: Boolean
+    private val myOnTheFly: Boolean,
   ) : XmlRecursiveElementVisitor() {
     val myResult: MutableList<ProblemDescriptor> = ArrayList()
     val mavenClassRegistryManager = MavenClassRegistryManager.getInstance()
@@ -98,7 +98,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
           mavenClassRegistryManager.collectFixesFromMavenClassRegistry(
             className,
             tag.project,
-            tag.containingFile?.fileType
+            tag.containingFile?.fileType,
           )
         getTagNameRange(tag)?.let {
           myResult.add(
@@ -107,7 +107,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
               AndroidBundle.message("element.cannot.resolve", className),
               myOnTheFly,
               fixes.toTypedArray(),
-              ProblemHighlightType.LIKE_UNKNOWN_SYMBOL
+              ProblemHighlightType.LIKE_UNKNOWN_SYMBOL,
             )
           )
         }

@@ -37,7 +37,7 @@ sealed class Cause {
 enum class Confidence {
   LOW,
   MEDIUM,
-  HIGH
+  HIGH,
 }
 
 /**

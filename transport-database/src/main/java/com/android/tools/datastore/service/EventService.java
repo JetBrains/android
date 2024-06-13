@@ -20,17 +20,18 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.EventsTable;
 import com.android.tools.datastore.poller.EventDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * This class host an EventService that will provide callers access to all cached EventData. The data is populated from polling the service

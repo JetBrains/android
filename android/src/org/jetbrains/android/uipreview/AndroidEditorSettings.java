@@ -107,7 +107,7 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
     private EditorMode myPreferredPreviewableEditorMode;
     private EditorMode myPreferredKotlinEditorMode;
     private double myMagnifySensitivity = DEFAULT_MAGNIFY_SENSITIVITY;
-    private boolean myComposePreviewEssentialsModeEnabled = false;
+    private boolean myPreviewEssentialsModeEnabled = false;
 
     public EditorMode getPreferredEditorMode() {
       return myPreferredEditorMode;
@@ -157,12 +157,12 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
       myMagnifySensitivity = magnifySensitivity;
     }
 
-    public boolean isComposePreviewEssentialsModeEnabled() {
-      return myComposePreviewEssentialsModeEnabled;
+    public boolean isPreviewEssentialsModeEnabled() {
+      return myPreviewEssentialsModeEnabled;
     }
 
-    public void setComposePreviewEssentialsModeEnabled(boolean composePreviewEssentialsModeEnabled) {
-      myComposePreviewEssentialsModeEnabled = composePreviewEssentialsModeEnabled;
+    public void setPreviewEssentialsModeEnabled(boolean previewEssentialsModeEnabled) {
+      myPreviewEssentialsModeEnabled = previewEssentialsModeEnabled;
     }
   }
 }

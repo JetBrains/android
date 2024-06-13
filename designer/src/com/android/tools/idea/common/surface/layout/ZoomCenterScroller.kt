@@ -29,7 +29,7 @@ import java.awt.Point
 class ZoomCenterScroller(
   @SwingCoordinate private val oldViewSize: Dimension,
   @SwingCoordinate private val scrollPosition: Point,
-  @SwingCoordinate private val zoomCenter: Point
+  @SwingCoordinate private val zoomCenter: Point,
 ) : DesignSurfaceViewportScroller {
   override fun scroll(port: DesignSurfaceViewport) {
     val newViewSize = port.viewSize

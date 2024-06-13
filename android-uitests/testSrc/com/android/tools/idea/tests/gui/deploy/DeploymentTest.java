@@ -85,7 +85,7 @@ public class DeploymentTest {
   private static final String DEPLOY_APK_NAME = "simple.apk";
   private static final String PACKAGE_NAME = "com.example.simpleapp";
   private static final DeviceId MAX_SUPPORTED_DEVICE = DeviceId.API_29;
-  private static final int WAIT_TIME = 30;
+  private static final int WAIT_TIME = 60;
 
   private static final Logger LOGGER = Logger.getInstance(DeploymentTest.class);
 
@@ -104,7 +104,7 @@ public class DeploymentTest {
     }
   }
 
-  @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule public final GuiTestRule myGuiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private final FakeDeviceHandler myHandler = new FakeDeviceHandler();
   private FakeAdbServer myAdbServer;
   private AndroidDebugBridge myBridge;
@@ -259,6 +259,7 @@ public class DeploymentTest {
       FakeDevice device = new FakeDeviceLibrary().build(id);
       devices.add(device);
       myHandler.connect(device, myAdbServer);
+      myGuiTest.waitForAllBackgroundTasksToBeCompleted();
     }
 
     Wait.seconds(WAIT_TIME)
@@ -401,7 +402,9 @@ public class DeploymentTest {
     finally {
       // We need to refresh the VFS because we're modifying files here and some listeners may fire
       // at "inappropriate" times if we don't do it now.
+      myGuiTest.waitForAllBackgroundTasksToBeCompleted();
       GuiTests.refreshFiles();
+      myGuiTest.waitForAllBackgroundTasksToBeCompleted();
       GuiTests.waitForProjectIndexingToFinish(project);
     }
   }

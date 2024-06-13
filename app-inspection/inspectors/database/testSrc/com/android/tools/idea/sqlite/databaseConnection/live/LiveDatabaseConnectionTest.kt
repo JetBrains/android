@@ -173,7 +173,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
       // Assert
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
       assertSize(1, sqliteRows)
       assertSize(5, sqliteColumns)
@@ -246,7 +246,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
       // Assert
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
       assertSize(1, sqliteRows)
       assertSize(5, sqliteColumns)
@@ -317,7 +317,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
       // Assert
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
       assertSize(1, sqliteRows)
       assertSize(5, sqliteColumns)
@@ -351,7 +351,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
           SqliteStatementType.UNKNOWN,
           "fake query",
           listOf(SqliteValue.StringValue("1"), SqliteValue.NullValue),
-          "fakeQuery"
+          "fakeQuery",
         )
 
       val cursor = Response.newBuilder().setQuery(QueryResponse.newBuilder()).build()
@@ -399,7 +399,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
       // Assert
       val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
-      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
+      val sqliteRows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1)).rows
 
       assertSize(0, sqliteRows)
       assertSize(0, sqliteColumns)
@@ -481,7 +481,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       assertInstanceOf(error1.cause, LiveInspectorException::class.java)
       assertEquals(
         "An error has occurred which requires you to restart your app: errorMessage",
-        error1.cause!!.message
+        error1.cause!!.message,
       )
       assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
     }
@@ -519,7 +519,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       assertInstanceOf(error1.cause, LiveInspectorException::class.java)
       assertEquals(
         "An error has occurred which might require you to restart your app: errorMessage",
-        error1.cause!!.message
+        error1.cause!!.message,
       )
       assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
     }
@@ -530,7 +530,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
       project.registerServiceInstance(
         DatabaseInspectorAnalyticsTracker::class.java,
-        mockTrackerService
+        mockTrackerService,
       )
 
       val errorOccurredEvent =
@@ -572,7 +572,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
       project.registerServiceInstance(
         DatabaseInspectorAnalyticsTracker::class.java,
-        mockTrackerService
+        mockTrackerService,
       )
 
       val errorOccurredEvent =
@@ -616,7 +616,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
       project.registerServiceInstance(
         DatabaseInspectorAnalyticsTracker::class.java,
-        mockTrackerService
+        mockTrackerService,
       )
 
       val errorOccurredEvent =
@@ -656,7 +656,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
       project.registerServiceInstance(
         DatabaseInspectorAnalyticsTracker::class.java,
-        mockTrackerService
+        mockTrackerService,
       )
 
       val errorOccurredEvent =
@@ -699,7 +699,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       testRootDisposable,
       DatabaseInspectorMessenger(messenger, scope, taskExecutor, createErrorSideChannel(project)),
       1,
-      taskExecutor
+      taskExecutor,
     )
   }
 }

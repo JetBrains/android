@@ -63,7 +63,7 @@ class PairedDevicesFlowTest {
         isEmulator = true,
         isWearDevice = false,
         hasPlayStore = true,
-        state = ConnectionState.ONLINE
+        state = ConnectionState.ONLINE,
       )
     val wear =
       PairingDevice(
@@ -73,7 +73,7 @@ class PairedDevicesFlowTest {
         isEmulator = true,
         isWearDevice = true,
         hasPlayStore = true,
-        state = ConnectionState.ONLINE
+        state = ConnectionState.ONLINE,
       )
 
     input.send {

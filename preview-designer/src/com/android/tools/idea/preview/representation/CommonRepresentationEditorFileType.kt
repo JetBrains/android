@@ -35,7 +35,7 @@ import com.intellij.psi.PsiFile
 open class CommonRepresentationEditorFileType(
   private val virtualFileClass: Class<out InMemoryLayoutVirtualFile>,
   private val layoutEditorStateType: LayoutEditorState.Type,
-  private val toolbarConstructor: (surface: DesignSurface<*>) -> ToolbarActionGroups
+  private val toolbarConstructor: (surface: DesignSurface<*>) -> ToolbarActionGroups,
 ) : LayoutEditorFileType() {
   override fun getLayoutEditorStateType() = layoutEditorStateType
 
@@ -45,6 +45,6 @@ open class CommonRepresentationEditorFileType(
 
   override fun getSelectionContextToolbar(
     surface: DesignSurface<*>,
-    selection: List<NlComponent>
+    selection: List<NlComponent>,
   ): DefaultActionGroup = DefaultActionGroup()
 }

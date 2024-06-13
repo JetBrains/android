@@ -36,7 +36,7 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
   override fun createInteractionOnPressed(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    modifiersEx: Int
+    modifiersEx: Int,
   ): Interaction? {
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView
@@ -96,7 +96,7 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
   private fun isInResizeZone(
     sceneView: SceneView,
     @SwingCoordinate mouseX: Int,
-    @SwingCoordinate mouseY: Int
+    @SwingCoordinate mouseY: Int,
   ): Boolean {
     if (!sceneView.isResizeable || !sceneView.scene.isResizeAvailable) {
       // Resizing is disabled
@@ -110,7 +110,7 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
         sceneView.x + size.width,
         sceneView.y + size.height,
         NlConstants.RESIZING_HOVERING_SIZE,
-        NlConstants.RESIZING_HOVERING_SIZE
+        NlConstants.RESIZING_HOVERING_SIZE,
       )
     return resizeZone.contains(mouseX, mouseY)
   }
@@ -118,7 +118,7 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
   override fun createInteractionOnDrag(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ): Interaction? {
     if (surface.getSceneViewAt(mouseX, mouseY) == null) {
       val focusedSceneView = surface.focusedSceneView ?: return null
@@ -130,7 +130,7 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
   override fun getCursorWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
+    @JdkConstants.InputEventMask modifiersEx: Int,
   ): Cursor? {
     val sceneView = surface.getSceneViewAtOrPrimary(mouseX, mouseY)
     if (sceneView != null) {

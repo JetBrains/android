@@ -110,7 +110,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       // Currently, there is a maximum count of supported instances. Produce simplified report
       // (histogram only), if the count exceeds maximum.
       if (!isSupported(histogram.instanceCount)) {
-        result.appendln(histogram.prepareReport("All", 50))
+        result.appendLine(histogram.prepareReport("All", 50))
         return AnalysisResult(result.toString(), summary)
       }
 
@@ -160,25 +160,25 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       val analysisReport = AnalyzeGraph(analysisContext, fileBackedListProvider).analyze(PartialProgressIndicator(progress, 0.4, 0.4))
       summary = analysisReport.summary.toString()
 
-      result.appendln(analysisReport.mainReport)
+      result.appendLine(analysisReport.mainReport)
 
       analysisStopwatch.stop()
 
       if (includeMetaInfo) {
-        result.appendln(sectionHeader("Analysis information"))
-        result.appendln("Prepare files duration: $prepareFilesStopwatch")
-        result.appendln("Analysis duration: $analysisStopwatch")
-        result.appendln("TOTAL DURATION: $totalStopwatch")
-        result.appendln("Temp files:")
-        result.appendln("  heapdump = ${toShortStringAsCount(hprofFileChannel.size())}")
+        result.appendLine(sectionHeader("Analysis information"))
+        result.appendLine("Prepare files duration: $prepareFilesStopwatch")
+        result.appendLine("Analysis duration: $analysisStopwatch")
+        result.appendLine("TOTAL DURATION: $totalStopwatch")
+        result.appendLine("Temp files:")
+        result.appendLine("  heapdump = ${toShortStringAsCount(hprofFileChannel.size())}")
 
         tempFiles.forEach { temp ->
           val channel = temp.channel
           if (channel.isOpen) {
-            result.appendln("  ${temp.type} = ${toShortStringAsCount(channel.size())}")
+            result.appendLine("  ${temp.type} = ${toShortStringAsCount(channel.size())}")
           }
         }
-        result.appendln(analysisReport.metaInfo)
+        result.appendLine(analysisReport.metaInfo)
       }
     }
     finally {

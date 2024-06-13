@@ -36,22 +36,23 @@ import com.android.tools.idea.model.queryActivitiesFromManifestIndex
 import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
 import com.android.tools.idea.model.queryIsMainManifestIndexReady
 import com.android.tools.idea.run.activity.DefaultActivityLocator
+import com.android.tools.idea.util.uiSafeRunReadActionInSmartMode
 import com.android.tools.module.AndroidModuleInfo
+import com.android.utils.cache.ChangeTracker
+import com.android.utils.cache.ChangeTrackerCachedValue
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.psi.util.CachedValue
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.SlowOperations
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
+import java.lang.ref.WeakReference
+import java.util.WeakHashMap
 import kotlin.math.max
-
-/** [Key] for caching the default theme for a [Module]. */
-private val DEFAULT_THEME_KEY: Key<CachedValue<String>> = Key.create("DefaultThemeProviderThemeKey")
 
 typealias ThemeStyleFilter = (ConfiguredThemeEditorStyle) -> Boolean
 
@@ -69,7 +70,7 @@ fun Module.getAppThemeName(): String? {
   try {
     val facet = AndroidFacet.getInstance(this)
     if (facet != null) {
-      return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+      return uiSafeRunReadActionInSmartMode(this.project, Computable {
         SlowOperations.allowSlowOperations(ThrowableComputable {
           if (!facet.queryIsMainManifestIndexReady()) throw MainManifestIndexNotReadyException()
           facet.queryApplicationThemeFromManifestIndex()
@@ -135,7 +136,7 @@ fun <T> Module.safeQueryManifestIndex(manifestIndexQueryAction: (AndroidFacet) -
   try {
     val facet = AndroidFacet.getInstance(this)
     if (facet != null) {
-      return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+      return uiSafeRunReadActionInSmartMode(this.project, Computable {
         SlowOperations.allowSlowOperations(ThrowableComputable {
           if (!facet.queryIsMainManifestIndexReady()) throw MainManifestIndexNotReadyException()
           manifestIndexQueryAction.invoke(facet)
@@ -168,6 +169,7 @@ fun Module.getDeviceDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: S
 
 /** Studio-specific implementation of [ThemeInfoProvider]. */
 class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
+  private val cachedDefaultThemes = WeakHashMap<Configuration, ChangeTrackerCachedValue<String>>()
   override val appThemeName: String?
     @Slow
     get() = module.getAppThemeName()
@@ -180,18 +182,27 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
   override fun getDeviceDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String =
     module.getDeviceDefaultTheme(renderingTarget, screenSize, device)
 
+  @Slow
   override fun getDefaultTheme(configuration: Configuration): String {
-    val module = configuration.module
+    if (ApplicationManager.getApplication().isDispatchThread) {
+      Logger.getInstance(StudioThemeInfoProvider::class.java).warn("getDefaultTheme should not be called in the dispatch thread")
+    }
+    val module = ConfigurationManager.getFromConfiguration(configuration).module
 
     val modificationTracker = MergedManifestModificationTracker.getInstance(module)
-    val provider = CachedValueProvider {
-      CachedValueProvider.Result.create(computeDefaultThemeForConfiguration(configuration), configuration, modificationTracker)
+    val dumbServiceTracker = DumbService.getInstance(module.project)
+
+    val defaultThemeCache = cachedDefaultThemes.getOrPut(configuration) { ChangeTrackerCachedValue.softReference() }
+    val weakConfig = WeakReference(configuration)
+    return runBlocking {
+      ChangeTrackerCachedValue.get(defaultThemeCache, {
+        computeDefaultThemeForConfiguration(configuration)
+      }, ChangeTracker(
+        ChangeTracker { weakConfig.get()?.modificationCount ?: 0 },
+        ChangeTracker { modificationTracker.modificationCount },
+        ChangeTracker { dumbServiceTracker.modificationTracker.modificationCount }
+      ))
     }
-    val manager = CachedValuesManager.getManager(module.project)
-    return manager.getCachedValue(configuration,
-                                  DEFAULT_THEME_KEY,
-                                  provider,
-                                  false)
   }
 }
 

@@ -22,13 +22,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
-import com.android.resources.aar.AarSourceResourceRepository
-import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
-import com.android.tools.res.LocalResourceRepository
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.runWriteAction
@@ -45,41 +42,10 @@ import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.function.Predicate
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
-
-const val AAR_LIBRARY_NAME = "com.test:test-library:1.0.0"
-const val TEST_DATA_DIR = "tools/base/resource-repository/test/resources/aar"
-
-@JvmOverloads
-fun getTestAarRepositoryFromExplodedAar(libraryDirName: String = "my_aar_lib"): AarSourceResourceRepository {
-  return AarSourceResourceRepository.create(
-    TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/$libraryDirName/res"),
-    AAR_LIBRARY_NAME
-  )
-}
-
-fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepository<VirtualFile> {
-  val moduleResources = createTestModuleRepository(facet, emptyList())
-  val projectResources = ProjectResourceRepository.createForTest(facet, listOf(moduleResources))
-  val appResources = AppResourceRepository.createForTest(facet, listOf(projectResources), emptyList())
-  val aar = getTestAarRepositoryFromExplodedAar()
-  appResources.updateRoots(listOf(projectResources), listOf(aar))
-  return appResources
-}
-
-@JvmOverloads
-fun createTestModuleRepository(
-  facet: AndroidFacet,
-  resourceDirectories: Collection<VirtualFile>,
-  namespace: ResourceNamespace = ResourceNamespace.RES_AUTO,
-  dynamicRepo: DynamicValueResourceRepository? = null
-): LocalResourceRepository<VirtualFile> {
-  return ModuleResourceRepository.createForTest(facet, resourceDirectories, namespace, dynamicRepo)
-}
 
 /**
  * Creates and adds an Android Module to the given project.

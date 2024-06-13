@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class LayoutInspectorLoadingObserver(
   parentDisposable: Disposable,
-  private val layoutInspector: LayoutInspector
+  private val layoutInspector: LayoutInspector,
 ) : Disposable {
   interface Listener {
     fun onStartLoading()
@@ -63,7 +63,7 @@ class LayoutInspectorLoadingObserver(
     layoutInspector.stopInspectorListeners.add(stopInspectorListener)
     layoutInspector.processModel?.addSelectedProcessListeners(
       Executors.newSingleThreadExecutor(),
-      selectedProcessListener
+      selectedProcessListener,
     )
     layoutInspector.inspectorModel.addModificationListener(inspectorModelModificationListener)
   }

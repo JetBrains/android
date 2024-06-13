@@ -19,7 +19,6 @@ import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
 import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.webp.WebpMetadata
-import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getRootSkinFolder
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getSkinFolder
 import com.google.common.truth.Truth.assertThat
@@ -30,10 +29,11 @@ import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
-import java.nio.charset.StandardCharsets
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.function.Consumer
 import java.util.function.Predicate
 
@@ -50,7 +50,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_2_XL() {
     val folder = getSkinFolder("pixel_2_xl")
-    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the getRotatedFrameSize method.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(1623, 3322))
@@ -93,7 +93,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_3_XL() {
     val folder = getSkinFolder("pixel_3_xl")
-    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the getRotatedFrameSize method without scaling.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(1584, 3245))
@@ -142,7 +142,7 @@ class SkinDefinitionTest {
   @Test
   fun testVeryTinyScale() {
     val folder = getSkinFolder("pixel_4_xl")
-    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the createScaledLayout method with scaling.
     val layout = skin.createScaledLayout(8, 16, 0)
@@ -154,7 +154,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_4() {
     val folder = getSkinFolder("pixel_4")
-    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the skin layout and consistency of its images.
     val layout = skin.layout
@@ -167,7 +167,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_4_xl() {
     val folder = getSkinFolder("pixel_4_xl")
-    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the skin layout and consistency of its images.
     val layout = skin.layout
@@ -180,7 +180,7 @@ class SkinDefinitionTest {
   @Test
   fun testTwoDisplays() {
     val folder = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/skins/two_displays")
-    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
     // Check the skin layout.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(2348, 1080))
   }
@@ -224,20 +224,27 @@ class SkinDefinitionTest {
     )
     val skinProblems = mutableListOf<String>()
     val dir = getRootSkinFolder()
-    Files.walk(dir, 2).use { stream ->
+    Files.walk(dir, 3).use { stream ->
       stream.forEach { skinFolder ->
         if (Files.isDirectory(skinFolder) && !oldStyleSkins.contains(skinFolder.fileName.toString()) &&
             Files.exists(skinFolder.resolve("layout"))) {
-          val skin = SkinDefinition.create(skinFolder)
-          if (skin == null) {
-            skinProblems.add("Unable to create skin \"${skinFolder.fileName}\"")
-          }
-          else {
+          try {
+            val skin = SkinDefinition.create(skinFolder)
             val layout = skin.layout
             val problems = validateLayout(layout, skinFolder)
             if (problems.isNotEmpty()) {
               skinProblems.add("Skin \"${skinFolder.fileName}\" is inconsistent:\n${problems.joinToString("\n")}")
             }
+          }
+          catch (e: NoSuchFileException) {
+            skinProblems.add("Unable to create skin \"${skinFolder.fileName}\". File not found: ${e.file}")
+          }
+          catch (e: IOException) {
+            val message = e.message?.let { "I/O error $it" } ?: "I/O error"
+            skinProblems.add("Unable to create skin \"${skinFolder.fileName}\". $message")
+          }
+          catch (e: InvalidSkinException) {
+            skinProblems.add("Unable to create skin \"${skinFolder.fileName}\". ${e.message}")
           }
         }
       }
@@ -280,13 +287,13 @@ class SkinDefinitionTest {
     if (nonOpaqueAreaBounds.x != transparentAreaBounds.x) {
       problems.add("Partially transparent pixels near the left edge of the display area")
     }
-    if (nonOpaqueAreaBounds.x + nonOpaqueAreaBounds.width != transparentAreaBounds.x + +transparentAreaBounds.width) {
+    if (nonOpaqueAreaBounds.x + nonOpaqueAreaBounds.width != transparentAreaBounds.x + transparentAreaBounds.width) {
       problems.add("Partially transparent pixels near the right edge of the display area")
     }
     if (nonOpaqueAreaBounds.y != transparentAreaBounds.y) {
       problems.add("Partially transparent pixels near the top edge of the display area")
     }
-    if (nonOpaqueAreaBounds.y + nonOpaqueAreaBounds.height != transparentAreaBounds.y + +transparentAreaBounds.height) {
+    if (nonOpaqueAreaBounds.y + nonOpaqueAreaBounds.height != transparentAreaBounds.y + transparentAreaBounds.height) {
       problems.add("Partially transparent pixels near the bottom edge of the display area")
     }
     if (transparentAreaBounds.x != -skinLayout.frameRectangle.x || transparentAreaBounds.y != -skinLayout.frameRectangle.y) {
@@ -297,11 +304,8 @@ class SkinDefinitionTest {
   }
 
   private fun getBackgroundImageFile(skinFolder: Path): Path? {
-    val layoutFile = skinFolder.resolve("layout")
-    val contents = Files.readAllBytes(layoutFile).toString(StandardCharsets.UTF_8)
-    val layoutDefinition = SkinLayoutDefinition.parseString(contents)
-    val backgroundFileName = layoutDefinition.getValue("parts.portrait.background.image") ?: return null
-    return skinFolder.resolve(backgroundFileName)
+    val backgroundFileUrl = SkinDefinition.createLayoutDescriptor(skinFolder).backgroundFile ?: return null
+    return Paths.get(backgroundFileUrl.toURI())
   }
 
   private fun findBoundsOfContiguousArea(image: BufferedImage, start: Point, predicate: Predicate<Point>): Rectangle {

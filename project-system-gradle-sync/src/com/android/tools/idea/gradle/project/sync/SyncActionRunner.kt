@@ -205,16 +205,19 @@ class SyncActionRunner private constructor(
       syncCounters = syncCounters,
       parallelActionsSupported = parallelActionsSupported,
       canFetchV2ModelsInParallel = fetchV2ModelsInParallel,
-      canFetchKotlinModelsInParallel = fetchV2ModelsInParallel && fetchKotlinModelsInParallel
+      canFetchKotlinModelsInParallel = fetchKotlinModelsInParallel
     )
 
   val parallelActionsForV2ModelsSupported: Boolean get() = parallelActionsSupported && canFetchV2ModelsInParallel
 
   private val ActionToRun<*>.canRunInParallel
-    get() =
-      parallelActionsSupported &&
-      (!fetchesV2Models || canFetchV2ModelsInParallel) &&
-      (!fetchesKotlinModels || canFetchKotlinModelsInParallel)
+    get() = when {
+      !parallelActionsSupported -> false
+      fetchesV1Models -> false
+      fetchesV2Models && !canFetchV2ModelsInParallel -> false
+      fetchesKotlinModels && !canFetchKotlinModelsInParallel -> false
+      else -> true
+    }
 
   override fun <T> runActions(actionsToRun: List<ActionToRun<T>>): List<T> {
     return when (actionsToRun.size) {

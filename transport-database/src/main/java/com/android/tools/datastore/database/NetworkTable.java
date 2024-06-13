@@ -15,18 +15,15 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
+import java.util.*;
 
 public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements> {
   public enum NetworkStatements {

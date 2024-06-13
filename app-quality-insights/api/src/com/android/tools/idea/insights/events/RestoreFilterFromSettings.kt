@@ -23,12 +23,12 @@ import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 
 class RestoreFilterFromSettings(
   private val settings: InsightsFilterSettings,
-  private val delegate: ChangeEvent
+  private val delegate: ChangeEvent,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     val transition = delegate.transition(state, tracker, key)
     val selectConnection =
@@ -39,7 +39,7 @@ class RestoreFilterFromSettings(
       newState =
         transition.newState.copy(
           connections = transition.newState.connections.select(selectConnection),
-          filters = settings.overwriteFilters(transition.newState.filters)
+          filters = settings.overwriteFilters(transition.newState.filters),
         )
     )
   }

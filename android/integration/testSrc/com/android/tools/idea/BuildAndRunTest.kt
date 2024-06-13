@@ -22,7 +22,6 @@ import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
-import kotlin.time.Duration.Companion.seconds
 
 class BuildAndRunTest {
   @JvmField @Rule
@@ -59,16 +58,16 @@ class BuildAndRunTest {
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
+
+          emulator.waitForBoot()
+          adb.waitForDevice(emulator)
+
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
 
           studio.executeAction("Run")
-          system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.minapp",
-            60, TimeUnit.SECONDS)
-          adb.runCommand("logcat") {
-            waitForLog(".*Hello Minimal World!.*", 30.seconds);
-          }
+          studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.minapp", 60, TimeUnit.SECONDS)
+          emulator.logCat.waitForMatchingLine(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS)
         }
       }
     }

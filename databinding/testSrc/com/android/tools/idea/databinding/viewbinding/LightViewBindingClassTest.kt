@@ -43,7 +43,7 @@ class LightViewBindingClassTest {
     AndroidProjectRule.withAndroidModel(
       AndroidProjectBuilder(
         namespace = { "test.db" },
-        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }
+        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) },
       )
     )
 
@@ -69,7 +69,7 @@ class LightViewBindingClassTest {
           android:layout_height="fill_parent">
       </LinearLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
     val context = fixture.addClass("public class MainActivity {}")
 
@@ -93,7 +93,7 @@ class LightViewBindingClassTest {
           android:layout_height="fill_parent">
       </LinearLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
     val context = fixture.addClass("public class MainActivity {}")
 
@@ -109,7 +109,7 @@ class LightViewBindingClassTest {
       <?xml version="1.0" encoding="utf-8"?>
       <view xmlns:android="http://schemas.android.com/apk/res/android" />
     """
-        .trimIndent()
+        .trimIndent(),
     )
     fixture.addFileToProject(
       "src/main/res/layout/merge_root_activity.xml",
@@ -117,7 +117,7 @@ class LightViewBindingClassTest {
       <?xml version="1.0" encoding="utf-8"?>
       <merge xmlns:android="http://schemas.android.com/apk/res/android" />
     """
-        .trimIndent()
+        .trimIndent(),
     )
     val context = fixture.addClass("public class ViewRootActivity {}")
 
@@ -128,7 +128,7 @@ class LightViewBindingClassTest {
           .containsExactly(
             "inflate(LayoutInflater)",
             "inflate(LayoutInflater, ViewGroup, boolean)",
-            "bind(View)"
+            "bind(View)",
           )
       }
 
@@ -159,7 +159,7 @@ class LightViewBindingClassTest {
           android:layout_height="fill_parent">
       </ViewStub>
     """
-        .trimIndent()
+        .trimIndent(),
     )
     val context = fixture.addClass("public class MainActivity {}")
 
@@ -183,7 +183,7 @@ class LightViewBindingClassTest {
         />
       </layout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
     val context = fixture.addClass("public class MainActivity {}")
 
@@ -205,7 +205,7 @@ class LightViewBindingClassTest {
           android:layout_height="fill_parent">
       </LinearLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProject(
@@ -218,7 +218,7 @@ class LightViewBindingClassTest {
           android:layout_height="fill_parent">
       </FrameLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProject(
@@ -231,7 +231,7 @@ class LightViewBindingClassTest {
           android:layout_height="fill_parent">
       </RelativeLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val context = fixture.addClass("public class ConsistentRootActivity {}")
@@ -263,7 +263,7 @@ class LightViewBindingClassTest {
           android:layout_height="fill_parent">
       </FrameLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProject(
@@ -276,7 +276,7 @@ class LightViewBindingClassTest {
           android:layout_height="fill_parent">
       </RelativeLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val context = fixture.addClass("public class MainActivity {}")
@@ -300,7 +300,7 @@ class LightViewBindingClassTest {
         <TextView android:id="@+id/sometimes_present" />
       </LinearLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProject(
@@ -310,7 +310,7 @@ class LightViewBindingClassTest {
       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/always_present" />
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val context = fixture.addClass("public class MainActivity {}")
@@ -344,7 +344,7 @@ class LightViewBindingClassTest {
           <EditText android:id="@+id/inconsistent_override3" tools:viewBindingType="TextView" /> <!-- Tag doesn't match in alt layout -->
       </LinearLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     fixture.addFileToProject(
@@ -362,7 +362,7 @@ class LightViewBindingClassTest {
           <Button android:id="@+id/inconsistent_override3" />
       </LinearLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Make sure logic works even without multiple configurations
@@ -377,7 +377,7 @@ class LightViewBindingClassTest {
           <EditText android:id="@+id/correct_override" tools:viewBindingType="TextView" />
       </LinearLayout>
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val context = fixture.addClass("public class MainActivity {}")
@@ -422,7 +422,7 @@ class LightViewBindingClassTest {
       <?xml version="1.0" encoding="utf-8"?>
       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" />
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val project = fixture.project
@@ -439,16 +439,16 @@ class LightViewBindingClassTest {
           .let { inflateMethod ->
             (inflateMethod.parameters[0] as PsiParameter).assertExpected(
               "LayoutInflater",
-              "inflater"
+              "inflater",
             )
             (inflateMethod.parameters[1] as PsiParameter).assertExpected(
               "ViewGroup",
               "parent",
-              isNullable = true
+              isNullable = true,
             )
             (inflateMethod.parameters[2] as PsiParameter).assertExpected(
               "boolean",
-              "attachToParent"
+              "attachToParent",
             )
             inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
           }
@@ -458,7 +458,7 @@ class LightViewBindingClassTest {
           .let { inflateMethod ->
             (inflateMethod.parameters[0] as PsiParameter).assertExpected(
               "LayoutInflater",
-              "inflater"
+              "inflater",
             )
             inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
           }
@@ -485,7 +485,7 @@ class LightViewBindingClassTest {
       <?xml version="1.0" encoding="utf-8"?>
       <merge xmlns:android="http://schemas.android.com/apk/res/android" />
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val project = fixture.project
@@ -502,11 +502,11 @@ class LightViewBindingClassTest {
           .let { inflateMethod ->
             (inflateMethod.parameters[0] as PsiParameter).assertExpected(
               "LayoutInflater",
-              "inflater"
+              "inflater",
             )
             (inflateMethod.parameters[1] as PsiParameter).assertExpected(
               "ViewGroup",
-              "parent"
+              "parent",
             ) // Not nullable due to <merge> root!
             inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
           }

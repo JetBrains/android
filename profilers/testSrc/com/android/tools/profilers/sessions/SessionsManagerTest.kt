@@ -38,6 +38,8 @@ import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.NativeAllocationsTaskHandler
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -95,6 +97,8 @@ class SessionsManagerTest {
 
   @Test
   fun testBeginSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val streamId = 1L
     val pid = 10
     val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId).setState(Common.Device.State.ONLINE).build()
@@ -107,9 +111,9 @@ class SessionsManagerTest {
     assertThat(myManager.profilingSession).isEqualTo(session)
     assertThat(myManager.isSessionAlive).isTrue()
 
-    // The selectedSessionProfilerTaskType is updated with the task type from the event data received for a newly started session.
+    // The currentTaskType is updated with the task type from the event data received for a newly started session.
     // Here we check if the correct task type was populated with the UNSPECIFIED_TASK type as task type was not provided.
-    val taskType = myManager.selectedSessionProfilerTaskType
+    val taskType = myManager.currentTaskType
     assertThat(taskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
 
     val sessionItems = myManager.sessionArtifacts
@@ -123,10 +127,12 @@ class SessionsManagerTest {
 
   @Test
   fun testBeginSessionWithTask() {
+    ideProfilerServices.enableTaskBasedUx(false)
     val streamId = 1L
     val pid = 10
     val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId).setState(Common.Device.State.ONLINE).build()
     val onlineProcess = Common.Process.newBuilder().setPid(pid).setState(Common.Process.State.ALIVE).build()
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
     beginSessionWithTaskHelper(onlineDevice, onlineProcess, Common.ProfilerTaskType.SYSTEM_TRACE)
 
     val session = myManager.selectedSession
@@ -135,9 +141,9 @@ class SessionsManagerTest {
     assertThat(myManager.profilingSession).isEqualTo(session)
     assertThat(myManager.isSessionAlive).isTrue()
 
-    // The selectedSessionProfilerTaskType is updated with the task type from the event data received for a newly started session.
+    // The currentTaskType is updated with the task type from the event data received for a newly started session.
     // Here we check if the correct task type was populated.
-    val taskType = myManager.selectedSessionProfilerTaskType
+    val taskType = myManager.currentTaskType
     assertThat(taskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
 
     val sessionItems = myManager.sessionArtifacts
@@ -151,6 +157,8 @@ class SessionsManagerTest {
 
   @Test
   fun testValidSessionMetadataForDebuggableProcess() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val streamId = 1L
     val processId = 10
     val device = Common.Device.newBuilder().apply {
@@ -177,6 +185,8 @@ class SessionsManagerTest {
 
   @Test
   fun testValidSessionMetadataForProfileableProcess() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val streamId = 1L
     val processId = 10
     val device = Common.Device.newBuilder().apply {
@@ -203,6 +213,8 @@ class SessionsManagerTest {
 
   @Test
   fun testBeginSessionCannotRunTwice() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val deviceId = 1
     val pid1 = 10
     val pid2 = 20
@@ -217,6 +229,8 @@ class SessionsManagerTest {
 
   @Test
   fun testEndSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val streamId = 1
     val pid = 10
     val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId.toLong()).setState(Common.Device.State.ONLINE).build()
@@ -270,6 +284,8 @@ class SessionsManagerTest {
 
   @Test
   fun testSetSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
@@ -305,6 +321,8 @@ class SessionsManagerTest {
 
   @Test
   fun testSetSessionById() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
@@ -347,6 +365,8 @@ class SessionsManagerTest {
 
   @Test
   fun testSwitchingNonProfilingSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
@@ -389,6 +409,8 @@ class SessionsManagerTest {
    */
   @Test
   fun testNativeHeapArtifacts() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val profiler = StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,
@@ -423,6 +445,8 @@ class SessionsManagerTest {
 
   @Test
   fun testSessionArtifactsUpToDate() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
@@ -544,6 +568,8 @@ class SessionsManagerTest {
   // The epoch time in session meta data is the time when the file is imported.
   @Test
   fun testImportedSessionIsSelectedByImportTime() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     // Note the event may be added to the pipeline out of order (of epoch time).
     myTransportService.addEventToStream(
       1, ProfilersTestData.generateSessionStartEvent(
@@ -676,6 +702,8 @@ class SessionsManagerTest {
 
   @Test
   fun testDeleteProfilingSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = debuggableProcess { pid = 10; deviceId = 1 }
     val process2 = debuggableProcess { pid = 20; deviceId = 1 }
@@ -754,6 +782,8 @@ class SessionsManagerTest {
 
   @Test
   fun testDeleteUnselectedSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = debuggableProcess { pid = 10; deviceId = 1 }
     val process2 = debuggableProcess { pid = 20; deviceId = 1 }
@@ -785,13 +815,179 @@ class SessionsManagerTest {
     assertThat(myManager.sessionArtifacts[0].session).isEqualTo(session2)
   }
 
+  @Test
+  fun testDeleteSelectedSessionInTaskBasedUX() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = debuggableProcess { pid = 10; deviceId = 1 }
+    myTransportService.addDevice(device)
+    myTransportService.addProcess(device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE, false)
+    myManager.update()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Create a finished session and a ongoing profiling session.
+    endSessionHelper()
+    myManager.update()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    val session = myManager.selectedSession
+    assertThat(myManager.selectedSession).isEqualTo(session)
+    assertThat(myManager.isSessionAlive).isFalse()
+    assertThat(myProfilers.device).isEqualTo(device)
+    assertThat(myProfilers.process).isEqualTo(process)
+
+    myManager.deleteSession(session)
+    myManager.update()
+    // Although deleted, the session remains selected.
+    assertThat(myManager.selectedSession).isEqualTo(session)
+    assertThat(myManager.isSessionAlive).isFalse()
+    assertThat(myProfilers.device).isEqualTo(device)
+    assertThat(myProfilers.process).isEqualTo(process)
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
+  }
+
+  @Test
+  fun `new ongoing FULL session with non-UNSPECIFIED task type is auto-selected as profiling and selected session in task-based ux`() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
+    val sessionId = 123L
+    val streamId = 1L
+    val startTimestamp = 1L
+    val pid = 456
+    // If the Task-Based UX is disabled, any new session (ongoing or complete) is enough to auto-select the session as the profiling
+    // and selected session. Under the Task-Based UX, only if the user has begun a new session that has not complete (a new, ongoing task)
+    // with a non-UNSPECIFIED task type, then it will be auto-selected as the profiling and selected session.
+    myTransportService.addEventToStream(streamId,
+                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
+                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
+                                                                                    Common.ProfilerTaskType.SYSTEM_TRACE,
+                                                                                    startTimestamp, pid).build())
+    myManager.update()
+    assertThat(myManager.profilingSession.sessionId).isEqualTo(123)
+    assertThat(myManager.selectedSession.sessionId).isEqualTo(123)
+  }
+
+  @Test
+  fun `new ongoing FULL session with UNSPECIFIED task type is not auto-selected as profiling and selected session in task-based ux`() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    val sessionId = 123L
+    val streamId = 1L
+    val startTimestamp = 1L
+    val pid = 456
+    // If the Task-Based UX is disabled, any new session (ongoing or complete) is enough to auto-select the session as the profiling
+    // and selected session. Under the Task-Based UX, only if the user has begun a new session that has not complete (a new, ongoing task)
+    // with a non-UNSPECIFIED task type set as the SessionsManger.currentTaskType, then it will be auto-selected as the profiling and
+    // selected session.
+    myTransportService.addEventToStream(streamId,
+                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
+                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
+                                                                                    Common.ProfilerTaskType.UNSPECIFIED_TASK,
+                                                                                    startTimestamp, pid).build())
+    myManager.update()
+    assertThat(myManager.profilingSession.sessionId).isNotEqualTo(123)
+    assertThat(myManager.selectedSession.sessionId).isNotEqualTo(123)
+  }
+
+  @Test
+  fun `newly complete FULL session with UNSPECIFIED task type is not auto-selected in task-based ux`() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    val sessionId = 123L
+    val streamId = 1L
+    val startTimestamp = 1L
+    val endTimestamp = 2L
+    val pid = 456;
+    // If the Task-Based UX is disabled, a new, completed FULL session is enough to auto-select the session as the selected session and
+    // profiling session. Under the Task-Based UX, complete sessions must be explicitly selected, and thus the auto-selection in
+    // SessionsManger#update is prevented except if the user explicitly selects a previously completed session (completed full session with
+    // a non-UNSPECIFIED set as the SessionsManger.currentTaskType). The following session events would trigger a session auto-selection
+    // without Task-Based UX enabled and are thus utilized to make sure that the auto-selection does not occur with Task-Based UX enabled.
+    myTransportService.addEventToStream(streamId,
+                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
+                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
+                                                                                    Common.ProfilerTaskType.UNSPECIFIED_TASK,
+                                                                                    startTimestamp, pid).build())
+    myTransportService.addEventToStream(streamId, ProfilersTestData.generateSessionEndEvent(streamId, sessionId, endTimestamp).build())
+    myManager.update()
+
+    // Auto-selection should not have occurred (non-UNSPECIFIED task type set for SessionsManager.currentTaskType is required in Task-Based
+    // UX for newly complete sessions to be selected).
+    assertThat(myManager.profilingSession.sessionId).isNotEqualTo(123)
+    assertThat(myManager.selectedSession.sessionId).isNotEqualTo(123)
+  }
+
+  @Test
+  fun `newly complete FULL session with non-UNSPECIFIED task type is not auto-selected in task-based ux`() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
+    val sessionId = 123L
+    val streamId = 1L
+    val startTimestamp = 1L
+    val endTimestamp = 2L
+    val pid = 456
+    myTransportService.addEventToStream(streamId,
+                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
+                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
+                                                                                    Common.ProfilerTaskType.SYSTEM_TRACE,
+                                                                                    startTimestamp, pid).build())
+    myTransportService.addEventToStream(streamId, ProfilersTestData.generateSessionEndEvent(streamId, sessionId, endTimestamp).build())
+    myManager.update()
+
+    // Auto-selection should not have occurred (explicit session selection is required in Task-Based UX for complete sessions).
+    assertThat(myManager.profilingSession.sessionId).isNotEqualTo(123)
+    assertThat(myManager.selectedSession.sessionId).isNotEqualTo(123)
+  }
+
+  @Test
+  fun `explicitly selecting a complete FULL session with non-UNSPECIFIED task type triggers session selection in task-based ux`() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    myProfilers.addTaskHandler(ProfilerTaskType.NATIVE_ALLOCATIONS, NativeAllocationsTaskHandler(myManager))
+    val sessionId = 123L
+    val streamId = 1L
+    val startTimestamp = 1L
+    val endTimestamp = 2L
+    val pid = 456
+    myTransportService.addEventToStream(streamId,
+                                        ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
+                                                                                    Common.SessionData.SessionStarted.SessionType.FULL,
+                                                                                    Common.ProfilerTaskType.NATIVE_ALLOCATIONS,
+                                                                                    startTimestamp, pid).build())
+    myTransportService.addEventToStream(streamId, ProfilersTestData.generateSessionEndEvent(streamId, sessionId, endTimestamp).build())
+    // Populate the underlying session artifact so that createArgs successfully construct an artifact to load. Otherwise, an
+    // IllegalStateException will be raised.
+    val nativeHeapTimestamp = 30L
+    val nativeHeapInfo = Trace.TraceData.newBuilder().setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(
+      Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
+        nativeHeapTimestamp + 1))).build()
+    val nativeHeapData = ProfilersTestData.generateMemoryTraceData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+    myTransportService.addEventToStream(streamId, nativeHeapData.setPid(pid).build())
+    myManager.update()
+
+    // Auto-selection should not have occurred (explicit session selection is required in Task-Based UX for complete sessions).
+    assertThat(myManager.profilingSession.sessionId).isNotEqualTo(123)
+    assertThat(myManager.selectedSession.sessionId).isNotEqualTo(123)
+
+    // Explicit selection of previously complete full session with non-unspecified task type.
+    val session = myManager.sessionIdToSessionItems[sessionId]!!.session
+    myManager.setSession(session)
+    myManager.currentTaskType = ProfilerTaskType.SYSTEM_TRACE
+    myManager.update()
+
+    // Selection is successfully reflected.
+    assertThat(myManager.selectedSession.sessionId).isEqualTo(123)
+    // The profilingSession should have been reset as there is no ongoing session.
+    assertThat(myManager.profilingSession.sessionId).isNotEqualTo(123)
+  }
+
   private fun beginSessionHelper(device: Common.Device, process: Common.Process) {
     myManager.beginSession(1, device, process)
     myManager.update()
   }
 
   private fun beginSessionWithTaskHelper(device: Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
-    myManager.beginSession(1, device, process, taskType)
+    myManager.beginSession(1, device, process, taskType, false)
     myManager.update()
   }
 

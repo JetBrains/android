@@ -61,7 +61,7 @@ class SqliteSchemaContext(private val schema: SqliteSchema, private val query: A
 class AndroidSqlFakePsiElement(
   private val query: PsiFile,
   private val _name: String,
-  val typeDescription: String?
+  val typeDescription: String?,
 ) : FakePsiElement() {
   override fun getParent() = query
 
@@ -78,7 +78,7 @@ data class SqliteSchemaSqlType(override val typeName: String) : SqlType
 data class SqliteSchemaColumn(
   override val name: String,
   val query: PsiFile,
-  override val type: SqliteSchemaSqlType
+  override val type: SqliteSchemaSqlType,
 ) : AndroidSqlColumn {
   override val definingElement = AndroidSqlFakePsiElement(query, name, type.typeName)
 }
@@ -93,7 +93,7 @@ fun SqliteTable.convertToSqlTable(query: PsiFile): AndroidSqlTable {
   return object : AndroidSqlTable {
     override fun processColumns(
       processor: Processor<AndroidSqlColumn>,
-      sqlTablesInProcess: MutableSet<PsiElement>
+      sqlTablesInProcess: MutableSet<PsiElement>,
     ): Boolean {
       return ContainerUtil.process(androidSqlColumns, processor)
     }

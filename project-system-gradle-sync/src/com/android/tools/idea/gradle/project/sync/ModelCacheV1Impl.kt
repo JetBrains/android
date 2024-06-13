@@ -129,6 +129,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.impl.throwingIdeDependencies
 import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.LOCAL_AARS
 import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.LOCAL_JARS
+import com.android.utils.usLocaleCapitalize
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
@@ -291,6 +292,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       multiDexEnabled = copyNewProperty(buildType::multiDexEnabled),
       isDebuggable = buildType.isDebuggable,
       isJniDebuggable = buildType.isJniDebuggable,
+      isPseudoLocalesEnabled = buildType.isPseudoLocalesEnabled,
       isRenderscriptDebuggable = buildType.isRenderscriptDebuggable,
       renderscriptOptimLevel = buildType.renderscriptOptimLevel,
       isMinifyEnabled = buildType.isMinifyEnabled,
@@ -801,7 +803,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun androidArtifactFrom(
     artifact: AndroidArtifact,
     bootClasspath: Collection<String>,
-    agpVersion: AgpVersion?,
+    modelVersions: ModelVersions,
     variantName: String?,
     variantNameForDependencies: String?,
     androidModuleId: ModuleId?,
@@ -822,7 +824,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       // NB: the model will not be available for things that are not applicable, e.g. library and dynamic feature main
       IdeArtifactName.MAIN -> legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(apkVariantName)
       IdeArtifactName.ANDROID_TEST -> legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(variantName + "AndroidTest")
-      IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES -> null
+      IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES, IdeArtifactName.SCREENSHOT_TEST -> null
     }
     val androidArtifactCoreImpl = IdeAndroidArtifactCoreImpl(
       name = ideArtifactName,
@@ -927,7 +929,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     androidProject: IdeAndroidProjectImpl,
     variant: Variant,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-    modelVersion: AgpVersion?,
+    modelVersions: ModelVersions,
     androidModuleId: ModuleId
   ): ModelResult<IdeVariantWithPostProcessor> {
     val mergedFlavor = copyModel(variant.mergedFlavor, ::productFlavorFrom)
@@ -947,7 +949,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       androidArtifactFrom(
         artifact = it,
         bootClasspath = androidProject.bootClasspath,
-        agpVersion = modelVersion,
+        modelVersions = modelVersions,
         variantName = variant.name,
         // For main artifacts, we shouldn't use the variant's name in module dependencies, but Test projects are an exception because
         // we only have one main artifact that is a test artifact, so we need to handle this as a special case.
@@ -973,7 +975,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       androidArtifactFrom(
         artifact = it,
         bootClasspath = androidProject.bootClasspath,
-        agpVersion = modelVersion,
+        modelVersions = modelVersions,
         variantName = variant.name,
         variantNameForDependencies = variant.name,
         androidModuleId = androidModuleId,
@@ -987,8 +989,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       name = variant.name,
       displayName = variant.displayName,
       mainArtifact = mainArtifact.model,
-      unitTestArtifact = unitTestArtifact?.model,
-      androidTestArtifact = androidTestArtifact?.model,
+      hostTestArtifacts = listOfNotNull(unitTestArtifact?.model),
+      deviceTestArtifacts = listOfNotNull(androidTestArtifact?.model),
       testFixturesArtifact = null,
       buildType = variant.buildType,
       productFlavors = ImmutableList.copyOf(variant.productFlavors),
@@ -998,9 +1000,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       versionCode = mergedFlavor.versionCode,
       versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() },
       versionNameSuffix = versionNameSuffix,
-      instantAppCompatible = (modelVersion != null &&
-        modelVersion.isAtLeast(3, 3, 0, "alpha", 10, true) &&
-        variant.isInstantAppCompatible),
+      instantAppCompatible = (modelVersions[ModelFeature.HAS_INSTANT_APP_COMPATIBLE_IN_V1_MODELS] && variant.isInstantAppCompatible),
       vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
       resourceConfigurations = mergedFlavor.resourceConfigurations,
       testInstrumentationRunner = mergedFlavor.testInstrumentationRunner,
@@ -1021,8 +1021,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         postProcessor = fun(): IdeVariantCoreImpl {
           return variantCoreImpl.copy(
             mainArtifact = mainArtifact.postProcess(),
-            androidTestArtifact = androidTestArtifact?.postProcess(),
-            unitTestArtifact = unitTestArtifact?.postProcess()
+            deviceTestArtifacts = listOfNotNull(androidTestArtifact?.postProcess()),
+            hostTestArtifacts = listOfNotNull(unitTestArtifact?.postProcess())
           )
         }
       )
@@ -1246,6 +1246,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       transitiveRClasses = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS),
       usesCompose = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE),
       mlModelBindingEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING),
+      /** Treated as enabled for AGP < 8.4. if we need to know the actual answer we could add it to LegacyAndroidGradlePluginPropertiesModelBuilder */
+      androidResourcesEnabled = true,
       unifiedTestPlatformEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM),
       useAndroidX = gradlePropertiesModel.useAndroidX ?: com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault
     )
@@ -1270,11 +1272,12 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     return if (project.isLibrary) IdeAndroidProjectType.PROJECT_TYPE_LIBRARY else IdeAndroidProjectType.PROJECT_TYPE_APP
   }
 
-  fun basicVariantFrom(name: String, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?): IdeBasicVariantImpl {
+  fun basicVariantFrom(name: String, variantToBuildType: (String) -> String?, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?): IdeBasicVariantImpl {
     return IdeBasicVariantImpl(
       name,
       applicationId = legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(name),
-      testApplicationId = legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(name + "AndroidTest")
+      testApplicationId = legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(name + "AndroidTest"),
+      buildType = variantToBuildType(name),
     )
   }
 
@@ -1304,6 +1307,13 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl = copyModel(project.defaultConfig, ::sourceProviderContainerFrom)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = copy(project::getBuildTypes, ::buildTypeContainerFrom)
     val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = copy(project::getProductFlavors, ::productFlavorContainerFrom)
+    val variantToBuildType: (String) -> String?
+    if (productFlavorCopy.isEmpty()) {
+      variantToBuildType = { variant -> variant.takeIf {buildTypesCopy.any { it.buildType.name == variant }} }
+    } else {
+      val suffixToBuildType = buildTypesCopy.map { it.buildType.name }.sortedByDescending { it.length }.associateBy { it.usLocaleCapitalize() }
+      variantToBuildType = { variant -> suffixToBuildType.entries.firstOrNull { variant.endsWith(it.key)}?.value }
+    }
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> =
       (
         if (parsedModelVersion != null && parsedModelVersion < MODEL_VERSION_3_2_0)
@@ -1311,7 +1321,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         else
           copy(project::getVariantNames, ::deduplicateString)
         )
-        .map { basicVariantFrom(it, legacyAndroidGradlePluginProperties) }
+        .map { basicVariantFrom(it, variantToBuildType, legacyAndroidGradlePluginProperties) }
     val flavorDimensionCopy: Collection<String> = copy(project::getFlavorDimensions, ::deduplicateString)
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(project.bootClasspath)
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = copy(project::getSigningConfigs, ::signingConfigFrom)
@@ -1371,7 +1381,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         agpFlags = agpFlags,
         isKaptEnabled = false,
         desugarLibraryConfigFiles = listOf(),
-        defaultVariantName = null
+        defaultVariantName = null,
+        lintJar = null,
       )
     }
   }
@@ -1382,10 +1393,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       androidProject: IdeAndroidProjectImpl,
       variant: Variant,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-      modelVersion: AgpVersion?,
+      modelVersions: ModelVersions,
       androidModuleId: ModuleId
     ): ModelResult<IdeVariantWithPostProcessor> =
-      variantFrom(androidProject, variant, legacyAndroidGradlePluginProperties, modelVersion, androidModuleId)
+      variantFrom(androidProject, variant, legacyAndroidGradlePluginProperties, modelVersions, androidModuleId)
 
     override fun androidProjectFrom(
       rootBuildId: BuildId,

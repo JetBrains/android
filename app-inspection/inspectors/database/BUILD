@@ -5,12 +5,12 @@ iml_module(
     name = "app-inspection.inspectors.database",
     srcs = ["src"],
     iml_files = ["app-inspection.inspectors.database.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -41,10 +41,7 @@ iml_module(
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.sqlite.ui.ExportToFileDialogTest",
         },
-        "other": {
-            # b/182573662, b/217469630
-            "tags": ["very_flaky"],
-        },
+        "other": {},
     },
     test_class = "com.android.tools.idea.DatabaseInspectorTestSuite",
     test_data = ["//prebuilts/studio/sdk:platform-tools"],
@@ -55,8 +52,9 @@ iml_module(
     runtime_deps = ["//tools/adt/idea/.idea/libraries:sqlite"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/app-inspection/inspectors/database:app-inspection.inspectors.database[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -80,5 +78,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
         "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files[module, test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
     ],
 )

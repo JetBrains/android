@@ -18,5 +18,5 @@ package com.android.tools.idea.insights.analytics
 /** Used for distinguishing sources of issue selection in metrics tracking. */
 enum class IssueSelectionSource {
   LIST,
-  INSPECTION
+  INSPECTION,
 }

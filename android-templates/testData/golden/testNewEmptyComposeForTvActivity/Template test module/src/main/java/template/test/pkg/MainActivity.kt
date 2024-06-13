@@ -20,8 +20,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        shape = RectangleShape
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RectangleShape
                 ) {
                     Greeting("Android")
                 }
@@ -34,8 +34,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
-            text = "Hello $name!",
-            modifier = modifier
+        text = "Hello $name!",
+        modifier = modifier
     )
 }
 

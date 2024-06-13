@@ -30,12 +30,6 @@ import javax.swing.JComponent
 import kotlin.math.max
 import kotlin.math.min
 
-/** The percentage of the current view range's length to zoom per mouse wheel click. */
-private const val VIEW_ZOOM_PER_MOUSE_WHEEL_FACTOR = 0.125f
-
-/** The percentage of the current view range's length to pan per mouse wheel click. */
-private const val VIEW_PAN_PERCENTAGE_PER_MOUSE_WHEEL_FACTOR = 0.005f
-
 /**
  * Work in ms to keep things compatible with scrollbar's integer api. This should cover a long
  * enough time period for us in terms of profiling.
@@ -48,7 +42,8 @@ private const val STREAMING_POSITION_THRESHOLD_PX = 10f
 /**
  * A custom toolbar that synchronizes with the data+view ranges from the [Timeline].
  *
- * If timeline is a StreamingTimeline, this control sets it into streaming mode if users drags the thumb all the way to the right.
+ * If timeline is a StreamingTimeline, this control sets it into streaming mode if users drags the
+ * thumb all the way to the right.
  */
 class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) :
   JBScrollBar(HORIZONTAL) {
@@ -82,11 +77,10 @@ class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) :
       val count = it.preciseWheelRotation
       val isMenuKeyDown = isActionKeyDown(it)
       if (isMenuKeyDown) {
-        val anchor = (it.x.toFloat() / it.component.width).toDouble()
-        timeline.zoom(getZoomWheelDelta() * count, anchor)
-      } else if (isScrollable() && timeline is StreamingTimeline) {
-        // Save the mouse wheel scroll event to be reflected in the timeline model and UI on next timeline update.
-        timeline.addMouseScrollWheelEvent(getPanWheelDelta() * count)
+        val anchor = (it.x.toDouble() / it.component.width)
+        timeline.handleMouseWheelZoom(count, anchor)
+      } else {
+        timeline.handleMouseWheelPan(count)
       }
       checkStream = count > 0
     }
@@ -95,22 +89,23 @@ class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) :
     modelChanged()
   }
 
-  @VisibleForTesting
-  fun getZoomWheelDelta() = timeline.viewRange.length * VIEW_ZOOM_PER_MOUSE_WHEEL_FACTOR
-
-  @VisibleForTesting
-  fun getPanWheelDelta() = timeline.viewRange.length * VIEW_PAN_PERCENTAGE_PER_MOUSE_WHEEL_FACTOR
-
   private fun modelChanged() {
-    updating = true
-    val dataRangeUs = timeline.dataRange
-    val viewRangeUs = timeline.viewRange
-    val dataExtentMs = (dataRangeUs.length / MS_TO_US).toInt()
-    val viewExtentMs = min(dataExtentMs, (viewRangeUs.length / MS_TO_US).toInt())
-    val viewRelativeMinMs = max(0, ((viewRangeUs.min - dataRangeUs.min) / MS_TO_US).toInt())
-    setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs)
-    setBlockIncrement(viewExtentMs)
-    updating = false
+    try {
+      updating = true
+      val dataRangeUs = timeline.dataRange
+      if (dataRangeUs.min < dataRangeUs.max) {
+        val viewRangeUs = timeline.viewRange
+        val dataExtentMs = (dataRangeUs.length / MS_TO_US).toInt()
+        val viewExtentMs = min(dataExtentMs, (viewRangeUs.length / MS_TO_US).toInt())
+        val viewRelativeMinMs = max(0, ((viewRangeUs.min - dataRangeUs.min) / MS_TO_US).toInt())
+        setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs)
+        setBlockIncrement(viewExtentMs)
+      } else {
+        setValues(0, 0, 0, 0)
+      }
+    } finally {
+      updating = false
+    }
   }
 
   private fun updateModel() {

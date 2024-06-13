@@ -42,7 +42,7 @@ class SplitEditorPreviewNotificationForwarder : EditorNotificationProvider {
 
   override fun collectNotificationData(
     project: Project,
-    file: VirtualFile
+    file: VirtualFile,
   ): Function<FileEditor, EditorNotificationPanel?> {
     return Function { fileEditor ->
       // If the given FileEditor is DesignerEditor, forward the update to the

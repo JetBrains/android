@@ -29,6 +29,9 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.ui.components.JBScrollPane
+import java.awt.BorderLayout
+import javax.swing.Box
+import javax.swing.JPanel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -41,9 +44,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.awt.BorderLayout
-import javax.swing.Box
-import javax.swing.JPanel
 
 /**
  * Launches a coroutine for every DeviceHandle that arrives on the devicesFlow. Cancels it when the
@@ -51,7 +51,7 @@ import javax.swing.JPanel
  */
 private suspend fun trackDevices(
   devicesFlow: Flow<List<DeviceHandle>>,
-  tracker: suspend (DeviceHandle) -> Unit
+  tracker: suspend (DeviceHandle) -> Unit,
 ) = coroutineScope {
   val trackers = mutableMapOf<DeviceHandle, Job>()
   devicesFlow
@@ -98,7 +98,7 @@ private constructor(
         add(addButton)
         add(removeButton)
       },
-      BorderLayout.NORTH
+      BorderLayout.NORTH,
     )
     add(scrollPane)
 
@@ -153,7 +153,7 @@ private constructor(
   /** Updates the PairedDevicesPanel based on the provided flows. */
   private suspend fun trackPairedDevices(
     devicesFlow: Flow<List<DeviceHandle>>,
-    pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>
+    pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>,
   ) {
     trackDevices(devicesFlow) { device ->
       try {
@@ -165,7 +165,7 @@ private constructor(
             PairedDeviceData.create(
               device,
               deviceState,
-              pairingStatus?.state ?: WearPairingManager.PairingState.UNKNOWN
+              pairingStatus?.state ?: WearPairingManager.PairingState.UNKNOWN,
             )
           }
           .distinctUntilChanged()

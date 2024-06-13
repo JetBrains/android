@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
@@ -23,10 +24,11 @@ import com.intellij.openapi.components.service
  * An action for each device in the drop down without a snapshot sublist. When a user selects a
  * device, SelectDeviceAction will set a target for the device in DeviceAndSnapshotComboBoxAction.
  */
-class SelectDeviceAction
-internal constructor(
-  internal val device: DeploymentTargetDevice,
-) : AnAction() {
+class SelectDeviceAction internal constructor(internal val device: DeploymentTargetDevice) :
+  AnAction() {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
     val project = requireNotNull(event.project)
@@ -35,7 +37,7 @@ internal constructor(
       device.disambiguatedName(
         project.service<DevicesSelectedService>().devicesAndTargets.allDevices
       ),
-      false
+      false,
     )
   }
 

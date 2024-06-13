@@ -16,12 +16,14 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.testing.AndroidProjectRule
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
 import org.junit.Assert
@@ -37,7 +39,7 @@ import kotlin.test.fail
 @RunWith(JUnit4::class)
 class BasicCompileTest {
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setUp() {
@@ -90,15 +92,32 @@ class BasicCompileTest {
 
   @Test
   fun recoverableErrors() {
-    try {
-      val file = projectRule.createKtFile("RecoverableError.kt", """
+    // Step 1: Error Free
+    val file = projectRule.createKtFile("RecoverableError.kt", """
+        fun recoverableError() { "a".toString() }
+      """)
+
+    val cache = projectRule.initialCache(listOf(file))
+
+    // Step 2: Introduce recoverable syntax errors
+    projectRule.modifyKtFile(file, """
         fun recoverableError() { "a".toString() } }
       """)
-      compile(file)
+
+    try {
+      compile(file, cache)
       Assert.fail("RecoverableError.kt contains a lexical error and should not be updated by Live Edit")
     } catch (e: LiveEditUpdateException) {
       Assert.assertEquals("Expecting a top level declaration", e.message)
     }
+
+    // Step 3: Fix syntax error
+    projectRule.modifyKtFile(file, """
+        fun recoverableError() { "a".toString() }
+      """)
+
+    // Should not have compiler errors.
+    compile(file, cache)
   }
 
   @Test
@@ -156,9 +175,51 @@ class BasicCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
-    val output = compile(listOf(LiveEditCompilerInput(file, file)), compiler)
+    val state = getPsiValidationState(file)
+    val output = compile(listOf(LiveEditCompilerInput(file, state)), compiler)
     Assert.assertEquals(1, output.supportClassesMap.size)
     // Can't test invocation of the method since the functional interface "A" is not loaded.
+  }
+
+  @Test
+  fun genericSamChange() {
+    val file = projectRule.createKtFile("ModifyFieldValue.kt", """
+      fun interface Observer<T> {
+        fun onChanged(value: T)
+      }
+
+      class Watchable<T> {
+        fun <T> callObserver(value: T, o: Observer<T>) {
+          o.onChanged(value)
+        }
+      }
+
+      fun main() {
+        val x = Watchable<String>()
+        x.callObserver("hello") { println(it) }
+      }
+    """)
+    val cache = projectRule.initialCache(listOf(file))
+
+    projectRule.modifyKtFile(file, """
+      fun interface Observer<T> {
+        fun onChanged(value: T)
+      }
+
+      class Watchable<T> {
+        fun <T> callObserver(value: T, o: Observer<T>) {
+          o.onChanged(value)
+        }
+      }
+
+      fun main() {
+        val x = Watchable<String>()
+        x.callObserver("hello") { println("value: " + it) }
+      }
+    """)
+
+    val output = compile(file, cache)
+    Assert.assertEquals(1, output.supportClassesMap.size)
   }
 
   @Test
@@ -176,7 +237,7 @@ class BasicCompileTest {
     val exception = Assert.assertThrows(LiveEditUpdateException::class.java) {
       compile(file, cache)
     }
-    assertEquals(exception.error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE)
+    assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED, exception.error)
     assertEquals(exception.details, "added new class C in Test.kt")
   }
 
@@ -189,7 +250,8 @@ class BasicCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
-    compile(listOf(LiveEditCompilerInput(fileCallA, fileCallA)), compiler)
+    val state = getPsiValidationState(fileCallA)
+    compile(listOf(LiveEditCompilerInput(fileCallA, state)), compiler)
   }
 
   @Test
@@ -269,8 +331,36 @@ class BasicCompileTest {
       compile(file, cache)
       fail("Expected exception due to modified constructor")
     } catch (e: LiveEditUpdateException) {
-      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, e.error)
       assertContains(e.details, "MyClass")
+    }
+  }
+
+  @Test
+  fun modifyFieldValue() {
+    val file = projectRule.createKtFile("ModifyFieldValue.kt", """
+      class MyClass() {
+        val a = 100
+        val b = 200
+      }
+    """)
+    val cache = projectRule.initialCache(listOf(file))
+
+    projectRule.modifyKtFile(file, """
+      class MyClass() {
+        val a = 999
+        val b = 200
+      }
+    """)
+
+    try {
+      compile(file, cache)
+      fail("Expected exception due to modified field")
+    }
+    catch (e: LiveEditUpdateException) {
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, e.error)
+      assertContains(e.details, "MyClass")
+      println(e.details)
     }
   }
 
@@ -286,10 +376,117 @@ class BasicCompileTest {
       compile(next, cache)
       fail("Expected exception due to modified static initializer")
     } catch (e: LiveEditUpdateException) {
-      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CLINIT, e.error)
       assertContains(e.details, "static initializer")
     }
   }
 
+  @Test
+  fun `Modify when Mapping`() {
+    val enumDef = projectRule.createKtFile("Food.kt", """
+      enum class Food { Pizza, Donuts }
+    """)
 
+    val file = projectRule.createKtFile("ModifyWhenMapping.kt", """
+      fun getUnits(food: Food) : String {
+        return when (food) {
+          Food.Pizza -> "slices"
+          Food.Donuts -> "dozens"
+        }
+      }
+    """)
+    val cache = projectRule.initialCache(listOf(enumDef, file))
+
+    projectRule.modifyKtFile(file, """
+      fun getUnits(food: Food) : String {
+        return when (food) {
+          Food.Donuts -> "x"
+          Food.Pizza -> "y"
+        }
+      }
+    """)
+
+    try {
+      compile(file, cache)
+      fail("Expected exception due to modified constructor")
+    } catch (e: LiveEditUpdateException) {
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH, e.error)
+      assertContains(e.details, "Changing `when` on enum code path")
+    }
+  }
+
+  @Test
+  fun `Adding new WithMapping`() {
+    val enumDef = projectRule.createKtFile("Food.kt", """
+      enum class Food { Pizza, Donuts }
+    """)
+
+    val file = projectRule.createKtFile("ModifyWhenMapping.kt", """
+      fun getUnits(food: Food) : String {
+        var suffix = when (food) {
+          Food.Pizza -> "!!"
+          Food.Donuts -> "!!!!!"
+        }
+        return suffix
+      }
+
+       fun getMessage(): String {
+          return getUnits(Food.Pizza)
+       }
+    """)
+    val cache = projectRule.initialCache(listOf(enumDef, file))
+
+    projectRule.modifyKtFile(file, """
+      fun getUnits(food: Food) : String {
+        var suffix = when (food) {
+          Food.Pizza -> "!!"
+          Food.Donuts -> "!!!!!"
+        }
+
+        return when (food) {
+          Food.Pizza -> "slices"
+          Food.Donuts -> "dozens"
+        } + suffix
+      }
+
+       fun getMessage(): String {
+          return getUnits(Food.Pizza)
+       }
+    """)
+
+    val output = compile(file, irClassCache = cache)
+    var apk = projectRule.directApiCompileByteArray(listOf(enumDef, file))
+
+    Assert.assertTrue(output.classesMap["ModifyWhenMappingKt"]!!.isNotEmpty())
+    val returnedValue = invokeStatic("getMessage", loadClass(output, extraClasses = apk))
+    Assert.assertEquals("slices!!", returnedValue)
+  }
+
+
+  @Test
+  fun diagnosticErrorForInvisibleReference() {
+    try {
+      val file = projectRule.createKtFile("A.kt", """
+      open class Parent {
+        protected open fun invisibleFunction() {}
+      }
+      class Child: Parent() {
+        override fun invisibleFunction() {}
+      }
+      fun foo() {
+        val child = Child()
+        child.invisibleFunction()
+      }
+    """)
+      compile(file)
+      Assert.fail("A.kt contains a call to an invisible function invisibleFunction()")
+    }
+    catch (e: LiveEditUpdateException) {
+      if (KotlinPluginModeProvider.isK2Mode()) {
+        Assert.assertEquals("[INVISIBLE_REFERENCE] Cannot access 'fun invisibleFunction(): Unit': it is protected in '/Child'.", e.message)
+      } else {
+        Assert.assertTrue(e.message?.contains("Analyze Error. INVISIBLE_MEMBER") == true)
+      }
+    }
+  }
 }

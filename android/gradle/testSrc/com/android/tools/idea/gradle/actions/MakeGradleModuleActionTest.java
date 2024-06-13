@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
@@ -37,7 +36,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
 import org.mockito.Mock;
 
@@ -61,7 +59,7 @@ public class MakeGradleModuleActionTest extends HeavyPlatformTestCase {
     new IdeComponents(project).replaceProjectService(Info.class, myInfo);
     new IdeComponents(project).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
 
-    when(myBuildInvoker.assemble(any(), any()))
+    when(myBuildInvoker.assemble(any()))
       .thenReturn(
         Futures.immediateFuture(
           new AssembleInvocationResult(
@@ -86,7 +84,7 @@ public class MakeGradleModuleActionTest extends HeavyPlatformTestCase {
     myAction.doPerform(myActionEvent, getProject());
 
     // Verify "assemble" was invoked.
-    verify(myBuildInvoker).assemble(selectedModules, TestCompileType.ALL);
+    verify(myBuildInvoker).assemble(selectedModules);
   }
 
   public void testNoDefaultSelection() {
@@ -94,7 +92,7 @@ public class MakeGradleModuleActionTest extends HeavyPlatformTestCase {
     myAction.doPerform(myActionEvent, getProject());
 
     // Verify "assemble" was invoked.
-    verify(myBuildInvoker).assemble(new Module[]{}, TestCompileType.ALL);
+    verify(myBuildInvoker).assemble(new Module[]{});
   }
 
   public void testDoRememberPreviousSelection() {
@@ -102,14 +100,14 @@ public class MakeGradleModuleActionTest extends HeavyPlatformTestCase {
     when(myInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(selectedModules);
 
     myAction.doPerform(myActionEvent, getProject());
-    verify(myBuildInvoker).assemble(selectedModules, TestCompileType.ALL);
+    verify(myBuildInvoker).assemble(selectedModules);
     reset(myBuildInvoker);
 
     when(myInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(new Module[]{});
     myAction.doPerform(myActionEvent, getProject());
 
     // Verify previous selection is stored
-    verify(myBuildInvoker).assemble(selectedModules, TestCompileType.ALL);
+    verify(myBuildInvoker).assemble(selectedModules);
     reset(myBuildInvoker);
 
     Module[] myapplication = new Module[]{createModule("myapplication")};
@@ -117,6 +115,6 @@ public class MakeGradleModuleActionTest extends HeavyPlatformTestCase {
     myAction.doPerform(myActionEvent, getProject());
 
     // Verify previous selection is updated after new module is selected
-    verify(myBuildInvoker).assemble(myapplication, TestCompileType.ALL);
+    verify(myBuildInvoker).assemble(myapplication);
   }
 }

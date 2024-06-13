@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.BUTTON;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake;
 import static com.android.tools.idea.common.LayoutTestUtilities.clickMouse;
 import static com.android.tools.idea.common.LayoutTestUtilities.createDropTargetContext;
 import static com.android.tools.idea.common.LayoutTestUtilities.createScreen;
@@ -36,6 +37,7 @@ import static com.android.tools.idea.common.LayoutTestUtilities.releaseKey;
 import static com.android.tools.idea.common.LayoutTestUtilities.releaseMouse;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.common.AdtUiCursorType;
 import com.android.tools.adtui.common.AdtUiCursorsProvider;
 import com.android.tools.adtui.common.AdtUiCursorsTestUtil;
@@ -43,17 +45,15 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.TestAdtUiCursorsProvider;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -62,10 +62,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.impl.HeadlessDataManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Point;
@@ -539,7 +536,8 @@ public class GuiInputHandlerTest extends LayoutTestCase {
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     ((HeadlessDataManager) DataManager.getInstance())
       .setTestDataProvider(dataId -> GuiInputHandler.CURSOR_RECEIVER.is(dataId) ? surface : null);
-    when(surface.getScale()).thenReturn(1.0);
+    ZoomController zoomControllerFake = createZoomControllerFake(1.0, null);
+    when(surface.getZoomController()).thenReturn(zoomControllerFake);
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     return surface;
   }

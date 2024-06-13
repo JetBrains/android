@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslTransformerFactory
+import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.psi.KtFile

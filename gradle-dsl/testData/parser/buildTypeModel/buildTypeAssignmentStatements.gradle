@@ -24,3 +24,5 @@ android.buildTypes.xyz.useJack = true
 android.buildTypes.xyz.useProguard = true
 android.buildTypes.xyz.versionNameSuffix = "abc"
 android.buildTypes.xyz.zipAlignEnabled = true
+android.buildTypes.xyz.enableUnitTestCoverage = true
+android.buildTypes.xyz.enableAndroidTestCoverage = true

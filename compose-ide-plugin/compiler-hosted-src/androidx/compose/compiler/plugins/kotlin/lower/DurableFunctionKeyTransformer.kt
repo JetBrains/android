@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package androidx.compose.compiler.plugins.kotlin.lower
 
+import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
+import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
 import androidx.compose.compiler.plugins.kotlin.analysis.ComposeWritableSlices.DURABLE_FUNCTION_KEY
 import androidx.compose.compiler.plugins.kotlin.analysis.ComposeWritableSlices.DURABLE_FUNCTION_KEYS
+import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
 import androidx.compose.compiler.plugins.kotlin.irTrace
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -36,6 +41,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.jetbrains.kotlin.ir.util.addChild
@@ -46,7 +52,6 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.load.kotlin.PackagePartClassUtils
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.BindingTrace
 
 class KeyInfo(
     val name: String,
@@ -102,14 +107,16 @@ class KeyInfo(
 class DurableFunctionKeyTransformer(
     context: IrPluginContext,
     symbolRemapper: DeepCopySymbolRemapper,
-    bindingTrace: BindingTrace,
     metrics: ModuleMetrics,
+    stabilityInferencer: StabilityInferencer,
+    featureFlags: FeatureFlags,
 ) : DurableKeyTransformer(
     DurableKeyVisitor(),
     context,
     symbolRemapper,
-    bindingTrace,
-    metrics
+    stabilityInferencer,
+    metrics,
+    featureFlags,
 ) {
     fun removeKeyMetaClasses(moduleFragment: IrModuleFragment) {
         moduleFragment.transformChildrenVoid(object : IrElementTransformerVoid() {
@@ -150,12 +157,12 @@ class DurableFunctionKeyTransformer(
         })
     }
 
-    private var currentKeys = mutableListOf<KeyInfo>()
+    var currentKeys = mutableListOf<KeyInfo>()
 
     private val keyMetaAnnotation =
-        getInternalClassOrNull("FunctionKeyMeta")
+        getTopLevelClassOrNull(ComposeClassIds.FunctionKeyMeta)
     private val metaClassAnnotation =
-        getInternalClassOrNull("FunctionKeyMetaClass")
+        getTopLevelClassOrNull(ComposeClassIds.FunctionKeyMetaClass)
 
     private fun irKeyMetaAnnotation(
         key: KeyInfo

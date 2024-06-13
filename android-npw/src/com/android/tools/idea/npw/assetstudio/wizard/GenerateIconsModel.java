@@ -61,7 +61,7 @@ public final class GenerateIconsModel extends WizardModel {
     myTemplate = template;
     myResFolder = resFolder;
     Project project = androidFacet.getModule().getProject();
-    myStateStorage = project.getService(StateStorage.class);
+    myStateStorage = StateStorage.getInstance(project);
     assert myStateStorage != null;
     myWizardId = wizardId;
   }

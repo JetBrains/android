@@ -88,7 +88,7 @@ import javax.swing.Icon
 class ResourceReferencePsiElement(
   val delegate: PsiElement,
   val resourceReference: ResourceReference,
-  val writable: Boolean = false
+  val writable: Boolean = false,
 ) : FakePsiElement() {
 
   override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
@@ -149,7 +149,7 @@ class ResourceReferencePsiElement(
   class ResourceReferencePsiElementDescriptorProvider : ElementDescriptionProvider {
     override fun getElementDescription(
       element: PsiElement,
-      location: ElementDescriptionLocation
+      location: ElementDescriptionLocation,
     ): String? {
       val resourceReference =
         (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
@@ -200,7 +200,7 @@ class ResourceReferencePsiElement(
       val resourceName = SdkUtils.fileNameToResourceName(element.name)
       return ResourceReferencePsiElement(
         element,
-        ResourceReference(resourceNamespace, resourceType, resourceName)
+        ResourceReference(resourceNamespace, resourceType, resourceName),
       )
     }
 
@@ -218,7 +218,7 @@ class ResourceReferencePsiElement(
         }
       return ResourceReferencePsiElement(
         element,
-        ResourceReference(resourceNamespace, STYLEABLE, element.name)
+        ResourceReference(resourceNamespace, STYLEABLE, element.name),
       )
     }
 
@@ -241,7 +241,7 @@ class ResourceReferencePsiElement(
             }
           ResourceReferencePsiElement(
             element,
-            ResourceReference(resourceNamespace, element.resourceType, element.resourceName)
+            ResourceReference(resourceNamespace, element.resourceType, element.resourceName),
           )
         }
         is TransitiveAarRClass -> {
@@ -250,8 +250,8 @@ class ResourceReferencePsiElement(
             ResourceReference(
               ResourceNamespace.RES_AUTO,
               element.resourceType,
-              element.resourceName
-            )
+              element.resourceName,
+            ),
           )
         }
         is SmallAarRClass -> {
@@ -259,7 +259,7 @@ class ResourceReferencePsiElement(
             ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
           ResourceReferencePsiElement(
             element,
-            ResourceReference(resourceNamespace, element.resourceType, element.resourceName)
+            ResourceReference(resourceNamespace, element.resourceType, element.resourceName),
           )
         }
         else -> null
@@ -275,7 +275,7 @@ class ResourceReferencePsiElement(
       val resourceType = containingClass.name?.let { ResourceType.fromClassName(it) } ?: return null
       return ResourceReferencePsiElement(
         element,
-        ResourceReference(ResourceNamespace.ANDROID, resourceType, element.name)
+        ResourceReference(ResourceNamespace.ANDROID, resourceType, element.name),
       )
     }
 

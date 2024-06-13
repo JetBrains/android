@@ -20,10 +20,7 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
-import com.android.tools.datastore.poller.DeviceProcessPoller;
 import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
-import com.android.tools.idea.io.grpc.Channel;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
@@ -49,6 +46,8 @@ import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
+import com.android.tools.idea.io.grpc.Channel;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,7 +63,6 @@ import org.jetbrains.annotations.NotNull;
  * {@link #getDevices(GetDevicesRequest, StreamObserver)}, {@link #getProcesses(GetProcessesRequest, StreamObserver)}, etc.
  */
 public class TransportService extends TransportServiceGrpc.TransportServiceImplBase implements ServicePassThrough {
-  private final Map<Channel, DeviceProcessPoller> myLegacyPollers = Maps.newHashMap();
   private final Consumer<Runnable> myFetchExecutor;
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final DeviceProcessTable myLegacyTable;
@@ -119,10 +117,6 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   }
 
   public void disconnectFromChannel(Channel channel) {
-    if (myLegacyPollers.containsKey(channel)) {
-      DeviceProcessPoller poller = myLegacyPollers.remove(channel);
-      poller.stop();
-    }
     if (myUnifiedEventsPollers.containsKey(channel)) {
       UnifiedEventsDataPoller poller = myUnifiedEventsPollers.remove(channel);
       poller.stop();

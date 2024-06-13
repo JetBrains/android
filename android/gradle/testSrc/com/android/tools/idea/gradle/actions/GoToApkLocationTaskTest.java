@@ -33,7 +33,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

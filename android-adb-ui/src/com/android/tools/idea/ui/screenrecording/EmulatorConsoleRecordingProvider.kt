@@ -59,6 +59,9 @@ internal class EmulatorConsoleRecordingProvider(
   override suspend fun startRecording(): Deferred<Unit> {
     val handle = CompletableDeferred<Unit>()
     Disposer.register(this) {
+      CoroutineScope(Dispatchers.IO).launch {
+        emulatorConsole.stopScreenRecording()
+      }
       recordingHandle.getAndSet(null)?.completeExceptionally(
           RuntimeException(AndroidAdbUiBundle.message("screenrecord.error.disconnected")))
     }

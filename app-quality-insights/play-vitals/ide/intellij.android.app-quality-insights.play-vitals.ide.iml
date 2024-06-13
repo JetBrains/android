@@ -8,7 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ide" />
     <orderEntry type="module" module-name="intellij.android.artwork" />

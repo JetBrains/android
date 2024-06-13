@@ -116,7 +116,7 @@ class ComposeLayoutInspectorClientTest {
       emptyMap(),
       DeviceState.HostConnectionType.LOCAL,
       "myAvd",
-      "/android/avds/myAvd"
+      "/android/avds/myAvd",
     )
     ProjectSystemService.getInstance(projectRule.project)
       .replaceProjectSystemForTests(GradleProjectSystem(projectRule.project))
@@ -149,14 +149,14 @@ class ComposeLayoutInspectorClientTest {
       object : InspectorArtifactService {
         override suspend fun getOrResolveInspectorArtifact(
           artifactCoordinate: RunningArtifactCoordinate,
-          project: Project
+          project: Project,
         ): Path {
           throw AppInspectionArtifactNotFoundException(
             "not found",
             RunningArtifactCoordinate(
               mockMinimumArtifactCoordinate("group", "id", "1.3.0-SNAPSHOT"),
-              "1.3.0-SNAPSHOT"
-            )
+              "1.3.0-SNAPSHOT",
+            ),
           )
         }
       }
@@ -172,7 +172,7 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY),
-      AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
+      AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED,
     )
   }
 
@@ -182,14 +182,14 @@ class ComposeLayoutInspectorClientTest {
       object : InspectorArtifactService {
         override suspend fun getOrResolveInspectorArtifact(
           artifactCoordinate: RunningArtifactCoordinate,
-          project: Project
+          project: Project,
         ): Path {
           throw AppInspectionArtifactNotFoundException(
             "not found",
             RunningArtifactCoordinate(
               mockMinimumArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0"),
-              "1.3.0"
-            )
+              "1.3.0",
+            ),
           )
         }
       }
@@ -205,7 +205,7 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY),
-      AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
+      AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND,
     )
   }
 
@@ -215,14 +215,14 @@ class ComposeLayoutInspectorClientTest {
       object : InspectorArtifactService {
         override suspend fun getOrResolveInspectorArtifact(
           artifactCoordinate: RunningArtifactCoordinate,
-          project: Project
+          project: Project,
         ): Path {
           throw AppInspectionArtifactNotFoundException(
             "not found",
             RunningArtifactCoordinate(
               mockMinimumArtifactCoordinate("androidx.compose.ui", "ui-android", "1.5.0"),
-              "1.5.0"
-            )
+              "1.5.0",
+            ),
           )
         }
       }
@@ -238,7 +238,7 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY),
-      AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
+      AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND,
     )
   }
 
@@ -254,7 +254,7 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY),
-      AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND
+      AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND,
     )
   }
 
@@ -270,7 +270,7 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY),
-      AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
+      AttachErrorCode.APP_INSPECTION_PROGUARDED_APP,
     )
   }
 
@@ -288,7 +288,7 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY),
-      AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
+      AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION,
     )
   }
 
@@ -297,18 +297,18 @@ class ComposeLayoutInspectorClientTest {
     val artifact =
       RunningArtifactCoordinate(
         mockMinimumArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0"),
-        "1.3.0"
+        "1.3.0",
       )
     val artifactService =
       object : InspectorArtifactService {
         override suspend fun getOrResolveInspectorArtifact(
           artifactCoordinate: RunningArtifactCoordinate,
-          project: Project
+          project: Project,
         ): Path {
           throw AppInspectionArtifactNotFoundException(
             "Artifact $artifactCoordinate could not be resolved on $GMAVEN_HOSTNAME.",
             artifact,
-            UnknownHostException(GMAVEN_HOSTNAME)
+            UnknownHostException(GMAVEN_HOSTNAME),
           )
         }
       }
@@ -324,7 +324,7 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(MAVEN_DOWNLOAD_PROBLEM, artifact.toString()),
-      AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
+      AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD,
     )
   }
 
@@ -344,7 +344,7 @@ class ComposeLayoutInspectorClientTest {
       .thenThrow(
         TransportNonExistingFileException(
           "File $file could not be found for device emulator-123",
-          file
+          file,
         )
       )
     val target = mock<AppInspectionTarget>()
@@ -358,9 +358,9 @@ class ComposeLayoutInspectorClientTest {
       LayoutInspectorBundle.message(
         COMPOSE_JAR_FOUND_FOUND_KEY,
         file,
-        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.id
+        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.id,
       ),
-      AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND
+      AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND,
     )
   }
 
@@ -380,7 +380,7 @@ class ComposeLayoutInspectorClientTest {
       .thenThrow(
         TransportNonExistingFileException(
           "File $file could not be found for device emulator-123",
-          file
+          file,
         )
       )
     val target = mock<AppInspectionTarget>()
@@ -394,10 +394,10 @@ class ComposeLayoutInspectorClientTest {
       LayoutInspectorBundle.message(
         COMPOSE_JAR_FOUND_FOUND_KEY,
         file,
-        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.id
+        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.id,
       ),
       AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND,
-      isRunningFromSources = false
+      isRunningFromSources = false,
     )
   }
 
@@ -440,19 +440,19 @@ class ComposeLayoutInspectorClientTest {
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, "1.1.0-beta05", "1.2.1"),
-      expectClient = true
+      expectClient = true,
     )
     checkLaunch(apiServices, "", expectClient = true)
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, "1.2.0", "1.2.1"),
-      expectClient = true
+      expectClient = true,
     )
     checkLaunch(apiServices, "", expectClient = true)
     checkLaunch(
       apiServices,
       LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, "1.3.0-alpha01", "1.3.0"),
-      expectClient = true
+      expectClient = true,
     )
   }
 
@@ -466,7 +466,7 @@ class ComposeLayoutInspectorClientTest {
     assertThat(
         resolveFolder(
           "/Volumes/android/studio-main/tools/adt/idea",
-          "#tools/../prebuilts/studio/sdk"
+          "#tools/../prebuilts/studio/sdk",
         )
       )
       .isEqualTo("../../../prebuilts/studio/sdk".replace("/", File.separator))
@@ -481,14 +481,14 @@ class ComposeLayoutInspectorClientTest {
     assertThat(
         resolveFolder(
           "/Volumes/android/androidx-main/frameworks/support/studio/android-studio-2022.2.1.5-mac/Android Studio Preview.app/Contents",
-          "#studio/../../../out/some-folder"
+          "#studio/../../../out/some-folder",
         )
       )
       .isEqualTo("../../../../../../out/some-folder".replace("/", File.separator))
     assertThat(
         resolveFolder(
           "/usr/local/google/home/jlauridsen/internal/androidx-main/frameworks/support/studio/android-studio-2022.2.1.5-linux/android-studio",
-          "#studio/../../../out/some-folder"
+          "#studio/../../../out/some-folder",
         )
       )
       .isEqualTo("../../../../../out/some-folder".replace("/", File.separator))
@@ -535,11 +535,11 @@ class ComposeLayoutInspectorClientTest {
     expectedMessage: String,
     expectedError: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE,
     expectClient: Boolean = false,
-    isRunningFromSources: Boolean = true
+    isRunningFromSources: Boolean = true,
   ) {
     var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
     val capabilities = EnumSet.noneOf(InspectorClient.Capability::class.java)
-    val model = model(projectRule.project) {}
+    val model = model(projectRule.testRootDisposable, projectRule.project) {}
     val notificationModel = NotificationModel(projectRule.project)
     val client =
       ComposeLayoutInspectorClient.launch(
@@ -551,7 +551,7 @@ class ComposeLayoutInspectorClientTest {
         capabilities,
         mock(),
         { errorCode = it },
-        isRunningFromSources
+        isRunningFromSources,
       )
     if (expectClient) {
       assertThat(client).isNotNull()

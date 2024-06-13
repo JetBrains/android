@@ -52,7 +52,7 @@ class AppInsightsIssuesTableCellRendererTest {
         emptySet(),
         "https://url.for-crash.com",
         0,
-        emptyList()
+        emptyList(),
       )
 
     table.columnModel.addColumn(TableColumn(0).apply { width = 200 })
@@ -64,7 +64,7 @@ class AppInsightsIssuesTableCellRendererTest {
           false,
           false,
           0,
-          0
+          0,
         )
       return renderer.flatten().mapNotNull {
         when (it) {
@@ -91,14 +91,14 @@ class AppInsightsIssuesTableCellRendererTest {
             detailsTemplate.copy(
               signals = setOf(SignalType.SIGNAL_FRESH, SignalType.SIGNAL_REGRESSED)
             ),
-            mock()
+            mock(),
           )
         )
       )
       .containsExactly(
         StudioIcons.AppQualityInsights.FATAL,
         StudioIcons.AppQualityInsights.REGRESSED_SIGNAL,
-        StudioIcons.AppQualityInsights.FRESH_SIGNAL
+        StudioIcons.AppQualityInsights.FRESH_SIGNAL,
       )
   }
 }

@@ -22,8 +22,8 @@ import com.android.tools.adtui.categorytable.constrainSize
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBDimension
-import kotlinx.coroutines.CoroutineScope
 import javax.swing.BoxLayout
+import kotlinx.coroutines.CoroutineScope
 
 internal open class ActionButtonsPanel : JBPanel<ActionButtonsPanel>() {
   protected fun setUp(vararg buttons: IconButton?) {
@@ -52,7 +52,7 @@ internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHan
       activationAction != null && deactivationAction != null -> {
         setUp(
           StartStopButton(handle, activationAction, deactivationAction, handle.repairDeviceAction),
-          overflowButton
+          overflowButton,
         )
       }
       project == null -> setUp(overflowButton)
@@ -63,7 +63,7 @@ internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHan
 
 internal class DeviceTemplateButtonsPanel(
   coroutineScope: CoroutineScope,
-  deviceTemplate: DeviceTemplate
+  deviceTemplate: DeviceTemplate,
 ) : ActionButtonsPanel() {
 
   init {

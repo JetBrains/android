@@ -20,9 +20,9 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.fonts.StudioDownloadableFontCacheService;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
@@ -92,7 +92,7 @@ public class StudioAssetFileOpener implements AssetFileOpener {
    * Returns whether the given file is contained within the downloadable fonts cache
    */
   private static boolean isCachedFontFile(@NotNull VirtualFile file) {
-    File fontCachePathFile = DownloadableFontCacheService.getInstance().getFontPath();
+    File fontCachePathFile = StudioDownloadableFontCacheService.getInstance().getFontCachePath();
     if (fontCachePathFile == null) {
       return false;
     }

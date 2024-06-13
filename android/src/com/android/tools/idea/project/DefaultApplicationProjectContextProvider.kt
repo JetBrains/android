@@ -17,7 +17,6 @@ package com.android.tools.idea.project
 
 import com.android.ddmlib.Client
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
 import com.intellij.openapi.project.Project
@@ -26,8 +25,8 @@ import com.intellij.openapi.project.Project
  * An [ApplicationProjectContextProvider] for the default project system.
  */
 class DefaultApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, DefaultToken {
-  override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
-    val result = FacetFinder.findFacetForProcess(project, client.clientData)
+  override fun getApplicationProjectContext(client: Client): ApplicationProjectContext? {
+    val result = FacetFinder.tryFindFacetForProcess(project, client.clientData) ?: return null
     return FacetBasedApplicationProjectContext(
       result.applicationId,
       result.facet

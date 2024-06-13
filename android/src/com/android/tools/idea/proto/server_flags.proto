@@ -15,6 +15,13 @@ enum OSType {
   OS_TYPE_FREE_BSD = 5;
 }
 
+// Types of IDE brands.
+enum Brand {
+  BRAND_UNKNOWN = 0;
+  BRAND_ANDROID_STUDIO = 1;
+  BRAND_ANDROID_STUDIO_WITH_BLAZE = 2;
+}
+
 // ServerFlag is a property used to configure a specific feature
 // at the client
 message ServerFlag {
@@ -31,6 +38,9 @@ message ServerFlag {
   }
   // Set of OS types to apply this flag to
   repeated OSType os_type = 7;
+
+  // Set of brands to apply this flag to
+  repeated Brand brand = 8;
 }
 
 // ServerFlagData associates a unique name with a server flag

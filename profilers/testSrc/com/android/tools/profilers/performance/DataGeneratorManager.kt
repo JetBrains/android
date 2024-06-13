@@ -36,7 +36,6 @@ class DataGeneratorManager(connection: Connection, performantDb: Boolean) {
     }
     else {
       myGenerators.add(EventsGenerator(connection))
-      myGenerators.add(EnergyGenerator(connection))
       myGenerators.add(CpuGenerator(connection))
       myGenerators.add(NetworkGenerator(connection))
       myGenerators.add(MemoryGenerator(connection))

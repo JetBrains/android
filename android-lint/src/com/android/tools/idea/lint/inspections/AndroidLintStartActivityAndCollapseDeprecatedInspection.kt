@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.TileServiceActivityDetector
 class AndroidLintStartActivityAndCollapseDeprecatedInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.start.activity.and.collapse.deprecated"),
-    TileServiceActivityDetector.START_ACTIVITY_AND_COLLAPSE_DEPRECATED
+    TileServiceActivityDetector.START_ACTIVITY_AND_COLLAPSE_DEPRECATED,
   )

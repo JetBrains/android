@@ -15,17 +15,20 @@
  */
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.FocusInteraction
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,90 +38,100 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.ICON_SIZE_PX
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_WIDTH_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
+import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import main.utils.UnitConversion.toDpWithCurrentDisplayDensity
 import org.jetbrains.jewel.foundation.modifier.onHover
+import org.jetbrains.jewel.ui.component.ButtonState
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.Tooltip
+import org.jetbrains.jewel.ui.focusOutline
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TaskGridItem(task: ProfilerTaskType,
-                 isSelectedTask: Boolean,
-                 onTaskSelection: (task: ProfilerTaskType) -> Unit,
-                 isTaskEnabled: Boolean) {
-  // TODO (b/309506699) Give more description as to why it is not supported (because profileable, api level, etc.)
-  val tooltipMessage = if (isTaskEnabled) "Tooltip for ${task.description}" else "${task.description} is not supported"
-
-  val taskIconAndDescription: @Composable () -> Unit = {
-    TaskIconAndDescriptionWrapper(task = task, isSelectedTask = isSelectedTask, isTaskEnabled = isTaskEnabled,
-                                  onTaskSelection = onTaskSelection)
-  }
-  taskIconAndDescription.let { if (isTaskEnabled) it() else Tooltip(tooltip = { Text(tooltipMessage) }, content = it) }
+fun TaskGridItem(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
+  TaskIconAndDescriptionWrapper(task = task, isSelectedTask = isSelectedTask, onTaskSelection = onTaskSelection)
 }
 
 @Composable
-fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType,
-                                  isSelectedTask: Boolean,
-                                  isTaskEnabled: Boolean,
-                                  onTaskSelection: (task: ProfilerTaskType) -> Unit) {
+fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
 
   var isHovered by remember { mutableStateOf(false) }
+
+  val interactionSource = remember { MutableInteractionSource() }
+  var buttonState by remember(interactionSource) {
+    mutableStateOf(ButtonState.of(enabled = true))
+  }
+
+  LaunchedEffect(interactionSource) {
+    interactionSource.interactions.collect { interaction ->
+      when (interaction) {
+        is FocusInteraction.Focus -> buttonState = buttonState.copy(focused = true)
+        is FocusInteraction.Unfocus -> buttonState = buttonState.copy(focused = false)
+      }
+    }
+  }
+
   Box(
     contentAlignment = Alignment.Center,
     modifier = Modifier
-      .width(TASK_WIDTH_DP)
-      .clip(shape = RoundedCornerShape(5.dp))
+      .padding(vertical = 5.dp)
+      .fillMaxWidth()
+      .focusOutline(buttonState, RoundedCornerShape(2.dp))
+      .clip(shape = RoundedCornerShape(4.dp))
       .background(
         if (isSelectedTask) {
           TASK_SELECTION_BACKGROUND_COLOR
         }
-        else if (isHovered && isTaskEnabled) {
+        else if (isHovered) {
           TASK_HOVER_BACKGROUND_COLOR
         }
         else {
           Color.Transparent
         })
-      .selectable(
-        selected = isSelectedTask,
-        enabled = isTaskEnabled
-      ) {
+      .selectable(selected = isSelectedTask, interactionSource = interactionSource, indication = null) {
         onTaskSelection(task)
       }
       .onHover { isHovered = it }
       .testTag("TaskGridItem")
   ) {
-    TaskIconAndDescription(task = task, isTaskEnabled = isTaskEnabled, this)
+    TaskIconAndDescription(task = task, this)
   }
 }
 
 @Composable
-fun TaskIconAndDescription(task: ProfilerTaskType, isTaskEnabled: Boolean, boxScope: BoxScope) {
-  val iconSizeDp = ICON_SIZE_PX.toDpWithCurrentDisplayDensity()
-  val taskIcon = if (isTaskEnabled) TaskBasedUxIcons.getTaskIcon(task) else TaskBasedUxIcons.DISABLED_TASK_ICON
+fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
+  val taskTitle = TaskBasedUxStrings.getTaskTitle(task)
+  val taskSubtitle = TaskBasedUxStrings.getTaskSubtitle(task)
   with(boxScope) {
     Column(
-      modifier = Modifier.align(Alignment.Center).padding(20.dp)
+      modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(vertical = 20.dp, horizontal = 10.dp).testTag(task.description)
     ) {
       Icon(
-        resource = taskIcon.path,
-        iconClass = taskIcon.iconClass,
+        painter = TaskIconUtils.getLargeTaskIconPainter(task),
         contentDescription = task.description,
-        modifier = Modifier.size(iconSizeDp).align(Alignment.CenterHorizontally)
+        modifier = Modifier.align(Alignment.CenterHorizontally)
       )
+      Spacer(modifier = Modifier.height(10.dp))
       Text(
-        text = task.description,
+        text = taskTitle,
         textAlign = TextAlign.Center,
-        modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp)
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.align(Alignment.CenterHorizontally)
       )
+      Spacer(modifier = Modifier.height(5.dp))
+      taskSubtitle?.let {
+        Text(
+          text = it,
+          textAlign = TextAlign.Center,
+          color = Color.Gray,
+          modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+      }
     }
   }
 }

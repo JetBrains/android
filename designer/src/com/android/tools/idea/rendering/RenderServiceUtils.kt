@@ -28,7 +28,7 @@ fun RenderService.createHtmlLogger(project: Project?): RenderLogger {
     project,
     StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(),
     ShowFixFactory,
-    ::StudioHtmlLinkManager
+    ::StudioHtmlLinkManager,
   )
 }
 
@@ -38,6 +38,6 @@ fun RenderService.createHtmlLogger(project: Project?): RenderLogger {
  */
 fun RenderService.taskBuilderWithHtmlLogger(
   facet: AndroidFacet,
-  configuration: Configuration
+  configuration: Configuration,
 ): RenderService.RenderTaskBuilder =
   taskBuilder(facet, configuration, createHtmlLogger(facet.module.project))

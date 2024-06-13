@@ -33,8 +33,25 @@ internal fun DeviceState.toDevice(): Device? {
 
   return when (properties) {
     is LocalEmulatorProperties ->
-      Device.createEmulator(serialNumber, true, release, sdk, properties.avdName, featureLevel)
+      Device.createEmulator(
+        serialNumber,
+        true,
+        release,
+        sdk,
+        properties.avdName,
+        featureLevel,
+        properties.deviceType,
+      )
     else ->
-      Device.createPhysical(serialNumber, true, release, sdk, manufacturer, model, featureLevel)
+      Device.createPhysical(
+        serialNumber,
+        true,
+        release,
+        sdk,
+        manufacturer,
+        model,
+        featureLevel,
+        properties.deviceType,
+      )
   }
 }

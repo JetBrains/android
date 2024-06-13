@@ -94,7 +94,7 @@ class PsAndroidModuleAnalyzer(
           .toSet())
       val declaredVersion = spec.version
       val message = if (declaredVersion == null)
-        "Gradle promoted library version to ${promotedTo.version}"
+        "Gradle provided version ${promotedTo.version}"
       else
         "Gradle promoted library version from $declaredVersion to ${promotedTo.version}"
       // TODO(b/110690694): Provide a detailed message showing all known places which request different versions of the same library.

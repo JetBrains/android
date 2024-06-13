@@ -46,7 +46,7 @@ private class TestDisposableImage : ImagePool.Image, DisposableImage {
     sx1: Int,
     sy1: Int,
     sx2: Int,
-    sy2: Int
+    sy2: Int,
   ) {}
 
   override fun paint(command: Consumer<Graphics2D>?) {}

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.test.testutils.TestUtils.getBinPath
 import com.android.test.testutils.TestUtils.resolveWorkspacePath
@@ -26,9 +27,11 @@ import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
+import com.android.tools.idea.testing.flags.override
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
@@ -385,12 +388,18 @@ class ScreenSharingAgentTest {
     private val emptyDeviceConfiguration =
       DeviceConfiguration(DeviceProperties.buildForTest {
         icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        androidVersion = AndroidVersion(30)
+        manufacturer = "Google"
+        model = "Pixel 5"
+        isRemote = false
       })
+    private var classDisposable: Disposable? = null
 
     @JvmStatic
     @BeforeClass
     fun setUpClass() {
-      StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.override("debug")
+      val disposable = Disposer.newDisposable("ScreenSharingAgentTest").also { classDisposable = it }
+      StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.override("debug", disposable)
 
       val adbBinary = resolveWorkspacePath("prebuilts/studio/sdk/linux/platform-tools/adb")
       check(Files.exists(adbBinary))
@@ -440,6 +449,10 @@ class ScreenSharingAgentTest {
     @JvmStatic
     @AfterClass
     fun tearDownClass() {
+      classDisposable?.let {
+        Disposer.dispose(it)
+        classDisposable = null
+      }
       emulator.close()
       // Don't tear this down if setup failed because it will create distracting stacks in the test failure.
       if (::deviceView.isInitialized) {

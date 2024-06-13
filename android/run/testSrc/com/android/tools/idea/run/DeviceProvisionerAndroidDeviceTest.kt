@@ -20,13 +20,16 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Uninterruptibles
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class DeviceProvisionerAndroidDeviceTest {
   @get:Rule val deviceProvisionerRule = DeviceProvisionerRule()
@@ -48,6 +51,7 @@ class DeviceProvisionerAndroidDeviceTest {
     ) {
       Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS)
     }
+    deviceProvisionerRule.deviceProvisionerPlugin.explicitBoot = true
   }
 
   @After
@@ -63,12 +67,20 @@ class DeviceProvisionerAndroidDeviceTest {
 
     val device = DeviceHandleAndroidDevice(bridge.asDdmlibDeviceLookup(), handle, handle.state)
     assertThat(device.isRunning).isFalse()
+    assertThat(device.serial).isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
 
-    val iDevice = runBlocking { device.bootDefault().await() }
+    val futureDevice = device.bootDefault()
 
+    assertThat(runCatching { futureDevice.get(1, TimeUnit.SECONDS) }.exceptionOrNull())
+      .isInstanceOf(TimeoutException::class.java)
+
+    handle.finishBoot()
+
+    val iDevice =
+      checkNotNull(runBlocking { withTimeoutOrNull(5.seconds) { futureDevice.await() } })
     assertThat(iDevice.serialNumber).isEqualTo("abcd")
     assertThat(device.isRunning).isTrue()
-    assertThat(device.serial).isEqualTo("abcd")
+    assertThat(device.serial).isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
     runBlocking { assertThat(device.launchedDevice.await()).isEqualTo(iDevice) }
   }
 }

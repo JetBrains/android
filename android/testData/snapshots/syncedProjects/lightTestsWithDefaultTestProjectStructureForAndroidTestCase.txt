@@ -44,7 +44,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
                 CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
                 REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
@@ -52,30 +51,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
                 SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :clean
-                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-                REBUILD                       : :assembleDebug, :assembleDebugUnitTest, :clean
-                COMPILE_JAVA                  : :compileDebugUnitTestSources
-                SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :generateDebugSources
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
-                COMPILE_JAVA                  : :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
     MODULE                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
@@ -123,7 +100,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -132,38 +108,13 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         ORDER_ENTRY                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
-                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
-                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
-                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :clean
-                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-                REBUILD                       : :assembleDebug, :assembleDebugUnitTest, :clean
-                COMPILE_JAVA                  : :compileDebugUnitTestSources
-                SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :generateDebugSources
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
-                COMPILE_JAVA                  : :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
+                CLEAN                         : :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                ASSEMBLE                      : :assembleDebugAndroidTest
+                REBUILD                       : :assembleDebugAndroidTest, :clean
+                COMPILE_JAVA                  : :compileDebugAndroidTestSources
+                SOURCE_GEN                    : :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
     MODULE                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
@@ -217,7 +168,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/srcKotlin [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -228,31 +178,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             -                             : file://<TEMP>/build/intermediates/javac/debug/classes
             -                             : file://<TEMP>/build/generated/res/resValues/debug
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
-                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
-                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
-                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :clean
-                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-                REBUILD                       : :assembleDebug, :assembleDebugUnitTest, :clean
-                COMPILE_JAVA                  : :compileDebugUnitTestSources
-                SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : None
                 CLEAN                         : :generateDebugSources
                 ASSEMBLE                      : :assembleDebug
                 REBUILD                       : :assembleDebug, :clean
@@ -260,6 +185,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
                 SOURCE_GEN                    : :generateDebugSources
                 BUNDLE                        : :bundleDebug
                 APK_FROM_BUNDLE               : :extractApksForDebug
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
     MODULE                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
@@ -303,7 +230,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -312,40 +238,14 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         ORDER_ENTRY                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
             Scope                         : Test
         BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
-                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest, :clean
-                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources, :compileDebugUnitTestSources
-                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
-                REBUILD                       : :assembleDebug, :assembleDebugAndroidTest, :clean
-                COMPILE_JAVA                  : :compileDebugAndroidTestSources, :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources, :ideAndroidTestSetupTask1, :ideAndroidTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
-                REBUILD                       : :assembleDebug, :assembleDebugUnitTest, :clean
+                CLEAN                         : :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
+                ASSEMBLE                      : :assembleDebugUnitTest
+                REBUILD                       : :assembleDebugUnitTest, :clean
                 COMPILE_JAVA                  : :compileDebugUnitTestSources
-                SOURCE_GEN                    : :generateDebugSources, :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
-            TEST_COMPILE_MODE             : None
-                CLEAN                         : :generateDebugSources
-                ASSEMBLE                      : :assembleDebug
-                REBUILD                       : :assembleDebug, :clean
-                COMPILE_JAVA                  : :compileDebugSources
-                SOURCE_GEN                    : :generateDebugSources
-                BUNDLE                        : :bundleDebug
-                APK_FROM_BUNDLE               : :extractApksForDebug
+                SOURCE_GEN                    : :ideUnitTestSetupTask1, :ideUnitTestSetupTask2
+                BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
     BUILD_TASKS
-        TEST_COMPILE_MODE             : All
             CLEAN                         : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
             ASSEMBLE                      : <TEMP>::assembleDebug, <TEMP>::assembleDebugAndroidTest, <TEMP>::assembleDebugUnitTest
             REBUILD                       : <TEMP>::assembleDebug, <TEMP>::assembleDebugAndroidTest, <TEMP>::assembleDebugUnitTest, <TEMP>::clean
@@ -353,27 +253,5 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             SOURCE_GEN                    : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
             BUNDLE                        : :bundleDebug
             APK_FROM_BUNDLE               : :extractApksForDebug
-        TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2
-            ASSEMBLE                      : <TEMP>::assembleDebug, <TEMP>::assembleDebugAndroidTest
-            REBUILD                       : <TEMP>::assembleDebug, <TEMP>::assembleDebugAndroidTest, <TEMP>::clean
-            COMPILE_JAVA                  : <TEMP>::compileDebugAndroidTestSources, <TEMP>::compileDebugSources
-            SOURCE_GEN                    : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2
-            BUNDLE                        : :bundleDebug
-            APK_FROM_BUNDLE               : :extractApksForDebug
-        TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <TEMP>::generateDebugSources, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
-            ASSEMBLE                      : <TEMP>::assembleDebug, <TEMP>::assembleDebugUnitTest
-            REBUILD                       : <TEMP>::assembleDebug, <TEMP>::assembleDebugUnitTest, <TEMP>::clean
-            COMPILE_JAVA                  : <TEMP>::compileDebugUnitTestSources
-            SOURCE_GEN                    : <TEMP>::generateDebugSources, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
-            BUNDLE                        : :bundleDebug
-            APK_FROM_BUNDLE               : :extractApksForDebug
-        TEST_COMPILE_MODE             : None
-            CLEAN                         : <TEMP>::generateDebugSources
-            ASSEMBLE                      : <TEMP>::assembleDebug
-            REBUILD                       : <TEMP>::assembleDebug, <TEMP>::clean
-            COMPILE_JAVA                  : <TEMP>::compileDebugSources
-            SOURCE_GEN                    : <TEMP>::generateDebugSources
-            BUNDLE                        : :bundleDebug
-            APK_FROM_BUNDLE               : :extractApksForDebug
+            BASELINE_PROFILE_GEN          : :generateDebugBaselineProfile
+            BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile

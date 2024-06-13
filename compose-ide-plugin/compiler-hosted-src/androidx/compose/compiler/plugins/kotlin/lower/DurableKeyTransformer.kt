@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package androidx.compose.compiler.plugins.kotlin.lower
 
+import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -55,6 +59,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrBranchImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrElseBranchImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrDynamicType
 import org.jetbrains.kotlin.ir.types.IrErrorType
 import org.jetbrains.kotlin.ir.types.IrSimpleType
@@ -65,16 +70,16 @@ import org.jetbrains.kotlin.ir.util.isAnnotationClass
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.BindingTrace
 
 open class DurableKeyTransformer(
     private val keyVisitor: DurableKeyVisitor,
     context: IrPluginContext,
     symbolRemapper: DeepCopySymbolRemapper,
-    bindingTrace: BindingTrace,
+    stabilityInferencer: StabilityInferencer,
     metrics: ModuleMetrics,
-) :
-    AbstractComposeLowering(context, symbolRemapper, bindingTrace, metrics),
+    featureFlags: FeatureFlags,
+    ) :
+    AbstractComposeLowering(context, symbolRemapper, metrics, stabilityInferencer, featureFlags),
     ModuleLoweringPass {
 
     override fun lower(module: IrModuleFragment) {
@@ -89,11 +94,11 @@ open class DurableKeyTransformer(
 
     protected fun <T> root(keys: MutableSet<String>, block: () -> T): T =
         keyVisitor.root(keys, block)
-    private fun <T> enter(key: String, block: () -> T) = keyVisitor.enter(key, block)
-    private fun <T> siblings(key: String, block: () -> T) = keyVisitor.siblings(key, block)
-    private fun <T> siblings(block: () -> T) = keyVisitor.siblings(block)
+    protected fun <T> enter(key: String, block: () -> T) = keyVisitor.enter(key, block)
+    protected fun <T> siblings(key: String, block: () -> T) = keyVisitor.siblings(key, block)
+    protected fun <T> siblings(block: () -> T) = keyVisitor.siblings(block)
 
-    private fun Name.asJvmFriendlyString(): String {
+    protected fun Name.asJvmFriendlyString(): String {
         return if (!isSpecial) identifier
         else asString()
             .replace('<', '$')
@@ -264,12 +269,11 @@ open class DurableKeyTransformer(
         }
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     protected fun IrType.asString(): String {
         return when (this) {
             is IrDynamicType -> "dynamic"
             is IrErrorType -> "IrErrorType"
-            is IrSimpleType -> classifier.descriptor.name.asString()
+            is IrSimpleType -> (classifier.owner as IrDeclarationWithName).name.asString()
             else -> "{${javaClass.simpleName} $this}"
         }
     }

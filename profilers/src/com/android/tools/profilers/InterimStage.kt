@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers
 
+import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
 import com.intellij.openapi.diagnostic.Logger
 
 /**
@@ -30,6 +31,15 @@ interface InterimStage {
    * procedure.
    */
   val stopAction: Runnable
+
+  /**
+   * The RecordingScreenModel to be created and managed by each InterimStage.
+   *
+   * This model will back the state for the corresponding RecordingScreen component living in the InterimStageView.
+   * NOTE: This field is nullable so that it's instantiation could be prevented when the Task-Based UX feature flag is disabled.
+   * TODO (b/323973893): Make this field's type non-null after enabling the Task-Based UX flag permanently and/or removing the feature flag.
+   */
+  val recordingScreenModel: RecordingScreenModel<*>?
 
   /**
    * Method used to safely invoke the "stopAction".

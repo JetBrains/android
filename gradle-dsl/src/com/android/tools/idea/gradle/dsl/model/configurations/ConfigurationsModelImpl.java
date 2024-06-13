@@ -21,9 +21,10 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 public class ConfigurationsModelImpl extends GradleDslBlockModel implements ConfigurationsModel {
   public ConfigurationsModelImpl(@NotNull ConfigurationsDslElement element) {

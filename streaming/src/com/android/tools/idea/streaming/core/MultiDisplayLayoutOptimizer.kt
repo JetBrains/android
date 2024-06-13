@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import java.awt.Dimension
+import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 
@@ -82,7 +83,7 @@ internal class SplitNode(
       SplitType.HORIZONTAL -> '|'
       SplitType.VERTICAL -> EM_DASH
     }
-    val ratio = String.format("%.2g", splitRatio)
+    val ratio = String.format(Locale.ROOT, "%.2g", splitRatio)
     return "[$firstChild] $splitChar [$secondChild] $ratio"
   }
 }

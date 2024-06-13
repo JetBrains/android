@@ -18,13 +18,17 @@ package com.android.tools.fonts;
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
+import com.android.annotations.TestOnly;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontsFolderProvider;
 import com.android.ide.common.fonts.FontLoader;
 import com.android.ide.common.fonts.FontProvider;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
+import com.android.ide.common.fonts.SdkFontsFolderProvider;
+import com.android.tools.environment.Logger;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.File;
@@ -40,9 +44,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link DownloadableFontCacheServiceImpl} is a threadsafe implementation of {@link DownloadableFontCacheService}.
@@ -58,34 +59,29 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
 
   private final FontDownloader myFontDownloader;
 
-  private final Supplier<File> mySdkHomeProvider;
-
-  @NotNull
-  public static DownloadableFontCacheServiceImpl getInstance() {
-    return (DownloadableFontCacheServiceImpl)DownloadableFontCacheService.getInstance();
-  }
+  private final FontsFolderProvider myFontsFolderProvider;
 
   @Override
-  @NotNull
+  @NonNull
   public List<FontFamily> getSystemFontFamilies() {
     return new ArrayList<>(mySystemFonts.getFontFamilies());
   }
 
   @Override
   @Nullable
-  public FontFamily getSystemFont(@NotNull String name) {
+  public FontFamily getSystemFont(@NonNull String name) {
     return mySystemFonts.getFont(name);
   }
 
   @Override
-  @NotNull
+  @NonNull
   public FontFamily getDefaultSystemFont() {
     return mySystemFonts.getFontFamilies().iterator().next();
   }
 
   @Override
   @Nullable
-  public File getCachedMenuFile(@NotNull FontFamily family) {
+  public File getCachedMenuFile(@NonNull FontFamily family) {
     String menu = family.getMenu();
     if (menu.isEmpty()) {
       return null;
@@ -101,7 +97,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
    * Or {@code null} if this is not a valid downloadable file.
    */
   @Nullable
-  public File getRelativeCachedMenuFile(@NotNull FontFamily family) {
+  public File getRelativeCachedMenuFile(@NonNull FontFamily family) {
     String menu = family.getMenu();
     if (!menu.startsWith(HTTPS_PROTOCOL_START)) {
       return null;
@@ -111,7 +107,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
 
   @Override
   @Nullable
-  public File getCachedFontFile(@NotNull FontDetail font) {
+  public File getCachedFontFile(@NonNull FontDetail font) {
     String fontUrl = font.getFontUrl();
     if (fontUrl.isEmpty()) {
       return null;
@@ -123,7 +119,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   }
 
   @Nullable
-  public File getRelativeFontFile(@NotNull FontDetail font) {
+  public File getRelativeFontFile(@NonNull FontDetail font) {
     String fontUrl = font.getFontUrl();
     if (!fontUrl.startsWith(HTTPS_PROTOCOL_START)) {
       return null;
@@ -134,7 +130,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   @Override
   @Nullable
   @Language("XML")
-  public String toXml(@NotNull FontFamily family) {
+  public String toXml(@NonNull FontFamily family) {
     StringBuilder output = new StringBuilder("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                              "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\">");
     boolean hasAnyDownloadedFonts = false;
@@ -163,7 +159,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   }
 
   @Override
-  public CompletableFuture<Boolean> download(@NotNull FontFamily family) {
+  public CompletableFuture<Boolean> download(@NonNull FontFamily family) {
     CompletableFuture<Boolean> success = new CompletableFuture<>();
     myFontDownloader.download(Collections.singletonList(family), false, () -> success.complete(true), () -> success.complete(false));
     return success;
@@ -171,7 +167,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
 
   @Override
   @Nullable
-  public Font loadMenuFont(@NotNull FontFamily fontFamily) {
+  public Font loadMenuFont(@NonNull FontFamily fontFamily) {
     File file = getCachedMenuFile(fontFamily);
     if (file != null && file.exists()) {
       try {
@@ -186,7 +182,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
 
   @Override
   @Nullable
-  public Font loadDetailFont(@NotNull FontDetail fontDetail) {
+  public Font loadDetailFont(@NonNull FontDetail fontDetail) {
     File file = getCachedFontFile(fontDetail);
     if (file != null && file.exists()) {
       try {
@@ -203,7 +199,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   public void refresh(@Nullable Runnable success, @Nullable Runnable failure) {
     Collection<FontDirectoryDownloader> services;
     synchronized (getLock()) {
-      if (updateSdkHome()) {
+      if (updateFontsFolder()) {
         updateDownloadServices();
       }
       services = myDownloadServiceMap.values();
@@ -214,18 +210,31 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
     }
   }
 
+  @Override
+  @Nullable
+  public File getFontCachePath() {
+    return super.getFontPath();
+  }
+
   protected DownloadableFontCacheServiceImpl(
-    @NotNull FontDownloader fontDownloader,
-    @NotNull Supplier<File> sdkHomeProvider
+    @NonNull FontDownloader fontDownloader,
+    @NonNull FontsFolderProvider fontsFolderProvider
   ) {
     myDownloadServiceMap = new HashMap<>();
     myFontDownloader = fontDownloader;
-    mySdkHomeProvider = sdkHomeProvider;
+    myFontsFolderProvider = fontsFolderProvider;
     init();
     mySystemFonts = new SystemFonts(this);
 
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     instance = this;
+  }
+
+  protected DownloadableFontCacheServiceImpl(
+    @NonNull FontDownloader fontDownloader,
+    @NonNull Supplier<File> sdkHomeProvider
+  ) {
+    this(fontDownloader, new SdkFontsFolderProvider(sdkHomeProvider));
   }
 
   @TestOnly
@@ -234,12 +243,9 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   }
 
   private void init() {
-    File initialSdkHome = mySdkHomeProvider.get();
-    if (initialSdkHome == null) {
-      initialSdkHome = createTempSdk();
-    }
+    File fontFolder = myFontsFolderProvider.getFontsFolder();
     synchronized (getLock()) {
-      clear(initialSdkHome);
+      setFontPath(fontFolder);
       fontsLoaded();
       updateDownloadServices();
     }
@@ -253,37 +259,20 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
     }
   }
 
-  @Nullable
-  private static File createTempSdk() {
-    try {
-      return FileUtil.createTempDirectory("temp", "sdk");
-    }
-    catch (IOException ex) {
-      Logger.getInstance(DownloadableFontCacheServiceImpl.class).error(ex);
-      return null;
-    }
-  }
-
-  private boolean updateSdkHome() {
+  private boolean updateFontsFolder() {
     synchronized (getLock()) {
-      File newSdkHome = mySdkHomeProvider.get();
-      File oldSdkHome = getSdkHome();
-      if (Objects.equals(newSdkHome, oldSdkHome)) {
+      File newFontsFolder = myFontsFolderProvider.getFontsFolder();
+      File oldFontsFolder = getFontPath();
+      if (Objects.equals(newFontsFolder, oldFontsFolder)) {
         return false;
       }
-      if (newSdkHome == null) {
-        if (oldSdkHome != null && oldSdkHome.getName().startsWith("temp")) {
-          return false;
-        }
-        newSdkHome = createTempSdk();
-      }
-      clear(newSdkHome);
+      setFontPath(newFontsFolder);
       return true;
     }
   }
 
   @Nullable
-  private File getCachedFont(@NotNull String authority, @NotNull String url) {
+  private File getCachedFont(@NonNull String authority, @NonNull String url) {
     File cachePath = getFontPath();
     if (cachePath == null) {
       return null;
@@ -291,7 +280,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
     return new File(cachePath, getRelativeCachedFont(authority, url).getPath());
   }
 
-  private static File getRelativeCachedFont(@NotNull String authority, @NotNull String menu) {
+  private static File getRelativeCachedFont(@NonNull String authority, @NonNull String menu) {
     File providerPath = new File(authority);
     File fontsPath = new File(providerPath, FONTS);
     File fontPath = new File(fontsPath, getChildName(menu, 2, FONT));
@@ -299,8 +288,8 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
     return new File(versionPath, getChildName(menu, 0, menu));
   }
 
-  @NotNull
-  private static String getChildName(@NotNull String menu, int fromLast, @NotNull String defaultName) {
+  @NonNull
+  private static String getChildName(@NonNull String menu, int fromLast, @NonNull String defaultName) {
     int lastIndex = menu.length();
     int prevIndex = menu.lastIndexOf('/', lastIndex - 1);
     while (fromLast > 0) {
@@ -314,8 +303,8 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
     return menu.substring(prevIndex + 1, lastIndex);
   }
 
-  @NotNull
-  public static String convertNameToFilename(@NotNull String name) {
+  @NonNull
+  public static String convertNameToFilename(@NonNull String name) {
     StringBuilder builder = new StringBuilder();
     boolean previousUnderscore = true;
     for (char character : name.toCharArray()) {

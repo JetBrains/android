@@ -110,7 +110,7 @@ class StateList(val fileName: String, val dirName: String) {
    */
   private fun removeState(
     state: StateListState,
-    allowedStates: ImmutableSet<ImmutableMap<String, Boolean>>
+    allowedStates: ImmutableSet<ImmutableMap<String, Boolean>>,
   ): ImmutableSet<ImmutableMap<String, Boolean>> {
     val remainingStates = ImmutableSet.builder<ImmutableMap<String, Boolean>>()
     val stateAttributes = state.attributes

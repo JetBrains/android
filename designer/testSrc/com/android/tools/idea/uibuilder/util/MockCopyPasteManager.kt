@@ -46,7 +46,7 @@ class MockCopyPasteManager : CopyPasteManager() {
 
   override fun addContentChangedListener(
     listener: ContentChangedListener,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ) = error(NOT_IMPLEMENTED)
 
   override fun removeContentChangedListener(listener: ContentChangedListener) =

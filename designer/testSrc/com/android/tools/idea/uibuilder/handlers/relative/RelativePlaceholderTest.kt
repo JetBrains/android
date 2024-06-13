@@ -100,8 +100,8 @@ class RelativePlaceholderTest : SceneTest() {
             .withBounds(500, 0, 200, 200)
             .id("@id/textView")
             .width("100dp")
-            .height("100dp")
-        )
+            .height("100dp"),
+        ),
     )
   }
 }

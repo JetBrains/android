@@ -16,19 +16,20 @@
 package org.jetbrains.android.exportSignedPackage
 
 import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.test.testutils.MockitoAwareLightPlatformTestCase
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.testFramework.LightPlatformTestCase
+import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import java.io.File
 import java.nio.file.Files
 import kotlin.io.path.Path
 
-class GradleSignStepTest : MockitoAwareLightPlatformTestCase() {
+class GradleSignStepTest : LightPlatformTestCase() {
   private var myWizard = Mockito.mock(ExportSignedPackageWizard::class.java)
   override fun setUp() {
     super.setUp()
@@ -89,7 +90,7 @@ class GradleSignStepTest : MockitoAwareLightPlatformTestCase() {
     verifyDestinationEndsWhiteSpace(ExportSignedPackageWizard.BUNDLE)
   }
 
-  private fun verifyDestinationEndsWhiteSpace(targetType: String) {
+  private fun verifyDestinationEndsWhiteSpace(targetType: TargetType) {
     val gradleSignStep = GradleSignStep(myWizard)
     val properties = PropertiesComponent.getInstance(project)
     val destinationPath = "${this.homePath}${File.separator}$targetType "

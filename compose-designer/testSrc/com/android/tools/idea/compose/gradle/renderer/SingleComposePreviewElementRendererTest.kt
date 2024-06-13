@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.RenderSession
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.classloading.ModuleClassLoader
@@ -41,12 +42,16 @@ class SingleComposePreviewElementRendererTest {
   /** Checks that trying to render an non-existent preview returns a null image */
   @Test
   fun testInvalidPreview() {
+    val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     assertNull(
       renderPreviewElement(
-          projectRule.androidFacet(":app"),
+          facet,
+          mainActivityFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.InvalidPreview"
-          )
+          ),
         )
         .get()
     )
@@ -55,12 +60,16 @@ class SingleComposePreviewElementRendererTest {
   /** Checks the rendering of the default `@Preview` in the Compose template. */
   @Test
   fun testDefaultPreviewRendering() {
+    val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val defaultRender =
       renderPreviewElement(
-          projectRule.androidFacet(":app"),
+          facet,
+          mainActivityFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.DefaultPreview"
-          )
+          ),
         )
         .get()!!
     assertImageSimilar(
@@ -69,21 +78,25 @@ class SingleComposePreviewElementRendererTest {
       ),
       defaultRender,
       0.1,
-      1
+      1,
     )
   }
 
   /** Checks the rendering of the default `@Preview` in the Compose template with a background */
   @Test
   fun testDefaultPreviewRenderingWithBackground() {
+    val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val defaultRenderWithBackground =
       renderPreviewElement(
-          projectRule.androidFacet(":app"),
+          facet,
+          mainActivityFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.DefaultPreview",
             showBackground = true,
-            backgroundColor = "#F00"
-          )
+            backgroundColor = "#F00",
+          ),
         )
         .get()!!
     assertImageSimilar(
@@ -92,7 +105,7 @@ class SingleComposePreviewElementRendererTest {
       ),
       defaultRenderWithBackground,
       0.1,
-      1
+      1,
     )
   }
 
@@ -104,17 +117,21 @@ class SingleComposePreviewElementRendererTest {
    */
   @Test
   fun testDisposeOfComposeLeaks() {
+    val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val renderTaskFuture =
       createRenderTaskFuture(
-        projectRule.androidFacet(":app"),
+        facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.DefaultPreview",
           showBackground = true,
-          backgroundColor = "#F00"
+          backgroundColor = "#F00",
         ),
-        false
+        false,
       )
-    val renderTask = renderTaskFuture.get()!!
+    val renderTask = renderTaskFuture.future.get()!!
     val result = renderTask.render().get()
     val classLoader =
       result!!.rootViews.first().viewObject.javaClass.classLoader as ModuleClassLoader
@@ -181,7 +198,7 @@ class SingleComposePreviewElementRendererTest {
     renderTask.dispose().get()
     assertTrue(
       "animationScale should have been cleared",
-      (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty()
+      (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty(),
     )
     assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
     assertTrue("globalWriteObservers should have been cleared", globalWriteObservers.isEmpty())
@@ -190,14 +207,18 @@ class SingleComposePreviewElementRendererTest {
 
   @Test
   fun testDefaultPreviewRenderingWithDifferentLocale() {
+    val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val defaultRenderWithLocale =
       renderPreviewElement(
-          projectRule.androidFacet(":app"),
+          facet,
+          mainActivityFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.DefaultPreview",
             configuration =
-              PreviewConfiguration.cleanAndGet(null, null, null, null, "en-rUS", null, null, null)
-          )
+              PreviewConfiguration.cleanAndGet(null, null, null, null, "en-rUS", null, null, null),
+          ),
         )
         .get()!!
     assertImageSimilar(
@@ -206,7 +227,7 @@ class SingleComposePreviewElementRendererTest {
       ),
       defaultRenderWithLocale,
       0.1,
-      1
+      1,
     )
   }
 
@@ -217,13 +238,17 @@ class SingleComposePreviewElementRendererTest {
    */
   @Test
   fun testPreviewWithUnsignedTypes() {
+    val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val withUnsignedTypesRender =
       renderPreviewElement(
-          projectRule.androidFacet(":app"),
+          facet,
+          mainActivityFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.OtherPreviewsKt.PreviewWithUnsignedTypes",
             showBackground = true,
-          )
+          ),
         )
         .get()!!
     assertImageSimilar(
@@ -232,7 +257,7 @@ class SingleComposePreviewElementRendererTest {
       ),
       withUnsignedTypesRender,
       0.1,
-      1
+      1,
     )
   }
 
@@ -242,13 +267,18 @@ class SingleComposePreviewElementRendererTest {
    */
   @Test
   fun testEmptyRender() {
+    val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val defaultRender =
       renderPreviewElementForResult(
-          projectRule.androidFacet(":app"),
+          facet,
+          mainActivityFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.OtherPreviewsKt.EmptyPreview"
-          )
+          ),
         )
+        .future
         .get()!!
 
     assertEquals(0, defaultRender.renderedImage.width)
@@ -258,16 +288,20 @@ class SingleComposePreviewElementRendererTest {
   /** Checks that key events are correctly dispatched to Compose Preview. */
   @Test
   fun testKeyEvent() {
+    val facet = projectRule.androidFacet(":app")
+    val otherPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/OtherPreviews.kt")
     val renderTaskFuture =
       createRenderTaskFuture(
-        projectRule.androidFacet(":app"),
+        facet,
+        otherPreviewFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.OtherPreviewsKt.TextFieldPreview"
         ),
-        false
+        false,
       )
     val frameNanos = 16000000L
-    val renderTask = renderTaskFuture.get(1, TimeUnit.MINUTES)
+    val renderTask = renderTaskFuture.future.get(1, TimeUnit.MINUTES)
     try {
       renderTask.render().get(1, TimeUnit.MINUTES)
       renderTask.executeCallbacks(0).get(5, TimeUnit.SECONDS)
@@ -299,7 +333,7 @@ class SingleComposePreviewElementRendererTest {
           0,
           KeyEvent.VK_P,
           'p',
-          KEY_LOCATION_STANDARD
+          KEY_LOCATION_STANDARD,
         )
       renderTask.triggerKeyEvent(event, time + 1000).get(5, TimeUnit.SECONDS)
 
@@ -315,7 +349,7 @@ class SingleComposePreviewElementRendererTest {
           ),
           it,
           0.1,
-          1
+          1,
         )
       }
     } finally {
@@ -328,19 +362,22 @@ class SingleComposePreviewElementRendererTest {
   fun testRecomposeLeakCheck() {
     var classLoader: ModuleClassLoader? = null
     repeat(5) {
+      val facet = projectRule.androidFacet(":app")
+      val leakCheckFile = facet.virtualFile("src/main/java/google/simpleapplication/LeakCheck.kt")
       val renderTaskFuture =
         createRenderTaskFuture(
-          projectRule.androidFacet(":app"),
+          facet,
+          leakCheckFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.LeakCheckKt.WithException"
           ),
-          false
+          false,
         )
-      val renderTask = renderTaskFuture.get()!!
+      val renderTask = renderTaskFuture.future.get()!!
       val result = renderTask.render().get()
       assertFalse("The render should have failed", result.renderResult.isSuccess)
       classLoader = renderTask.classLoader as ModuleClassLoader
-      renderTaskFuture.get().dispose().get()
+      renderTaskFuture.future.get().dispose().get()
     }
 
     // Ensure that the classes we will check were loaded by the test first. If not, it could be the

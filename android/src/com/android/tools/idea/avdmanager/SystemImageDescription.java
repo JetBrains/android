@@ -16,15 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
-import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG;
-import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG;
-import static com.android.sdklib.SystemImageTags.CHROMEOS_TAG;
-import static com.android.sdklib.SystemImageTags.DESKTOP_TAG;
-import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
-import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
-import static com.android.sdklib.SystemImageTags.PLAY_STORE_TAG;
-import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 
 import com.android.annotations.NonNull;
 import com.android.repository.Revision;
@@ -38,11 +30,14 @@ import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,11 +48,6 @@ import org.jetbrains.annotations.Nullable;
 public final class SystemImageDescription {
   private ISystemImage mySystemImage;
   private RemotePackage myRemotePackage;
-
-  public static final Set<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableSet.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
-                                                                            PLAY_STORE_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
-                                                                            WEAR_TAG, DESKTOP_TAG, CHROMEOS_TAG,
-                                                                            AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
 
   public static final Set<IdDisplay> TV_TAGS = ImmutableSet.of(ANDROID_TV_TAG, GOOGLE_TV_TAG);
 
@@ -87,7 +77,7 @@ public final class SystemImageDescription {
     }
     // Google APIs addons up to 19 included a bundled system image
     if (details instanceof DetailsTypes.AddonDetailsType && ((DetailsTypes.AddonDetailsType)details).getVendor().getId().equals("google") &&
-        TAGS_WITH_GOOGLE_API.contains(((DetailsTypes.AddonDetailsType)details).getTag()) && apiLevel <= 19) {
+        SystemImageTags.TAGS_WITH_GOOGLE_API.contains(((DetailsTypes.AddonDetailsType)details).getTag()) && apiLevel <= 19) {
       return true;
     }
 
@@ -118,8 +108,9 @@ public final class SystemImageDescription {
     }
     return Objects.equal(this.getName(), other.getName()) &&
            Objects.equal(this.getVendor(), other.getVendor()) &&
-           Objects.equal(this.getAbiType(), other.getAbiType()) &&
-           Objects.equal(this.getTag(), other.getTag());
+           Objects.equal(this.getAbiTypes(), other.getAbiTypes()) &&
+           Objects.equal(this.getTranslatedAbiTypes(), other.getTranslatedAbiTypes()) &&
+           Objects.equal(this.getTags(), other.getTags());
   }
 
   @NotNull
@@ -140,14 +131,34 @@ public final class SystemImageDescription {
     return mySystemImage.obsolete();
   }
 
-  @NotNull
-  public String getAbiType() {
-    return mySystemImage.getAbiType();
+  public String getPrimaryAbiType() {
+    return mySystemImage.getPrimaryAbiType();
   }
 
   @NotNull
-  public IdDisplay getTag() {
-    return mySystemImage.getTag();
+  public List<String> getAbiTypes() {
+    return mySystemImage.getAbiTypes();
+  }
+
+  public List<String> getTranslatedAbiTypes() {
+    return mySystemImage.getTranslatedAbiTypes();
+  }
+
+  @NotNull
+  public List<IdDisplay> getTags() {
+    return mySystemImage.getTags();
+  }
+
+  public boolean hasGoogleApis() {
+    return mySystemImage.hasGoogleApis();
+  }
+
+  public boolean isWearImage() {
+    return SystemImageTags.isWearImage(getTags());
+  }
+
+  public boolean isTvImage() {
+    return SystemImageTags.isTvImage(getTags());
   }
 
   public String getName() {
@@ -167,7 +178,7 @@ public final class SystemImageDescription {
   }
 
   @Nullable
-  Revision getRevision() {
+  public Revision getRevision() {
     return mySystemImage.getRevision();
   }
 
@@ -181,9 +192,10 @@ public final class SystemImageDescription {
 
   private static class RemoteSystemImage implements ISystemImage {
     private final RemotePackage myRemotePackage;
-    private final IdDisplay myTag;
+    private final ImmutableList<IdDisplay> myTags;
     private final IdDisplay myVendor;
-    private final String myAbi;
+    private final List<String> myAbis;
+    private final List<String> myTranslatedAbis;
     private final AndroidVersion myAndroidVersion;
 
     public RemoteSystemImage(RemotePackage p) {
@@ -193,26 +205,26 @@ public final class SystemImageDescription {
       assert details instanceof DetailsTypes.ApiDetailsType;
       myAndroidVersion = ((DetailsTypes.ApiDetailsType)details).getAndroidVersion();
 
-      IdDisplay tag = null;
       IdDisplay vendor = null;
-      String abi = "armeabi";
+      List<String> abis = Collections.singletonList("armeabi");
+      List<String> translatedAbis = Collections.emptyList();
+
+      myTags = SystemImageTags.getTags(p);
 
       if (details instanceof DetailsTypes.AddonDetailsType) {
-        tag = ((DetailsTypes.AddonDetailsType)details).getTag();
         vendor = ((DetailsTypes.AddonDetailsType)details).getVendor();
-        if (SystemImageTags.GOOGLE_APIS_X86_TAG.equals(tag)) {
-          abi = "x86";
+        if (myTags.contains(SystemImageTags.GOOGLE_APIS_X86_TAG)) {
+          abis = Collections.singletonList("x86");
         }
       }
       if (details instanceof DetailsTypes.SysImgDetailsType) {
-        // TODO: support multi-tag
-        tag = ((DetailsTypes.SysImgDetailsType)details).getTags().get(0);
         vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
-        abi = ((DetailsTypes.SysImgDetailsType)details).getAbi();
+        abis = ((DetailsTypes.SysImgDetailsType)details).getAbis();
+        translatedAbis = ((DetailsTypes.SysImgDetailsType)details).getTranslatedAbis();
       }
-      myTag = tag != null ? tag : SystemImageTags.DEFAULT_TAG;
       myVendor = vendor;
-      myAbi = abi;
+      myAbis = abis;
+      myTranslatedAbis = translatedAbis;
     }
 
     @NonNull
@@ -224,8 +236,8 @@ public final class SystemImageDescription {
 
     @NonNull
     @Override
-    public IdDisplay getTag() {
-      return myTag;
+    public List<IdDisplay> getTags() {
+      return myTags;
     }
 
     @com.android.annotations.Nullable
@@ -234,10 +246,22 @@ public final class SystemImageDescription {
       return myVendor;
     }
 
+    @NotNull
+    @Override
+    public String getPrimaryAbiType() {
+      return myAbis.get(0);
+    }
+
     @NonNull
     @Override
-    public String getAbiType() {
-      return myAbi;
+    public List<String> getAbiTypes() {
+      return myAbis;
+    }
+
+    @NotNull
+    @Override
+    public List<String> getTranslatedAbiTypes() {
+      return myTranslatedAbis;
     }
 
     @NonNull
@@ -256,21 +280,6 @@ public final class SystemImageDescription {
     @Override
     public AndroidVersion getAndroidVersion() {
       return myAndroidVersion;
-    }
-
-    @Override
-    public boolean hasPlayStore() {
-      if (SystemImageTags.PLAY_STORE_TAG.equals(getTag()) || AUTOMOTIVE_PLAY_STORE_TAG.equals(getTag())) {
-        return true;
-      }
-      // A Wear system image has Play Store if it is
-      // a recent API version and is NOT Wear-for-China.
-      if (SystemImageTags.WEAR_TAG.equals(getTag()) &&
-          myAndroidVersion.getApiLevel() >= AndroidVersion.MIN_RECOMMENDED_WEAR_API &&
-          !myRemotePackage.getPath().contains(WEAR_CN_DIRECTORY)) {
-        return true;
-      }
-      return false;
     }
 
     @NotNull

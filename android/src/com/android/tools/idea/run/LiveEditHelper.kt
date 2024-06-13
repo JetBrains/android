@@ -17,7 +17,9 @@ package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_BUILD_SYSTEM_MIN_SDK_VERSION_FOR_DEXING
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
+import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.intellij.execution.runners.ExecutionEnvironment
 import java.nio.file.Path
 
@@ -26,16 +28,23 @@ class LiveEditHelper {
     liveEditService: LiveEditService,
     env: ExecutionEnvironment,
     applicationId: String,
-    apkProvider: ApkProvider,
+    apkInfos: Collection<ApkInfo>,
     device: IDevice
   ) {
-    val liveEditApp = LiveEditApp(getApkPaths(apkProvider, device), device.getVersion().getApiLevel())
-    liveEditService.notifyAppDeploy(env.getRunProfile(), env.getExecutor(), applicationId, device, liveEditApp)
+    var buildSystemMinSdkLevels = mutableSetOf<MinApiLevel>()
+    if (COMPOSE_DEPLOY_LIVE_EDIT_BUILD_SYSTEM_MIN_SDK_VERSION_FOR_DEXING.get()) {
+      apkInfos.forEach { apkInfo ->
+        apkInfo.minSdkVersionForDexing?.let { buildSystemMinSdkLevels.add(it) }
+      }
+    }
+    val liveEditApp = LiveEditApp(getApkPaths(apkInfos, device), device.getVersion().getApiLevel(), buildSystemMinSdkLevels)
+    liveEditService.notifyAppDeploy(env.runProfile, env.executor, applicationId, device, liveEditApp)
+
   }
 
-  fun getApkPaths(apkProvider: ApkProvider, device: IDevice): Set<Path> {
+  fun getApkPaths(apkInfos: Collection<ApkInfo>, device: IDevice): Set<Path> {
     val apksPaths: MutableSet<Path> = HashSet()
-    for (apkInfo in apkProvider.getApks(device)) {
+    for (apkInfo in apkInfos) {
       for (apkFileUnit in apkInfo.files) {
         apksPaths.add(apkFileUnit.apkPath)
       }

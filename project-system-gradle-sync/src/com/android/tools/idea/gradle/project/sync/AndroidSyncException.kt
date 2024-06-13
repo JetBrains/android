@@ -16,13 +16,9 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
-import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH
-import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE
-import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSION_TOO_NEW
-import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSION_TOO_OLD
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.*
 import java.util.regex.Pattern
 
 /**
@@ -69,39 +65,38 @@ class AgpVersionTooOld(agpVersion: AgpVersion) : AndroidSyncException(AGP_VERSIO
   }
 }
 
-class AgpVersionTooNew(agpVersion: AgpVersion) : AndroidSyncException(AGP_VERSION_TOO_NEW, generateMessage(agpVersion)) {
+class AgpVersionTooNew(agpVersion: AgpVersion, latestSupportedVersion: AgpVersion) : AndroidSyncException(AGP_VERSION_TOO_NEW, generateMessage(agpVersion, latestSupportedVersion)) {
   companion object {
     private const val LEFT = "The project is using an incompatible version (AGP "
     private const val RIGHT = ") of the Android Gradle plugin. Latest supported version is AGP "
-    private fun generateMessage(agpVersion: AgpVersion) = "$LEFT$agpVersion$RIGHT$ANDROID_GRADLE_PLUGIN_VERSION"
-    val PATTERN: Pattern =
-      Pattern.compile("${Pattern.quote(LEFT)}(.+)${Pattern.quote(RIGHT)}${Pattern.quote(ANDROID_GRADLE_PLUGIN_VERSION)}")
+    private fun generateMessage(agpVersion: AgpVersion, latestSupportedVersion: AgpVersion) = "$LEFT$agpVersion$RIGHT$latestSupportedVersion"
+    fun pattern(latestSupportedVersion: AgpVersion): Pattern =
+      Pattern.compile("${Pattern.quote(LEFT)}(.+)${Pattern.quote(RIGHT)}${Pattern.quote("$latestSupportedVersion")}")
     val ALWAYS_PRESENT_STRINGS = listOf(LEFT, RIGHT)
   }
 }
 
-class AgpVersionIncompatible(agpVersion: AgpVersion) : AndroidSyncException(AGP_VERSION_INCOMPATIBLE, generateMessage(agpVersion)) {
+class AgpVersionIncompatible(agpVersion: AgpVersion, latestSupportedVersion: AgpVersion) : AndroidSyncException(AGP_VERSION_INCOMPATIBLE, generateMessage(agpVersion, latestSupportedVersion)) {
   companion object {
     private const val A = "The project is using an incompatible preview version (AGP "
     private const val B = ") of the Android Gradle plugin. Current compatible "
     private const val PREVIEW = "preview "
-    private val C = "version is AGP $ANDROID_GRADLE_PLUGIN_VERSION."
-    private fun generateMessage(agpVersion: AgpVersion): String {
-      val latestKnown = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
-      return "$A$agpVersion$B${if (latestKnown.isPreview) PREVIEW else ""}$C"
+    private val C = "version is AGP"
+    private fun generateMessage(agpVersion: AgpVersion, latestKnown: AgpVersion): String {
+      return "$A$agpVersion$B${if (latestKnown.isPreview) PREVIEW else ""}$C $latestKnown."
     }
 
-    val PATTERN: Pattern = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
+    fun pattern(latestSupportedVersion: AgpVersion): Pattern =
       Pattern.compile(
-        "${Pattern.quote(A)}(.+)${Pattern.quote(B)}${if (latestKnown.isPreview) Pattern.quote(PREVIEW) else ""}${Pattern.quote(C)}")
-    }
+        "${Pattern.quote(A)}(.+)${Pattern.quote(B)}${if (latestSupportedVersion.isPreview) Pattern.quote(PREVIEW) else ""}${Pattern.quote("$C $latestSupportedVersion.")}")
+
     val ALWAYS_PRESENT_STRINGS = listOf(A, B, C)
   }
 }
 
-class AgpVersionsMismatch(agpVersions: List<Pair<AgpVersion, String>>) : AndroidSyncException(AGP_VERSIONS_MISMATCH, generateMessage(agpVersions)) {
+class AgpVersionsMismatch(agpVersions: List<Pair<String, String>>) : AndroidSyncException(AGP_VERSIONS_MISMATCH, generateMessage(agpVersions)) {
   companion object {
-    private fun generateMessage(agpVersions: List<Pair<AgpVersion, String>>): String {
+    private fun generateMessage(agpVersions: List<Pair<String, String>>): String {
       return "$MESSAGE_START ${agpVersions.map { it.first }.distinct()}" +
              " $MESSAGE_CORE.\n$MESSAGE_END ${agpVersions.map { it.second }.distinct()}.\n"
     }

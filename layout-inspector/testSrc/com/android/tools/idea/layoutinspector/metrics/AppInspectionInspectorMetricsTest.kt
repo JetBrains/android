@@ -46,12 +46,13 @@ import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.anyDouble
-import java.util.concurrent.TimeUnit
+import org.mockito.ArgumentMatchers.anyDouble
 
 private val MODERN_PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -175,7 +176,7 @@ class AppInspectionInspectorMetricsTest {
   }
 
   @Test
-  fun testInitialRenderLogging() {
+  fun testInitialRenderLogging() = runBlocking {
     inspectorRule.launchSynchronously = false
     inspectionRule.viewInspector.listenWhen({ true }) {
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
@@ -207,7 +208,7 @@ class AppInspectionInspectorMetricsTest {
       inspectorRule.inspectorClient.treeLoader.loadComponentTree(
         createFakeData(rootId),
         ResourceLookup(inspectorRule.project),
-        inspectorRule.inspectorClient.process
+        inspectorRule.inspectorClient.process,
       )!!
     window!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
@@ -222,7 +223,7 @@ class AppInspectionInspectorMetricsTest {
       inspectorRule.inspectorClient.treeLoader.loadComponentTree(
         createFakeData(rootId),
         ResourceLookup(inspectorRule.project),
-        inspectorRule.inspectorClient.process
+        inspectorRule.inspectorClient.process,
       )!!
     window2!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
@@ -243,7 +244,7 @@ class AppInspectionInspectorMetricsTest {
       inspectorRule.inspectorClient.treeLoader.loadComponentTree(
         createFakeData(rootId),
         ResourceLookup(inspectorRule.project),
-        inspectorRule.inspectorClient.process
+        inspectorRule.inspectorClient.process,
       )!!
     window3!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(2)
@@ -264,7 +265,7 @@ class AppInspectionInspectorMetricsTest {
   private fun createFakeData(
     rootId: Long,
     screenshotType: LayoutInspectorViewProtocol.Screenshot.Type =
-      LayoutInspectorViewProtocol.Screenshot.Type.SKP
+      LayoutInspectorViewProtocol.Screenshot.Type.SKP,
   ): ViewLayoutInspectorClient.Data {
     val viewLayoutEvent =
       LayoutInspectorViewProtocol.LayoutEvent.newBuilder()

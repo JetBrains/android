@@ -37,7 +37,6 @@
 
     <notificationGroup id="Build Analyzer" displayType="TOOL_WINDOW" toolWindowId="Build"/>
     <backgroundPostStartupActivity implementation="com.android.build.diagnostic.StudioWindowsDefenderCheckerActivity" os="windows"/>
-    <applicationService serviceImplementation="com.android.build.diagnostic.WindowsDefenderChecker"/>
     <applicationService serviceInterface="com.intellij.diagnostic.WindowsDefenderChecker"
                         serviceImplementation="com.android.build.diagnostic.WindowsDefenderCheckerOverride" overrides="true"/>
 

@@ -99,11 +99,12 @@ class DumbModeTest {
     // cause
     // the scope enlarger to internally cache stale values (because the service that the enlarger
     // queries into aborts early in dumb mode).
-    val (fragmentClass, dumbScope) = DumbModeTestUtils.computeInDumbModeSynchronously(safeArgsRule.project) {
-      safeArgsRule.fixture.addFileToProject(
-        "res/navigation/nav_main.xml",
-        // language=XML
-        """
+    val (fragmentClass, dumbScope) =
+      DumbModeTestUtils.computeInDumbModeSynchronously(safeArgsRule.project) {
+        safeArgsRule.fixture.addFileToProject(
+          "res/navigation/nav_main.xml",
+          // language=XML
+          """
           <?xml version="1.0" encoding="utf-8"?>
           <navigation xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
@@ -120,13 +121,13 @@ class DumbModeTest {
             </fragment>
           </navigation>
         """
-          .trimIndent()
-      )
-      safeArgsRule.waitForResourceRepositoryUpdates()
-      val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
-      val dumbScope = fragmentClass.resolveScope
-      Pair(fragmentClass, dumbScope)
-    }
+            .trimIndent(),
+        )
+        safeArgsRule.waitForResourceRepositoryUpdates()
+        val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
+        val dumbScope = fragmentClass.resolveScope
+        Pair(fragmentClass, dumbScope)
+      }
     // Exit dumb mode and request our final enlarged scope. It should pick up the changes that
     // occurred while we were previously in dumb mode.
     val enlargedScope = fragmentClass.resolveScope

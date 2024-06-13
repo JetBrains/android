@@ -21,14 +21,13 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ToastLiveTemplateTest {
@@ -61,8 +60,7 @@ public class ToastLiveTemplateTest {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120));
     EditorFixture editorFixture = ideFrame.getEditor().open(LiveTemplatesTestUtil.JAVA_FILE);
 
-    LiveTemplatesTestUtil.clickOnCodeInsertLiveTemplate(guiTest, ideFrame, editorFixture);
-    guiTest.robot().enterText("Toast\n");
+    LiveTemplatesTestUtil.doubleTapToInsertLiveTemplate(guiTest, ideFrame, editorFixture, "Toast");
     Wait.seconds(20).expecting("Toast statement to show in code.")
       .until(() -> new PatternTextMatcher(TOAST_PATTERN).isMatching(editorFixture.getCurrentFileContents()));
   }

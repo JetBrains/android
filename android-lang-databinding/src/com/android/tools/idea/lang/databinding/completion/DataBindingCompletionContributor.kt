@@ -190,7 +190,8 @@ open class DataBindingCompletionContributor : CompletionContributor() {
       ?.filter { pkg -> pkg.getSubPackages(module.moduleScope).isNotEmpty() || pkg.getClasses(module.moduleScope).isNotEmpty() }
       ?.filter { pkg -> pkg.name?.all { char -> Character.isJavaIdentifierPart(char) } == true }
       ?.forEach {
-        result.addElement(LookupElementBuilder.createWithIcon(it).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.dotType()))
+        result.addElement(
+          LookupElementBuilder.createWithIcon(it).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.dotType()))
       }
   }
 

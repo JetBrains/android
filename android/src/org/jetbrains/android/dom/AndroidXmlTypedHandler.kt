@@ -26,48 +26,46 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlText
-import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
+import org.jetbrains.android.dom.manifest.ManifestDomFileDescription.isManifestFile
 import org.jetbrains.android.facet.AndroidFacet
 
+private fun isSupportedSymbol(charTyped: Char) = charTyped == '@' || charTyped == '?'
+
+/**
+ * Handler for typed characters in Android XML files.
+ *
+ * This handler overrides the default behavior for "@" and "?" characters, triggering
+ * auto-completion popups for resources and IDs.
+ */
 class AndroidXmlTypedHandler : TypedHandlerDelegate() {
+  /** Overrides the default `charTyped` function to show auto-completion popups. */
   override fun charTyped(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
-    return if (isSupportedSymbol(charTyped) && file is XmlFile) {
-      AutoPopupController.getInstance(project).autoPopupMemberLookup(editor) { psiFile ->
-        val facet = AndroidFacet.getInstance(file) ?: return@autoPopupMemberLookup false
-        val caretOffset = editor.caretModel.offset
-        val lastElement =
-          psiFile.findElementAt(caretOffset - 1) ?: return@autoPopupMemberLookup false
+    if (!isSupportedSymbol(charTyped) || file !is XmlFile)
+      return super.charTyped(charTyped, project, editor, file)
 
-        if (!isSupportedSymbol(lastElement.text[0])) return@autoPopupMemberLookup false
-        if (psiFile !is XmlFile) return@autoPopupMemberLookup false
-        if (
-          !ManifestDomFileDescription.isManifestFile(psiFile) &&
-            !isResourceFile(psiFile.virtualFile, facet)
-        )
-          return@autoPopupMemberLookup false
-        if (lastElement.parent !is XmlAttributeValue && lastElement.parent !is XmlText)
-          return@autoPopupMemberLookup false
-        if (lastElement.parent is XmlText && getFolderType(psiFile) != ResourceFolderType.VALUES)
-          return@autoPopupMemberLookup false
-        if (lastElement.text[0] == '?' && getFolderType(psiFile) != ResourceFolderType.LAYOUT)
-          return@autoPopupMemberLookup false
+    // Possibly show auto-completion popup for member lookup.
+    AutoPopupController.getInstance(project).autoPopupMemberLookup(editor) { psiFile ->
+      val facet = AndroidFacet.getInstance(file) ?: return@autoPopupMemberLookup false
+      // Get element before the caret.
+      val lastElement =
+        psiFile.findElementAt(editor.caretModel.offset - 1) ?: return@autoPopupMemberLookup false
 
-        true
-      }
-
-      Result.STOP
-    } else {
-      super.charTyped(charTyped, project, editor, file)
+      // Check conditions for showing the popup:
+      // - First character of last element is "@" or "?".
+      // - File is an XmlFile.
+      // - File is a manifest file or a resource file.
+      // - Last element is inside an attribute value or text.
+      // - If last element is in text, then file must be a values file.
+      // - If last character is "?", then file must be a layout file.
+      // All conditions must be true for the popup to appear.
+      isSupportedSymbol(lastElement.text[0]) &&
+        psiFile is XmlFile &&
+        (isManifestFile(psiFile) || isResourceFile(psiFile.virtualFile, facet)) &&
+        (lastElement.parent is XmlAttributeValue || lastElement.parent is XmlText) &&
+        (lastElement.parent !is XmlText || getFolderType(psiFile) == ResourceFolderType.VALUES) &&
+        (lastElement.text[0] != '?' || getFolderType(psiFile) == ResourceFolderType.LAYOUT)
     }
-  }
 
-  companion object {
-    private fun isSupportedSymbol(charTyped: Char): Boolean {
-      return when (charTyped) {
-        '@' -> true
-        '?' -> true
-        else -> false
-      }
-    }
+    return Result.STOP
   }
 }

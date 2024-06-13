@@ -26,7 +26,7 @@ import java.util.Base64
  *
  * @param listeners a map from device ID to listener to be notified of test events
  */
-class TaskOutputProcessor(val listeners: Map<String, List<TaskOutputProcessorListener>>) {
+class TaskOutputProcessor(val listeners: Map<String, TaskOutputProcessorListener>) {
 
   companion object {
     const val ON_RESULT_OPENING_TAG = "<UTP_TEST_RESULT_ON_TEST_RESULT_EVENT>"
@@ -78,25 +78,25 @@ class TaskOutputProcessor(val listeners: Map<String, List<TaskOutputProcessorLis
   private fun processTestSuiteStarted(event: TestResultEvent) {
     val testSuiteStarted = event.testSuiteStarted
     val testSuite = testSuiteStarted.testSuiteMetadata.unpack(TestSuiteResultProto.TestSuiteMetaData::class.java)
-    listeners[event.deviceId]?.forEach { it.onTestSuiteStarted(testSuite) }
+    listeners[event.deviceId]?.onTestSuiteStarted(testSuite)
   }
 
   private fun processTestCaseStarted(event: TestResultEvent) {
     val testCaseStarted = event.testCaseStarted
     val testCase = testCaseStarted.testCase.unpack(TestCaseProto.TestCase::class.java)
-    listeners[event.deviceId]?.forEach { it.onTestCaseStarted(testCase) }
+    listeners[event.deviceId]?.onTestCaseStarted(testCase)
   }
 
   private fun processTestCaseFinished(event: TestResultEvent) {
     val testCaseFinished = event.testCaseFinished
     val testCaseResult = testCaseFinished.testCaseResult.unpack(TestResultProto.TestResult::class.java)
-    listeners[event.deviceId]?.forEach { it.onTestCaseFinished(testCaseResult) }
+    listeners[event.deviceId]?.onTestCaseFinished(testCaseResult)
   }
 
   private fun processTestSuiteFinished(event: TestResultEvent) {
     val testSuiteFinished = event.testSuiteFinished
     val testSuiteResult = testSuiteFinished.testSuiteResult.unpack(TestSuiteResultProto.TestSuiteResult::class.java)
-    listeners[event.deviceId]?.forEach { it.onTestSuiteFinished(testSuiteResult) }
+    listeners[event.deviceId]?.onTestSuiteFinished(testSuiteResult)
   }
 }
 

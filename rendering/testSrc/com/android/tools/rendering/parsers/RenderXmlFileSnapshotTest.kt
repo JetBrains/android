@@ -83,7 +83,7 @@ class RenderXmlFileSnapshotTest {
     // Checking that non-ascii characters work
     assertEquals(
       "Botón",
-      buttonTag.getAttribute("text", "http://schemas.android.com/apk/res/android")?.value
+      buttonTag.getAttribute("text", "http://schemas.android.com/apk/res/android")?.value,
     )
   }
 
@@ -113,7 +113,7 @@ class RenderXmlFileSnapshotTest {
               android:strokeWidth="0.8" />
         </vector>
       """
-          .trimIndent()
+          .trimIndent(),
       )
     assertEquals("drawable.xml", xmlFile.name)
     assertEquals("drawable.xml", xmlFile.relativePath)
@@ -127,7 +127,7 @@ class RenderXmlFileSnapshotTest {
     // Checking that non-ascii characters work
     assertEquals(
       "M0,0h108v108h-108z",
-      pathTag.getAttribute("pathData", "http://schemas.android.com/apk/res/android")?.value
+      pathTag.getAttribute("pathData", "http://schemas.android.com/apk/res/android")?.value,
     )
   }
 }

@@ -35,14 +35,14 @@ open class DeviceAndSnapshotComboBoxExecutionTarget(
   targets: Collection<DeploymentTarget>,
   private val devicesService: DeploymentTargetDevicesService,
   private val deploymentApplicationService: () -> DeploymentApplicationService =
-    DeploymentApplicationService.Companion::instance
+    DeploymentApplicationService.Companion::instance,
 ) : AndroidExecutionTarget() {
   private val ids = targets.map(DeploymentTarget::deviceId).toSet()
 
   override fun isApplicationRunningAsync(appPackage: String): ListenableFuture<Boolean> {
     return Futures.submit<Boolean>(
       { isApplicationRunning(appPackage) },
-      AppExecutorUtil.getAppExecutorService()
+      AppExecutorUtil.getAppExecutorService(),
     )
   }
 
@@ -72,7 +72,7 @@ open class DeviceAndSnapshotComboBoxExecutionTarget(
       .joinToString(
         separator = ", ",
         prefix = "device_and_snapshot_combo_box_target[",
-        postfix = "]"
+        postfix = "]",
       )
   }
 

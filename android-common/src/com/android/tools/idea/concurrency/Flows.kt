@@ -16,6 +16,7 @@
 package com.android.tools.idea.concurrency
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.FlowableCollection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -65,4 +66,55 @@ fun syntaxErrorFlow(
       )
 
     onConnected?.let { launch(workerThread) { it() } }
+  }
+
+/**
+ * A wrapper for [Collection] when used in [kotlinx.coroutines.flow.Flow]s.
+ * This class is meant to be used in those cases where differentiating between an empty collection
+ * or an uninitialized value is important.
+ */
+sealed class FlowableCollection<out T> {
+  /**
+   * Value used when there is no collection available yet. Usually the expectation is that a flow
+   * serving [FlowableCollection] will have this as the first value and this value will only be seen
+   * once.
+   */
+  object Uninitialized : FlowableCollection<Nothing>()
+
+  /**
+   * Value used when the collection is available. The collection might be empty.
+   */
+  data class Present<T>(val collection: Collection<T>) : FlowableCollection<T>()
+}
+
+/**
+ * Utility method that extracts the [Collection] out of a [FlowableCollection]. If the [FlowableCollection]
+ * is [FlowableCollection.Uninitialized], this will return an empty collection.
+ */
+fun <T> FlowableCollection<T>.asCollection(): Collection<T> =
+  when (this) {
+    is FlowableCollection.Uninitialized -> emptyList()
+    is FlowableCollection.Present -> this.collection
+  }
+
+inline fun <T, R> FlowableCollection<T>.map(transform: (T) -> R): FlowableCollection<R> =
+  when (this) {
+    is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
+    is FlowableCollection.Present -> FlowableCollection.Present(this.collection.map(transform))
+  }
+
+inline fun <T, R> FlowableCollection<T>.flatMap(transform: (T) -> Sequence<R>): FlowableCollection<R> =
+  when (this) {
+    is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
+    is FlowableCollection.Present -> {
+      FlowableCollection.Present(this.collection.flatMap { transform(it) })
+    }
+  }
+
+inline fun <T> FlowableCollection<T>.filter(filter: (T) -> Boolean): FlowableCollection<T> =
+  when (this) {
+    is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
+    is FlowableCollection.Present -> {
+      FlowableCollection.Present(this.collection.filter { filter(it) })
+    }
   }

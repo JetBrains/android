@@ -26,10 +26,12 @@ import com.android.tools.idea.actions.FeatureSurveyNotificationAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.Survey
+import com.android.tools.idea.stats.ConsentDialog.Companion.showConsentDialogIfNeeded
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.base.Strings
@@ -44,6 +46,7 @@ import com.google.wireless.android.sdk.stats.IntelliJNewUIState
 import com.google.wireless.android.sdk.stats.MachineDetails
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
+import com.google.wireless.android.sdk.stats.SafeModeStatsEvent
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
@@ -54,14 +57,11 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.registry.RegistryManager
-import com.intellij.openapi.util.registry.RegistryValue
-import com.intellij.openapi.util.registry.RegistryValueListener
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.NewUiValue
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
@@ -171,38 +171,22 @@ object AndroidStudioUsageTracker {
     scheduler.scheduleWithFixedDelay({ runDailyReports() }, 0, 1, TimeUnit.DAYS)
     // Send initial report immediately, hourly from then on.
     scheduler.scheduleWithFixedDelay({ runHourlyReports() }, 0, 1, TimeUnit.HOURS)
-    subscribeToEvents()
+    TypingLatencyTracker.ensureSubscribed()
     setupMetricsListener()
 
-    // Studio ping is called immediately without scheduler to make sure
-    // ping is not delayed based on scheduler logic, then it is scheduled
+    // Studio ping is called in the appStarted event below, then it is scheduled
     // daily moving forward.
-    studioPing()
     scheduler.scheduleWithFixedDelay({ studioPing() }, 1, 1, TimeUnit.DAYS)
 
     updateNewUISettings()
   }
 
-  private fun subscribeToEvents() {
-    val app = ApplicationManager.getApplication()
-    val connection = app.messageBus.connect()
-    connection.subscribe(LatencyListener.TOPIC, TypingLatencyTracker)
-    connection.subscribe(AppLifecycleListener.TOPIC, object : AppLifecycleListener {
-      override fun appWillBeClosed(isRestart: Boolean) {
-        runShutdownReports()
-      }
-    })
-    RegistryManager.getInstance().get("ide.highlighting.mode.essential").addListener(object : RegistryValueListener {
-      override fun beforeValueChanged(value: RegistryValue) = TypingLatencyTracker.reportTypingLatency()
-    }, AndroidPluginDisposable.getApplicationInstance())
-  }
-
   private fun runStartupReports() {
     reportEnabledPlugins()
+    reportSafeModeStats()
   }
 
   private fun runShutdownReports() {
-    TypingLatencyTracker.reportTypingLatency()
     CompletionStats.reportCompletionStats()
     ManifestMergerStatsTracker.reportMergerStats()
   }
@@ -212,11 +196,8 @@ object AndroidStudioUsageTracker {
     val pluginInfoProto = IdePluginInfo.newBuilder()
 
     for (plugin in plugins) {
-      if (!plugin.isEnabled) {
-        continue
-      }
-
-      val id = plugin.pluginId.idString
+      if (!plugin.isEnabled) continue
+      val id = plugin.pluginId?.idString ?: continue
 
       val pluginProto = IdePlugin.newBuilder()
       pluginProto.id = id.take(256)
@@ -230,6 +211,47 @@ object AndroidStudioUsageTracker {
       AndroidStudioEvent.newBuilder()
         .setKind(EventKind.IDE_PLUGIN_INFO)
         .setIdePluginInfo(pluginInfoProto))
+  }
+
+  private fun reportSafeModeStats() {
+    System.getProperty("studio.safe.mode") ?: return
+    val safeModeStatsProto = SafeModeStatsEvent.newBuilder()
+
+    if (SystemInfo.isWindows) {
+      safeModeStatsProto.setOs(SafeModeStatsEvent.OS.WINDOWS)
+    }
+    else if (SystemInfo.isMac) {
+      safeModeStatsProto.setOs(SafeModeStatsEvent.OS.MAC)
+    }
+    else if (SystemInfo.isUnix) {
+      safeModeStatsProto.setOs(SafeModeStatsEvent.OS.LINUX)
+    }
+    else {
+      safeModeStatsProto.setOs(SafeModeStatsEvent.OS.UNKNOWN_OS)
+    }
+
+    safeModeStatsProto.setEntryPoint(SafeModeStatsEvent.EntryPoint.SCRIPT)
+    safeModeStatsProto.setTrigger(if (System.getProperty("studio.safe.mode") == null) SafeModeStatsEvent.Trigger.UNKNOWN_TRIGGER
+                                  else SafeModeStatsEvent.Trigger.STARTUP_FAILED)
+    safeModeStatsProto.setStartUpResult(SafeModeStatsEvent.StartUpResult.SAFE_MODE_SUCCESS)
+    safeModeStatsProto.setStudioVersion(ApplicationInfo.getInstance().strictVersion)
+    safeModeStatsProto.setJdkModified(IdeSdks.getInstance().getRunningVersionOrDefault().toString())
+
+    val plugins = PluginManagerCore.loadedPlugins
+    for (plugin in plugins) {
+      if (!plugin.isEnabled) continue
+      val id = plugin.pluginId.idString
+
+      if (id == "org.jetbrains.kotlin") {
+        safeModeStatsProto.setKotlinModified(plugin.version)
+        break
+      }
+    }
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(EventKind.SAFE_MODE_STATS_EVENT)
+        .setSafeModeStatsEvent(safeModeStatsProto))
   }
 
   private fun runDailyReports() {
@@ -399,8 +421,6 @@ object AndroidStudioUsageTracker {
                        .setCategory(AndroidStudioEvent.EventCategory.SYSTEM)
                        .setKind(EventKind.STUDIO_PROCESS_STATS)
                        .setJavaProcessStats(CommonMetricsData.javaProcessStats))
-
-    TypingLatencyTracker.reportTypingLatency()
     CompletionStats.reportCompletionStats()
     ManifestMergerStatsTracker.reportMergerStats()
   }
@@ -489,5 +509,19 @@ object AndroidStudioUsageTracker {
     calendar.time = now
     calendar.add(Calendar.DATE, days)
     return calendar.time
+  }
+
+  class UsageTrackerAppLifecycleListener : AppLifecycleListener {
+    override fun appFrameCreated(commandLineArgs: MutableList<String>) {
+      showConsentDialogIfNeeded()
+    }
+
+    override fun appStarted() {
+      studioPing()
+    }
+
+    override fun appWillBeClosed(isRestart: Boolean) {
+      runShutdownReports()
+    }
   }
 }

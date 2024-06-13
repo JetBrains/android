@@ -147,7 +147,9 @@ abstract class ChooseGalleryItemStep(
       renderModel.newTemplate.validate(moduleApiLevel, isNewModule, isAndroidxProject, renderModel.language.value, messageKeys)
     )
 
-    if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, renderModel.newTemplate.category)) {
+    if (invalidParameterMessage.get() == "" &&
+        renderModel.newTemplate.constraints.contains(TemplateConstraint.Compose) &&
+        !hasComposeMinAgpVersion(project)) {
       invalidParameterMessage.set(message("android.wizard.validate.module.needs.new.agp", COMPOSE_MIN_AGP_VERSION))
     }
   }

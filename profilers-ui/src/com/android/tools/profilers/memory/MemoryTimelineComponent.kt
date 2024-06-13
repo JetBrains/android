@@ -47,10 +47,6 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
 
   override fun shouldShowTooltip() = !heapDumpRenderer.isMouseOverHeapDump
 
-  override fun makeLineChart() = super.makeLineChart().apply {
-    configure(stage.detailedMemoryUsage.objectsSeries, LineConfig(Color(0, 0, 0, 0)))
-  }
-
   private fun makeHeapDumpRenderer() = HeapDumpRenderer(stage.heapDumpSampleDurations, stage.timeline.viewRange).apply {
     addHeapDumpHoverListener { hovered ->
       when {

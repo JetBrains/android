@@ -45,8 +45,8 @@ class PsAnalyzerDaemonKtTest {
       const val LIBRARY_VERSION = "test-version"
       private const val MESSAGE_POLICY = "has policy issues that will block publishing of your app to Play Console in the future"
       private const val MESSAGE_POLICY_BLOCKING = "has policy issues that will block publishing of your app to Play Console"
-      private const val MESSAGE_OUTDATED = "has been marked as outdated by its author"
-      private const val MESSAGE_OUTDATED_BLOCKING = "has been marked as outdated by its author and will block publishing of your app to Play Console"
+      private const val MESSAGE_OUTDATED = "has been reported as outdated by its author"
+      private const val MESSAGE_OUTDATED_BLOCKING = "has been reported as outdated by its author and will block publishing of your app to Play Console"
       private const val MESSAGE_CRITICAL = "has an associated message from its author"
       private const val MESSAGE_CRITICAL_BLOCKING = "has been reported as problematic by its author and will block publishing of your app to Play Console"
       private const val MESSAGE_POLICY_USER = "has User Data policy issues that will block publishing of your app to Play Console in the future"
@@ -93,9 +93,7 @@ class PsAnalyzerDaemonKtTest {
       private val critical: Boolean,
       private val violations: List<SdkPolicy>,
     ) : GooglePlaySdkIndex(null) {
-      override fun readUrlData(url: String, timeout: Int): ByteArray? {
-        return null
-      }
+      override fun readUrlData(url: String, timeout: Int, lastModified: Long) = ReadUrlDataResult(null, true)
 
       override fun error(throwable: Throwable, message: String?) {
       }

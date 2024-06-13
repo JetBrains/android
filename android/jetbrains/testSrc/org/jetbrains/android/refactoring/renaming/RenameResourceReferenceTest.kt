@@ -23,6 +23,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
+import com.intellij.util.application
+import org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor.ResourceFileReference
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -85,5 +87,27 @@ class RenameResourceReferenceTest {
     }
 
     assertThat(fileBased).isEqualTo(expectedIsFileBased)
+  }
+
+  @Test
+  fun resourceFileReferenceRename_fileExtensionRetained() {
+    val xmlFile = projectRule.fixture.addFileToProject("resource.xml", "")
+    val ninePatchFile = projectRule.fixture.addFileToProject("ninepatch.9.png", "")
+    val fileWithoutExtension = projectRule.fixture.addFileToProject("noextension", "")
+    val fileWithEmptyExtension = projectRule.fixture.addFileToProject("emptyextension.", "")
+
+    application.invokeAndWait {
+      application.runWriteAction {
+        ResourceFileReference(xmlFile).handleElementRename("renamed_resource")
+        ResourceFileReference(ninePatchFile).handleElementRename("renamed_ninepatch")
+        ResourceFileReference(fileWithoutExtension).handleElementRename("renamed_noextension")
+        ResourceFileReference(fileWithEmptyExtension).handleElementRename("renamed_emptyextension")
+      }
+    }
+
+    assertThat(xmlFile.name).isEqualTo("renamed_resource.xml")
+    assertThat(ninePatchFile.name).isEqualTo("renamed_ninepatch.9.png")
+    assertThat(fileWithoutExtension.name).isEqualTo("renamed_noextension")
+    assertThat(fileWithEmptyExtension.name).isEqualTo("renamed_emptyextension.")
   }
 }

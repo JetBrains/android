@@ -36,7 +36,7 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
   constructor(
     parentDisposable: Disposable,
     processesModel: ProcessesModel,
-    foregroundProcessDetectionSupportedDeviceTest: Set<DeviceDescriptor>
+    foregroundProcessDetectionSupportedDeviceTest: Set<DeviceDescriptor>,
   ) : this(parentDisposable, processesModel) {
     foregroundProcessDetectionSupportedDeviceTest.forEach {
       foregroundProcessDetectionDevicesSupport[it] = ForegroundProcessDetectionSupport.SUPPORTED
@@ -127,5 +127,5 @@ enum class ForegroundProcessDetectionSupport {
    * The handshake is started but not concluded yet. So we don't know if fg process detection is
    * supported or not.
    */
-  HANDSHAKE_IN_PROGRESS
+  HANDSHAKE_IN_PROGRESS,
 }

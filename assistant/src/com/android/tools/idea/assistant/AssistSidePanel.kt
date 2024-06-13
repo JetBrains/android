@@ -63,7 +63,7 @@ class AssistSidePanel(private val project: Project) : JPanel(BorderLayout()) {
   fun showBundle(
     bundleId: String,
     defaultTutorialId: String? = null,
-    onBundleCreated: ((TutorialBundleData) -> Unit)? = null
+    onBundleCreated: ((TutorialBundleData) -> Unit)? = null,
   ) {
     featuresPanel?.let { remove(it) }
     loadingPanel.startLoading()
@@ -93,14 +93,14 @@ class AssistSidePanel(private val project: Project) : JPanel(BorderLayout()) {
           project,
           config,
           AssistantLoadingCallback(bundleId, bundleCreator, defaultTutorialId, onBundleCreated),
-          bundleCreator.bundleId
+          bundleCreator.bundleId,
         )
         .queue()
     } else {
       AssistantGetBundleTask(
           project,
           bundleCreator,
-          AssistantLoadingCallback(bundleId, bundleCreator, defaultTutorialId, onBundleCreated)
+          AssistantLoadingCallback(bundleId, bundleCreator, defaultTutorialId, onBundleCreated),
         )
         .queue()
     }
@@ -110,13 +110,13 @@ class AssistSidePanel(private val project: Project) : JPanel(BorderLayout()) {
     private val bundleId: String,
     private val bundleCreator: AssistantBundleCreator,
     private val defaultTutorialId: String?,
-    private val onBundleCreated: ((TutorialBundleData) -> Unit)?
+    private val onBundleCreated: ((TutorialBundleData) -> Unit)?,
   ) : FutureCallback<TutorialBundleData> {
     private fun createFeaturesPanel(
       bundle: TutorialBundleData?,
       actionId: String,
       bundleCreator: AssistantBundleCreator,
-      project: Project
+      project: Project,
     ) {
       if (bundle == null) {
         log.error("Unable to get Assistant configuration for action: $actionId")

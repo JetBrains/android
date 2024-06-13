@@ -374,246 +374,248 @@ MODULE: project.app
                     ./app/src/specialRelease/shaders
                 BaselineProfileDirectories:
                     ./app/src/specialRelease/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./app/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/test/assets
-                JavaDirectories:
-                    ./app/src/test/java
-                KotlinDirectories:
-                    ./app/src/test/java
-                    ./app/src/test/kotlin
-                JniLibsDirectories:
-                    ./app/src/test/jniLibs
-                ResDirectories:
-                    ./app/src/test/res
-                ResourcesDirectories:
-                    ./app/src/test/resources
-                ShadersDirectories:
-                    ./app/src/test/shaders
-                BaselineProfileDirectories:
-                    ./app/src/test/baselineProfiles
-            testBasic
-                Manifest:
-                    ./app/src/testBasic/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/testBasic/assets
-                JavaDirectories:
-                    ./app/src/testBasic/java
-                KotlinDirectories:
-                    ./app/src/testBasic/java
-                    ./app/src/testBasic/kotlin
-                JniLibsDirectories:
-                    ./app/src/testBasic/jniLibs
-                ResDirectories:
-                    ./app/src/testBasic/res
-                ResourcesDirectories:
-                    ./app/src/testBasic/resources
-                ShadersDirectories:
-                    ./app/src/testBasic/shaders
-                BaselineProfileDirectories:
-                    ./app/src/testBasic/baselineProfiles
-            testBar
-                Manifest:
-                    ./app/src/testBar/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/testBar/assets
-                JavaDirectories:
-                    ./app/src/testBar/java
-                KotlinDirectories:
-                    ./app/src/testBar/java
-                    ./app/src/testBar/kotlin
-                JniLibsDirectories:
-                    ./app/src/testBar/jniLibs
-                ResDirectories:
-                    ./app/src/testBar/res
-                ResourcesDirectories:
-                    ./app/src/testBar/resources
-                ShadersDirectories:
-                    ./app/src/testBar/shaders
-                BaselineProfileDirectories:
-                    ./app/src/testBar/baselineProfiles
-            testBasicBar
-                Manifest:
-                    ./app/src/testBasicBar/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/testBasicBar/assets
-                JavaDirectories:
-                    ./app/src/testBasicBar/java
-                KotlinDirectories:
-                    ./app/src/testBasicBar/java
-                    ./app/src/testBasicBar/kotlin
-                JniLibsDirectories:
-                    ./app/src/testBasicBar/jniLibs
-                ResDirectories:
-                    ./app/src/testBasicBar/res
-                ResourcesDirectories:
-                    ./app/src/testBasicBar/resources
-                ShadersDirectories:
-                    ./app/src/testBasicBar/shaders
-                BaselineProfileDirectories:
-                    ./app/src/testBasicBar/baselineProfiles
-            testDebug
-                Manifest:
-                    ./app/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/testDebug/assets
-                JavaDirectories:
-                    ./app/src/testDebug/java
-                KotlinDirectories:
-                    ./app/src/testDebug/java
-                    ./app/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./app/src/testDebug/jniLibs
-                ResDirectories:
-                    ./app/src/testDebug/res
-                ResourcesDirectories:
-                    ./app/src/testDebug/resources
-                ShadersDirectories:
-                    ./app/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./app/src/testDebug/baselineProfiles
-            testBasicBarDebug
-                Manifest:
-                    ./app/src/testBasicBarDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/testBasicBarDebug/assets
-                JavaDirectories:
-                    ./app/src/testBasicBarDebug/java
-                KotlinDirectories:
-                    ./app/src/testBasicBarDebug/java
-                    ./app/src/testBasicBarDebug/kotlin
-                JniLibsDirectories:
-                    ./app/src/testBasicBarDebug/jniLibs
-                ResourcesDirectories:
-                    ./app/src/testBasicBarDebug/resources
-                ShadersDirectories:
-                    ./app/src/testBasicBarDebug/shaders
-                BaselineProfileDirectories:
-                    ./app/src/testBasicBarDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./app/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTest/assets
-                JavaDirectories:
-                    ./app/src/androidTest/java
-                KotlinDirectories:
-                    ./app/src/androidTest/java
-                    ./app/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./app/src/androidTest/jniLibs
-                ResDirectories:
-                    ./app/src/androidTest/res
-                ResourcesDirectories:
-                    ./app/src/androidTest/resources
-                ShadersDirectories:
-                    ./app/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTest/baselineProfiles
-            androidTestBasic
-                Manifest:
-                    ./app/src/androidTestBasic/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTestBasic/assets
-                JavaDirectories:
-                    ./app/src/androidTestBasic/java
-                KotlinDirectories:
-                    ./app/src/androidTestBasic/java
-                    ./app/src/androidTestBasic/kotlin
-                JniLibsDirectories:
-                    ./app/src/androidTestBasic/jniLibs
-                ResDirectories:
-                    ./app/src/androidTestBasic/res
-                ResourcesDirectories:
-                    ./app/src/androidTestBasic/resources
-                ShadersDirectories:
-                    ./app/src/androidTestBasic/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTestBasic/baselineProfiles
-            androidTestBar
-                Manifest:
-                    ./app/src/androidTestBar/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTestBar/assets
-                JavaDirectories:
-                    ./app/src/androidTestBar/java
-                KotlinDirectories:
-                    ./app/src/androidTestBar/java
-                    ./app/src/androidTestBar/kotlin
-                JniLibsDirectories:
-                    ./app/src/androidTestBar/jniLibs
-                ResDirectories:
-                    ./app/src/androidTestBar/res
-                ResourcesDirectories:
-                    ./app/src/androidTestBar/resources
-                ShadersDirectories:
-                    ./app/src/androidTestBar/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTestBar/baselineProfiles
-            androidTestBasicBar
-                Manifest:
-                    ./app/src/androidTestBasicBar/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTestBasicBar/assets
-                JavaDirectories:
-                    ./app/src/androidTestBasicBar/java
-                KotlinDirectories:
-                    ./app/src/androidTestBasicBar/java
-                    ./app/src/androidTestBasicBar/kotlin
-                JniLibsDirectories:
-                    ./app/src/androidTestBasicBar/jniLibs
-                ResDirectories:
-                    ./app/src/androidTestBasicBar/res
-                ResourcesDirectories:
-                    ./app/src/androidTestBasicBar/resources
-                ShadersDirectories:
-                    ./app/src/androidTestBasicBar/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTestBasicBar/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./app/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./app/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./app/src/androidTestDebug/java
-                    ./app/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./app/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./app/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./app/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./app/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTestDebug/baselineProfiles
-            androidTestBasicBarDebug
-                Manifest:
-                    ./app/src/androidTestBasicBarDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./app/src/androidTestBasicBarDebug/assets
-                JavaDirectories:
-                    ./app/src/androidTestBasicBarDebug/java
-                KotlinDirectories:
-                    ./app/src/androidTestBasicBarDebug/java
-                    ./app/src/androidTestBasicBarDebug/kotlin
-                JniLibsDirectories:
-                    ./app/src/androidTestBasicBarDebug/jniLibs
-                ResDirectories:
-                    ./app/src/androidTestBasicBarDebug/res
-                ResourcesDirectories:
-                    ./app/src/androidTestBasicBarDebug/resources
-                ShadersDirectories:
-                    ./app/src/androidTestBasicBarDebug/shaders
-                BaselineProfileDirectories:
-                    ./app/src/androidTestBasicBarDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./app/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/test/assets
+                    JavaDirectories:
+                        ./app/src/test/java
+                    KotlinDirectories:
+                        ./app/src/test/java
+                        ./app/src/test/kotlin
+                    JniLibsDirectories:
+                        ./app/src/test/jniLibs
+                    ResDirectories:
+                        ./app/src/test/res
+                    ResourcesDirectories:
+                        ./app/src/test/resources
+                    ShadersDirectories:
+                        ./app/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/test/baselineProfiles
+                testBasic
+                    Manifest:
+                        ./app/src/testBasic/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/testBasic/assets
+                    JavaDirectories:
+                        ./app/src/testBasic/java
+                    KotlinDirectories:
+                        ./app/src/testBasic/java
+                        ./app/src/testBasic/kotlin
+                    JniLibsDirectories:
+                        ./app/src/testBasic/jniLibs
+                    ResDirectories:
+                        ./app/src/testBasic/res
+                    ResourcesDirectories:
+                        ./app/src/testBasic/resources
+                    ShadersDirectories:
+                        ./app/src/testBasic/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/testBasic/baselineProfiles
+                testBar
+                    Manifest:
+                        ./app/src/testBar/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/testBar/assets
+                    JavaDirectories:
+                        ./app/src/testBar/java
+                    KotlinDirectories:
+                        ./app/src/testBar/java
+                        ./app/src/testBar/kotlin
+                    JniLibsDirectories:
+                        ./app/src/testBar/jniLibs
+                    ResDirectories:
+                        ./app/src/testBar/res
+                    ResourcesDirectories:
+                        ./app/src/testBar/resources
+                    ShadersDirectories:
+                        ./app/src/testBar/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/testBar/baselineProfiles
+                testBasicBar
+                    Manifest:
+                        ./app/src/testBasicBar/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/testBasicBar/assets
+                    JavaDirectories:
+                        ./app/src/testBasicBar/java
+                    KotlinDirectories:
+                        ./app/src/testBasicBar/java
+                        ./app/src/testBasicBar/kotlin
+                    JniLibsDirectories:
+                        ./app/src/testBasicBar/jniLibs
+                    ResDirectories:
+                        ./app/src/testBasicBar/res
+                    ResourcesDirectories:
+                        ./app/src/testBasicBar/resources
+                    ShadersDirectories:
+                        ./app/src/testBasicBar/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/testBasicBar/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./app/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/testDebug/assets
+                    JavaDirectories:
+                        ./app/src/testDebug/java
+                    KotlinDirectories:
+                        ./app/src/testDebug/java
+                        ./app/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./app/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./app/src/testDebug/res
+                    ResourcesDirectories:
+                        ./app/src/testDebug/resources
+                    ShadersDirectories:
+                        ./app/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/testDebug/baselineProfiles
+                testBasicBarDebug
+                    Manifest:
+                        ./app/src/testBasicBarDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/testBasicBarDebug/assets
+                    JavaDirectories:
+                        ./app/src/testBasicBarDebug/java
+                    KotlinDirectories:
+                        ./app/src/testBasicBarDebug/java
+                        ./app/src/testBasicBarDebug/kotlin
+                    JniLibsDirectories:
+                        ./app/src/testBasicBarDebug/jniLibs
+                    ResourcesDirectories:
+                        ./app/src/testBasicBarDebug/resources
+                    ShadersDirectories:
+                        ./app/src/testBasicBarDebug/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/testBasicBarDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./app/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTest/assets
+                    JavaDirectories:
+                        ./app/src/androidTest/java
+                    KotlinDirectories:
+                        ./app/src/androidTest/java
+                        ./app/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./app/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTest/res
+                    ResourcesDirectories:
+                        ./app/src/androidTest/resources
+                    ShadersDirectories:
+                        ./app/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTest/baselineProfiles
+                androidTestBasic
+                    Manifest:
+                        ./app/src/androidTestBasic/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTestBasic/assets
+                    JavaDirectories:
+                        ./app/src/androidTestBasic/java
+                    KotlinDirectories:
+                        ./app/src/androidTestBasic/java
+                        ./app/src/androidTestBasic/kotlin
+                    JniLibsDirectories:
+                        ./app/src/androidTestBasic/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTestBasic/res
+                    ResourcesDirectories:
+                        ./app/src/androidTestBasic/resources
+                    ShadersDirectories:
+                        ./app/src/androidTestBasic/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTestBasic/baselineProfiles
+                androidTestBar
+                    Manifest:
+                        ./app/src/androidTestBar/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTestBar/assets
+                    JavaDirectories:
+                        ./app/src/androidTestBar/java
+                    KotlinDirectories:
+                        ./app/src/androidTestBar/java
+                        ./app/src/androidTestBar/kotlin
+                    JniLibsDirectories:
+                        ./app/src/androidTestBar/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTestBar/res
+                    ResourcesDirectories:
+                        ./app/src/androidTestBar/resources
+                    ShadersDirectories:
+                        ./app/src/androidTestBar/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTestBar/baselineProfiles
+                androidTestBasicBar
+                    Manifest:
+                        ./app/src/androidTestBasicBar/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTestBasicBar/assets
+                    JavaDirectories:
+                        ./app/src/androidTestBasicBar/java
+                    KotlinDirectories:
+                        ./app/src/androidTestBasicBar/java
+                        ./app/src/androidTestBasicBar/kotlin
+                    JniLibsDirectories:
+                        ./app/src/androidTestBasicBar/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTestBasicBar/res
+                    ResourcesDirectories:
+                        ./app/src/androidTestBasicBar/resources
+                    ShadersDirectories:
+                        ./app/src/androidTestBasicBar/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTestBasicBar/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./app/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./app/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./app/src/androidTestDebug/java
+                        ./app/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./app/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./app/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./app/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTestDebug/baselineProfiles
+                androidTestBasicBarDebug
+                    Manifest:
+                        ./app/src/androidTestBasicBarDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./app/src/androidTestBasicBarDebug/assets
+                    JavaDirectories:
+                        ./app/src/androidTestBasicBarDebug/java
+                    KotlinDirectories:
+                        ./app/src/androidTestBasicBarDebug/java
+                        ./app/src/androidTestBasicBarDebug/kotlin
+                    JniLibsDirectories:
+                        ./app/src/androidTestBasicBarDebug/jniLibs
+                    ResDirectories:
+                        ./app/src/androidTestBasicBarDebug/res
+                    ResourcesDirectories:
+                        ./app/src/androidTestBasicBarDebug/resources
+                    ShadersDirectories:
+                        ./app/src/androidTestBasicBarDebug/shaders
+                    BaselineProfileDirectories:
+                        ./app/src/androidTestBasicBarDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -700,7 +702,7 @@ MODULE: project.app
                     file://./app/src/basicBar/shaders
                     file://./app/src/debug/shaders
                     file://./app/src/basicBarDebug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -771,8 +773,8 @@ MODULE: project.app
                     file://./app/src/testBasicBar/shaders
                     file://./app/src/testDebug/shaders
                     file://./app/src/testBasicBarDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
@@ -853,13 +855,13 @@ MODULE: project.app
                     file://./app/build/generated/ap_generated_sources/basicBarDebug/out
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/basicBar/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out
@@ -1236,7 +1238,7 @@ MODULE: project.app
                     file://./app/src/basicBarDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/basicBarDebug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1361,7 +1363,7 @@ MODULE: project.app
                     file://./app/src/testBasicBarDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testBasicBarDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1639,88 +1641,90 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/release/shaders
                 BaselineProfileDirectories:
                     ./dyn_feature/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./dyn_feature/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./dyn_feature/src/test/assets
-                JavaDirectories:
-                    ./dyn_feature/src/test/java
-                KotlinDirectories:
-                    ./dyn_feature/src/test/java
-                    ./dyn_feature/src/test/kotlin
-                JniLibsDirectories:
-                    ./dyn_feature/src/test/jniLibs
-                ResDirectories:
-                    ./dyn_feature/src/test/res
-                ResourcesDirectories:
-                    ./dyn_feature/src/test/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/test/shaders
-                BaselineProfileDirectories:
-                    ./dyn_feature/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./dyn_feature/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./dyn_feature/src/testDebug/assets
-                JavaDirectories:
-                    ./dyn_feature/src/testDebug/java
-                KotlinDirectories:
-                    ./dyn_feature/src/testDebug/java
-                    ./dyn_feature/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./dyn_feature/src/testDebug/jniLibs
-                ResDirectories:
-                    ./dyn_feature/src/testDebug/res
-                ResourcesDirectories:
-                    ./dyn_feature/src/testDebug/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./dyn_feature/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./dyn_feature/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./dyn_feature/src/androidTest/assets
-                JavaDirectories:
-                    ./dyn_feature/src/androidTest/java
-                KotlinDirectories:
-                    ./dyn_feature/src/androidTest/java
-                    ./dyn_feature/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./dyn_feature/src/androidTest/jniLibs
-                ResDirectories:
-                    ./dyn_feature/src/androidTest/res
-                ResourcesDirectories:
-                    ./dyn_feature/src/androidTest/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./dyn_feature/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./dyn_feature/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./dyn_feature/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./dyn_feature/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./dyn_feature/src/androidTestDebug/java
-                    ./dyn_feature/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./dyn_feature/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./dyn_feature/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./dyn_feature/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./dyn_feature/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./dyn_feature/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/test/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/test/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/test/java
+                        ./dyn_feature/src/test/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/test/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/test/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/test/resources
+                    ShadersDirectories:
+                        ./dyn_feature/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./dyn_feature/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/testDebug/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/testDebug/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/testDebug/java
+                        ./dyn_feature/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/testDebug/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/testDebug/resources
+                    ShadersDirectories:
+                        ./dyn_feature/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./dyn_feature/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/androidTest/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/androidTest/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/androidTest/java
+                        ./dyn_feature/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/androidTest/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/androidTest/resources
+                    ShadersDirectories:
+                        ./dyn_feature/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./dyn_feature/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/androidTestDebug/java
+                        ./dyn_feature/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./dyn_feature/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1761,7 +1765,7 @@ MODULE: project.dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/main/shaders
                     file://./dyn_feature/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1793,8 +1797,8 @@ MODULE: project.dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/test/shaders
                     file://./dyn_feature/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./dyn_feature/src/androidTest/AndroidManifest.xml
@@ -1835,13 +1839,13 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./dyn_feature/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -1965,7 +1969,7 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2008,7 +2012,7 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2208,88 +2212,90 @@ MODULE: project.lib
                     ./lib/src/release/shaders
                 BaselineProfileDirectories:
                     ./lib/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./lib/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./lib/src/test/assets
-                JavaDirectories:
-                    ./lib/src/test/java
-                KotlinDirectories:
-                    ./lib/src/test/java
-                    ./lib/src/test/kotlin
-                JniLibsDirectories:
-                    ./lib/src/test/jniLibs
-                ResDirectories:
-                    ./lib/src/test/res
-                ResourcesDirectories:
-                    ./lib/src/test/resources
-                ShadersDirectories:
-                    ./lib/src/test/shaders
-                BaselineProfileDirectories:
-                    ./lib/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./lib/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./lib/src/testDebug/assets
-                JavaDirectories:
-                    ./lib/src/testDebug/java
-                KotlinDirectories:
-                    ./lib/src/testDebug/java
-                    ./lib/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./lib/src/testDebug/jniLibs
-                ResDirectories:
-                    ./lib/src/testDebug/res
-                ResourcesDirectories:
-                    ./lib/src/testDebug/resources
-                ShadersDirectories:
-                    ./lib/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./lib/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./lib/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./lib/src/androidTest/assets
-                JavaDirectories:
-                    ./lib/src/androidTest/java
-                KotlinDirectories:
-                    ./lib/src/androidTest/java
-                    ./lib/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./lib/src/androidTest/jniLibs
-                ResDirectories:
-                    ./lib/src/androidTest/res
-                ResourcesDirectories:
-                    ./lib/src/androidTest/resources
-                ShadersDirectories:
-                    ./lib/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./lib/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./lib/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./lib/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./lib/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./lib/src/androidTestDebug/java
-                    ./lib/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./lib/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./lib/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./lib/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./lib/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./lib/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./lib/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./lib/src/test/assets
+                    JavaDirectories:
+                        ./lib/src/test/java
+                    KotlinDirectories:
+                        ./lib/src/test/java
+                        ./lib/src/test/kotlin
+                    JniLibsDirectories:
+                        ./lib/src/test/jniLibs
+                    ResDirectories:
+                        ./lib/src/test/res
+                    ResourcesDirectories:
+                        ./lib/src/test/resources
+                    ShadersDirectories:
+                        ./lib/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./lib/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./lib/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./lib/src/testDebug/assets
+                    JavaDirectories:
+                        ./lib/src/testDebug/java
+                    KotlinDirectories:
+                        ./lib/src/testDebug/java
+                        ./lib/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./lib/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./lib/src/testDebug/res
+                    ResourcesDirectories:
+                        ./lib/src/testDebug/resources
+                    ShadersDirectories:
+                        ./lib/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./lib/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./lib/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./lib/src/androidTest/assets
+                    JavaDirectories:
+                        ./lib/src/androidTest/java
+                    KotlinDirectories:
+                        ./lib/src/androidTest/java
+                        ./lib/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./lib/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./lib/src/androidTest/res
+                    ResourcesDirectories:
+                        ./lib/src/androidTest/resources
+                    ShadersDirectories:
+                        ./lib/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./lib/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./lib/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./lib/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./lib/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./lib/src/androidTestDebug/java
+                        ./lib/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./lib/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./lib/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./lib/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./lib/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./lib/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2336,7 +2342,7 @@ MODULE: project.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
                     file://./lib/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2368,8 +2374,8 @@ MODULE: project.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/test/shaders
                     file://./lib/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib/src/androidTest/AndroidManifest.xml
@@ -2410,13 +2416,13 @@ MODULE: project.lib
                     file://./lib/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./lib/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -2552,7 +2558,7 @@ MODULE: project.lib
                     file://./lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2595,7 +2601,7 @@ MODULE: project.lib
                     file://./lib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2789,88 +2795,90 @@ MODULE: project.nested1
                     ./nested1/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested1/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./nested1/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested1/src/test/assets
-                JavaDirectories:
-                    ./nested1/src/test/java
-                KotlinDirectories:
-                    ./nested1/src/test/java
-                    ./nested1/src/test/kotlin
-                JniLibsDirectories:
-                    ./nested1/src/test/jniLibs
-                ResDirectories:
-                    ./nested1/src/test/res
-                ResourcesDirectories:
-                    ./nested1/src/test/resources
-                ShadersDirectories:
-                    ./nested1/src/test/shaders
-                BaselineProfileDirectories:
-                    ./nested1/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./nested1/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested1/src/testDebug/assets
-                JavaDirectories:
-                    ./nested1/src/testDebug/java
-                KotlinDirectories:
-                    ./nested1/src/testDebug/java
-                    ./nested1/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./nested1/src/testDebug/jniLibs
-                ResDirectories:
-                    ./nested1/src/testDebug/res
-                ResourcesDirectories:
-                    ./nested1/src/testDebug/resources
-                ShadersDirectories:
-                    ./nested1/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested1/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./nested1/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested1/src/androidTest/assets
-                JavaDirectories:
-                    ./nested1/src/androidTest/java
-                KotlinDirectories:
-                    ./nested1/src/androidTest/java
-                    ./nested1/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./nested1/src/androidTest/jniLibs
-                ResDirectories:
-                    ./nested1/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested1/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested1/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./nested1/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./nested1/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested1/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./nested1/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./nested1/src/androidTestDebug/java
-                    ./nested1/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./nested1/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./nested1/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested1/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested1/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested1/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./nested1/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested1/src/test/assets
+                    JavaDirectories:
+                        ./nested1/src/test/java
+                    KotlinDirectories:
+                        ./nested1/src/test/java
+                        ./nested1/src/test/kotlin
+                    JniLibsDirectories:
+                        ./nested1/src/test/jniLibs
+                    ResDirectories:
+                        ./nested1/src/test/res
+                    ResourcesDirectories:
+                        ./nested1/src/test/resources
+                    ShadersDirectories:
+                        ./nested1/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./nested1/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./nested1/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested1/src/testDebug/assets
+                    JavaDirectories:
+                        ./nested1/src/testDebug/java
+                    KotlinDirectories:
+                        ./nested1/src/testDebug/java
+                        ./nested1/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested1/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./nested1/src/testDebug/res
+                    ResourcesDirectories:
+                        ./nested1/src/testDebug/resources
+                    ShadersDirectories:
+                        ./nested1/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested1/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./nested1/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested1/src/androidTest/assets
+                    JavaDirectories:
+                        ./nested1/src/androidTest/java
+                    KotlinDirectories:
+                        ./nested1/src/androidTest/java
+                        ./nested1/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./nested1/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./nested1/src/androidTest/res
+                    ResourcesDirectories:
+                        ./nested1/src/androidTest/resources
+                    ShadersDirectories:
+                        ./nested1/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./nested1/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./nested1/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested1/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./nested1/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./nested1/src/androidTestDebug/java
+                        ./nested1/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested1/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./nested1/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./nested1/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./nested1/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested1/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2911,7 +2919,7 @@ MODULE: project.nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/main/shaders
                     file://./nested1/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2943,8 +2951,8 @@ MODULE: project.nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/test/shaders
                     file://./nested1/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./nested1/src/androidTest/AndroidManifest.xml
@@ -2985,13 +2993,13 @@ MODULE: project.nested1
                     file://./nested1/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./nested1/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./nested1/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested1/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -3115,7 +3123,7 @@ MODULE: project.nested1
                     file://./nested1/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3158,7 +3166,7 @@ MODULE: project.nested1
                     file://./nested1/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -3352,88 +3360,90 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested1/deep/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./nested1/deep/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested1/deep/src/test/assets
-                JavaDirectories:
-                    ./nested1/deep/src/test/java
-                KotlinDirectories:
-                    ./nested1/deep/src/test/java
-                    ./nested1/deep/src/test/kotlin
-                JniLibsDirectories:
-                    ./nested1/deep/src/test/jniLibs
-                ResDirectories:
-                    ./nested1/deep/src/test/res
-                ResourcesDirectories:
-                    ./nested1/deep/src/test/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/test/shaders
-                BaselineProfileDirectories:
-                    ./nested1/deep/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./nested1/deep/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested1/deep/src/testDebug/assets
-                JavaDirectories:
-                    ./nested1/deep/src/testDebug/java
-                KotlinDirectories:
-                    ./nested1/deep/src/testDebug/java
-                    ./nested1/deep/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./nested1/deep/src/testDebug/jniLibs
-                ResDirectories:
-                    ./nested1/deep/src/testDebug/res
-                ResourcesDirectories:
-                    ./nested1/deep/src/testDebug/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested1/deep/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./nested1/deep/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested1/deep/src/androidTest/assets
-                JavaDirectories:
-                    ./nested1/deep/src/androidTest/java
-                KotlinDirectories:
-                    ./nested1/deep/src/androidTest/java
-                    ./nested1/deep/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./nested1/deep/src/androidTest/jniLibs
-                ResDirectories:
-                    ./nested1/deep/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested1/deep/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./nested1/deep/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./nested1/deep/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested1/deep/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./nested1/deep/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./nested1/deep/src/androidTestDebug/java
-                    ./nested1/deep/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./nested1/deep/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./nested1/deep/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested1/deep/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested1/deep/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./nested1/deep/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested1/deep/src/test/assets
+                    JavaDirectories:
+                        ./nested1/deep/src/test/java
+                    KotlinDirectories:
+                        ./nested1/deep/src/test/java
+                        ./nested1/deep/src/test/kotlin
+                    JniLibsDirectories:
+                        ./nested1/deep/src/test/jniLibs
+                    ResDirectories:
+                        ./nested1/deep/src/test/res
+                    ResourcesDirectories:
+                        ./nested1/deep/src/test/resources
+                    ShadersDirectories:
+                        ./nested1/deep/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./nested1/deep/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./nested1/deep/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested1/deep/src/testDebug/assets
+                    JavaDirectories:
+                        ./nested1/deep/src/testDebug/java
+                    KotlinDirectories:
+                        ./nested1/deep/src/testDebug/java
+                        ./nested1/deep/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested1/deep/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./nested1/deep/src/testDebug/res
+                    ResourcesDirectories:
+                        ./nested1/deep/src/testDebug/resources
+                    ShadersDirectories:
+                        ./nested1/deep/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested1/deep/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./nested1/deep/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested1/deep/src/androidTest/assets
+                    JavaDirectories:
+                        ./nested1/deep/src/androidTest/java
+                    KotlinDirectories:
+                        ./nested1/deep/src/androidTest/java
+                        ./nested1/deep/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./nested1/deep/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./nested1/deep/src/androidTest/res
+                    ResourcesDirectories:
+                        ./nested1/deep/src/androidTest/resources
+                    ShadersDirectories:
+                        ./nested1/deep/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./nested1/deep/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./nested1/deep/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested1/deep/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./nested1/deep/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./nested1/deep/src/androidTestDebug/java
+                        ./nested1/deep/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested1/deep/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./nested1/deep/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./nested1/deep/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./nested1/deep/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested1/deep/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -3474,7 +3484,7 @@ MODULE: project.nested1.deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/main/shaders
                     file://./nested1/deep/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3506,8 +3516,8 @@ MODULE: project.nested1.deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/test/shaders
                     file://./nested1/deep/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./nested1/deep/src/androidTest/AndroidManifest.xml
@@ -3548,13 +3558,13 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./nested1/deep/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -3678,7 +3688,7 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3721,7 +3731,7 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -4015,166 +4025,168 @@ MODULE: project.nested2
                     ./nested2/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./nested2/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/src/test/assets
-                JavaDirectories:
-                    ./nested2/src/test/java
-                KotlinDirectories:
-                    ./nested2/src/test/java
-                    ./nested2/src/test/kotlin
-                JniLibsDirectories:
-                    ./nested2/src/test/jniLibs
-                ResDirectories:
-                    ./nested2/src/test/res
-                ResourcesDirectories:
-                    ./nested2/src/test/resources
-                ShadersDirectories:
-                    ./nested2/src/test/shaders
-                BaselineProfileDirectories:
-                    ./nested2/src/test/baselineProfiles
-            testBasic
-                Manifest:
-                    ./nested2/src/testBasic/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/src/testBasic/assets
-                JavaDirectories:
-                    ./nested2/src/testBasic/java
-                KotlinDirectories:
-                    ./nested2/src/testBasic/java
-                    ./nested2/src/testBasic/kotlin
-                JniLibsDirectories:
-                    ./nested2/src/testBasic/jniLibs
-                ResDirectories:
-                    ./nested2/src/testBasic/res
-                ResourcesDirectories:
-                    ./nested2/src/testBasic/resources
-                ShadersDirectories:
-                    ./nested2/src/testBasic/shaders
-                BaselineProfileDirectories:
-                    ./nested2/src/testBasic/baselineProfiles
-            testDebug
-                Manifest:
-                    ./nested2/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/src/testDebug/assets
-                JavaDirectories:
-                    ./nested2/src/testDebug/java
-                KotlinDirectories:
-                    ./nested2/src/testDebug/java
-                    ./nested2/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./nested2/src/testDebug/jniLibs
-                ResDirectories:
-                    ./nested2/src/testDebug/res
-                ResourcesDirectories:
-                    ./nested2/src/testDebug/resources
-                ShadersDirectories:
-                    ./nested2/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested2/src/testDebug/baselineProfiles
-            testBasicDebug
-                Manifest:
-                    ./nested2/src/testBasicDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/src/testBasicDebug/assets
-                JavaDirectories:
-                    ./nested2/src/testBasicDebug/java
-                KotlinDirectories:
-                    ./nested2/src/testBasicDebug/java
-                    ./nested2/src/testBasicDebug/kotlin
-                JniLibsDirectories:
-                    ./nested2/src/testBasicDebug/jniLibs
-                ResourcesDirectories:
-                    ./nested2/src/testBasicDebug/resources
-                ShadersDirectories:
-                    ./nested2/src/testBasicDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested2/src/testBasicDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./nested2/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/src/androidTest/assets
-                JavaDirectories:
-                    ./nested2/src/androidTest/java
-                KotlinDirectories:
-                    ./nested2/src/androidTest/java
-                    ./nested2/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./nested2/src/androidTest/jniLibs
-                ResDirectories:
-                    ./nested2/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested2/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested2/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./nested2/src/androidTest/baselineProfiles
-            androidTestBasic
-                Manifest:
-                    ./nested2/src/androidTestBasic/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/src/androidTestBasic/assets
-                JavaDirectories:
-                    ./nested2/src/androidTestBasic/java
-                KotlinDirectories:
-                    ./nested2/src/androidTestBasic/java
-                    ./nested2/src/androidTestBasic/kotlin
-                JniLibsDirectories:
-                    ./nested2/src/androidTestBasic/jniLibs
-                ResDirectories:
-                    ./nested2/src/androidTestBasic/res
-                ResourcesDirectories:
-                    ./nested2/src/androidTestBasic/resources
-                ShadersDirectories:
-                    ./nested2/src/androidTestBasic/shaders
-                BaselineProfileDirectories:
-                    ./nested2/src/androidTestBasic/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./nested2/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./nested2/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./nested2/src/androidTestDebug/java
-                    ./nested2/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./nested2/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./nested2/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested2/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested2/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested2/src/androidTestDebug/baselineProfiles
-            androidTestBasicDebug
-                Manifest:
-                    ./nested2/src/androidTestBasicDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/src/androidTestBasicDebug/assets
-                JavaDirectories:
-                    ./nested2/src/androidTestBasicDebug/java
-                KotlinDirectories:
-                    ./nested2/src/androidTestBasicDebug/java
-                    ./nested2/src/androidTestBasicDebug/kotlin
-                JniLibsDirectories:
-                    ./nested2/src/androidTestBasicDebug/jniLibs
-                ResDirectories:
-                    ./nested2/src/androidTestBasicDebug/res
-                ResourcesDirectories:
-                    ./nested2/src/androidTestBasicDebug/resources
-                ShadersDirectories:
-                    ./nested2/src/androidTestBasicDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested2/src/androidTestBasicDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./nested2/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/src/test/assets
+                    JavaDirectories:
+                        ./nested2/src/test/java
+                    KotlinDirectories:
+                        ./nested2/src/test/java
+                        ./nested2/src/test/kotlin
+                    JniLibsDirectories:
+                        ./nested2/src/test/jniLibs
+                    ResDirectories:
+                        ./nested2/src/test/res
+                    ResourcesDirectories:
+                        ./nested2/src/test/resources
+                    ShadersDirectories:
+                        ./nested2/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/src/test/baselineProfiles
+                testBasic
+                    Manifest:
+                        ./nested2/src/testBasic/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/src/testBasic/assets
+                    JavaDirectories:
+                        ./nested2/src/testBasic/java
+                    KotlinDirectories:
+                        ./nested2/src/testBasic/java
+                        ./nested2/src/testBasic/kotlin
+                    JniLibsDirectories:
+                        ./nested2/src/testBasic/jniLibs
+                    ResDirectories:
+                        ./nested2/src/testBasic/res
+                    ResourcesDirectories:
+                        ./nested2/src/testBasic/resources
+                    ShadersDirectories:
+                        ./nested2/src/testBasic/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/src/testBasic/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./nested2/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/src/testDebug/assets
+                    JavaDirectories:
+                        ./nested2/src/testDebug/java
+                    KotlinDirectories:
+                        ./nested2/src/testDebug/java
+                        ./nested2/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested2/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./nested2/src/testDebug/res
+                    ResourcesDirectories:
+                        ./nested2/src/testDebug/resources
+                    ShadersDirectories:
+                        ./nested2/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/src/testDebug/baselineProfiles
+                testBasicDebug
+                    Manifest:
+                        ./nested2/src/testBasicDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/src/testBasicDebug/assets
+                    JavaDirectories:
+                        ./nested2/src/testBasicDebug/java
+                    KotlinDirectories:
+                        ./nested2/src/testBasicDebug/java
+                        ./nested2/src/testBasicDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested2/src/testBasicDebug/jniLibs
+                    ResourcesDirectories:
+                        ./nested2/src/testBasicDebug/resources
+                    ShadersDirectories:
+                        ./nested2/src/testBasicDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/src/testBasicDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./nested2/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/src/androidTest/assets
+                    JavaDirectories:
+                        ./nested2/src/androidTest/java
+                    KotlinDirectories:
+                        ./nested2/src/androidTest/java
+                        ./nested2/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./nested2/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./nested2/src/androidTest/res
+                    ResourcesDirectories:
+                        ./nested2/src/androidTest/resources
+                    ShadersDirectories:
+                        ./nested2/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/src/androidTest/baselineProfiles
+                androidTestBasic
+                    Manifest:
+                        ./nested2/src/androidTestBasic/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/src/androidTestBasic/assets
+                    JavaDirectories:
+                        ./nested2/src/androidTestBasic/java
+                    KotlinDirectories:
+                        ./nested2/src/androidTestBasic/java
+                        ./nested2/src/androidTestBasic/kotlin
+                    JniLibsDirectories:
+                        ./nested2/src/androidTestBasic/jniLibs
+                    ResDirectories:
+                        ./nested2/src/androidTestBasic/res
+                    ResourcesDirectories:
+                        ./nested2/src/androidTestBasic/resources
+                    ShadersDirectories:
+                        ./nested2/src/androidTestBasic/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/src/androidTestBasic/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./nested2/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./nested2/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./nested2/src/androidTestDebug/java
+                        ./nested2/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested2/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./nested2/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./nested2/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./nested2/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/src/androidTestDebug/baselineProfiles
+                androidTestBasicDebug
+                    Manifest:
+                        ./nested2/src/androidTestBasicDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/src/androidTestBasicDebug/assets
+                    JavaDirectories:
+                        ./nested2/src/androidTestBasicDebug/java
+                    KotlinDirectories:
+                        ./nested2/src/androidTestBasicDebug/java
+                        ./nested2/src/androidTestBasicDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested2/src/androidTestBasicDebug/jniLibs
+                    ResDirectories:
+                        ./nested2/src/androidTestBasicDebug/res
+                    ResourcesDirectories:
+                        ./nested2/src/androidTestBasicDebug/resources
+                    ShadersDirectories:
+                        ./nested2/src/androidTestBasicDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/src/androidTestBasicDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -4235,7 +4247,7 @@ MODULE: project.nested2
                     file://./nested2/src/basic/shaders
                     file://./nested2/src/debug/shaders
                     file://./nested2/src/basicDebug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4286,8 +4298,8 @@ MODULE: project.nested2
                     file://./nested2/src/testBasic/shaders
                     file://./nested2/src/testDebug/shaders
                     file://./nested2/src/testBasicDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./nested2/src/androidTest/AndroidManifest.xml
@@ -4348,13 +4360,13 @@ MODULE: project.nested2
                     file://./nested2/build/generated/ap_generated_sources/basicDebug/out
                 ResDirectoryUrls:
                     file://./nested2/build/generated/res/resValues/basic/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out
@@ -4583,7 +4595,7 @@ MODULE: project.nested2
                     file://./nested2/src/basicDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/basicDebug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4666,7 +4678,7 @@ MODULE: project.nested2
                     file://./nested2/src/testBasicDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/testBasicDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -4902,88 +4914,90 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested2/deep/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./nested2/deep/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/deep/src/test/assets
-                JavaDirectories:
-                    ./nested2/deep/src/test/java
-                KotlinDirectories:
-                    ./nested2/deep/src/test/java
-                    ./nested2/deep/src/test/kotlin
-                JniLibsDirectories:
-                    ./nested2/deep/src/test/jniLibs
-                ResDirectories:
-                    ./nested2/deep/src/test/res
-                ResourcesDirectories:
-                    ./nested2/deep/src/test/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/test/shaders
-                BaselineProfileDirectories:
-                    ./nested2/deep/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./nested2/deep/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/deep/src/testDebug/assets
-                JavaDirectories:
-                    ./nested2/deep/src/testDebug/java
-                KotlinDirectories:
-                    ./nested2/deep/src/testDebug/java
-                    ./nested2/deep/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./nested2/deep/src/testDebug/jniLibs
-                ResDirectories:
-                    ./nested2/deep/src/testDebug/res
-                ResourcesDirectories:
-                    ./nested2/deep/src/testDebug/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested2/deep/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./nested2/deep/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/deep/src/androidTest/assets
-                JavaDirectories:
-                    ./nested2/deep/src/androidTest/java
-                KotlinDirectories:
-                    ./nested2/deep/src/androidTest/java
-                    ./nested2/deep/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./nested2/deep/src/androidTest/jniLibs
-                ResDirectories:
-                    ./nested2/deep/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested2/deep/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./nested2/deep/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./nested2/deep/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/deep/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./nested2/deep/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./nested2/deep/src/androidTestDebug/java
-                    ./nested2/deep/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./nested2/deep/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./nested2/deep/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested2/deep/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested2/deep/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./nested2/deep/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/deep/src/test/assets
+                    JavaDirectories:
+                        ./nested2/deep/src/test/java
+                    KotlinDirectories:
+                        ./nested2/deep/src/test/java
+                        ./nested2/deep/src/test/kotlin
+                    JniLibsDirectories:
+                        ./nested2/deep/src/test/jniLibs
+                    ResDirectories:
+                        ./nested2/deep/src/test/res
+                    ResourcesDirectories:
+                        ./nested2/deep/src/test/resources
+                    ShadersDirectories:
+                        ./nested2/deep/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/deep/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./nested2/deep/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/deep/src/testDebug/assets
+                    JavaDirectories:
+                        ./nested2/deep/src/testDebug/java
+                    KotlinDirectories:
+                        ./nested2/deep/src/testDebug/java
+                        ./nested2/deep/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested2/deep/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./nested2/deep/src/testDebug/res
+                    ResourcesDirectories:
+                        ./nested2/deep/src/testDebug/resources
+                    ShadersDirectories:
+                        ./nested2/deep/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/deep/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./nested2/deep/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/deep/src/androidTest/assets
+                    JavaDirectories:
+                        ./nested2/deep/src/androidTest/java
+                    KotlinDirectories:
+                        ./nested2/deep/src/androidTest/java
+                        ./nested2/deep/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./nested2/deep/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./nested2/deep/src/androidTest/res
+                    ResourcesDirectories:
+                        ./nested2/deep/src/androidTest/resources
+                    ShadersDirectories:
+                        ./nested2/deep/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/deep/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./nested2/deep/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/deep/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./nested2/deep/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./nested2/deep/src/androidTestDebug/java
+                        ./nested2/deep/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested2/deep/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./nested2/deep/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./nested2/deep/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./nested2/deep/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/deep/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -5024,7 +5038,7 @@ MODULE: project.nested2.deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/main/shaders
                     file://./nested2/deep/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5056,8 +5070,8 @@ MODULE: project.nested2.deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/test/shaders
                     file://./nested2/deep/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./nested2/deep/src/androidTest/AndroidManifest.xml
@@ -5098,13 +5112,13 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./nested2/deep/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -5228,7 +5242,7 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5271,7 +5285,7 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5465,88 +5479,90 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/release/baselineProfiles
-        UnitTest:
-            test
-                Manifest:
-                    ./nested2/trans/deep2/src/test/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/trans/deep2/src/test/assets
-                JavaDirectories:
-                    ./nested2/trans/deep2/src/test/java
-                KotlinDirectories:
-                    ./nested2/trans/deep2/src/test/java
-                    ./nested2/trans/deep2/src/test/kotlin
-                JniLibsDirectories:
-                    ./nested2/trans/deep2/src/test/jniLibs
-                ResDirectories:
-                    ./nested2/trans/deep2/src/test/res
-                ResourcesDirectories:
-                    ./nested2/trans/deep2/src/test/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/test/shaders
-                BaselineProfileDirectories:
-                    ./nested2/trans/deep2/src/test/baselineProfiles
-            testDebug
-                Manifest:
-                    ./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/trans/deep2/src/testDebug/assets
-                JavaDirectories:
-                    ./nested2/trans/deep2/src/testDebug/java
-                KotlinDirectories:
-                    ./nested2/trans/deep2/src/testDebug/java
-                    ./nested2/trans/deep2/src/testDebug/kotlin
-                JniLibsDirectories:
-                    ./nested2/trans/deep2/src/testDebug/jniLibs
-                ResDirectories:
-                    ./nested2/trans/deep2/src/testDebug/res
-                ResourcesDirectories:
-                    ./nested2/trans/deep2/src/testDebug/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/testDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested2/trans/deep2/src/testDebug/baselineProfiles
-        AndroidTest:
-            androidTest
-                Manifest:
-                    ./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/trans/deep2/src/androidTest/assets
-                JavaDirectories:
-                    ./nested2/trans/deep2/src/androidTest/java
-                KotlinDirectories:
-                    ./nested2/trans/deep2/src/androidTest/java
-                    ./nested2/trans/deep2/src/androidTest/kotlin
-                JniLibsDirectories:
-                    ./nested2/trans/deep2/src/androidTest/jniLibs
-                ResDirectories:
-                    ./nested2/trans/deep2/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested2/trans/deep2/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/androidTest/shaders
-                BaselineProfileDirectories:
-                    ./nested2/trans/deep2/src/androidTest/baselineProfiles
-            androidTestDebug
-                Manifest:
-                    ./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/assets
-                JavaDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/java
-                KotlinDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/java
-                    ./nested2/trans/deep2/src/androidTestDebug/kotlin
-                JniLibsDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/jniLibs
-                ResDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/shaders
-                BaselineProfileDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/baselineProfiles
+        HostTest:
+            UnitTest
+                test
+                    Manifest:
+                        ./nested2/trans/deep2/src/test/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/trans/deep2/src/test/assets
+                    JavaDirectories:
+                        ./nested2/trans/deep2/src/test/java
+                    KotlinDirectories:
+                        ./nested2/trans/deep2/src/test/java
+                        ./nested2/trans/deep2/src/test/kotlin
+                    JniLibsDirectories:
+                        ./nested2/trans/deep2/src/test/jniLibs
+                    ResDirectories:
+                        ./nested2/trans/deep2/src/test/res
+                    ResourcesDirectories:
+                        ./nested2/trans/deep2/src/test/resources
+                    ShadersDirectories:
+                        ./nested2/trans/deep2/src/test/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/trans/deep2/src/test/baselineProfiles
+                testDebug
+                    Manifest:
+                        ./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/trans/deep2/src/testDebug/assets
+                    JavaDirectories:
+                        ./nested2/trans/deep2/src/testDebug/java
+                    KotlinDirectories:
+                        ./nested2/trans/deep2/src/testDebug/java
+                        ./nested2/trans/deep2/src/testDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested2/trans/deep2/src/testDebug/jniLibs
+                    ResDirectories:
+                        ./nested2/trans/deep2/src/testDebug/res
+                    ResourcesDirectories:
+                        ./nested2/trans/deep2/src/testDebug/resources
+                    ShadersDirectories:
+                        ./nested2/trans/deep2/src/testDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/trans/deep2/src/testDebug/baselineProfiles
+        DeviceTest:
+            AndroidTest
+                androidTest
+                    Manifest:
+                        ./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/trans/deep2/src/androidTest/assets
+                    JavaDirectories:
+                        ./nested2/trans/deep2/src/androidTest/java
+                    KotlinDirectories:
+                        ./nested2/trans/deep2/src/androidTest/java
+                        ./nested2/trans/deep2/src/androidTest/kotlin
+                    JniLibsDirectories:
+                        ./nested2/trans/deep2/src/androidTest/jniLibs
+                    ResDirectories:
+                        ./nested2/trans/deep2/src/androidTest/res
+                    ResourcesDirectories:
+                        ./nested2/trans/deep2/src/androidTest/resources
+                    ShadersDirectories:
+                        ./nested2/trans/deep2/src/androidTest/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/trans/deep2/src/androidTest/baselineProfiles
+                androidTestDebug
+                    Manifest:
+                        ./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./nested2/trans/deep2/src/androidTestDebug/assets
+                    JavaDirectories:
+                        ./nested2/trans/deep2/src/androidTestDebug/java
+                    KotlinDirectories:
+                        ./nested2/trans/deep2/src/androidTestDebug/java
+                        ./nested2/trans/deep2/src/androidTestDebug/kotlin
+                    JniLibsDirectories:
+                        ./nested2/trans/deep2/src/androidTestDebug/jniLibs
+                    ResDirectories:
+                        ./nested2/trans/deep2/src/androidTestDebug/res
+                    ResourcesDirectories:
+                        ./nested2/trans/deep2/src/androidTestDebug/resources
+                    ShadersDirectories:
+                        ./nested2/trans/deep2/src/androidTestDebug/shaders
+                    BaselineProfileDirectories:
+                        ./nested2/trans/deep2/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -5587,7 +5603,7 @@ MODULE: project.nested2.trans.deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/shaders
                     file://./nested2/trans/deep2/src/debug/shaders
-        UnitTestSources:
+        HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5619,8 +5635,8 @@ MODULE: project.nested2.trans.deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/shaders
                     file://./nested2/trans/deep2/src/testDebug/shaders
-        AndroidTestSources:
-            AndroidTestSources (IDEA)
+        DeviceTestSources:
+            AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
@@ -5661,13 +5677,13 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/res/resValues/debug
-        GeneratedUnitTestSources:
-            GeneratedUnitTestSources (IDEA)
+        GeneratedHostTestSources:
+            GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out
-        GeneratedAndroidTestSources:
-            GeneratedAndroidTestSources (IDEA)
+        GeneratedDeviceTestSources:
+            GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out
@@ -5791,7 +5807,7 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/shaders
-        CurrentUnitTestSourceProviders:
+        CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5834,7 +5850,7 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/shaders
-        CurrentAndroidTestSourceProviders:
+        CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:

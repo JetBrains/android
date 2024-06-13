@@ -21,6 +21,7 @@ import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isScreenshotTestModule
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
@@ -31,12 +32,7 @@ import org.jetbrains.kotlin.idea.base.util.isGradleModule
  * List of prefixes of libraries that we want to collect version info from the project. This list is
  * used to prevent collecting unnecessary information of the user libraries.
  */
-private val libraryAllowedPrefixes =
-  listOf(
-    "com.google.",
-    "androidx.",
-    "org.jetbrains.kotlin.",
-  )
+private val libraryAllowedPrefixes = listOf("com.google.", "androidx.", "org.jetbrains.kotlin.")
 
 /** General collector with general information about the project. */
 internal class ProjectInfoTroubleInfoCollector : TroubleInfoCollector {
@@ -49,6 +45,7 @@ internal class ProjectInfoTroubleInfoCollector : TroubleInfoCollector {
         when {
           module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
           module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
+          module.isScreenshotTestModule() -> DependencyScopeType.SCREENSHOT_TEST
           else -> DependencyScopeType.MAIN
         }
       val moduleSystem = module.getModuleSystem()

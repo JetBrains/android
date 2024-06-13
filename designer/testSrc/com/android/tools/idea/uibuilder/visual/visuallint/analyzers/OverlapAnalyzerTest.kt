@@ -42,8 +42,8 @@ class OverlapAnalyzerTest : LayoutTestCase() {
               component(SdkConstants.IMAGE_VIEW)
                 .withAttribute(ANDROID_URI, ATTR_ID, "@id/image_view")
                 .withBounds(0, 0, 200, 200)
-                .withMockView()
-            )
+                .withMockView(),
+            ),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
@@ -64,8 +64,8 @@ class OverlapAnalyzerTest : LayoutTestCase() {
               component(SdkConstants.IMAGE_VIEW).withBounds(0, 0, 200, 200).withMockView(),
               component(SdkConstants.TEXT_VIEW)
                 .withBounds(0, 0, 200, 200)
-                .withMockView(android.widget.TextView::class.java)
-            )
+                .withMockView(android.widget.TextView::class.java),
+            ),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
@@ -90,8 +90,8 @@ class OverlapAnalyzerTest : LayoutTestCase() {
               component(SdkConstants.TEXT_VIEW)
                 .withBounds(0, 0, 200, 200)
                 .withAttribute(ANDROID_URI, ATTR_ID, "@+id/text_view")
-                .withMockView(android.widget.TextView::class.java)
-            )
+                .withMockView(android.widget.TextView::class.java),
+            ),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
@@ -116,8 +116,8 @@ class OverlapAnalyzerTest : LayoutTestCase() {
               component(SdkConstants.IMAGE_VIEW)
                 .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION, "20dp")
                 .withBounds(0, 0, 200, 200)
-                .withMockView()
-            )
+                .withMockView(),
+            ),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
@@ -137,8 +137,8 @@ class OverlapAnalyzerTest : LayoutTestCase() {
               component(SdkConstants.TEXT_VIEW)
                 .withBounds(0, 0, 100, 100)
                 .withMockView(android.widget.TextView::class.java),
-              component(SdkConstants.IMAGE_VIEW).withBounds(0, 0, 60, 100).withMockView()
-            )
+              component(SdkConstants.IMAGE_VIEW).withBounds(0, 0, 60, 100).withMockView(),
+            ),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
@@ -158,8 +158,8 @@ class OverlapAnalyzerTest : LayoutTestCase() {
               component(SdkConstants.TEXT_VIEW)
                 .withBounds(0, 0, 100, 100)
                 .withMockView(android.widget.TextView::class.java),
-              component(SdkConstants.IMAGE_VIEW).withBounds(0, 0, 40, 100).withMockView()
-            )
+              component(SdkConstants.IMAGE_VIEW).withBounds(0, 0, 40, 100).withMockView(),
+            ),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
@@ -178,8 +178,8 @@ class OverlapAnalyzerTest : LayoutTestCase() {
               component(SdkConstants.TEXT_VIEW)
                 .withBounds(0, 0, 20, 20)
                 .withMockView(android.widget.TextView::class.java),
-              component(SdkConstants.IMAGE_VIEW).withBounds(160, 160, 30, 30).withMockView()
-            )
+              component(SdkConstants.IMAGE_VIEW).withBounds(160, 160, 30, 30).withMockView(),
+            ),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))

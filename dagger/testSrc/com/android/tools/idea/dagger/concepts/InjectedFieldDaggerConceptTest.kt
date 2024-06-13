@@ -75,7 +75,7 @@ class InjectedFieldDaggerConceptTest {
         @Inject lateinit var heater: Heater
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtProperty = myFixture.findParentElement("hea|ter")
@@ -98,7 +98,7 @@ class InjectedFieldDaggerConceptTest {
         lateinit var heater: Heater
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtProperty = myFixture.findParentElement("hea|ter")
@@ -122,7 +122,7 @@ class InjectedFieldDaggerConceptTest {
         @Inject lateinit var heater: Heater
       }
       """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val element: KtProperty = myFixture.findParentElement("hea|ter")
@@ -156,7 +156,7 @@ class InjectedFieldDaggerConceptTest {
         lateinit var notInjectedHeater: Heater
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val indexValue1 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "heater")
@@ -167,7 +167,8 @@ class InjectedFieldDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   @Test
@@ -191,7 +192,7 @@ class InjectedFieldDaggerConceptTest {
         public Heater notInjectedHeater;
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val indexValue1 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "heater")
@@ -202,7 +203,8 @@ class InjectedFieldDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   companion object {

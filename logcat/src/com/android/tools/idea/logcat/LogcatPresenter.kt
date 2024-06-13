@@ -49,8 +49,13 @@ internal interface LogcatPresenter :
   /** Processes incoming messages from logcat */
   suspend fun processMessages(messages: List<LogcatMessage>)
 
-  /** Emits formatted text to the message view */
-  suspend fun appendMessages(textAccumulator: TextAccumulator)
+  /**
+   * Emits formatted text to the message view
+   *
+   * @param textAccumulator Contains the text to be appended
+   * @param context Only append messages if the context is still same.
+   */
+  suspend fun appendMessages(textAccumulator: TextAccumulator, context: Any?)
 
   /** Returns the connected device or null if not connected */
   fun getConnectedDevice(): Device?

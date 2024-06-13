@@ -67,13 +67,14 @@ public class MavenRepositoryDslElement extends GradleDslBlockElement {
     return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
   }
 
-  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"credentials", MavenCredentialsDslElement.CREDENTIALS}
   }).collect(toImmutableMap(data -> (String)data[0], data -> (PropertiesElementDescription)data[1]));
 
-  @NotNull
   @Override
-  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

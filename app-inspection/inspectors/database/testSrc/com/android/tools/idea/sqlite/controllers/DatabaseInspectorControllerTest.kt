@@ -26,17 +26,14 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
-import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.DatabaseInspectorTabProvider
 import com.android.tools.idea.sqlite.FileDatabaseException
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.SchemaProvider
-import com.android.tools.idea.sqlite.StubProcessDescriptor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
-import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
@@ -68,6 +65,8 @@ import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.utils.SqliteTestUtil
+import com.android.tools.idea.sqlite.utils.StubProcessDescriptor
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.runDispatching
@@ -209,7 +208,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         databaseInspectorView,
         databaseRepository,
         mockDatabaseConnection,
-        fileDatabaseManager
+        fileDatabaseManager,
       )
 
     realDatabaseConnection =
@@ -217,7 +216,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         getJdbcDatabaseConnection(
           testRootDisposable,
           databaseFileData.mainFile,
-          FutureCallbackExecutor.wrap(taskExecutor)
+          FutureCallbackExecutor.wrap(taskExecutor),
         )
       )
 
@@ -232,7 +231,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         fileDatabaseManager,
         offlineModeManager,
         edtExecutor,
-        edtExecutor
+        edtExecutor,
       )
     databaseInspectorController.setUp()
 
@@ -271,14 +270,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.AdHocQueryTab(1),
         "New Query [1]",
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.sqliteEvaluatorView.component
+        viewsFactory.sqliteEvaluatorView.component,
       )
     verify(databaseInspectorView)
       .openTab(
         TabId.TableTab(databaseId1, testSqliteTable.name),
         testSqliteTable.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component
+        viewsFactory.tableView.component,
       )
 
     // Act
@@ -343,7 +342,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, testSqliteTable.name),
         testSqliteTable.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component
+        viewsFactory.tableView.component,
       )
   }
 
@@ -363,7 +362,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.AdHocQueryTab(1),
         "New Query [1]",
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.sqliteEvaluatorView.component
+        viewsFactory.sqliteEvaluatorView.component,
       )
   }
 
@@ -407,7 +406,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .createEvaluatorView(
         any(Project::class.java),
         any(SchemaProvider::class.java),
-        any(TableView::class.java)
+        any(TableView::class.java),
       )
     verify(databaseInspectorView).closeTab(eq(tabId))
   }
@@ -448,7 +447,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab"),
       )
     }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -482,7 +481,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, testSqliteTable.name),
         testSqliteTable.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component
+        viewsFactory.tableView.component,
       )
     verify(databaseInspectorView).focusTab(eq(TabId.TableTab(databaseId1, testSqliteTable.name)))
   }
@@ -717,9 +716,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         listOf(
           AddTable(
             IndexedSqliteTable(SqliteTable("table", emptyList(), null, false), 0),
-            emptyList()
+            emptyList(),
           )
-        )
+        ),
       )
   }
 
@@ -736,8 +735,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         databaseId,
         SqliteStatement(
           SqliteStatementType.UNKNOWN,
-          "CREATE TABLE t2 (c1 int not null primary key)"
-        )
+          "CREATE TABLE t2 (c1 int not null primary key)",
+        ),
       )
     }
 
@@ -761,8 +760,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         databaseId,
         SqliteStatement(
           SqliteStatementType.UNKNOWN,
-          "CREATE TABLE t2 (c1 int not null primary key)"
-        )
+          "CREATE TABLE t2 (c1 int not null primary key)",
+        ),
       )
     }
 
@@ -773,7 +772,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView)
       .updateDatabaseSchema(
         ViewDatabase(databaseId, true),
-        listOf(AddTable(IndexedSqliteTable(table, 1), listOf(IndexedSqliteColumn(column, 0))))
+        listOf(AddTable(IndexedSqliteTable(table, 1), listOf(IndexedSqliteColumn(column, 0)))),
       )
   }
 
@@ -789,7 +788,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId,
-        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 RENAME TO t2")
+        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 RENAME TO t2"),
       )
     }
 
@@ -803,8 +802,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         ViewDatabase(databaseId, true),
         listOf(
           RemoveTable(tableToRemove.name),
-          AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column, 0)))
-        )
+          AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column, 0))),
+        ),
       )
   }
 
@@ -819,7 +818,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId,
-        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD c2 TEXT")
+        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD c2 TEXT"),
       )
     }
 
@@ -832,7 +831,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView)
       .updateDatabaseSchema(
         ViewDatabase(databaseId, true),
-        listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table))
+        listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table)),
       )
   }
 
@@ -848,7 +847,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId,
-        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD c2 TEXT")
+        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD c2 TEXT"),
       )
     }
 
@@ -861,14 +860,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView)
       .updateDatabaseSchema(
         ViewDatabase(databaseId, true),
-        listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table))
+        listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table)),
       )
 
     // Act
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId,
-        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 RENAME TO t2")
+        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 RENAME TO t2"),
       )
     }
 
@@ -885,9 +884,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           RemoveTable(tableToRemove.name),
           AddTable(
             IndexedSqliteTable(tableToAdd, 0),
-            listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))
-          )
-        )
+            listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1)),
+          ),
+        ),
       )
   }
 
@@ -902,7 +901,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId,
-        SqliteStatement(SqliteStatementType.UNKNOWN, "DROP TABLE t1")
+        SqliteStatement(SqliteStatementType.UNKNOWN, "DROP TABLE t1"),
       )
     }
 
@@ -926,7 +925,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId,
-        SqliteStatement(SqliteStatementType.UNKNOWN, "CREATE TABLE t0 (c1 TEXT)")
+        SqliteStatement(SqliteStatementType.UNKNOWN, "CREATE TABLE t0 (c1 TEXT)"),
       )
     }
 
@@ -937,14 +936,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView)
       .updateDatabaseSchema(
         ViewDatabase(databaseId, true),
-        listOf(AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column, 0))))
+        listOf(AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column, 0)))),
       )
 
     // Act
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId,
-        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t0 ADD c2 TEXT")
+        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t0 ADD c2 TEXT"),
       )
     }
 
@@ -955,14 +954,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView)
       .updateDatabaseSchema(
         ViewDatabase(databaseId, true),
-        listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table))
+        listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table)),
       )
 
     // Act
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId,
-        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t0 RENAME TO t2")
+        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t0 RENAME TO t2"),
       )
     }
 
@@ -977,16 +976,16 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           RemoveTable(tableToRemove.name),
           AddTable(
             IndexedSqliteTable(tableToAdd2, 1),
-            listOf(IndexedSqliteColumn(column, 0), IndexedSqliteColumn(columnToAdd, 1))
-          )
-        )
+            listOf(IndexedSqliteColumn(column, 0), IndexedSqliteColumn(columnToAdd, 1)),
+          ),
+        ),
       )
 
     // Act
     runDispatching {
       databaseInspectorController.runSqlStatement(
         databaseId,
-        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t2 ADD c0 TEXT")
+        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t2 ADD c0 TEXT"),
       )
     }
 
@@ -998,7 +997,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView)
       .updateDatabaseSchema(
         ViewDatabase(databaseId, true),
-        listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(columnToAdd2, 2)), table2))
+        listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(columnToAdd2, 2)), table2)),
       )
   }
 
@@ -1037,9 +1036,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           RemoveTable("tab"),
           AddTable(
             IndexedSqliteTable(SqliteTable("tab-updated", emptyList(), null, false), 0),
-            emptyList()
-          )
-        )
+            emptyList(),
+          ),
+        ),
       )
 
     verify(databaseInspectorView)
@@ -1049,9 +1048,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           RemoveTable("tab"),
           AddTable(
             IndexedSqliteTable(SqliteTable("tab-updated", emptyList(), null, false), 0),
-            emptyList()
-          )
-        )
+            emptyList(),
+          ),
+        ),
       )
   }
 
@@ -1078,7 +1077,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           DatabaseDiffOperation.AddDatabase(
             ViewDatabase(databaseId1, true),
             SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false))),
-            0
+            0,
           )
         )
       )
@@ -1087,7 +1086,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .updateDatabases(
         listOf(
           DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId1, false), null, 0),
-          DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId1, true))
+          DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId1, true)),
         )
       )
   }
@@ -1105,7 +1104,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     whenever(
         databaseInspectorView.updateDatabaseSchema(
           ViewDatabase(databaseId, true),
-          listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList()))
+          listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())),
         )
       )
       .thenThrow(IllegalStateException::class.java)
@@ -1127,7 +1126,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           DatabaseDiffOperation.AddDatabase(
             ViewDatabase(databaseId, true),
             SqliteSchema(listOf(testSqliteTable)),
-            0
+            0,
           )
         )
       )
@@ -1176,7 +1175,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(trackerService)
       .trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT,
       )
   }
 
@@ -1214,7 +1213,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       // open evaluator tab
       databaseInspectorController.runSqlStatement(
         databaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "fake stmt")
+        SqliteStatement(SqliteStatementType.SELECT, "fake stmt"),
       )
     }
 
@@ -1234,12 +1233,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView)
       .updateDatabaseSchema(
         ViewDatabase(databaseId1, true),
-        listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList()))
+        listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())),
       )
     verify(databaseInspectorView)
       .updateDatabaseSchema(
         ViewDatabase(databaseId2, true),
-        listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList()))
+        listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())),
       )
 
     // update tabs
@@ -1294,7 +1293,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, testSqliteTable.name),
         testSqliteTable.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component
+        viewsFactory.tableView.component,
       )
 
     verify(databaseInspectorView)
@@ -1302,7 +1301,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, table1.name),
         table1.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component
+        viewsFactory.tableView.component,
       )
 
     verify(databaseInspectorView)
@@ -1310,7 +1309,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, table2.name),
         table2.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component
+        viewsFactory.tableView.component,
       )
   }
 
@@ -1358,7 +1357,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         any(TabId::class.java),
         anyString(),
         any(Icon::class.java),
-        any(JComponent::class.java)
+        any(JComponent::class.java),
       )
   }
 
@@ -1393,7 +1392,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         any(TabId.AdHocQueryTab::class.java),
         anyString(),
         any(Icon::class.java),
-        any(JComponent::class.java)
+        any(JComponent::class.java),
       )
 
     // Check that INSERT statement was not executed, even though tab was restored
@@ -1424,7 +1423,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         ViewDatabase(databaseId1, true),
         listOf(
           AddTable(IndexedSqliteTable(SqliteTable("tab", emptyList(), null, false), 0), emptyList())
-        )
+        ),
       )
   }
 
@@ -1445,7 +1444,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .updateDatabases(
         listOf(
           DatabaseDiffOperation.AddDatabase(ViewDatabase(db1, false), null, 0),
-          DatabaseDiffOperation.RemoveDatabase(ViewDatabase(db1, true))
+          DatabaseDiffOperation.RemoveDatabase(ViewDatabase(db1, true)),
         )
       )
   }
@@ -1465,7 +1464,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .updateDatabases(
         listOf(
           DatabaseDiffOperation.AddDatabase(ViewDatabase(db1, true), testSqliteSchema1, 0),
-          DatabaseDiffOperation.RemoveDatabase(ViewDatabase(db1, false))
+          DatabaseDiffOperation.RemoveDatabase(ViewDatabase(db1, false)),
         )
       )
   }
@@ -1489,7 +1488,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         databaseInspectorClientCommandChannel,
         mock(),
         processDescriptor,
-        processDescriptor.name
+        processDescriptor.name,
       )
     }
 
@@ -1520,7 +1519,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         databaseInspectorClientCommandChannel,
         mock(),
         processDescriptor,
-        processDescriptor.name
+        processDescriptor.name,
       )
     }
 
@@ -1561,7 +1560,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         databaseInspectorClientCommandChannel,
         mock(),
         processDescriptor,
-        processDescriptor.name
+        processDescriptor.name,
       )
     }
 
@@ -1587,7 +1586,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, "view"),
         "view",
         StudioIcons.DatabaseInspector.VIEW,
-        viewsFactory.tableView.component
+        viewsFactory.tableView.component,
       )
   }
 
@@ -1617,14 +1616,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, testSqliteTable.name),
         testSqliteTable.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component
+        viewsFactory.tableView.component,
       )
     verify(databaseInspectorView)
       .openTab(
         TabId.TableTab(databaseId2, testSqliteTable.name),
         testSqliteTable.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component
+        viewsFactory.tableView.component,
       )
 
     // Act
@@ -1673,7 +1672,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       SqliteSchema(
         listOf(
           SqliteTable("android_metadata", emptyList(), null, false),
-          SqliteTable("sqlite_sequence", emptyList(), null, false)
+          SqliteTable("sqlite_sequence", emptyList(), null, false),
         )
       )
     whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
@@ -1687,7 +1686,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     assertEquals(
       SqliteSchema(emptyList()),
-      databaseInspectorModel.getDatabaseSchema(fileDatabaseId)
+      databaseInspectorModel.getDatabaseSchema(fileDatabaseId),
     )
   }
 
@@ -1715,8 +1714,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val inOrderVerifier = inOrder(projectService, fileDatabaseManager)
-
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
 
     val databaseId1 =
       SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
@@ -1751,7 +1748,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         mock(),
         ideServices,
         processDescriptor,
-        processDescriptor.name
+        processDescriptor.name,
       )
     }
 
@@ -1813,7 +1810,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         mock(),
         ideServices,
         processDescriptor,
-        processDescriptor.name
+        processDescriptor.name,
       )
     }
 
@@ -1835,8 +1832,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     whenever(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-
     val databaseId1 =
       SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1854,7 +1849,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         mock(),
         ideServices,
         processDescriptor,
-        processDescriptor.name
+        processDescriptor.name,
       )
     }
 
@@ -1877,8 +1872,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     whenever(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-
     val databaseId1 =
       SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1896,7 +1889,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         mock(),
         ideServices,
         processDescriptor,
-        processDescriptor.name
+        processDescriptor.name,
       )
     }
 
@@ -1917,8 +1910,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val projectService = mock(DatabaseInspectorProjectService::class.java)
     whenever(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
-
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
 
     val databaseId1 =
       SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
@@ -1942,7 +1933,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         mock(),
         ideServices,
         processDescriptor,
-        processDescriptor.name
+        processDescriptor.name,
       )
     }
 
@@ -1971,7 +1962,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         mock(),
         ideServices,
         processDescriptor,
-        processDescriptor.name
+        processDescriptor.name,
       )
     }
 

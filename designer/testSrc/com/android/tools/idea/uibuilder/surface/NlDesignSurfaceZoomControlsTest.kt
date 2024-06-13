@@ -99,14 +99,14 @@ class NlDesignSurfaceZoomControlsTest {
                 android:text="Hello world"/>
         </LinearLayout>
       """
-          .trimIndent()
+          .trimIndent(),
       )
     val configuration =
       RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
     surface = invokeAndWaitIfNeeded {
       NlDesignSurface.builder(
           androidProjectRule.project,
-          androidProjectRule.fixture.testRootDisposable
+          androidProjectRule.fixture.testRootDisposable,
         )
         .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.VISIBLE)
         .build()
@@ -117,7 +117,7 @@ class NlDesignSurfaceZoomControlsTest {
           androidProjectRule.testRootDisposable,
           facet,
           layout.virtualFile,
-          configuration
+          configuration,
         )
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
@@ -129,7 +129,7 @@ class NlDesignSurfaceZoomControlsTest {
     val renderResult = surface.sceneManagers.single().renderResult!!
     assertTrue(
       "The render must be successful. It was: $renderResult",
-      renderResult.renderResult.isSuccess
+      renderResult.renderResult.isSuccess,
     )
 
     fakeUi = invokeAndWaitIfNeeded {
@@ -175,13 +175,13 @@ class NlDesignSurfaceZoomControlsTest {
 
     val event = TestActionEvent { dataId -> surface.getData(dataId) }
     zoomToFitAction.actionPerformed(event)
-    val zoomToFitScale = surface.scale
+    val zoomToFitScale = surface.zoomController.scale
 
     // Verify zoom in
     run {
-      val originalScale = surface.scale
+      val originalScale = surface.zoomController.scale
       repeat(3) { zoomInAction.actionPerformed(event) }
-      assertTrue(surface.scale > originalScale)
+      assertTrue(surface.zoomController.scale > originalScale)
       fakeUi.updateToolbardsAndFullRefresh()
       ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomIn"), fakeUi.render(), 0.1, 1)
     }
@@ -189,16 +189,16 @@ class NlDesignSurfaceZoomControlsTest {
     // Verify zoom to fit
     run {
       zoomToFitAction.actionPerformed(event)
-      assertEquals(zoomToFitScale, surface.scale, 0.01)
+      assertEquals(zoomToFitScale, surface.zoomController.scale, 0.01)
       fakeUi.updateToolbardsAndFullRefresh()
       ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), fakeUi.render(), 0.1, 1)
     }
 
     // Verify zoom out
     run {
-      val originalScale = surface.scale
+      val originalScale = surface.zoomController.scale
       repeat(3) { zoomOutAction.actionPerformed(event) }
-      assertTrue(surface.scale < originalScale)
+      assertTrue(surface.zoomController.scale < originalScale)
       fakeUi.updateToolbardsAndFullRefresh()
       ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomOut"), fakeUi.render(), 0.1, 1)
     }
@@ -212,7 +212,7 @@ class NlDesignSurfaceZoomControlsTest {
     val zoomOutAction = zoomActionsToolbar.actions.filterIsInstance<ZoomOutAction>().single()
     val zoomToFitAction = zoomActionsToolbar.actions.filterIsInstance<ZoomToFitAction>().single()
 
-    val zoomToFitScale = surface.scale
+    val zoomToFitScale = surface.zoomController.scale
 
     // Delegate context for keyboard events. This ensures that, when actions update, they get the
     // right data context to make the
@@ -221,7 +221,7 @@ class NlDesignSurfaceZoomControlsTest {
 
     // Verify zoom in
     run {
-      val originalScale = surface.scale
+      val originalScale = surface.zoomController.scale
       val keyStroke =
         zoomInAction.shortcutSet.shortcuts
           .filterIsInstance<KeyboardShortcut>()
@@ -238,12 +238,12 @@ class NlDesignSurfaceZoomControlsTest {
                 EventQueue.getMostRecentEventTime(),
                 keyStroke.modifiers,
                 keyStroke.keyCode,
-                keyStroke.keyChar
+                keyStroke.keyChar,
               )
             )
         }
       }
-      assertTrue(surface.scale > originalScale)
+      assertTrue(surface.zoomController.scale > originalScale)
     }
 
     // Verify zoom to fit
@@ -263,16 +263,16 @@ class NlDesignSurfaceZoomControlsTest {
               EventQueue.getMostRecentEventTime(),
               keyStroke.modifiers,
               keyStroke.keyCode,
-              keyStroke.keyChar
+              keyStroke.keyChar,
             )
           )
       }
-      assertEquals(zoomToFitScale, surface.scale, 0.01)
+      assertEquals(zoomToFitScale, surface.zoomController.scale, 0.01)
     }
 
     // Verify zoom out
     run {
-      val originalScale = surface.scale
+      val originalScale = surface.zoomController.scale
       val keyStroke =
         zoomOutAction.shortcutSet.shortcuts
           .filterIsInstance<KeyboardShortcut>()
@@ -289,12 +289,12 @@ class NlDesignSurfaceZoomControlsTest {
                 EventQueue.getMostRecentEventTime(),
                 keyStroke.modifiers,
                 keyStroke.keyCode,
-                keyStroke.keyChar
+                keyStroke.keyChar,
               )
             )
         }
       }
-      assertTrue(surface.scale < originalScale)
+      assertTrue(surface.zoomController.scale < originalScale)
     }
   }
 }

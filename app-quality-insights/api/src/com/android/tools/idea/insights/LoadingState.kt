@@ -63,10 +63,8 @@ sealed class LoadingState<out T> {
   }
 
   /** Currently signed-in user does not have sufficient access. */
-  data class Unauthorized(
-    override val message: String?,
-    override val cause: Throwable? = null,
-  ) : Failure() {
+  data class Unauthorized(override val message: String?, override val cause: Throwable? = null) :
+    Failure() {
     override fun <U> map(fn: (Nothing) -> U): Unauthorized {
       return this
     }
@@ -83,7 +81,7 @@ sealed class LoadingState<out T> {
   /** Insufficient permissions while fetching issues or updating issues. */
   data class PermissionDenied(
     override val message: String?,
-    override val cause: Throwable? = null
+    override val cause: Throwable? = null,
   ) : Failure() {
     override fun <U> map(fn: (Nothing) -> U): PermissionDenied {
       return this
@@ -108,10 +106,8 @@ sealed class LoadingState<out T> {
   }
 
   /** Generic(catch all) failure. */
-  data class UnknownFailure(
-    override val message: String?,
-    override val cause: Throwable? = null,
-  ) : Failure() {
+  data class UnknownFailure(override val message: String?, override val cause: Throwable? = null) :
+    Failure() {
     override fun <U> map(fn: (Nothing) -> U): UnknownFailure {
       return this
     }

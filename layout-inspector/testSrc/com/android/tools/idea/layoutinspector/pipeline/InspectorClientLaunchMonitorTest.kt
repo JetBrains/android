@@ -64,7 +64,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private enum class DebuggerType {
   JAVA,
-  HYBRID
+  HYBRID,
 }
 
 private const val PORT = 53707
@@ -192,7 +192,7 @@ class InspectorClientLaunchMonitorTest {
         stats,
         unused,
         timeoutScope,
-        debuggerScope
+        debuggerScope,
       )
     monitor.start(client)
     timeoutScope.testScheduler.advanceUntilIdle()
@@ -254,7 +254,7 @@ class InspectorClientLaunchMonitorTest {
         stats,
         unused,
         timeoutScope,
-        debuggerScope
+        debuggerScope,
       )
     val client = mock<InspectorClient>()
     monitor.start(client)
@@ -293,7 +293,7 @@ class InspectorClientLaunchMonitorTest {
         stats,
         unused,
         timeoutScope,
-        debuggerScope
+        debuggerScope,
       )
     val client = mock<InspectorClient>()
     monitor.start(client)
@@ -322,7 +322,7 @@ class InspectorClientLaunchMonitorTest {
           stats,
           unused,
           timeoutScope,
-          debuggerScope
+          debuggerScope,
         )
       monitor.start(client)
       debuggerScope.advanceTimeBy(DEBUGGER_CHECK_SECONDS.seconds)
@@ -370,7 +370,7 @@ class InspectorClientLaunchMonitorTest {
           stats,
           unused,
           timeoutScope,
-          debuggerScope
+          debuggerScope,
         )
       monitor.start(client)
       debuggerScope.advanceTimeBy(DEBUGGER_CHECK_SECONDS.seconds)
@@ -395,7 +395,7 @@ class InspectorClientLaunchMonitorTest {
 
   private fun setupDebuggingProcess(
     debuggerType: DebuggerType,
-    pausedInJava: Boolean
+    pausedInJava: Boolean,
   ): InspectorClient {
     val client: InspectorClient = mock()
     whenever(client.process).thenReturn(processDescriptor)
@@ -426,7 +426,7 @@ class InspectorClientLaunchMonitorTest {
   private fun setUpHybridDebugger(
     client: Client,
     debuggerType: DebuggerType,
-    pausedInJava: Boolean
+    pausedInJava: Boolean,
   ) {
     val manager = projectRule.mockProjectService(XDebuggerManager::class.java)
     val session: DebuggerSession = mock()

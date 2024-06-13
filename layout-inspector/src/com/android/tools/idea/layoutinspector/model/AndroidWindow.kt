@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-//import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper
 import java.awt.Shape
 
 /**
@@ -59,7 +58,6 @@ abstract class AndroidWindow(val root: ViewNode, val id: Any, imageType: ImageTy
 
   open val deviceClip: Shape? = null
 
-  //@OverridingMethodsMustInvokeSuper
   open fun copyFrom(other: AndroidWindow) {
     if (other.imageType == ImageType.SKP_PENDING && imageType == ImageType.SKP) {
       // we already have an skp merged in, don't go back to pending when we get a new one
@@ -75,7 +73,7 @@ abstract class AndroidWindow(val root: ViewNode, val id: Any, imageType: ImageTy
    * Subclasses are expected to respect this window's [imageType] and call
    * [ViewNode.writeDrawChildren] to generate draw results into [ViewNode.drawChildren].
    */
-  abstract fun refreshImages(scale: Double)
+  abstract suspend fun refreshImages(scale: Double)
 
   fun skpLoadingComplete() {
     imageType = ImageType.SKP

@@ -95,6 +95,10 @@ internal fun onlyComposeDebugConstantChanges(old: IrInstructionList, new: IrInst
         return false
       }
     }
+    else {
+      // If the constants are anything else, we can safely return; it's not a source information related call.
+      return false
+    }
 
     oldInsn = oldInsn.next
     newInsn = newInsn.next

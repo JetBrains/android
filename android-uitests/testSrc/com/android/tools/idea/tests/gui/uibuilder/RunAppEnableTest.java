@@ -16,7 +16,10 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
@@ -29,12 +32,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 
-import static com.google.common.truth.Truth.assertThat;
-
-
 @RunWith(GuiTestRemoteRunner.class)
 public class RunAppEnableTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
 
   @Rule
@@ -61,7 +61,7 @@ public class RunAppEnableTest {
   @Before
   public void setUp() throws Exception {
     // TODO: Change the build configuration language as KTS
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, BuildConfigurationLanguageForNewProject.Groovy); // Default projects are created with androidx dependencies
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
     guiTest.robot().waitForIdle();
   }
 
@@ -72,19 +72,22 @@ public class RunAppEnableTest {
     assertThat(ideFrameFixture.findRunApplicationButton().isEnabled()).isTrue();
 
     ideFrameFixture.getEditor()
-      .open("app/build.gradle")
+      .open("app/build.gradle.kts")
       .moveBetween("defaultConfig {\n", "")
-      .enterText("ndk {\nabiFilters 'arm64-v8a', 'x86_64'\n}\n")
+      .moveBetween("defaultConfig {\n", "")
+      .enterText("ndk {\nabiFilters.add(\"x86_64\")\n" +
+                 "            abiFilters.add(\"arm64-v8a\")\n}\n")
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
       .performAction("Sync Now");
     assertThat(ideFrameFixture.findRunApplicationButton().isEnabled()).isTrue();
 
     ideFrameFixture.getEditor()
-      .open("app/build.gradle")
+      .open("app/build.gradle.kts")
+      .moveBetween("ndk {\n", "")
       .moveBetween("ndk {\n", "")
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
-      .enterText("abiFilters 'arm64-v8a', 'X86_64'\n")
+      .enterText("abiFilters.add(\"X86_64\")\n")
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
       .performAction("Sync Now");

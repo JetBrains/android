@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
 class VitalsConnectionSelectorPopup(
   selection: Selection<VitalsConnection>,
   private val scope: CoroutineScope,
-  private val onSelect: (VitalsConnection) -> Unit
+  private val onSelect: (VitalsConnection) -> Unit,
 ) : JPanel(BorderLayout()) {
 
   private val searchTextField = SearchTextField(false)

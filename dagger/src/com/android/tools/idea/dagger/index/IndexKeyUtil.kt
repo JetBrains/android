@@ -39,7 +39,7 @@ import java.io.DataOutput
 internal fun getIndexKeys(
   psiType: PsiType,
   project: Project,
-  scope: GlobalSearchScope
+  scope: GlobalSearchScope,
 ): List<String> {
   // Treat unboxed types as equivalent to boxed types
   PsiPrimitiveType.getUnboxedType(psiType)?.let {
@@ -117,7 +117,7 @@ internal fun getIndexKeys(
 internal fun getAliasSimpleNames(
   baseTypeSimpleName: String,
   project: Project,
-  scope: GlobalSearchScope
+  scope: GlobalSearchScope,
 ) =
   KotlinTypeAliasByExpansionShortNameIndex.get(baseTypeSimpleName, project, scope).mapNotNull {
     it.fqName?.asString()?.substringAfterLast(".")

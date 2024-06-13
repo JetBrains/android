@@ -32,7 +32,7 @@ import com.intellij.util.text.nullize
 
 internal fun createDeviceEnumSupport(
   enumSupportValuesProvider: EnumSupportValuesProvider,
-  property: PsiPropertyItem
+  property: PsiPropertyItem,
 ) =
   EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
     val trimmedValue = stringValue.trim()
@@ -81,7 +81,7 @@ internal object DensityEnumSupport : EnumSupport {
         Density.HIGH,
         Density.XHIGH,
         Density.XXHIGH,
-        Density.XXXHIGH
+        Density.XXXHIGH,
       )
       .map { it.toEnumValue() }
 
@@ -89,7 +89,7 @@ internal object DensityEnumSupport : EnumSupport {
     Densities.getCommonScreenDensity(
         false,
         stringValue.toDoubleOrNull() ?: Density.XXHIGH.dpiValue.toDouble(),
-        0
+        0,
       )
       .toEnumValue()
 

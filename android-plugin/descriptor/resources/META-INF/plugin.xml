@@ -10,11 +10,13 @@
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
+  <depends>com.intellij.java</depends>
 
-  <change-notes><![CDATA[
-    This release contains updates from Android Studio Iguana Stable.
-    For detailed information, please refer to the release notes available at: Learn more in the <a href="https://android-developers.googleblog.com/2024/02/android-studio-iguana-is-stable.html">Android Studio Iguana Stable</a>.]]>
-  </change-notes>
+  <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <!--suppress PluginXmlValidity -->
+    <supportsKotlinK2Mode/>
+  </extensions>
 
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -36,6 +38,7 @@
   <xi:include href="/META-INF/profilers.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/profilers-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <!--<xi:include href="/META-INF/project-system-apk-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/> TODO NOW? -->
   <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-upgrade.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -49,18 +52,15 @@
   <xi:include href="/META-INF/app-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-test-retention.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/network-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/utp.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/backgroundtask-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-device.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/logcat.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-device-file-explorer-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/intellij.android.device-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-npw.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/wizard-template-impl.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-material.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-templates.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/device-manager.xml" xpointer="xpointer(/idea-plugin/*)"/>

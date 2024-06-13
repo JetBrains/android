@@ -30,7 +30,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
 
       class View
     """
-        .trimIndent()
+        .trimIndent(),
     )
     provider = CustomViewPreviewRepresentationProvider()
   }
@@ -61,7 +61,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
 
       class CustomView() : View()
     """
-          .trimIndent()
+          .trimIndent(),
       )
     assertFalse(provider.accept(project, file))
   }
@@ -81,7 +81,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
         }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
     assertFalse(provider.accept(project, file))
   }
@@ -99,7 +99,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
 
       class CustomView() : View()
     """
-          .trimIndent()
+          .trimIndent(),
       )
     assertTrue(provider.accept(project, file))
   }
@@ -121,7 +121,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
         }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
     assertTrue(provider.accept(project, file))
   }
@@ -143,7 +143,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
         }
       }
     """
-          .trimIndent()
+          .trimIndent(),
       )
     assertTrue(provider.accept(project, file))
   }

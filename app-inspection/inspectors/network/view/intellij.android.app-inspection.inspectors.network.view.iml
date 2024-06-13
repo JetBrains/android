@@ -6,9 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
@@ -17,9 +16,10 @@
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="ktor-client-cio" level="project" />
     <orderEntry type="library" name="network_inspector_java_proto" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
@@ -46,5 +46,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
   </component>
 </module>

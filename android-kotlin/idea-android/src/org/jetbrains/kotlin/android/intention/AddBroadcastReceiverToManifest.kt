@@ -22,7 +22,6 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Application
 import org.jetbrains.android.dom.manifest.Receiver
 
-
 class AddBroadcastReceiverToManifest : AbstractRegisterComponentAction<Receiver>(
     text = "Add broadcast receiver to manifest",
     componentClassName = SdkConstants.CLASS_BROADCASTRECEIVER,

@@ -15,57 +15,31 @@
  */
 package com.android.tools.idea.flags
 
+import com.android.flags.FlagDefault
 import com.android.tools.idea.IdeChannel
-import org.jetbrains.annotations.VisibleForTesting
-import java.util.function.Supplier
+import com.google.common.annotations.VisibleForTesting
 
 /**
  * Utility API allowing specification of a different default flag value depending on the release channel of Android Studio.
  *
- * Example usage: `ChannelDefault.of(100).withBetaOverride(200)`.
+ * Example usage: `ChannelDefault.enabledUpTo(CANARY)` would return true for dev, nightly and canary, but false for beta, release-candidate
+ * and stable versions of Studio.
  */
-class ChannelDefault<T>
-private constructor(default: T, private val versionProvider: (() -> String)? = null) : Supplier<T> {
-
-  private var value: T = default
-
-  override fun get(): T = value
-
-  fun withDevOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.DEV) value = override
-    return this
-  }
-
-  fun withNightlyOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.NIGHTLY) value = override
-    return this
-  }
-
-  fun withCanaryOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.CANARY) value = override
-    return this
-  }
-
-  fun withBetaOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.BETA) value = override
-    return this
-  }
-
-  fun withRCOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.RC) value = override
-    return this
-  }
-
-  fun withStableOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.STABLE) value = override
-    return this
-  }
+internal class ChannelDefault private constructor(private val value: Boolean, explanation: String): FlagDefault<Boolean>(explanation) {
+  override fun get(): Boolean = value
 
   companion object {
-    @JvmStatic fun <T> of(default: T) = ChannelDefault(default)
+    @JvmStatic
+    fun enabledUpTo(leastStableChannel: IdeChannel.Channel) : ChannelDefault = enabledUpTo(leastStableChannel, null)
+
 
     @VisibleForTesting
-    fun <T> of(default: T, versionProvider: (() -> String)) =
-      ChannelDefault(default, versionProvider)
+    internal fun enabledUpTo(leastStableChannel: IdeChannel.Channel, versionProvider: (() -> String)?) : ChannelDefault {
+      check(leastStableChannel <= IdeChannel.Channel.CANARY || leastStableChannel == IdeChannel.Channel.STABLE) {
+        "Flags must not be conditional between Beta, RC and Stable"
+      }
+      return ChannelDefault(IdeChannel.getChannel(versionProvider) <= leastStableChannel, "Default enabled in " + IdeChannel.Channel.values().takeWhile { it <= leastStableChannel }.joinToString())
+    }
   }
 }
+

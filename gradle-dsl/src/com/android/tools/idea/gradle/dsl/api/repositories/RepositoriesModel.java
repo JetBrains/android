@@ -26,7 +26,7 @@ public interface RepositoriesModel extends GradleBlockModel {
 
   void removeRepository(@NotNull RepositoryModel repository);
 
-  void addRepositoryByMethodName(@NotNull String methodName);
+  boolean addRepositoryByMethodName(@NotNull String methodName);
 
   void addFlatDirRepository(@NotNull String dirName);
 

@@ -39,7 +39,10 @@ public final class SigningConfigsDslElement extends GradleDslElementMap implemen
   public static final List<String> implicitSigningConfigs = List.of("debug");
 
   @Override
-  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+  public PropertiesElementDescription getChildPropertiesElementDescription(
+    GradleDslNameConverter converter,
+    String name
+  ) {
     return SigningConfigDslElement.SIGNING_CONFIG;
   }
 

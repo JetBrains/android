@@ -26,15 +26,15 @@ import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatem
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.QUERY_MEMORY;
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.values;
 
-import com.android.tools.idea.protobuf.GeneratedMessageV3;
-import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
-import com.android.tools.idea.protobuf.Message;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.idea.protobuf.GeneratedMessageV3;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
+import com.android.tools.idea.protobuf.Message;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

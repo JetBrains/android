@@ -55,7 +55,7 @@ public class FlatSeparator extends JComponent {
   @Override
   protected void paintComponent(final Graphics g) {
     final Insets i = getInsets();
-    if (UIUtil.isUnderAquaBasedLookAndFeel() || UIUtil.isUnderDarcula()) {
+    if (UIUtil.isUnderAquaBasedLookAndFeel() || !JBColor.isBright()) {
       if (getParent() != null) {
         final JBColor col = new JBColor(Gray._128, Gray._111);
         final Graphics2D g2 = (Graphics2D)g;

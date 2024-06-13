@@ -24,7 +24,8 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.popup.JBPopupFactory
 
 /** Modify Menu action. */
-abstract class ModifyMenuAction : DumbAwareAction("Modify Constraint Set", null, MEIcons.EDIT_MENU) {
+abstract class ModifyMenuAction :
+  DumbAwareAction("Modify Constraint Set", null, MEIcons.EDIT_MENU) {
 
   abstract val actions: List<AnAction>
   var enabled: Boolean = true

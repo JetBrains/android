@@ -15,144 +15,197 @@
  */
 package com.android.tools.idea.preview.modes
 
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.layout.SceneViewAlignment
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
-import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.GalleryLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.GridLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.ListLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.OrganizationPadding
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
-
-/**
- * Wrapper class to define the options available for [SwitchSurfaceLayoutManagerAction].
- *
- * @param displayName Name to be shown for this option.
- * @param layoutManager [SurfaceLayoutManager] to switch to when this option is selected.
- */
-data class SurfaceLayoutManagerOption(
-  val displayName: String,
-  val layoutManager: SurfaceLayoutManager,
-  val sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER
-)
-
-private const val PREVIEW_LEFT_PADDING = 25
-private const val PREVIEW_TOP_PADDING = 5
+import org.jetbrains.annotations.VisibleForTesting
 
 private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
-  // Minimum 5 at 20% and maximum 20 at 100%, responsive.
-  val min = 5
-  val max = 20
+  dynamicPadding(scale, 5, 20)
+}
 
+/**
+ * Provider of the horizontal and vertical paddings for preview. The input value is the scale value
+ * of the current [PositionableContent].
+ */
+private val ORGANIZATION_PREVIEW_RIGHT_PADDING: (Double, PositionableContent) -> Int =
+  { scale, content ->
+    if (content is HeaderPositionableContent) dynamicPadding(scale, 0, 0)
+    else dynamicPadding(scale, 5, 15)
+  }
+
+/**
+ * Provider of the horizontal and vertical paddings for preview. The input value is the scale value
+ * of the current [PositionableContent].
+ */
+private val ORGANIZATION_PREVIEW_BOTTOM_PADDING: (Double, PositionableContent) -> Int =
+  { scale, content ->
+    if (content is HeaderPositionableContent) dynamicPadding(scale, 0, 0)
+    else dynamicPadding(scale, 5, 7)
+  }
+
+/**
+ * Provider of the padding for preview. The input value is the scale value of the current
+ * [PositionableContent]. Minimum padding is min at 20% and maximum padding is max at 100%,
+ * responsive.
+ */
+private fun dynamicPadding(scale: Double, min: Int, max: Int): Int =
   when {
     scale <= 0.2 -> min
     scale >= 1.0 -> max
     else ->
       min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
   }.toInt()
-}
 
 private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<PositionableGroup> = {
-  // FIXME(b/258718991): we decide not group the previews for now.
   listOf(PositionableGroup(it.toList()))
 }
 
-private val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
+@VisibleForTesting
+val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
   { contents ->
     val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
     for (content in contents) {
       groups.getOrPut(content.organizationGroup) { mutableListOf() }.add(content)
     }
 
-    // Put previews which are the only preview in a group last as one group.
-    val singles = groups.filter { it.value.size == 1 }
-    singles.forEach { groups.remove(it.key) }
-    groups.values.map { PositionableGroup(it) } +
-      listOf(PositionableGroup(singles.values.flatten()))
+    groups.values
+      .fold(Pair(mutableListOf<PositionableGroup>(), mutableListOf<PositionableContent>())) {
+        temp,
+        next ->
+        val hasHeader = next.any { it is HeaderPositionableContent }
+        // If next is not in its own group - keep it in temp.second
+        if (!hasHeader) {
+          temp.second.addAll(next)
+        }
+
+        // Temp.second contains all consecutive previews without its own group.
+        // If next is not in a group or if it is the last element, group all collected
+        // previews as one group
+        if (hasHeader || groups.values.last() == next) {
+          if (temp.second.isNotEmpty()) {
+            temp.first.add(
+              PositionableGroup(
+                temp.second.filter { it !is HeaderPositionableContent },
+                temp.second.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
+              )
+            )
+            temp.second.clear()
+          }
+        }
+
+        // If next has its own group - it will have its own PositionableGroup
+        if (hasHeader) {
+          temp.first.add(
+            PositionableGroup(
+              next.filter { it !is HeaderPositionableContent },
+              next.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
+            )
+          )
+        }
+
+        temp
+      }
+      .first
   }
 
-/** Toolbar option to select [PreviewMode.Gallery] layout. */
-val PREVIEW_LAYOUT_GALLERY_OPTION =
-  SurfaceLayoutManagerOption(
-    message("gallery.mode.title"),
-    GroupedGridSurfaceLayoutManager(5, 0, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-    DesignSurface.SceneViewAlignment.LEFT,
+private val galleryPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
+private val listPadding = GroupPadding(5, 25, PREVIEW_FRAME_PADDING_PROVIDER)
+private val gridPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
+private val organizationListPadding =
+  OrganizationPadding(
+    10,
+    10,
+    24,
+    PREVIEW_FRAME_PADDING_PROVIDER,
+    ORGANIZATION_PREVIEW_RIGHT_PADDING,
+    ORGANIZATION_PREVIEW_BOTTOM_PADDING,
+  )
+private val organizationGridPadding =
+  OrganizationPadding(
+    10,
+    10,
+    24,
+    PREVIEW_FRAME_PADDING_PROVIDER,
+    ORGANIZATION_PREVIEW_RIGHT_PADDING,
+    ORGANIZATION_PREVIEW_BOTTOM_PADDING,
   )
 
-val LIST_LAYOUT_MANAGER_OPTION =
-  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) {
-    SurfaceLayoutManagerOption(
-      // TODO(b/289994157) Change name to "List"
-      message("vertical.groups"),
-      GroupedListSurfaceLayoutManager(
-        PREVIEW_TOP_PADDING,
-        PREVIEW_LEFT_PADDING,
-        PREVIEW_FRAME_PADDING_PROVIDER,
-        GROUP_BY_BASE_COMPONENT,
-      ),
-      DesignSurface.SceneViewAlignment.LEFT
-    )
-  } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
-    SurfaceLayoutManagerOption(
-      message("vertical.layout"),
-      VerticalOnlyLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        NlConstants.SCREEN_DELTA,
-        NlConstants.SCREEN_DELTA,
-        SingleDirectionLayoutManager.Alignment.CENTER
-      )
-    )
-  } else {
-    SurfaceLayoutManagerOption(
-      message("new.list.layout.title"),
-      GroupedListSurfaceLayoutManager(
-        PREVIEW_TOP_PADDING,
-        PREVIEW_LEFT_PADDING,
-        PREVIEW_FRAME_PADDING_PROVIDER,
-        NO_GROUP_TRANSFORM,
-      ),
-      DesignSurface.SceneViewAlignment.LEFT
-    )
-  }
+/** [PreviewMode.Gallery] layout option which shows once centered element. */
+val GALLERY_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("gallery.mode.title"),
+    GalleryLayoutManager(galleryPadding, NO_GROUP_TRANSFORM),
+    false,
+    SceneViewAlignment.LEFT,
+  )
 
-val GRID_LAYOUT_MANAGER_OPTIONS =
-  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) {
-    SurfaceLayoutManagerOption(
-      // TODO(b/289994157) Change name to "Grid"
-      message("grid.groups"),
-      GroupedGridSurfaceLayoutManager(
-        PREVIEW_TOP_PADDING,
-        PREVIEW_LEFT_PADDING,
-        PREVIEW_FRAME_PADDING_PROVIDER,
-        GROUP_BY_BASE_COMPONENT
-      ),
-      DesignSurface.SceneViewAlignment.LEFT,
+/** List layout option which doesn't group elements. */
+val LIST_NO_GROUP_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("new.list.layout.title"),
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+      ListLayoutManager(organizationListPadding, NO_GROUP_TRANSFORM)
+    else GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
+    false,
+    SceneViewAlignment.LEFT,
+  )
+
+/** Grid layout option which doesn't group elements. */
+val GRID_NO_GROUP_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("new.grid.layout.title"),
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+      GridLayoutManager(organizationGridPadding, NO_GROUP_TRANSFORM)
+    else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
+    false,
+    SceneViewAlignment.LEFT,
+  )
+
+/** List layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
+val LIST_LAYOUT_OPTION =
+  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+    SurfaceLayoutOption(
+      message("new.list.layout.title"),
+      ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT),
+      true,
+      SceneViewAlignment.LEFT,
     )
-  } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
-    SurfaceLayoutManagerOption(
-      message("grid.layout"),
-      GridSurfaceLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        NlConstants.SCREEN_DELTA,
-        NlConstants.SCREEN_DELTA
-      ),
-      DesignSurface.SceneViewAlignment.LEFT
+  else
+    SurfaceLayoutOption(
+      message("new.list.layout.title"),
+      GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
+      false,
+      SceneViewAlignment.LEFT,
     )
-  } else {
-    SurfaceLayoutManagerOption(
+
+/** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
+val GRID_LAYOUT_OPTION =
+  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+    SurfaceLayoutOption(
       message("new.grid.layout.title"),
-      GroupedGridSurfaceLayoutManager(
-        PREVIEW_TOP_PADDING,
-        0,
-        PREVIEW_FRAME_PADDING_PROVIDER,
-        NO_GROUP_TRANSFORM,
-      ),
-      DesignSurface.SceneViewAlignment.LEFT,
+      GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT),
+      true,
+      SceneViewAlignment.LEFT,
     )
-  }
+  else
+    SurfaceLayoutOption(
+      message("new.grid.layout.title"),
+      GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
+      false,
+      SceneViewAlignment.LEFT,
+    )
+
+/** The default layout that should appear when the Preview is open. */
+val DEFAULT_LAYOUT_OPTION = GRID_LAYOUT_OPTION

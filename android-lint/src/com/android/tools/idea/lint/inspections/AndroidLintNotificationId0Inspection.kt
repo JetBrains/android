@@ -22,5 +22,5 @@ import com.android.tools.lint.checks.InvalidNotificationIdDetector
 class AndroidLintNotificationId0Inspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.notification.id0"),
-    InvalidNotificationIdDetector.ISSUE
+    InvalidNotificationIdDetector.ISSUE,
   )

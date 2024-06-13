@@ -57,7 +57,7 @@ class ToStringProvider<T> : ComponentProvider<T> {
 class ClassNameProvider(
   private val ideServices: AppInspectionIdeServices,
   private val scope: CoroutineScope,
-  private val tracker: BackgroundTaskInspectorTracker
+  private val tracker: BackgroundTaskInspectorTracker,
 ) : ComponentProvider<String> {
   override fun convert(data: String): JComponent {
     return ActionLink(data) {
@@ -88,7 +88,7 @@ object StateProvider : ComponentProvider<BackgroundTaskEntry> {
 class EnqueuedAtProvider(
   private val ideServices: AppInspectionIdeServices,
   private val scope: CoroutineScope,
-  private val tracker: BackgroundTaskInspectorTracker
+  private val tracker: BackgroundTaskInspectorTracker,
 ) : ComponentProvider<CallStack> {
   override fun convert(data: CallStack): JComponent {
     return if (data.framesCount == 0) {
@@ -149,7 +149,7 @@ class EntryIdProvider(private val selectEntry: (BackgroundTaskEntry) -> Unit) :
 class IdListProvider(
   private val client: BackgroundTaskInspectorClient,
   private val currentWork: WorkInfo,
-  private val selectWork: (WorkEntry) -> Unit
+  private val selectWork: (WorkEntry) -> Unit,
 ) : ComponentProvider<List<String>> {
   override fun convert(data: List<String>): JComponent {
     val currId = currentWork.id

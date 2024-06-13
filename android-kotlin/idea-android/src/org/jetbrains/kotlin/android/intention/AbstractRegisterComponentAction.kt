@@ -46,7 +46,6 @@ import org.jetbrains.kotlin.psi.psiUtil.isAbstract
 import org.jetbrains.kotlin.psi.psiUtil.isPrivate
 import org.jetbrains.kotlin.psi.psiUtil.isProtected
 
-
 abstract class AbstractRegisterComponentAction<T : ApplicationComponent>(
     text: String,
     private val componentClassName: String,

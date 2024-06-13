@@ -29,9 +29,9 @@ import com.android.tools.idea.compose.annotator.check.device.DeviceSpecCheckStat
 import com.android.tools.idea.compose.annotator.check.device.DeviceSpecCheckStateKey
 import com.android.tools.idea.compose.annotator.check.device.DeviceSpecRule
 import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
-import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
 import com.android.tools.idea.compose.preview.getContainingComposableUMethod
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.util.getSdkDevices
 import com.android.tools.preview.config.DEFAULT_DEVICE_ID
 import com.android.tools.preview.config.DEFAULT_DEVICE_ID_WITH_PREFIX
 import com.android.tools.preview.config.DEVICE_BY_ID_PREFIX
@@ -161,7 +161,7 @@ internal object PreviewAnnotationCheck {
         //  parameter
         CheckResult(
           issues = listOf(Unknown(message("picker.preview.annotator.lint.error.unsupported"))),
-          proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX
+          proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX,
         )
     }
 
@@ -186,7 +186,7 @@ internal object PreviewAnnotationCheck {
   private fun checkDeviceSpecParams(
     originalParams: Collection<Pair<String, String>>,
     rule: CheckRule,
-    module: Module?
+    module: Module?,
   ): CheckResult {
     val issues = mutableListOf<IssueReason>()
 
@@ -289,7 +289,7 @@ internal object PreviewAnnotationCheck {
       // TODO(b/236383162): Improve the messaging for issues in the DeviceId
       CheckResult(
         issues = listOf(Unknown(unknownParameterValue)),
-        proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX
+        proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX,
       )
     } else {
       // Expected default device not in Sdk
@@ -356,7 +356,7 @@ private fun Map<String, String>.buildDeviceSpecString(): String {
     .joinTo(
       buffer = result,
       prefix = DeviceSpec.PREFIX,
-      separator = DeviceSpec.SEPARATOR.toString()
+      separator = DeviceSpec.SEPARATOR.toString(),
     )
   return result.toString()
 }

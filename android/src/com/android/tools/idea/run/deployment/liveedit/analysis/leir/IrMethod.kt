@@ -15,13 +15,26 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
+import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.tree.ClassNode
 import org.jetbrains.org.objectweb.asm.tree.MethodNode
 
-class IrMethod(node: MethodNode) {
+class IrMethod(node: MethodNode, parent: ClassNode) {
   val name: String = node.name
   val desc: String = node.desc
   val access = parseAccess(node.access)
   val signature: String? = node.signature
+  val isOverloadedWithinTheClass = parent.methods.count { it.name.equals(node.name) } > 1
+
+  fun getReadableDesc() : String {
+    if (isOverloadedWithinTheClass) {
+      var type = Type.getMethodType(desc)
+      var param = type.argumentTypes.joinToString { it.className }
+      return shortClassName(type.returnType.className) + " " + name + "(" + shortClassName(param) + ")"
+    } else {
+      return name
+    }
+  }
 
   // This will only be populated if the kotlin compiler is invoked with the -java-parameters flag.
   val parameters: List<IrParameter> = node.parameters?.mapIndexed { idx, param ->
@@ -46,4 +59,8 @@ class IrMethod(node: MethodNode) {
   // - visibleTypeAnnotations
   // - visibleAnnotableParameterCount
   // - invisibleAnnotableParameterCount
+}
+
+private fun shortClassName(name: String) : String {
+  return name.substring(name.lastIndexOf('.') + 1)
 }

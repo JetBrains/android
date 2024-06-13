@@ -35,7 +35,7 @@ private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidV
  */
 class ViewNodeCreator(
   layoutEvent: LayoutInspectorViewProtocol.LayoutEvent,
-  composeResult: GetComposablesResult?
+  composeResult: GetComposablesResult?,
 ) {
   val strings: StringTable = StringTableImpl(layoutEvent.stringsList)
   private val rootView = layoutEvent.rootView
@@ -55,7 +55,7 @@ class ViewNodeCreator(
 
   private fun LayoutInspectorViewProtocol.ViewNode.convert(
     shouldInterrupt: () -> Boolean,
-    access: ViewNode.WriteAccess
+    access: ViewNode.WriteAccess,
   ): ViewNode {
     if (shouldInterrupt()) {
       throw InterruptedException()
@@ -82,7 +82,7 @@ class ViewNodeCreator(
         renderBounds,
         resource,
         textValue,
-        view.layoutFlags
+        view.layoutFlags,
       )
 
     val children = view.childrenList.map { it.convert(shouldInterrupt, access) }.toMutableList()

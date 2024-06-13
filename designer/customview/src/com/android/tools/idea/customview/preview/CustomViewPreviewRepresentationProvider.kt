@@ -32,7 +32,7 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
     CommonRepresentationEditorFileType(
       CustomViewLightVirtualFile::class.java,
       LayoutEditorState.Type.CUSTOM_VIEWS,
-      ::CustomViewPreviewToolbar
+      ::CustomViewPreviewToolbar,
     ) {
     override fun isEditable() = true
   }
@@ -40,6 +40,7 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
   init {
     DesignerTypeRegistrar.register(CustomViewEditorFileType)
   }
+
   /**
    * Checks if the input [psiFile] contains custom views and therefore can be provided with the
    * [PreviewRepresentation] of them.
@@ -54,7 +55,7 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
   }
 
   /** Creates a [CustomViewPreviewRepresentation] for the input [psiFile]. */
-  override fun createRepresentation(psiFile: PsiFile): CustomViewPreviewRepresentation {
+  override suspend fun createRepresentation(psiFile: PsiFile): CustomViewPreviewRepresentation {
     return CustomViewPreviewRepresentation(psiFile)
   }
 

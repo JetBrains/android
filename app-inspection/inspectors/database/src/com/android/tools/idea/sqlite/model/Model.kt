@@ -22,6 +22,8 @@ sealed class SqliteDatabaseId {
   abstract val path: String
   abstract val name: String
 
+  abstract fun key(): Key
+
   companion object {
     fun fromFileDatabase(databaseFileData: DatabaseFileData): SqliteDatabaseId {
       val path =
@@ -33,35 +35,48 @@ sealed class SqliteDatabaseId {
       return FileSqliteDatabaseId(path, name, databaseFileData)
     }
 
-    fun fromLiveDatabase(path: String, connectionId: Int): SqliteDatabaseId {
+    fun fromLiveDatabase(
+      path: String,
+      connectionId: Int,
+      isForced: Boolean = false,
+      isReadOnly: Boolean = false,
+    ): SqliteDatabaseId {
       val name = path.substringAfterLast("/")
 
       /**
-       * Converts the path of the database from user/0 to the global user User 0 path looks like
+       * Converts the path of the database from user/0 to the global user "User 0" path looks like
        * this: /data/user/0/com.example.package/databases/db-file Global user path looks like this:
        * /data/data/com.example.package/databases/db-file
        *
-       * This won't work if the file is stored in another user's memory space, but multi user is not
+       * This won't work if the file is stored in another user's memory space, but multi-user is not
        * supported across studio: b/163315855
        */
       val systemUserPath =
         path.replace("/user/0", "/data").replace("/storage/emulated/0", "/sdcard")
 
-      return LiveSqliteDatabaseId(systemUserPath, name, connectionId)
+      return LiveSqliteDatabaseId(systemUserPath, name, connectionId, isForced, isReadOnly)
     }
   }
 
   data class LiveSqliteDatabaseId(
     override val path: String,
     override val name: String,
-    val connectionId: Int
-  ) : SqliteDatabaseId()
+    val connectionId: Int,
+    val isForced: Boolean = false,
+    val isReadOnly: Boolean = false,
+  ) : SqliteDatabaseId() {
+    override fun key() = Key(path, connectionId)
+  }
 
   data class FileSqliteDatabaseId(
     override val path: String,
     override val name: String,
-    val databaseFileData: DatabaseFileData
-  ) : SqliteDatabaseId()
+    val databaseFileData: DatabaseFileData,
+  ) : SqliteDatabaseId() {
+    override fun key() = Key(path, 0)
+  }
+
+  data class Key(val path: String, val id: Int)
 }
 
 fun SqliteDatabaseId.isInMemoryDatabase(): Boolean {
@@ -80,7 +95,7 @@ fun SqliteDatabaseId.isInMemoryDatabase(): Boolean {
  */
 data class DatabaseFileData(
   val mainFile: VirtualFile,
-  val walFiles: List<VirtualFile> = emptyList()
+  val walFiles: List<VirtualFile> = emptyList(),
 )
 
 /** Representation of the Sqlite database schema */
@@ -95,8 +110,11 @@ data class SqliteTable(
   val name: String,
   val columns: List<SqliteColumn>,
   val rowIdName: RowIdName?,
-  val isView: Boolean
+  val isView: Boolean,
 )
+
+/** Representation of the Sqlite query result */
+data class SqliteQueryResult(val rows: List<SqliteRow>, val isForced: Boolean = false)
 
 /** Representation of the Sqlite table row */
 data class SqliteRow(val values: List<SqliteColumnValue>)
@@ -109,7 +127,7 @@ data class SqliteColumn(
   val name: String,
   val affinity: SqliteAffinity,
   val isNullable: Boolean,
-  val inPrimaryKey: Boolean
+  val inPrimaryKey: Boolean,
 )
 
 /**
@@ -120,7 +138,7 @@ data class ResultSetSqliteColumn(
   val name: String,
   val affinity: SqliteAffinity? = null,
   val isNullable: Boolean? = null,
-  val inPrimaryKey: Boolean? = null
+  val inPrimaryKey: Boolean? = null,
 )
 
 /**
@@ -142,11 +160,11 @@ data class SqliteStatement(
   val statementType: SqliteStatementType,
   val sqliteStatementText: String,
   val parametersValues: List<SqliteValue>,
-  val sqliteStatementWithInlineParameters: String
+  val sqliteStatementWithInlineParameters: String,
 ) {
   constructor(
     statementType: SqliteStatementType,
-    sqliteStatement: String
+    sqliteStatement: String,
   ) : this(statementType, sqliteStatement, emptyList<SqliteValue>(), sqliteStatement)
 }
 
@@ -156,7 +174,7 @@ val SqliteStatement.isQueryStatement
       statementType == SqliteStatementType.EXPLAIN ||
       statementType == SqliteStatementType.PRAGMA_QUERY
 
-/** The type of a [SqliteStatement]. */
+/** The type of [SqliteStatement]. */
 enum class SqliteStatementType {
   SELECT,
   DELETE,
@@ -165,13 +183,13 @@ enum class SqliteStatementType {
   EXPLAIN,
   PRAGMA_QUERY,
   PRAGMA_UPDATE,
-  UNKNOWN
+  UNKNOWN,
 }
 
 enum class RowIdName(val stringName: String) {
   ROWID("rowid"),
   OID("oid"),
-  _ROWID_("_rowid_")
+  @Suppress("EnumEntryName") _ROWID_("_rowid_"),
 }
 
 /**

@@ -28,6 +28,8 @@ import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.layout.SceneViewAlignment
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
@@ -39,7 +41,6 @@ import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
@@ -64,10 +65,12 @@ import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
+import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
@@ -94,7 +97,7 @@ import org.jetbrains.annotations.VisibleForTesting
 class VisualizationForm(
   private val project: Project,
   parentDisposable: Disposable,
-  private val initializer: ContentInitializer
+  private val initializer: ContentInitializer,
 ) : VisualizationContent, ConfigurationSetListener, ResourceChangeListener, PanZoomListener {
   private val surface: NlDesignSurface
   private val myWorkBench: WorkBench<DesignSurface<*>>
@@ -119,14 +122,18 @@ class VisualizationForm(
   private var myEditor: FileEditor? = null
   private var myCurrentConfigurationSet: ConfigurationSet
   private var myCurrentModelsProvider: VisualizationModelsProvider
-  private val myLayoutManager: NlDesignSurfacePositionableContentLayoutManager
-  private val myGridSurfaceLayoutManager =
-    GridSurfaceLayoutManager(
-      NlConstants.DEFAULT_SCREEN_OFFSET_X,
-      NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-      GRID_HORIZONTAL_SCREEN_DELTA,
-      VERTICAL_SCREEN_DELTA,
-      false
+  private val myLayoutOption =
+    SurfaceLayoutOption(
+      "Layout",
+      GridSurfaceLayoutManager(
+        NlConstants.DEFAULT_SCREEN_OFFSET_X,
+        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+        GRID_HORIZONTAL_SCREEN_DELTA,
+        VERTICAL_SCREEN_DELTA,
+        false,
+      ),
+      false,
+      SceneViewAlignment.LEFT,
     )
   private val myUpdateQueue: MergingUpdateQueue
 
@@ -156,7 +163,6 @@ class VisualizationForm(
     myCurrentConfigurationSet =
       VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet
     myCurrentModelsProvider = myCurrentConfigurationSet.createModelsProvider(this)
-    val surfaceLayoutManager = myGridSurfaceLayoutManager
     val config = LayoutScannerEnabled()
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
@@ -181,7 +187,7 @@ class VisualizationForm(
         .setInteractionHandlerProvider { surface: DesignSurface<*> ->
           VisualizationInteractionHandler(surface) { myCurrentModelsProvider }
         }
-        .setLayoutManager(surfaceLayoutManager)
+        .setLayoutOption(myLayoutOption)
         .setMaxScale(4.0)
         .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
         .setDelegateDataProvider {
@@ -192,16 +198,15 @@ class VisualizationForm(
           }
         }
         .build()
-    surface.setSceneViewAlignment(DesignSurface.SceneViewAlignment.LEFT)
+    surface.setSceneViewAlignment(SceneViewAlignment.LEFT)
     surface.addPanZoomListener(this)
     issueListener = DesignSurfaceIssueListenerImpl(surface).apply { surface.addIssueListener(this) }
     updateScreenMode()
     surface.name = VISUALIZATION_DESIGN_SURFACE_NAME
+    surface.zoomController.storeId = VISUALIZATION_DESIGN_SURFACE_NAME
     myWorkBench = WorkBench(project, "Visualization", null, this)
     myWorkBench.setLoadingText(CommonBundle.getLoadingTreeNodeText())
     myWorkBench.setToolContext(surface)
-    myLayoutManager =
-      surface.sceneViewLayoutManager as NlDesignSurfacePositionableContentLayoutManager
     myActionToolbarPanel = createToolbarPanel()
     myRoot.add(myActionToolbarPanel, BorderLayout.NORTH)
     myRoot.add(myWorkBench, BorderLayout.CENTER)
@@ -215,7 +220,7 @@ class VisualizationForm(
         null,
         this,
         null,
-        Alarm.ThreadToUse.POOLED_THREAD
+        Alarm.ThreadToUse.POOLED_THREAD,
       )
     myUpdateQueue.setRestartTimerOnAdd(true)
 
@@ -364,7 +369,7 @@ class VisualizationForm(
       return
     }
     val file = PsiManager.getInstance(project).findFile(myFile!!)
-    val facet = (if (file != null) AndroidFacet.getInstance(file) else null) ?: return
+    var facet: AndroidFacet? = null
     updateActionToolbar(myActionToolbarPanel)
 
     // isRequestCancelled allows us to cancel the ongoing computation if it is not needed anymore.
@@ -375,15 +380,18 @@ class VisualizationForm(
     // Asynchronously load the model and refresh the preview once it's ready
     CompletableFuture.supplyAsync(
         {
+          facet =
+            (if (file != null) AndroidFacet.getInstance(file) else null)
+              ?: return@supplyAsync emptyList()
           // Hide the content while adding the models.
-          val models = myCurrentModelsProvider.createNlModels(this, file!!, facet)
+          val models = myCurrentModelsProvider.createNlModels(this, file!!, facet!!)
           if (models.isEmpty()) {
             myWorkBench.showLoading("No Device Found")
             return@supplyAsync null
           }
           models
         },
-        AppExecutorUtil.getAppExecutorService()
+        AppExecutorUtil.getAppExecutorService(),
       )
       .thenAcceptAsync(
         { models: List<NlModel>? ->
@@ -397,7 +405,10 @@ class VisualizationForm(
             surface.registerIndicator(myProgressIndicator)
           }
           // In visualization tool, we add model and layout the scroll pane before rendering
-          models.forEach { model -> surface.addModelWithoutRender(model) }
+          CompletableFuture.allOf(
+              *models.map { model -> surface.addModelWithoutRender(model) }.toTypedArray()
+            )
+            .join()
           // Re-layout and set scale before rendering. This may be processed delayed but we have
           // known the preview number and sizes because the
           // models are added, so it would layout correctly.
@@ -405,7 +416,7 @@ class VisualizationForm(
             surface.invalidate()
             val lastScaling =
               VisualizationToolProjectSettings.getInstance(project).projectState.scale
-            if (!surface.setScale(lastScaling)) {
+            if (!surface.zoomController.setScale(lastScaling)) {
               // Update scroll area because the scaling doesn't change, which keeps the old scroll
               // area and may not suitable to new
               // configuration set.
@@ -420,16 +431,16 @@ class VisualizationForm(
               ApplicationManager.getApplication().invokeLater {
                 surface.unregisterIndicator(myProgressIndicator)
               }
-              if (!isRequestCancelled.get() && !facet.isDisposed) {
+              if (!isRequestCancelled.get() && facet?.isDisposed == false) {
                 activateEditor(models.isNotEmpty())
               } else {
                 removeAndDisposeModels(models)
               }
             },
-            EdtExecutorService.getInstance()
+            EdtExecutorService.getInstance(),
           )
         },
-        EdtExecutorService.getInstance()
+        EdtExecutorService.getInstance(),
       )
   }
 
@@ -481,7 +492,10 @@ class VisualizationForm(
     if (file == null) {
       return
     }
-    val facet = AndroidFacet.getInstance(file, project)
+    val facet =
+      SlowOperations.allowSlowOperations(
+        ThrowableComputable { AndroidFacet.getInstance(file, project) }
+      )
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
@@ -501,7 +515,10 @@ class VisualizationForm(
     if (file == null) {
       return
     }
-    val facet = AndroidFacet.getInstance(file, project)
+    val facet =
+      SlowOperations.allowSlowOperations(
+        ThrowableComputable { AndroidFacet.getInstance(file, project) }
+      )
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
@@ -619,8 +636,7 @@ class VisualizationForm(
     surface.activate()
     analyticsManager.trackVisualizationToolWindow(true)
     visualLintHandler.onActivate()
-    IssuePanelService.getInstance(project)
-      .getSharedIssuePanel()
+    IssuePanelService.getDesignerCommonIssuePanel(project)
       ?.addIssueSelectionListener(surface.issueListener, surface)
   }
 
@@ -642,8 +658,7 @@ class VisualizationForm(
     }
     analyticsManager.trackVisualizationToolWindow(false)
     visualLintHandler.onDeactivate()
-    IssuePanelService.getInstance(project)
-      .getSharedIssuePanel()
+    IssuePanelService.getDesignerCommonIssuePanel(project)
       ?.removeIssueSelectionListener(surface.issueListener)
     myFile?.let { FileEditorManager.getInstance(project).getSelectedEditor(it)?.selectNotify() }
   }
@@ -655,10 +670,7 @@ class VisualizationForm(
       VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet =
         newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
-      myLayoutManager.setLayoutManager(
-        myGridSurfaceLayoutManager,
-        DesignSurface.SceneViewAlignment.LEFT
-      )
+      surface.layoutManagerSwitcher?.currentLayout?.value = myLayoutOption
       refresh()
     }
   }
@@ -676,7 +688,8 @@ class VisualizationForm(
   }
 
   override fun zoomChanged(previousScale: Double, newScale: Double) {
-    VisualizationToolProjectSettings.getInstance(project).projectState.scale = surface.scale
+    VisualizationToolProjectSettings.getInstance(project).projectState.scale =
+      surface.zoomController.scale
   }
 
   override fun panningChanged(adjustmentEvent: AdjustmentEvent) = Unit

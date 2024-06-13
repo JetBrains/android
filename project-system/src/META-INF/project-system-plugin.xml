@@ -31,6 +31,9 @@
                     interface="com.android.tools.idea.projectsystem.ApplicationProjectContextProvider"
                     dynamic="true"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.pseudoLocalesToken"
+                    interface="com.android.tools.idea.projectsystem.PseudoLocalesToken"
+                    area="IDEA_PROJECT"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSystemService"/>

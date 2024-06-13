@@ -29,6 +29,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl
@@ -222,6 +223,17 @@ fun CodeInsightTestFixture.offsetForWindow(window: String, startIndex: Int = 0):
  * the caret is placed at the first matching offset, between the prefix and suffix.
  */
 fun PsiFile.offsetForWindow(window: String, startIndex: Int = 0): Int =
+  text.offsetForWindow(window, startIndex)
+
+/**
+ * Returns the offset of the caret in this [Document] as indicated by the [window] string.
+ *
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be
+ * found in the file. The file is searched for the concatenation of prefix and suffix strings and
+ * the caret is placed at the first matching offset, between the prefix and suffix.
+ */
+@JvmOverloads
+fun Document.getOffsetForWindow(window: String, startIndex: Int = 0): Int =
   text.offsetForWindow(window, startIndex)
 
 private fun String.offsetForWindow(window: String, startIndex: Int = 0): Int {

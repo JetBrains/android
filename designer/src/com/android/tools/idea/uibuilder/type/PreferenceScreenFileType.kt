@@ -34,7 +34,7 @@ object PreferenceScreenFileType : LayoutEditorFileType("preference_screen") {
         listOf(
           PREFERENCE_SCREEN,
           CLASS_PREFERENCE_SCREEN_ANDROIDX.oldName(),
-          CLASS_PREFERENCE_SCREEN_ANDROIDX.newName()
-        )
+          CLASS_PREFERENCE_SCREEN_ANDROIDX.newName(),
+        ),
       )
 }

@@ -16,15 +16,16 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.tools.environment.Logger;
+import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.RenderProblem;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.module.Module;
 import java.lang.ref.WeakReference;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ShowExceptionFix implements Runnable {
-  @Nullable private final Project myProject;
+public class ShowExceptionFix implements HtmlLinkManager.Action {
   @NotNull private final WeakReference<RenderProblem> myRenderProblemWeakReference;
   @Nullable private final Throwable myThrowable;
 
@@ -32,8 +33,7 @@ public class ShowExceptionFix implements Runnable {
    * Creates a {@link ShowExceptionFix} holding the given {@link Throwable}. Avoid using this constructor
    * if you have a {@link RenderProblem} available.
    */
-  public ShowExceptionFix(@Nullable Project project, @NotNull Throwable throwable) {
-    myProject = project;
+  public ShowExceptionFix(@NotNull Throwable throwable) {
     myThrowable = throwable;
     myRenderProblemWeakReference = new WeakReference<>(null);
   }
@@ -42,14 +42,17 @@ public class ShowExceptionFix implements Runnable {
    * Use this constructor if you have a {@link RenderProblem} available. This constructor will
    * avoid holding a strong link to the {@link RenderProblem} and will avoid consuming extra memory if the problem is disposed.
    */
-  public ShowExceptionFix(@Nullable Project project, @NotNull RenderProblem problem) {
-    myProject = project;
+  public ShowExceptionFix(@NotNull RenderProblem problem) {
     myThrowable = null;
     myRenderProblemWeakReference = new WeakReference<>(problem);
   }
 
   @Override
-  public void run() {
+  public void actionPerformed(@Nullable Module module) {
+    if (module == null) {
+      Logger.getInstance(ShowExceptionFix.class).warn("Module has been disposed");
+      return;
+    }
     Throwable t = myThrowable;
 
     if (t == null) {
@@ -63,6 +66,6 @@ public class ShowExceptionFix implements Runnable {
     while (t.getCause() != null && t.getCause() != t) {
       t = t.getCause();
     }
-    AndroidUtils.showStackStace(myProject, new Throwable[]{t});
+    AndroidUtils.showStackStace(module.getProject(), new Throwable[]{t});
   }
 }

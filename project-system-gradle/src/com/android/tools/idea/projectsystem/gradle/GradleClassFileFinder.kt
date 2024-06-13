@@ -33,7 +33,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.ParameterizedCachedValue
 import com.intellij.psi.util.ParameterizedCachedValueProvider
-import com.intellij.util.io.isFile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Optional
@@ -114,7 +113,7 @@ private fun Module.getNonCachedCompileOutputsIncludingDependencies(
   includeAndroidTests: Boolean
 ): CompileRoots =
     CompileRoots(
-      (listOf(this) + ModuleRootManager.getInstance(this).getDependencies(includeAndroidTests))
+      (this.getAllDependencies(includeAndroidTests))
         .flatMap {
           GradleClassFinderUtil.getModuleCompileOutputs(it, includeAndroidTests).toList()
         }
@@ -125,6 +124,25 @@ private fun Module.getNonCachedCompileOutputsIncludingDependencies(
       .also {
         Logger.getInstance(GradleClassFileFinder::class.java).debug("CompileRoots recalculated $it")
       }
+
+/**
+ * Returns a set containing the current [Module] and all its direct and transitive dependencies.
+ */
+fun Module.getAllDependencies(includeAndroidTests: Boolean): Set<Module> {
+  val dependencies = mutableSetOf(this)
+  val queue = ArrayDeque<Module>()
+  queue.add(this)
+
+  while (queue.isNotEmpty()) {
+    ModuleRootManager.getInstance(queue.removeFirst()).getDependencies(includeAndroidTests).forEach {
+      if (dependencies.add(it)) {
+        queue.add(it)
+      }
+    }
+  }
+
+  return dependencies
+}
 
 
 /** Key used to cache the [CompileRoots] for a non test module. */

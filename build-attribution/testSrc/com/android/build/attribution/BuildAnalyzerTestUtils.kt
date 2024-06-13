@@ -24,7 +24,6 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.GarbageCollectionAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
-import com.android.build.attribution.analyzers.NoncacheableTasksAnalyzer
 import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
@@ -55,7 +54,6 @@ fun constructEmptyBuildResultsObject(buildSessionId: String, projectRoot: File, 
       0,
       0
     ),
-    NoncacheableTasksAnalyzer.Result(emptyList()),
     GarbageCollectionAnalyzer.Result(emptyList(), null, null),
     ProjectConfigurationAnalyzer.Result(
       emptyMap(),

@@ -41,6 +41,7 @@ public final class VirtualDeviceBuilderTest {
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   null,
+                                  null,
                                   AvdStatus.OK);
 
     VirtualDevice device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 0L).build();
@@ -61,6 +62,7 @@ public final class VirtualDeviceBuilderTest {
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
+                                  null,
                                   AvdStatus.OK);
 
     Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
@@ -81,6 +83,7 @@ public final class VirtualDeviceBuilderTest {
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
+                                  null,
                                   AvdStatus.OK);
 
     VirtualDevice device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
@@ -100,6 +103,7 @@ public final class VirtualDeviceBuilderTest {
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
+                                  null,
                                   AvdStatus.OK);
 
     Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
@@ -117,6 +121,7 @@ public final class VirtualDeviceBuilderTest {
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
+                                  null,
                                   AvdStatus.OK);
 
     Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
@@ -134,6 +139,7 @@ public final class VirtualDeviceBuilderTest {
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
+                                  null,
                                   AvdStatus.OK);
 
     Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
@@ -151,6 +157,7 @@ public final class VirtualDeviceBuilderTest {
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
+                                  null,
                                   AvdStatus.OK);
 
     Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
@@ -168,6 +175,7 @@ public final class VirtualDeviceBuilderTest {
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
+                                  null,
                                   AvdStatus.OK);
 
     Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();

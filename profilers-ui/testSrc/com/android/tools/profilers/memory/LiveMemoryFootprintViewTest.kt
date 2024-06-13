@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.com.android.tools.profilers.memory
+package com.android.tools.profilers.memory
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt

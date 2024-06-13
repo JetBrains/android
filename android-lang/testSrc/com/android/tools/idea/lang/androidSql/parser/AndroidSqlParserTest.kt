@@ -1102,6 +1102,33 @@ class MiscParserTest : AndroidSqlParserTest() {
       toParseTreeText("SELECT * FROM foo WHERE bar = FALSE")
     )
   }
+
+  fun testTempTable() {
+    assertEquals(
+      """
+      FILE
+        AndroidSqlSelectStatementImpl(SELECT_STATEMENT)
+          AndroidSqlSelectCoreImpl(SELECT_CORE)
+            AndroidSqlSelectCoreSelectImpl(SELECT_CORE_SELECT)
+              PsiElement(SELECT)('SELECT')
+              AndroidSqlResultColumnsImpl(RESULT_COLUMNS)
+                AndroidSqlResultColumnImpl(RESULT_COLUMN)
+                  AndroidSqlColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                    AndroidSqlColumnNameImpl(COLUMN_NAME)
+                      PsiElement(IDENTIFIER)('name')
+              AndroidSqlFromClauseImpl(FROM_CLAUSE)
+                PsiElement(FROM)('from')
+                AndroidSqlTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                  AndroidSqlFromTableImpl(FROM_TABLE)
+                    AndroidSqlDatabaseNameImpl(DATABASE_NAME)
+                      PsiElement(TEMP)('TEMP')
+                    PsiElement(.)('.')
+                    AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                      PsiElement(IDENTIFIER)('ConfigPackagesToKeep')
+      """.trimIndent(),
+      toParseTreeText("SELECT name from TEMP.ConfigPackagesToKeep")
+    )
+  }
 }
 
 class ErrorMessagesTest : AndroidSqlParserTest() {

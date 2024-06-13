@@ -15,14 +15,15 @@
  */
 package com.android.tools.adtui.compose
 
+import com.android.tools.adtui.actions.DropDownAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.ui.popup.JBPopup
@@ -288,13 +289,16 @@ class InformationPopupImpl(
       val presentation = Presentation()
       presentation.icon = AllIcons.Actions.More
       presentation.putClientProperty(ActionButton.HIDE_DROPDOWN_ICON, java.lang.Boolean.TRUE)
+      val dropDownAction = DropDownAction(null, null , AllIcons.Actions.More).also {
+        it.addAll(additionalActions)
+      }
       val menuButton = ActionButton(
-        DefaultActionGroup(additionalActions).apply {
-          isPopup = true
-        },
+        dropDownAction,
         presentation,
         ActionPlaces.EDITOR_POPUP,
         ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+
+      menuButton.presentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, menuButton)
 
       content.add(menuButton, gc.next().anchor(GridBagConstraints.LINE_END).weightx(0.0).insets(10, 6, 10, 6))
     }

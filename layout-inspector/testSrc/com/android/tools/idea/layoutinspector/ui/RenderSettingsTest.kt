@@ -43,7 +43,7 @@ class RenderSettingsTest {
       .replaceService(
         PropertiesComponent::class.java,
         PropertiesComponentMock(),
-        disposableRule.disposable
+        disposableRule.disposable,
       )
   }
 

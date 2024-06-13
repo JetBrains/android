@@ -28,12 +28,12 @@ class TopBoundCenterScroller(
   @SwingCoordinate scrollPosition: Point,
   @SwingCoordinate portSize: Dimension,
   oldScale: Double,
-  newScale: Double
+  newScale: Double,
 ) :
   ReferencePointScroller(
     oldViewSize,
     scrollPosition,
     Point(scrollPosition.x + portSize.width / 2, scrollPosition.y),
     oldScale,
-    newScale
+    newScale,
   )

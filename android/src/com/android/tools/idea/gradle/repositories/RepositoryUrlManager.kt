@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.repositories
 
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.Module
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepository
@@ -27,13 +28,15 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleLocalCache
 import com.android.tools.idea.lint.common.LintIdeSupport
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.lint.checks.GradleDetector.Companion.getLatestVersionFromRemoteRepo
 import com.android.tools.lint.client.api.LintClient
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import java.io.File
@@ -52,18 +55,19 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   private val forceRepositoryChecksInTests: Boolean,
   private val useEmbeddedStudioRepo: Boolean = true) {
   private val pendingNetworkRequests: MutableSet<String> = ConcurrentHashMap.newKeySet()
+  private val logger: Logger = thisLogger()
 
   internal constructor() : this(IdeGoogleMavenRepository,
                                 OfflineIdeGoogleMavenRepository, false)
 
-  fun getArtifactComponentIdentifier(artifactId: GoogleMavenArtifactId, preview: Boolean): String? =
-    getArtifactComponentIdentifier(artifactId, null, preview)
+  fun getArtifactComponent(artifactId: GoogleMavenArtifactId, preview: Boolean): Component? =
+    getArtifactComponent(artifactId, null, preview)
 
-  fun getArtifactComponentIdentifier(artifactId: GoogleMavenArtifactId, filter: Predicate<Version>?, preview: Boolean): String? {
+  fun getArtifactComponent(artifactId: GoogleMavenArtifactId, filter: Predicate<Version>?, preview: Boolean): Component? {
     val revision = getLibraryRevision(
       artifactId.mavenGroupId, artifactId.mavenArtifactId, filter, preview, FileSystems.getDefault()
     ) ?: return null
-    return artifactId.getComponent(revision).toIdentifier()
+    return artifactId.getComponent(revision)
   }
 
   /**
@@ -97,16 +101,24 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       version = googleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews)
     }
     if (version != null) {
+      logger.debug("Found dependency $groupId:$artifactId:$version in GMaven")
       return version
     }
 
     if (useEmbeddedStudioRepo) {
       // Try the repo embedded in AS.
-      return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
+      val embeddedVersion = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
         .filter { it?.isDirectory == true }
         .firstNotNullOfOrNull {
-          MavenRepositories.getHighestInstalledVersion(groupId, artifactId, fileSystem.getPath(it.path), filter, includePreviews)
+          val repoPath = fileSystem.getPath(it.path)
+          logger.debug("Checking $repoPath for $groupId:$artifactId...")
+          MavenRepositories.getHighestInstalledVersion(groupId, artifactId, repoPath, filter, includePreviews)
         }?.version
+
+      if (embeddedVersion != null) {
+        logger.debug("Found dependency $groupId:$artifactId:$embeddedVersion in embedded repo")
+        return embeddedVersion
+      }
     }
     return null
   }
@@ -183,9 +195,15 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     @Suppress("NAME_SHADOWING")
     val sdkHandler = sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler()
 
-    dependency.explicitSingletonVersion?.let { return it.toString() }
+    dependency.explicitSingletonVersion?.let {
+      logger.debug("Returned $dependency directly because it's a singleton")
+      return it.toString()
+    }
     val filter = Predicate { version: Version -> dependency.version?.contains(version) ?: true } // TODO(xof): accepts?
-    val module = dependency.module ?: return null
+    val module: Module = dependency.module ?: run {
+      logger.debug("Couldn't resolve $dependency since it doesn't correspond to a Module")
+      return null
+    }
     val bestAvailableGoogleMavenRepo: GoogleMavenRepository
 
     // First check the Google maven repository, which has most versions.
@@ -197,15 +215,18 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       bestAvailableGoogleMavenRepo = googleMavenRepository
     }
 
-    val stable = bestAvailableGoogleMavenRepo.findVersion(module.group, module.name, filter, false)
-    if (stable != null) {
-      return stable.toString()
+    val stableVersion = bestAvailableGoogleMavenRepo.findVersion(module.group, module.name, filter, false)
+    if (stableVersion != null) {
+      logger.debug("Resolved dependency stable ${module.group}:${module.name}:$stableVersion in GMaven")
+      return stableVersion.toString()
     }
-    val version = bestAvailableGoogleMavenRepo.findVersion(module.group, module.name, filter, true)
-    if (version != null) {
+    val previewVersion = bestAvailableGoogleMavenRepo.findVersion(module.group, module.name, filter, true)
+    if (previewVersion != null) {
       // Only had preview version; use that (for example, artifacts that haven't been released as stable yet).
-      return version.toString()
+      logger.debug("Resolved dependency preview ${module.group}:${module.name}:$previewVersion in GMaven")
+      return previewVersion.toString()
     }
+
     val sdkLocation = sdkHandler.location
     if (sdkLocation != null) {
       // If this coordinate points to an artifact in one of our repositories, mark it with a comment if they don't
@@ -213,6 +234,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       var libraryCoordinate = getLibraryRevision(module.group, module.name, filter, false,
                                                  sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
+        logger.debug("Resolved stable ${module.group}:${module.name}:$libraryCoordinate from library (see above)")
         return libraryCoordinate
       }
 
@@ -221,6 +243,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       libraryCoordinate = getLibraryRevision(module.group, module.name, filter, true,
                                              sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
+        logger.debug("Resolved preview ${module.group}:${module.name}:$libraryCoordinate from library (see above)")
         return libraryCoordinate
       }
     }
@@ -228,6 +251,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     // Regular Gradle dependency? Look in Gradle cache.
     val versionFound = GradleLocalCache.getInstance().findLatestArtifactVersion(dependency, project)
     if (versionFound != null) {
+      logger.debug("Resolved ${module.group}:${module.name}:$versionFound from Gradle cache")
       return versionFound.toString()
     }
 
@@ -238,14 +262,25 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     if (sdkPackage != null) {
       val found = SdkMavenRepository.getComponentFromSdkPath(sdkPackage.path)
       if (found != null) {
+        logger.debug("Resolved ${module.group}:${module.name}:${found.version} as an SDK component")
         return found.version.toString()
       }
     }
 
     // Perform network lookup to resolve current best version, if possible.
-    project ?: return null
+    project ?: run {
+      logger.debug("Couldn't resolve $dependency because project is null")
+      return null
+    }
     val client: LintClient = LintIdeSupport.get().createClient(project)
-    return getLatestVersionFromRemoteRepo(client, dependency, filter, allowPreview)?.toString()
+    val remoteRepoVersion = getLatestVersionFromRemoteRepo(client, dependency, filter, allowPreview)?.toString()
+    if (remoteRepoVersion != null) {
+      logger.debug("Resolved ${module.group}:${module.name}:$remoteRepoVersion from remote Maven")
+      return remoteRepoVersion
+    }
+
+    logger.debug("Couldn't resolve $dependency")
+    return null
   }
 
   private fun refreshCacheInBackground(groupId: String, artifactId: String) {

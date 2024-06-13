@@ -6,9 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Gradle" level="project" />
+    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="StreamEx" level="project" />
     <orderEntry type="library" name="classgraph" level="project" />
@@ -42,32 +41,15 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="utp-core-proto-jarjar" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-jps-common" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-scripting-compiler-impl" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
-    <orderEntry type="module" module-name="android.sdktools.analyzer" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.android.kotlin-multiplatform-models" />
-    <orderEntry type="module" module-name="android.sdktools.builder-model" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
-    <orderEntry type="module" module-name="android.sdktools.deployer" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module" module-name="android.sdktools.lint-api" />
-    <orderEntry type="module" module-name="android.sdktools.lint-checks" />
-    <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
-    <orderEntry type="module" module-name="android.sdktools.repository" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common.gradle.rt" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
-    <orderEntry type="module" module-name="android.sdktools.tracer" />
+    <orderEntry type="library" name="Gradle" level="project" />
+    <orderEntry type="library" name="kotlinc.kotlin-compiler-fe10" level="project" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.analytics" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
@@ -82,7 +64,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
-    <orderEntry type="module" module-name="intellij.android.lint.common" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" />
@@ -175,5 +156,12 @@
     <orderEntry type="module" module-name="kotlin.gradle.gradle-tooling.impl" />
     <orderEntry type="module" module-name="kotlin.project-wizard.core" />
     <orderEntry type="module" module-name="kotlin.refactorings.common" />
+    <orderEntry type="module" module-name="kotlin.gradle.code-insight-common" />
+    <orderEntry type="module" module-name="kotlin.idea" />
+    <orderEntry type="module" module-name="kotlin.highlighting.minimal" />
+    <orderEntry type="module" module-name="kotlin.base.plugin" />
+    <orderEntry type="module" module-name="intellij.xml.dom.impl" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" />
+    <orderEntry type="library" name="kotlinc.analysis-api-k2" level="project" />
   </component>
 </module>

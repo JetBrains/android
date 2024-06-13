@@ -18,11 +18,10 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
-import org.fest.swing.fixture.JButtonFixture;
+import com.intellij.ui.EngravedLabel;
+import javax.swing.JDialog;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
@@ -61,7 +60,12 @@ public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   public InspectionsFixture clickAnalyze() {
     GuiTests.findAndClickButton(this, "Analyze");
     waitUntilNotShowing();
-    GuiTests.waitForBackgroundTasks(robot(), Wait.seconds(180));
-    return InspectionsFixture.find(myIdeFrameFixture);
+    GuiTests.waitForBackgroundTasks(robot(), Wait.seconds(240));
+    GuiTests.waitUntilGone(myIdeFrameFixture.robot(), target(),
+                           Matchers.byText(EngravedLabel.class, "Inspecting code with profile 'Project Default'\u2026").andIsShowing(),
+                           300);
+    InspectionsFixture myInspectionsFixture = InspectionsFixture.find(myIdeFrameFixture);
+    myInspectionsFixture.activate();
+    return myInspectionsFixture;
   }
 }

@@ -28,9 +28,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfigurationModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.BuildTypeRunnable;
-import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.DeclarativeBuildType;
-import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.ScriptBuildType;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.CompactToMapCatalogDependencyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.FakeElementTransform;
@@ -40,7 +37,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -157,108 +153,55 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     versionCatalogDependency = true;
   }
 
-  public static class Factory extends AbstractDependencyFactory{
-    public Factory(@NotNull GradlePropertiesDslElement parent){
-            super(parent);
-          }
+  private static @NotNull GradleDslLiteral createLiteral(@NotNull GradlePropertiesDslElement parent, @NotNull String configurationName) {
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    GradleDslLiteral literal = new GradleDslLiteral(parent, name);
+    literal.setElementType(REGULAR);
+    parent.setNewElement(literal);
+    return literal;
+  }
 
-    private @NotNull GradleDslLiteral createLiteral(@NotNull String configurationName) {
-      GradleNameElement name = GradleNameElement.create(configurationName);
-      GradleDslLiteral literal = new GradleDslLiteral(myParent, name);
-      literal.setElementType(REGULAR);
-      myParent.setNewElement(literal);
-      return literal;
-    }
+  private static void initializeLiteral(@NotNull GradleDslLiteral literal,
+                                        @NotNull Object value,
+                                        @NotNull List<ArtifactDependencySpec> excludes) {
+    literal.setValue(value);
+    addExcludes(literal, excludes);
+  }
 
-    private @NotNull GradleDslExpressionMap createMap(@NotNull String configurationName) {
-      GradleNameElement name = GradleNameElement.create(configurationName);
-      GradleDslElement element = myParent.getPropertyElement(configurationName);
-      GradleDslExpressionList directParent;
-      if(element instanceof GradleDslExpressionList list){
-        directParent = list;
-      } else {
-        directParent = new GradleDslExpressionList(myParent, GradleNameElement.create(configurationName), false);
-        myParent.setNewElement(directParent);
-      }
-      GradleDslExpressionMap map = new GradleDslExpressionMap(directParent, name);
-      int index = directParent.getElements().size();
-      directParent.addNewElementAt(index, map);
-      return map;
-    }
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ReferenceTo reference,
+                        @NotNull List<ArtifactDependencySpec> excludes) {
+    GradleDslLiteral literal = createLiteral(parent, configurationName);
+    initializeLiteral(literal, reference, excludes);
+  }
 
-    private static void initializeLiteral(@NotNull GradleDslLiteral literal,
-                                          @NotNull Object value,
-                                          @NotNull List<ArtifactDependencySpec> excludes) {
-      literal.setValue(value);
-      addExcludes(literal, excludes);
-    }
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ArtifactDependencySpec dependency,
+                        @NotNull List<ArtifactDependencySpec> excludes) {
+    GradleDslLiteral literal = createLiteral(parent, configurationName);
+    initializeLiteral(literal, createCompactNotationForLiterals(literal, dependency), excludes);
+  }
 
-    static void initializeMap(@NotNull GradleDslExpressionMap map,
-                              @NotNull Object value,
-                              @NotNull List<ArtifactDependencySpec> excludes) {
-      GradleDslLiteral gradleDslLiteral = new GradleDslLiteral(map, GradleNameElement.create("notation"));
-      map.setNewElement(gradleDslLiteral);
-      gradleDslLiteral.setValue(value);
-      addExcludes(gradleDslLiteral, excludes);
-    }
-
-    void createNew(@NotNull String configurationName,
-                   @NotNull ReferenceTo reference,
-                   @NotNull List<ArtifactDependencySpec> excludes) {
-      create(new BuildTypeRunnable<DeclarativeBuildType>() {
-               @Override
-               public void run() {
-                 GradleDslExpressionMap map = createMap(configurationName);
-                 initializeMap(map, reference, excludes);
-               }
-             },
-             new BuildTypeRunnable<ScriptBuildType>() {
-               @Override
-               public void run() {
-                 GradleDslLiteral literal = createLiteral(configurationName);
-                 initializeLiteral(literal, reference, excludes);
-               }
-             });
-    }
-
-      void createNew(@NotNull String configurationName,
-                   @NotNull ArtifactDependencySpec dependency,
-                   @NotNull List<ArtifactDependencySpec> excludes) {
-        create(new BuildTypeRunnable<DeclarativeBuildType>() {
-                 @Override
-                 public void run() {
-                   GradleDslExpressionMap map = createMap(configurationName);
-                   initializeMap(map, createCompactNotationForLiterals(map, dependency), excludes);
-                 }
-               },
-               new BuildTypeRunnable<ScriptBuildType>() {
-                 @Override
-                 public void run() {
-                   GradleDslLiteral literal = createLiteral(configurationName);
-                   initializeLiteral(literal, createCompactNotationForLiterals(literal, dependency), excludes);
-                 }
-               });
-    }
-
-    private static void addExcludes(@NotNull GradleDslLiteral literal, @NotNull List<ArtifactDependencySpec> excludes) {
-      if (!excludes.isEmpty()) {
-        GradleDslClosure closure = new GradleDslClosure(literal.getParent(), null, literal.getNameElement());
-        for (ArtifactDependencySpec exclude : excludes) {
-          GradleDslExpressionMap map = new GradleDslExpressionMap(closure, GradleNameElement.create(EXCLUDE));
-          String group = exclude.getGroup();
-          if (group != null) {
-            GradleDslLiteral groupEntry = new GradleDslLiteral(map, GradleNameElement.create("group"));
-            groupEntry.setValue(shouldInterpolate(group) ? iStr(group) : group);
-            map.setNewElement(groupEntry);
-          }
-          GradleDslLiteral moduleEntry = new GradleDslLiteral(map, GradleNameElement.create("module"));
-          String module = exclude.getName();
-          moduleEntry.setValue(shouldInterpolate(module) ? iStr(module) : module);
-          map.setNewElement(moduleEntry);
-          closure.setNewElement(map);
+  private static void addExcludes(@NotNull GradleDslLiteral literal, @NotNull List<ArtifactDependencySpec> excludes) {
+    if (!excludes.isEmpty()) {
+      GradleDslClosure closure = new GradleDslClosure(literal.getParent(), null, literal.getNameElement());
+      for (ArtifactDependencySpec exclude : excludes) {
+        GradleDslExpressionMap map = new GradleDslExpressionMap(closure, GradleNameElement.create(EXCLUDE));
+        String group = exclude.getGroup();
+        if (group != null) {
+          GradleDslLiteral groupEntry = new GradleDslLiteral(map, GradleNameElement.create("group"));
+          groupEntry.setValue(shouldInterpolate(group) ? iStr(group) : group);
+          map.setNewElement(groupEntry);
         }
-        literal.setNewClosureElement(closure);
+        GradleDslLiteral moduleEntry = new GradleDslLiteral(map, GradleNameElement.create("module"));
+        String module = exclude.getName();
+        moduleEntry.setValue(shouldInterpolate(module) ? iStr(module) : module);
+        map.setNewElement(moduleEntry);
+        closure.setNewElement(map);
       }
+      literal.setNewClosureElement(closure);
     }
   }
 
@@ -535,7 +478,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                                 @NotNull Function<ArtifactDependencySpec, String> getFunc,
                                                 @NotNull BiConsumer<ArtifactDependencySpecImpl, String> setFunc,
                                                 boolean canDelete) {
-      return createModelFor(name,getFunc,setFunc,canDelete,null);
+      return createModelFor(name, getFunc, setFunc, canDelete, null);
     }
 
 

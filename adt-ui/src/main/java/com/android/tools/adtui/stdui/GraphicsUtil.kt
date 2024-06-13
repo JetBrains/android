@@ -62,21 +62,11 @@ fun paintBackground(graphics: Graphics, component: JComponent) {
   val g = graphics as Graphics2D
   val size = component.size
   val config = GraphicsUtil.setupAAPainting(g)
-  val opaque = UIUtil.findNearestOpaque(component)
-  val bg = if (opaque != null) opaque.background else component.background
 
   val rect = RoundRectangle2D.Double(1.0, 1.0, (size.width - 3).toDouble(), (size.height - 3).toDouble(), 4.0, 4.0)
-  if (UIUtil.isUnderDefaultMacTheme()) {
-    g.color = Gray.xE0
-    g.fill(rect)
-    g.color = Gray.xCA
-    g.draw(rect)
-  } else {
-    val dark = UIUtil.isUnderDarcula()
-    g.color = JBColor(Gray.xE8, Color(0x464a4d))
-    g.fill(rect)
-    g.color = JBColor(Gray.xCC, Color(0x757b80))
-    g.draw(rect)
-  }
+  g.color = JBColor(Gray.xE8, Color(0x464a4d))
+  g.fill(rect)
+  g.color = JBColor(Gray.xCC, Color(0x757b80))
+  g.draw(rect)
   config.restore()
 }

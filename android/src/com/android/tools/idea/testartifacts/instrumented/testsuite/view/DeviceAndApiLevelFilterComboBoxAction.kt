@@ -47,9 +47,10 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
     get() = { myFilter(it) }
   var listener: DeviceAndApiLevelFilterComboBoxActionListener? = null
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
+    super.update(e)
     e.presentation.text = myText
     e.presentation.icon = myIcon
     e.presentation.isVisible = (myAvailableDevices.size > 1)

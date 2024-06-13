@@ -54,10 +54,7 @@ interface StringResourceWriter {
    * @return the string resource file for the default [Locale], or `null` if the directory or file
    *   could not be created
    */
-  fun getStringResourceFile(
-    project: Project,
-    resourceDirectory: VirtualFile,
-  ): XmlFile?
+  fun getStringResourceFile(project: Project, resourceDirectory: VirtualFile): XmlFile?
 
   /**
    * Adds a new resource string default with the given [value].
@@ -130,6 +127,7 @@ interface StringResourceWriter {
     value: String?,
     item: ResourceItem,
   ): Boolean = setAttribute(project, attribute, value, listOf(item))
+
   /**
    * Sets the value of the given [attribute] on each of the given [items] to be [value]. If [value]
    * is `null`, the attribute will be removed from each item entirely.
@@ -149,6 +147,7 @@ interface StringResourceWriter {
    * @return `true` iff the [item] was successfully deleted
    */
   fun delete(project: Project, item: ResourceItem): Boolean = delete(project, listOf(item))
+
   /**
    * Deletes all the given [items] from the string resource files.
    *
@@ -164,6 +163,7 @@ interface StringResourceWriter {
   fun safeDelete(project: Project, item: ResourceItem, successCallback: Runnable) {
     safeDelete(project, listOf(item), successCallback)
   }
+
   /**
    * Attempts to safely delete the given [items] from the string resource files.
    *
@@ -191,7 +191,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
       project,
       resourceDirectory,
       locale = null,
-      DEFAULT_STRING_RESOURCE_FILE_NAME
+      DEFAULT_STRING_RESOURCE_FILE_NAME,
     )
 
   private fun getStringResourceFile(
@@ -213,7 +213,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
   private fun findOrCreateValuesDirectory(
     project: Project,
     resourceDirectory: VirtualFile,
-    locale: Locale?
+    locale: Locale?,
   ): VirtualFile? {
     val config = FolderConfiguration()
     if (locale != null) config.localeQualifier = locale.qualifier
@@ -255,7 +255,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
         valuesDir,
         rootTagName = "",
         ResourceType.STRING.name,
-        valuesResourceFile = true
+        valuesResourceFile = true,
       )
     } catch (e: Exception) {
       thisLogger().error("Could not create string resource file", e)
@@ -267,7 +267,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
     project: Project,
     key: StringResourceKey,
     value: String,
-    translatable: Boolean
+    translatable: Boolean,
   ): Boolean =
     add(project, key, value, DEFAULT_STRING_RESOURCE_FILE_NAME, translatable = translatable)
 
@@ -313,7 +313,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
           SdkConstants.TAG_STRING,
           resources.namespace,
           escapeIfValid(value),
-          /* enforceNamespacesDeep= */ false
+          /* enforceNamespacesDeep= */ false,
         )
         .apply {
           setAttribute(SdkConstants.ATTR_NAME, key.name)
@@ -385,7 +385,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
     project: Project,
     attribute: String,
     value: String?,
-    items: Collection<ResourceItem>
+    items: Collection<ResourceItem>,
   ): Boolean =
     items.modify(project, "Setting attribute $attribute") { it.setAttribute(attribute, value) }
 
@@ -400,7 +400,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
   private fun Collection<ResourceItem>.modify(
     project: Project,
     operationName: String,
-    modification: (XmlTag) -> Unit
+    modification: (XmlTag) -> Unit,
   ): Boolean {
     if (isEmpty()) return false
     // Figure out which files they are in because we will need to make them writable.
@@ -419,7 +419,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
   override fun safeDelete(
     project: Project,
     items: Collection<ResourceItem>,
-    successCallback: Runnable
+    successCallback: Runnable,
   ) {
     // TODO(b/232444069): Long term this probably shouldn't be showing dialogs, etc. But right now
     //  it's too difficult to separate out the confirmation dialog for the first dumb delete.
@@ -431,7 +431,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
       !CommonRefactoringUtil.checkReadOnlyStatusRecursively(
         project,
         xmlTags,
-        /* notifyOnFail= */ true
+        /* notifyOnFail= */ true,
       )
     ) {
       return
@@ -464,7 +464,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
           xmlTags.toTypedArray(),
           dialog.isSearchInComments,
           dialog.isSearchForTextOccurences,
-          /* askForAccessors= */ true
+          /* askForAccessors= */ true,
         )
         .run()
     } else {

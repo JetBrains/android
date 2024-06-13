@@ -15,11 +15,13 @@
  */
 package com.android.tools.adtui.compose
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -74,6 +76,8 @@ interface ComposeStatus {
   val description: String
   /** When true, the refresh icon will be displayed next to the notification chip. */
   val presentation: Presentation?
+  val shouldSimplify: Boolean
+    get() = false
 
   companion object {
     val PRESENTATION = Key<Presentation>("ComposeStatus.Presentation")
@@ -124,6 +128,9 @@ open class IssueNotificationAction(
    * The currently opened popup.
    */
   private var popup: InformationPopup? = null
+
+  // shouldHide and shouldSimplify require running in the UI thread since they access UI state.
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   /**
    * Creates an [AnActionEvent] from a mouse event, it's a lambda because we can replace with our own fake [DataContext].
@@ -177,9 +184,17 @@ open class IssueNotificationAction(
     return JBUI.insets(1)
   }
 
+  @UiThread
   open fun shouldHide(status: ComposeStatus, dataContext: DataContext) : Boolean {
     return status.icon == null && StringUtil.isEmpty(status.title)
   }
+
+  /**
+   * Returns true if a minified version of the status should be displayed for places
+   * where screen real estate is limited.
+   */
+  @UiThread
+  open fun shouldSimplify(status: ComposeStatus, dataContext: DataContext) : Boolean = false
 
   override fun displayTextInToolbar(): Boolean = true
 
@@ -194,7 +209,7 @@ open class IssueNotificationAction(
         }
         isEnabledAndVisible = true
         icon = it.icon
-        text = it.title
+        text = if (shouldSimplify(it, e.dataContext)) "" else it.title
         description = it.description
         putClientProperty(ComposeStatus.PRESENTATION, it.presentation)
         val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
@@ -212,9 +227,11 @@ open class IssueNotificationAction(
     popup = createInformationPopup(project, e.dataContext)?.also { newPopup ->
       // Whenever the mouse is inside the popup we cancel the existing alarms via callback
       newPopup.onMouseEnteredCallback = { popupAlarm.cancelAllRequests() }
-      newPopup.showPopup(this, e.inputEvent!!)
+      getDisposableParentForPopup(e)?.let { newPopup.showPopup(it, e.inputEvent!!) } ?: newPopup.showPopup(this, e.inputEvent!!)
     }
   }
+
+  protected open fun getDisposableParentForPopup(e: AnActionEvent): Disposable? = null
 
   override fun actionPerformed(e: AnActionEvent) {
     showPopup(e)

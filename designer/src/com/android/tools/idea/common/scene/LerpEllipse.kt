@@ -25,7 +25,7 @@ class LerpEllipse(start: SwingEllipse, end: SwingEllipse, duration: Int) :
       interpolate(start.x, end.x, fraction),
       interpolate(start.y, end.y, fraction),
       interpolate(start.width, end.width, fraction),
-      interpolate(start.height, end.height, fraction)
+      interpolate(start.height, end.height, fraction),
     )
   }
 }

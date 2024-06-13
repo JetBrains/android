@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "audio_streamer.h"
 #include "controller.h"
 #include "display_streamer.h"
 #include "session_environment.h"
@@ -32,11 +33,12 @@ constexpr int32_t PRIMARY_DISPLAY_ID = 0;
 // The main class of the screen sharing agent.
 class Agent {
 public:
-  Agent() = delete;
   static void Run(const std::vector<std::string>& args);
 
   static void StartVideoStream(int32_t display_id, Size max_video_resolution);
   static void StopVideoStream(int32_t display_id);
+  static void StartAudioStream();
+  static void StopAudioStream();
 
   static void Shutdown();
 
@@ -60,10 +62,9 @@ public:
 
   static bool IsShuttingDown() { return shutting_down_; }
 
-  // Checks if the "ro.build.characteristics" system property contains the given string.
-  static bool HasBuildCharacteristic(const char* characteristic);
+  static bool is_watch() { return is_watch_; };
 
-  static bool IsWatch();
+  static const std::string& device_manufacturer();
 
   static int32_t flags() { return flags_; }
 
@@ -71,10 +72,14 @@ public:
 
   static SessionEnvironment& session_environment() { return *session_environment_; }
 
+  Agent() = delete;
+
 private:
   static void Initialize(const std::vector<std::string>& args);
 
   static int32_t feature_level_;
+  static bool is_watch_;
+  static std::string device_manufacturer_;
   static std::string socket_name_;
   static Size max_video_resolution_;
   static int32_t max_bit_rate_;  // Zero means no limit.
@@ -83,9 +88,11 @@ private:
   static CodecInfo* codec_info_;
   static int32_t flags_;
   static int video_socket_fd_;
+  static int audio_socket_fd_;
   static int control_socket_fd_;
   static std::map<int32_t, DisplayStreamer> display_streamers_;
   static DisplayStreamer* primary_display_streamer_;
+  static AudioStreamer* audio_streamer_;
   static Controller* controller_;
   static std::mutex environment_mutex_;
   static SessionEnvironment* session_environment_;  // GUARDED_BY(environment_mutex_)

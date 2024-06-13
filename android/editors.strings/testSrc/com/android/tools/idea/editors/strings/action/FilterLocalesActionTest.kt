@@ -34,11 +34,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFrame
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -66,14 +66,12 @@ class FilterLocalesActionTest {
   private val edtRule = EdtRule()
   private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, edtRule, popupRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, edtRule, popupRule)
 
   private val stringResourceEditor: StringResourceEditor = mock()
   private val panel: StringResourceViewPanel = mock()
   private val table: StringResourceTable = mock()
   private val model: StringResourceTableModel = mock()
-  private val mapDataContext = MapDataContext()
   private val filterLocalesAction = FilterLocalesAction()
   private var columnFilter: StringResourceTableColumnFilter? = null
 
@@ -92,13 +90,24 @@ class FilterLocalesActionTest {
         /* x= */ 0,
         /* y= */ 0,
         /* clickCount= */ 1,
-        /* popupTrigger= */ true)
+        /* popupTrigger= */ true,
+      )
 
-    event = AnActionEvent(mouseEvent, mapDataContext, "place", Presentation(), ActionManager.getInstance(), 0)
-    mapDataContext.apply {
-      put(CommonDataKeys.PROJECT, projectRule.project)
-      put(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+        .build()
+
+    event =
+      AnActionEvent(
+        mouseEvent,
+        dataContext,
+        "place",
+        Presentation(),
+        ActionManager.getInstance(),
+        0,
+      )
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -106,9 +115,11 @@ class FilterLocalesActionTest {
 
     doAnswer { columnFilter }.whenever(table).columnFilter
     doAnswer {
-      columnFilter = it.getArgument(0)
-      Unit
-    }.whenever(table).setColumnFilter(any())
+        columnFilter = it.getArgument(0)
+        Unit
+      }
+      .whenever(table)
+      .setColumnFilter(any())
 
     // Mock the WindowManager so the call to windowManager.getFrame will not return null.
     // A null frame causes ComboBoxAction.actionPerformed(...) to return early before it invokes
@@ -117,7 +128,8 @@ class FilterLocalesActionTest {
     val frame: JFrame = mock(withSettings().extraInterfaces(IdeFrame::class.java))
     whenever((frame as IdeFrame).component).thenReturn(JButton())
     whenever(windowManager.getFrame(projectRule.project)).thenReturn(frame)
-    ApplicationManager.getApplication().replaceService(WindowManager::class.java, windowManager, projectRule.testRootDisposable)
+    ApplicationManager.getApplication()
+      .replaceService(WindowManager::class.java, windowManager, projectRule.testRootDisposable)
   }
 
   @Test
@@ -127,9 +139,34 @@ class FilterLocalesActionTest {
 
   @Test
   fun update_noEditor() {
-    mapDataContext.put(PlatformDataKeys.FILE_EDITOR, null)
+    val mouseEvent =
+      MouseEvent(
+        JPanel(),
+        /* id= */ 0,
+        /* when= */ 0L,
+        /* modifiers= */ 0,
+        /* x= */ 0,
+        /* y= */ 0,
+        /* clickCount= */ 1,
+        /* popupTrigger= */ true,
+      )
 
-    filterLocalesAction.update(event)
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .build()
+
+    val noEditorEvent =
+      AnActionEvent(
+        mouseEvent,
+        dataContext,
+        "place",
+        Presentation(),
+        ActionManager.getInstance(),
+        0,
+      )
+
+    filterLocalesAction.update(noEditorEvent)
 
     verifyNoInteractions(stringResourceEditor, panel, table)
   }
@@ -145,11 +182,14 @@ class FilterLocalesActionTest {
   @Test
   fun update_rowFilterPresent() {
     val presentationText = "Some amazing text!"
-    columnFilter = object : StringResourceTableColumnFilter {
-      override fun include(locale: Locale): Boolean = throw NotImplementedError("Not called")
-      override fun getDescription(): String = presentationText
-      override fun getIcon(): Icon = AllIcons.Idea_logo_welcome
-    }
+    columnFilter =
+      object : StringResourceTableColumnFilter {
+        override fun include(locale: Locale): Boolean = throw NotImplementedError("Not called")
+
+        override fun getDescription(): String = presentationText
+
+        override fun getIcon(): Icon = AllIcons.Idea_logo_welcome
+      }
 
     filterLocalesAction.update(event)
 
@@ -169,14 +209,15 @@ class FilterLocalesActionTest {
     selectedAction.actionPerformed(event)
 
     assertThat(columnFilter).isNull()
-    verify(table).setColumnFilter(null)  // Make sure it's not just still null
+    verify(table).setColumnFilter(null) // Make sure it's not just still null
   }
 
   @Test
   fun actionPerformed_showSpecificLocales() {
     whenever(model.columnCount).thenReturn(StringResourceTableModel.FIXED_COLUMN_COUNT + 2)
     whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT)).thenReturn(ARABIC_LOCALE)
-    whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT + 1)).thenReturn(US_SPANISH_LOCALE)
+    whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT + 1))
+      .thenReturn(US_SPANISH_LOCALE)
 
     filterLocalesAction.actionPerformed(event)
 

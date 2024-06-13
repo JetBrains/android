@@ -30,8 +30,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_same() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("repository", "group", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("repository", "group", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact("repository", "group", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("repository", "group", "artifact", Version.parse("1.0.2.+"));
 
     assertEquals(0, artifactA.compareTo(artifactB));
     assertEquals(0, artifactB.compareTo(artifactA));
@@ -39,8 +39,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_differentVersion() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("repository", "group", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("repository", "group", "artifact", Version.Companion.parse("2.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact("repository", "group", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("repository", "group", "artifact", Version.parse("2.0.2.+"));
 
     assertEquals(0, artifactA.compareTo(artifactB));
     assertEquals(0, artifactB.compareTo(artifactA));
@@ -48,8 +48,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_differentNames() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("repository", "group", "artifactA", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("repository", "group", "artifactB", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact("repository", "group", "artifactA", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("repository", "group", "artifactB", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
@@ -57,8 +57,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_differentGroups() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("repository", "groupA", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("repository", "groupB", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact("repository", "groupA", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("repository", "groupB", "artifact", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
@@ -66,8 +66,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_androidPackage() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("repository", "com.android.test", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("repository", "AAAAA", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact("repository", "com.android.test", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("repository", "AAAAA", "artifact", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
@@ -75,8 +75,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_googlePackage() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("repository", "com.google.test", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("repository", "AAAAA", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact("repository", "com.google.test", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("repository", "AAAAA", "artifact", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
@@ -84,8 +84,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_androidAndGooglePackage() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("repository", "com.android.test", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("repository", "com.google.test", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact("repository", "com.android.test", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("repository", "com.google.test", "artifact", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
@@ -93,16 +93,16 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_differentRepos() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("AAAAA", "group", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("BBBBB", "group", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact("AAAAA", "group", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("BBBBB", "group", "artifact", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isEqualTo(0);
   }
 
   @Test
   public void compareTo_androidRepository() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact(ANDROID_REPOSITORY_NAME, "group", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("AAAAA", "group", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact(ANDROID_REPOSITORY_NAME, "group", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("AAAAA", "group", "artifact", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
@@ -110,8 +110,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_googleRepository() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact(GOOGLE_REPOSITORY_NAME, "group", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact("AAAAA", "group", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact(GOOGLE_REPOSITORY_NAME, "group", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact("AAAAA", "group", "artifact", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
@@ -119,8 +119,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_androidAndGoogleRepository() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact(ANDROID_REPOSITORY_NAME, "group", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact(GOOGLE_REPOSITORY_NAME, "group", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact(ANDROID_REPOSITORY_NAME, "group", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact(GOOGLE_REPOSITORY_NAME, "group", "artifact", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
@@ -128,8 +128,8 @@ public class FoundArtifactTest {
 
   @Test
   public void compareTo_repositoryDominatesGroup() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact(ANDROID_REPOSITORY_NAME, "com.google.test", "artifact", Version.Companion.parse("1.0.2.+"));
-    FoundArtifact artifactB = new FoundArtifact(GOOGLE_REPOSITORY_NAME, "com.android.test", "artifact", Version.Companion.parse("1.0.2.+"));
+    FoundArtifact artifactA = new FoundArtifact(ANDROID_REPOSITORY_NAME, "com.google.test", "artifact", Version.parse("1.0.2.+"));
+    FoundArtifact artifactB = new FoundArtifact(GOOGLE_REPOSITORY_NAME, "com.android.test", "artifact", Version.parse("1.0.2.+"));
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);

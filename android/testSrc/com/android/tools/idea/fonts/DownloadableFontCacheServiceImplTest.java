@@ -19,21 +19,38 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.fonts.MutableFontDetail;
-import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
+import com.android.tools.fonts.FontDownloader;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.io.FileUtil;
+import java.nio.file.Path;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
-public class DownloadableFontCacheServiceImplTest extends FontTestCase {
+public class DownloadableFontCacheServiceImplTest {
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
+  DownloadableFontCacheServiceImpl service;
 
+  @Before
+  public void setUp() throws IOException {
+    File fakeSdkFolder = tempFolder.newFile("sdk");
+    service = new DownloadableFontCacheServiceImpl(FontDownloader.NOOP_FONT_DOWNLOADER, (Supplier<File>)() -> fakeSdkFolder) { };
+  }
+
+  @Test
   public void testConvertNameToFilename() {
     assertThat(DownloadableFontCacheServiceImpl.convertNameToFilename("ABeeZee")).isEqualTo("abeezee");
     assertThat(DownloadableFontCacheServiceImpl.convertNameToFilename("Alegreya Sans SC")).isEqualTo("alegreya_sans_sc");
@@ -43,14 +60,15 @@ public class DownloadableFontCacheServiceImplTest extends FontTestCase {
       DownloadableFontCacheServiceImpl.convertNameToFilename("Alfa Slab One Regular Italic")).isEqualTo("alfa_slab_one_regular_italic");
   }
 
+  @Test
   public void testGetCachedMenuFile() {
-    DownloadableFontCacheService service = DownloadableFontCacheService.getInstance();
     FontFamily family =
       createFontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, "Roboto", "https://fonts.com/roboto/v15/xyz.ttf", "");
-    File expected = makeFile(myFontPath, GOOGLE_FONT_AUTHORITY, "fonts", "roboto", "v15", "xyz.ttf");
+    File expected = Path.of(service.getFontPath().getAbsolutePath(), GOOGLE_FONT_AUTHORITY, "fonts", "roboto", "v15", "xyz.ttf").toFile();
     assertThat(service.getCachedMenuFile(family)).isEquivalentAccordingToCompareTo(expected);
   }
 
+  @Test
   public void testFontFamilyXml() throws IOException {
     MutableFontDetail builder = new MutableFontDetail();
     builder.setItalics(true);
@@ -67,7 +85,6 @@ public class DownloadableFontCacheServiceImplTest extends FontTestCase {
                                                    "Menu name",
                                                    "",
                                                    ImmutableList.of(embeddedFontFamily.getFonts().get(0)));
-    DownloadableFontCacheService service = DownloadableFontCacheService.getInstance();
     assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\">" +
                  "<font android:font=\"" + fakeTtfFile.getAbsolutePath() + "\" " +

@@ -53,7 +53,7 @@ class SafeArgsCacheModuleService private constructor(module: Module) : Disposabl
 
   private fun createLightDirectionsClasses(
     navInfo: NavInfo,
-    navEntry: NavEntry
+    navEntry: NavEntry,
   ): Collection<LightDirectionsClass> {
     return navEntry.data.resolvedDestinations
       .filter { destination -> destination.actions.isNotEmpty() }
@@ -63,7 +63,7 @@ class SafeArgsCacheModuleService private constructor(module: Module) : Disposabl
 
   private fun createLightArgsClasses(
     navInfo: NavInfo,
-    navEntry: NavEntry
+    navEntry: NavEntry,
   ): Collection<LightArgsClass> {
     return navEntry.data.resolvedDestinations
       .filter { destination -> destination.arguments.isNotEmpty() }

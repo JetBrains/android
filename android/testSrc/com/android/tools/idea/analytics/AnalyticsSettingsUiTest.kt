@@ -44,10 +44,10 @@ class AnalyticsSettingsUiTest {
   @Test
   fun testSettingsUi() {
     if (!IdeInfo.getInstance().isAndroidStudio) return
-    //AndroidStudioAnalytics.initialize(AndroidStudioAnalyticsImpl())
-    //AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-    //  optedIn = false
-    //})
+
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      optedIn = false
+    })
 
     val configurable = ConsentConfigurable()
     val component = configurable.createComponent()

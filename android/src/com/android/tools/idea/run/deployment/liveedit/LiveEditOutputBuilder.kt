@@ -16,11 +16,11 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
-import com.android.tools.idea.run.deployment.liveedit.analysis.ComposeGroupTree
-import com.android.tools.idea.run.deployment.liveedit.analysis.FunctionKeyMeta
-import com.android.tools.idea.run.deployment.liveedit.analysis.PsiRange
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedUserClass
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationClinit
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationConstructor
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationWhenEnumPath
 import com.android.tools.idea.run.deployment.liveedit.analysis.RegularClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.SyntheticClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.Differ
@@ -30,14 +30,15 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.backend.common.output.OutputFile
-import org.jetbrains.kotlin.idea.base.psi.getLineEndOffset
-import org.jetbrains.kotlin.idea.base.psi.getLineStartOffset
+import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPINGS_CLASS_NAME_POSTFIX
+import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPING_ARRAY_FIELD_PREFIX
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.TimeUnit
 
 private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder::class.java))
+private val debug = LiveEditLogger("LiveEditOutputBuilder")
 
 // PLEASE someone help me name this better
 internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvider) {
@@ -50,33 +51,32 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     val outputFiles = compiledFiles.filter { it.relativePath.endsWith(".class") }
 
     if (outputFiles.isEmpty()) {
-      throw LiveEditUpdateException.internalError("No compiler output.")
+      throw LiveEditUpdateException.internalErrorNoCompilerOutput(sourceFile)
     }
 
     val keyMetaFiles = outputFiles.filter(::isKeyMeta)
     if (keyMetaFiles.size > 1) {
       throw IllegalStateException("Multiple KeyMeta files Found: $keyMetaFiles")
     }
-    val kotlinOnly = keyMetaFiles.isEmpty()
 
-    val keyMetaClass = if (kotlinOnly) { null } else {IrClass(keyMetaFiles.single().asByteArray())}
-    val groupTree = keyMetaClass?.let { FunctionKeyMeta.parseTreeFrom(it) }
+    val keyMetaClass = keyMetaFiles.singleOrNull()?.let{ IrClass(it.asByteArray()) }
+    val groups = if (keyMetaClass != null) { extractComposeGroups(sourceFile, keyMetaClass) } else { emptyList() }
 
     for (classFile in outputFiles) {
       if (isKeyMeta(classFile)) {
         continue
       }
-      val newClass = handleClassFile(classFile, sourceFile, groupTree, irCache, inlineCandidateCache, outputs)
+      val newClass = handleClassFile(classFile, sourceFile, groups, irCache, inlineCandidateCache, outputs)
       outputs.addIrClass(newClass)
     }
 
     val durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs)
-    println("classfile analysis ran in ${durationMs}ms")
+    debug.log("Class file analysis ran in ${durationMs}ms")
   }
 
   private fun handleClassFile(classFile: OutputFile,
                               sourceFile: KtFile,
-                              groupTree: ComposeGroupTree?,
+                              groups: List<ComposeGroup>,
                               irCache: IrClassCache,
                               inlineCandidateCache: SourceInlineCandidateCache,
                               output: LiveEditCompilerOutput.Builder): IrClass {
@@ -93,19 +93,18 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     // Live Edit supports adding new synthetic classes in order to handle the lambda classes that Compose generates
     if (oldClass == null) {
       if (classType != LiveEditClassType.SUPPORT_CLASS) {
-        throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                      "added new class ${newClass.name} in ${newClass.sourceFile}", sourceFile, null)
+        throw unsupportedSourceModificationAddedUserClass("added new class ${newClass.name} in ${newClass.sourceFile}", sourceFile)
       }
 
       inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
       output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.SUPPORT_CLASS))
 
-      if (groupTree == null) {
+      if (groups.isEmpty()) {
         output.resetState = true
-      } else {
-        val groupIds = computeGroupIds(newClass.methods, sourceFile, groupTree)
-        groupIds.forEach { output.addGroupId(it) }
+        return newClass
       }
+
+      selectComposeGroups(sourceFile, groups, newClass.methods).forEach { output.groupIds.add(it.key) }
       return newClass
     }
 
@@ -135,6 +134,12 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       validator.modifiedMethods
     }
 
+    if (classType == LiveEditClassType.SUPPORT_CLASS && isWhenMapping(newClass)) {
+      if (modifiedMethods.any {it.name.equals("<clinit>")}) {
+        throw unsupportedSourceModificationWhenEnumPath("Changing `when` on enum code path in ${newClass.sourceFile}", sourceFile)
+      }
+    }
+
     val modifiedIrMethods = mutableListOf<IrMethod>()
     for (methodDiff in modifiedMethods) {
       // Map each method diff to the IR
@@ -148,45 +153,18 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       modifiedIrMethods.add(irMethod)
     }
 
-    // Skip group ID resolution if the user's change modified any non-composable methods. Synthetic classes may not have @Composable
-    // annotations, so still perform group ID resolution in that case.
-    if (classType == LiveEditClassType.NORMAL_CLASS && modifiedIrMethods.any { !isComposableMethod(it) }) {
+    // Skip group ID resolution if the user's change modified any non-composable methods. Generated classes may not have @Composable
+    // annotations, so still perform group ID resolution in that case. Also skip if we don't have any groups.
+    val modifiedNonCompose = classType == LiveEditClassType.NORMAL_CLASS && modifiedIrMethods.any { !isComposableMethod(it) }
+    if (modifiedNonCompose || groups.isEmpty()) {
       output.resetState = true
-    } else {
-      if (groupTree == null) {
-        output.resetState = true
-      } else {
-        val groupIds = computeGroupIds(modifiedIrMethods, sourceFile, groupTree)
-        groupIds.forEach { output.addGroupId(it) }
-      }
+      return newClass
     }
 
+    debug.log("select groups for ${newClass.name}")
+    selectComposeGroups(sourceFile, groups, modifiedIrMethods).forEach { output.groupIds.add(it.key) }
     return newClass
   }
-
-  private fun computeGroupIds(modifiedIrMethods: List<IrMethod>,
-                              sourceFile: KtFile,
-                              groupTree: ComposeGroupTree): Set<Int> {
-    val groupIds = mutableSetOf<Int>()
-    for (method in modifiedIrMethods) {
-      // If the method doesn't correspond to any lines in the source file, it can't have an associated FunctionKeyMeta.
-      if (method.instructions.lines.isEmpty()) {
-        continue
-      }
-
-      val methodOffsets = getMethodOffsets(method, sourceFile)
-      groupIds.addAll(groupTree.getGroupIds(methodOffsets))
-    }
-    return groupIds
-  }
-}
-
-private fun getMethodOffsets(method: IrMethod, sourceFile: KtFile): PsiRange {
-  val startLine = method.instructions.lines.first()
-  val endLine = method.instructions.lines.last()
-  val startOffset = sourceFile.getLineStartOffset(startLine - 1, false) ?: throw IllegalStateException()
-  val endOffset = sourceFile.getLineEndOffset(endLine - 1) ?: throw IllegalStateException()
-  return PsiRange(startOffset, endOffset)
 }
 
 /**
@@ -208,10 +186,40 @@ private fun isSyntheticClass(clazz: IrClass): Boolean {
 
   // Checking for SAM (single abstract method) interfaces; these aren't specifically tagged in bytecode, so we need a heuristic.
   // All the following should be true:
-  //   - inner classes (class is contained in a class or method)
-  //   - that implement a single interface
-  //   - that implement exactly one public method
-  return clazz.enclosingMethod != null && clazz.interfaces.size == 1 && clazz.methods.singleOrNull(::isPublicSAMMethod) != null
+  //   - class is an inner class (class is contained in a class or method)
+  //   - class implements a single interface
+  //   - class exposes one public method (not including constructors, static initializers, or bridge methods)
+  if (clazz.enclosingMethod != null && clazz.interfaces.size == 1) {
+    val publicMethods = clazz.methods.filter {
+      it.access.contains(IrAccessFlag.PUBLIC) &&
+      !it.access.contains(IrAccessFlag.SYNTHETIC) &&
+      !it.access.contains(IrAccessFlag.BRIDGE) &&
+      !it.access.contains(IrAccessFlag.STATIC) &&
+      it.name != SpecialNames.INIT.asString()
+    }
+    if (publicMethods.size == 1) {
+      return true
+    }
+  }
+
+  // Check for WhenMapping.
+  if (isWhenMapping(clazz)) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Kotlin compiler generates a synthetic mapping class when the code contains a 'when' on an enum type.
+ *
+ * This class only contain a static int[] that maps the enum's ordinate to an int that represent a control flow branch in the body.
+ * Therefore, when the branching is changed, we need to update that mapping. However, since we can't rerun the <clinit> this is
+ * impossible for now. We can tree WhenMappings just like any helper class and allow adding of new mappings but as long as existing
+ * mapping is changed, we will need to go into unsupported state.
+ */
+private fun isWhenMapping(clazz: IrClass) : Boolean {
+  return clazz.name.endsWith(MAPPINGS_CLASS_NAME_POSTFIX) && clazz.fields.all { it.name.startsWith(MAPPING_ARRAY_FIELD_PREFIX)}
 }
 
 
@@ -220,8 +228,7 @@ private fun isSyntheticClass(clazz: IrClass): Boolean {
 private fun checkForInit(irClass: IrClass, irMethod: IrMethod, throwOnFail: Boolean) {
   if (irMethod.name == "<init>") {
     if (throwOnFail) {
-      throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                    "in ${irClass.name.replace('/', '.')}, modified constructor ${irMethod.desc}", null, null)
+      throw unsupportedSourceModificationConstructor("in ${irClass.name.replace('/', '.')}, modified constructor ${irMethod.getReadableDesc()}")
     } else {
       logger.warning("Live Edit detected modified constructor ${irClass.name}${irMethod.desc} in ${irClass.sourceFile}")
     }
@@ -229,8 +236,7 @@ private fun checkForInit(irClass: IrClass, irMethod: IrMethod, throwOnFail: Bool
 
   if (irMethod.name == "<clinit>") {
     if (throwOnFail) {
-      throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                    "in ${irClass.name.replace('/', '.')}, modified static initializer", null, null)
+      throw unsupportedSourceModificationClinit("in ${irClass.name.replace('/', '.')}, modified static initializer")
     } else {
       logger.warning("Live Edit detected modified static initializer block in class ${irClass.name} of ${irClass.sourceFile}")
     }
@@ -239,9 +245,6 @@ private fun checkForInit(irClass: IrClass, irMethod: IrMethod, throwOnFail: Bool
 
 private fun isKeyMeta(classFile: OutputFile) = classFile.relativePath.endsWith("\$KeyMeta.class")
 
-private fun isPublicSAMMethod(method: IrMethod) = method.access.contains(IrAccessFlag.PUBLIC) &&
-                                                  !method.access.contains(IrAccessFlag.STATIC) &&
-                                                  method.name != SpecialNames.INIT.asString()
 
 private fun isNonPrivateInline(method: IrMethod) = method.isInline() && !method.access.contains(IrAccessFlag.PRIVATE)
 

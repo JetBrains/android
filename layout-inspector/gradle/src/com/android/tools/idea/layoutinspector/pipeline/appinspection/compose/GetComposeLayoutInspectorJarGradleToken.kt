@@ -31,13 +31,13 @@ class GetComposeLayoutInspectorJarGradleToken :
     notificationModel: NotificationModel,
     compatibility: LibraryCompatibilityInfo?,
     logErrorToMetrics: (AttachErrorCode) -> Unit,
-    isRunningFromSourcesInTests: Boolean?
+    isRunningFromSourcesInTests: Boolean?,
   ): String? =
     ComposeLayoutInspectorClient.handleCompatibilityAndComputeVersion(
       notificationModel,
       compatibility,
       logErrorToMetrics,
-      isRunningFromSourcesInTests
+      isRunningFromSourcesInTests,
     )
 
   override fun getAppInspectorJar(
@@ -45,7 +45,7 @@ class GetComposeLayoutInspectorJarGradleToken :
     version: String?,
     notificationModel: NotificationModel,
     logErrorToMetrics: (AttachErrorCode) -> Unit,
-    isRunningFromSourcesInTests: Boolean?
+    isRunningFromSourcesInTests: Boolean?,
   ): AppInspectorJar? {
     val project = projectSystem.project
     return ComposeLayoutInspectorClient.getAppInspectorJar(
@@ -53,7 +53,7 @@ class GetComposeLayoutInspectorJarGradleToken :
       version,
       notificationModel,
       logErrorToMetrics,
-      isRunningFromSourcesInTests
+      isRunningFromSourcesInTests,
     )
   }
 }

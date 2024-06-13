@@ -92,46 +92,6 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
     presentation.setPresentableText(MANIFESTS_NODE);
   }
 
-  @Override
-  public boolean expandOnDoubleClick() {
-    return false;
-  }
-
-  @Override
-  public boolean canNavigate() {
-    return !mySources.isEmpty();
-  }
-
-  @Override
-  public void navigate(boolean requestFocus) {
-    VirtualFile fileToOpen = findFileToOpen(mySources);
-    if (fileToOpen == null) {
-      return;
-    }
-    new OpenFileDescriptor(getNotNullProject(), fileToOpen).navigate(requestFocus);
-  }
-
-  @Nullable
-  private VirtualFile findFileToOpen(@NotNull Set<VirtualFile> files) {
-    VirtualFile bestFile = Iterables.getFirst(files, null);
-
-    PsiManager psiManager = PsiManager.getInstance(getNotNullProject());
-    for (VirtualFile file : files) {
-      PsiFile psiFile = psiManager.findFile(file);
-      if (psiFile == null) {
-        continue;
-      }
-
-      AndroidFacet facet = getAndroidFacet();
-      NamedIdeaSourceProvider sourceProvider = AndroidManifestFileNode.getSourceProvider(facet, psiFile);
-      if (sourceProvider != null && FD_MAIN.equals(sourceProvider.getName())) {
-        bestFile = file;
-      }
-    }
-
-    return bestFile;
-  }
-
   @NotNull
   private AndroidFacet getAndroidFacet() {
     AndroidFacet facet = getValue();

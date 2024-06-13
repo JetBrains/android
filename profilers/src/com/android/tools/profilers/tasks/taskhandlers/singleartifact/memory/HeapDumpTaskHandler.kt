@@ -20,12 +20,9 @@ import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionArtifact
-import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils.findTaskArtifact
-import com.intellij.util.asSafely
 
 /**
  * This class defines the task handler to perform a heap dump task.
@@ -39,29 +36,24 @@ class HeapDumpTaskHandler(sessionsManager: SessionsManager) : MemoryTaskHandler(
     // Stopping a Heap Dump capture is not determined by the user so this method definition is empty.
   }
 
-  override fun loadTask(args: TaskArgs?): Boolean {
+  override fun loadTask(args: TaskArgs): Boolean {
     if (args !is HeapDumpTaskArgs) {
       handleError("The task arguments (TaskArgs) supplied are not of the expected type (HeapDumpTaskArgs)")
       return false
     }
+
     val heapDumpTaskArtifact = args.getMemoryCaptureArtifact()
+    if (heapDumpTaskArtifact == null) {
+      handleError("The task arguments (HeapDumpTaskArgs) supplied do not contains a valid artifact to load")
+      return false
+    }
     loadCapture(heapDumpTaskArtifact)
     return true
   }
 
-  override fun createArgs(sessionItems: Map<Long, SessionItem>,
-                          selectedSession: Common.Session): HeapDumpTaskArgs? {
-    // Finds the artifact that backs the task identified via its corresponding unique session (selectedSession).
-    val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
+  override fun createStartTaskArgs(isStartupTask: Boolean) = HeapDumpTaskArgs(false, null)
 
-    // Only if the underlying artifact is non-null should the TaskArgs be non-null.
-    return if (supportsArtifact(artifact)) {
-      artifact.asSafely<HprofSessionArtifact>()?.let { HeapDumpTaskArgs(it) }
-    }
-    else {
-      null
-    }
-  }
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = HeapDumpTaskArgs(false, artifact as HprofSessionArtifact)
 
   override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
     SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_HEAP_DUMP)

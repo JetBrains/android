@@ -24,11 +24,14 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixtureKt;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,27 +46,18 @@ public class CreateNewActivityFromNavGraphTest {
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
   protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;
-
   private static String NavFilePath = "app/src/main/res/navigation/nav_graph.xml";
+  private IdeFrameFixture ideFrame;
+  private EditorFixture editorFixture;
+  private NlEditorFixture nlEditorFixture;
 
-
-  private EditorFixture myEditorFixture;
-  private NlEditorFixture editorFixture;
   @Before
   public void setUp() throws Exception {
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    ideFrame = guiTest.ideFrame();
     ideFrame.clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    ideFrame.getProjectView().assertFilesExist(
-      "app/src/main/res/navigation/nav_graph.xml"
-    );
-    myEditorFixture = ideFrame.getEditor();
   }
 
   /**
@@ -96,42 +90,41 @@ public class CreateNewActivityFromNavGraphTest {
    */
   @Test
   public void createNewActivityFromNavGraphTest() {
-
-    //Loading the navigation layout Design View
-    editorFixture = myEditorFixture.open(NavFilePath, EditorFixture.Tab.DESIGN)
+    editorFixture = ideFrame.getEditor();
+    nlEditorFixture = editorFixture.open(NavFilePath)
       .getLayoutEditor()
       .waitForSurfaceToLoad()
       .waitForRenderToFinish();
 
-    myEditorFixture.selectEditorTab(EditorFixture.Tab.SPLIT);
+    SplitEditorFixture splitEditorFixture = SplitEditorFixtureKt.getSplitEditorFixture(editorFixture);
+    splitEditorFixture.setSplitMode();
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    assertThat(editorFixture.canInteractWithSurface()).isTrue();
+    assertThat(nlEditorFixture.canInteractWithSurface()).isTrue();
 
     // Create a new destination
     createNewDestination("activity_main");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Verify the newly added destination is updated in the XML file.
-    String layoutText = myEditorFixture.getCurrentFileContents();
+    String layoutText = editorFixture.getCurrentFileContents();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(layoutText).containsMatch("activity_main");
-
-    myEditorFixture.select("(@layout/activity_main)"); // Select newly created activity in 'Code' tab
+    editorFixture.select("(@layout/activity_main)"); // Select newly created activity in 'Code' tab
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     //Asserting label in default section
-    List<String> mainSectionsNames = editorFixture.waitForRenderToFinish()
+    List<String> mainSectionsNames = nlEditorFixture.waitForRenderToFinish()
       .getAttributesPanel().waitForId("mainActivity").listAllLabels();
     assertTrue(mainSectionsNames.contains("id"));
     assertTrue(mainSectionsNames.contains("label"));
     assertTrue(mainSectionsNames.contains("name"));
-
     assertTrue(mainSectionsNames.contains("action"));
     assertTrue(mainSectionsNames.contains("data"));
     assertTrue(mainSectionsNames.contains("dataPattern"));
 
     //Asserting scrollable section header names
-    List<String> scrollableSectionsNames = editorFixture.waitForRenderToFinish()
+    List<String> scrollableSectionsNames = nlEditorFixture.waitForRenderToFinish()
       .getAttributesPanel().waitForId("mainActivity").listSectionNames();
     assertTrue(scrollableSectionsNames.contains("Activity"));
     assertTrue(scrollableSectionsNames.contains("Arguments"));
@@ -139,7 +132,7 @@ public class CreateNewActivityFromNavGraphTest {
   }
 
   private void createNewDestination(String destinationName){
-    editorFixture
+    nlEditorFixture
       .waitForRenderToFinish()
       .getNavSurface()
       .openAddDestinationMenu()

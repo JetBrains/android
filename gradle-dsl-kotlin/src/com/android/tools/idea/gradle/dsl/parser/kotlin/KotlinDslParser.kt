@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslDelegatedProperty
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -56,9 +55,6 @@ import com.intellij.util.IncorrectOperationException
 import com.intellij.util.text.LiteralFormatUtil
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.parsing.parseBoolean
-import org.jetbrains.kotlin.parsing.parseNumericLiteral
-import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
@@ -70,7 +66,6 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtPostfixExpression
@@ -83,6 +78,9 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
+import org.jetbrains.kotlin.parsing.parseBoolean
+import org.jetbrains.kotlin.parsing.parseNumericLiteral
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import java.math.BigDecimal
 
 /**
@@ -268,7 +266,7 @@ class KotlinDslParser(
       if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
 
     // If expression is a pure block element and not an expression.
-    if (expression.isBlockElement(parent)) {
+    if (expression.isBlockElement(this, parent)) {
       // If the block has a localMethodName, the nameElement should use the argument valueExpression psi. (ex: create("release") -> release)
       val argumentList = expression.valueArgumentList
       if (argumentList != null && argumentList.arguments.size > 0) {
@@ -502,61 +500,20 @@ class KotlinDslParser(
       //  projects' extra blocks, using "val foo by rootProject.extra(42)".  The Kotlinscript Psi tree is the wrong way round
       //  for us to detect it easily: (rootProject dot (extra [42])) rather than ((rootProject dot extra) [42]) so more work
       //  is needed here.
-      if (referenceExpression.text == "extra") {
-        val arguments = callExpression.valueArgumentList?.arguments ?: return
-        if (arguments.size != 1) return
-        val initializer = arguments[0].getArgumentExpression() ?: return
+      if (referenceExpression.text != "extra") return
+      val arguments = callExpression.valueArgumentList?.arguments ?: return
+      if (arguments.size != 1) return
+      val initializer = arguments[0].getArgumentExpression() ?: return
 
-        // If we've got this far, we have an extra property declaration/initialization of the form "val foo by extra(bar)".
+      // If we've got this far, we have an extra property declaration/initialization of the form "val foo by extra(bar)".
 
-        val ext = getPropertiesElement(listOf("ext"), parent, null) ?: return
-        val name = GradleNameElement.from(identifier, this) // TODO(xof): error checking: empty/qualified/etc
-        val propertyElement = createExpressionElement(ext, expression, name, initializer, true) ?: return
-        // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
-        propertyElement.externalSyntax = ASSIGNMENT
-        propertyElement.elementType = REGULAR
-        ext.setParsedElement(propertyElement)
-      }
-      else {
-        val lambdaArguments = callExpression.lambdaArguments
-        if (lambdaArguments.size == 1) {
-          val propertyDescription = parent.getChildPropertiesElementDescription(referenceExpression.text)
-          val initializer = lambdaArguments[0].getArgumentExpression() ?: return
-          val name = GradleNameElement.from(identifier, this)
-
-          val propertyElement = GradleDslDelegatedProperty(parent, name)
-          propertyElement.externalSyntax = ASSIGNMENT
-          propertyElement.elementType = DERIVED
-
-          // Here we basically associate property name with lambda.
-          // For this to work it is expected that delegated property provider (e.g. `getting`)
-          // has a corresponding dsl element with a property description.
-          val delegateElement = if (propertyDescription != null) {
-            val element = propertyDescription.constructor.construct(propertyElement, GradleNameElement.empty())
-
-            // Process body elements
-            when (initializer) {
-              is KtLambdaExpression -> {
-                initializer.bodyExpression?.statements?.requireNoNulls()?.forEach {
-                  it.accept(this, element)
-                }
-                element.psiElement = initializer.bodyExpression
-              }
-              else -> return // TODO("Property delegation other then by lambda is not supported by Kotlin DSL Parser")
-            }
-            element
-          }
-          else {
-            createExpressionElement(parent, expression, name, initializer, true) ?: return
-          }
-
-          propertyElement.setParsedElement(delegateElement)
-          parent.setParsedElement(propertyElement)
-
-          return
-        }
-        // TODO add type and value arguments parsing if needed
-      }
+      val ext = getPropertiesElement(listOf("ext"), parent, null) ?: return
+      val name = GradleNameElement.from(identifier, this) // TODO(xof): error checking: empty/qualified/etc
+      val propertyElement = createExpressionElement(ext, expression, name, initializer, true) ?: return
+      // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
+      propertyElement.externalSyntax = ASSIGNMENT
+      propertyElement.elementType = REGULAR
+      ext.setParsedElement(propertyElement)
     }
   }
 

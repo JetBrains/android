@@ -22,7 +22,6 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Application
 import org.jetbrains.android.dom.manifest.Service
 
-
 class AddServiceToManifest : AbstractRegisterComponentAction<Service>(
     text = "Add service to manifest",
     componentClassName = SdkConstants.CLASS_SERVICE,

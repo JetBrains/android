@@ -63,7 +63,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
   constructor(
     project: Project,
     tag: XmlTag,
-    pointer: SmartPsiElementPointer<XmlTag>
+    pointer: SmartPsiElementPointer<XmlTag>,
   ) : this(project) {
     myTag = tag
     myTagName = tag.name
@@ -199,6 +199,6 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
     if (!DEBUG) {
       return ""
     }
-    return "\n" + TraceUtils.getCurrentStack(1)
+    return "\n" + TraceUtils.currentStack
   }
 }

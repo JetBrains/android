@@ -33,13 +33,15 @@ interface GradleBuildInvoker {
   fun cleanProject(): ListenableFuture<GradleMultiInvocationResult>
 
   fun generateSources(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult>
-  fun compileJava(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<GradleMultiInvocationResult>
-  fun assemble(testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult>
-  fun assemble(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult>
+  fun compileJava(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult>
+  fun assemble(): ListenableFuture<AssembleInvocationResult>
+  fun assemble(modules: Array<Module>): ListenableFuture<AssembleInvocationResult>
   fun bundle(modules: Array<Module>): ListenableFuture<AssembleInvocationResult>
 
   fun rebuild(): ListenableFuture<GradleMultiInvocationResult>
   fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>): ListenableFuture<GradleMultiInvocationResult>
+
+  fun generateBaselineProfileSources(taskId: ExternalSystemTaskId, modules: Array<Module>, envVariables: Map<String, String>, args: List<String>, generateAllVariants: Boolean): ListenableFuture<GradleMultiInvocationResult>
 
   /**
    * Executes Gradle tasks requested in each request in separate Gradle invocations (in parallel or sequentially and in arbitrary order).

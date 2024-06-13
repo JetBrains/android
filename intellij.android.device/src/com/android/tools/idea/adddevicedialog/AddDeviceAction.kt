@@ -15,9 +15,29 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidPluginDisposable
 
 private class AddDeviceAction private constructor() : DumbAwareAction() {
-  override fun actionPerformed(event: AnActionEvent) = AddDeviceDialog.build().show()
+  override fun actionPerformed(event: AnActionEvent) {
+    val project = event.project
+
+    val parent =
+      if (project == null) AndroidPluginDisposable.getApplicationInstance()
+      else AndroidPluginDisposable.getProjectInstance(project)
+
+    AndroidCoroutineScope(parent, AndroidDispatchers.workerThread).launch {
+      val sources =
+        DeviceSourceProvider.deviceSourceProviders.mapNotNull { it.createDeviceSource(project) }
+
+      withContext(AndroidDispatchers.uiThread) {
+        AddDeviceWizard(sources, project).createDialog().show()
+      }
+    }
+  }
 }

@@ -11,7 +11,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -28,5 +29,6 @@ iml_module(
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
     ],
 )

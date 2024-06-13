@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file should not be edited manually! See go/template-diff-tests -->
+<issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
+
+    <issue
+        id="CutPasteId"
+        message="The id `R.id.list` has already been looked up in this method; possible cut &amp; paste error?"
+        errorLine1="        activity?.findViewById&lt;RecyclerView>(R.id.list)?.adapter ="
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/ItemListDialogFragment.kt"
+            line="48"
+            column="9"/>
+        <location
+            file="src/main/java/template/test/pkg/ItemListDialogFragment.kt"
+            line="46"
+            column="9"
+            message="First usage here"/>
+    </issue>
+
+</issues>

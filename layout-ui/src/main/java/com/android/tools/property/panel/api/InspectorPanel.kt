@@ -38,7 +38,7 @@ interface InspectorPanel {
   fun addExpandableTitle(
     title: String,
     initiallyExpanded: Boolean = true,
-    actions: List<AnAction> = emptyList()
+    actions: List<AnAction> = emptyList(),
   ): InspectorLineModel {
     val line = addTitle(title, actions)
     line.makeExpandable(initiallyExpanded)
@@ -49,7 +49,7 @@ interface InspectorPanel {
   fun addSubTitle(
     title: String,
     initiallyExpanded: Boolean = true,
-    parent: InspectorLineModel? = null
+    parent: InspectorLineModel? = null,
   ): InspectorLineModel
 
   /**
@@ -61,7 +61,7 @@ interface InspectorPanel {
   fun addCustomEditor(
     editorModel: PropertyEditorModel,
     editor: JComponent,
-    parent: InspectorLineModel? = null
+    parent: InspectorLineModel? = null,
   ): InspectorLineModel
 
   /**
@@ -73,7 +73,7 @@ interface InspectorPanel {
    */
   fun addEditor(
     modelEditorPair: Pair<PropertyEditorModel, JComponent>,
-    parent: InspectorLineModel? = null
+    parent: InspectorLineModel? = null,
   ): InspectorLineModel {
     return addCustomEditor(modelEditorPair.first, modelEditorPair.second, parent)
   }
@@ -91,7 +91,7 @@ interface InspectorPanel {
     searchable: Boolean,
     tableUI: TableUIProvider,
     actions: List<AnAction> = emptyList(),
-    parent: InspectorLineModel? = null
+    parent: InspectorLineModel? = null,
   ): TableLineModel
 
   /**

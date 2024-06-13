@@ -30,19 +30,13 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
-import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.renderer.render
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KaAnnotatedSymbol
 import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 
@@ -87,52 +81,6 @@ fun VirtualFile.getPsiFileSafely(project: Project): PsiFile? {
         }
       })
     )
-}
-
-// TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
-fun KtModifierListOwner.addAnnotation(
-  annotationFqName: FqName,
-  annotationInnerText: String? = null,
-  useSiteTarget: AnnotationUseSiteTarget? = null,
-  searchForExistingEntry: Boolean = true,
-  whiteSpaceText: String = "\n",
-  addToExistingAnnotation: ((KtAnnotationEntry) -> Boolean)? = null
-): Boolean {
-  val useSiteTargetPrefix = useSiteTarget?.let { "${it.renderName}:" } ?: ""
-  val annotationText =
-    when (annotationInnerText) {
-      null -> "@${useSiteTargetPrefix}${annotationFqName.render()}"
-      else -> "@${useSiteTargetPrefix}${annotationFqName.render()}($annotationInnerText)"
-    }
-
-  val psiFactory = KtPsiFactory(project)
-  val modifierList = modifierList
-
-  if (modifierList == null) {
-    val addedAnnotation = addAnnotationEntry(psiFactory.createAnnotationEntry(annotationText))
-    ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
-    return true
-  }
-
-  val entry =
-    if (searchForExistingEntry) (this as? KtDeclaration)?.findAnnotation(annotationFqName) else null
-  if (entry == null) {
-    // no annotation
-    val newAnnotation = psiFactory.createAnnotationEntry(annotationText)
-    val addedAnnotation =
-      modifierList.addBefore(newAnnotation, modifierList.firstChild) as KtElement
-    val whiteSpace = psiFactory.createWhiteSpace(whiteSpaceText)
-    modifierList.addAfter(whiteSpace, addedAnnotation)
-
-    ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
-    return true
-  }
-
-  if (addToExistingAnnotation != null) {
-    return addToExistingAnnotation(entry)
-  }
-
-  return false
 }
 
 // TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`

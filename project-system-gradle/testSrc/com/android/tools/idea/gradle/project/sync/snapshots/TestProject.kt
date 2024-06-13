@@ -122,6 +122,7 @@ enum class TestProject(
       val buildFile = root.resolve("app").resolve("build.gradle")
       buildFile.writeText(
         buildFile.readText() + """
+          
           sourceSets {
             test.resources.srcDirs += 'src/test/resources'
           }
@@ -141,6 +142,7 @@ enum class TestProject(
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { moveGradleRootUnderGradleProjectDirectory(it, makeSecondCopy = true) }
   ),
+  SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES),
   SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     testName = "withUnnamedDimension",
@@ -235,6 +237,12 @@ enum class TestProject(
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, addJsModule = true) }
   ),
+  KOTLIN_MULTIPLATFORM_IOS(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "ios",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { patchMppProject(it, addIosTo = listOf("module2")) }
+  ),
   KOTLIN_MULTIPLATFORM_JVM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm",
@@ -258,6 +266,38 @@ enum class TestProject(
         addJvmTo = listOf("app", "module2"),
         addIntermediateTo = listOf("module2")
       )
+    }
+  ),
+  SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "simple_application_with_screenshot_test",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { projectRoot ->
+      projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+        content
+          .replace(
+            "buildTypes {",
+            """// Do not remove. This is needed to test screenshot tests support.
+                  experimentalProperties["android.experimental.enableScreenshotTest"] = true
+                   buildTypes {
+            """.trimMargin())
+      }
+      projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+        content.replace(
+          "dependencies {",
+          "dependencies {\n  implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'"
+        )
+      }
+      projectRoot.resolve("gradle.properties").replaceContent { content ->
+        content
+          .replace("android.experimental.enableScreenshotTest=false", "android.experimental.enableScreenshotTest=true")
+      }
+      projectRoot.resolve("build.gradle").replaceContent { content ->
+        content.replace(
+          "classpath 'com.android.tools.build:gradle:",
+          "classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'\nclasspath 'com.android.tools.build:gradle:"
+        )
+      }
     }
   ),
   KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION(
@@ -337,7 +377,10 @@ enum class TestProject(
   API_DEPENDENCY(TestProjectToSnapshotPaths.API_DEPENDENCY),
   NAVIGATOR_PACKAGEVIEW_COMMONROOTS(TestProjectToSnapshotPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS),
   NAVIGATOR_PACKAGEVIEW_SIMPLE(TestProjectToSnapshotPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE),
-  SIMPLE_APPLICATION_VERSION_CATALOG(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_VERSION_CATALOG),
+  SIMPLE_APPLICATION_VERSION_CATALOG(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION_VERSION_CATALOG,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT }
+  ),
   CUSTOM_SOURCE_TYPE(TestProjectToSnapshotPaths.CUSTOM_SOURCE_TYPE),
   LIGHT_SYNC_REFERENCE(TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE),
   NON_TRANSITIVE_R_CLASS_SYMBOL(TestProjectToSnapshotPaths.NON_TRANSITIVE_R_CLASS_SYMBOL),
@@ -399,15 +442,26 @@ enum class TestProject(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     testName = "buildConfigAsBytecodeEnabled",
     patch = { projectRoot ->
-      projectRoot.resolve("gradle.properties").appendText("android.enableBuildConfigAsBytecode=true")
+      projectRoot.resolve("gradle.properties").appendText("\nandroid.enableBuildConfigAsBytecode=true")
       projectRoot.resolve("app/build.gradle").appendText(
         """
+          
           android.buildFeatures.buildConfig true
         """.trimIndent()
       )
     }
-  )
-  ;
+  ),
+  GRADLE_DECLARATIVE(
+    TestProjectToSnapshotPaths.GRADLE_DECLARATIVE,
+    setup = fun(): () -> Unit {
+      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+
+      return fun() {
+        StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+      }
+    },
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+  );
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
 

@@ -27,6 +27,7 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
@@ -39,6 +40,7 @@ import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import java.awt.Dimension
 import java.awt.Point
+import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -252,4 +254,10 @@ class SceneViewFixture(private val robot: Robot,
   } as SceneViewPeerPanel
 
   fun size(): Dimension = sceneView.scaledContentSize
+
+  /**
+   * Returns the rendered image for this [SceneView] or null
+   * if it doesn't exist.
+   */
+  fun image(): BufferedImage? = (sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult?.renderedImage?.copy
 }

@@ -33,4 +33,13 @@ object TaskSupportUtils {
     return selectedRecording.containsExactlyOneArtifact()
            && taskHandler.supportsArtifact(selectedRecording.getChildArtifacts().first())
   }
+
+  fun doesDeviceSupportProfilingTaskFromProcessStart(taskType: ProfilerTaskType, featureLevel: Int): Boolean =
+    when (taskType) {
+      ProfilerTaskType.SYSTEM_TRACE,
+      ProfilerTaskType.CALLSTACK_SAMPLE,
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> featureLevel >= 26
+      ProfilerTaskType.NATIVE_ALLOCATIONS -> featureLevel >= 29
+      else -> false
+    }
 }

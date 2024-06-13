@@ -74,13 +74,7 @@ class BoundsAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        null,
-        facet,
-        file
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -91,7 +85,7 @@ class BoundsAnalyzerTest {
         Assert.assertEquals("TextView is partially hidden in layout", issues[0].message)
         Assert.assertEquals(
           "image_view <ImageView> is partially hidden in layout",
-          issues[1].message
+          issues[1].message,
         )
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

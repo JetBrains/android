@@ -56,7 +56,7 @@ class ComposePostFormatProcessorTest {
       }
     }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val settings =
@@ -79,7 +79,7 @@ class ComposePostFormatProcessorTest {
           val m = Modifier.adjust().adjust()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
@@ -120,7 +120,7 @@ class ComposePostFormatProcessorTest {
           val m = Modifier.adjust()
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {

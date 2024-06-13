@@ -17,11 +17,15 @@
 package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeIrGenerationExtension
+import androidx.compose.compiler.plugins.kotlin.FeatureFlag
+import androidx.compose.compiler.plugins.kotlin.FeatureFlag.IntrinsicRemember
+import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.IncompatibleComposeRuntimeVersionException
 import com.android.tools.idea.run.deployment.liveedit.CompileScope
 import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
 private val liveEditPackageName = "${CompileScope::class.java.packageName}."
@@ -35,7 +39,10 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
           reportsDestination = null,
           metricsDestination = null,
           generateFunctionKeyMetaClasses = true,
-          intrinsicRememberEnabled = false
+          useK2 = KotlinPluginModeProvider.isK2Mode(),
+          featureFlags = FeatureFlags().apply {
+            setFeature(IntrinsicRemember, false)
+          }
         )
         .generate(moduleFragment, pluginContext)
     } catch (e: ProcessCanceledException) {

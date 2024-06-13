@@ -18,11 +18,11 @@ package com.android.tools.idea.appinspection.ide.resolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.intellij.util.io.ZipUtil
-import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import java.util.UUID
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
+import kotlinx.coroutines.withContext
 
 /**
  * Unzips the library to a temporary scratch directory if it's a zip.

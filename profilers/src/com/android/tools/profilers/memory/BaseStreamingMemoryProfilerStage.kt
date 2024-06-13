@@ -122,7 +122,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
 
   val isLiveAllocationTrackingReady get() = MemoryProfiler.isUsingLiveAllocation(studioProfilers, sessionData)
   val isLiveAllocationTrackingSupported
-    get() = memoryDataProvider.isLiveAllocationTrackingSupported
+    get() = MemoryDataProvider.getIsLiveAllocationTrackingSupported(studioProfilers)
 
   init {
     gcStatsModel.apply {
@@ -267,7 +267,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   protected inline fun <T : DurationData> applyDataSeriesConstructor(f: DataSeriesConstructor<T>) =
     f(studioProfilers.client, sessionData, studioProfilers.ideServices.featureTracker, this)
 
-  protected fun getDeviceForSelectedSession() = memoryDataProvider.getDeviceForSelectedSession()
+  protected fun getDeviceForSelectedSession() = MemoryDataProvider.getDeviceForSelectedSession(studioProfilers)
 
 
   // This method is factored out just for testing the allocation sampling mode after the stage has exited,

@@ -112,7 +112,21 @@ class Scheme(
         return this.alphaRename().simpleEquals(o.alphaRename())
     }
 
+    fun canOverride(other: Scheme): Boolean = alphaRename().simpleCanOverride(other.alphaRename())
+
     override fun hashCode(): Int = alphaRename().simpleHashCode()
+
+    private fun simpleCanOverride(other: Scheme): Boolean {
+        return if (other.target is Open) {
+            target is Open && other.target.index == target.index
+        } else {
+            target.isUnspecified || target == other.target
+        } && parameters.zip(other.parameters).all { (a, b) -> a.simpleCanOverride(b) } &&
+            (
+                result == other.result ||
+                    (other.result != null && result != null && result.canOverride((other.result)))
+            )
+    }
 
     private fun simpleEquals(other: Scheme) =
         target == other.target && parameters.zip(other.parameters).all { (a, b) -> a == b } &&
@@ -402,4 +416,25 @@ private class SchemeStringSerializationReader(private val value: String) {
             schemeParseError()
         }
     }
+}
+
+internal fun Scheme.mergeWith(schemes: List<Scheme>): Scheme {
+    if (schemes.isEmpty()) return this
+
+    val lazyScheme = LazyScheme(this)
+    val bindings = lazyScheme.bindings
+
+    fun unifySchemes(a: LazyScheme, b: LazyScheme) {
+        bindings.unify(a.target, b.target)
+        for ((ap, bp) in a.parameters.zip(b.parameters)) {
+            unifySchemes(ap, bp)
+        }
+    }
+
+    schemes.forEach {
+        val overrideScheme = LazyScheme(it, bindings = lazyScheme.bindings)
+        unifySchemes(lazyScheme, overrideScheme)
+    }
+
+    return lazyScheme.toScheme()
 }

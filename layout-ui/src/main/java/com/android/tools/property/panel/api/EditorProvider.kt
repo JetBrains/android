@@ -23,7 +23,7 @@ import javax.swing.JComponent
 enum class EditorContext {
   STAND_ALONE_EDITOR,
   TABLE_EDITOR,
-  TABLE_RENDERER
+  TABLE_RENDERER,
 }
 
 /**
@@ -44,7 +44,7 @@ interface EditorProvider<in P : PropertyItem> {
    */
   fun createEditor(
     property: P,
-    context: EditorContext = EditorContext.STAND_ALONE_EDITOR
+    context: EditorContext = EditorContext.STAND_ALONE_EDITOR,
   ): Pair<PropertyEditorModel, JComponent>
 
   companion object {
@@ -58,7 +58,7 @@ interface EditorProvider<in P : PropertyItem> {
      */
     fun <P : PropertyItem> create(
       enumSupportProvider: EnumSupportProvider<P>,
-      controlTypeProvider: ControlTypeProvider<P>
+      controlTypeProvider: ControlTypeProvider<P>,
     ): EditorProvider<P> {
       return EditorProviderImpl(enumSupportProvider, controlTypeProvider)
     }

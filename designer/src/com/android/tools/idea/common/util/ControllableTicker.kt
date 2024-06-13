@@ -31,7 +31,7 @@ class ControllableTicker(
   private val period: Duration,
   private val executorProvider: () -> ScheduledExecutorService = {
     Executors.newScheduledThreadPool(1)
-  }
+  },
 ) : Disposable {
   private var executor: ScheduledExecutorService? = null
 

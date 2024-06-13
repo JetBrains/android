@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -36,7 +36,6 @@ import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.AndroidProjectStubBuilder
-import com.android.tools.idea.testing.JavaLibraryDependency
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.buildAgpProjectFlagsStub
 import com.android.tools.idea.testing.caret
@@ -50,14 +49,12 @@ import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.updatePrimaryManifest
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.tests.AdtTestKotlinArtifacts
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -74,13 +71,15 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.usageView.UsageInfo
-import org.jetbrains.android.AndroidNonTransitiveRClassJavaCompletionContributor
-import org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor
+import kotlin.test.assertFailsWith
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
-import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.completion.AndroidNonTransitiveRClassJavaCompletionContributor
+import org.jetbrains.android.completion.AndroidNonTransitiveRClassKotlinCompletionContributor
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.junit.Before
@@ -88,9 +87,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.test.assertFailsWith
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for the whole setup of light, in-memory R classes.
@@ -164,7 +160,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       // retrying.
       return executeWithRetries<AssertionError, PsiElement>(
         duration = 2.seconds,
-        sleepBetweenRetries = 100.milliseconds
+        sleepBetweenRetries = 100.milliseconds,
       ) {
         fixture.elementAtCaret
       }
@@ -180,7 +176,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 @RunsInEdt
 abstract class SingleModuleLightClassesTestBase {
 
-  @get:Rule val androidProjectRule = AndroidProjectRule.withSdk().onEdt()
+  @get:Rule val androidProjectRule = AndroidProjectRule.withSdk().withKotlin().onEdt()
 
   private val myFixture by lazy {
     androidProjectRule.fixture.apply {
@@ -198,7 +194,7 @@ abstract class SingleModuleLightClassesTestBase {
     MergedManifestModificationListener.ensureSubscribed(project)
     myFixture.copyFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      SdkConstants.FN_ANDROID_MANIFEST_XML
+      SdkConstants.FN_ANDROID_MANIFEST_XML,
     )
     myFixture.addFileToProject(
       "/res/values/values.xml",
@@ -208,15 +204,13 @@ abstract class SingleModuleLightClassesTestBase {
         <string name="appString">Hello from app</string>
       </resources>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     if (packageNameForNamespacing != null) {
       AndroidModel.set(myFacet, namespaced(myFacet))
-      runWriteCommandAction(project) {
-        Manifest.getMainManifest(myFacet)!!.getPackage().setValue(packageNameForNamespacing)
-      }
-      LocalResourceManager.getInstance(myFacet.getModule())!!.invalidateAttributeDefinitions()
+      updatePrimaryManifest(myFacet) { `package`.value = packageNameForNamespacing }
+      LocalResourceManager.getInstance(myFacet.module)!!.invalidateAttributeDefinitions()
     }
   }
 
@@ -240,7 +234,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -266,7 +260,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -293,7 +287,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -321,7 +315,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -350,7 +344,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -378,7 +372,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -406,7 +400,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -433,7 +427,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -456,7 +450,7 @@ abstract class SingleModuleLightClassesTestBase {
         </declare-styleable>
       </resources>
       """
-        .trimIndent()
+        .trimIndent(),
     )
     myFixture.configureByText(
       "/src/p1/p2/MainActivity.java",
@@ -475,7 +469,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -503,16 +497,12 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertNoElementAtCaret(myFixture)
 
-    runWriteCommandAction(project) {
-      Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply {
-        name.value = "com.example.SEND_MESSAGE"
-      }
-    }
+    updatePrimaryManifest(myFacet) { addPermission().name.value = "com.example.SEND_MESSAGE" }
 
     assertThat(resolveReferenceUnderCaret(myFixture)).isInstanceOf(AndroidLightField::class.java)
     myFixture.checkHighlighting()
@@ -537,16 +527,12 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     assertNoElementAtCaret(myFixture)
 
-    runWriteCommandAction(project) {
-      Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply {
-        name.value = "com.example.SEND_MESSAGE"
-      }
-    }
+    updatePrimaryManifest(myFacet) { addPermission().name.value = "com.example.SEND_MESSAGE" }
 
     assertThat(resolveReferenceUnderCaret(myFixture)).isInstanceOf(AndroidLightField::class.java)
     myFixture.checkHighlighting()
@@ -569,7 +555,7 @@ abstract class SingleModuleLightClassesTestBase {
     assertThat(
         myFixture.javaFacade.findClass(
           "com.example.someLib.R",
-          GlobalSearchScope.everythingScope(project)
+          GlobalSearchScope.everythingScope(project),
         )
       )
       .isNotNull()
@@ -586,7 +572,7 @@ abstract class SingleModuleLightClassesTestBase {
         <string name="f${caret}oo">foo</string>
       </resources>
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(strings.virtualFile)
@@ -632,7 +618,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Sanity check:
@@ -672,7 +658,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -700,7 +686,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -734,7 +720,7 @@ abstract class SingleModuleLightClassesTestBase {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
     // The R class is not reachable from Java, but we should not crash trying to create an invalid
@@ -774,14 +760,9 @@ abstract class AppAndLibModulesLightClassesTestBase {
       selectedBuildVariant = "debug",
       createAndroidProjectBuilderForDefaultTestProjectStructure(
           IdeAndroidProjectType.PROJECT_TYPE_APP,
-          "p1.p2"
+          "p1.p2",
         )
         .withAndroidModuleDependencyList { _ -> listOf(AndroidModuleDependency(":mylib", "debug")) }
-        // TODO(b/300170256): Remove this once 2023.3 merges and we no longer need kotlin-stdlib for
-        // every Kotlin test.
-        .withJavaLibraryDependencyList {
-          listOf(JavaLibraryDependency.forJar(AdtTestKotlinArtifacts.kotlinStdlib))
-        }
         .withAgpProjectFlags { getAgpProjectFlags(this) },
     )
 
@@ -791,9 +772,9 @@ abstract class AppAndLibModulesLightClassesTestBase {
       selectedBuildVariant = "debug",
       createAndroidProjectBuilderForDefaultTestProjectStructure(
           IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
-          "com.example.mylib"
+          "com.example.mylib",
         )
-        .withAgpProjectFlags { getAgpProjectFlags(this) }
+        .withAgpProjectFlags { getAgpProjectFlags(this) },
     )
 
   @get:Rule
@@ -807,7 +788,7 @@ abstract class AppAndLibModulesLightClassesTestBase {
         },
         rootModuleBuilder,
         appModuleBuilder,
-        libModuleBuilder
+        libModuleBuilder,
       )
       .initAndroid(true)
       .onEdt()
@@ -830,15 +811,15 @@ abstract class AppAndLibModulesLightClassesTestBase {
   fun setUp() {
     myFixture.copyFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      SdkConstants.FN_ANDROID_MANIFEST_XML
+      SdkConstants.FN_ANDROID_MANIFEST_XML,
     )
     myFixture.copyFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      "app/${SdkConstants.FN_ANDROID_MANIFEST_XML}"
+      "app/${SdkConstants.FN_ANDROID_MANIFEST_XML}",
     )
     myFixture.copyFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      "mylib/${SdkConstants.FN_ANDROID_MANIFEST_XML}"
+      "mylib/${SdkConstants.FN_ANDROID_MANIFEST_XML}",
     )
     myFixture.addFileToProject(
       "/app/res/values/values.xml",
@@ -851,15 +832,11 @@ abstract class AppAndLibModulesLightClassesTestBase {
         <id name="basicID"/>
       </resources>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
-    runWriteCommandAction(project) {
-      libModule
-        .let(AndroidFacet::getInstance)!!
-        .let { Manifest.getMainManifest(it)!! }
-        .`package`!!
-        .value = "com.example.mylib"
+    updatePrimaryManifest(AndroidFacet.getInstance(libModule)!!) {
+      `package`.value = "com.example.mylib"
     }
 
     myFixture.addFileToProject(
@@ -874,7 +851,7 @@ abstract class AppAndLibModulesLightClassesTestBase {
         <string name="anotherLibString">Hello from app</string>
       </resources>
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 }
@@ -911,7 +888,7 @@ class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesT
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -953,7 +930,7 @@ class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesT
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -984,7 +961,7 @@ class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesT
         }
     }
     """
-          .trimIndent()
+          .trimIndent(),
       )
     val appClassUseScope = myFixture.findClass("p1.p2.R", activity)!!.useScope as GlobalSearchScope
     assertThat(appClassUseScope.isSearchInLibraries).isFalse()
@@ -1016,7 +993,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
       createFile(
         project.guessProjectDir()!!,
         "/app/src/p1/p2/RClassAndroidTest.kt",
-        KOTLIN_RESOURCE_FILE
+        KOTLIN_RESOURCE_FILE,
       )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
@@ -1050,7 +1027,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
           "anotherLibString  (com.example.mylib) Int",
           "libString  (com.example.mylib) Int",
           "anotherAppString null Int",
-          "appString null Int"
+          "appString null Int",
         )
       )
 
@@ -1088,7 +1065,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
         }
       """
         .trimIndent(),
-      true
+      true,
     )
 
     // Test for same module, different package
@@ -1113,7 +1090,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
               )
           }
       }"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(otherPackage)
 
@@ -1158,7 +1135,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
           }
       }"""
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -1171,7 +1148,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
       createFile(
         project.guessProjectDir()!!,
         "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE
+        JAVA_RESOURCES_FILE,
       )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
@@ -1194,7 +1171,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
       createFile(
         project.guessProjectDir()!!,
         "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE
+        JAVA_RESOURCES_FILE,
       )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
@@ -1212,7 +1189,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
       createFile(
         project.guessProjectDir()!!,
         "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE
+        JAVA_RESOURCES_FILE,
       )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
@@ -1233,7 +1210,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
       createFile(
         project.guessProjectDir()!!,
         "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE
+        JAVA_RESOURCES_FILE,
       )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
@@ -1268,7 +1245,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
         }
       """
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -1278,7 +1255,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
       createFile(
         project.guessProjectDir()!!,
         "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE
+        JAVA_RESOURCES_FILE,
       )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
@@ -1302,7 +1279,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
               int d = 0;
           }
       }"""
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(otherPackage)
 
@@ -1344,7 +1321,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
           }
       }"""
         .trimIndent(),
-      true
+      true,
     )
   }
 
@@ -1368,7 +1345,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
         }
     }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.checkHighlighting()
@@ -1416,7 +1393,7 @@ class AppAndLibModulesNonFinalResourceIdsLightClassesTest : AppAndLibModulesLigh
         }
     }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.checkHighlighting()
@@ -1463,7 +1440,7 @@ class AppAndLibModulesFinalResourceIdsLightClassesTest : AppAndLibModulesLightCl
         }
     }
     """
-        .trimIndent()
+        .trimIndent(),
     )
 
     myFixture.checkHighlighting()
@@ -1494,14 +1471,14 @@ class UnrelatedModules : LightClassesTestBase() {
 
   override fun configureAdditionalModules(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-    modules: MutableList<MyAdditionalModuleData>
+    modules: MutableList<MyAdditionalModuleData>,
   ) {
     addModuleWithAndroidFacet(
       projectBuilder,
       modules,
       "unrelatedLib",
       AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      false
+      false,
     )
   }
 
@@ -1510,9 +1487,8 @@ class UnrelatedModules : LightClassesTestBase() {
 
     val libModule = getAdditionalModuleByName("unrelatedLib")!!
 
-    runWriteCommandAction(project) {
-      Manifest.getMainManifest(libModule.let(AndroidFacet::getInstance)!!)!!.`package`!!.value =
-        "p1.p2.unrelatedLib"
+    updatePrimaryManifest(AndroidFacet.getInstance(libModule)!!) {
+      `package`.value = "p1.p2.unrelatedLib"
     }
 
     myFixture.addFileToProject(
@@ -1523,7 +1499,7 @@ class UnrelatedModules : LightClassesTestBase() {
         <string name="libString">Hello from app</string>
       </resources>
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -1541,7 +1517,7 @@ class UnrelatedModules : LightClassesTestBase() {
 
       public class Util {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val utilPackage = myFixture.javaFacade.findPackage("p1.p2.util")!!
@@ -1567,7 +1543,7 @@ class UnrelatedModules : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -1593,7 +1569,7 @@ class UnrelatedModules : LightClassesTestBase() {
     val aarRClass =
       myFixture.javaFacade.findClass(
         "com.example.aarlib.R",
-        GlobalSearchScope.everythingScope(project)
+        GlobalSearchScope.everythingScope(project),
       )!!
     val useScope = aarRClass.useScope as GlobalSearchScope
     assertTrue(useScope.isSearchInModuleContent(myModule))
@@ -1620,14 +1596,12 @@ class NamespacedModuleWithAarLightClassesTest {
   fun setUp() {
     myFixture.copyFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      SdkConstants.FN_ANDROID_MANIFEST_XML
+      SdkConstants.FN_ANDROID_MANIFEST_XML,
     )
 
     AndroidModel.set(myFacet, namespaced(myFacet))
-    runWriteCommandAction(project) {
-      Manifest.getMainManifest(myFacet)!!.getPackage().setValue("p1.p2")
-    }
-    LocalResourceManager.getInstance(myFacet.getModule())!!.invalidateAttributeDefinitions()
+    updatePrimaryManifest(myFacet) { `package`.value = "p1.p2" }
+    LocalResourceManager.getInstance(myFacet.module)!!.invalidateAttributeDefinitions()
     addBinaryAarDependency(myModule)
   }
 
@@ -1651,7 +1625,7 @@ class NamespacedModuleWithAarLightClassesTest {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -1681,7 +1655,7 @@ class NamespacedModuleWithAarLightClassesTest {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -1710,7 +1684,7 @@ class NamespacedModuleWithAarLightClassesTest {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -1738,7 +1712,7 @@ class NamespacedModuleWithAarLightClassesTest {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -1803,7 +1777,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -1836,7 +1810,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -1866,7 +1840,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -1897,7 +1871,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -1917,7 +1891,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
         "LibStyleable_attrOne",
         "LibStyleable_attrTwo",
         "LibStyleable_android_maxWidth",
-        "class"
+        "class",
       )
   }
 
@@ -1940,7 +1914,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(activityWithStyleablePackage.virtualFile)
     myFixture.checkHighlighting()
@@ -1974,7 +1948,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -2015,7 +1989,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -2036,7 +2010,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
         R${caret}
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -2087,7 +2061,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
@@ -2105,7 +2079,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
         "FontFamilyFont_font",
         "FontFamilyFont_fontStyle",
         "FontFamilyFont_fontWeight",
-        "class"
+        "class",
       )
   }
 
@@ -2132,7 +2106,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           }
       }
       """
-          .trimIndent()
+          .trimIndent(),
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)

@@ -57,7 +57,7 @@ private val GENERIC_STATE_CLASS_ID =
 internal data class StateRead(
   val stateVar: KtExpression,
   val scope: KtExpression,
-  val scopeName: String
+  val scopeName: String,
 ) {
   companion object {
     fun create(stateVar: KtExpression, scope: KtExpression): StateRead? {

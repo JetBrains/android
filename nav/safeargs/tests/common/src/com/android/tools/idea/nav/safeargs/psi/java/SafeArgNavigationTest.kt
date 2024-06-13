@@ -58,7 +58,7 @@ class SafeArgNavigationTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -159,7 +159,7 @@ class SafeArgNavigationTest {
               android:label="Fragment2" />
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -256,7 +256,7 @@ class SafeArgNavigationTest {
           </navigation>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -378,7 +378,7 @@ class SafeArgNavigationTest {
           </fragment>
         </navigation>
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Initialize repository after creating resources, needed for codegen to work
@@ -393,7 +393,7 @@ class SafeArgNavigationTest {
     val actionBuilderClass =
       safeArgsRule.fixture.findClass(
         "test.safeargs.Fragment1Directions.ActionFragment1ToFragment2",
-        context
+        context,
       ) as LightActionBuilderClass
     actionBuilderClass.let {
       it.navigate(true)

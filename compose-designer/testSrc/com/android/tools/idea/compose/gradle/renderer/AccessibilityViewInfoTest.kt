@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.gradle.renderer
 
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.scene.getAccessibilityText
 import com.android.tools.preview.SingleComposePreviewElementInstance
@@ -36,15 +37,19 @@ class AccessibilityViewInfoTest {
    */
   @Test
   fun testAccessibilityViewInfo() {
+    val facet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val renderTaskFuture =
       createRenderTaskFuture(
-        projectRule.androidFacet(":app"),
+        facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.TwoElementsPreview"
         ),
-        false
+        false,
       )
-    val renderTask = renderTaskFuture.get(1, TimeUnit.MINUTES)
+    val renderTask = renderTaskFuture.future.get(1, TimeUnit.MINUTES)
     try {
       renderTask.setCustomContentHierarchyParser(accessibilityBasedHierarchyParser)
 

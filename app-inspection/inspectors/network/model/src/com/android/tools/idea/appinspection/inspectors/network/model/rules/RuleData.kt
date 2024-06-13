@@ -35,7 +35,7 @@ class RuleData(
   // must be a public var for PersistentStateComponent to set it
   var id: Int,
   name: String,
-  isActive: Boolean
+  isActive: Boolean,
 ) {
 
   companion object {
@@ -93,6 +93,15 @@ class RuleData(
         .build()
 
     private fun String.withPrefixIfNotEmpty(prefix: Char) = if (isBlank()) "" else prefix + this
+
+    fun copyFrom(other: CriteriaData) {
+      protocol = other.protocol
+      host = other.host
+      port = other.port
+      path = other.path
+      query = other.query
+      method = other.method
+    }
   }
 
   interface TransformationRuleData {
@@ -125,6 +134,12 @@ class RuleData(
           }
         }
         .build()
+
+    fun copyFrom(other: StatusCodeRuleData) {
+      isActive = other.isActive
+      findCode = other.findCode
+      newCode = other.newCode
+    }
   }
 
   class HeaderAddedRuleData(name: String?, value: String?) : TransformationRuleData {
@@ -152,7 +167,7 @@ class RuleData(
     var findValue: String?,
     var isFindValueRegex: Boolean,
     var newName: String?,
-    var newValue: String?
+    var newValue: String?,
   ) : TransformationRuleData {
 
     @Suppress("unused") // invoked via reflection by PersistentStateComponent
@@ -224,7 +239,7 @@ class RuleData(
                 else -> throw UnsupportedOperationException("Unknown item $item")
               }
             }
-          }
+          },
         )
       addTableModelListener { listener?.invoke() }
     }
@@ -239,6 +254,10 @@ class RuleData(
     @XCollection(elementTypes = [HeaderAddedRuleData::class, HeaderReplacedRuleData::class])
     override fun setItems(items: MutableList<TransformationRuleData>) {
       super.setItems(items)
+    }
+
+    fun copyFrom(other: HeaderRulesTableModel) {
+      items = other.items.toMutableList()
     }
   }
 
@@ -263,7 +282,7 @@ class RuleData(
     // These must be public vars for PersistentStateComponent to set them.
     var targetText: String,
     var isRegex: Boolean,
-    var newText: String
+    var newText: String,
   ) : TransformationRuleData {
     @Suppress("unused") // invoked via reflection by PersistentStateComponent
     private constructor() : this("", false, "")
@@ -317,7 +336,7 @@ class RuleData(
                 else -> ""
               }
             }
-          }
+          },
         )
       addTableModelListener { listener?.invoke() }
     }
@@ -329,6 +348,10 @@ class RuleData(
     // For PersistentStateComponent
     @XCollection(elementTypes = [BodyModifiedRuleData::class, BodyReplacedRuleData::class])
     override fun setItems(items: MutableList<TransformationRuleData>) = super.setItems(items)
+
+    fun copyFrom(other: BodyRulesTableModel) {
+      items = other.items.toMutableList()
+    }
   }
 
   var name: String by
@@ -354,6 +377,16 @@ class RuleData(
         addAllTransformation(bodyRuleTableModel.items.map { it.toProto() })
       }
       .build()
+
+  fun copyFrom(other: RuleData) {
+    name = other.name
+    isActive = other.isActive
+
+    criteria.copyFrom(other.criteria)
+    statusCodeRuleData.copyFrom(other.statusCodeRuleData)
+    headerRuleTableModel.copyFrom(other.headerRuleTableModel)
+    bodyRuleTableModel.copyFrom(other.bodyRuleTableModel)
+  }
 }
 
 fun matchingTextTypeFrom(isRegex: Boolean): Type = if (isRegex) Type.REGEX else Type.PLAIN
@@ -367,7 +400,7 @@ private object MyRenderer : ColoredTableCellRenderer() {
     selected: Boolean,
     hasFocus: Boolean,
     row: Int,
-    column: Int
+    column: Int,
   ) {
     clear()
     border = JBUI.Borders.empty()

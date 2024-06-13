@@ -92,7 +92,7 @@ public class DeviceManagerConnection {
   }
 
   @NotNull
-  Collection<Device> getDevices(@NotNull Collection<DeviceFilter> filters) {
+  public Collection<Device> getDevices(@NotNull Collection<DeviceFilter> filters) {
     if (!hasDeviceManager()) {
       return List.of();
     }

@@ -100,7 +100,7 @@ public class AndroidSdkUtilsTest extends HeavyPlatformTestCase {
 
   public void testGetAdbInPath() throws Exception {
     assertWithMessage("Precondition: project with no android facets")
-        .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
+      .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
     try (MockedStatic<EnvironmentUtil> mockEnvironment = Mockito.mockStatic(EnvironmentUtil.class)) {
       String separator = System.getProperty("path.separator");
       File fakeAdb = createTempFile(FN_ADB, "");

@@ -160,13 +160,7 @@ class LogcatFilterTest {
   @Test
   fun andLogcatFilter_allTrue() {
     assertThat(
-        AndLogcatFilter(
-            TrueFilter(),
-            TrueFilter(),
-            TrueFilter(),
-            TrueFilter(),
-            TrueFilter(),
-          )
+        AndLogcatFilter(TrueFilter(), TrueFilter(), TrueFilter(), TrueFilter(), TrueFilter())
           .matches(MESSAGE1)
       )
       .isTrue()
@@ -175,13 +169,7 @@ class LogcatFilterTest {
   @Test
   fun andLogcatFilter_oneFalse() {
     assertThat(
-        AndLogcatFilter(
-            TrueFilter(),
-            TrueFilter(),
-            FalseFilter(),
-            TrueFilter(),
-            TrueFilter(),
-          )
+        AndLogcatFilter(TrueFilter(), TrueFilter(), FalseFilter(), TrueFilter(), TrueFilter())
           .matches(MESSAGE1)
       )
       .isFalse()
@@ -190,13 +178,7 @@ class LogcatFilterTest {
   @Test
   fun orLogcatFilter_allFalse() {
     assertThat(
-        OrLogcatFilter(
-            FalseFilter(),
-            FalseFilter(),
-            FalseFilter(),
-            FalseFilter(),
-            FalseFilter(),
-          )
+        OrLogcatFilter(FalseFilter(), FalseFilter(), FalseFilter(), FalseFilter(), FalseFilter())
           .matches(MESSAGE1)
       )
       .isFalse()
@@ -205,13 +187,7 @@ class LogcatFilterTest {
   @Test
   fun orLogcatFilter_oneTrue() {
     assertThat(
-        OrLogcatFilter(
-            FalseFilter(),
-            FalseFilter(),
-            TrueFilter(),
-            FalseFilter(),
-            FalseFilter(),
-          )
+        OrLogcatFilter(FalseFilter(), FalseFilter(), TrueFilter(), FalseFilter(), FalseFilter())
           .matches(MESSAGE1)
       )
       .isTrue()
@@ -350,6 +326,16 @@ class LogcatFilterTest {
   }
 
   @Test
+  fun levelExactFilter() {
+    val levelFilter = ExactLevelFilter(INFO, EMPTY_RANGE)
+    for (logLevel in LogLevel.values()) {
+      assertThat(levelFilter.matches(logcatMessage(logLevel)))
+        .named(logLevel.name)
+        .isEqualTo(logLevel.ordinal == INFO.ordinal)
+    }
+  }
+
+  @Test
   fun ageFilter_parsing() {
     val clock = Clock.fixed(Instant.EPOCH, ZONE_ID)
     assertThat(AgeFilter("10s", clock, EMPTY_RANGE).age).isEqualTo(Duration.ofSeconds(10))
@@ -406,10 +392,7 @@ class LogcatFilterTest {
       ProjectAppFilter(FakeProjectApplicationIdsProvider(project, "app1", "app2"), EMPTY_RANGE)
 
     assertThat(filter.filter(listOf(message1, message2, message3, message4)))
-      .containsExactly(
-        message1,
-        message2,
-      )
+      .containsExactly(message1, message2)
       .inOrder()
   }
 
@@ -428,10 +411,7 @@ class LogcatFilterTest {
     val message3 = logcatMessage(logLevel = INFO, message = "Not a stacktrace")
 
     assertThat(StackTraceFilter(EMPTY_RANGE).filter(listOf(message1, message2, message3)))
-      .containsExactly(
-        message1,
-        message2,
-      )
+      .containsExactly(message1, message2)
       .inOrder()
   }
 
@@ -457,10 +437,7 @@ class LogcatFilterTest {
     val message4 = logcatMessage(tag = "DEBUG", logLevel = ERROR, message = "Not a native crash")
 
     assertThat(CrashFilter(EMPTY_RANGE).filter(listOf(message1, message2, message3, message4)))
-      .containsExactly(
-        message1,
-        message2,
-      )
+      .containsExactly(message1, message2)
       .inOrder()
   }
 
@@ -496,7 +473,7 @@ class LogcatFilterTest {
     assertThat(
         AndLogcatFilter(
             StringFilter("string", TAG, matchCase, EMPTY_RANGE),
-            LevelFilter(INFO, EMPTY_RANGE)
+            LevelFilter(INFO, EMPTY_RANGE),
           )
           .filterName
       )
@@ -504,7 +481,7 @@ class LogcatFilterTest {
     assertThat(
         OrLogcatFilter(
             StringFilter("string", TAG, matchCase, EMPTY_RANGE),
-            LevelFilter(INFO, EMPTY_RANGE)
+            LevelFilter(INFO, EMPTY_RANGE),
           )
           .filterName
       )

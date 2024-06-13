@@ -48,6 +48,7 @@ class CpuProfilerContextMenuInstallerTest {
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideServices, timer)
+    ideServices.enableTaskBasedUx(false)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
     // One second must be enough for new devices (and processes) to be picked up

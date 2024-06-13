@@ -58,6 +58,7 @@ object DeviceHandleRenderer {
     name: String,
     isDuplicated: Boolean
   ) {
+    component.setIcon(device.state.properties.icon)
     component.append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
 
     when (val deviceState = device.state.connectedDevice?.deviceInfo?.deviceState) {

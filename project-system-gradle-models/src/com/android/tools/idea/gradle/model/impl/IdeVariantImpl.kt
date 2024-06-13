@@ -27,15 +27,16 @@ import java.io.Serializable
 data class IdeBasicVariantImpl(
   override val name: String,
   override val applicationId: String?,
-  override val testApplicationId: String?
+  override val testApplicationId: String?,
+  override val buildType: String?,
 ) : IdeBasicVariant, Serializable
 
 data class IdeVariantCoreImpl(
   override val name: String,
   override val displayName: String,
   override val mainArtifact: IdeAndroidArtifactCoreImpl,
-  override val unitTestArtifact: IdeJavaArtifactCoreImpl?,
-  override val androidTestArtifact: IdeAndroidArtifactCoreImpl?,
+  override val hostTestArtifacts: List<IdeJavaArtifactCoreImpl>,
+  override val deviceTestArtifacts: List<IdeAndroidArtifactCoreImpl>,
   override val testFixturesArtifact: IdeAndroidArtifactCoreImpl?,
   override val buildType: String,
   override val productFlavors: List<String>,
@@ -67,7 +68,7 @@ data class IdeVariantImpl(
   private val resolver: IdeLibraryModelResolver
 ) : IdeVariant, IdeVariantCore by core {
   override val mainArtifact: IdeAndroidArtifact = IdeAndroidArtifactImpl(core.mainArtifact, resolver)
-  override val androidTestArtifact: IdeAndroidArtifact? = core.androidTestArtifact?.let { IdeAndroidArtifactImpl(it, resolver) }
+  override val deviceTestArtifacts: List<IdeAndroidArtifact> = core.deviceTestArtifacts.map { IdeAndroidArtifactImpl(it, resolver) }
   override val testFixturesArtifact: IdeAndroidArtifact? = core.testFixturesArtifact?.let { IdeAndroidArtifactImpl(it, resolver) }
-  override val unitTestArtifact: IdeJavaArtifact? = core.unitTestArtifact?.let { IdeJavaArtifactImpl(it, resolver) }
+  override val hostTestArtifacts: List<IdeJavaArtifact> = core.hostTestArtifacts.map { IdeJavaArtifactImpl(it, resolver) }
 }

@@ -26,7 +26,6 @@ import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.COMPLETED
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.IN_PROGRESS
 import com.android.tools.idea.sqlite.cli.SqliteCliArg
 import com.android.tools.idea.sqlite.cli.SqliteCliArgs
-import com.android.tools.idea.sqlite.cli.SqliteCliClient
 import com.android.tools.idea.sqlite.cli.SqliteCliClientImpl
 import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
 import com.android.tools.idea.sqlite.cli.SqliteCliResponse
@@ -59,13 +58,12 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
-import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl.UserCancellationException
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.android.tools.idea.sqlite.utils.toLines
 import com.android.tools.idea.sqlite.utils.unzipTo
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.base.Stopwatch
 import com.google.common.truth.Truth.assertThat
@@ -76,24 +74,22 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat
 import com.intellij.mock.MockVirtualFile
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.IdeaTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
-import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
 import com.intellij.util.io.delete
-import com.intellij.util.io.isFile
-import com.intellij.util.io.size
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -101,13 +97,15 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.atomic.AtomicInteger
 import junit.framework.TestCase.fail
+import kotlin.io.path.createFile
 import kotlin.io.path.exists
+import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -125,30 +123,32 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
-import kotlin.io.path.createFile
-import kotlin.io.path.fileSize
-import kotlin.io.path.isRegularFile
 
 private const val nonAsciiSuffix = " ąę"
-private const val table1 = "t1$nonAsciiSuffix"
-private const val table2 = "t2$nonAsciiSuffix"
-private const val table3 = "t3$nonAsciiSuffix"
+// Tests running from IntelliJ have a JNU encoding that doesn't support paths with non-ascii chars.
+private val fileSuffix =
+  when (System.getProperty("sun.jnu.encoding")) {
+    "UTF-8" -> nonAsciiSuffix
+    else -> ""
+  }
+
+private val table1 = "t1$fileSuffix"
+private val table2 = "t2$fileSuffix"
+private val table3 = "t3$fileSuffix"
 private const val view1 = "v1$nonAsciiSuffix"
 private const val view2 = "v2$nonAsciiSuffix"
 private const val column1 = "c1$nonAsciiSuffix"
 private const val column2 = "c2$nonAsciiSuffix"
-private const val databaseDir = "db-dir-$nonAsciiSuffix"
-private const val databaseFileName = "db$nonAsciiSuffix.db"
-private const val outputFileName = "output$nonAsciiSuffix.out"
-private const val downloadFolderName = "downloaded$nonAsciiSuffix"
+private val databaseDir = "db-dir-$fileSuffix"
+private val databaseFileName = "db$fileSuffix.db"
+private val outputFileName = "output$fileSuffix.out"
+private val downloadFolderName = "downloaded$fileSuffix"
 
 // TODO(161081452): add in-memory database test coverage
-@Suppress("IncorrectParentDisposable")
 @RunsInEdt
 @RunWith(Parameterized::class)
 class ExportToFileControllerTest(private val testConfig: TestConfig) {
@@ -161,15 +161,26 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         TestConfig(DatabaseType.File, targetFileAlreadyExists = true),
         TestConfig(DatabaseType.File, targetFileAlreadyExists = false),
         TestConfig(DatabaseType.Live, targetFileAlreadyExists = true),
-        TestConfig(DatabaseType.Live, targetFileAlreadyExists = false)
+        TestConfig(DatabaseType.Live, targetFileAlreadyExists = false),
       )
   }
 
-  private val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+  private val analyticsTracker = mock<DatabaseInspectorAnalyticsTracker>()
 
-  // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
-  // initialized on the EDT.
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      disposableRule,
+      ProjectServiceRule(
+        projectRule,
+        DatabaseInspectorAnalyticsTracker::class.java,
+        analyticsTracker,
+      ),
+      EdtRule(),
+    )
 
   /** Keeps connection ids unique */
   private val nextConnectionId: () -> Int = run {
@@ -177,79 +188,61 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     { next++ }
   }
 
-  private lateinit var exportInProgressListener: (Job) -> Unit
-  private lateinit var exportProcessedListener: ExportProcessedListener
+  // TODO(aalbert): Maybe replace with `TemporaryFolder` rule. This would require making some
+  //  changes regarding use of VirtualFile in production code.
+  private val tempDirTestFixture =
+    IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
+  private val exportInProgressListener: (Job) -> Unit = mock()
+  private val exportProcessedListener = ExportProcessedListener()
+  private val databaseDownloadTestFixture by lazy {
+    DatabaseDownloadTestFixture(tempDirTestFixture.toNioPath())
+  }
+  private val edtExecutor = EdtExecutorService.getInstance()
+  private val taskExecutor = PooledThreadExecutor.INSTANCE
+  private val databaseRepository by lazy { OpenDatabaseRepository(project, taskExecutor) }
+  private val databaseLockingTestFixture by lazy { DatabaseLockingTestFixture(databaseRepository) }
+  private val sqliteCliClient by lazy {
+    SqliteCliClientImpl(
+      SqliteCliProviderImpl(project).getSqliteCli()!!,
+      taskExecutor.asCoroutineDispatcher(),
+    )
+  }
 
-  private lateinit var tempDirTestFixture: TempDirTestFixture
-  private lateinit var databaseDownloadTestFixture: DatabaseDownloadTestFixture
-  private lateinit var databaseLockingTestFixture: DatabaseLockingTestFixture
+  private val view = FakeExportToFileDialogView()
+  private val controller by lazy {
+    ExportToFileController(
+      project,
+      AndroidCoroutineScope(project, edtExecutor.asCoroutineDispatcher()),
+      view,
+      databaseRepository,
+      databaseDownloadTestFixture::downloadDatabase,
+      { databaseDownloadTestFixture.deleteDatabase(it) },
+      { databaseLockingTestFixture.acquireDatabaseLock(it) },
+      { databaseLockingTestFixture.releaseDatabaseLock(it) },
+      taskExecutor,
+      edtExecutor,
+      exportInProgressListener,
+      exportProcessedListener::onExportComplete,
+      exportProcessedListener::onExportError,
+    )
+  }
 
-  private lateinit var edtExecutor: Executor
-  private lateinit var taskExecutor: Executor
+  private val project
+    get() = projectRule.project
 
-  private lateinit var databaseRepository: DatabaseRepository
-  private lateinit var sqliteCliClient: SqliteCliClient
-
-  private lateinit var analyticsTracker: DatabaseInspectorAnalyticsTracker
-  private lateinit var view: FakeExportToFileDialogView
-  private lateinit var controller: ExportToFileController
-
-  private lateinit var project: Project
-  private lateinit var testRootDisposable: Disposable
+  private val disposable
+    get() = disposableRule.disposable
 
   @Before
   fun setUp() {
-    project = projectRule.project
-    testRootDisposable = projectRule.fixture.testRootDisposable
-
-    exportInProgressListener = mock()
-    exportProcessedListener = ExportProcessedListener()
-
-    tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
-    tempDirTestFixture.setUp()
-
-    edtExecutor = EdtExecutorService.getInstance()
-    taskExecutor = PooledThreadExecutor.INSTANCE
-
-    databaseDownloadTestFixture = DatabaseDownloadTestFixture(tempDirTestFixture.toNioPath())
-    databaseDownloadTestFixture.setUp()
-
     initAdbFileProvider(project)
-    sqliteCliClient =
-      SqliteCliClientImpl(
-        SqliteCliProviderImpl(project).getSqliteCli()!!,
-        taskExecutor.asCoroutineDispatcher()
-      )
-    OpenDatabaseRepository(project, taskExecutor).let {
-      databaseRepository = it
-      databaseLockingTestFixture = DatabaseLockingTestFixture(it)
-      databaseLockingTestFixture.setUp()
-    }
-
-    analyticsTracker = mock()
-    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, analyticsTracker)
-
-    view = FakeExportToFileDialogView()
-    controller =
-      ExportToFileController(
-        project,
-        AndroidCoroutineScope(project, edtExecutor.asCoroutineDispatcher()),
-        view,
-        databaseRepository,
-        databaseDownloadTestFixture::downloadDatabase,
-        { databaseDownloadTestFixture.deleteDatabase(it) },
-        { databaseLockingTestFixture.acquireDatabaseLock(it) },
-        { databaseLockingTestFixture.releaseDatabaseLock(it) },
-        taskExecutor,
-        edtExecutor,
-        exportInProgressListener,
-        exportProcessedListener::onExportComplete,
-        exportProcessedListener::onExportError
-      )
+    databaseDownloadTestFixture.setUp()
+    databaseLockingTestFixture.setUp()
+    tempDirTestFixture.setUp()
     controller.setUp()
-    controller.responseSizeByteLimitHint =
-      16 // 16 bytes - simulates scenarios where a query returns more rows than we allow in a batch
-    Disposer.register(testRootDisposable, controller)
+    // 16 bytes - simulates scenarios where a query returns more rows than we allow in a batch
+    controller.responseSizeByteLimitHint = 16
+    Disposer.register(disposable, controller)
   }
 
   @After
@@ -301,7 +294,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         ExportTableRequest(database, targetTable, SQL, dstPath)
       },
       expectedTableNames = listOf(targetTable),
-      expectedOutputDumpCommand = DumpTable(targetTable)
+      expectedOutputDumpCommand = DumpTable(targetTable),
     )
   }
 
@@ -313,7 +306,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       databaseTables = databaseTables,
       exportRequestCreator = { database, dstPath -> ExportDatabaseRequest(database, SQL, dstPath) },
       expectedTableNames = databaseTables,
-      expectedOutputDumpCommand = DumpDatabase
+      expectedOutputDumpCommand = DumpDatabase,
     )
   }
 
@@ -322,7 +315,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     databaseTables: List<String>,
     exportRequestCreator: (SqliteDatabaseId, dstPath: Path) -> ExportRequest,
     expectedTableNames: List<String>,
-    expectedOutputDumpCommand: DumpCommand
+    expectedOutputDumpCommand: DumpCommand,
   ) {
     val database = createEmptyDatabase(databaseType)
     populateDatabase(database, databaseTables, listOf(view1, view2)).map { it.name }
@@ -370,7 +363,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     testExport(
       exportRequest,
       decompress = { file -> listOf(file) },
-      expectedOutput = listOf(ExpectedOutputFile(exportRequest.dstPath, expectedValues)) // no-op
+      expectedOutput = listOf(ExpectedOutputFile(exportRequest.dstPath, expectedValues)), // no-op
     )
 
   /**
@@ -388,9 +381,9 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         analyticsTracker,
         exportRequest,
         durationMs,
-        Outcome.SUCCESS_OUTCOME
+        Outcome.SUCCESS_OUTCOME,
       )
-    }
+    },
   ) {
     // then: compare output file(s) with expected output
     val stopwatch = Stopwatch.createStarted()
@@ -420,11 +413,11 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     analyticsTracker: DatabaseInspectorAnalyticsTracker,
     exportRequest: ExportRequest,
     maxDurationMs: Long,
-    expectedOutcome: Outcome
+    expectedOutcome: Outcome,
   ) {
     // Using captors below to go the opposite way than the prod code: from analytics values to
     // export-request values.
-    // Otherwise we'd end up with a copy of production code in the tests (which would be of
+    // Otherwise, we'd end up with a copy of production code in the tests (which would be of
     // questionable value).
     val sourceCaptor = ArgumentCaptor.forClass(Source::class.java)
     val sourceFormatCaptor = ArgumentCaptor.forClass(SourceFormat::class.java)
@@ -443,7 +436,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         destinationCaptor.capture() ?: Destination.UNKNOWN_DESTINATION,
         durationMsCaptor.capture(),
         outcomeCaptor.capture() ?: Outcome.UNKNOWN_OUTCOME,
-        connectivityStateCaptor.capture() ?: ConnectivityState.UNKNOWN_CONNECTIVITY_STATE
+        connectivityStateCaptor.capture() ?: ConnectivityState.UNKNOWN_CONNECTIVITY_STATE,
       )
 
     when (sourceCaptor.allValues.single()) {
@@ -486,7 +479,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
           .isAnyOf(
             ExportDatabaseRequest::class.java,
             ExportTableRequest::class.java,
-            ExportQueryResultsRequest::class.java
+            ExportQueryResultsRequest::class.java,
           )
       }
       else -> fail()
@@ -538,7 +531,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         databaseId,
         "ignored",
         CSV(SEMICOLON),
-        tempDirTestFixture.toNioPath().resolve(outputFileName)
+        tempDirTestFixture.toNioPath().resolve(outputFileName),
       )
     val stopwatch = Stopwatch.createStarted()
     requireEmptyFileAtDestination(exportRequest.dstPath, testConfig.targetFileAlreadyExists)
@@ -565,7 +558,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       analyticsTracker,
       exportRequest,
       stopwatch.elapsed(MILLISECONDS),
-      Outcome.CANCELLED_BY_USER_OUTCOME
+      Outcome.CANCELLED_BY_USER_OUTCOME,
     )
   }
 
@@ -585,7 +578,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       tableValuePairs.map { (table, values) ->
         ExpectedOutputFile(
           tmpDir.toNioPath().resolve("$table.csv"),
-          values.toCsvOutputLines(exportRequest.delimiter)
+          values.toCsvOutputLines(exportRequest.delimiter),
         )
       }
 
@@ -643,7 +636,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       listOf(
         ExpectedOutputFile(actualTablesPath, expectedTables),
         ExpectedOutputFile(actualViewsPath, expectedViews),
-        ExpectedOutputFile(actualSchemaPath, expectedSchema)
+        ExpectedOutputFile(actualSchemaPath, expectedSchema),
       )
 
     // when/then:
@@ -668,7 +661,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         createEmptyDatabase(testConfig.databaseType),
         "non-existing-table", // this will cause an exception (we are a database without any tables)
         CSV(TAB),
-        tempDirTestFixture.createFile("ignored-output-file").toNioPath()
+        tempDirTestFixture.createFile("ignored-output-file").toNioPath(),
       )
 
     // when/then
@@ -697,9 +690,9 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
           analyticsTracker,
           exportRequest,
           stopwatch.elapsed(MILLISECONDS),
-          Outcome.ERROR_OUTCOME
+          Outcome.ERROR_OUTCOME,
         )
-      }
+      },
     )
   }
 
@@ -720,8 +713,8 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   private fun requireEmptyFileAtDestination(path: Path, shouldExist: Boolean) {
     // Directory case is unusual, and better to fail than accidentally delete too much data.
     assertWithMessage(
-      "Export target ($path) is an existing directory. Expecting a file or a new path."
-    )
+        "Export target ($path) is an existing directory. Expecting a file or a new path."
+      )
       .that(path.isDirectory())
       .isFalse()
 
@@ -776,7 +769,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   private fun populateDatabase(
     database: SqliteDatabaseId,
     tableNames: List<String>,
-    viewNames: List<String>
+    viewNames: List<String>,
   ): List<Table> {
     fun createTable(database: SqliteDatabaseId, table: Table) {
       database.execute("create table '${table.name}' ('$column1' int, '$column2' text)")
@@ -813,11 +806,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
   private fun createFileDatabaseConnection(databaseFile: VirtualFile): DatabaseConnection =
     runDispatching {
-      getJdbcDatabaseConnection(
-          testRootDisposable,
-          databaseFile,
-          FutureCallbackExecutor.wrap(taskExecutor)
-        )
+      getJdbcDatabaseConnection(disposable, databaseFile, FutureCallbackExecutor.wrap(taskExecutor))
         .await()
     }
 
@@ -827,7 +816,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
   enum class DatabaseType {
     Live,
-    File
+    File,
   }
 
   data class TestConfig(val databaseType: DatabaseType, val targetFileAlreadyExists: Boolean)
@@ -886,7 +875,7 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
 
   fun downloadDatabase(
     db: LiveSqliteDatabaseId,
-    handleError: (String, Throwable?) -> Unit
+    handleError: (String, Throwable?) -> Unit,
   ): Flow<DownloadProgress> = flow {
     try {
       val downloadedDatabase = createDatabaseCopy(db)
@@ -907,7 +896,7 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
     val src =
       Paths.get(
         db.path
-      ) // in test setup the database will already be on disk (i.e. not on a device)
+      ) // in test set up the database will already be on disk (i.e. not on a device)
     val dbFileName = src.fileName.toString()
 
     val mainFile = createFile(dbFileName)
@@ -997,6 +986,6 @@ private class ExportProcessedListener {
   enum class Scenario {
     NOT_CALLED,
     SUCCESS,
-    ERROR
+    ERROR,
   }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.AspectModel
-import com.android.tools.adtui.model.DefaultTimeline
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangeSelectionModel
 import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.Timeline
@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.CONNECTION
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkTimeline.Companion.VIEW_LENGTH_US
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModelImpl
@@ -41,12 +42,11 @@ import kotlinx.coroutines.launch
 private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(1, 5, 5)
 
 private val TIMELINE_PADDING_MS = TimeUnit.SECONDS.toMicros(3)
-private val VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30)
 
 /** The model class for `NetworkInspectorView`. */
 class NetworkInspectorModel(
   services: NetworkInspectorServices,
-  dataSource: NetworkInspectorDataSource,
+  private val dataSource: NetworkInspectorDataSource,
   scope: CoroutineScope,
   connectionsModel: ConnectionDataModel = ConnectionDataModelImpl(dataSource),
 ) : AspectModel<NetworkInspectorAspect>() {
@@ -54,7 +54,7 @@ class NetworkInspectorModel(
   enum class DetailContent {
     CONNECTION,
     RULE,
-    EMPTY
+    EMPTY,
   }
 
   var detailContent: DetailContent = DetailContent.EMPTY
@@ -78,7 +78,7 @@ class NetworkInspectorModel(
   val aspect = AspectModel<NetworkInspectorAspect>()
   val timeline: Timeline =
     when (StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
-      true -> NetworkTimeline()
+      true -> NetworkTimeline(services.updater)
       else -> StreamingTimeline(services.updater)
     }
   val networkUsage =
@@ -114,10 +114,15 @@ class NetworkInspectorModel(
           if (timeline.dataRange.isPoint) {
             timeline.dataRange.min = timestampUs - TIMELINE_PADDING_MS
           }
-          timeline.dataRange.max = timestampUs + TIMELINE_PADDING_MS
+          // Minimum data range is VIEW_LENGTH_US (30 seconds)
+          timeline.dataRange.max =
+            max(timestampUs + TIMELINE_PADDING_MS, timeline.dataRange.min + VIEW_LENGTH_US)
           if (isLive) {
             timeline.resetZoom()
           }
+          // The data/view ranges might not have changed so force a refresh.
+          networkUsage.invalidate()
+          timeline.dataRange.changed(Range.Aspect.RANGE)
         }
       }
     }
@@ -156,13 +161,15 @@ class NetworkInspectorModel(
     return true
   }
 
+  fun reset() {
+    dataSource.reset()
+    timeline.dataRange.clear()
+    timeline.selectionRange.clear()
+    timeline.viewRange.clear()
+    timeline.tooltipRange.clear()
+  }
+
   /** Returns true if the timeline in live mode. */
   private fun isLive() =
     timeline.viewRange.max < 0 || (timeline.viewRange.max == timeline.dataRange.max)
-
-  private class NetworkTimeline : DefaultTimeline() {
-    override fun resetZoom() {
-      viewRange.set(max(0.0, dataRange.max - VIEW_LENGTH_US), dataRange.max)
-    }
-  }
 }

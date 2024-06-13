@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
+import com.android.annotations.TestOnly
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurfaceSettings
@@ -36,6 +37,7 @@ import icons.StudioIcons
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics2D
+import org.jetbrains.annotations.VisibleForTesting
 
 /** A dropdown menu used in drawable resource to change the background. */
 class DrawableBackgroundMenuAction :
@@ -54,7 +56,7 @@ enum class DrawableBackgroundType {
   NONE,
   WHITE,
   BLACK,
-  CHECKERED
+  CHECKERED,
 }
 
 /**
@@ -63,7 +65,7 @@ enum class DrawableBackgroundType {
 private class SetScreenViewProviderAction(
   name: String,
   description: String,
-  private val backgroundType: DrawableBackgroundType
+  private val backgroundType: DrawableBackgroundType,
 ) : ToggleAction(name, description, null) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
@@ -101,13 +103,17 @@ class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType
   override val displayName: String = "Drawable Mode"
   private var myDrawableBackgroundLayer: DrawableBackgroundLayer? = null
 
+  @TestOnly
+  fun getDrawableBackgroudType(): DrawableBackgroundType =
+    myDrawableBackgroundLayer?.backgroundType ?: defaultType
+
   fun setDrawableBackgroundType(type: DrawableBackgroundType) {
     myDrawableBackgroundLayer?.backgroundType = type
   }
 
   override fun createPrimarySceneView(
     surface: NlDesignSurface,
-    manager: LayoutlibSceneManager
+    manager: LayoutlibSceneManager,
   ): ScreenView {
     return ScreenView.newBuilder(surface, manager)
       .withLayersProvider { screenView -> createScreenLayer(surface, screenView) }
@@ -118,7 +124,7 @@ class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType
 
   private fun createScreenLayer(
     surface: NlDesignSurface,
-    screenView: ScreenView
+    screenView: ScreenView,
   ): ImmutableList<Layer> {
     val backgroundLayer = DrawableBackgroundLayer(screenView, defaultType)
     myDrawableBackgroundLayer = backgroundLayer
@@ -133,9 +139,10 @@ private const val GRID_WIDTH = 12
 private val CHECKERED_GRID_GRAY = Color(236, 236, 236)
 
 /** The background layer of the custom [ScreenView] provided by [DrawableScreenViewProvider]. */
-private class DrawableBackgroundLayer(
+@VisibleForTesting
+class DrawableBackgroundLayer(
   private val screenView: ScreenView,
-  var backgroundType: DrawableBackgroundType
+  var backgroundType: DrawableBackgroundType,
 ) : Layer() {
   private val dim = Dimension()
 

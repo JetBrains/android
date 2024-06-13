@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui.actions
 
 import com.intellij.ide.ActivityTracker
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import java.util.concurrent.atomic.AtomicBoolean
@@ -32,7 +33,7 @@ class AppInsightsToggleAction(
   icon: Icon?,
   private val flow: Flow<Boolean>,
   scope: CoroutineScope,
-  private val onToggle: () -> Unit
+  private val onToggle: () -> Unit,
 ) : ToggleAction(text, description, icon) {
   private val currentState = AtomicBoolean(true)
 
@@ -52,4 +53,6 @@ class AppInsightsToggleAction(
     currentState.set(state)
     onToggle()
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

@@ -33,6 +33,8 @@ import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -96,11 +98,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   };
 
   /**
-   * Toggle for including an energy profiler in our profiler view.
-   */
-  private boolean myEnergyProfilerEnabled = false;
-
-  /**
    * Whether jank detection UI is enabled
    */
   private boolean myIsJankDetectionUiEnabled = true;
@@ -128,7 +125,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether the task-based UX should be visible.
    */
-  private boolean myTaskBasedUxEnabled = false;
+  private boolean myTaskBasedUxEnabled = true;
 
   /**
    * Whether we should be load tracebox.
@@ -239,10 +236,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
-      @Override
-      public boolean isEnergyProfilerEnabled() {
-        return myEnergyProfilerEnabled;
-      }
 
       @Override
       public boolean isJankDetectionUiEnabled() {
@@ -312,6 +305,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   public void openYesNoDialog(String message, String title, Runnable yesCallback, Runnable noCallback) {
     (myShouldProceedYesNoDialog ? yesCallback : noCallback).run();
   }
+
+  @Override
+  public void openErrorDialog(@NotNull String message, @NotNull String title) { }
 
   @Override
   @Nullable
@@ -404,6 +400,24 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
+  public boolean isTaskSupportedOnStartup(@NotNull ProfilerTaskType taskType) {
+    return taskType == ProfilerTaskType.NATIVE_ALLOCATIONS ||
+           taskType == ProfilerTaskType.SYSTEM_TRACE ||
+           taskType == ProfilerTaskType.CALLSTACK_SAMPLE ||
+           taskType == ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING;
+  }
+
+  @Override
+  public void enableStartupTask(@NotNull ProfilerTaskType taskType, @NotNull TaskHomeTabModel.TaskRecordingType recordingType) {
+    // No-op.
+  }
+
+  @Override
+  public void disableStartupTasks() {
+    // No-op.
+  }
+
+  @Override
   public boolean isNativeProfilingConfigurationPreferred() {
     return myNativeProfilingConfigurationPreferred;
   }
@@ -440,10 +454,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
-  }
-
-  public void enableEnergyProfiler(boolean enabled) {
-    myEnergyProfilerEnabled = enabled;
   }
 
   public void enableJankDetectionUi(boolean enabled) {

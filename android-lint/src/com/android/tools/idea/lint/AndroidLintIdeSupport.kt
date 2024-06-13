@@ -16,10 +16,12 @@
 package com.android.tools.idea.lint
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.SdkMavenRepository
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
@@ -39,18 +41,15 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.requiresAndroidModel
-import com.android.tools.idea.res.AndroidFileChangeListener
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
-import com.android.tools.lint.client.api.IssueRegistry
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Platform
 import com.google.wireless.android.sdk.stats.LintSession
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.properties.PropertiesFileType
@@ -58,7 +57,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.Messages.getQuestionIcon
+import com.intellij.openapi.ui.Messages.showEditableChooseDialog
+import com.intellij.openapi.ui.Messages.showInputDialog
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -75,166 +76,125 @@ import java.util.EnumSet
 import com.android.ide.common.gradle.Module as ExternalModule
 
 open class AndroidLintIdeSupport : LintIdeSupport() {
-  override fun getIssueRegistry(): IssueRegistry {
-    return AndroidLintIdeIssueRegistry()
-  }
+  override fun getIssueRegistry() = AndroidLintIdeIssueRegistry()
 
   override fun getBaselineFile(client: LintIdeClient, module: Module): File? {
     val model = GradleAndroidModel.get(module) ?: return null
-    val version = model.agpVersion ?: return null
-    if (version.isAtLeast(2, 3, 1)) {
+    if (model.agpVersion.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions
       try {
-        val baselineFile = options.baselineFile
-        if (baselineFile != null) {
-          return baselineFile
+        options.baselineFile?.let {
+          return it
         }
-      } catch (unsupported: Throwable) {}
+      } catch (_: Throwable) {}
     }
 
     // Baselines can also be configured via lint.xml
-    module.getModuleDir()?.let { dir ->
-      client.getConfiguration(dir)?.baselineFile?.let { baseline ->
-        return baseline
-      }
-    }
-
-    return null
+    return module.getModuleDir()?.let(client::getConfiguration)?.baselineFile
   }
 
   override fun getSeverityOverrides(module: Module): Map<String, Int>? {
     val model = GradleAndroidModel.get(module) ?: return null
-    val version = model.agpVersion ?: return null
-    if (version.isAtLeast(2, 3, 1)) {
-      val options = model.androidProject.lintOptions
+    if (model.agpVersion.isAtLeast(2, 3, 1)) {
       try {
-        return options.severityOverrides
-      } catch (unsupported: Throwable) {}
+        return model.androidProject.lintOptions.severityOverrides
+      } catch (_: Throwable) {}
     }
     return null
   }
 
   override fun askForAttributeValue(attributeName: String, context: PsiElement): String? {
-    val facet = AndroidFacet.getInstance(context)
     val message = "Specify value of attribute '$attributeName'"
     val title = "Set Attribute Value"
-    if (facet != null) {
-      val srm = ModuleResourceManagers.getInstance(facet).frameworkResourceManager
-      if (srm != null) {
-        val attrDefs = srm.attributeDefinitions
-        if (attrDefs != null) {
-          val def = attrDefs.getAttrDefByName(attributeName)
-          if (def != null) {
-            val variants = def.values
-            if (variants.isNotEmpty()) {
-              return Messages.showEditableChooseDialog(
-                message,
-                title,
-                Messages.getQuestionIcon(),
-                variants,
-                variants[0],
-                null
-              )
-            }
-          }
-        }
-      }
-    }
-    return Messages.showInputDialog(context.project, message, title, Messages.getQuestionIcon())
+    val variants =
+      AndroidFacet.getInstance(context)
+        ?.let { ModuleResourceManagers.getInstance(it).frameworkResourceManager }
+        ?.attributeDefinitions
+        ?.getAttrDefByName(attributeName)
+        ?.values
+        ?.takeIf(Array<String>::isNotEmpty)
+
+    return if (variants == null) showInputDialog(context.project, message, title, getQuestionIcon())
+    else showEditableChooseDialog(message, title, getQuestionIcon(), variants, variants[0], null)
   }
 
   override fun canAnnotate(file: PsiFile, module: Module): Boolean {
-    // Limit checks to Android modules
+    // Limit checks to Android modules and modules within Android projects.
     val facet = AndroidFacet.getInstance(module)
-    if (facet == null && !AndroidLintIdeProject.hasAndroidModule(module.project)) {
+    if (facet == null && !CommonAndroidUtil.getInstance().isAndroidProject(module.project))
       return false
-    }
-    val fileType = file.fileType
+
     if (
-      fileType === JavaFileType.INSTANCE ||
-        fileType === KotlinFileType.INSTANCE ||
-        fileType === PropertiesFileType.INSTANCE ||
-        fileType === TomlFileType
-    ) {
+      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && file.name.endsWith(EXT_GRADLE_DECLARATIVE)
+    )
       return true
+
+    return when (file.fileType) {
+      JavaFileType.INSTANCE,
+      KotlinFileType.INSTANCE,
+      PropertiesFileType.INSTANCE,
+      TomlFileType -> true
+      XmlFileType.INSTANCE ->
+        facet != null &&
+          (ModuleResourceManagers.getInstance(facet)
+            .localResourceManager
+            .getFileResourceFolderType(file) != null || ANDROID_MANIFEST_XML == file.name)
+      FileTypes.PLAIN_TEXT -> super.canAnnotate(file, module)
+      else -> file.isGradleFile()
     }
-    if (fileType === XmlFileType.INSTANCE) {
-      return facet != null &&
-        (ModuleResourceManagers.getInstance(facet)
-          .localResourceManager
-          .getFileResourceFolderType(file) != null || ANDROID_MANIFEST_XML == file.name)
-    } else if (fileType === FileTypes.PLAIN_TEXT) {
-      return super.canAnnotate(file, module)
-    } else if (file.isGradleFile()) {
-      // Ensure that we're listening to the PSI structure for Gradle file edit notifications
-      val project = file.project
-      if (project.requiresAndroidModel()) {
-        AndroidFileChangeListener.getInstance(project)
-      }
-      return true
-    }
-    return false
   }
 
-  override fun canAnalyze(project: Project): Boolean {
+  override fun canAnalyze(project: Project) =
     // Only run in Android projects. This is relevant when the Android plugin is
     // enabled in IntelliJ.
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
-      return false
-    }
-    return true
-  }
+    CommonAndroidUtil.getInstance().isAndroidProject(project)
 
   // Projects
   override fun createProject(
     client: LintIdeClient,
     files: List<VirtualFile>?,
-    vararg modules: Module
-  ): List<com.android.tools.lint.detector.api.Project> {
-    return AndroidLintIdeProject.create(client, files, *modules)
-  }
+    vararg modules: Module,
+  ): List<com.android.tools.lint.detector.api.Project> =
+    AndroidLintIdeProject.create(client, files, *modules)
 
   override fun createProjectForSingleFile(
     client: LintIdeClient,
     file: VirtualFile?,
-    module: Module
+    module: Module,
   ): Pair<
-    com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project
+    com.android.tools.lint.detector.api.Project,
+    com.android.tools.lint.detector.api.Project,
   > {
     return AndroidLintIdeProject.createForSingleFile(client, file, module)
   }
 
-  override fun createClient(project: Project, lintResult: LintResult): LintIdeClient {
-    return AndroidLintIdeClient(project, lintResult)
-  }
+  override fun createClient(project: Project, lintResult: LintResult): LintIdeClient =
+    AndroidLintIdeClient(project, lintResult)
 
-  override fun createBatchClient(lintResult: LintBatchResult): LintIdeClient {
-    return AndroidLintIdeClient(lintResult.project, lintResult)
-  }
+  override fun createBatchClient(lintResult: LintBatchResult): LintIdeClient =
+    AndroidLintIdeClient(lintResult.project, lintResult)
 
-  override fun createEditorClient(lintResult: LintEditorResult): LintIdeClient {
-    return AndroidLintIdeClient(lintResult.getModule().project, lintResult)
-  }
+  override fun createEditorClient(lintResult: LintEditorResult): LintIdeClient =
+    AndroidLintIdeClient(lintResult.getModule().project, lintResult)
 
   // Gradle
   override fun updateToLatestStable(module: Module, externalModule: ExternalModule) {
     // Based on UpgradeConstraintLayoutFix
-    StudioSdkUtil.reloadRemoteSdkWithModalProgress()
+    StudioSdkUtil.reloadRemoteSdk(true)
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progress = StudioLoggerProgressIndicator(AndroidLintIdeSupport::class.java)
-    val p = SdkMavenRepository.findLatestVersion(externalModule, false, sdkHandler, null, progress)
-    if (p != null) {
-      val latest = SdkMavenRepository.getComponentFromSdkPath(p.path)
-      if (latest != null) { // should always be the case unless the version suffix is somehow wrong
-        val latestCoordinate =
-          latest.toIdentifier()?.let { GradleCoordinate.parseCoordinateString(it) } ?: return
-        module.getModuleSystem().updateLibrariesToVersion(listOf(latestCoordinate))
-        module.project
-          .getProjectSystem()
-          .getSyncManager()
-          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_DEPENDENCY_UPDATED)
-      }
-    }
+    val path =
+      SdkMavenRepository.findLatestVersion(externalModule, false, sdkHandler, null, progress)?.path
+        ?: return
+    val latestCoordinate =
+      SdkMavenRepository.getComponentFromSdkPath(path)
+        ?.toIdentifier()
+        ?.let(GradleCoordinate::parseCoordinateString) ?: return
+    module.getModuleSystem().updateLibrariesToVersion(listOf(latestCoordinate))
+    module.project
+      .getProjectSystem()
+      .getSyncManager()
+      .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_DEPENDENCY_UPDATED)
   }
 
   override fun recommendedAgpVersion(project: Project): AgpVersion? {
@@ -249,11 +209,8 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
     }
   }
 
-  override fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean {
-    return project
-      .getService(AssistantInvoker::class.java)
-      .shouldRecommendPluginUpgradeToLatest(project)
-  }
+  override fun shouldRecommendUpdateAgpToLatest(project: Project) =
+    project.getService(AssistantInvoker::class.java).shouldRecommendPluginUpgradeToLatest(project)
 
   override fun updateAgpToLatest(project: Project) {
     project.getService(AssistantInvoker::class.java).performRecommendedPluginUpgrade(project)
@@ -302,7 +259,7 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
         lint,
         lintResult.getModule(),
         lintResult.problems,
-        null
+        null,
       )
     }
   }
@@ -314,7 +271,7 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
       lint,
       module,
       null,
-      lintResult.problemMap
+      lintResult.problemMap,
     )
   }
 
@@ -331,8 +288,6 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
   override fun ensureNamespaceImported(
     file: XmlFile,
     namespaceUri: String,
-    suggestedPrefix: String?
-  ): String {
-    return com.android.tools.idea.res.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
-  }
+    suggestedPrefix: String?,
+  ) = com.android.tools.idea.res.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
 }

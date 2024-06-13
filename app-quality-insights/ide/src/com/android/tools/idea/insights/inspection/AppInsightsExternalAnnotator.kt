@@ -56,7 +56,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     val insights: List<AppInsight>,
     val vFile: VirtualFile,
     val editor: Editor,
-    val project: Project
+    val project: Project,
   )
 
   data class AnnotationResult(val insights: List<AppInsight>)
@@ -96,7 +96,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
         insight.updateToCurrentLineNumber(
           collectedInfo.vFile,
           collectedInfo.editor.document,
-          project
+          project,
         )
       }
 
@@ -160,18 +160,25 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
               logger.debug("Found ${it.size} ${controller.key} insights for ${file.name}")
             }
           }
-          is AppInsightsModel.Unauthenticated -> {
+          AppInsightsModel.Unauthenticated -> {
             logger.debug(
               "Skip annotation collection for ${tabProvider.displayName} because it is unauthenticated."
             )
             emptyList()
           }
-          is AppInsightsModel.Uninitialized -> {
+          AppInsightsModel.Uninitialized -> {
             // This should only happen at project startup, when things are initializing.
             // Skip collection until the insights model is authenticated, after which the
             // framework will call to collect again and get the correct annotations.
             logger.debug(
               "Skip annotation collection for ${tabProvider.displayName} because it hasn't initialized."
+            )
+            emptyList()
+          }
+          AppInsightsModel.InitialSyncFailed -> {
+            // This only happens at project startup and sync failure.
+            logger.debug(
+              "Skip annotation collection for ${tabProvider.displayName} because it initial sync failed."
             )
             emptyList()
           }
@@ -187,7 +194,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   private fun AppInsight.updateToCurrentLineNumber(
     vFile: VirtualFile,
     document: Document,
-    project: Project
+    project: Project,
   ): AppInsight? {
     val startTime = System.currentTimeMillis()
 
@@ -216,7 +223,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   class LineMarkerProvider : LineMarkerProviderDescriptor() {
     override fun getName() = "App quality insights"
 
-    override fun getIcon(): Icon = StudioIcons.Shell.ToolWindows.APP_QUALITY_INSIGHTS
+    override fun getIcon(): Icon = StudioIcons.GutterIcons.APP_QUALITY_INSIGHTS
 
     override fun getLineMarkerInfo(element: PsiElement) = null
   }

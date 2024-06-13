@@ -65,7 +65,7 @@ class EntryPointMethodDaggerConceptTest {
           fun bar2(): Bar
         }
         """
-          .trimIndent()
+          .trimIndent(),
       ) as KtFile
 
     val indexResults = EntryPointMethodDaggerConcept.indexers.runIndexerOn(psiFile)
@@ -75,8 +75,8 @@ class EntryPointMethodDaggerConceptTest {
         "Bar",
         setOf(
           EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1"),
-          EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
-        )
+          EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2"),
+        ),
       )
   }
 
@@ -110,7 +110,7 @@ class EntryPointMethodDaggerConceptTest {
         fun bar4(): Bar
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val bar1DaggerElement =
@@ -122,12 +122,14 @@ class EntryPointMethodDaggerConceptTest {
     assertThat(
         EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(bar1DaggerElement)
 
     assertThat(
         EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(bar2DaggerElement)
 
@@ -144,6 +146,7 @@ class EntryPointMethodDaggerConceptTest {
       assertThat(
           EntryPointMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -172,7 +175,7 @@ class EntryPointMethodDaggerConceptTest {
         Bar bar4();
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val bar1DaggerElement =
@@ -184,12 +187,14 @@ class EntryPointMethodDaggerConceptTest {
     assertThat(
         EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(bar1DaggerElement)
 
     assertThat(
         EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(bar2DaggerElement)
 
@@ -205,6 +210,7 @@ class EntryPointMethodDaggerConceptTest {
       assertThat(
           EntryPointMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -233,7 +239,7 @@ class EntryPointMethodDaggerConceptTest {
         public Bar() {}
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val bar1EntryPointDaggerElement =
@@ -249,7 +255,7 @@ class EntryPointMethodDaggerConceptTest {
         DaggerRelatedElement(
           barProviderDaggerElement,
           "Providers",
-          "navigate.to.provider.from.component"
+          "navigate.to.provider.from.component",
         )
       )
 
@@ -258,7 +264,7 @@ class EntryPointMethodDaggerConceptTest {
         DaggerRelatedElement(
           barProviderDaggerElement,
           "Providers",
-          "navigate.to.provider.from.component"
+          "navigate.to.provider.from.component",
         )
       )
 
@@ -268,14 +274,14 @@ class EntryPointMethodDaggerConceptTest {
           bar1EntryPointDaggerElement,
           "Exposed by entry points",
           "navigate.to.component.exposes",
-          "MyEntryPoint"
+          "MyEntryPoint",
         ),
         DaggerRelatedElement(
           bar2EntryPointDaggerElement,
           "Exposed by entry points",
           "navigate.to.component.exposes",
-          "MyEntryPoint"
-        )
+          "MyEntryPoint",
+        ),
       )
   }
 

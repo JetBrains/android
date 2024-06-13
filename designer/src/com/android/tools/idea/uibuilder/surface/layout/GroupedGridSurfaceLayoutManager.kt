@@ -18,10 +18,14 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.flags.StudioFlags
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
 import kotlin.math.sqrt
+
+/** The minumum height x width what should be available for the preview. */
+private const val minumumPreviewSpacePx = 100 * 100
 
 /**
  * This layout put the previews in the same group into the same rows and tries to not use the
@@ -45,76 +49,63 @@ import kotlin.math.sqrt
  * ---------
  * |A A A | |B B B B| |B | |C C |
  * ---------
- * @param canvasTopPadding the top padding from the surface.
- * @param canvasLeftPadding the left padding from the surface.
- * @param previewFramePaddingProvider provides the horizontal and vertical paddings of every
- *   "preview frame"s. The "preview frame" is a preview with its toolbars.
+ * @param padding layout paddings
  */
-class GroupedGridSurfaceLayoutManager(
-  @SwingCoordinate private val canvasTopPadding: Int,
-  @SwingCoordinate private val canvasLeftPadding: Int,
-  @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
-  private val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
-) : SurfaceLayoutManager {
-
-  override fun getPreferredSize(
-    content: Collection<PositionableContent>,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
-  ): Dimension {
-    return getSize(content, PositionableContent::contentSize, { 1.0 }, availableWidth, dimension)
-  }
-
-  override fun getRequiredSize(
-    content: Collection<PositionableContent>,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
-  ) = getSize(content, PositionableContent::scaledContentSize, { scale }, availableWidth, dimension)
+open class GroupedGridSurfaceLayoutManager(
+  private val padding: GroupPadding,
+  override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
+) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 
   /** Get the total required size to layout the [content] with the given conditions. */
-  private fun getSize(
+  override fun getSize(
     content: Collection<PositionableContent>,
     sizeFunc: PositionableContent.() -> Dimension,
     scaleFunc: PositionableContent.() -> Double,
     availableWidth: Int,
-    dimension: Dimension?
+    dimension: Dimension?,
   ): Dimension {
     val dim = dimension ?: Dimension()
 
     val groups =
       transform(content).map { group ->
-        layoutGroup(group, scaleFunc, availableWidth) { sizeFunc().width }
+        createLayoutGroup(group, scaleFunc, availableWidth) { sizeFunc().width }
       }
 
     val groupSizes = groups.map { group -> getGroupSize(group, sizeFunc, scaleFunc) }
-    val requiredWidth = groupSizes.maxOf { it.width }
+    val requiredWidth = groupSizes.maxOfOrNull { it.width } ?: 0
     val requiredHeight = groupSizes.sumOf { it.height }
 
     dim.setSize(
-      max(0, canvasLeftPadding + requiredWidth),
-      max(0, canvasTopPadding + requiredHeight)
+      max(0, padding.canvasLeftPadding + requiredWidth),
+      max(0, padding.canvasTopPadding + requiredHeight),
     )
     return dim
   }
 
   /** Get the total required size of the [PositionableContent]s in grid layout. */
   private fun getGroupSize(
-    grid: List<List<PositionableContent>>,
+    layoutGroup: GridLayoutGroup,
     sizeFunc: PositionableContent.() -> Dimension,
-    scaleFunc: PositionableContent.() -> Double
+    scaleFunc: PositionableContent.() -> Double,
   ): Dimension {
     var groupRequiredWidth = 0
     var groupRequiredHeight = 0
-    for (row in grid) {
+    layoutGroup.header?.let {
+      val scale = scaleFunc(it)
+      val margin = it.getMargin(scale)
+      val framePadding = padding.previewPaddingProvider(scale)
+      groupRequiredWidth = 2 * framePadding + it.sizeFunc().width + margin.horizontal
+      groupRequiredHeight = 2 * framePadding + it.sizeFunc().height + margin.vertical
+    }
+
+    for (row in layoutGroup.rows) {
       var rowX = 0
 
       var currentHeight = 0
       for (view in row) {
         val scale = scaleFunc(view)
         val margin = view.getMargin(scale)
-        val framePadding = previewFramePaddingProvider(scale)
+        val framePadding = padding.previewPaddingProvider(scale)
         rowX += framePadding + view.sizeFunc().width + margin.horizontal + framePadding
         currentHeight =
           max(currentHeight, framePadding + view.sizeFunc().height + margin.vertical + framePadding)
@@ -129,25 +120,31 @@ class GroupedGridSurfaceLayoutManager(
   override fun getFitIntoScale(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
+    @SwingCoordinate availableHeight: Int,
   ): Double {
     if (content.isEmpty()) {
       // No content. Use 100% as zoom level
       return 1.0
     }
 
+    val contentToFit =
+      if (StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.get()) {
+        // Take into consideration both height and width
+        content.take(max(1, availableWidth * availableHeight / minumumPreviewSpacePx))
+      } else content
+
     // Use binary search to find the proper zoom-to-fit value.
 
     // Calculate the sum of the area of the original content sizes. This considers the margins and
     // paddings of every content.
     val rawSizes =
-      content.map {
+      contentToFit.map {
         val contentSize = it.contentSize
         val margin = it.getMargin(1.0)
-        val framePadding = previewFramePaddingProvider(1.0)
+        val framePadding = padding.previewPaddingProvider(1.0)
         Dimension(
           contentSize.width + margin.horizontal + framePadding * 2,
-          contentSize.height + margin.vertical + framePadding * 2
+          contentSize.height + margin.vertical + framePadding * 2,
         )
       }
 
@@ -157,7 +154,7 @@ class GroupedGridSurfaceLayoutManager(
       // It is not possible that the zoom-to-fit scale is larger than this value.
       val contentAreas = rawSizes.sumOf { it.width * it.height }
       val availableArea =
-        (availableWidth - canvasLeftPadding) * (availableHeight - canvasTopPadding)
+        (availableWidth - padding.canvasLeftPadding) * (availableHeight - padding.canvasTopPadding)
       // The zoom-to-fit value cannot be smaller than 1%.
       maxOf(0.01, sqrt(availableArea.toDouble() / contentAreas))
     }
@@ -172,9 +169,9 @@ class GroupedGridSurfaceLayoutManager(
       maxOf(
         0.01,
         minOf(
-          (availableWidth - canvasLeftPadding) / totalWidth.toDouble(),
-          (availableHeight - canvasTopPadding) / totalHeight.toDouble()
-        )
+          (availableWidth - padding.canvasLeftPadding) / totalWidth.toDouble(),
+          (availableHeight - padding.canvasTopPadding) / totalHeight.toDouble(),
+        ),
       )
     }
 
@@ -183,12 +180,12 @@ class GroupedGridSurfaceLayoutManager(
     }
 
     return getMaxZoomToFitScale(
-      content,
+      contentToFit,
       lowerBound,
       upperBound,
       availableWidth,
       availableHeight,
-      Dimension()
+      Dimension(),
     )
   }
 
@@ -201,7 +198,7 @@ class GroupedGridSurfaceLayoutManager(
     @SwingCoordinate width: Int,
     @SwingCoordinate height: Int,
     cache: Dimension,
-    depth: Int = 0
+    depth: Int = 0,
   ): Double {
     if (depth >= MAX_ITERATION_TIMES) {
       return min
@@ -225,21 +222,19 @@ class GroupedGridSurfaceLayoutManager(
    * [PositionableContent]. The [widthFunc] is for getting the preferred widths of
    * [PositionableContent]s when filling the horizontal spaces.
    */
-  private fun layoutGroup(
+  private fun createLayoutGroup(
     group: PositionableGroup,
     scaleFunc: PositionableContent.() -> Double,
     @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate widthFunc: PositionableContent.() -> Int
-  ): List<List<PositionableContent>> {
+    @SwingCoordinate widthFunc: PositionableContent.() -> Int,
+  ): GridLayoutGroup {
     val content = group.content
-    val gridList = mutableListOf<List<PositionableContent>>()
-    // Add header if it exists and visible.
-    group.header?.let { gridList.add(listOf(it)) }
     if (content.isEmpty()) {
-      return gridList
+      return GridLayoutGroup(group.header, emptyList())
     }
+    val gridList = mutableListOf<List<PositionableContent>>()
     val firstView = content.first()
-    val firstPreviewFramePadding = previewFramePaddingProvider(scaleFunc(firstView))
+    val firstPreviewFramePadding = padding.previewPaddingProvider(scaleFunc(firstView))
     var nextX =
       firstPreviewFramePadding +
         firstView.widthFunc() +
@@ -248,7 +243,7 @@ class GroupedGridSurfaceLayoutManager(
 
     var columnList = mutableListOf(firstView)
     for (view in content.drop(1)) {
-      val framePadding = previewFramePaddingProvider(scaleFunc(view))
+      val framePadding = padding.previewPaddingProvider(scaleFunc(view))
       val nextViewWidth =
         framePadding + view.widthFunc() + view.getMargin(view.scaleFunc()).horizontal + framePadding
       if (nextX + nextViewWidth > availableWidth) {
@@ -261,14 +256,14 @@ class GroupedGridSurfaceLayoutManager(
       }
     }
     gridList.add(columnList)
-    return gridList
+    return GridLayoutGroup(group.header, gridList)
   }
 
   override fun measure(
     content: Collection<PositionableContent>,
     availableWidth: Int,
     availableHeight: Int,
-    keepPreviousPadding: Boolean
+    keepPreviousPadding: Boolean,
   ): Map<PositionableContent, Point> {
     if (content.isEmpty()) {
       return emptyMap()
@@ -282,36 +277,45 @@ class GroupedGridSurfaceLayoutManager(
       return mapOf(singleContent to point)
     }
 
-    val groupedViews = transform(content)
+    val groups = transform(content)
 
-    val startX: Int = canvasLeftPadding
-    val startY: Int = canvasTopPadding
+    val startX: Int = padding.canvasLeftPadding
+    val startY: Int = padding.canvasTopPadding
 
     var nextGroupY = startY
 
     val positionMap = mutableMapOf<PositionableContent, Point>()
 
-    for (group in groupedViews) {
-      val grid = layoutGroup(group, { scale }, availableWidth) { scaledContentSize.width }
+    for (group in groups) {
+      val layoutGroup =
+        createLayoutGroup(group, { scale }, availableWidth) { scaledContentSize.width }
       var nextX = startX
       var nextY = nextGroupY
       var maxBottomInRow = 0
-      for (row in grid) {
-        for (view in row) {
-          val framePadding = previewFramePaddingProvider(view.scale)
-          positionMap[view] = getContentPosition(view, nextX + framePadding, nextY + framePadding)
-          nextX +=
-            framePadding + view.scaledContentSize.width + view.margin.horizontal + framePadding
-          maxBottomInRow =
-            max(
-              maxBottomInRow,
-              nextY +
-                framePadding +
-                view.margin.vertical +
-                view.scaledContentSize.height +
-                framePadding
-            )
-        }
+
+      fun measure(view: PositionableContent) {
+        val framePadding = padding.previewPaddingProvider(view.scale)
+        positionMap[view] = getContentPosition(view, nextX + framePadding, nextY + framePadding)
+        nextX += framePadding + view.scaledContentSize.width + view.margin.horizontal + framePadding
+        maxBottomInRow =
+          max(
+            maxBottomInRow,
+            nextY +
+              framePadding +
+              view.margin.vertical +
+              view.scaledContentSize.height +
+              framePadding,
+          )
+      }
+
+      layoutGroup.header?.let {
+        measure(it)
+        nextX = startX
+        nextY = maxBottomInRow
+      }
+
+      for (row in layoutGroup.rows) {
+        row.forEach { measure(it) }
         nextX = startX
         nextY = maxBottomInRow
       }
@@ -320,38 +324,5 @@ class GroupedGridSurfaceLayoutManager(
     }
 
     return positionMap
-  }
-
-  @SwingCoordinate
-  private fun getSingleContentPosition(
-    content: PositionableContent,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
-  ): Point {
-    val size = content.scaledContentSize
-    val margin = content.margin
-    val frameWidth = size.width + margin.horizontal
-    val frameHeight = size.height + margin.vertical
-
-    val framePadding = previewFramePaddingProvider(content.scale)
-
-    // Try to centralize the content.
-    val x = maxOf((availableWidth - frameWidth) / 2, framePadding)
-    val y = maxOf((availableHeight - frameHeight) / 2, framePadding)
-    return getContentPosition(content, x, y)
-  }
-
-  /** Get the actual position should be set to the given [PositionableContent] */
-  @SwingCoordinate
-  private fun getContentPosition(
-    content: PositionableContent,
-    @SwingCoordinate previewX: Int,
-    @SwingCoordinate previewY: Int
-  ): Point {
-    // The new compose layout consider the toolbar size as the anchor of location.
-    val margin = content.margin
-    val shiftedX = previewX + margin.left
-    val shiftedY = previewY + margin.top
-    return Point(shiftedX, shiftedY)
   }
 }

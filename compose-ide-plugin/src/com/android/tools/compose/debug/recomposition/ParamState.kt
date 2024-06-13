@@ -55,8 +55,7 @@ internal enum class ParamState(private val nameResource: String, private val bit
   Unstable100("recomposition.state.unstable", 0b100),
   Unstable101("recomposition.state.unstable", 0b101),
   Unstable110("recomposition.state.unstable", 0b110),
-  Unstable111("recomposition.state.unstable", 0b111),
-  ;
+  Unstable111("recomposition.state.unstable", 0b111);
 
   fun getDisplayName() = ComposeBundle.message(nameResource)
 

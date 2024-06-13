@@ -51,7 +51,7 @@ object Navigation {
     property: NlPropertyItem,
     selection: MotionSelection,
     motionTag: MotionSceneTag,
-    subTagName: String
+    subTagName: String,
   ): Navigatable? {
     val subTag =
       getSubTag(motionTag, subTagName) ?: return findDefaultValueNavigation(property, selection)
@@ -61,7 +61,7 @@ object Navigation {
   private fun findValueFromCustomAttribute(
     property: NlPropertyItem,
     selection: MotionSelection,
-    constraint: MotionSceneTag
+    constraint: MotionSceneTag,
   ): Navigatable? {
     val customTag =
       MotionLayoutAttributesModel.findCustomTag(constraint, property.name) as? MotionSceneTag
@@ -73,7 +73,7 @@ object Navigation {
 
   private fun findDefaultValueNavigation(
     property: NlPropertyItem,
-    selection: MotionSelection
+    selection: MotionSelection,
   ): Navigatable? {
     if (selection.type != MotionEditorSelector.Type.CONSTRAINT) {
       return null
@@ -116,7 +116,7 @@ object Navigation {
 
   private fun findValueNavigationOfMotionTag(
     property: NlPropertyItem,
-    tag: MotionSceneTag
+    tag: MotionSceneTag,
   ): Navigatable? {
     return tag.xmlTag?.let { findValueNavigationOfXmlTag(it, property.name, property.namespace) }
   }
@@ -124,7 +124,7 @@ object Navigation {
   private fun findValueNavigationOfXmlTag(
     tag: XmlTag,
     attributeName: String,
-    namespace: String
+    namespace: String,
   ): Navigatable? {
     val attribute = tag.getAttribute(attributeName, namespace) ?: return null
     val attributeValue = attribute.valueElement ?: return null
@@ -137,7 +137,7 @@ object Navigation {
     if (element is ResourceReferencePsiElement) {
       return ResourceRepositoryToPsiResolver.getGotoDeclarationTargets(
           element.resourceReference,
-          tag
+          tag,
         )
         .filterIsInstance<Navigatable>()
         .firstOrNull()

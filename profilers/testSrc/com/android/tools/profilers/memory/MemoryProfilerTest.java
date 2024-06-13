@@ -19,6 +19,11 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNATTACHABLE_RESPONSE;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
@@ -34,10 +39,14 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.LiveStage;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.LiveTaskHandler;
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.JavaKotlinAllocationsTaskHandler;
 import com.google.common.truth.Truth;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -58,10 +67,12 @@ public final class MemoryProfilerTest {
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerTest", myTransportService);
   private StudioProfilers myStudioProfiler;
 
+  private FakeIdeProfilerServices myIdeProfilerServices;
+
   @Before
   public void setUp() {
-    FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
-    myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), ideProfilerServices, myTimer);
+    myIdeProfilerServices = new FakeIdeProfilerServices();
+    myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
   }
 
   @Test
@@ -77,7 +88,174 @@ public final class MemoryProfilerTest {
   }
 
   @Test
+  public void taskBasedUxNotLiveAllocationTracking() {
+    myIdeProfilerServices.enableTaskBasedUx(true);
+    setupODeviceAndProcessForTaskBasedUx(Common.ProfilerTaskType.LIVE_VIEW, true);
+    myStudioProfiler.addTaskHandler(ProfilerTaskType.LIVE_VIEW, new LiveTaskHandler(myStudioProfiler.getSessionsManager()));
+
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
+    // Wait for the session starting with agent
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+
+    Commands.Command lastCommand = allocTrackingHandler.getLastCommand();
+    // Last command is Stop Alloc Tracking
+    assertEquals(Commands.Command.CommandType.STOP_ALLOC_TRACKING, lastCommand.getType());
+
+    LiveStage liveStage = new LiveStage(myStudioProfiler);
+    // Set stage as liveStage
+    myStudioProfiler.setStage(liveStage);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    lastCommand = allocTrackingHandler.getLastCommand();
+    // Last command is still Stop Alloc tracking
+    assertEquals(Commands.Command.CommandType.STOP_ALLOC_TRACKING, lastCommand.getType());
+  }
+
+  @Test
+  public void nonTaskBasedUxLiveAllocationTracking() {
+    ((MemoryAllocTracking)myTransportService
+      .getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING))
+      .setTrackStatus(Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build());
+    myIdeProfilerServices.enableTaskBasedUx(false);
+    setupODeviceAndProcess();
+
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    // Wait for the session starting with agent
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+
+    Commands.Command lastCommand = allocTrackingHandler.getLastCommand();
+    // Last command is Stop Alloc Tracking
+    assertEquals(Commands.Command.CommandType.STOP_ALLOC_TRACKING, lastCommand.getType());
+
+    AllocationStage allocationStage = spy(AllocationStage.makeLiveStage(myStudioProfiler, new FakeCaptureObjectLoader()));
+    allocationStage.setLiveAllocationSamplingMode(BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    doReturn(false).when(allocationStage).isAgentAttached(); // make delayed allocation tracking
+    // Set stage as AllocationStage
+    myStudioProfiler.setStage(allocationStage);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // wait for the start allocation tracking
+    lastCommand = allocTrackingHandler.getLastCommand();
+    // Check if last ran command is start allocation tracking, there is no delay since it's not task based ux
+    assertEquals(Commands.Command.CommandType.START_ALLOC_TRACKING, lastCommand.getType());
+  }
+
+  /** After the agent is already attached by prior tasks, the user starts a J/K Allocation task **/
+  @Test
+  public void taskBasedUxLiveAllocationTrackingNoDelayedStart() {
+    ((MemoryAllocTracking)myTransportService
+      .getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING))
+      .setTrackStatus(Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build());
+    myIdeProfilerServices.enableTaskBasedUx(true);
+    myStudioProfiler.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+                                    new JavaKotlinAllocationsTaskHandler(myStudioProfiler.getSessionsManager()));
+
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    setupODeviceAndProcessForTaskBasedUx(Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, true);
+    // After Set Process, agent attached will be false.
+    // That shouldn't have triggered any allocation tracking command
+    Commands.Command lastCommand = allocTrackingHandler.getLastCommand();
+    // No Stop Allocation tracking or start allocation tracking yet.
+    assertEquals(Commands.Command.CommandType.UNSPECIFIED, lastCommand.getType());
+    // Set Agent as not attached yet
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
+
+    AllocationStage allocationStage = spy(AllocationStage.makeLiveStage(myStudioProfiler, new FakeCaptureObjectLoader()));
+    allocationStage.setLiveAllocationSamplingMode(BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    // Agent already attached
+    doReturn(true).when(allocationStage).isAgentAttached();
+    // Set stage as AllocationStage
+    myStudioProfiler.setStage(allocationStage);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    lastCommand = allocTrackingHandler.getLastCommand();
+    // Check if the last ran command is still start allocation tracking
+    assertEquals(Commands.Command.CommandType.START_ALLOC_TRACKING, lastCommand.getType());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Allocation tracking started
+    assertTrue(allocationStage.getHasStartedTracking());
+    assertFalse(allocationStage.getHasEndedTracking());
+  }
+
+  /** When J/K Allocation task is the first task (Agent not being attached) **/
+  @Test
+  public void taskBasedUxLiveAllocationTrackingDelayedStart() {
+    ((MemoryAllocTracking)myTransportService
+      .getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING))
+      .setTrackStatus(Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build());
+    myIdeProfilerServices.enableTaskBasedUx(true);
+    myStudioProfiler.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+                                    new JavaKotlinAllocationsTaskHandler(myStudioProfiler.getSessionsManager()));
+
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    setupODeviceAndProcessForTaskBasedUx(Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, true);
+    // After Set Process, agent attached will be false.
+    // That shouldn't have triggered any allocation tracking command
+    Commands.Command lastCommand = allocTrackingHandler.getLastCommand();
+    // No Stop Allocation tracking or start allocation tracking yet.
+    assertEquals(Commands.Command.CommandType.UNSPECIFIED, lastCommand.getType());
+    // Set Agent as not attached yet
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
+
+    AllocationStage allocationStage = spy(AllocationStage.makeLiveStage(myStudioProfiler, new FakeCaptureObjectLoader()));
+    allocationStage.setLiveAllocationSamplingMode(BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    // Delay allocation tracking
+    doReturn(false).when(allocationStage).isAgentAttached();
+    // Set stage as AllocationStage
+    myStudioProfiler.setStage(allocationStage);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    lastCommand = allocTrackingHandler.getLastCommand();
+    // Check if the last ran command is still no allocation tracking
+    assertEquals(Commands.Command.CommandType.UNSPECIFIED, lastCommand.getType());
+
+    doReturn(true).when(allocationStage).isAgentAttached();
+    // If the agent changed again, it should start the tracking
+    myStudioProfiler.changed(ProfilerAspect.AGENT);
+    // Wait for the agent status change
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    lastCommand = allocTrackingHandler.getLastCommand();
+    // Last command is now start Alloc Tracking
+    assertEquals(Commands.Command.CommandType.START_ALLOC_TRACKING, lastCommand.getType());
+    // Allocation tracking started
+    assertTrue(allocationStage.getHasStartedTracking());
+    assertFalse(allocationStage.getHasEndedTracking());
+  }
+
+  @Test
+  public void testAllocationTrackingWhenAgentUnAttached() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
+    Common.Session session = Common.Session.newBuilder()
+      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(Long.MAX_VALUE).build();
+    // Setting to Long.Max_Value so the session is still active
+    Common.SessionMetaData sessionOMetadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build();
+    myTransportService.addSession(session, sessionOMetadata);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Agent status is unspecified
+    assertEquals(Common.AgentData.Status.UNSPECIFIED, myStudioProfiler.getAgentData().getStatus());
+
+    myTransportService.addEventToStream(session.getStreamId(), Common.Event.newBuilder()
+      .setKind(Common.Event.Kind.AGENT)
+      .setPid(session.getPid())
+      .setAgentData(DEFAULT_AGENT_UNATTACHABLE_RESPONSE)
+      .build());
+    AllocationStage allocationStage = spy(AllocationStage.makeLiveStage(myStudioProfiler, new FakeCaptureObjectLoader()));
+    myStudioProfiler.getSessionsManager().setSession(session);
+    myStudioProfiler.setStage(allocationStage);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(Common.AgentData.Status.UNATTACHABLE, myStudioProfiler.getAgentData().getStatus());
+    // If Stage is AllocationStage and agent status is un-attachable, it will mark as AgentError
+    assertTrue(allocationStage.getHasAgentError());
+    assertTrue(allocationStage.getHasEndedTracking());
+  }
+
+  @Test
   public void testLiveAllocationTrackingStoppedAndNotStartedOnAgentAttach() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     setupODeviceAndProcess();
     // Verify start and stop allocation tracking commands are handled by the same handler.
     MemoryAllocTracking allocTrackingHandler =
@@ -103,6 +281,8 @@ public final class MemoryProfilerTest {
 
   @Test
   public void liveAllocationTrackingDidNotStartIfAgentIsNotAttached() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
     setupODeviceAndProcess();
 
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
@@ -234,6 +414,27 @@ public final class MemoryProfilerTest {
     myTransportService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStudioProfiler.setProcess(device, process);
+  }
+
+  private void setupODeviceAndProcessForTaskBasedUx(Common.ProfilerTaskType taskType, boolean isStartupTask) {
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(FAKE_DEVICE_ID)
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .setFeatureLevel(AndroidVersion.VersionCodes.O)
+      .build();
+    Common.Process process = Common.Process.newBuilder()
+      .setPid(20)
+      .setDeviceId(FAKE_DEVICE_ID)
+      .setState(Common.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .setStartTimestampNs(DEVICE_STARTTIME_NS)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    myTransportService.addDevice(device);
+    myTransportService.addProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myStudioProfiler.setProcess(device, process, taskType, isStartupTask);
   }
 
   private boolean getIsUsingLiveAllocation() {

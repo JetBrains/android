@@ -29,7 +29,7 @@ class ResourceDefinitionSearch :
 
   override fun processQuery(
     queryParameters: DefinitionsScopedSearch.SearchParameters,
-    consumer: Processor<in PsiElement>
+    consumer: Processor<in PsiElement>,
   ) {
     val project = queryParameters.project
     val element = queryParameters.element

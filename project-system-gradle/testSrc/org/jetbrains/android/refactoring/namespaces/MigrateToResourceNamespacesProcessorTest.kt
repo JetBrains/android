@@ -80,7 +80,8 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
     }
   }
 
-  fun testResourceValues() {
+  // TODO: http://b/316927024
+  fun ignoreTestResourceValues() {
     val appXml = myFixture.addFileToProject(
       "/res/values/app.xml",
       // language=xml

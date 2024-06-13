@@ -30,6 +30,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.measureTimeMillis
 
 const val CHANNEL_CAPACITY = 10
@@ -58,8 +59,10 @@ constructor(
     Clock.systemDefaultZone(),
     MAX_TIME_PER_BATCH_MS,
     StudioFlags.LOGCAT_MAX_MESSAGES_PER_BATCH.get(),
-    autoStart = true
+    autoStart = true,
   )
+
+  private val context = AtomicReference<Any?>(null)
 
   private val messageChannel = Channel<List<LogcatMessage>>(CHANNEL_CAPACITY)
 
@@ -67,6 +70,15 @@ constructor(
     if (autoStart) {
       start()
     }
+  }
+
+  /**
+   * The context is set when the user changes the device combo selection.
+   *
+   * We use this value to prevent us from adding messages from the previously selected device.
+   */
+  fun context(context: Any) {
+    this.context.getAndSet(context)
   }
 
   internal suspend fun appendMessages(messages: List<LogcatMessage>): List<LogcatMessage> {
@@ -116,7 +128,7 @@ constructor(
             numMessages > maxMessagesPerBatch
         ) {
           val timeInAppendMessages = measureTimeMillis {
-            logcatPresenter.appendMessages(textAccumulator)
+            logcatPresenter.appendMessages(textAccumulator, context.get())
           }
           LOGGER.debug {
             val timeSinceStart = now - startTime

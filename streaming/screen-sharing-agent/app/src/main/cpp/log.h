@@ -39,6 +39,7 @@ enum ExitCode {
   VIDEO_ENCODER_CONFIGURATION_ERROR = 32,
   WEAK_VIDEO_ENCODER = 33,
   REPEATED_VIDEO_ENCODER_ERRORS = 34,
+  VIDEO_ENCODER_START_ERROR = 35,
   VIRTUAL_DISPLAY_CREATION_ERROR = 50,
   INPUT_SURFACE_CREATION_ERROR = 51,
   SERVICE_NOT_FOUND = 52,
@@ -95,10 +96,10 @@ public:
     return level >= level_;
   }
 
+  Log() = delete;
+
 private:
   static Level level_;
-
-  Log() = delete;
 };
 
 #define TRACE Log::D("%s:%d", __FILE__, __LINE__)

@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.compose.gradle.uicheck
 
-import com.android.tools.idea.compose.UiCheckModeFilter
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.createNlModelForCompose
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer.VisualLintIssueContent
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
-import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert
@@ -38,20 +42,27 @@ class AtfAnalyzerComposeTest {
 
   @After
   fun tearDown() {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
   }
 
   @Test
-  fun testColorContrastIssueOnAllPreviews() {
+  fun testColorContrastIssueOnNotVisiblePreviewWhenColorblindFlagIsOff() {
+    // We can delete this test when the feature flag NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE
+    // is fully enabled
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
+
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview",
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview"
       )
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
 
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
     val issueMessages = issues.map { it.message }.distinct()
 
     Assert.assertEquals(1, issueMessages.size)
@@ -59,33 +70,66 @@ class AtfAnalyzerComposeTest {
   }
 
   @Test
-  fun testNoColorBlindIssuesWhenFeatureFlagOff() {
-    val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview",
-      )
+  fun testColorContrastIssueOnNotVisiblePreviewWhenColorblindFlagIsOn() {
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val elementInstanceTest =
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview"
+      )
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
+    val issueMessages = issues.map { it.message }.distinct()
+
+    Assert.assertEquals(2, issueMessages.size)
+    Assert.assertEquals("Insufficient text color contrast ratio", issueMessages[0])
+    Assert.assertEquals("Insufficient color contrast for color blind users", issueMessages[1])
+  }
+
+  @Test
+  fun testNoColorErrorOnColorblindPreviewWhenColorblindFlagIsOff() {
+    // We can delete this test when the feature flag NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE
+    // is fully enabled
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
+
+    val elementInstanceTest =
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview"
+      )
+
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
+
+    val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
 
     Assert.assertTrue(issues.isEmpty())
   }
 
   @Test
   fun testOneColorblindProblemFound() {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.VisualLintPreviewKt.OneColorBlindErrorPreview",
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "google.simpleapplication.VisualLintPreviewKt.OneColorBlindErrorPreview"
       )
 
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
 
     Assert.assertEquals(1, issues.size)
 
@@ -102,33 +146,32 @@ class AtfAnalyzerComposeTest {
     // Don't test the whole problemDescriptionHtml string because part of the content is provided
     // from ATF
     Assert.assertTrue(
-      "Color contrast check fails for Tritanopes colorblind configuration" in
-        problemDescriptionHtml,
+      "Color contrast check fails for Tritanopes colorblind configuration" in problemDescriptionHtml
     )
   }
 
   @Test
   fun testTwoColorblindProblemsFound() {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.VisualLintPreviewKt.TwoColorBlindErrorsPreview",
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "google.simpleapplication.VisualLintPreviewKt.TwoColorBlindErrorsPreview"
       )
 
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
 
     Assert.assertEquals(2, issues.size)
 
     // All the problems have the same message but different descriptions
     issues.forEach {
-      Assert.assertEquals(
-        "Insufficient color contrast for color blind users",
-        it.message,
-      )
+      Assert.assertEquals("Insufficient color contrast for color blind users", it.message)
     }
 
     val selectedIssueToShowInProblems = issues.first()
@@ -140,32 +183,32 @@ class AtfAnalyzerComposeTest {
     // from ATF
     Assert.assertTrue(
       "Color contrast check fails for Deuteranopes and 1 other colorblind configuration" in
-        problemDescriptionHtml,
+        problemDescriptionHtml
     )
   }
 
   @Test
   fun testThreeColorblindProblemsFound() {
-    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
-      SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview",
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview"
       )
 
-    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+    val uiCheckPreviews =
+      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
 
     Assert.assertEquals(3, issues.size)
 
     // All the problems have the same message but different descriptions
     issues.forEach {
-      Assert.assertEquals(
-        "Insufficient color contrast for color blind users",
-        it.message,
-      )
+      Assert.assertEquals("Insufficient color contrast for color blind users", it.message)
     }
 
     val selectedIssueToShowInProblems = issues.first()
@@ -177,36 +220,33 @@ class AtfAnalyzerComposeTest {
     // from ATF
     Assert.assertTrue(
       "Color contrast check fails for Deuteranopes and 2 other colorblind configurations" in
-        problemDescriptionHtml,
+        problemDescriptionHtml
     )
   }
 
   private fun collectIssuesFromRenders(
-    uiCheckPreviews: Collection<ComposePreviewElementInstance>,
-    facet: AndroidFacet
+    uiCheckPreviews: Collection<PsiComposePreviewElementInstance>,
+    facet: AndroidFacet,
+    targetFile: VirtualFile,
   ): List<VisualLintIssueContent> =
     uiCheckPreviews.flatMap {
       val renderResult =
         renderPreviewElementForResult(
             facet = facet,
+            originFile = targetFile,
             previewElement = it,
             useLayoutScanner = true,
             customViewInfoParser = accessibilityBasedHierarchyParser,
           )
-          .get()!!
+          .get()
 
-      val file = renderResult.sourceFile.virtualFile
-      val nlModel =
-        createNlModelForCompose(
-          projectRule.fixture.testRootDisposable,
-          facet,
-          file,
-        )
+      val file = renderResult.lightVirtualFile
+      val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
       nlModel.modelDisplayName = it.displaySettings.name
 
       // We need to update the hierarchy with the render result so that ATF can link the result with
       // the NlModel
-      NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
-      AtfAnalyzer.findIssues(renderResult, nlModel)
+      NlModelHierarchyUpdater.updateHierarchy(renderResult.result!!, nlModel)
+      AtfAnalyzer.findIssues(renderResult.result, nlModel)
     }
 }

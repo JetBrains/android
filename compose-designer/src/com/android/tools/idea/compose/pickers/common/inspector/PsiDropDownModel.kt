@@ -39,7 +39,7 @@ internal class PsiDropDownModel
 constructor(
   property: PsiPropertyItem,
   private val enumSupport: EnumSupport,
-  private val setSelectedValueCallback: () -> Unit
+  private val setSelectedValueCallback: () -> Unit,
 ) : BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
   private val syncNewValues = Object()
 

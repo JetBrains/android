@@ -38,7 +38,7 @@ fun findMatchingCause(element: UElement, cause: Cause, range: TextRange): UEleme
 private fun findMatchingThrow(
   element: UElement,
   cause: Cause.Throwable,
-  range: TextRange
+  range: TextRange,
 ): UElement? {
   ProgressManager.checkCanceled()
   val foundChild = AtomicReference<UElement>()
@@ -79,7 +79,7 @@ private fun findMatchingThrow(
 private fun findMatchingMethodCall(
   element: UElement,
   cause: Cause.Frame,
-  range: TextRange
+  range: TextRange,
 ): UElement? {
   ProgressManager.checkCanceled()
   val foundChild = AtomicReference<UElement>()
@@ -110,6 +110,6 @@ private fun findMatchingMethodCall(
   return findMatchingMethodCall(
     element.getParentOfType<UThrowExpression>() ?: return null,
     cause,
-    range
+    range,
   )
 }

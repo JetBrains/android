@@ -44,7 +44,7 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
       CachedValueProvider.Result.create(
         result,
         ProjectNavigationResourceModificationTracker.getInstance(project),
-        project.safeArgsModeTracker
+        project.safeArgsModeTracker,
       )
     }
 

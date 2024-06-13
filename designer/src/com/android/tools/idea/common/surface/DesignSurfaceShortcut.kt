@@ -59,7 +59,7 @@ enum class DesignSurfaceShortcut(val keyCode: Int, private val keyChar: Char? = 
   fun registerForAction(
     shortcutAction: AnAction,
     component: JComponent,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AnAction {
     shortcutAction.registerCustomShortcutSet(shortcutSet, component, parentDisposable)
     return shortcutAction
@@ -76,7 +76,7 @@ enum class DesignSurfaceShortcut(val keyCode: Int, private val keyChar: Char? = 
     visibleAction: AnAction,
     shortcutAction: AnAction,
     component: JComponent,
-    parentDisposable: Disposable
+    parentDisposable: Disposable,
   ): AnAction {
     shortcutAction.registerCustomShortcutSet(shortcutSet, component, parentDisposable)
     val presentation = visibleAction.templatePresentation

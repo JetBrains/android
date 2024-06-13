@@ -60,7 +60,7 @@ class OfflineBalloonMaker(name: String, private val project: Project) {
                 project.service<AppInsightsSettings>().isOfflineNotificationDismissed = true
               }
             }
-          }
+          },
         )
         .setBorderColor(JBColor.border())
         .setBorderInsets(JBInsets.create(4, 4))
@@ -70,7 +70,7 @@ class OfflineBalloonMaker(name: String, private val project: Project) {
         override fun recalculateLocation(balloon: Balloon) =
           RelativePoint(component, Point(component.preferredSize.width / 4, 0))
       },
-      Balloon.Position.above
+      Balloon.Position.above,
     )
   }
 }

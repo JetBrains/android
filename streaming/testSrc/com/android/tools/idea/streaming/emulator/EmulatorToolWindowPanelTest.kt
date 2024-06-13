@@ -103,10 +103,10 @@ import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import javax.swing.JViewport
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for [EmulatorToolWindowPanel] and some of its toolbar actions.
@@ -149,7 +149,7 @@ class EmulatorToolWindowPanelTest {
     val focusManager = FakeKeyboardFocusManager(testRootDisposable)
 
     val panel = createWindowPanelForPhone()
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
@@ -161,7 +161,6 @@ class EmulatorToolWindowPanelTest {
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(400, 600)
-    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
@@ -170,11 +169,11 @@ class EmulatorToolWindowPanelTest {
     // Check EmulatorPowerButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Power" }
     ui.mousePressOn(button)
-    var call = emulator.getNextGrpcCall(2, SECONDS)
+    var call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""key: "Power"""")
     ui.mouseRelease()
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
 
@@ -183,7 +182,7 @@ class EmulatorToolWindowPanelTest {
     var keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
     val dataContext = DataManager.getInstance().getDataContext(panel.primaryEmulatorView)
     action.actionPerformed(AnActionEvent.createFromAnAction(action, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Power"""")
 
@@ -191,35 +190,35 @@ class EmulatorToolWindowPanelTest {
     action = ActionManager.getInstance().getAction("android.device.power.and.volume.up.button")
     keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK or SHIFT_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
     action.actionPerformed(AnActionEvent.createFromAnAction(action, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""key: "VolumeUp"""")
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Power"""")
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "VolumeUp"""")
 
     // Check EmulatorVolumeUpButtonAction.
     button = ui.getComponent { it.action.templateText == "Volume Up" }
     ui.mousePressOn(button)
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""key: "AudioVolumeUp"""")
     ui.mouseRelease()
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeUp"""")
 
     // Check EmulatorVolumeDownButtonAction.
     button = ui.getComponent { it.action.templateText == "Volume Down" }
     ui.mousePressOn(button)
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""key: "AudioVolumeDown"""")
     ui.mouseRelease()
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeDown"""")
 
@@ -235,29 +234,29 @@ class EmulatorToolWindowPanelTest {
     val content = StringSelection("host clipboard")
     ClipboardSynchronizer.getInstance().setContent(content, content)
     focusManager.focusOwner = emulatorView
-    call = emulator.getNextGrpcCall(3, SECONDS)
+    call = emulator.getNextGrpcCall(3.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
     assertThat(shortDebugString(call.request)).isEqualTo("""text: "host clipboard"""")
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamClipboard")
-    call.waitForResponse(2, SECONDS)
+    call.waitForResponse(2.seconds)
     emulator.clipboard = "device clipboard"
-    call.waitForResponse(2, SECONDS)
-    waitForCondition(2, SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
+    call.waitForResponse(2.seconds)
+    waitForCondition(2.seconds) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
     assertThat(call.completion.isCancelled).isFalse()
     focusManager.focusOwner = null
-    call.waitForCancellation(2, SECONDS)
+    call.waitForCancellation(2.seconds)
 
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
-    streamScreenshotCall.waitForCancellation(2, SECONDS)
+    streamScreenshotCall.waitForCancellation(2.seconds)
   }
 
   @Test
   fun testWearToolbarActionsApi30() {
     val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 30)
     val panel = createWindowPanel(avdFolder)
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
@@ -269,7 +268,6 @@ class EmulatorToolWindowPanelTest {
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(430, 450)
-    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 320 height: 320")
@@ -278,35 +276,35 @@ class EmulatorToolWindowPanelTest {
     // Check Wear1ButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Button 1" }
     ui.mouseClickOn(button)
-    var call = emulator.getNextGrpcCall(2, SECONDS)
+    var call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""key: "GoHome"""")
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "GoHome"""")
 
     // Check Wear2ButtonAction.
     button = ui.getComponent { it.action.templateText == "Button 2" }
     ui.mousePressOn(button)
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""key: "Power"""")
     ui.mouseRelease()
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
 
     // Check PalmAction.
     button = ui.getComponent { it.action.templateText == "Palm" }
     ui.mouseClickOn(button)
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Standby"""")
 
     // Check TiltAction.
     button = ui.getComponent { it.action.templateText == "Tilt" }
     ui.mouseClickOn(button)
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: WRIST_TILT value { data: 1.0 }")
 
@@ -321,20 +319,18 @@ class EmulatorToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
-    streamScreenshotCall.waitForCancellation(2, SECONDS)
+    streamScreenshotCall.waitForCancellation(2.seconds)
   }
-
   @Test
   fun testWearToolbarActionsApi28() {
     val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 28)
     val panel = createWindowPanel(avdFolder)
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
     panel.size = Dimension(430, 450)
-    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
 
     // Check toolbar buttons.
@@ -352,23 +348,22 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
 
-    val streamScreenshotCall = emulator.getNextGrpcCall(2, SECONDS)
+    val streamScreenshotCall = emulator.getNextGrpcCall(2.seconds)
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
-    streamScreenshotCall.waitForCancellation(2, SECONDS)
+    streamScreenshotCall.waitForCancellation(2.seconds)
   }
 
   @Test
   fun testWearToolbarActionsApi26() {
     val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 26)
     val panel = createWindowPanel(avdFolder)
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
     panel.size = Dimension(430, 450)
-    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
 
     // Check that the buttons specific to API 30 and API 28 are hidden.
@@ -388,10 +383,46 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
 
-    val streamScreenshotCall = emulator.getNextGrpcCall(2, SECONDS)
+    val streamScreenshotCall = emulator.getNextGrpcCall(2.seconds)
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
-    streamScreenshotCall.waitForCancellation(2, SECONDS)
+    streamScreenshotCall.waitForCancellation(2.seconds)
+  }
+
+  @Test
+  fun testAutomotiveToolbarActions() {
+    val avdFolder = FakeEmulator.createAutomotiveAvd(emulatorRule.avdRoot, api = 32)
+    val panel = createWindowPanel(avdFolder)
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(400, 300)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 400 height: 271")
+    assertAppearance(ui, "AutomotiveToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
+    // Check that the buttons not applicable to Automotive devices are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Back" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
+
+    panel.destroyContent()
+    assertThat(panel.primaryEmulatorView).isNull()
+    streamScreenshotCall.waitForCancellation(2.seconds)
   }
 
   @Test
@@ -399,7 +430,8 @@ class EmulatorToolWindowPanelTest {
     val avdFolder = FakeEmulator.createResizableAvd(emulatorRule.avdRoot)
     val panel = createWindowPanel(avdFolder)
     panel.zoomToolbarVisible = false
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
     val project = projectRule.project
 
     assertThat(panel.primaryEmulatorView).isNull()
@@ -410,7 +442,6 @@ class EmulatorToolWindowPanelTest {
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(500, 600)
-    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 500 height: 571")
@@ -418,16 +449,16 @@ class EmulatorToolWindowPanelTest {
 
     // Set the foldable display mode.
     executeStreamingAction("android.emulator.display.mode.foldable", emulatorView, project)
-    val setDisplayModeCall = emulator.getNextGrpcCall(2, SECONDS)
+    val setDisplayModeCall = emulator.getNextGrpcCall(2.seconds)
     assertThat(setDisplayModeCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setDisplayMode")
     assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: FOLDABLE")
 
-    panel.waitForFrame(ui, ++frameNumber, 2, SECONDS)
+    panel.waitForFrame(ui, ++frameNumber, 2.seconds)
     assertAppearance(ui, "DisplayModesFoldable", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(emulatorView, project, ActionPlaces.TOOLBAR)
-    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
+    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.isVisible}
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
@@ -448,7 +479,7 @@ class EmulatorToolWindowPanelTest {
   fun testFolding() {
     val avdFolder = FakeEmulator.createFoldableAvd(emulatorRule.avdRoot)
     val panel = createWindowPanel(avdFolder)
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
@@ -459,14 +490,13 @@ class EmulatorToolWindowPanelTest {
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(200, 400)
-    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     var call = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 186 height: 327")
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(emulatorView, project, ActionPlaces.TOOLBAR)
-    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
+    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.isVisible}
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
@@ -484,13 +514,13 @@ class EmulatorToolWindowPanelTest {
     assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
 
     foldingActions.first().actionPerformed(event)
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: HINGE_ANGLE0 value { data: 0.0 }")
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 170 height: 347")
-    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
-    panel.waitForFrame(ui, ++frameNumber, 2, SECONDS)
+    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
+    panel.waitForFrame(ui, ++frameNumber, 2.seconds)
     assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
 
     // Check EmulatorShowVirtualSensorsAction.
@@ -499,10 +529,10 @@ class EmulatorToolWindowPanelTest {
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
 
     foldingActions.last().actionPerformed(event)
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/setUiTheme")
     assertThat(call.request).isEqualTo(ThemingStyle.newBuilder().setStyle(ThemingStyle.Style.DARK).build())
-    call = emulator.getNextGrpcCall(2, SECONDS)
+    call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/showExtendedControls")
     assertThat(shortDebugString(call.request)).isEqualTo("index: VIRT_SENSORS")
   }
@@ -510,7 +540,7 @@ class EmulatorToolWindowPanelTest {
   @Test
   fun testZoom() {
     val panel = createWindowPanelForPhone()
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
@@ -520,7 +550,6 @@ class EmulatorToolWindowPanelTest {
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(400, 600)
-    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
@@ -555,7 +584,7 @@ class EmulatorToolWindowPanelTest {
   fun testZoomLargeScale() {
     val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 30)
     val panel = createWindowPanel(avdFolder)
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
@@ -566,7 +595,6 @@ class EmulatorToolWindowPanelTest {
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(200, 400)
-    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     val call1 = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(call1.request)).isEqualTo("format: RGB888 width: 168 height: 312")
@@ -594,7 +622,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     ui.render() // Trigger displayRectangle update.
     assertThat(emulatorView.displayRectangle!!.width).isEqualTo(640)
-    assertThat(emulatorView.canZoomIn()).isFalse()
+    assertThat(emulatorView.canZoomIn()).isTrue()
     assertThat(emulatorView.canZoomOut()).isTrue()
     assertThat(emulatorView.canZoomToActual()).isTrue()
     assertThat(emulatorView.canZoomToFit()).isTrue()
@@ -605,7 +633,29 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     ui.render() // Trigger displayRectangle update.
     assertThat(emulatorView.displayRectangle!!.width).isEqualTo(640)
-    assertThat(emulatorView.canZoomIn()).isFalse()
+    assertThat(emulatorView.canZoomIn()).isTrue()
+    assertThat(emulatorView.canZoomOut()).isTrue()
+    assertThat(emulatorView.canZoomToActual()).isTrue()
+    assertThat(emulatorView.canZoomToFit()).isTrue()
+
+    emulatorView.zoom(ZoomType.FIT)
+    ui.layoutAndDispatchEvents()
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
+    ui.render() // Trigger displayRectangle update.
+    assertThat(emulatorView.displayRectangle!!.width).isEqualTo(674)
+    assertThat(emulatorView.canZoomIn()).isTrue()
+    assertThat(emulatorView.canZoomOut()).isTrue()
+    assertThat(emulatorView.canZoomToActual()).isTrue()
+    assertThat(emulatorView.canZoomToFit()).isFalse()
+
+    panel.size = Dimension(850, 1200)
+    ui.layoutAndDispatchEvents()
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
+    ui.render() // Trigger displayRectangle update.
+    assertThat(emulatorView.displayRectangle!!.width).isEqualTo(716)
+    assertThat(emulatorView.canZoomIn()).isTrue()
     assertThat(emulatorView.canZoomOut()).isTrue()
     assertThat(emulatorView.canZoomToActual()).isTrue()
     assertThat(emulatorView.canZoomToFit()).isFalse()
@@ -616,10 +666,10 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     ui.render() // Trigger displayRectangle update.
     assertThat(emulatorView.displayRectangle!!.width).isEqualTo(960)
-    assertThat(emulatorView.canZoomIn()).isFalse()
+    assertThat(emulatorView.canZoomIn()).isTrue()
     assertThat(emulatorView.canZoomOut()).isTrue()
     assertThat(emulatorView.canZoomToActual()).isTrue()
-    assertThat(emulatorView.canZoomToFit()).isFalse()
+    assertThat(emulatorView.canZoomToFit()).isTrue()
 
     emulatorView.zoom(ZoomType.OUT)
     ui.layoutAndDispatchEvents()
@@ -647,7 +697,7 @@ class EmulatorToolWindowPanelTest {
   @Test
   fun testMultipleDisplays() {
     val panel = createWindowPanelForPhone()
-    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
@@ -658,7 +708,6 @@ class EmulatorToolWindowPanelTest {
     val frameNumbers = uintArrayOf(emulatorView.frameNumber, 0u, 0u)
     assertThat(frameNumbers[PRIMARY_DISPLAY_ID]).isEqualTo(0u)
     panel.size = Dimension(400, 600)
-    ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumbers[PRIMARY_DISPLAY_ID])
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
@@ -666,7 +715,7 @@ class EmulatorToolWindowPanelTest {
     emulator.changeSecondaryDisplays(listOf(DisplayConfiguration.newBuilder().setDisplay(1).setWidth(1080).setHeight(2340).build(),
                                             DisplayConfiguration.newBuilder().setDisplay(2).setWidth(2048).setHeight(1536).build()))
 
-    waitForCondition(2, SECONDS) { ui.findAllComponents<EmulatorView>().size == 3 }
+    waitForCondition(2.seconds) { ui.findAllComponents<EmulatorView>().size == 3 }
     ui.layoutAndDispatchEvents()
     waitForNextFrameInAllDisplays(ui, frameNumbers)
     assertAppearance(ui, "MultipleDisplays1", maxPercentDifferentMac = 0.09, maxPercentDifferentWindows = 0.25)
@@ -678,7 +727,7 @@ class EmulatorToolWindowPanelTest {
 
     val uiState = panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
-    streamScreenshotCall.waitForCancellation(2, SECONDS)
+    streamScreenshotCall.waitForCancellation(2.seconds)
 
     // Check serialization and deserialization of MultiDisplayStateStorage.
     val state = MultiDisplayStateStorage.getInstance(projectRule.project)
@@ -688,14 +737,14 @@ class EmulatorToolWindowPanelTest {
     // Check that the panel layout is recreated when the panel content is created again.
     panel.createContent(true, uiState)
     ui.layoutAndDispatchEvents()
-    waitForCondition(2, SECONDS) { ui.findAllComponents<EmulatorView>().size == 3 }
+    waitForCondition(2.seconds) { ui.findAllComponents<EmulatorView>().size == 3 }
     assertThat(ui.findAllComponents<EmulatorView>().map { it.size }).isEqualTo(displayViewSizes)
   }
 
   @Test
   fun testVirtualSceneCamera() {
     val panel = createWindowPanelForPhone()
-    val ui = FakeUi(panel)
+    val ui = FakeUi(panel, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
@@ -720,7 +769,7 @@ class EmulatorToolWindowPanelTest {
 
     // Activate the camera and check that a notification is displayed.
     emulator.virtualSceneCameraActive = true
-    waitForCondition(2, SECONDS) { ui.findComponent<EditorNotificationPanel>() != null }
+    waitForCondition(2.seconds) { ui.findComponent<EditorNotificationPanel>() != null }
     assertThat(ui.findComponent<EditorNotificationPanel>()?.text).isEqualTo("Hold Shift to control camera")
 
     // Check that the notification is removed when the emulator view loses focus.
@@ -752,11 +801,11 @@ class EmulatorToolWindowPanelTest {
     for ((key, expected) in velocityExpectations) {
       ui.keyboard.press(key.code)
 
-      var call = emulator.getNextGrpcCall(2, SECONDS, callFilter)
+      var call = emulator.getNextGrpcCall(2.seconds, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo(expected)
       ui.keyboard.release(key.code)
-      call = emulator.getNextGrpcCall(2, SECONDS, callFilter)
+      call = emulator.getNextGrpcCall(2.seconds, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo("")
     }
@@ -766,7 +815,7 @@ class EmulatorToolWindowPanelTest {
     val y = initialMousePosition.y + 10
     val event = MouseEvent(glassPane, MOUSE_MOVED, System.currentTimeMillis(), ui.keyboard.toModifiersCode(), x, y, x, y, 0, false, 0)
     glassPane.dispatch(event)
-    var call = emulator.getNextGrpcCall(2, SECONDS, callFilter)
+    var call = emulator.getNextGrpcCall(2.seconds, callFilter)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
     assertThat(shortDebugString(call.request)).isEqualTo("x: 2.3561945 y: 1.5707964")
 
@@ -776,7 +825,7 @@ class EmulatorToolWindowPanelTest {
                                      VK_PAGE_UP to "x: 0.08726646 y: -0.08726646", VK_PAGE_DOWN to "x: -0.08726646 y: -0.08726646")
     for ((key, expected) in rotationExpectations) {
       ui.keyboard.pressAndRelease(key)
-      call = emulator.getNextGrpcCall(2, SECONDS, callFilter)
+      call = emulator.getNextGrpcCall(2.seconds, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
       assertThat(shortDebugString(call.request)).isEqualTo(expected)
     }
@@ -787,7 +836,7 @@ class EmulatorToolWindowPanelTest {
 
     // Deactivate the camera and check that the notification is removed.
     emulator.virtualSceneCameraActive = false
-    waitForCondition(2, SECONDS) { ui.findComponent<EditorNotificationPanel>() == null }
+    waitForCondition(2.seconds) { ui.findComponent<EditorNotificationPanel>() == null }
 
     panel.destroyContent()
   }
@@ -813,9 +862,9 @@ class EmulatorToolWindowPanelTest {
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, panel: EmulatorToolWindowPanel, frameNumber: UInt): GrpcCallRecord {
-    val call = emulator.getNextGrpcCall(2_000, SECONDS) //TODO NOW
+    val call = emulator.getNextGrpcCall(2_000.seconds) //TODO NOW
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
-    panel.waitForFrame(fakeUi, frameNumber, 2_000, SECONDS)
+    panel.waitForFrame(fakeUi, frameNumber, 2_000.seconds)
     return call
   }
 
@@ -833,20 +882,20 @@ class EmulatorToolWindowPanelTest {
     val emulatorController = emulators.first()
     val panel = EmulatorToolWindowPanel(testRootDisposable, projectRule.project, emulatorController)
     panel.zoomToolbarVisible = true
-    waitForCondition(5, SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return panel
   }
 
   @Throws(TimeoutException::class)
-  private fun EmulatorToolWindowPanel.waitForFrame(fakeUi: FakeUi, frame: UInt, timeout: Long, unit: TimeUnit) {
-    waitForCondition(timeout, unit) { renderAndGetFrameNumber(fakeUi, primaryEmulatorView!!) >= frame }
+  private fun EmulatorToolWindowPanel.waitForFrame(fakeUi: FakeUi, frame: UInt, timeout: Duration) {
+    waitForCondition(timeout) { renderAndGetFrameNumber(fakeUi, primaryEmulatorView!!) >= frame }
   }
 
   @Throws(TimeoutException::class)
   private fun waitForNextFrameInAllDisplays(fakeUi: FakeUi, frameNumbers: UIntArray) {
     val displayViews = fakeUi.findAllComponents<EmulatorView>()
     assertThat(displayViews.size).isEqualTo(frameNumbers.size)
-    waitForCondition(2, SECONDS) {
+    waitForCondition(2.seconds) {
       fakeUi.render()
       for (view in displayViews) {
         if (view.frameNumber <= frameNumbers[view.displayId]) {
@@ -873,7 +922,6 @@ class EmulatorToolWindowPanelTest {
                                maxPercentDifferentLinux: Double = 0.0003,
                                maxPercentDifferentMac: Double = 0.0003,
                                maxPercentDifferentWindows: Double = 0.0003) {
-    ui.layoutAndDispatchEvents()
     ui.updateToolbars()
     val image = ui.render()
     val scaledImage = ImageUtils.scale(image, 0.5)

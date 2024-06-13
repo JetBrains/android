@@ -123,13 +123,20 @@ public class DomPsiConverter {
   }
 
   @Nullable
-  public static DomNode findNodeAt(Document document, int offset) {
-    assert document instanceof DomDocument;
-    return findElementAt((DomDocument)document, offset);
+  static DomNode findNodeAt(Node node, int offset) {
+    if (node instanceof Document) {
+      // Not modelled as a DomNode
+      node = ((Document)node).getDocumentElement();
+      if (node == null) {
+        return null;
+      }
+    }
+    assert node instanceof DomNode;
+    return findNodeAt((DomNode)node, offset);
   }
 
   @Nullable
-  public static DomNode findElementAt(@NonNull DomNode element, int offset) {
+  static DomNode findNodeAt(@NonNull DomNode element, int offset) {
     TextRange range = element.getTextRange();
     if (range == null) {
       return null;
@@ -140,11 +147,23 @@ public class DomPsiConverter {
 
     DomNode child = element.getLastChild();
     if (child == null) {
-      return null;
+      if (element instanceof DomElement) {
+        NamedNodeMap attributes = ((DomElement)element).getAttributes();
+        if (attributes instanceof DomNamedNodeMap) {
+          for (DomNode node : ((DomNamedNodeMap)attributes).getItems()) {
+            TextRange attrRange = node.getTextRange();
+            if (attrRange.containsOffset(offset)) {
+              return node;
+            }
+          }
+        }
+      }
+
+      return element;
     }
 
     while (child != null) {
-      DomNode match = findElementAt(child, offset);
+      DomNode match = findNodeAt(child, offset);
       if (match != null) {
         return match;
       }
@@ -297,7 +316,7 @@ public class DomPsiConverter {
     }
 
     @Override
-    void add(@NotNull DomNode node) {
+    void add(@NotNull DomNode node, boolean updateSiblings) {
       throw new UnsupportedOperationException("The shared EMPTY instance of DomNodeList isn't supposed to be modified.");
     }
   };
@@ -366,12 +385,14 @@ public class DomPsiConverter {
       return myChildren.size();
     }
 
-    void add(@NotNull DomNode node) {
-      int size = myChildren.size();
-      if (size > 0) {
-        DomNode last = myChildren.get(size - 1);
-        node.myPrevious = last;
-        last.myNext = node;
+    void add(@NotNull DomNode node, boolean updateSiblings) {
+      if (updateSiblings) {
+        int size = myChildren.size();
+        if (size > 0) {
+          DomNode last = myChildren.get(size - 1);
+          node.myPrevious = last;
+          last.myNext = node;
+        }
       }
       myChildren.add(node);
     }
@@ -411,6 +432,11 @@ public class DomPsiConverter {
           myMap.put(attribute.getName(), attr);
         }
       }
+    }
+
+    @NotNull
+    List<DomNode> getItems() {
+      return mItems;
     }
 
     @Override
@@ -497,13 +523,13 @@ public class DomPsiConverter {
 
           for (PsiElement child : children) {
             if (child instanceof XmlTag) {
-              list.add(new DomElement(myOwner, this, (XmlTag)child));
+              list.add(new DomElement(myOwner, this, (XmlTag)child), true);
             }
             else if (child instanceof XmlText) {
-              list.add(new DomText(myOwner, this, (XmlText)child));
+              list.add(new DomText(myOwner, this, (XmlText)child), true);
             }
             else if (child instanceof XmlComment) {
-              list.add(new DomComment(myOwner, this, (XmlComment)child));
+              list.add(new DomComment(myOwner, this, (XmlComment)child), true);
             }
             else {
               // Skipping other types for now; lint doesn't care about them.
@@ -533,7 +559,7 @@ public class DomPsiConverter {
     public DomNode getLastChild() {
       DomNodeList childNodes = getChildNodes();
       if (childNodes.getLength() > 0) {
-        return childNodes.item(0);
+        return childNodes.item(childNodes.getLength() - 1);
       }
       return null;
     }
@@ -793,21 +819,21 @@ public class DomPsiConverter {
         while (element != null) {
           if (element instanceof XmlTag) {
             if (myRoot != null && myRoot.myTag == element) {
-              list.add(myRoot);
+              list.add(myRoot, true);
             } else {
               DomElement node = new DomElement(this, this, (XmlTag)element);
               if (myRoot == null) {
                 myRoot = node;
               }
-              list.add(node);
+              list.add(node, true);
             }
           } else if (element instanceof XmlComment) {
             DomNode node = new DomComment(this, this, (XmlComment)element);
-            list.add(node);
+            list.add(node, true);
           } else if (element instanceof XmlText) {
             // This is not valid XML but PSI may represent erroneous XML being edited
             DomNode node = new DomText(this, this, (XmlText)element);
-            list.add(node);
+            list.add(node, true);
           }
           element = element.getNextSibling();
         }
@@ -1186,7 +1212,7 @@ public class DomPsiConverter {
         if (top.nextNodeIndex < top.node.getChildNodes().getLength()) {
           Node next = top.node.getChildNodes().item(top.nextNodeIndex++);
           if (s.equals(next.getNodeName())) {
-            matches.add((DomNode)next);
+            matches.add((DomNode)next, false);
           }
           stack.add(new NodeWithIndex(next));
         } else {
@@ -1264,6 +1290,11 @@ public class DomPsiConverter {
     public void setIdAttributeNode(Attr attr, boolean b) throws DOMException {
       throw new UnsupportedOperationException(); // Read-only bridge
     }
+
+    @Override
+    public String toString() {
+      return "DomElement(" + myTag.getName() + " at " + myTag.getTextRange() + ")";
+    }
   }
 
   private static class DomText extends DomNode implements Text {
@@ -1340,6 +1371,11 @@ public class DomPsiConverter {
     @Override
     public Text replaceWholeText(String s) throws DOMException {
       throw new UnsupportedOperationException(); // Read-only bridge
+    }
+
+    @Override
+    public String toString() {
+      return "DomText(" + getTextContent() + " at " + myElement.getTextRange() + ")";
     }
   }
 
@@ -1476,6 +1512,11 @@ public class DomPsiConverter {
     @Override
     public boolean isId() {
       throw new UnsupportedOperationException(); // Not supported
+    }
+
+    @Override
+    public String toString() {
+      return "DomAttr(" + getName() + "=" + getValue() + " at " + myElement.getTextRange() + ")";
     }
   }
 }

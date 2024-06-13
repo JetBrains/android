@@ -17,6 +17,7 @@ package com.android.tools.idea.adb
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatform4TestCase
+import org.junit.Assert
 import org.junit.Test
 
 /**
@@ -31,7 +32,10 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
     super.setUp()
     myAdbOptionsService = AdbOptionsService.getInstance()
     myOriginalOptions = myAdbOptionsService.getOptionsUpdater()
-    myConfigurable = AdbConfigurableUi()
+    myConfigurable = AdbConfigurableUi().also {
+      // Force lazy-init of JComboBoxes
+      it.component
+    }
   }
 
   override fun tearDown() {
@@ -42,41 +46,54 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
 
   @Test
   fun testApply() {
-    myAdbOptionsService.getOptionsUpdater().setUseLibusb(false).setUseMdnsOpenScreen(false).commit();
+    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
     myConfigurable.reset(myAdbOptionsService)
 
-    myConfigurable.setLibusbEnabled(true)
-    myConfigurable.setAdbMdnsEnabled(true)
+    myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
+    myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
     myConfigurable.apply(myAdbOptionsService)
 
-    assertThat(myAdbOptionsService.shouldUseLibusb()).isTrue()
-    assertThat(myAdbOptionsService.shouldUseMdnsOpenScreen()).isTrue()
+    assertThat(myAdbOptionsService.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.LIBUSB)
+    assertThat(myAdbOptionsService.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.OPENSCREEN)
   }
 
   @Test
   fun testReset() {
-    myAdbOptionsService.getOptionsUpdater().setUseLibusb(true).setUseMdnsOpenScreen(true).commit();
+    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
     myConfigurable.reset(myAdbOptionsService)
 
-    myConfigurable.setLibusbEnabled(false)
-    myConfigurable.setAdbMdnsEnabled(false)
+    myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
+    myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
     myConfigurable.reset(myAdbOptionsService)
 
-    assertThat(myConfigurable.isLibusbEnabled()).isTrue()
-    assertThat(myConfigurable.isAdbMdnsEnabled()).isTrue()
+    assertThat(myConfigurable.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.DEFAULT)
+    assertThat(myConfigurable.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.DEFAULT)
   }
 
   @Test
   fun testIsModified() {
-    myAdbOptionsService.getOptionsUpdater().setUseLibusb(false).setUseMdnsOpenScreen(false).commit();
+    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
     myConfigurable.reset(myAdbOptionsService)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isFalse()
 
-    myConfigurable.setAdbMdnsEnabled(true)
+    myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
 
     myConfigurable.reset(myAdbOptionsService)
-    myConfigurable.setLibusbEnabled(true)
+    myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
+  }
+
+  @Test
+  fun testFromDisplayText() {
+    AdbServerUsbBackend.values().forEach {
+      assertThat(AdbServerUsbBackend.fromDisplayText(it.displayText)).isEqualTo(it)
+    }
+    try {
+       AdbServerUsbBackend.fromDisplayText("NotInTheEnum")
+      Assert.fail("fromDisplayText did no throw")
+    } catch (_: IllegalArgumentException) {
+      // Expected
+    }
   }
 }

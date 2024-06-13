@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file should not be edited manually! See go/template-diff-tests -->
+<issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="This folder configuration (`v21`) is unnecessary; `minSdkVersion` is 23. Merge all the resources in this folder into `drawable`.">
+        <location
+            file="src/main/res/drawable-v21"/>
+    </issue>
+
+    <issue
+        id="VectorPath"
+        message="Very long vector path (2956 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
+        errorLine1="        android:pathData=&quot;M0.148,2.976L3.914,2.976C4.446,2.976 4.938,3.093 5.391,3.326C5.844,3.559 6.205,3.881 6.476,4.292C6.747,4.703 6.882,5.155 6.882,5.65C6.882,6.145 6.758,6.574 6.511,6.938C6.264,7.302 5.939,7.577 5.538,7.764L5.538,7.848C6.042,8.025 6.45,8.319 6.763,8.73C7.076,9.141 7.232,9.621 7.232,10.172C7.232,10.723 7.09,11.213 6.805,11.642C6.52,12.071 6.138,12.405 5.657,12.643C5.176,12.881 4.651,13 4.082,13L0.148,13L0.148,2.976ZM3.844,7.176C4.292,7.176 4.654,7.036 4.929,6.756C5.204,6.476 5.342,6.154 5.342,5.79C5.342,5.426 5.209,5.106 4.943,4.831C4.677,4.556 4.329,4.418 3.9,4.418L1.716,4.418L1.716,7.176L3.844,7.176ZM4.082,11.544C4.558,11.544 4.938,11.395 5.223,11.096C5.508,10.797 5.65,10.452 5.65,10.06C5.65,9.659 5.503,9.311 5.209,9.017C4.915,8.723 4.521,8.576 4.026,8.576L1.716,8.576L1.716,11.544L4.082,11.544ZM9.461,12.447C9.008,11.929 8.782,11.208 8.782,10.284L8.782,5.86L10.322,5.86L10.322,10.074C10.322,10.653 10.46,11.087 10.735,11.376C11.01,11.665 11.372,11.81 11.82,11.81C12.184,11.81 12.506,11.714 12.786,11.523C13.066,11.332 13.281,11.077 13.43,10.76C13.579,10.443 13.654,10.102 13.654,9.738L13.654,5.86L15.194,5.86L15.194,13L13.738,13L13.738,12.076L13.654,12.076C13.458,12.412 13.155,12.687 12.744,12.902C12.333,13.117 11.899,13.224 11.442,13.224C10.574,13.224 9.914,12.965 9.461,12.447ZM19.32,12.608L16.352,5.86L18.074,5.86L20.09,10.718L20.146,10.718L22.106,5.86L23.8,5.86L19.39,16.024L17.766,16.024L19.32,12.608ZM27.586,5.86L29.252,5.86L30.694,10.97L30.75,10.97L32.36,5.86L33.942,5.86L35.538,10.97L35.594,10.97L37.036,5.86L38.674,5.86L36.392,13L34.768,13L33.13,7.876L33.088,7.876L31.464,13L29.868,13L27.586,5.86ZM39.965,4.523C39.764,4.322 39.664,4.077 39.664,3.788C39.664,3.499 39.764,3.254 39.965,3.053C40.166,2.852 40.411,2.752 40.7,2.752C40.989,2.752 41.234,2.852 41.435,3.053C41.636,3.254 41.736,3.499 41.736,3.788C41.736,4.077 41.636,4.322 41.435,4.523C41.234,4.724 40.989,4.824 40.7,4.824C40.411,4.824 40.166,4.724 39.965,4.523ZM39.93,5.86L41.47,5.86L41.47,13L39.93,13L39.93,5.86ZM45.498,12.958C45.218,12.855 44.989,12.72 44.812,12.552C44.411,12.151 44.21,11.605 44.21,10.914L44.21,7.218L42.964,7.218L42.964,5.86L44.21,5.86L44.21,3.844L45.75,3.844L45.75,5.86L47.486,5.86L47.486,7.218L45.75,7.218L45.75,10.578C45.75,10.961 45.825,11.231 45.974,11.39C46.114,11.577 46.357,11.67 46.702,11.67C46.861,11.67 47.001,11.649 47.122,11.607C47.243,11.565 47.374,11.497 47.514,11.404L47.514,12.902C47.206,13.042 46.833,13.112 46.394,13.112C46.077,13.112 45.778,13.061 45.498,12.958ZM49.176,2.976L50.716,2.976L50.716,5.706L50.646,6.798L50.716,6.798C50.921,6.462 51.227,6.184 51.633,5.965C52.039,5.746 52.475,5.636 52.942,5.636C53.81,5.636 54.473,5.89 54.93,6.399C55.387,6.908 55.616,7.601 55.616,8.478L55.616,13L54.076,13L54.076,8.688C54.076,8.147 53.934,7.741 53.649,7.47C53.364,7.199 52.993,7.064 52.536,7.064C52.191,7.064 51.88,7.162 51.605,7.358C51.33,7.554 51.113,7.813 50.954,8.135C50.795,8.457 50.716,8.8 50.716,9.164L50.716,13L49.176,13L49.176,2.976Z&quot;"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/drawable/buy_with_googlepay_button_content.xml"
+            line="9"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="VectorPath"
+        message="Very long vector path (862 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
+        errorLine1="        android:pathData=&quot;M89.194,10.442C89.194,10.834 89.36,11.16 89.693,11.422C90.025,11.683 90.415,11.813 90.861,11.813C91.494,11.813 92.057,11.579 92.553,11.112C93.05,10.643 93.297,10.093 93.297,9.463C92.828,9.092 92.174,8.907 91.335,8.907C90.724,8.907 90.215,9.055 89.807,9.349C89.398,9.643 89.194,10.006 89.194,10.442M91.14,4.627C92.252,4.627 93.129,4.924 93.773,5.518C94.415,6.111 94.737,6.925 94.737,7.959L94.737,12.891L93.298,12.891L93.298,11.781L93.233,11.781C92.611,12.695 91.783,13.153 90.747,13.153C89.865,13.153 89.126,12.891 88.532,12.369C87.938,11.846 87.641,11.193 87.641,10.409C87.641,9.581 87.954,8.923 88.581,8.433C89.208,7.943 90.044,7.698 91.09,7.698C91.983,7.698 92.72,7.861 93.297,8.188L93.297,7.844C93.297,7.322 93.09,6.878 92.676,6.513C92.261,6.149 91.777,5.967 91.221,5.967C90.381,5.967 89.717,6.32 89.226,7.029L87.902,6.195C88.632,5.15 89.711,4.627 91.14,4.627&quot;"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/drawable/buy_with_googlepay_button_content.xml"
+            line="21"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="VectorPath"
+        message="Very long vector path (862 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
+        errorLine1="        android:pathData=&quot;M27.194,10.442C27.194,10.834 27.36,11.16 27.693,11.422C28.025,11.683 28.415,11.813 28.861,11.813C29.494,11.813 30.057,11.579 30.553,11.112C31.05,10.643 31.297,10.093 31.297,9.463C30.828,9.092 30.174,8.907 29.335,8.907C28.724,8.907 28.215,9.055 27.807,9.349C27.398,9.643 27.194,10.006 27.194,10.442M29.14,4.627C30.252,4.627 31.129,4.924 31.773,5.518C32.415,6.111 32.737,6.925 32.737,7.959L32.737,12.891L31.298,12.891L31.298,11.781L31.233,11.781C30.611,12.695 29.783,13.153 28.747,13.153C27.865,13.153 27.126,12.891 26.532,12.369C25.938,11.846 25.641,11.193 25.641,10.409C25.641,9.581 25.954,8.923 26.581,8.433C27.208,7.943 28.044,7.698 29.09,7.698C29.983,7.698 30.72,7.861 31.297,8.188L31.297,7.844C31.297,7.322 31.09,6.878 30.676,6.513C30.261,6.149 29.777,5.967 29.221,5.967C28.381,5.967 27.717,6.32 27.226,7.029L25.902,6.195C26.632,5.15 27.711,4.627 29.14,4.627&quot;"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/drawable/googlepay_button_content.xml"
+            line="15"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.padding_small` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;padding_small&quot;>5dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="19"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.margin_large` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;margin_large&quot;>10dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="20"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.margin_xlarge` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;margin_xlarge&quot;>30dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="21"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.buy_button_width` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;buy_button_width&quot;>300dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="23"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.buy_button_min_width` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;buy_button_min_width&quot;>200dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="25"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.googlepay_button_background` appears to be unused"
+        errorLine1="&lt;selector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/googlepay_button_background.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.googlepay_button_background_image` appears to be unused">
+        <location
+            file="src/main/res/drawable-hdpi/googlepay_button_background_image.9.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.googlepay_button_content` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/googlepay_button_content.xml"
+            line="1"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.googlepay_button_content_description` appears to be unused"
+        errorLine1="    &lt;string name=&quot;googlepay_button_content_description&quot;>Google Pay&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/googlepay_strings.xml"
+            line="18"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="IconDensities"
+        message="Missing the following drawables in `drawable-hdpi`: polo_shirt_image.jpg (found in drawable-xxhdpi)">
+        <location
+            file="src/main/res/drawable-hdpi"/>
+    </issue>
+
+    <issue
+        id="IconDensities"
+        message="Missing the following drawables in `drawable-mdpi`: polo_shirt_image.jpg (found in drawable-xxhdpi)">
+        <location
+            file="src/main/res/drawable-mdpi"/>
+    </issue>
+
+    <issue
+        id="IconDensities"
+        message="Missing the following drawables in `drawable-xhdpi`: polo_shirt_image.jpg (found in drawable-xxhdpi)">
+        <location
+            file="src/main/res/drawable-xhdpi"/>
+    </issue>
+
+    <issue
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image"
+        errorLine1="        &lt;ImageView"
+        errorLine2="         ~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_checkout.xml"
+            line="16"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image"
+        errorLine1="        &lt;ImageView"
+        errorLine2="         ~~~~~~~~~">
+        <location
+            file="src/main/res/layout/buy_with_googlepay_button.xml"
+            line="19"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image"
+        errorLine1="    &lt;ImageView"
+        errorLine2="     ~~~~~~~~~">
+        <location
+            file="src/main/res/layout/buy_with_googlepay_button.xml"
+            line="28"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Sample Item Title&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Sample Item Title&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_checkout.xml"
+            line="28"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;$ Sample price&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;$ Sample price&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_checkout.xml"
+            line="38"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Sample description text...&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Sample description text...&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_checkout.xml"
+            line="55"
+            column="13"/>
+    </issue>
+
+</issues>

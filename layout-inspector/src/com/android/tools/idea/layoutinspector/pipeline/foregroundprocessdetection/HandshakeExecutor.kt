@@ -62,7 +62,7 @@ class HandshakeExecutor(
   private val workDispatcher: CoroutineDispatcher,
   private val transportClient: TransportClient,
   private val metrics: ForegroundProcessDetectionMetrics,
-  private val pollingIntervalMs: Long
+  private val pollingIntervalMs: Long,
 ) {
   /**
    * Channel used to communicate the handshake state with a coroutine responsible for periodically
@@ -201,7 +201,7 @@ class HandshakeExecutor(
             metrics.logHandshakeConversion(
               DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_SUPPORTED,
               device,
-              isRecoveryHandshake
+              isRecoveryHandshake,
             )
           }
           if (wasNotSupported) {
@@ -209,7 +209,7 @@ class HandshakeExecutor(
               DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion
                 .FROM_NOT_SUPPORTED_TO_SUPPORTED,
               device,
-              isRecoveryHandshake
+              isRecoveryHandshake,
             )
           }
         }
@@ -220,7 +220,7 @@ class HandshakeExecutor(
               DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion
                 .FROM_UNKNOWN_TO_NOT_SUPPORTED,
               device,
-              isRecoveryHandshake
+              isRecoveryHandshake,
             )
           }
         }
@@ -236,7 +236,7 @@ class HandshakeExecutor(
               DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion
                 .FROM_UNKNOWN_TO_DISCONNECTED,
               device,
-              isRecoveryHandshake
+              isRecoveryHandshake,
             )
           }
         }
@@ -254,7 +254,7 @@ class HandshakeExecutor(
     scope.launch {
       transportClient.sendCommand(
         Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
-        stream.streamId
+        stream.streamId,
       )
     }
   }

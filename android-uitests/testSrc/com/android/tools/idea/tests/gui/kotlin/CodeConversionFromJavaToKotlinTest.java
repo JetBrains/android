@@ -53,7 +53,8 @@ public class CodeConversionFromJavaToKotlinTest {
     "// --- END COPY HERE ---";
   private final static String KOTLIN_FUN =
     "    fun dummyFun(a: Int, b: Int): Int {\n" +
-    "        return a - b\n" +
+    "        val p = a - b\n" +
+    "        return p\n" +
     "    }";
   private final static String FILE_NAME = "app/src/main/java/com/android/javatokotlincode/MainActivity.kt";
 

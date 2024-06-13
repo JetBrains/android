@@ -20,9 +20,10 @@ import studio.network.inspection.NetworkInspectorProtocol.Command
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
 import studio.network.inspection.NetworkInspectorProtocol.Response
 import studio.network.inspection.NetworkInspectorProtocol.StartInspectionCommand
+import studio.network.inspection.NetworkInspectorProtocol.StartInspectionResponse
 
 interface NetworkInspectorClient {
-  suspend fun getStartTimeStampNs(): Long
+  suspend fun startInspection(): StartInspectionResponse
 
   suspend fun interceptResponse(command: InterceptCommand)
 }
@@ -30,12 +31,12 @@ interface NetworkInspectorClient {
 class NetworkInspectorClientImpl(private val messenger: AppInspectorMessenger) :
   NetworkInspectorClient {
 
-  override suspend fun getStartTimeStampNs(): Long {
+  override suspend fun startInspection(): StartInspectionResponse {
     val response =
       messenger.sendRawCommand {
         startInspectionCommand = StartInspectionCommand.getDefaultInstance()
       }
-    return response.startInspectionResponse.timestamp
+    return response.startInspectionResponse
   }
 
   override suspend fun interceptResponse(command: InterceptCommand) {

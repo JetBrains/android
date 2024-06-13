@@ -768,6 +768,7 @@ class ResourceExplorerListView(
    */
   private inner class ListModeButton
     : ToggleAction("List mode", "Switch to list mode", StudioIcons.Common.LIST_VIEW), DumbAware {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun isSelected(e: AnActionEvent) = !gridMode
 
@@ -778,10 +779,6 @@ class ResourceExplorerListView(
         previewSize = DEFAULT_LIST_MODE_WIDTH
       }
     }
-
-    override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT;
-    }
   }
 
   /**
@@ -790,6 +787,7 @@ class ResourceExplorerListView(
   private inner class GridModeButton
     : ToggleAction("Grid mode", "Switch to grid mode", StudioIcons.Common.GRID_VIEW),
       DumbAware {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun isSelected(e: AnActionEvent) = gridMode
 
@@ -800,16 +798,13 @@ class ResourceExplorerListView(
         previewSize = MIN_CELL_WIDTH
       }
     }
-
-    override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT;
-    }
   }
 
   /**
    * Button to scale down the icons. It is only enabled in grid mode.
    */
   private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", AllIcons.Graph.ZoomOut), DumbAware {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = max(MIN_CELL_WIDTH, (previewSize * 0.9).roundToInt())
@@ -818,16 +813,13 @@ class ResourceExplorerListView(
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = gridMode && previewSize > MIN_CELL_WIDTH
     }
-
-    override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT;
-    }
   }
 
   /**
    * Button to scale up the icons. It is only enabled in grid mode.
    */
   private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", AllIcons.Graph.ZoomIn), DumbAware {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = min(MAX_CELL_WIDTH, (previewSize * 1.1).roundToInt())
@@ -835,10 +827,6 @@ class ResourceExplorerListView(
 
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = gridMode && previewSize < MAX_CELL_WIDTH
-    }
-
-    override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT;
     }
   }
 }

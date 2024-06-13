@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Filters
@@ -34,7 +35,7 @@ internal val VitalsTimeIntervals =
     TimeIntervalFilter.SEVEN_DAYS,
     TimeIntervalFilter.FOURTEEN_DAYS,
     TimeIntervalFilter.TWENTY_EIGHT_DAYS,
-    TimeIntervalFilter.SIXTY_DAYS
+    TimeIntervalFilter.SIXTY_DAYS,
   )
 
 fun createVitalsFilters(
@@ -49,14 +50,15 @@ fun createVitalsFilters(
   operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> =
     MultiSelection.emptySelection(),
   signal: Selection<SignalType> = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
-  visibilityTypes: Selection<VisibilityType> = selectionOf(VisibilityType.ALL)
+  visibilityTypes: Selection<VisibilityType> = selectionOf(VisibilityType.ALL),
 ) =
   Filters(
     versions,
     timeInterval,
-    failureTypeToggles,
+    if (StudioFlags.CRASHLYTICS_J_UI.get()) failureTypeToggles.toggle(FailureType.ANR)
+    else failureTypeToggles,
     devices,
     operatingSystems,
     signal,
-    visibilityTypes
+    visibilityTypes,
   )

@@ -26,7 +26,7 @@ data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : Cha
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey
+    key: InsightsProviderKey,
   ): StateTransition<Action> {
     if (variant == state.selectedVariant) {
       return StateTransition(state, Action.NONE)
@@ -39,12 +39,12 @@ data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : Cha
         currentIssueVariants = state.currentIssueVariants.map { it?.select(variant) },
         currentIssueDetails =
           if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
-        currentEvents = if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null)
+        currentEvents = if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
       ),
       if (shouldFetchDetails)
         (Action.FetchDetails(selectedIssueId!!, variant?.id) and
           Action.ListEvents(selectedIssueId, variant?.id, null))
-      else Action.NONE
+      else Action.NONE,
     )
   }
 }

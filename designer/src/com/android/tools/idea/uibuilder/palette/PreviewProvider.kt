@@ -24,6 +24,7 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
@@ -77,13 +78,13 @@ private const val LINEAR_LAYOUT =
  */
 class PreviewProvider(
   private val myDesignSurfaceSupplier: Supplier<DesignSurface<*>?>,
-  private val myDependencyManager: DependencyManager
+  private val myDependencyManager: DependencyManager,
 ) {
   class ImageAndDimension(
     val image: BufferedImage,
     val dimension: Dimension,
     val rendering: Future<*>?,
-    val disposal: Future<*>?
+    val disposal: Future<*>?,
   )
 
   @VisibleForTesting var renderTimeoutMillis = 600L
@@ -160,7 +161,7 @@ class PreviewProvider(
   }
 
   private fun getRenderTask(configuration: Configuration): CompletableFuture<RenderTask?> {
-    val module = configuration.module ?: return CompletableFuture.completedFuture(null)
+    val module = ConfigurationManager.getFromConfiguration(configuration).module
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
     val renderService = StudioRenderService.getInstance(module.project)
     return renderService.taskBuilderWithHtmlLogger(facet, configuration).build()
@@ -188,7 +189,7 @@ class PreviewProvider(
         view.left,
         view.top,
         min(view.right + shadowIncrement, image.width),
-        min(view.bottom + shadowIncrement, image.height)
+        min(view.bottom + shadowIncrement, image.height),
       )
     } catch (ignore: RasterFormatException) {
       // catch exception
@@ -200,7 +201,7 @@ class PreviewProvider(
     get() =
       myDesignSurfaceSupplier.get()?.let {
         val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
-        return it.scale * it.screenScalingFactor / sceneScale
+        return it.zoomController.scale * it.zoomController.screenScalingFactor / sceneScale
       }
 
   private val sceneView: SceneView?
@@ -208,7 +209,7 @@ class PreviewProvider(
 
   private fun renderImage(
     renderTask: RenderTask?,
-    xml: String
+    xml: String,
   ): CompletableFuture<Pair<RenderTask?, RenderResult?>> {
     if (renderTask == null) {
       return CompletableFuture.completedFuture(Pair(null, null))

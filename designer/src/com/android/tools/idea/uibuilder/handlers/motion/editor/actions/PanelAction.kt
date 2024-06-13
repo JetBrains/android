@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.actions
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.BaseCreatePanel
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import java.awt.Component
@@ -31,6 +32,8 @@ open class PanelAction(private val panel: BaseCreatePanel, private val motionEdi
    * which already could be not available.
    */
   var context: Component? = null
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
     panel.doAction((context ?: e.inputEvent!!.component) as JComponent, motionEditor)

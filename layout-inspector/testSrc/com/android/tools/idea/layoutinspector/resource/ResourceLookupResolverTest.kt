@@ -27,6 +27,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -36,6 +37,7 @@ import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLook
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
@@ -61,7 +63,7 @@ class ResourceLookupResolverTest {
   @Suppress("SameParameterValue")
   private fun createResourceLookupResolver(
     theme: String,
-    vararg qualifiers: String
+    vararg qualifiers: String,
   ): ResourceLookupResolver {
     // We will always get qualifiers from the device.
     // In this test we are only concerned about orientation and screen width: give suitable default
@@ -84,15 +86,16 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromLayout() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
-    val locations = resolver.findFileLocations(data.textColor, view, data.demo, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.textColor, view, data.demo, locations, 10)
     checkLocation(locations[0], "demo.xml:20", "framework:textColor=\"@color/textRedIndirect\"")
     checkLocation(
       locations[1],
       "colors.xml:6",
-      "<color name=\"textRedIndirect\">@color/textRed</color>"
+      "<color name=\"textRedIndirect\">@color/textRed</color>",
     )
     checkLocation(locations[2], "colors.xml:5", "<color name=\"textRed\">#FF0000</color>")
     assertThat(locations.size).isEqualTo(3)
@@ -101,20 +104,21 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromLayoutWithSpecialConfiguration() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme, "w800dp", "land")
     val view = findView(data.textColor)
-    val locations = resolver.findFileLocations(data.textColor, view, data.demo, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.textColor, view, data.demo, locations, 10)
     checkLocation(locations[0], "demo.xml:14", "android:textColor=\"@color/app_text_color\"")
     checkLocation(
       locations[1],
       "app_text_color.xml:6",
-      "<item android:alpha=\"0.5\"\n" + "        android:color=\"@color/textBlueIndirect\"/>"
+      "<item android:alpha=\"0.5\"\n" + "        android:color=\"@color/textBlueIndirect\"/>",
     )
     checkLocation(
       locations[2],
       "colors.xml:8",
-      "<color name=\"textBlueIndirect\">@color/textBlue</color>"
+      "<color name=\"textBlueIndirect\">@color/textBlue</color>",
     )
     checkLocation(locations[3], "colors.xml:4", "<color name=\"textBlue\">#800000FF</color>")
     assertThat(locations.size).isEqualTo(4)
@@ -123,19 +127,20 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testBackgroundTintFromLayoutWithThemeReference() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.backgroundTint)
-    val locations = resolver.findFileLocations(data.backgroundTint, view, data.demo, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.backgroundTint, view, data.demo, locations, 10)
     checkLocation(
       locations[0],
       "demo.xml:17",
-      "framework:backgroundTint=\"?android:attr/colorBackgroundFloating\""
+      "framework:backgroundTint=\"?android:attr/colorBackgroundFloating\"",
     )
     checkLocation(
       locations[1],
       "styles.xml:4",
-      "<item name=\"android:colorBackgroundFloating\">@color/yellowBackground</item>"
+      "<item name=\"android:colorBackgroundFloating\">@color/yellowBackground</item>",
     )
     checkLocation(locations[2], "colors.xml:3", "<color name=\"yellowBackground\">#CCCC23</color>")
     assertThat(locations.size).isEqualTo(3)
@@ -145,10 +150,11 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testSupportBackgroundTint() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.supportBackgroundTint)
-    val locations = resolver.findFileLocations(data.supportBackgroundTint, view, data.demo, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.supportBackgroundTint, view, data.demo, locations, 10)
     checkLocation(locations[0], "demo.xml:18", "app:backgroundTint=\"#330088\"")
     assertThat(locations.size).isEqualTo(1)
     assertThat(resolver.findAttributeValue(data.supportBackgroundTint, view, data.demo))
@@ -157,10 +163,11 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromMyTextStyleExtra() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
-    val locations = resolver.findFileLocations(data.textColor, view, data.myTextStyleExtra, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.textColor, view, data.myTextStyleExtra, locations, 10)
     checkLocation(locations[0], "styles.xml:12", "<item name=\"android:textColor\">#888800</item>")
     assertThat(locations.size).isEqualTo(1)
     assertThat(resolver.findAttributeValue(data.textColor, view, data.myTextStyleExtra))
@@ -169,19 +176,20 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromMyTextStyle() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
-    val locations = resolver.findFileLocations(data.textColor, view, data.myTextStyle, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.textColor, view, data.myTextStyle, locations, 10)
     checkLocation(
       locations[0],
       "styles.xml:8",
-      "<item name=\"android:textColor\">@color/textBlueIndirect</item>"
+      "<item name=\"android:textColor\">@color/textBlueIndirect</item>",
     )
     checkLocation(
       locations[1],
       "colors.xml:8",
-      "<color name=\"textBlueIndirect\">@color/textBlue</color>"
+      "<color name=\"textBlueIndirect\">@color/textBlue</color>",
     )
     checkLocation(locations[2], "colors.xml:7", "<color name=\"textBlue\">#2122F8</color>")
     assertThat(locations.size).isEqualTo(3)
@@ -191,19 +199,20 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromMyTextStyleWithSpecialConfiguration() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme, "w800dp", "land")
     val view = findView(data.textColor)
-    val locations = resolver.findFileLocations(data.textColor, view, data.myTextStyle, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.textColor, view, data.myTextStyle, locations, 10)
     checkLocation(
       locations[0],
       "styles.xml:4",
-      "<item name=\"android:textColor\">@color/textRedIndirect</item>"
+      "<item name=\"android:textColor\">@color/textRedIndirect</item>",
     )
     checkLocation(
       locations[1],
       "colors.xml:6",
-      "<color name=\"textRedIndirect\">@color/textRed</color>"
+      "<color name=\"textRedIndirect\">@color/textRed</color>",
     )
     checkLocation(locations[2], "colors.xml:3", "<color name=\"textRed\">#FF0000</color>")
     assertThat(locations.size).isEqualTo(3)
@@ -213,36 +222,36 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testColorValueFromTextStyleMaterialBody1() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
-    val locations =
-      resolver.findFileLocations(data.textColor, view, data.textStyleMaterialBody1, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.textColor, view, data.textStyleMaterialBody1, locations, 10)
     checkLocation(
       locations[0],
       "styles_material.xml:230",
-      "<item name=\"textColor\">?attr/textColorPrimary</item>"
+      "<item name=\"textColor\">?attr/textColorPrimary</item>",
     )
     checkLocation(
       locations[1],
       "themes_material.xml:434",
-      "<item name=\"textColorPrimary\">@color/text_color_primary</item>"
+      "<item name=\"textColorPrimary\">@color/text_color_primary</item>",
     )
     checkLocation(
       locations[2],
       "text_color_primary.xml:21",
       "<item android:alpha=\"?attr/primaryContentAlpha\"\n" +
-        "        android:color=\"?attr/colorForeground\"/>"
+        "        android:color=\"?attr/colorForeground\"/>",
     )
     checkLocation(
       locations[3],
       "themes_material.xml:416",
-      "<item name=\"colorForeground\">@color/foreground_material_light</item>"
+      "<item name=\"colorForeground\">@color/foreground_material_light</item>",
     )
     checkLocation(
       locations[4],
       "colors_material.xml:20",
-      "<color name=\"foreground_material_light\">@color/black</color>"
+      "<color name=\"foreground_material_light\">@color/black</color>",
     )
     checkLocation(locations[5], "colors.xml:39", "<color name=\"black\">#ff000000</color>")
     assertThat(locations.size).isEqualTo(6)
@@ -252,19 +261,20 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testColorValueFromTextStyleMaterialWithLimit() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
-    val locations = resolver.findFileLocations(data.textColor, view, data.textStyleMaterial, 2)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.textColor, view, data.textStyleMaterial, locations, 2)
     checkLocation(
       locations[0],
       "styles_material.xml:156",
-      "<item name=\"textColor\">?attr/textColorPrimary</item>"
+      "<item name=\"textColor\">?attr/textColorPrimary</item>",
     )
     checkLocation(
       locations[1],
       "themes_material.xml:434",
-      "<item name=\"textColorPrimary\">@color/text_color_primary</item>"
+      "<item name=\"textColorPrimary\">@color/text_color_primary</item>",
     )
     assertThat(locations.size).isEqualTo(2) // 3 lines omitted because a limit of 2 was specified
     assertThat(resolver.findAttributeValue(data.textColor, view, data.textStyleMaterial))
@@ -273,10 +283,11 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testDrawableFromLayoutWithVectorDrawable() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.background)
-    val locations = resolver.findFileLocations(data.background, view, data.demo, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.background, view, data.demo, locations, 10)
     checkLocation(locations[0], "demo.xml:14", "framework:background=\"@drawable/battery\"")
     assertThat(locations.size).isEqualTo(1)
     assertThat(resolver.findAttributeValue(data.background, view, data.demo))
@@ -285,19 +296,20 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testDrawableFromLayoutWithVectorDrawableWithIndirection() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.drawableLeft)
-    val locations = resolver.findFileLocations(data.drawableLeft, view, data.demo, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.drawableLeft, view, data.demo, locations, 10)
     checkLocation(
       locations[0],
       "demo.xml:15",
-      "framework:drawableLeft=\"@drawable/background_choice\""
+      "framework:drawableLeft=\"@drawable/background_choice\"",
     )
     checkLocation(
       locations[1],
       "background_choice.xml:4",
-      "<item android:drawable=\"@drawable/vd\"/>"
+      "<item android:drawable=\"@drawable/vd\"/>",
     )
     assertThat(locations.size).isEqualTo(2)
     assertThat(resolver.findAttributeValue(data.drawableLeft, view, data.demo))
@@ -306,27 +318,28 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testAndroidDrawableFromLayoutWithTripleIndirection() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.drawableRight)
-    val locations = resolver.findFileLocations(data.drawableRight, view, data.demo, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.drawableRight, view, data.demo, locations, 10)
     checkLocation(locations[0], "demo.xml:16", "framework:drawableRight=\"@drawable/my_image\"")
     checkLocation(
       locations[1],
       "drawables.xml:3",
-      "<item name=\"my_image\" type=\"drawable\">@drawable/old_image</item>"
+      "<item name=\"my_image\" type=\"drawable\">@drawable/old_image</item>",
     )
     checkLocation(
       locations[2],
       "drawables.xml:4",
-      "<item name=\"old_image\" type=\"drawable\">@drawable/dsl1</item>"
+      "<item name=\"old_image\" type=\"drawable\">@drawable/dsl1</item>",
     )
     checkLocation(locations[3], "dsl1.xml:4", "<item android:drawable=\"@drawable/dsl2\"/>")
     checkLocation(locations[4], "dsl2.xml:4", "<item android:drawable=\"@drawable/dsl3\"/>")
     checkLocation(
       locations[5],
       "dsl3.xml:4",
-      "<item android_framework:drawable=\"@android_framework:drawable/arrow_up_float\"/>"
+      "<item android_framework:drawable=\"@android_framework:drawable/arrow_up_float\"/>",
     )
     assertThat(locations.size).isEqualTo(6)
     assertThat(resolver.findAttributeValue(data.drawableRight, view, data.demo))
@@ -335,7 +348,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextFromTextFieldWithoutAnId() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val value1 = resolver.findAttributeValue(data.text1, findView(data.text1), data.demo)
     val value2 = resolver.findAttributeValue(data.text2, findView(data.text2), data.demo)
@@ -351,7 +364,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testButtonWithBackgroundColor() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val background =
       InspectorPropertyItem(
@@ -363,9 +376,10 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         data.demo,
         data.button.drawId,
-        data.context
+        data.context,
       )
-    val locations = resolver.findFileLocations(background, data.button, data.demo, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(background, data.button, data.demo, locations, 10)
     checkLocation(locations[0], "demo.xml:27", "framework:background=\"@color/textBlue\"")
     checkLocation(locations[1], "colors.xml:7", "<color name=\"textBlue\">#2122F8</color>")
     assertThat(locations.size).isEqualTo(2)
@@ -376,14 +390,15 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testApproximateFileLocation() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.text1)
-    val locations = resolver.findFileLocations(data.text1, view, data.demo, 10)
+    val locations = mutableListOf<SourceLocation>()
+    resolver.findFileLocations(data.text1, view, data.demo, locations, 10)
     checkLocation(
       locations[0],
       "demo.xml:?",
-      "<RelativeLayout\n" + "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" + "..."
+      "<RelativeLayout\n" + "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" + "...",
     )
     assertThat(locations.size).isEqualTo(1)
   }
@@ -401,7 +416,7 @@ class ResourceLookupResolverTest {
 
   private fun findView(item: InspectorPropertyItem): ViewNode = item.lookup[item.viewId]!!
 
-  private class Data {
+  private class Data(parentDisposable: Disposable) {
     val theme = "@style/AppTheme"
     val exampleNS = ResourceNamespace.fromPackageName("com.example")
     val demo = ResourceReference(exampleNS, ResourceType.LAYOUT, "demo")
@@ -414,7 +429,7 @@ class ResourceLookupResolverTest {
       ResourceReference(
         ResourceNamespace.ANDROID,
         ResourceType.STYLE,
-        "TextAppearance.Material.Body1"
+        "TextAppearance.Material.Body1",
       )
     val myButtonStyle =
       ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Widget.Material.Button")
@@ -438,6 +453,7 @@ class ResourceLookupResolverTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
+        override val scope = AndroidCoroutineScope(parentDisposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? =
@@ -462,7 +478,7 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         demo,
         title.drawId,
-        context
+        context,
       )
     val background =
       InspectorPropertyItem(
@@ -474,7 +490,7 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         demo,
         title.drawId,
-        context
+        context,
       )
     val backgroundTint =
       InspectorPropertyItem(
@@ -486,7 +502,7 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         demo,
         title.drawId,
-        context
+        context,
       )
     val drawableLeft =
       InspectorPropertyItem(
@@ -498,7 +514,7 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         demo,
         title.drawId,
-        context
+        context,
       )
     val drawableRight =
       InspectorPropertyItem(
@@ -510,7 +526,7 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         demo,
         title.drawId,
-        context
+        context,
       )
     val text1 =
       InspectorPropertyItem(
@@ -522,7 +538,7 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         demo,
         textView1.drawId,
-        context
+        context,
       )
     val text2 =
       InspectorPropertyItem(
@@ -534,7 +550,7 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         demo,
         textView2.drawId,
-        context
+        context,
       )
     val text3 =
       InspectorPropertyItem(
@@ -546,7 +562,7 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         designText,
         singleTextView.drawId,
-        context
+        context,
       )
     val supportBackgroundTint =
       InspectorPropertyItem(
@@ -558,7 +574,7 @@ class ResourceLookupResolverTest {
         PropertySection.DECLARED,
         demo,
         title.drawId,
-        context
+        context,
       )
 
     init {

@@ -159,7 +159,7 @@ class ScannerTestHelper {
    */
   fun generateResult(
     component: NlComponent,
-    builder: ValidatorResult.Builder? = null
+    builder: ValidatorResult.Builder? = null,
   ): ValidatorResult.Builder {
     val builder = builder ?: ValidatorResult.Builder()
     validatorIssueId += 1L

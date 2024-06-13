@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.apk;
 
-import static com.android.tools.idea.testing.ProjectFiles.createFolder;
-import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -27,10 +23,14 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.testing.ProjectFiles.createFolder;
+import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Tests for {@link SourceFolders}.

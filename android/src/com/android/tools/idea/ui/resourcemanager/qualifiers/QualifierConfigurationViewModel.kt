@@ -132,13 +132,13 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
       is NetworkCodeQualifier -> IntConfiguration(::NetworkCodeQualifier, NETWORK_CODE_RANGE, qualifier.code)
       is NightModeQualifier -> enumConfiguration(::NightModeQualifier, qualifier.value)
       is ScreenDimensionQualifier -> ScreenDimensionConfiguration(qualifier.value1, qualifier.value2)
-      is ScreenHeightQualifier -> IntConfiguration(::ScreenWidthQualifier, SCREEN_SIZE_RANGE, qualifier.value)
+      is ScreenHeightQualifier -> screenDimensionQualifier(::ScreenHeightQualifier, qualifier.value)
       is ScreenOrientationQualifier -> enumConfiguration(::ScreenOrientationQualifier, qualifier.value)
       is ScreenRatioQualifier -> enumConfiguration(::ScreenRatioQualifier, qualifier.value)
       is ScreenRoundQualifier -> enumConfiguration(::ScreenRoundQualifier, qualifier.value)
       is ScreenSizeQualifier -> enumConfiguration(::ScreenSizeQualifier, qualifier.value)
-      is ScreenWidthQualifier -> IntConfiguration(::ScreenWidthQualifier, SCREEN_SIZE_RANGE, qualifier.value)
-      is SmallestScreenWidthQualifier -> IntConfiguration(::SmallestScreenWidthQualifier, SCREEN_SIZE_RANGE, qualifier.value)
+      is ScreenWidthQualifier -> screenDimensionQualifier(::ScreenWidthQualifier, qualifier.value)
+      is SmallestScreenWidthQualifier -> screenDimensionQualifier(::SmallestScreenWidthQualifier, qualifier.value)
       is TextInputMethodQualifier -> enumConfiguration(::TextInputMethodQualifier, qualifier.value)
       is TouchScreenQualifier -> enumConfiguration(::TouchScreenQualifier, qualifier.value)
       is UiModeQualifier -> enumConfiguration(::UiModeQualifier, qualifier.value)
@@ -234,6 +234,20 @@ private inline fun <Qualifier : EnumBasedResourceQualifier, reified E> enumConfi
   default: E?
 ): EnumQualifierConfiguration<E, Qualifier> where E : ResourceEnum, E : Enum<E> =
   EnumQualifierConfiguration(EnumSet.allOf(E::class.java), factory, default)
+
+/**
+ * Utility method to build [IntConfiguration] for width/height qualifiers. It's guaranteed to produce a valid ResourceQualifier when
+ * using default FolderConfiguration qualifiers.
+ */
+private fun screenDimensionQualifier(
+  qualifierFactory: (Int) -> ResourceQualifier,
+  defaultValue: Int
+): QualifierConfiguration =
+  IntConfiguration(
+    qualifierFactory = qualifierFactory,
+    range = SCREEN_SIZE_RANGE,
+    default = defaultValue.coerceIn(SCREEN_SIZE_RANGE)
+  )
 
 /**
  * Configuration to build all subclass of [EnumBasedResourceQualifier].

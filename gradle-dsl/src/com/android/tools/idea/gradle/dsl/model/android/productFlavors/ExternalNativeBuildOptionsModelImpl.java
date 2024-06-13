@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.dsl.model.android.productFlavors;
 
 
-import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement.CMAKE_OPTIONS;
-import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement.NDK_BUILD_OPTIONS;
-
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.ExternalNativeBuildOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.NdkBuildOptionsModel;
@@ -29,6 +26,9 @@ import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalN
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement.CMAKE_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement.NDK_BUILD_OPTIONS;
 
 public class ExternalNativeBuildOptionsModelImpl extends GradleDslBlockModel implements ExternalNativeBuildOptionsModel {
   public ExternalNativeBuildOptionsModelImpl(@NotNull ExternalNativeBuildOptionsDslElement dslElement) {

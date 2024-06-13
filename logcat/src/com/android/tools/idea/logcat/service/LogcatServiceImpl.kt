@@ -9,7 +9,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.SYSTEM_HEADER
-import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.STANDARD_FORMAT
 import com.android.tools.idea.logcat.message.LogcatMessage
@@ -32,10 +31,8 @@ private const val LOGCAT_IDLE_TIMEOUT_MILLIS = 100L
 /** Implementation of a [LogcatService] */
 internal class LogcatServiceImpl
 @VisibleForTesting
-constructor(
-  project: Project,
-  private val lastMessageDelayMs: Long = LOGCAT_IDLE_TIMEOUT_MILLIS,
-) : LogcatService {
+constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE_TIMEOUT_MILLIS) :
+  LogcatService {
   @Suppress("unused") // Used by XML registration
   constructor(project: Project) : this(project, LOGCAT_IDLE_TIMEOUT_MILLIS)
 
@@ -47,7 +44,7 @@ constructor(
     serialNumber: String,
     sdk: Int,
     duration: Duration,
-    newMessagesOnly: Boolean
+    newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
     return when (sdk >= 35 && StudioFlags.LOGCAT_PROTOBUF_ENABLED.get()) {
       true -> readLogcatProtobuf(serialNumber, duration, newMessagesOnly)
@@ -65,6 +62,7 @@ constructor(
     return channelFlow {
       val logcatFormat = logcatFormat(sdk)
       val cutoffTimeSupported = sdk >= 21
+
       /** [AndroidVersion.VersionCodes.LOLLIPOP] */
       val command = buildString {
         append("logcat -v long")
@@ -95,7 +93,7 @@ constructor(
           processNameMonitor,
           coroutineContext,
           lastMessageDelayMs,
-          cutoffTime
+          cutoffTime,
         )
       try {
         try {
@@ -122,8 +120,8 @@ constructor(
             channel.send(
               listOf(
                 LogcatMessage(message.header, split[0]),
-                LogcatMessage(SYSTEM_HEADER, split[1])
-              ),
+                LogcatMessage(SYSTEM_HEADER, split[1]),
+              )
             )
           }
         }
@@ -136,7 +134,7 @@ constructor(
   private suspend fun readLogcatProtobuf(
     serialNumber: String,
     duration: Duration,
-    newMessagesOnly: Boolean
+    newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
     return channelFlow {
       val command = buildString {
@@ -161,11 +159,11 @@ constructor(
     }
   }
 
-  override suspend fun clearLogcat(device: Device) {
+  override suspend fun clearLogcat(serialNumber: String) {
     deviceServices.shellAsText(
-      DeviceSelector.fromSerialNumber(device.serialNumber),
+      DeviceSelector.fromSerialNumber(serialNumber),
       "logcat -c",
-      commandTimeout = Duration.ofSeconds(2)
+      commandTimeout = Duration.ofSeconds(2),
     )
   }
 }

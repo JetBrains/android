@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-import com.intellij.testFramework.MapDataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
@@ -46,7 +46,7 @@ class RefreshDesignAssetActionTest {
     val latch = CountDownLatch(1)
     val refreshAction = RefreshDesignAssetAction { latch.countDown() }
     val assets = getDesignAssets(arrayOf(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.MENU, ResourceType.LAYOUT))
-    val dataContext = MapDataContext().apply { put(RESOURCE_DESIGN_ASSETS_KEY.name, assets) }
+    val dataContext = SimpleDataContext.builder().add(RESOURCE_DESIGN_ASSETS_KEY, assets).build()
     val presentation = Presentation()
     presentation.copyFrom(refreshAction.templatePresentation)
     val actionEvent = AnActionEvent(null, dataContext, "ActionTest", presentation, actionManager, 0)
@@ -69,7 +69,7 @@ class RefreshDesignAssetActionTest {
   private fun testDisabled(assets: Array<DesignAsset>) {
     val latch = CountDownLatch(1)
     val refreshAction = RefreshDesignAssetAction { latch.countDown() }
-    val dataContext = MapDataContext().apply { put(RESOURCE_DESIGN_ASSETS_KEY.name, assets) }
+    val dataContext = SimpleDataContext.builder().add(RESOURCE_DESIGN_ASSETS_KEY, assets).build()
     val presentation = Presentation()
     presentation.copyFrom(refreshAction.templatePresentation)
     val actionEvent = AnActionEvent(null, dataContext, "ActionTest", presentation, actionManager, 0)

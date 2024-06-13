@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.pickers.preview.property
 import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingValidation
+import com.android.tools.environment.Logger
 import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.MemoryParameterPropertyItem
 import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterPropertyItem
@@ -50,7 +51,7 @@ import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.preview.config.toDeviceConfig
 import com.android.tools.preview.config.toMutableConfig
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.ThreadingAssertions
 import org.jetbrains.kotlin.name.Name
@@ -91,7 +92,7 @@ internal class DeviceParameterPropertyItem(
         width = DEFAULT_WIDTH_DP.toFloat(),
         height = DEFAULT_HEIGHT_DP.toFloat(),
         dimUnit = DEFAULT_UNIT,
-        dpi = DEFAULT_DPI
+        dpi = DEFAULT_DPI,
       )
 
   override var name: String = PARAMETER_HARDWARE_DEVICE
@@ -102,7 +103,7 @@ internal class DeviceParameterPropertyItem(
         name = PARAMETER_HARDWARE_WIDTH,
         defaultValue = defaultDeviceValues.widthString,
         inputValidation = DeviceSpecDimValidator(strictPositive = true),
-        getter = { it.widthString }
+        getter = { it.widthString },
       ) { config, newValue ->
         newValue.toFloatOrNull()?.let { config.width = it }
         PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
@@ -111,7 +112,7 @@ internal class DeviceParameterPropertyItem(
         name = PARAMETER_HARDWARE_HEIGHT,
         defaultValue = defaultDeviceValues.heightString,
         inputValidation = DeviceSpecDimValidator(strictPositive = true),
-        getter = { it.heightString }
+        getter = { it.heightString },
       ) { config, newValue ->
         newValue.toFloatOrNull()?.let { config.height = it }
         PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
@@ -119,7 +120,7 @@ internal class DeviceParameterPropertyItem(
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_DIM_UNIT,
         defaultValue = defaultDeviceValues.dimUnit.name,
-        getter = { it.dimUnit.name }
+        getter = { it.dimUnit.name },
       ) { config, newValue ->
         val newUnit = enumValueOfOrNull<DimUnit>(newValue)
         newUnit?.let {
@@ -131,7 +132,7 @@ internal class DeviceParameterPropertyItem(
         name = PARAMETER_HARDWARE_DENSITY,
         defaultValue = defaultDeviceValues.dpi.toString(),
         inputValidation = IntegerStrictValidator,
-        getter = { it.dpi.toString() }
+        getter = { it.dpi.toString() },
       ) { config, newValue ->
         val newDpi = newValue.toIntOrNull()
         newDpi?.let {
@@ -142,7 +143,7 @@ internal class DeviceParameterPropertyItem(
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_ORIENTATION,
         defaultValue = defaultDeviceValues.orientation.name,
-        getter = { it.orientation.name }
+        getter = { it.orientation.name },
       ) { config, newValue ->
         val newOrientation = enumValueOfOrNull<Orientation>(newValue)
         newOrientation?.let {
@@ -154,7 +155,7 @@ internal class DeviceParameterPropertyItem(
         name = PARAMETER_HARDWARE_IS_ROUND,
         defaultValue = defaultDeviceValues.isRound.toString(),
         inputValidation = BooleanValidator,
-        getter = { it.isRound.toString() }
+        getter = { it.isRound.toString() },
       ) { config, newValue ->
         val newIsRound = newValue.toBooleanStrictOrNull()
         newIsRound?.let {
@@ -167,7 +168,7 @@ internal class DeviceParameterPropertyItem(
         name = PARAMETER_HARDWARE_CHIN_SIZE,
         defaultValue = defaultDeviceValues.chinSizeString,
         inputValidation = DeviceSpecDimValidator(strictPositive = false),
-        getter = { it.chinSizeString }
+        getter = { it.chinSizeString },
       ) { config, newValue ->
         val newChinSize = newValue.toFloatOrNull()
         newChinSize?.let {
@@ -177,7 +178,7 @@ internal class DeviceParameterPropertyItem(
           config.chinSize = newChinSize
           PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
         } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
-      }
+      },
     )
 
   private var lastValueToDevice: Pair<String, DeviceConfig>? = null
@@ -212,7 +213,7 @@ internal class DeviceParameterPropertyItem(
     defaultValue: String?,
     inputValidation: EditingValidation = { EDITOR_NO_ERROR },
     private val getter: (MutableDeviceConfig) -> String,
-    private val setter: (MutableDeviceConfig, String) -> PreviewPickerValue
+    private val setter: (MutableDeviceConfig, String) -> PreviewPickerValue,
   ) : MemoryParameterPropertyItem(name, defaultValue, inputValidation) {
     override var value: String?
       get() = getter(getCurrentDeviceConfig())

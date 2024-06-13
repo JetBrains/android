@@ -21,6 +21,7 @@ iml_module(
         ":test_deps",
         "//prebuilts/studio/jdk:jdk_1_8",
         "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
@@ -37,7 +38,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
@@ -47,7 +49,7 @@ iml_module(
         "//tools/adt/idea/observable:intellij.android.observable[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -60,6 +62,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests[module]",
+        "//tools/adt/idea/.idea/libraries:agp-version[test]",
     ],
 )
 
@@ -78,9 +81,10 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
@@ -89,8 +93,9 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "@intellij//:com.intellij.properties",
         "//tools/adt/idea/analytics[module]",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -152,6 +157,7 @@ tests_list = [
         agp_version = AGP_4_0,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-6.1.1",
@@ -177,6 +183,7 @@ tests_list = [
         agp_version = AGP_4_1,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-6.5",
@@ -202,6 +209,7 @@ tests_list = [
         agp_version = AGP_4_2,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-6.7.1",
@@ -227,6 +235,7 @@ tests_list = [
         agp_version = AGP_7_0,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/android/testData:snapshots",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
@@ -253,6 +262,7 @@ tests_list = [
         agp_version = AGP_7_1,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-7.2",
@@ -278,6 +288,7 @@ tests_list = [
         agp_version = AGP_7_2,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-7.3.3",
@@ -303,6 +314,7 @@ tests_list = [
         agp_version = AGP_7_3,
         data = [
             "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",
             "//tools/base/build-system:gradle-distrib-7.4",
         ] + AGP_DATA[AGP_7_3],
@@ -326,6 +338,7 @@ tests_list = [
         timeout = "long",
         agp_version = "LATEST",
         data = [
+            "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
             "//prebuilts/studio/sdk:build-tools/latest",
             "//prebuilts/studio/sdk:platforms/latest",
             "//tools/adt/idea/project-system-gradle-upgrade/testData",

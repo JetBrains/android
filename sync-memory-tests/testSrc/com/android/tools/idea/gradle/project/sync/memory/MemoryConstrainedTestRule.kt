@@ -70,7 +70,6 @@ class MemoryConstrainedTestRule(
     mutateGradleProperties {
       setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${maxHeapMB}m"))
     }
-    startMemoryPolling()
     recordMeasurement("${projectName}_Max_Heap",
                       listOf(Clock.System.now() to (maxHeapMB.toLong() shl 20)))
   }
@@ -118,32 +117,16 @@ class MemoryConstrainedTestRule(
         1, 2 -> droppedPrefix
         else -> ""
       }
-      "${prefix}GC_Collection_Time" to (value.first to value.second.inWholeMilliseconds)
+      "${prefix}GC_Collection_Time" to (value.first to value.second)
     }.groupBy { (type, _,) -> type }
       .mapValues { groupEntry -> groupEntry.value.map {it.second} }.entries // unpack group values
-      .forEach { (type, values: List<Pair<Instant, Long>>) ->
-        println("Recording ${projectName}_$type -> ${values.map { it.second.milliseconds }}")
-        recordMeasurement("${projectName}_$type", values, analyzer = GC_COLLECTION_TIME_ANALYZER)
-      }
-  }
-
-  private fun startMemoryPolling() {
-    // This is used just for logging and diagnosing issues in the test
-    CoroutineScope(Dispatchers.IO).launch {
-      while (true) {
-        File("/proc/meminfo").readLines().filter { it.startsWith("Mem") }.forEach {
-          // This will have MemAvailable, MemFree, MemTotal lines
-          println("${getTimestamp()} - $it")
+      .forEach { (type, values) ->
+        values.forEach { value ->
+          println("Recording ${projectName}_$type -> ${value.second.inWholeMilliseconds} ms (${value.second.inWholeSeconds} seconds)")
         }
-        delay(15.seconds.toJavaDuration())
+        recordMeasurement("${projectName}_$type", values.map { it.first to it.second.inWholeMilliseconds}, analyzer = GC_COLLECTION_TIME_ANALYZER)
       }
-    }
   }
-
-  private fun getTimestamp() = DateTimeFormatter
-    .ofPattern("yyyy-MM dd-HH:mm:ss.SSS")
-    .withZone(ZoneOffset.UTC)
-    .format(Clock.System.now().toJavaInstant())
 
   private fun recordMeasurement(metricName: String, values: List<Pair<Instant, Long>>, analyzer: List<WindowDeviationAnalyzer>? = null) {
     val benchmarks = listOf(MEMORY_BENCHMARK, CPU_BENCHMARK)

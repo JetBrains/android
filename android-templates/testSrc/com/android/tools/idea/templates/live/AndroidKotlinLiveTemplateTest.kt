@@ -40,8 +40,8 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
                                               """import android.content.Intent
       |import android.net.Uri""",
                                               """val intent = Intent()
-                .setAction(Intent.ACTION_VIEW)
-                .setData(Uri.parse(myUrl))
+            .setAction(Intent.ACTION_VIEW)
+            .setData(Uri.parse(myUrl))
 
         startActivity(intent)"""
     )
@@ -320,7 +320,7 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
       """|@JvmStatic
          |fun start(context: Context) {
          |    val starter = Intent(context, MyClass::class.java)
-         |            .putExtra("foo")
+         |        .putExtra("foo")
          |    context.startActivity(starter)
          |}""".trimMargin()
   )
@@ -329,7 +329,7 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
       """   |@JvmStatic
       |      fun start(context: Context) {
       |          val starter = Intent(context, MyClass::class.java)
-      |                  .putExtra("foo")
+      |              .putExtra("foo")
       |          context.startActivity(starter)
       |      }""".trimMargin()
   )

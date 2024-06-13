@@ -10,7 +10,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
@@ -25,7 +26,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
@@ -61,34 +62,22 @@ iml_module(
             # b/192269906 flaky on windows, taking longer than 15 minutes
             "tags": ["no_windows"],
         },
-        "BaselineProfilesModuleTest": {
-            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
-            "test_filter": "com.android.tools.idea.npw.module.BaselineProfilesModuleTest",
-            # b/192269906 flaky on windows, taking longer than 15 minutes
-            "tags": ["no_windows"],
-        },
         "AddBaselineProfilesModuleTest": {
-            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleTest",
-            # b/192269906 flaky on windows, taking longer than 15 minutes
-            "tags": ["no_windows"],
         },
-        "ConfigureBaselineProfilesModuleStepTest": {
-            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
-            "test_filter": "com.android.tools.idea.npw.module.ConfigureBaselineProfilesModuleStepTest",
-            # b/309976473 may be flaky on Windows
-            "tags": ["no_windows"],
+        "AddBaselineProfilesModuleKtTest": {
+            "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleKtTest",
         },
-        "GenerateBaselineProfileModuleTest": {
-            "test_filter": "com.android.tools.idea.npw.module.GenerateBaselineProfileModuleTest",
+        "other": {
+            "shard_count": 4,
         },
-        "other": {},
     },
     test_class = "com.android.tools.idea.npw.NewProjectWizardTestSuite",
     # keep sorted
     test_data = [
         ":test_deps",
         "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
@@ -120,9 +109,10 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -159,8 +149,8 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.activity.activity-ktx_1.8.0",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.2",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.2",
+        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.3",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.3",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",  # TODO(b/273872043) Remove once tests pass without 2.1.3
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",

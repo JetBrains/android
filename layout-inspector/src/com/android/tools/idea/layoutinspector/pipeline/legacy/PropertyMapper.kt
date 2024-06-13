@@ -414,7 +414,7 @@ object PropertyMapper {
         PropertyDefinition(ATTR_TEXT_STYLE, PropertyType.STRING) { mapTextStyle(it) },
       "mCurTextColor" to PropertyDefinition(ATTR_TEXT_COLOR, PropertyType.COLOR, colorMapper),
       "mGravity" to PropertyDefinition("gravity", PropertyType.GRAVITY, gravityMapper),
-      "mText" to PropertyDefinition("text", PropertyType.STRING)
+      "mText" to PropertyDefinition("text", PropertyType.STRING),
     )
   }
 

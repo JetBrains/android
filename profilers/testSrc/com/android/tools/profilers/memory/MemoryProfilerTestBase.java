@@ -36,12 +36,18 @@ public abstract class MemoryProfilerTestBase {
   @Before
   public void setupBase() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
+    // The Task-Based UX flag will be disabled for the call to setPreferredProcess and the call to instantiate the MainMemoryProfilerStage,
+    // then re-enabled. This is because the result of each call is dependent on the flag's value, and some of the tests dependent on this
+    // setup rely on the results produced with the flag turned off.
+    myIdeProfilerServices.enableTaskBasedUx(false);
     myProfilers = new StudioProfilers(new ProfilerClient(getGrpcChannel().getChannel()), myIdeProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     onProfilersCreated(myProfilers);
 
     myMockLoader = new FakeCaptureObjectLoader();
     myStage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myIdeProfilerServices.enableTaskBasedUx(true);
     myAspectObserver = new MemoryAspectObserver(myStage.getAspect(), myStage.getCaptureSelection().getAspect());
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.

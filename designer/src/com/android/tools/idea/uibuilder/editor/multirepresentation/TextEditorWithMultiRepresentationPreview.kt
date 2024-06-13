@@ -48,7 +48,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   private val project: Project,
   textEditor: TextEditor,
   preview: P,
-  editorName: String
+  editorName: String,
 ) : SeamlessTextEditorWithPreview<P>(textEditor, preview, editorName) {
   /**
    * SplitEditorAction that sets the [layoutSetExplicitly] when the user has clicked the action.
@@ -60,7 +60,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
       delegate.name,
       delegate.icon,
       delegate.delegate,
-      delegate.showDefaultGutterPopup
+      delegate.showDefaultGutterPopup,
     ) {
     override fun onUserSelectedAction() {
       layoutSetExplicitly = true

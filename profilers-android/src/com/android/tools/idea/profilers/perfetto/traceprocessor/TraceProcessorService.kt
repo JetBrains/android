@@ -117,6 +117,10 @@ class TraceProcessorServiceImpl(
                                       setProcessCountersRequest(
                                         QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(id.toLong())) },
                                     { modelBuilder.addProcessCounters(it.processCountersResult) }))
+        requests.add(RequestBuilder({
+                                      setThreadStatesRequest(
+                                        QueryParameters.ThreadStatesParameters.newBuilder().setProcessId(id.toLong())) },
+                                    { modelBuilder.addThreadStates(it.threadStatesResult) }))
       }
       return requests
     }

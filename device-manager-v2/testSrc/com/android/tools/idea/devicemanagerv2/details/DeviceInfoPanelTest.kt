@@ -62,7 +62,7 @@ class DeviceInfoPanelTest {
       shellCommandOutput: ShellCommandOutput,
       device: DeviceState,
       shellCommand: String,
-      shellCommandArgs: String?
+      shellCommandArgs: String?,
     ) {
       if (shellCommandArgs == "battery") {
         statusWriter.writeOk()
@@ -101,7 +101,7 @@ class DeviceInfoPanelTest {
       shellCommandOutput: ShellCommandOutput,
       device: DeviceState,
       shellCommand: String,
-      shellCommandArgs: String?
+      shellCommandArgs: String?,
     ) {
       if (shellCommandArgs == "/data") {
         statusWriter.writeOk()
@@ -157,6 +157,7 @@ class DeviceInfoPanelTest {
         assertThat(panel.power).isEqualTo("Battery: 83")
         assertThat(panel.resolution).isEqualTo("1080 × 2280")
         assertThat(panel.resolutionDp).isEqualTo("393 × 830")
+        assertThat(panel.density).isEqualTo("440 dpi")
         assertThat(panel.abiList).isEqualTo("Unknown")
         assertThat(panel.availableStorage).isEqualTo("2,542 MB")
       }
@@ -198,8 +199,8 @@ class DeviceInfoPanelTest {
           listOf(
             LabeledValue("Type", "Phone"),
             LabeledValue("System image", "/tmp/foo/system.img"),
-            LabeledValue("API", "33")
-          )
+            LabeledValue("API", "33"),
+          ),
         )
         .writeTo(buffer)
       assertThat(buffer.toString())

@@ -154,34 +154,27 @@ public final class AdbService implements Disposable,
 
   @Override
   public void deviceConnected(@NotNull IDevice device) {
-    if (device.isOnline()) {
-      logDeviceOnline(device);
-    }
+    logDeviceConnectionStatus(device);
   }
 
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
-    logDeviceOffline(device);
+    logDeviceConnectionStatus(device);
   }
 
   @Override
   public void deviceChanged(@NotNull IDevice device, int changeMask) {
     if ((changeMask & IDevice.CHANGE_STATE) != 0) {
-      if (device.isOnline()) {
-        logDeviceOnline(device);
-      }
-      else {
-        logDeviceOffline(device);
-      }
+      logDeviceConnectionStatus(device);
     }
   }
 
-  private void logDeviceOnline(@NotNull IDevice device) {
-    LOG.info(String.format("Device [%s] has come online", device.getSerialNumber()));
-  }
-
-  private void logDeviceOffline(@NotNull IDevice device) {
-    LOG.info(String.format("Device [%s] is offline", device.getSerialNumber()));
+  private void logDeviceConnectionStatus(@NotNull IDevice device) {
+    if (device.isOnline()) {
+      LOG.info(String.format("Device [%s] has come online", device.getSerialNumber()));
+    } else {
+      LOG.info(String.format("Device [%s] is offline (device state is `%s`)", device.getSerialNumber(), device.getState()));
+    }
   }
 
   @Override
@@ -189,7 +182,7 @@ public final class AdbService implements Disposable,
     // b/217251994 - ADB crashes when ADB_MDNS_OPENSCREEN is set on certain Windows configs.
     // Work around by disabling ADB_MDNS_OPENSCREEN and notifying the user that ADB WiFi is disabled.
     if (!SystemInfo.isWindows ||
-        !AdbOptionsService.getInstance().shouldUseMdnsOpenScreen() ||
+        !(AdbOptionsService.getInstance().getAdbServerMdnsBackend() == AdbServerMdnsBackend.OPENSCREEN) ||
         !(exception instanceof IOException) ||
         !exception.getMessage().startsWith("An existing connection was forcibly closed by the remote host")) {
       return;
@@ -397,7 +390,7 @@ public final class AdbService implements Disposable,
       return StudioFlags.JDWP_TRACER.get() && !JDWP_SCACHE.get();
     });
     AndroidDebugBridge.setJdwpProcessorFactory(() -> new StudioDDMLibSCache(JDWP_SCACHE.get(), new StudioSCacheLogger()));
-    StudioAdbLibSCacheJdwpSessionPipelineFactory.install(AdbLibApplicationService.getInstance().getSession(), JDWP_SCACHE::get);
+    StudioAdbLibSCacheJdwpSessionPipelineFactory.install(AdbLibApplicationService.getInstance().getSession());
 
     // Ensure ADB is terminated when there are no more open projects.
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
@@ -432,12 +425,28 @@ public final class AdbService implements Disposable,
     options.setClientSupportEnabled(true); // IDE needs client monitoring support.
     options.useJdwpProxyService(StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get());
     options.useDdmlibCommandService(StudioFlags.ENABLE_DDMLIB_COMMAND_SERVICE.get());
-    options.withEnv("ADB_LIBUSB", AdbOptionsService.getInstance().shouldUseLibusb() ? "1" : "0");
+
+    // There are three cases.
+    // 1. If ADB_LIBUSB is not set, adb server will choose the backend (preferred)
+    // 2. If ADB_LIBUSB == 1 -> libusb backend
+    // 3. If ADB_LIBUSB == 0 -> native backend
+    switch (AdbOptionsService.getInstance().getAdbServerUsbBackend() ) {
+      case LIBUSB -> options.withEnv("ADB_LIBUSB", "1");
+      case NATIVE -> options.withEnv("ADB_LIBUSB", "0");
+      case DEFAULT -> {}
+    }
+
     if (getInstance().myAllowMdnsOpenscreen) {
       // Enables Open Screen mDNS implementation in ADB host.
       // See https://android-review.googlesource.com/c/platform/packages/modules/adb/+/1549744
-      options.withEnv("ADB_MDNS_OPENSCREEN", AdbOptionsService.getInstance().shouldUseMdnsOpenScreen() ? "1" : "0");
+      switch (AdbOptionsService.getInstance().getAdbServerMdnsBackend()) {
+        case OPENSCREEN -> options.withEnv("ADB_MDNS_OPENSCREEN", "1");
+        case BONJOUR -> options.withEnv("ADB_MDNS_OPENSCREEN", "0");
+        case DEFAULT -> {
+        }
+      }
     }
+
     getInstance().myAllowMdnsOpenscreen = true;
     if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
       // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox

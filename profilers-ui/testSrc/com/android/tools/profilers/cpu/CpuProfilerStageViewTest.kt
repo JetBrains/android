@@ -88,12 +88,16 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
+    // The Task-Based UX flag will be disabled for the call to setPreferredProcess and the call to instantiate the CpuProfilerStage, then
+    // re-enabled. This is because the result of each call is dependent on the flag's value, and some of the tests dependent on this
+    // setup rely on the results produced with the flag turned off.
+    myIdeServices.enableTaskBasedUx(false)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     myStage = CpuProfilerStage(profilers)
+    myIdeServices.enableTaskBasedUx(true)
     myStage.studioProfilers.stage = myStage
     myStage.enter()
     myProfilersView = SessionProfilersView(profilers, myComponents, disposableRule.disposable)
@@ -109,6 +113,8 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
 
   @Test
   fun recordButtonDisabledInDeadSessions() {
+    myIdeServices.enableTaskBasedUx(false)
+
     assumeFalse(isTestingProfileable)
     // Create a valid capture and end the current session afterwards.
     myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG

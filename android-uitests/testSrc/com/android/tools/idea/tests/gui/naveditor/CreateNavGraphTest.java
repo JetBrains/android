@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -22,17 +24,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDial
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.core.MouseButton;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.google.common.truth.Truth.assertThat;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateNavGraphTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /**
    * Verifies Creating Navigation Graph
@@ -75,6 +74,8 @@ public class CreateNavGraphTest {
       .clickOkAndWaitForDependencyDialog()
       .clickOk();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    ideFrame.requestFocusIfLost();
 
     String contents = ideFrame.getEditor()
       .open("app/build.gradle")

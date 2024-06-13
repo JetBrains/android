@@ -22,7 +22,6 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.LoadLogcatFile
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.PauseLogcat
@@ -101,6 +100,7 @@ import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Projec
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.USER_REQUEST
 import com.android.tools.idea.run.ClearLogcatListener
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.DeviceArtScreenshotOptions
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
@@ -215,7 +215,7 @@ class LogcatMainPanelFactory {
         AndroidLogcatSettings.getInstance(),
         AndroidProjectDetectorImpl(),
         hyperlinkDetector = NoopHyperlinkDetector(),
-        foldingDetector = null
+        foldingDetector = null,
       )
     }
   }
@@ -244,7 +244,7 @@ constructor(
   private var androidProjectDetector: AndroidProjectDetector,
   hyperlinkDetector: HyperlinkDetector?,
   foldingDetector: FoldingDetector?,
-  zoneId: ZoneId = ZoneId.systemDefault()
+  zoneId: ZoneId = ZoneId.systemDefault(),
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, DataProvider, Disposable {
 
   constructor(
@@ -301,7 +301,7 @@ constructor(
       logcatFilterParser,
       state?.filter ?: getDefaultFilter(project, androidProjectDetector),
       state?.filterMatchCase ?: false,
-      state?.getInitialItem()
+      state?.getInitialItem(),
     )
 
   private val deviceComboBox = headerPanel.deviceComboBox
@@ -311,13 +311,15 @@ constructor(
     MessageProcessor(
       this,
       ::formatMessages,
-      logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase)
+      logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase),
     )
 
   private val toolbar =
     ActionManager.getInstance()
       .createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
-  private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
+  private val hyperlinkDetector =
+    hyperlinkDetector
+      ?: EditorHyperlinkDetector(project, editor, this, ModalityState.stateForComponent(this))
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
   private val logcatService = LogcatService.getInstance(project)
   private var ignoreCaretAtBottom =
@@ -350,7 +352,7 @@ constructor(
             caretLine = event.newPosition.line
           }
         },
-        this@LogcatMainPanel
+        this@LogcatMainPanel,
       )
 
       scrollPane.border = Borders.customLine(JBColor.border(), 1, 1, 0, 0)
@@ -445,7 +447,7 @@ constructor(
             .setFilter(
               logcatFilterParser.getUsageTrackingEvent(
                 headerPanel.filter,
-                headerPanel.filterMatchCase
+                headerPanel.filterMatchCase,
               )
             )
             .setFormatConfiguration(state?.formattingConfig.toUsageTracking())
@@ -462,7 +464,7 @@ constructor(
             if (connectedDevice.get()?.serialNumber == it) {
               clearMessageView()
             }
-          }
+          },
         )
       messageBus
         .connect(this)
@@ -475,16 +477,23 @@ constructor(
                 reloadMessages()
               }
             }
-          }
+          },
         )
     }
 
     coroutineScope.launch(workerThread) {
       deviceComboBox.trackSelected().collect { item ->
+        messageProcessor.context(item)
+        pausedBanner.isVisible = false
         if (item is DeviceItem) {
-          when {
-            item.device.isOnline -> logcatServiceChannel.send(StartLogcat(item.device))
-            else -> logcatServiceChannel.send(StopLogcat)
+          if (item.device.isOnline) {
+            logcatServiceChannel.send(StartLogcat(item.device))
+          } else {
+            logcatServiceChannel.send(StopLogcat)
+            withContext(uiThread) {
+              document.setText("")
+              noLogsBanner.isVisible = false
+            }
           }
         } else if (item is FileItem) {
           logcatServiceChannel.send(StopLogcat)
@@ -497,7 +506,7 @@ constructor(
                 withContext(uiThread) {
                   deviceComboBox.handleItemError(
                     item,
-                    LogcatBundle.message("logcat.device.combo.error.load.file", item.path)
+                    LogcatBundle.message("logcat.device.combo.error.load.file", item.path),
                   )
                 }
                 null
@@ -538,7 +547,8 @@ constructor(
       add(IgnoreTagAction())
       add(CreateScratchFileAction())
       add(Separator.create())
-      if (IssueExplainer.get().isAvailable()) {
+      val studioBot = StudioBot.getInstance()
+      if (studioBot.isAvailable()) {
         add(AskStudioBotAction())
         add(Separator.create())
       }
@@ -621,17 +631,21 @@ constructor(
           else Preset(formattingOptionsStyle),
         filter = headerPanel.filter,
         filterMatchCase = headerPanel.filterMatchCase,
-        isSoftWrap = isSoftWrapEnabled()
+        isSoftWrap = isSoftWrapEnabled(),
       )
     )
   }
 
-  override suspend fun appendMessages(textAccumulator: TextAccumulator) =
+  override suspend fun appendMessages(textAccumulator: TextAccumulator, context: Any?) {
     withContext(uiThread(ModalityState.any())) {
       LOGGER.debug { "Appending ${textAccumulator.text.length} bytes. isActive=$isActive" }
       if (!isActive) {
         return@withContext
       }
+      if (deviceComboBox.item != context) {
+        return@withContext
+      }
+
       // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
       val shouldStickToEnd = !ignoreCaretAtBottom && isCaretAtBottom()
       ignoreCaretAtBottom =
@@ -650,7 +664,7 @@ constructor(
       hyperlinkDetector.detectHyperlinks(
         startLine,
         endLine,
-        deviceComboBox.getSelectedDevice()?.sdk
+        deviceComboBox.getSelectedDevice()?.sdk,
       )
       foldingDetector.detectFoldings(startLine, endLine)
 
@@ -658,6 +672,7 @@ constructor(
         scrollToEnd()
       }
     }
+  }
 
   override fun dispose() {
     EditorFactory.getInstance().releaseEditor(editor)
@@ -804,7 +819,7 @@ constructor(
           )
         } else {
           try {
-            logcatService.clearLogcat(device)
+            logcatService.clearLogcat(device.serialNumber)
           } catch (e: TimeoutException) {
             LOGGER.warn("Timed out executing logcat -c")
             systemMessages.add(
@@ -849,7 +864,7 @@ constructor(
             it.serialNumber,
             it.featureLevel,
             if (it.isEmulator) it.deviceId else null,
-            this
+            this,
           )
         }
       CONNECTED_DEVICE.name -> device

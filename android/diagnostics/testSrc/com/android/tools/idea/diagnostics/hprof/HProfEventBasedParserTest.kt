@@ -21,6 +21,7 @@ import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
 import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
+import com.intellij.openapi.util.SystemInfo
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -129,11 +130,14 @@ class HProfEventBasedParserTest {
   }
 
   /**
-   * Get the contents of the baseline file, with system-dependent line endings
+   * Get the contents of the baseline file, with UNIX line endings.
    */
   private fun getBaselineContents(path: Path): String {
-    return String(Files.readAllBytes(path), StandardCharsets.UTF_8)
-      .replace(Regex("(\r\n|\n)"), System.lineSeparator())
+    return if (SystemInfo.isWindows) {
+      String(Files.readAllBytes(path), StandardCharsets.UTF_8).replace(Regex("(\r\n)"), "\n")
+    } else {
+      return String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+    }
   }
 
   private fun getBaselinePath(fileName: String) =

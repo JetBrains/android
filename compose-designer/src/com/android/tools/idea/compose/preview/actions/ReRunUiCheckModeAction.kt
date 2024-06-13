@@ -15,64 +15,96 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.common.editor.SplitEditor
+import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.uicheck.TAB_IS_WEAR_PREVIEW
+import com.android.tools.idea.compose.preview.uicheck.TAB_PREVIEW_DEFINITION
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.preview.actions.getPreviewManager
+import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
-import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
-import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.project.Project
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 private const val DISABLED_TEXT = "UI Check is already running in the background."
 private const val ENABLED_TEXT = "Restart UI Check and background linting for this composable."
 
+/** This action restarts a terminated UI Check mode from the corresponding Problems window tab. */
 class ReRunUiCheckModeAction : AnAction() {
 
   override fun update(e: AnActionEvent) {
-    val project = e.project ?: return
-    val dataContext = uiTabDataContext(project) ?: return
-    val manager = dataContext.getData(COMPOSE_PREVIEW_MANAGER.name) as? ComposePreviewManager
-    e.presentation.isVisible = manager != null
-    manager?.let {
-      if (it.mode.value is PreviewMode.UiCheck) {
-        e.presentation.isEnabled = false
-        e.presentation.text = DISABLED_TEXT
-      } else {
-        e.presentation.isEnabled = true
-        e.presentation.text = ENABLED_TEXT
+    val project = e.project
+    val uiCheckInstancePreviewDef =
+      project?.let {
+        ProblemsView.getToolWindow(it)
+          ?.contentManager
+          ?.selectedContent
+          ?.getUserData(TAB_PREVIEW_DEFINITION)
       }
-    }
-    e.presentation.isEnabled = manager?.mode?.value !is PreviewMode.UiCheck
 
-    super.update(e)
+    if (
+      uiCheckInstancePreviewDef == null ||
+        runReadAction { uiCheckInstancePreviewDef.element == null }
+    ) {
+      e.presentation.isVisible = false
+      return
+    }
+    val editors =
+      FileEditorManager.getInstance(project).getAllEditors(uiCheckInstancePreviewDef.virtualFile)
+    val isUiCheckRunning =
+      editors
+        .mapNotNull { it.getPreviewManager<ComposePreviewManager>() }
+        .any { it.mode.value is PreviewMode.UiCheck }
+    e.presentation.isVisible = true
+    e.presentation.isEnabled = !isUiCheckRunning
+    e.presentation.text = if (isUiCheckRunning) DISABLED_TEXT else ENABLED_TEXT
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    val dataContext = uiTabDataContext(project) ?: return
-    val manager =
-      dataContext.getData(COMPOSE_PREVIEW_MANAGER.name) as? ComposePreviewManager ?: return
-    val instance =
-      dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE.name) as? ComposePreviewElementInstance
-        ?: return
-    manager.setMode(PreviewMode.UiCheck(baseElement = instance))
-    instance.containingFile?.let {
-      FileEditorManager.getInstance(project).openFile(it.virtualFile, true, true)
+
+    // Gets the preview pointer associated with this UI Check
+    val selectedContent = ProblemsView.getToolWindow(project)?.contentManager?.selectedContent
+    val uiCheckInstancePreviewDef = selectedContent?.getUserData(TAB_PREVIEW_DEFINITION) ?: return
+    val isWearPreview = selectedContent.getUserData(TAB_IS_WEAR_PREVIEW) ?: return
+
+    // Selects or reopens the file containing the preview
+    val editors =
+      FileEditorManager.getInstance(project)
+        .openFile(uiCheckInstancePreviewDef.virtualFile, true, true)
+    val relevantEditor =
+      editors.filterIsInstance<SplitEditor<*>>().firstOrNull {
+        it.getPreviewManager<ComposePreviewManager>() != null
+      } ?: return
+    if (relevantEditor.isTextMode()) {
+      relevantEditor.selectSplitMode(false)
+    }
+
+    val composeManager = relevantEditor.getPreviewManager<ComposePreviewManager>() ?: return
+    val flowManager =
+      relevantEditor.getDesignSurface()?.getData(PreviewFlowManager.KEY.name)
+        as? PreviewFlowManager<*> ?: return
+    AndroidCoroutineScope(composeManager).launch {
+      // Waits for the correct preview to be recreated, and starts UI Check on it
+      val previewElements =
+        flowManager.allPreviewElementsFlow.firstOrNull { flow ->
+          flow.asCollection().any { it.previewElementDefinition == uiCheckInstancePreviewDef }
+        }
+      previewElements
+        ?.asCollection()
+        ?.firstOrNull { it.previewElementDefinition == uiCheckInstancePreviewDef }
+        ?.let { composeManager.setMode(PreviewMode.UiCheck(UiCheckInstance(it, isWearPreview))) }
     }
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  private fun uiTabDataContext(project: Project): DataProvider? {
-    val tabComponent =
-      ProblemsView.getToolWindow(project)?.contentManagerIfCreated?.selectedContent?.component
-        ?: return null
-    return DataManagerImpl.getDataProviderEx(tabComponent)
-  }
 }

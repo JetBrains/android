@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -62,7 +63,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.annotations.VisibleForTesting
-import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
@@ -166,19 +166,32 @@ private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
 }
 
 /**
- * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned [Disposable] can be used
- * as the root.
- * This is analogous to [AndroidCoroutineScope] where this generates a [Disposable] for the given [CoroutineScope].
+ * This application level service is used to ensure all Disposables created by
+ * [CoroutineScope.scopeDisposable] get disposed when the application is disposed.
+ * [Job.invokeOnCompletion] does not provide thread guarantees (cf.
+ * https://github.com/Kotlin/kotlinx.coroutines/issues/3505) and we had some race conditions where
+ * the UndisposedAndroidObjectsCheckerRule#checkUndisposedAndroidRelatedObjects leak check would run
+ * before the call to [Disposable.dispose] inside the [Job.invokeOnCompletion]. This created some
+ * errors in some tests, for example: b/328290264. By using this application level service as a
+ * parent disposable, we ensure all child disposables are disposed of at the end of each test.
+ */
+@Service(Service.Level.APP)
+private class ApplicationCoroutineScopeDisposable : Disposable {
+  override fun dispose() {}
+}
+
+/**
+ * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned
+ * [Disposable] can be used as the root. This is analogous to [AndroidCoroutineScope] where this
+ * generates a [Disposable] for the given [CoroutineScope].
  */
 fun CoroutineScope.scopeDisposable(): Disposable {
-  val disposable = Disposer.newDisposable()
+  val parentDisposable =
+    ApplicationManager.getApplication().getService(ApplicationCoroutineScopeDisposable::class.java)
+  val disposable = Disposer.newDisposable(parentDisposable)
 
-  // We use a weak reference so the disposable is not held by the coroutine if the caller ends up not
-  // using it.
-  val disposableRef = WeakReference(disposable)
-  coroutineContext.job.invokeOnCompletion {
-    disposableRef.get()?.let { Disposer.dispose(it) }
-  }
+  // The disposable should be disposed of once the coroutine scope is ended
+  coroutineContext.job.invokeOnCompletion { Disposer.dispose(disposable) }
   return disposable
 }
 
@@ -342,11 +355,6 @@ suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScop
 }
 
 /**
- * [Exception] thrown by [runReadActionWithWritePriority] when `maxRetries` has been exceeded.
- */
-class RetriesExceededException(message: String? = null) : Exception(message)
-
-/**
  * Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function.
  */
 suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = readAction {
@@ -383,7 +391,7 @@ interface CallbackFlowWithDisposableScope<T> : CoroutineScope {
 fun <T> disposableCallbackFlow(debugName: String,
                                logger: Logger? = null,
                                parentDisposable: Disposable? = null,
-                               runnable: CallbackFlowWithDisposableScope<T>.() -> Unit) = callbackFlow {
+                               runnable: suspend CallbackFlowWithDisposableScope<T>.() -> Unit) = callbackFlow {
   logger?.debug("$debugName start")
 
   val disposable = parentDisposable?.let {

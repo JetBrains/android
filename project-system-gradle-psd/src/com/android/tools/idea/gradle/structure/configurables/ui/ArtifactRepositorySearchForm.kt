@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchByModuleQuery
 import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchQuery
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.repositories.search.FoundArtifact
@@ -189,13 +190,19 @@ class ArtifactRepositorySearchForm(
   }
 
   private fun showSearchStopped() {
-    mySearchButton.isEnabled = getQuery().let { (it.artifactName?.length ?: 0) + (it.groupId?.length ?: 0) >= 3 }
+    mySearchButton.isEnabled = getQuery().calculateQueryLength() >= 3
 
     resultsTable.setPaintBusy(false)
     resultsTable.emptyText.text = NOTHING_TO_SHOW_EMPTY_TEXT
 
     versionsPanel.setEmptyText(NOTHING_TO_SHOW_EMPTY_TEXT)
   }
+
+  private fun ArtifactSearchQuery.calculateQueryLength() =
+    normalizedLength(artifactName) + normalizedLength(groupId) + normalizedLength(id)
+
+  private fun normalizedLength(str: String?): Int =
+     str?.replace("*", "")?.length ?: 0
 
   fun add(listener: SelectionChangeListener<ParsedValue<String>>, parentDisposable: Disposable) {
     eventDispatcher.addListener(listener, parentDisposable)
@@ -305,8 +312,9 @@ data class ArtifactSearchQuery(
   val groupId: String? = null,
   val artifactName: String? = null,
   val version: String? = null,
-  val gradleCoordinates: GradleCoordinate? = null
-)
+  val gradleCoordinates: GradleCoordinate? = null,
+  val id: String? = null
+  )
 
 @VisibleForTesting
 fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
@@ -314,7 +322,7 @@ fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
   return when {
     split.isEmpty() -> ArtifactSearchQuery()
     split.size == 1 && split[0]?.contains('.') == true -> ArtifactSearchQuery(groupId = split[0])
-    split.size == 1 -> ArtifactSearchQuery(artifactName = split[0])
+    split.size == 1 -> ArtifactSearchQuery(id = "*" + split[0] + "*")
     split.size == 2 -> ArtifactSearchQuery(groupId = split[0], artifactName = split[1])
     split.size >= 3 ->
       ArtifactSearchQuery(
@@ -326,4 +334,7 @@ fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
   }
 }
 
-private fun ArtifactSearchQuery.toSearchQuery() = ArbitraryModulesSearchQuery(groupId = groupId, artifactName = artifactName)
+private fun ArtifactSearchQuery.toSearchQuery() =
+  if (id?.isNotEmpty() == true) ArbitraryModulesSearchByModuleQuery(id)
+  else
+    ArbitraryModulesSearchQuery(groupId = groupId, artifactName = artifactName)

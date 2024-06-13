@@ -40,7 +40,7 @@ class LinearLayoutDecorator : SceneDecorator() {
       @SwingCoordinate height: Int,
       paint: Paint? = null,
       vertical: Boolean = false,
-      mode: Int = DrawComponentBackground.NORMAL
+      mode: Int = DrawComponentBackground.NORMAL,
     ) : super(x, y, width, height, mode) {
       this.paint = paint
       this.vertical = vertical
@@ -76,7 +76,7 @@ class LinearLayoutDecorator : SceneDecorator() {
   override fun addBackground(
     list: DisplayList,
     sceneContext: SceneContext,
-    component: SceneComponent
+    component: SceneComponent,
   ) {
     @AndroidDpCoordinate val rect = Rectangle()
     component.fillDrawRect(0, rect)

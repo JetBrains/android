@@ -20,5 +20,32 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Wear Tile Preview Notification" displayType="NONE"/>
+
+    <deadCode implementation="com.android.tools.idea.wear.preview.WearTilePreviewEntryPoint"/>
+
+    <languageInjectionContributor language="kotlin"
+                                  implementationClass="com.android.tools.idea.wear.preview.util.device.WearTileDeviceSpecInjectionContributor"/>
+    <languageInjectionContributor language="JAVA"
+                                  implementationClass="com.android.tools.idea.wear.preview.util.device.WearTileDeviceSpecInjectionContributor"/>
+    <deadCode implementation="com.android.tools.idea.wear.preview.WearTilePreviewEntryPoint" />
+
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewNotSupportedInUnitTestFiles"
+                     shortName="WearTilePreviewNotSupportedInKotlinUnitTestFiles"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.unit.test.files"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewNotSupportedInUnitTestFiles"
+                     shortName="WearTilePreviewNotSupportedInJavaUnitTestFiles"
+                     language="JAVA"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.unit.test.files"
+                     level="ERROR"/>
+
   </extensions>
 </idea-plugin>

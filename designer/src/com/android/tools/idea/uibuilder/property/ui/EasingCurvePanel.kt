@@ -34,7 +34,7 @@ import javax.swing.JPanel
 class EasingCurvePanel(
   private val model: NlPropertiesModel,
   easingAttributeName: String,
-  properties: PropertiesTable<NlPropertyItem>
+  properties: PropertiesTable<NlPropertyItem>,
 ) : JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
@@ -70,7 +70,7 @@ class EasingCurvePanel(
             Runnable {
               NlWriteCommandActionUtil.run(
                 transitionEasing.components,
-                "Set $component.${transitionEasing.name} to ${it.actionCommand}"
+                "Set $component.${transitionEasing.name} to ${it.actionCommand}",
               ) {
                 var cubic = it.actionCommand
                 if (transitionEasing.name == "transitionEasing") {
@@ -90,7 +90,7 @@ class EasingCurvePanel(
                 }
                 transitionEasing.value = cubic
               }
-            }
+            },
           )
         }
         processingChange = false

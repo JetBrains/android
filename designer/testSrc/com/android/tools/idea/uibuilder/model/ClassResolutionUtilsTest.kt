@@ -42,7 +42,7 @@ class ClassResolutionUtilsTest {
         }
       }
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -54,7 +54,7 @@ class ClassResolutionUtilsTest {
       assertEquals(textViewClass, findClassesForViewTag(projectRule.project, "TextView").single())
       assertEquals(
         textViewClass,
-        findClassesForViewTag(projectRule.project, "android.widget.TextView").single()
+        findClassesForViewTag(projectRule.project, "android.widget.TextView").single(),
       )
 
       val customViewClass =
@@ -62,7 +62,7 @@ class ClassResolutionUtilsTest {
       assertNotNull(customViewClass)
       assertEquals(
         customViewClass,
-        findClassesForViewTag(projectRule.project, "google.simpleapplication.CustomView").single()
+        findClassesForViewTag(projectRule.project, "google.simpleapplication.CustomView").single(),
       )
     }
   }

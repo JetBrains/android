@@ -46,7 +46,7 @@ class JdbcDatabaseConnection(
   parentDisposable: Disposable,
   private val connection: Connection,
   private val sqliteFile: VirtualFile,
-  pooledExecutor: Executor
+  pooledExecutor: Executor,
 ) : DatabaseConnection {
   companion object {
     private val logger: Logger = Logger.getInstance(JdbcDatabaseConnection::class.java)
@@ -56,10 +56,10 @@ class JdbcDatabaseConnection(
     Disposer.register(parentDisposable, this)
   }
 
-  val sequentialTaskExecutor =
+  private val sequentialTaskExecutor =
     SequentialTaskExecutor.createSequentialApplicationPoolExecutor(
       "Sqlite JDBC service",
-      pooledExecutor
+      pooledExecutor,
     )
 
   override fun close(): ListenableFuture<Unit> =
@@ -80,7 +80,7 @@ class JdbcDatabaseConnection(
             tables.getString("TABLE_NAME"),
             columns,
             rowIdName,
-            isView = tables.getString("TABLE_TYPE") == "VIEW"
+            isView = tables.getString("TABLE_TYPE") == "VIEW",
           )
         )
       }
@@ -137,7 +137,7 @@ class JdbcDatabaseConnection(
               // The number in table_info for primary key is an integer that corresponds
               // to the position of the column in the primary key constraint.
               // Or 0 if the column is not in the primary key.
-              colPk.toInt() > 0
+              colPk.toInt() > 0,
             )
           }
           .toList()

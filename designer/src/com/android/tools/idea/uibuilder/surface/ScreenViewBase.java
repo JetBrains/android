@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.ShapePolicy;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.rendering.RenderResult;
 import org.jetbrains.annotations.NotNull;

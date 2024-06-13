@@ -41,7 +41,6 @@ class ComposePreviewKotlin {
   fun setup() {
     // Create a new android project, and set a fixed distribution
     project = AndroidProject("tools/adt/idea/compose-designer/testData/projects/composepreview")
-    project.setDistribution("tools/external/gradle/gradle-7.5-bin.zip")
 
     system.installRepo(MavenRepo("tools/adt/idea/compose-designer/compose_preview_deps.manifest"))
 
@@ -70,8 +69,11 @@ class ComposePreviewKotlin {
       studio.executeAction("MakeGradleProject")
       studio.waitForBuild()
       studio.waitForComponentWithExactText("DefaultPreview")
+      // Check the parameterized previews also render
+      studio.waitForComponentWithExactText("MyOrdersPreview (state 0)")
 
       system.installation.ideaLog.waitForMatchingLine(".*Render completed(.*)", 2, TimeUnit.MINUTES)
+      studio.executeAction("CloseAllEditors")
     }
   }
 }

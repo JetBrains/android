@@ -86,7 +86,7 @@ class LightArgsKtClass(
   superTypes: Collection<KotlinType>,
   sourceElement: SourceElement,
   containingDescriptor: DeclarationDescriptor,
-  private val storageManager: StorageManager
+  private val storageManager: StorageManager,
 ) :
   ClassDescriptorImpl(
     containingDescriptor,
@@ -96,7 +96,7 @@ class LightArgsKtClass(
     superTypes,
     sourceElement,
     false,
-    storageManager
+    storageManager,
   ) {
 
   private val _primaryConstructor = storageManager.createLazyValue { computePrimaryConstructor() }
@@ -131,7 +131,7 @@ class LightArgsKtClass(
               arg.type,
               arg.defaultValue,
               containingDeclaration.module,
-              arg.isNonNull()
+              arg.isNonNull(),
             )
           val hasDefaultValue = arg.defaultValue != null
           ValueParameterDescriptorImpl(
@@ -145,7 +145,7 @@ class LightArgsKtClass(
             false,
             false,
             null,
-            SourceElement.NO_SOURCE
+            SourceElement.NO_SOURCE,
           )
         }
         .toList()
@@ -164,7 +164,7 @@ class LightArgsKtClass(
         emptyList(),
         argsClassDescriptor.source,
         false,
-        storageManager
+        storageManager,
       ) {
 
       private val companionObjectScope = storageManager.createLazyValue { CompanionScope() }
@@ -191,7 +191,7 @@ class LightArgsKtClass(
                 argsClassDescriptor.builtIns.getKotlinType(
                   "android.os.Bundle",
                   null,
-                  argsClassDescriptor.module
+                  argsClassDescriptor.module,
                 )
               val bundleParam =
                 ValueParameterDescriptorImpl(
@@ -205,7 +205,7 @@ class LightArgsKtClass(
                   false,
                   false,
                   null,
-                  SourceElement.NO_SOURCE
+                  SourceElement.NO_SOURCE,
                 )
               listOf(bundleParam)
             }
@@ -214,7 +214,7 @@ class LightArgsKtClass(
               companionObject.createMethod(
                 name = "fromBundle",
                 returnType = argsClassDescriptor.getDefaultType(),
-                valueParametersProvider = fromBundleParametersProvider
+                valueParametersProvider = fromBundleParametersProvider,
               )
             )
 
@@ -224,7 +224,7 @@ class LightArgsKtClass(
                   argsClassDescriptor.builtIns.getKotlinType(
                     "androidx.lifecycle.SavedStateHandle",
                     null,
-                    argsClassDescriptor.module
+                    argsClassDescriptor.module,
                   )
                 val handleParam =
                   ValueParameterDescriptorImpl(
@@ -238,7 +238,7 @@ class LightArgsKtClass(
                     false,
                     false,
                     null,
-                    SourceElement.NO_SOURCE
+                    SourceElement.NO_SOURCE,
                   )
                 listOf(handleParam)
               }
@@ -247,7 +247,7 @@ class LightArgsKtClass(
                 companionObject.createMethod(
                   name = "fromSavedStateHandle",
                   returnType = argsClassDescriptor.getDefaultType(),
-                  valueParametersProvider = fromSavedStateHandleParametersProvider
+                  valueParametersProvider = fromSavedStateHandleParametersProvider,
                 )
               )
             }
@@ -257,7 +257,7 @@ class LightArgsKtClass(
 
         override fun getContributedDescriptors(
           kindFilter: DescriptorKindFilter,
-          nameFilter: (Name) -> Boolean
+          nameFilter: (Name) -> Boolean,
         ): Collection<DeclarationDescriptor> {
           return companionMethods().filter {
             kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && nameFilter(it.name)
@@ -266,7 +266,7 @@ class LightArgsKtClass(
 
         override fun getContributedFunctions(
           name: Name,
-          location: LookupLocation
+          location: LookupLocation,
         ): Collection<SimpleFunctionDescriptor> {
           return companionMethods().filter { it.name == name }
         }
@@ -288,22 +288,17 @@ class LightArgsKtClass(
           argsClassDescriptor.builtIns.getKotlinType(
             "android.os.Bundle",
             null,
-            argsClassDescriptor.module
+            argsClassDescriptor.module,
           )
         val savedStateHandleType =
           argsClassDescriptor.builtIns.getKotlinType(
             "androidx.lifecycle.SavedStateHandle",
             null,
-            argsClassDescriptor.module
+            argsClassDescriptor.module,
           )
 
         // Add toBundle method.
-        methods.add(
-          argsClassDescriptor.createMethod(
-            name = "toBundle",
-            returnType = bundleType,
-          )
-        )
+        methods.add(argsClassDescriptor.createMethod(name = "toBundle", returnType = bundleType))
 
         // Add copy method.
         methods.add(
@@ -312,7 +307,7 @@ class LightArgsKtClass(
             returnType = argsClassDescriptor.getDefaultType(),
             valueParametersProvider = {
               argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters
-            }
+            },
           )
         )
 
@@ -327,7 +322,7 @@ class LightArgsKtClass(
                 arg.type,
                 arg.defaultValue,
                 argsClassDescriptor.module,
-                arg.isNonNull()
+                arg.isNonNull(),
               )
             val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
             val resolvedSourceElement =
@@ -337,7 +332,7 @@ class LightArgsKtClass(
                     it as XmlTagImpl,
                     IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
                     methodName,
-                    argsClassDescriptor.fqNameSafe.asString()
+                    argsClassDescriptor.fqNameSafe.asString(),
                   )
                 )
               } ?: argsClassDescriptor.source
@@ -346,7 +341,7 @@ class LightArgsKtClass(
               name = methodName,
               returnType = returnType,
               isOperator = true,
-              sourceElement = resolvedSourceElement
+              sourceElement = resolvedSourceElement,
             )
           }
           .map { methods.add(it) }
@@ -358,7 +353,7 @@ class LightArgsKtClass(
           methods.add(
             argsClassDescriptor.createMethod(
               name = "toSavedStateHandle",
-              returnType = savedStateHandleType
+              returnType = savedStateHandleType,
             )
           )
         }
@@ -377,7 +372,7 @@ class LightArgsKtClass(
                 arg.type,
                 arg.defaultValue,
                 argsClassDescriptor.module,
-                arg.isNonNull()
+                arg.isNonNull(),
               )
             val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
             val resolvedSourceElement =
@@ -387,7 +382,7 @@ class LightArgsKtClass(
                     it as XmlTagImpl,
                     KotlinIcons.FIELD_VAL,
                     arg.name,
-                    argsClassDescriptor.fqNameSafe.asString()
+                    argsClassDescriptor.fqNameSafe.asString(),
                   )
                 )
               } ?: argsClassDescriptor.source
@@ -400,7 +395,7 @@ class LightArgsKtClass(
 
     override fun getContributedDescriptors(
       kindFilter: DescriptorKindFilter,
-      nameFilter: (Name) -> Boolean
+      nameFilter: (Name) -> Boolean,
     ): Collection<DeclarationDescriptor> {
       return methods().filter {
         kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && nameFilter(it.name)
@@ -416,21 +411,21 @@ class LightArgsKtClass(
 
     override fun getContributedClassifier(
       name: Name,
-      location: LookupLocation
+      location: LookupLocation,
     ): ClassifierDescriptor? {
       return classifiers().firstOrNull { it.name == name }
     }
 
     override fun getContributedFunctions(
       name: Name,
-      location: LookupLocation
+      location: LookupLocation,
     ): Collection<SimpleFunctionDescriptor> {
       return methods().filter { it.name == name }
     }
 
     override fun getContributedVariables(
       name: Name,
-      location: LookupLocation
+      location: LookupLocation,
     ): List<PropertyDescriptor> {
       return properties().filter { it.name == name }
     }

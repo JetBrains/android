@@ -23,13 +23,17 @@ import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
+import com.android.tools.idea.compose.gradle.waitForRender
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
@@ -39,11 +43,11 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAn
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.android.tools.preview.ComposePreviewElementInstance
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -51,17 +55,19 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.RegisterToolWindowTask
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndGet
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.utils.alwaysTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.BorderLayout
@@ -73,7 +79,7 @@ import kotlin.time.Duration.Companion.seconds
 class RenderErrorTest {
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-  @get:Rule val flagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR)
+  @get:Rule val flagRule = FlagRule(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR)
 
   private val project: Project
     get() = projectRule.project
@@ -100,6 +106,9 @@ class RenderErrorTest {
   fun setup() {
     log.setLevel(LogLevel.ALL)
     Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
+    @Suppress("UnstableApiUsage")
+    ToolWindowManager.getInstance(project)
+      .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
 
     val mainFile =
       project
@@ -123,21 +132,20 @@ class RenderErrorTest {
     projectRule.fixture.enableInspections(*visualLintInspections)
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
-    ApplicationManager.getApplication().invokeAndWait {
-      fakeUi =
-        FakeUi(
-          JPanel().apply {
-            layout = BorderLayout()
-            size = Dimension(1000, 800)
-            add(previewView, BorderLayout.CENTER)
-          },
-          1.0,
-          true,
-        )
-      fakeUi.root.validate()
-    }
-
     runBlocking {
+      fakeUi =
+        withContext(uiThread) {
+          FakeUi(
+              JPanel().apply {
+                layout = BorderLayout()
+                size = Dimension(1000, 800)
+                add(previewView, BorderLayout.CENTER)
+              },
+              1.0,
+              true,
+            )
+            .also { it.root.validate() }
+        }
       composePreviewRepresentation.activateAndWaitForRender(fakeUi, timeout = 1.minutes)
     }
   }
@@ -145,7 +153,7 @@ class RenderErrorTest {
   @Test
   fun testSceneViewWithRenderErrors() =
     runBlocking(workerThread) {
-      StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.override(true)
+      StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(true)
       startUiCheckForModel("PreviewWithRenderErrors")
 
       lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
@@ -176,7 +184,7 @@ class RenderErrorTest {
   @Test
   fun testSceneViewWithRenderErrorsWithNoKeepImageOnError() =
     runBlocking(workerThread) {
-      StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.override(false)
+      StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(false)
       startUiCheckForModel("PreviewWithRenderErrors")
 
       lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
@@ -234,10 +242,10 @@ class RenderErrorTest {
         // The animation preview action shouldn't be visible because the preview being used doesn't
         // contain animations, but the interactive, ui check and deploy to device actions should be
         // visible as there are no render errors.
-        val visibleActionCount = if (StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()) 3 else 2
+        val visibleActionCount = if (StudioFlags.COMPOSE_UI_CHECK_MODE.get()) 3 else 2
         assertEquals(
           visibleActionCount,
-          countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors)
+          countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors),
         )
       }
     }
@@ -268,41 +276,49 @@ class RenderErrorTest {
       assertEquals("RenderError.kt", navigatable.file.name)
     }
 
-  @Ignore("b/307260641")
-  @Test
-  fun testVisualLintErrors() =
-    runBlocking(workerThread) {
-      val modelsWithIssues =
-        listOf(
-          "PreviewWithContrastError",
-          "PreviewWithContrastErrorAgain",
-          "PreviewWithWideButton",
-          "PreviewWithLongText",
-        )
+  private suspend fun runVisualLintErrorsForModel(modelWithIssues: String) {
+    startUiCheckForModel(modelWithIssues)
 
-      modelsWithIssues.forEach { modelWithIssues ->
-        startUiCheckForModel(modelWithIssues)
-
-        val issues = visualLintRenderIssues()
-        // 1-2% of the time we get two issues instead of one. Only one of the issues has a component
-        // field that is populated. We attempt to retrieve it here.
-        val issue = runInEdtAndGet {
-          issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
-        }
-
-        assertEquals("Visual Lint Issue", issue.category)
-        val navigatable = issue.components[0].navigatable
-        assertTrue(navigatable is OpenFileDescriptor)
-        assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
-
-        stopUiCheck()
-      }
+    val issues = visualLintRenderIssues()
+    // 1-2% of the time we get two issues instead of one. Only one of the issues has a
+    // component
+    // field that is populated. We attempt to retrieve it here.
+    val issue = runInEdtAndGet {
+      issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
     }
+
+    assertEquals("Visual Lint Issue", issue.category)
+    val navigatable = issue.components[0].navigatable
+    assertTrue(navigatable is OpenFileDescriptor)
+    assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
+
+    stopUiCheck()
+  }
+
+  @Test
+  fun testVisualLintErrorsForPreviewWithContrastError() = runBlocking {
+    runVisualLintErrorsForModel("PreviewWithContrastError")
+  }
+
+  @Test
+  fun testVisualLintErrorsForPreviewWithContrastErrorAgain() = runBlocking {
+    runVisualLintErrorsForModel("PreviewWithContrastErrorAgain")
+  }
+
+  @Test
+  fun testVisualLintErrorsForPreviewWithWideButton() = runBlocking {
+    runVisualLintErrorsForModel("PreviewWithWideButton")
+  }
+
+  @Test
+  fun testVisualLintErrorsForPreviewWithLongText() = runBlocking {
+    runVisualLintErrorsForModel("PreviewWithLongText")
+  }
 
   private fun countVisibleActions(
     actions: List<AnAction>,
     visibleBefore: Boolean,
-    sceneViewPeerPanel: SceneViewPeerPanel
+    sceneViewPeerPanel: SceneViewPeerPanel,
   ): Int {
     var visibleAfterCount = 0
     val dataContext = DataContext { sceneViewPeerPanel.getData(it) }
@@ -326,12 +342,9 @@ class RenderErrorTest {
       .toList()
 
   private suspend fun startUiCheckForModel(model: String) {
-    lateinit var uiCheckElement: ComposePreviewElementInstance
+    lateinit var uiCheckElement: ComposePreviewElementInstance<*>
 
-    delayUntilCondition(
-      250,
-      timeout = 1.minutes,
-    ) {
+    delayUntilCondition(250, timeout = 1.minutes) {
       previewView.mainSurface.models
         .firstOrNull { it.modelDisplayName == model }
         ?.dataContext
@@ -343,18 +356,26 @@ class RenderErrorTest {
 
     composePreviewRepresentation.setMode(
       PreviewMode.UiCheck(
-        baseElement = uiCheckElement,
+        baseInstance = UiCheckInstance(uiCheckElement, isWearPreview = false),
         atfChecksEnabled = true,
         visualLintingEnabled = true,
-      ),
+      )
     )
     onRefreshCompletable.join()
+
+    // Once we enable Ui Check we need to render again since we are now showing the selected preview
+    // with the different analyzers of Ui Check (for example screen sizes, colorblind check etc).
+    withContext(uiThread) {
+      waitForRender(fakeUi.findAllComponents<SceneViewPeerPanel>().toSet(), timeout = 2.minutes)
+      fakeUi.root.validate()
+    }
   }
 
   private suspend fun stopUiCheck() {
     val onRefreshCompletable = previewView.getOnRefreshCompletable()
     composePreviewRepresentation.setMode(PreviewMode.Default())
     onRefreshCompletable.join()
+    waitForAllRefreshesToFinish(1.minutes)
   }
 
   private suspend fun visualLintRenderIssues(
@@ -364,7 +385,7 @@ class RenderErrorTest {
     var issues = emptyList<VisualLintRenderIssue>()
     delayUntilCondition(delayPerIterationMs = 300, timeout = 1.minutes) {
       issues = issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter(filter)
-      issues.isNotEmpty()
+      issues.any { it.components.isNotEmpty() }
     }
     return issues
   }

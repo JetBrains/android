@@ -5,14 +5,14 @@ iml_module(
     name = "intellij.android.transportDatabase",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.transportDatabase.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],  # b/148697994
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

@@ -55,7 +55,7 @@ class GoToAndroidResourceContributorTest {
           <string name="my_string">My string</string>
         </resources>
         """
-        .trimIndent()
+        .trimIndent(),
     )
     projectRule.fixture.addFileToProject(
       "src/main/res/layout/my_layout.xml",
@@ -78,7 +78,7 @@ class GoToAndroidResourceContributorTest {
             android:layout_height="wrap_content"/>
         </RelativeLayout>
         """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -86,7 +86,7 @@ class GoToAndroidResourceContributorTest {
     name: String,
     pattern: String,
     expectedNumberOfResults: Int = 1,
-    selectResult: Int = 0
+    selectResult: Int = 0,
   ): PsiElement {
     val model = GotoSymbolModel2(projectRule.project, projectRule.testRootDisposable)
     val searchResults = model.getElementsByName(name, false, pattern)
@@ -131,7 +131,7 @@ class GoToAndroidResourceContributorTest {
           <string name="my_string">My debug string</string>
         </resources>
         """
-        .trimIndent()
+        .trimIndent(),
     )
     val element = navigate("my_string", "my_s", expectedNumberOfResults = 2, selectResult = 0)
     assertThat(element.text).isEqualTo("\"my_string\"")

@@ -111,7 +111,7 @@ open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
 
   private fun resolve(
     qualifiedStyleName: String,
-    prefixMap: Map<String, String>
+    prefixMap: Map<String, String>,
   ): StyleResourceValue? {
     if (resolver == null) {
       return null

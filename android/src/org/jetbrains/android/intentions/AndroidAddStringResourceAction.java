@@ -27,6 +27,7 @@ import com.android.AndroidXConstants;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.CommonBundle;
@@ -122,6 +123,11 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     if (facet == null) {
       return false;
     }
+
+    if (!ProjectSystemService.getInstance(project).getProjectSystem().getModuleSystem(facet.getModule()).getSupportsAndroidResources()) {
+      return false;
+    }
+
     PsiElement element = getPsiElement(file, editor);
     return element != null && getStringLiteralValue(project, element, file, getType()) != null;
   }

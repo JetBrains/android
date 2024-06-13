@@ -19,13 +19,17 @@ import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE_VARIANT
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.JBFont
 import java.awt.Dimension
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class DetailsPanelHeaderTest {
 
+  @get:Rule val edtRule = EdtRule()
   @get:Rule val applicationRule = ApplicationRule()
 
   @Test
@@ -82,7 +86,7 @@ class DetailsPanelHeaderTest {
           "DetailsPanelTest",
           "testMethod",
           120,
-          JBFont.label()
+          JBFont.label(),
         )
       )
       .matches("<html>\\.\\.\\.\\w+\\.<B>testMethod</B></html>")
@@ -92,7 +96,7 @@ class DetailsPanelHeaderTest {
           "DetailsPanelTest",
           "testMethod",
           60,
-          JBFont.label()
+          JBFont.label(),
         )
       )
       .matches("<html><B>\\.\\.\\.\\w+</B></html>")

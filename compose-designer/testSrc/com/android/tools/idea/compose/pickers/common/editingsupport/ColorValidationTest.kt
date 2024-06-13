@@ -70,15 +70,15 @@ internal class ColorValidationTest {
     assertEquals(EditingErrorCategory.NONE, validator(maxValue.toString(16)).first)
     assertEquals(
       Pair(EditingErrorCategory.ERROR, "Value can't be higher than 0xFFFFFFFF"),
-      validator((maxValue.toLong() + 1).toString(16))
+      validator((maxValue.toLong() + 1).toString(16)),
     )
     assertEquals(
       Pair(EditingErrorCategory.ERROR, "Value can't be higher than 0xFFFFFFFF"),
-      validator(Long.MAX_VALUE.toString(16))
+      validator(Long.MAX_VALUE.toString(16)),
     )
     assertEquals(
       Pair(EditingErrorCategory.ERROR, "Color can't be a negative value"),
-      validator("-1")
+      validator("-1"),
     )
   }
 }

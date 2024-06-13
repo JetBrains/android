@@ -19,6 +19,8 @@ import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
 import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.SdkConstants.FD_LIB;
 import static com.android.SdkConstants.FN_HARDWARE_INI;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isAutomotive;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isAutomotiveDistantDisplay;
 import static com.android.ide.common.rendering.HardwareConfigHelper.isRollable;
 import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
@@ -36,6 +38,15 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RANGES;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_1_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_2_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_WIDTH;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_HEIGHT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_DENSITY;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_FLAG;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_WIDTH;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_HEIGHT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_DENSITY;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_FLAG;
+
 import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
@@ -50,8 +61,11 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.PathFileWrapper;
+import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException;
+import com.android.sdklib.deviceprovisioner.DeviceActionException;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
@@ -530,7 +544,7 @@ public class AvdManagerConnection {
   public @NotNull ListenableFuture<IDevice> startAvd(
       @Nullable Project project, @NotNull AvdInfo info, @NotNull RequestType requestType, @NotNull EmulatorCommandBuilderFactory factory) {
     if (!initIfNecessary()) {
-      return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
+      return Futures.immediateFailedFuture(new DeviceActionException("No Android SDK Found"));
     }
     assert mySdkHandler != null;
 
@@ -559,6 +573,9 @@ public class AvdManagerConnection {
       @NotNull AvdInfo info,
       @NotNull RequestType requestType,
       @NotNull EmulatorCommandBuilderFactory factory) {
+    if (!code.getProblem().isEmpty()) {
+      IJ_LOG.warn(String.format("Launching %s: %s: %s", info.getName(), code, code.getProblem()));
+    }
     switch (code) {
       case ALREADY_INSTALLED:
         return continueToStartAvd(project, info, requestType, factory);
@@ -593,7 +610,7 @@ public class AvdManagerConnection {
     Path emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
-      return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
+      return Futures.immediateFailedFuture(new DeviceActionException("No emulator binary found"));
     }
 
     avd = reloadAvd(avd); // Reload the AVD in case it was modified externally.
@@ -620,7 +637,7 @@ public class AvdManagerConnection {
     }
     catch (ExecutionException e) {
       IJ_LOG.error("Error launching emulator", e);
-      return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s", avdName), e));
+      return Futures.immediateFailedFuture(new DeviceActionException(String.format("Error launching emulator %1$s", avdName), e));
     }
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise, show it.
@@ -817,7 +834,7 @@ public class AvdManagerConnection {
                                                             @NotNull RequestType requestType,
                                                             @NotNull AccelerationErrorCode code) {
     if (code.getSolution().equals(SolutionCode.NONE)) {
-      return Futures.immediateFailedFuture(new RuntimeException(code.getProblem() + "\n\n" + code.getSolutionMessage() + '\n'));
+      return Futures.immediateFailedFuture(new DeviceActionException(code.getProblem() + "\n\n" + code.getSolutionMessage() + '\n'));
     }
 
     // noinspection ConstantConditions, UnstableApiUsage
@@ -852,14 +869,14 @@ public class AvdManagerConnection {
                                                                @NotNull RequestType requestType,
                                                                @NotNull AccelerationErrorCode code) {
     if (result == Messages.CANCEL) {
-      return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
+      return Futures.immediateFailedFuture(new DeviceActionCanceledException("Could not start AVD"));
     }
 
     SettableFuture<IDevice> future = SettableFuture.create();
 
     Runnable setFuture = () -> future.setFuture(startAvd(project, info, requestType));
 
-    Runnable setException = () -> future.setException(new RuntimeException("Retry after fixing problem by hand"));
+    Runnable setException = () -> future.setException(new DeviceActionCanceledException("Retry after fixing problem by hand"));
     ApplicationManager.getApplication().invokeLater(AccelerationErrorSolution.getActionForFix(code, project, setFuture, setException));
 
     return future;
@@ -935,6 +952,7 @@ public class AvdManagerConnection {
                                    @Nullable String sdCard,
                                    @Nullable Path skinFolder,
                                    @NotNull Map<String, String> hardwareProperties,
+                                   @Nullable Map<String, String> userSettings,
                                    boolean removePrevious) {
     if (!initIfNecessary()) {
       return null;
@@ -972,7 +990,7 @@ public class AvdManagerConnection {
     }
     if (orientation == ScreenOrientation.LANDSCAPE) {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
-                             StringUtil.toLowerCase(ScreenOrientation.LANDSCAPE.getShortDisplayValue()));
+                             ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase(Locale.ROOT));
     }
     if (device.getId().equals("13.5in Freeform")) {
       hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");
@@ -991,7 +1009,20 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS, "58.55-76.45, 76.45-94.35, 94.35-100");
     }
     if (device.getId().equals("resizable")) {
-      hardwareProperties.put(AVD_INI_RESIZABLE_CONFIG, "phone-0-1080-2340-420, foldable-1-2208-1840-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
+      hardwareProperties.put(AVD_INI_RESIZABLE_CONFIG, "phone-0-1080-2400-420, foldable-1-2208-1840-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
+    }
+    //TODO: Remove hard coded config when the runtime configuration is available (b/337978287, b/337980217)
+    if (isAutomotive(device)) {
+      hardwareProperties.put(AVD_INI_CLUSTER_WIDTH, "400");
+      hardwareProperties.put(AVD_INI_CLUSTER_HEIGHT, "600");
+      hardwareProperties.put(AVD_INI_CLUSTER_DENSITY, "120");
+      hardwareProperties.put(AVD_INI_CLUSTER_FLAG, "0");
+    }
+    if (isAutomotiveDistantDisplay(device)) {
+      hardwareProperties.put(AVD_INI_DISTANT_DISPLAY_WIDTH, "3000");
+      hardwareProperties.put(AVD_INI_DISTANT_DISPLAY_HEIGHT, "600");
+      hardwareProperties.put(AVD_INI_DISTANT_DISPLAY_DENSITY, "120");
+      hardwareProperties.put(AVD_INI_DISTANT_DISPLAY_FLAG, "0");
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       assert myAvdManager != null;
@@ -1009,6 +1040,7 @@ public class AvdManagerConnection {
                                   skinName,
                                   sdCard,
                                   hardwareProperties,
+                                  userSettings,
                                   device.getBootProps(),
                                   device.hasPlayStore(),
                                   false,
@@ -1138,6 +1170,15 @@ public class AvdManagerConnection {
     return true;
   }
 
+  /**
+   * Computes a reasonable display name for a newly-created AVD with the given device and version.
+   */
+  public @NotNull String getDefaultDeviceDisplayName(@NotNull Device device, @NotNull AndroidVersion version) {
+    // A device name might include the device's screen size as, e.g., 7". The " is not allowed in
+    // a display name. Ensure that the display name does not include any forbidden characters.
+    return uniquifyDisplayName(AvdNameVerifier.stripBadCharacters(device.getDisplayName()) + " API " + version.getApiStringWithExtension());
+  }
+
   public String uniquifyDisplayName(@NotNull String name) {
     int suffix = 1;
     String result = name;
@@ -1198,7 +1239,7 @@ public class AvdManagerConnection {
     }
 
     public boolean updateRequired(@NotNull SystemImage image) {
-      return updateRequired(image.getAbiType(), image.getAndroidVersion().getFeatureLevel(), image.getTag(), image.getRevision());
+      return updateRequired(image.getPrimaryAbiType(), image.getAndroidVersion().getFeatureLevel(), image.getTag(), image.getRevision());
     }
 
     public boolean updateRequired(@NotNull String abiType, int featureLevel, @NotNull IdDisplay tag, @NotNull Revision revision) {

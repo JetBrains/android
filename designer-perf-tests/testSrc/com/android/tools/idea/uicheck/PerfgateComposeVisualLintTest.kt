@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.ComposeRenderTestBase
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.idea.rendering.measureOperation
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
@@ -84,12 +85,14 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
   @Test
   fun testComposeVisualLintRun() {
     val facet = projectRule.androidFacet(":app")
+    val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     val resultToModelMap = mutableMapOf<RenderResult, NlModel>()
     UiCheckConfigurations.forEach { config ->
       val renderResult =
         renderPreviewElementForResult(
           facet,
+          uiCheckPreviewFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.UiCheckPreviewKt.VisualLintErrorPreview",
             configuration = config.configuration,
@@ -97,17 +100,16 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
           ),
           customViewInfoParser = accessibilityBasedHierarchyParser
         )
-          .get()!!
-      val file = renderResult.sourceFile.virtualFile
+          .get()
+      val file = renderResult.lightVirtualFile
       val nlModel =
         SyncNlModel.create(
           projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
-          null,
           facet,
           file
         )
-      resultToModelMap[renderResult] = nlModel
+      resultToModelMap[renderResult.result!!] = nlModel
     }
 
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()

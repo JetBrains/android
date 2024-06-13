@@ -131,14 +131,14 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
   @Nullable
   private static XmlFile getOriginalContainingXmlFile(PsiElement context) {
-    Object psiFile = context.getContainingFile();
+    // Redirecting to use the original source file. In some cases the given context is in a virtual file that's a copy of an actual source
+    // file. That copy doesn't have a parent directory, which is needed to determine which files are layout files.
+    PsiFile psiFile = context.getContainingFile().getOriginalFile();
     if (!(psiFile instanceof XmlFile xmlFile)) {
       return null;
     }
 
-    // In some cases (eg, calls originating from FormattingChanges.detectFormattingChanges), the given context is in a virtual file that's a
-    // copy of an actual source file. That copy doesn't have a parent directory, which is needed to determine which files are layout files.
-    // Redirecting to use the original source file allows this builder to correctly determine if it should run on the given file.
+    // Some calls originating from FormattingChanges.detectFormattingChanges still use the old mechanism for pointing to the original file.
     PsiFile originalFile = xmlFile.getUserData(PsiFileFactory.ORIGINAL_FILE);
     if (originalFile instanceof XmlFile originalXmlFile) {
       return originalXmlFile;

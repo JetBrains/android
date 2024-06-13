@@ -41,7 +41,7 @@ open class GridLayoutHandler : ViewGroupHandler() {
     editor: ViewEditor,
     layout: SceneComponent,
     components: List<NlComponent>,
-    type: DragType
+    type: DragType,
   ): DragHandler = CommonDragHandler(editor, this, layout, components, type)
 
   override fun onChildRemoved(layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
@@ -58,7 +58,7 @@ open class GridLayoutHandler : ViewGroupHandler() {
 
   override fun createChildTargets(
     parentComponent: SceneComponent,
-    childComponent: SceneComponent
+    childComponent: SceneComponent,
   ): List<Target> {
     val listBuilder = ImmutableList.builder<Target>()
     createResizeTarget(listBuilder)
@@ -73,7 +73,7 @@ open class GridLayoutHandler : ViewGroupHandler() {
 
   override fun getPlaceholders(
     component: SceneComponent,
-    draggedComponents: List<SceneComponent>
+    draggedComponents: List<SceneComponent>,
   ): List<Placeholder> {
     val listBuilder = ImmutableList.builder<Placeholder>()
     val barrier = getGridBarriers(component)
@@ -89,7 +89,7 @@ open class GridLayoutHandler : ViewGroupHandler() {
             bounds.y,
             bounds.x + bounds.width,
             bounds.y + bounds.height,
-            component.depth
+            component.depth,
           )
         listBuilder.add(GridPlaceholder(r, row, column, namespace, component))
       }

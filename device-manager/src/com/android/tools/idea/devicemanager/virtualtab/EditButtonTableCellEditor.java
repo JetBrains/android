@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;

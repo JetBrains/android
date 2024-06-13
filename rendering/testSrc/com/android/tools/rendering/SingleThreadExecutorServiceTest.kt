@@ -38,8 +38,8 @@ class SingleThreadExecutorServiceTest {
             500,
             3,
             scheduledExecutorService = scheduledExecutor,
-            onSlowThread = { slowThreadCounter++ }
-          )
+            onSlowThread = { slowThreadCounter++ },
+          ),
       )
 
     val executing = CountDownLatch(1)
@@ -74,7 +74,7 @@ class SingleThreadExecutorServiceTest {
     val executor =
       SingleThreadExecutorService.create(
         "Test thread",
-        threadProfileSettings = ThreadProfileSettings.disabled
+        threadProfileSettings = ThreadProfileSettings.disabled,
       )
 
     var exception: Throwable? = null

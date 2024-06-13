@@ -34,6 +34,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyDocumentationTarget
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
@@ -50,16 +51,18 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
 internal const val EXPECTED_TEXT_DOCUMENTATION =
-  "<html><body><div class='content-only'><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</div>"
+  "<html><body><div class='content'><p><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</div>"
 
 internal const val EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION =
-  "<html><body><div class='content-only'><b>legend</b><br/><br/></div>"
+  "<html><body><div class='content'><p><b>legend</b><br/><br/></div>"
 
 class HelpActionsTest {
 
@@ -68,12 +71,26 @@ class HelpActionsTest {
 
   @get:Rule val chain = RuleChain.outerRule(projectRule).around(popupRule).around(EdtRule())!!
 
-  @RunsInEdt
   @Test
-  fun testHelpForCustomPropertyWithoutDocumentation() {
+  fun testHelpForCustomPropertyWithoutDocumentation() = runBlocking {
     val property =
-      NlPropertyItem(AUTO_URI, "legend", NlPropertyType.BOOLEAN, null, "", "", mock(), mock())
-    assertThat(helpTextInPopup(property)).isEqualTo(EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION)
+      NlPropertyItem(
+        AUTO_URI,
+        "legend",
+        NlPropertyType.BOOLEAN,
+        null,
+        "",
+        "",
+        mock(),
+        mock(),
+        null,
+        null,
+        supervisorScope = this,
+      )
+
+    withContext(uiThread) {
+      assertThat(helpTextInPopup(property)).isEqualTo(EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION)
+    }
   }
 
   @RunsInEdt
@@ -91,18 +108,21 @@ class HelpActionsTest {
         .add(CommonDataKeys.PROJECT, projectRule.project)
         .add(
           DOCUMENTATION_TARGETS,
-          listOf(NlPropertyDocumentationTarget(property.model) { resolvedPromise(property) })
+          listOf(NlPropertyDocumentationTarget(property.model) { resolvedPromise(property) }),
         )
         .build()
     val event = AnActionEvent.createFromDataContext("", null, context)
     HelpActions.help.actionPerformed(event)
-    waitForCondition(100, TimeUnit.MILLISECONDS) { popupRule.fakePopupFactory.popupCount > 0 }
+    waitForCondition(10, TimeUnit.SECONDS) { popupRule.fakePopupFactory.popupCount > 0 }
     val popup = popupRule.fakePopupFactory.getNextPopup<Unit, FakeComponentPopup>()
     val doc =
       UIUtil.findComponentsOfType(popup.contentPanel, DocumentationEditorPane::class.java)
         .singleOrNull() ?: error("No doc?")
     Disposer.dispose(popup)
     return doc.text
+      // IntelliJ 2024.1 changes the class from content-only to content
+      // Once the merge is complete, this check can be removed.
+      .replace("class='content-only'", "class='content'")
   }
 
   @Test

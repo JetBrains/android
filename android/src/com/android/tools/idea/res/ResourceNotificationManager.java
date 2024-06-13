@@ -27,6 +27,7 @@ import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
+import com.android.tools.res.CacheableResourceRepository;
 import com.android.utils.DataBindingUtils;
 import com.android.utils.HashCodes;
 import com.google.common.collect.ImmutableSet;
@@ -161,7 +162,7 @@ public class ResourceNotificationManager {
 
   public @NotNull ResourceVersion getCurrentVersion(@NotNull AndroidFacet facet, @Nullable PsiFile file,
                                                     @Nullable Configuration configuration) {
-    ModificationTracker repository = StudioResourceRepositoryManager.getAppResources(facet);
+    CacheableResourceRepository repository = StudioResourceRepositoryManager.getAppResources(facet);
     if (file != null) {
       long fileStamp = file.getModificationStamp();
       if (configuration != null) {
@@ -286,7 +287,7 @@ public class ResourceNotificationManager {
 
   /**
    * Returns an implementation of {@link PsiTreeChangeListener} that is not registered and is used as
-   * a delegate (e.g in {@link AndroidFileChangeListener}).
+   * a delegate (e.g in {@link AndroidPsiTreeChangeListener}).
    * <p>
    * If no listener has been added to the {@link ResourceNotificationManager}, this method returns null.
    */
@@ -460,7 +461,7 @@ public class ResourceNotificationManager {
     }
 
     private long getAppResourcesModificationCount() {
-      ModificationTracker appResources = StudioResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
+      CacheableResourceRepository appResources = StudioResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
       return appResources == null ? 0 : appResources.getModificationCount();
     }
 

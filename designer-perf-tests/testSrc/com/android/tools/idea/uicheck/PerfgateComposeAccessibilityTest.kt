@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.ComposeRenderTestBase
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.idea.rendering.measureOperation
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.perflogger.Metric
 import com.android.tools.preview.SingleComposePreviewElementInstance
@@ -43,8 +44,11 @@ class PerfgateComposeAccessibilityTest : ComposeRenderTestBase() {
   }
 
   private fun renderPreview(withAccessibilityParser: Boolean) {
+    val facet = projectRule.androidFacet(":app")
+    val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     renderPreviewElementForResult(
-      projectRule.androidFacet(":app"),
+      facet,
+      uiCheckPreviewFile,
       SingleComposePreviewElementInstance.forTesting(
         "google.simpleapplication.UiCheckPreviewKt.VisualLintErrorPreview"),
       customViewInfoParser = if (withAccessibilityParser) accessibilityBasedHierarchyParser else null

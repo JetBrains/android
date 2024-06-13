@@ -29,15 +29,15 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.sdk.StudioDownloader
 import com.intellij.util.io.createDirectories
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.URL
 import java.nio.file.Path
+import kotlinx.coroutines.withContext
 
 class HttpArtifactResolver(
   private val fileService: FileService,
   private val artifactPaths: AppInspectorArtifactPaths,
-  private val downloader: Downloader = StudioDownloader()
+  private val downloader: Downloader = StudioDownloader(),
 ) : ArtifactResolver {
   override suspend fun resolveArtifact(artifactCoordinate: RunningArtifactCoordinate) =
     artifactPaths.getInspectorArchive(artifactCoordinate)
@@ -53,7 +53,7 @@ class HttpArtifactResolver(
 
   private suspend fun downloadLibrary(
     targetDir: Path,
-    artifactCoordinate: RunningArtifactCoordinate
+    artifactCoordinate: RunningArtifactCoordinate,
   ) =
     withContext(AndroidDispatchers.diskIoThread) {
       try {
@@ -62,14 +62,14 @@ class HttpArtifactResolver(
           artifactCoordinate.toGMavenUrl(),
           targetPath,
           null,
-          ConsoleProgressIndicator()
+          ConsoleProgressIndicator(),
         )
         targetPath
       } catch (e: IOException) {
         throw throw AppInspectionArtifactNotFoundException(
           "Artifact $artifactCoordinate could not be resolved on maven.google.com.",
           artifactCoordinate,
-          e
+          e,
         )
       }
     }
@@ -77,7 +77,7 @@ class HttpArtifactResolver(
   private suspend fun extractInspector(
     targetDir: Path,
     libraryPath: Path,
-    artifactCoordinate: RunningArtifactCoordinate
+    artifactCoordinate: RunningArtifactCoordinate,
   ): Path {
     val artifactDir =
       try {
@@ -86,13 +86,13 @@ class HttpArtifactResolver(
         throw throw AppInspectionArtifactNotFoundException(
           "Error happened while unzipping $libraryPath to $targetDir",
           artifactCoordinate,
-          e
+          e,
         )
       }
     return artifactDir.resolveExistsOrNull(INSPECTOR_JAR)
       ?: throw throw AppInspectionArtifactNotFoundException(
         "inspector.jar was not found in $artifactDir",
-        artifactCoordinate
+        artifactCoordinate,
       )
   }
 

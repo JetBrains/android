@@ -149,6 +149,7 @@ public class GuiTestRule implements TestRule {
       .around(myLeakCheck)
       .around(new IdeHandling())
       .around(new ScreenshotOnFailure(myRobotTestRule::getRobot))
+      .around(new DiagnosticsOnFailure())
       .around(myInnerTimeout);
 
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.

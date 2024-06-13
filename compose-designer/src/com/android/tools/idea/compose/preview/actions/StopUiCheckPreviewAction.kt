@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.actions.navigateBack
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -28,14 +29,14 @@ class StopUiCheckPreviewAction :
   DumbAwareAction(
     message("action.stop.uicheck.title"),
     message("action.stop.uicheck.description"),
-    StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
+    StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE,
   ) {
   override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
-    val composePreviewManagers = findComposePreviewManagerForContext(e.dataContext)
-    e.presentation.isEnabled = composePreviewManagers?.status()?.isRefreshing != true
-    e.presentation.isVisible = composePreviewManagers?.mode?.value is PreviewMode.UiCheck
+    val composePreviewManager = e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)
+    e.presentation.isEnabled = composePreviewManager?.status()?.isRefreshing != true
+    e.presentation.isVisible = composePreviewManager?.mode?.value is PreviewMode.UiCheck
   }
 
   override fun actionPerformed(e: AnActionEvent) {

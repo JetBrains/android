@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/testSrc">
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="app-inspection.inspectors.backgroundtask.model" scope="TEST" />
+    <orderEntry type="module" module-name="app-inspection.inspectors.backgroundtask.view" scope="TEST" />
+    <orderEntry type="module" module-name="app-inspection.inspector.api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="background-inspector-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../../../bazel-bin/tools/base/app-inspection/inspectors/backgroundtask/backgroundtask_inspector_java_proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="workmanager-inspector-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../../../bazel-bin/prebuilts/tools/common/app-inspection/androidx/work/workmanager_inspector_proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
+    <orderEntry type="module" module-name="app-inspection.inspectors.backgroundtask.ide" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="codenavigation" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
+  </component>
+</module>

@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.structure.model.getModuleByGradlePath
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
-import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
+import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -35,7 +35,6 @@ import com.android.tools.rendering.IRenderLogger
 import com.android.tools.rendering.ViewLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.loaders.StaticLoader
-import com.android.tools.res.ids.ResourceIdManager.Companion.get
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import org.jetbrains.android.uipreview.nontransitive.app.R
@@ -130,7 +129,7 @@ class NonTransitiveResourcesLoaderTest() {
     val facet = app.androidFacet ?: fail(":app does not have an android facet")
     val viewLoader = ViewLoader(layoutlib, AndroidFacetRenderModelModule(facet), IRenderLogger.NULL_LOGGER, null, delegateClassLoader)
     viewLoader.loadAndParseRClassSilently()
-    val idManager = get(app)
+    val idManager = StudioResourceIdManager.get(app)
     assertThat(idManager).isNotNull()
 
     assertThat(idManager.getCompiledId(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "app_name")))

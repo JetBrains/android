@@ -40,6 +40,8 @@ interface NetworkInspectorDataSource {
   fun addOnExtendTimelineListener(listener: (Long) -> Unit)
 
   fun start()
+
+  fun reset()
 }
 
 class NetworkInspectorDataSourceImpl(
@@ -91,6 +93,10 @@ class NetworkInspectorDataSourceImpl(
     }
 
   override fun queryForSpeedData(range: Range): List<Event> = dataHandler.getSpeedForRange(range)
+
+  override fun reset() {
+    dataHandler.reset()
+  }
 
   private fun notifyTimelineExtended(timestampNs: Long) {
     listeners.forEach { listener -> listener(timestampNs) }

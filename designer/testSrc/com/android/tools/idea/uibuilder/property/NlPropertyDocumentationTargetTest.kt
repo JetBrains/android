@@ -122,10 +122,8 @@ class NlPropertyDocumentationTargetTest {
     return Pair(presentation, data)
   }
 
-  private class FabricatedProperty(
-    override val namespace: String,
-    override val name: String,
-  ) : PropertyItem {
+  private class FabricatedProperty(override val namespace: String, override val name: String) :
+    PropertyItem {
     override var value: String? = null
   }
 }

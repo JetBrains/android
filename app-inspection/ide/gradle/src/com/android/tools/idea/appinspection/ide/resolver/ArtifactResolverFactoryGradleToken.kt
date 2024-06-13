@@ -26,13 +26,13 @@ class ArtifactResolverFactoryGradleToken :
   override fun getArtifactResolver(
     projectSystem: GradleProjectSystem,
     fileService: FileService,
-    httpArtifactResolver: HttpArtifactResolver
+    httpArtifactResolver: HttpArtifactResolver,
   ) =
     when {
       StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get() ->
         GradleModuleSystemArtifactResolver(
           fileService,
-          GradleModuleSystemArtifactFinder(projectSystem)
+          GradleModuleSystemArtifactFinder(projectSystem),
         )
       else -> httpArtifactResolver
     }

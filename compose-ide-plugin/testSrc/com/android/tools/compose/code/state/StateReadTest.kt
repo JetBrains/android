@@ -62,7 +62,7 @@ private val COMPOSE_RUNTIME_IMPORTS =
 @RunWith(JUnit4::class)
 @RunsInEdt
 class StateReadTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -166,7 +166,7 @@ class StateReadTest {
     createPsiFile(
         "fun Inner(arg: Double, (Double) -> Unit)",
         "Inner(arg = stateVar.doubleValue) { stateVar.doubleValue = it }",
-        "val stateVar = rememberSaveable { mutableDoubleStateOf(2.71828) }"
+        "val stateVar = rememberSaveable { mutableDoubleStateOf(2.71828) }",
       )
       .assertContainsSingleStateRead {
         expression("|doubleValue|)") to StateRead.create(stateVar(), outerFunction())
@@ -184,20 +184,14 @@ class StateReadTest {
 
   @Test
   fun noncomposableLambdaArgument() {
-    createPsiFile(
-        "fun Inner(arg: () -> Unit)",
-        "Inner { stateVar.value }",
-      )
+    createPsiFile("fun Inner(arg: () -> Unit)", "Inner { stateVar.value }")
       .findAllStateReads()
       .let { assertThat(it).isEmpty() }
   }
 
   @Test
   fun inlineLambdaArgument() {
-    createPsiFile(
-        "inline fun Inner(arg: () -> Unit)",
-        "Inner { stateVar.value }",
-      )
+    createPsiFile("inline fun Inner(arg: () -> Unit)", "Inner { stateVar.value }")
       .assertContainsSingleStateRead {
         expression("|value|") to StateRead.create(expression("{ |stateVar|."), outerFunction())
       }
@@ -205,10 +199,7 @@ class StateReadTest {
 
   @Test
   fun noinlineLambdaArgument() {
-    createPsiFile(
-        "inline fun Inner(noinline arg: () -> Unit)",
-        "Inner { stateVar.value }",
-      )
+    createPsiFile("inline fun Inner(noinline arg: () -> Unit)", "Inner { stateVar.value }")
       .findAllStateReads()
       .let { assertThat(it).isEmpty() }
   }
@@ -274,7 +265,7 @@ class StateReadTest {
           val a = 1
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val foo = psiFile.getEnclosing<KtNamedFunction>("val")
@@ -303,7 +294,7 @@ class StateReadTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val block = psiFile.getEnclosing<KtLambdaExpression>("val a")
@@ -330,7 +321,7 @@ class StateReadTest {
             val a = "Hi Andy!"
           }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val accessor = psiFile.getEnclosing<KtPropertyAccessor>("Hi Andy!")
@@ -356,7 +347,7 @@ class StateReadTest {
             field = "Hi Andy!".length + newValue
           }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val accessor = psiFile.getEnclosing<KtPropertyAccessor>("Hi Andy!")
@@ -379,7 +370,7 @@ class StateReadTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val anonymousFunction = psiFile.getEnclosing<KtNamedFunction>("It's me again")
@@ -408,7 +399,7 @@ class StateReadTest {
           val a = 1
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val a = psiFile.getEnclosing<KtExpression>("val a")
@@ -421,7 +412,7 @@ class StateReadTest {
     innerFunctionSignature: String,
     innerFunctionInvocation: String,
     stateVarCreation: String = "val stateVar = rememberSaveable { mutableStateOf(\"\") }",
-    extraCode: String = ""
+    extraCode: String = "",
   ): PsiFile {
     return fixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -437,7 +428,7 @@ class StateReadTest {
       }
       $extraCode
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 

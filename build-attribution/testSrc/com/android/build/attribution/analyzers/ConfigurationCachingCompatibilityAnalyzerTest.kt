@@ -40,9 +40,9 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionStats
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -53,7 +53,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
   val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
 
   @get:Rule
-  val myProjectRule = AndroidGradleProjectRule()
+  val myProjectRule = AndroidGradleProjectRule("tools/adt/idea/build-attribution/testData")
 
   @Before
   fun setUp() {
@@ -73,7 +73,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     entryInGradleProperties: Boolean? = null,
     agpVersion: AgpVersionInBuildAttributionTest = AgpVersionInBuildAttributionTest.CURRENT,
   ) {
-    myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION, agpVersion = agpVersion) { projectRoot ->
+    myProjectRule.load("projects/checkConfigurationCacheAnalyzer", agpVersion = agpVersion) { projectRoot ->
       // Add plugins application to `app/build.gradle`.
       val appBuildFile = FileUtils.join(projectRoot, "app", SdkConstants.FN_BUILD_GRADLE)
       appBuildFile.readText().let { content ->
@@ -161,34 +161,26 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     }
   }
 
-  @Ignore("b/303118113")
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
   @Test
   fun testOldKotlinDetectedAppliedInPluginDsl() {
-    /*
-    TODO need to add the following to make this test work
-      1) instruct gradle to look for plugins in local repository, not Gradle Plugin Portal.
-         Doc: https://docs.gradle.org/current/userguide/plugins.html#sec:custom_plugin_repositories
-      1.1) Add to settings.gradle 'pluginManagement { repositories { maven url '<prebuilts>' } }' section
-           (Probably Use AndroidGradleTests.getLocalRepositoriesForGroovy() call to populate the repository)
-      1.2) Add plugin marker artifact for the required plugin https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_markers
-     */
+    // In this test instead of using old version of the kotlin plugin we replace plugins data to pretend current version is not supported.
+    // Otherwise, we would need to add a plugin marker artifact for 1.3.72 which is not worth it just for this test.
 
     projectSetup(
-      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "",
       pluginsApply = "id 'org.jetbrains.kotlin.android'",
-      pluginsSectionInRoot = "plugins { id 'org.jetbrains.kotlin.android' version '1.3.72' apply false }",
+      pluginsSectionInRoot = "plugins { id 'org.jetbrains.kotlin.android' version '$KOTLIN_VERSION_FOR_TESTS' apply false }",
       useNewPluginsDsl = true
     )
 
+    replacePluginDataToMarkKotlinPluginAsNotSupportingCC()
     val result = runBuildAndGetAnalyzerResult()
 
     assertThat(result).isInstanceOf(IncompatiblePluginsDetected::class.java)
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = Version.parse("1.3.72"),
+        currentVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS),
         pluginInfo = kotlinPluginInfo()
       )))
     }
@@ -230,7 +222,6 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     assertThat(result).isInstanceOf(IncompatiblePluginsDetected::class.java)
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
-        //TODO (mlazeba): discuss in sync:in this case we report the name by which it was applied. Is it correct?
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
         currentVersion = Version.parse("1.3.72"),
         pluginInfo = kotlinPluginInfo()
@@ -315,6 +306,17 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
     return results.getConfigurationCachingCompatibility()
+  }
+
+  private fun replacePluginDataToMarkKotlinPluginAsNotSupportingCC() {
+    val originalKotlinPluginInfo = kotlinPluginInfo()
+    val nextVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS).nextPrefix().prefixVersion()
+    ApplicationManager.getApplication().replaceService(KnownGradlePluginsService::class.java, object : KnownGradlePluginsService {
+      override val gradlePluginsData: GradlePluginsData
+        get() = GradlePluginsData(listOf(originalKotlinPluginInfo.copy(configurationCachingCompatibleFrom = nextVersion)))
+
+      override fun asyncRefresh() = Unit
+    }, myProjectRule.project)
   }
 
   private fun kotlinPluginInfo(): GradlePluginsData.PluginInfo = ApplicationManager.getApplication()

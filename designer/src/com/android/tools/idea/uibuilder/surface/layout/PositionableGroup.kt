@@ -23,5 +23,8 @@ package com.android.tools.idea.uibuilder.surface.layout
  */
 class PositionableGroup(
   val content: List<PositionableContent>,
-  val header: PositionableContent? = null
-)
+  val header: PositionableContent? = null,
+) {
+  /** If [PositionableGroup] has a [header]. */
+  val hasHeader = header != null
+}

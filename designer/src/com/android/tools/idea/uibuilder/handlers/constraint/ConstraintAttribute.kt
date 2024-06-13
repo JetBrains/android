@@ -18,9 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 import com.android.tools.property.panel.api.PropertyItem
 
 /** Fabricated [PropertyItem] holder specifying namespace and name of a property. */
-class ConstraintAttribute(
-  override val namespace: String,
-  override val name: String,
-) : PropertyItem {
+class ConstraintAttribute(override val namespace: String, override val name: String) :
+  PropertyItem {
   override var value: String? = null
 }

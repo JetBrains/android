@@ -37,6 +37,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail

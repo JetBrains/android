@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -38,7 +39,7 @@ import java.io.File
 /**
  * Suffix for the cached sync files version to allow for changes between development versions that have the same version
  */
-private const val ourAndroidSyncVersionSuffix = "2023-10-17/7"
+private const val ourAndroidSyncVersionSuffix = "2024-01-16/1"
 
 /**
  * Version of the cached sync files, used to ensure caches were written by this version of Studio to avoid untested behavior.
@@ -105,10 +106,11 @@ data class GradleAndroidModelDataImpl(
 
   override fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider> {
     return when (artifactName) {
-      IdeArtifactName.ANDROID_TEST -> androidTestSourceProviders
-      IdeArtifactName.UNIT_TEST -> unitTestSourceProviders
+      IdeArtifactName.ANDROID_TEST -> deviceTestSourceProviders[CommonTestType.ANDROID_TEST] ?: emptyList()
+      IdeArtifactName.UNIT_TEST -> hostTestSourceProviders[CommonTestType.UNIT_TEST] ?: emptyList()
       IdeArtifactName.MAIN -> emptyList()
       IdeArtifactName.TEST_FIXTURES -> emptyList()
+      IdeArtifactName.SCREENSHOT_TEST -> hostTestSourceProviders[CommonTestType.SCREENSHOT_TEST] ?: emptyList()
     }
   }
 

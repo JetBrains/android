@@ -54,14 +54,14 @@ import com.android.tools.property.panel.api.PropertiesTable
  * Creates custom UI to organize the parameters and to organize the internal `Device` parameters.
  */
 internal class PreviewPropertiesInspectorBuilder(
-  enumSupportValuesProvider: EnumSupportValuesProvider,
+  enumSupportValuesProvider: EnumSupportValuesProvider
 ) : PsiPropertiesInspectorBuilder() {
   override val editorProvider: EditorProvider<PsiPropertyItem> =
     PsiEditorProvider(PsiEnumProvider(enumSupportValuesProvider), PreviewControlTypeProvider)
 
   override fun attachToInspector(
     inspector: InspectorPanel,
-    properties: PropertiesTable<PsiPropertyItem>
+    properties: PropertiesTable<PsiPropertyItem>,
   ) {
     val allProps = properties.values.associateBy { it.name }.toMutableMap()
     val previewProperties =

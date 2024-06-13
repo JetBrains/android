@@ -28,7 +28,7 @@ import org.jetbrains.annotations.VisibleForTesting
 /** Global formatting options. */
 @State(
   name = "AndroidLogcatFormattingOptions",
-  storages = [Storage("androidLogcatFormattingOptions.xml")]
+  storages = [Storage("androidLogcatFormattingOptions.xml")],
 )
 internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
   PersistentStateComponent<AndroidLogcatFormattingOptions> {

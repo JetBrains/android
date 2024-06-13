@@ -69,7 +69,7 @@ class NotificationModel(val project: Project) {
     text: String,
     status: EditorNotificationPanel.Status = EditorNotificationPanel.Status.Warning,
     actions: List<StatusNotificationAction> = listOf(dismissAction),
-    sticky: Boolean = false
+    sticky: Boolean = false,
   ) {
     if (isDisposed) {
       return

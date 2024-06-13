@@ -71,7 +71,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     list: DisplayList,
     time: Long,
     sceneContext: SceneContext,
-    component: SceneComponent
+    component: SceneComponent,
   ) {
     val rect = Rectangle()
     component.fillRect(rect)
@@ -149,7 +149,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     connectionSet: MutableSet<Connection>,
     parent: SceneComponent,
     child: SceneComponent,
-    idMap: Map<String, SceneComponent>
+    idMap: Map<String, SceneComponent>,
   ) {
     whenAlignParent(child.retrieveAlignParentLeftAttribute()) {
       connectionSet.add(HorizontalWidgetConnectoin(child, EdgeSide.LEFT, parent, EdgeSide.LEFT))
@@ -181,7 +181,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     connectionSet: MutableSet<Connection>,
     parent: SceneComponent,
     child: SceneComponent,
-    idMap: Map<String, SceneComponent>
+    idMap: Map<String, SceneComponent>,
   ) {
     whenAlignParent(child.retrieveAlignParentTopAttribute()) {
       connectionSet.add(VerticalWidgetConnectoin(child, EdgeSide.TOP, parent, EdgeSide.TOP))
@@ -214,7 +214,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     connectionSet: MutableSet<Connection>,
     parent: SceneComponent,
     child: SceneComponent,
-    idMap: Map<String, SceneComponent>
+    idMap: Map<String, SceneComponent>,
   ) {
     whenAlignParent(child.retrieveAlignParentRightAttribute()) {
       connectionSet.add(HorizontalWidgetConnectoin(child, EdgeSide.RIGHT, parent, EdgeSide.RIGHT))
@@ -246,7 +246,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
     connectionSet: MutableSet<Connection>,
     parent: SceneComponent,
     child: SceneComponent,
-    idMap: Map<String, SceneComponent>
+    idMap: Map<String, SceneComponent>,
   ) {
     whenAlignParent(child.retrieveAlignParentBottomAttribute()) {
       connectionSet.add(VerticalWidgetConnectoin(child, EdgeSide.BOTTOM, parent, EdgeSide.BOTTOM))
@@ -274,7 +274,7 @@ class RelativeLayoutDecorator : SceneDecorator() {
   private fun buildBaselineMarginDecoration(
     connectionSet: MutableSet<Connection>,
     component: SceneComponent,
-    idMap: Map<String, SceneComponent>
+    idMap: Map<String, SceneComponent>,
   ) {
     whenAlignWidget(
       component.authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_BASELINE)
@@ -290,19 +290,19 @@ class RelativeLayoutDecorator : SceneDecorator() {
   private fun buildCenterHorizontalDecoration(
     connectionSet: MutableSet<Connection>,
     parent: SceneComponent,
-    child: SceneComponent
+    child: SceneComponent,
   ) = connectionSet.add(CenterHorizontalConnection(parent, child))
 
   private fun buildCenterVerticalDecoration(
     connectionSet: MutableSet<Connection>,
     parent: SceneComponent,
-    child: SceneComponent
+    child: SceneComponent,
   ) = connectionSet.add(CenterVerticalConnection(parent, child))
 
   private fun buildCenterInParentDecoration(
     connectionSet: MutableSet<Connection>,
     parent: SceneComponent,
-    child: SceneComponent
+    child: SceneComponent,
   ) = connectionSet.add(CenterConnection(parent, child))
 }
 
@@ -399,7 +399,7 @@ private enum class EdgeSide {
   TOP,
   RIGHT,
   BOTTOM,
-  BASELINE
+  BASELINE,
 }
 
 /** Helper class to record and add draw command. */
@@ -419,7 +419,7 @@ private class HorizontalWidgetConnectoin(
   val component: SceneComponent,
   val componentSide: EdgeSide,
   val source: SceneComponent,
-  val sourceSide: EdgeSide
+  val sourceSide: EdgeSide,
 ) : Connection {
   override fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext) {
     val arrowX1 =
@@ -441,7 +441,7 @@ private class HorizontalWidgetConnectoin(
         arrowX2,
         arrowY,
         isReference,
-        displayedMarginText
+        displayedMarginText,
       )
     )
 
@@ -466,7 +466,7 @@ private class VerticalWidgetConnectoin(
   val component: SceneComponent,
   val componentSide: EdgeSide,
   val source: SceneComponent,
-  val sourceSide: EdgeSide
+  val sourceSide: EdgeSide,
 ) : Connection {
   override fun addDrawCommand(list: DisplayList, time: Long, sceneContext: SceneContext) {
     val arrowX = component.getDrawCenterX(time)
@@ -488,7 +488,7 @@ private class VerticalWidgetConnectoin(
         arrowY1,
         arrowY2,
         isReference,
-        displayedMarginText
+        displayedMarginText,
       )
     )
 
@@ -531,7 +531,7 @@ private class CenterHorizontalConnection(val parent: SceneComponent, val child: 
         sceneContext,
         parent.getLeft(time),
         child.getLeft(time),
-        child.getDrawCenterY(time)
+        child.getDrawCenterY(time),
       )
     )
     list.add(
@@ -539,7 +539,7 @@ private class CenterHorizontalConnection(val parent: SceneComponent, val child: 
         sceneContext,
         child.getRight(time),
         parent.getRight(time),
-        child.getDrawCenterY(time)
+        child.getDrawCenterY(time),
       )
     )
   }
@@ -559,7 +559,7 @@ private class CenterVerticalConnection(val parent: SceneComponent, val child: Sc
         sceneContext,
         child.getDrawCenterX(time),
         parent.getTop(time),
-        child.getTop(time)
+        child.getTop(time),
       )
     )
     list.add(
@@ -567,7 +567,7 @@ private class CenterVerticalConnection(val parent: SceneComponent, val child: Sc
         sceneContext,
         child.getDrawCenterX(time),
         child.getBottom(time),
-        parent.getBottom(time)
+        parent.getBottom(time),
       )
     )
   }
@@ -641,7 +641,7 @@ private class DrawVerticalArrowCommand(
   y1: Int,
   y2: Int,
   val isReference: Boolean,
-  val text: String
+  val text: String,
 ) : DrawCommand {
   private val swingX = sceneContext.getSwingXDip(x.toFloat())
   private val swingY1 = sceneContext.getSwingYDip(y1.toFloat())
@@ -682,7 +682,7 @@ private class DrawHorizontalArrowCommand(
   x2: Int,
   y: Int,
   val isReference: Boolean,
-  val text: String
+  val text: String,
 ) : DrawCommand {
   private val swingX1 = sceneContext.getSwingXDip(x1.toFloat())
   private val swingX2 = sceneContext.getSwingXDip(x2.toFloat())
@@ -721,7 +721,7 @@ private open class DrawDashedLineCommand(
   val swingX1: Int,
   val swingY1: Int,
   val swingX2: Int,
-  val swingY2: Int
+  val swingY2: Int,
 ) : DrawCommand {
   override fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val originalStroke = g.stroke
@@ -746,18 +746,18 @@ private class DrawVerticalDashedLineCommand(sceneContext: SceneContext, x: Int, 
     sceneContext.getSwingXDip(x.toFloat()),
     sceneContext.getSwingYDip(y1.toFloat()),
     sceneContext.getSwingXDip(x.toFloat()),
-    sceneContext.getSwingYDip(y2.toFloat())
+    sceneContext.getSwingYDip(y2.toFloat()),
   )
 
 private class DrawHorizontalDashedLineCommand(
   sceneContext: SceneContext,
   x1: Int,
   x2: Int,
-  y: Int
+  y: Int,
 ) :
   DrawDashedLineCommand(
     sceneContext.getSwingXDip(x1.toFloat()),
     sceneContext.getSwingYDip(y.toFloat()),
     sceneContext.getSwingXDip(x2.toFloat()),
-    sceneContext.getSwingYDip(y.toFloat())
+    sceneContext.getSwingYDip(y.toFloat()),
   )

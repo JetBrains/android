@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package androidx.compose.compiler.plugins.kotlin.lower
 
-import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
+import androidx.compose.compiler.plugins.kotlin.ComposeCallableIds
+import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
+import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.ir.IrImplementationDetail
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.declarations.IrFunctionBuilder
@@ -45,6 +51,7 @@ import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.builders.irTemporary
 import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
+import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
@@ -86,6 +93,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.expressions.impl.copyWithOffsets
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
@@ -105,7 +113,6 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.load.kotlin.PackagePartClassUtils
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.BindingTrace
 
 /**
  * This transformer transforms constant literal expressions into expressions which read a
@@ -160,10 +167,11 @@ open class LiveLiteralTransformer(
     private val keyVisitor: DurableKeyVisitor,
     context: IrPluginContext,
     symbolRemapper: DeepCopySymbolRemapper,
-    bindingTrace: BindingTrace,
     metrics: ModuleMetrics,
+    stabilityInferencer: StabilityInferencer,
+    featureFlags: FeatureFlags,
 ) :
-    AbstractComposeLowering(context, symbolRemapper, bindingTrace, metrics),
+    AbstractComposeLowering(context, symbolRemapper, metrics, stabilityInferencer, featureFlags),
     ModuleLoweringPass {
 
     override fun lower(module: IrModuleFragment) {
@@ -171,19 +179,17 @@ open class LiveLiteralTransformer(
     }
 
     private val liveLiteral =
-        getInternalFunction("liveLiteral")
-    private val derivedStateOf =
-        getTopLevelFunction(ComposeFqNames.fqNameFor("derivedStateOf"))
+        getTopLevelFunction(ComposeCallableIds.liveLiteral)
     private val isLiveLiteralsEnabled =
-        getInternalProperty("isLiveLiteralsEnabled")
+        getTopLevelPropertyGetter(ComposeCallableIds.isLiveLiteralsEnabled)
     private val liveLiteralInfoAnnotation =
-        getInternalClass("LiveLiteralInfo")
+        getTopLevelClass(ComposeClassIds.LiveLiteralInfo)
     private val liveLiteralFileInfoAnnotation =
-        getInternalClass("LiveLiteralFileInfo")
+        getTopLevelClass(ComposeClassIds.LiveLiteralFileInfo)
     private val stateInterface =
-        getTopLevelClass(ComposeFqNames.fqNameFor("State"))
+        getTopLevelClass(ComposeClassIds.State)
     private val NoLiveLiteralsAnnotation =
-        getTopLevelClass(ComposeFqNames.fqNameFor("NoLiveLiterals"))
+        getTopLevelClass(ComposeClassIds.NoLiveLiterals)
 
     private fun IrAnnotationContainer.hasNoLiveLiteralsAnnotation(): Boolean = annotations.any {
         it.symbol.owner == NoLiveLiteralsAnnotation.owner.primaryConstructor
@@ -240,6 +246,7 @@ open class LiveLiteralTransformer(
         putValueArgument(0, irConst(file))
     }
 
+    @OptIn(IrImplementationDetail::class)
     private fun irLiveLiteralGetter(
         key: String,
         literalValue: IrExpression,
@@ -272,6 +279,7 @@ open class LiveLiteralTransformer(
                 visibility = DescriptorVisibilities.PRIVATE
                 origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
             }.also { fn ->
+                fn.correspondingPropertySymbol = p.symbol
                 val thisParam = clazz.thisReceiver!!.copyTo(fn)
                 fn.dispatchReceiverParameter = thisParam
                 fn.body = DeclarationIrBuilder(context, fn.symbol).irBlockBody {
@@ -298,6 +306,7 @@ open class LiveLiteralTransformer(
                 visibility = DescriptorVisibilities.PRIVATE
                 origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
             }.also { fn ->
+                fn.correspondingPropertySymbol = p.symbol
                 val thisParam = clazz.thisReceiver!!.copyTo(fn)
                 fn.dispatchReceiverParameter = thisParam
                 fn.body = DeclarationIrBuilder(context, fn.symbol).irBlockBody {
@@ -309,6 +318,7 @@ open class LiveLiteralTransformer(
                 visibility = DescriptorVisibilities.PRIVATE
                 origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
             }.also { fn ->
+                fn.correspondingPropertySymbol = p.symbol
                 val thisParam = clazz.thisReceiver!!.copyTo(fn)
                 fn.dispatchReceiverParameter = thisParam
                 val valueParam = fn.addValueParameter("value", stateType)
@@ -464,10 +474,19 @@ open class LiveLiteralTransformer(
         }
     }
 
+    override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer): IrStatement {
+        if (declaration.hasNoLiveLiteralsAnnotation()) return declaration
+
+        return enter("init") {
+            super.visitAnonymousInitializer(declaration)
+        }
+    }
+
     open fun makeKeySet(): MutableSet<String> {
         return mutableSetOf()
     }
 
+    @OptIn(IrImplementationDetail::class)
     override fun visitFile(declaration: IrFile): IrFile {
         includeFileNameInExceptionTrace(declaration) {
             if (declaration.hasNoLiveLiteralsAnnotation()) return declaration
@@ -890,23 +909,23 @@ open class LiveLiteralTransformer(
 
     fun IrFactory.buildFunction(builder: IrFunctionBuilder): IrSimpleFunction = with(builder) {
         createSimpleFunction(
-          startOffset = startOffset,
-          endOffset = endOffset,
-          origin = origin,
-          name = name,
-          visibility = visibility,
-          isInline = isInline,
-          isExpect = isExpect,
-          returnType = returnType,
-          modality = modality,
-          symbol = IrSimpleFunctionSymbolImpl(),
-          isTailrec = isTailrec,
-          isSuspend = isSuspend,
-          isOperator = isOperator,
-          isInfix = isInfix,
-          isExternal = isExternal,
-          containerSource = containerSource,
-          isFakeOverride = isFakeOverride,
+            startOffset = startOffset,
+            endOffset = endOffset,
+            origin = origin,
+            name = name,
+            visibility = visibility,
+            isInline = isInline,
+            isExpect = isExpect,
+            returnType = returnType,
+            modality = modality,
+            symbol = IrSimpleFunctionSymbolImpl(),
+            isTailrec = isTailrec,
+            isSuspend = isSuspend,
+            isOperator = isOperator,
+            isInfix = isInfix,
+            isExternal = isExternal,
+            containerSource = containerSource,
+            isFakeOverride = isFakeOverride
         )
     }
 }

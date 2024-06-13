@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.common.MostRecentExecutor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -24,7 +25,6 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -43,10 +43,11 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.EditorNotificationPanel.Status
-import kotlinx.coroutines.CoroutineScope
 import java.awt.Component
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @VisibleForTesting const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
@@ -114,7 +115,7 @@ private constructor(
     { launcher.activeClient },
     executor,
     renderModel,
-    renderLogic
+    renderLogic,
   ) {
     launcher.addClientChangedListener(::onClientChanged)
   }
@@ -148,7 +149,7 @@ private constructor(
     currentClientProvider = { client },
     workerExecutor = executor,
     renderModel,
-    renderLogic
+    renderLogic,
   ) {
     onClientChanged(client)
   }
@@ -156,8 +157,10 @@ private constructor(
   init {
     // refresh the rendering each time the inspector model changes
     inspectorModel.addModificationListener { _, newAndroidWindow, _ ->
-      newAndroidWindow?.refreshImages(renderLogic.renderSettings.scaleFraction)
-      renderModel.refresh()
+      coroutineScope.launch {
+        newAndroidWindow?.refreshImages(renderLogic.renderSettings.scaleFraction)
+        renderModel.refresh()
+      }
     }
   }
 
@@ -175,23 +178,19 @@ private constructor(
    * is not selected, stops process inspection by setting the selected process to null.
    *
    * A process can be selected when a device does not support foreground process detection.
-   *
-   * This method also resets device-level DebugViewAttributes from the device.
    */
   fun stopInspector() {
-    val selectedDevice = deviceModel?.selectedDevice
-    if (selectedDevice != null) {
-      val debugViewAttributes = DebugViewAttributes.getInstance()
-      if (debugViewAttributes.usePerDeviceSettings()) {
-        debugViewAttributes.clear(inspectorModel.project, selectedDevice)
+    coroutineScope.launch(AndroidDispatchers.workerThread) {
+      val selectedDevice = deviceModel?.selectedDevice
+      if (selectedDevice != null) {
+        foregroundProcessDetection?.stopPollingSelectedDevice()
+      } else {
+        processModel?.stop()
+        processModel?.selectedProcess = null
       }
-      foregroundProcessDetection?.stopPollingSelectedDevice()
-    } else {
-      processModel?.stop()
-      processModel?.selectedProcess = null
-    }
 
-    stopInspectorListeners.forEach { it() }
+      stopInspectorListeners.forEach { it() }
+    }
   }
 
   private fun onClientChanged(client: InspectorClient) {
@@ -220,7 +219,7 @@ private constructor(
 
   private fun updateConnection(client: InspectorClient) {
     inspectorModel.updateConnection(client)
-    client.stats.currentModeIsLive = client.isCapturing
+    client.stats.currentModeIsLive = client.inLiveMode
     client.stats.hideSystemNodes = treeSettings.hideSystemNodes
     client.stats.showRecompositions = treeSettings.showRecompositions
   }

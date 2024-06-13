@@ -76,7 +76,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
           getIcon(0)?.toText()
         }
         else {
-          "[${significantLayers.joinToString(separator = ", ") { it.toText().orEmpty() }}] / ${getToolTip(true)}"
+          "[${significantLayers.joinToString(separator = ", ") { it?.toText().orEmpty() }}] / ${getToolTip(true)}"
         }
       }
       else -> "$this (${javaClass.simpleName})"
@@ -110,7 +110,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
       fun dump(element: AbstractTreeNode<*>, prefix: String = "", state: T) {
         val newState = filter(element, state) ?: return
 
-        appendln("$prefix${element.presentation.toTestText()}")
+        appendLine("$prefix${element.presentation.toTestText()}")
         treeStructure
           .getChildElements(element)
           .map { it as AbstractTreeNode<*> }

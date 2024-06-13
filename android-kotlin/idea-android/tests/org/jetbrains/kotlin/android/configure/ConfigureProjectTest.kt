@@ -15,8 +15,9 @@
  */
 package org.jetbrains.kotlin.android.configure
 
-import com.android.test.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
-import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
+import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAgpProjectFlagsStub
@@ -62,7 +63,7 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
   companion object {
     // Note: this default version was chosen arbitrarily based on current test expectations.
-    private val DEFAULT_VERSION = KOTLIN_VERSION_FOR_TESTS
+    private const val DEFAULT_VERSION = KOTLIN_VERSION_FOR_TESTS
     private const val GRADLE_DIR = "idea-android/testData/configuration/android-gradle"
     private const val GSK_DIR = "idea-android/testData/configuration/android-gsk"
   }
@@ -81,6 +82,7 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
     val versionFromFile = findStringWithPrefixes(fileText, "// VERSION:")
     val rawVersion = versionFromFile ?: DEFAULT_VERSION
+    val rawKtxCoreVersion = IdeGoogleMavenRepository.findVersion("androidx.core", "core-ktx").toString()
     val version = IdeKotlinVersion.get(rawVersion)
 
     val project = projectRule.project
@@ -89,19 +91,17 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
     val configurator = KotlinAndroidGradleModuleConfigurator()
     val jvmTarget = JvmTarget.JVM_1_8.description
     val changedFiles = ChangedConfiguratorFiles()
-    configurator.configureModule(projectRule.module,
-                                 buildFile.toPsiFile(project)!!,
-                                 isTopLevelProjectFile = true,
-                                 version,
-                                 jvmTarget,
-                                 collector,
-                                 changedFiles
-    )
+    configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = true, version, jvmTarget,
+                                 collector, changedFiles)
+    configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = false, version, jvmTarget,
+                                 collector, changedFiles)
 
     collector.showNotification()
 
     val afterFile = File(testRoot, "${path}_after.$extension")
-    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(rawVersion, "\$VERSION$"))
+    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile)) {
+      it.replace("\$VERSION$", rawVersion).replace("\$CORE_KTX_VERSION$", rawKtxCoreVersion)
+    }
 
     // Clear JDK table
     ProjectJdkTable.getInstance().allJdks.forEach {

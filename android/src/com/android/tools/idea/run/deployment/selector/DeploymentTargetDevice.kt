@@ -31,9 +31,10 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.icons.AllIcons
 import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
-import kotlinx.datetime.Instant
 import java.text.Collator
 import javax.swing.Icon
+import kotlinx.datetime.Instant
+
 
 /**
  * An abstraction of a device (or device template) used by the deployment target selector.
@@ -64,7 +65,7 @@ class DeploymentTargetDevice(
         androidDevice,
         connectionTime,
         snapshots,
-        launchCompatibilityChecker.validate(androidDevice)
+        launchCompatibilityChecker.validate(androidDevice),
       )
     }
   }

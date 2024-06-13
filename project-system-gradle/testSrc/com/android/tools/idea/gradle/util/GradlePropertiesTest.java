@@ -58,7 +58,7 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     ideSettings.PROXY_HOST = host;
     ideSettings.PROXY_PORT = port;
 
-    ProxySettings proxySettings =  new ProxySettings(ideSettings);
+    ProxySettings proxySettings = new ProxySettings(ideSettings);
 
     assertEquals(host, proxySettings.getHost());
     assertEquals(port, proxySettings.getPort());

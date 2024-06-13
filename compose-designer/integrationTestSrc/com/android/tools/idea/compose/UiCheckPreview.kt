@@ -76,7 +76,7 @@ class UiCheckPreview {
       system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 7 errors found",
         10,
-        TimeUnit.SECONDS
+        TimeUnit.SECONDS,
       )
     }
   }

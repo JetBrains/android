@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.pickers.preview
 
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.pickers.base.model.PsiPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
@@ -29,7 +30,6 @@ import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.Sdks
-import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.config.ReferencePhoneConfig
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
@@ -49,8 +49,8 @@ import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 
-private fun ComposePreviewElement.annotationText(): String =
-  ReadAction.compute<String, Throwable> { previewElementDefinitionPsi?.element?.text ?: "" }
+private fun PsiComposePreviewElement.annotationText(): String =
+  ReadAction.compute<String, Throwable> { previewElementDefinition?.element?.text ?: "" }
 
 class PreviewPickerTests {
 
@@ -101,7 +101,7 @@ class PreviewPickerTests {
 
     val file = fixture.configureByText("Test.kt", fileContent)
     val previews =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(fixture.project, file.virtualFile)
         .toList()
     ReadAction.run<Throwable> {
       previews[0].also { noParametersPreview ->
@@ -109,8 +109,8 @@ class PreviewPickerTests {
           PreviewPickerPropertiesModel.fromPreviewElement(
             project,
             module,
-            noParametersPreview.previewElementDefinitionPsi,
-            NoOpTracker
+            noParametersPreview.previewElementDefinition,
+            NoOpTracker,
           )
         assertNotNull(parsed.properties["", "name"])
         assertNull(parsed.properties.getOrNull("", "name2"))
@@ -120,8 +120,8 @@ class PreviewPickerTests {
           PreviewPickerPropertiesModel.fromPreviewElement(
             project,
             module,
-            namedPreview.previewElementDefinitionPsi,
-            NoOpTracker
+            namedPreview.previewElementDefinition,
+            NoOpTracker,
           )
         assertEquals("named", parsed.properties["", "name"].value)
       }
@@ -130,8 +130,8 @@ class PreviewPickerTests {
           PreviewPickerPropertiesModel.fromPreviewElement(
             project,
             module,
-            namedPreviewFromConst.previewElementDefinitionPsi,
-            NoOpTracker
+            namedPreviewFromConst.previewElementDefinition,
+            NoOpTracker,
           )
         assertEquals("Name from Const", parsed.properties["", "name"].value)
       }
@@ -220,7 +220,10 @@ class PreviewPickerTests {
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getFirstModel(fileContent)
-    assertEquals(if (KotlinPluginModeProvider.isK2Mode()) "1.0" else "1", model.properties["", "fontScale"].defaultValue)
+    assertEquals(
+      if (KotlinPluginModeProvider.isK2Mode()) "1.0" else "1",
+      model.properties["", "fontScale"].defaultValue,
+    )
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showDecoration"].defaultValue)
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
@@ -265,9 +268,9 @@ class PreviewPickerTests {
 
     val model = getFirstModel(fileContent)
     val preview =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(
+      AnnotationFilePreviewElementFinder.findPreviewElements(
           fixture.project,
-          fixture.findFileInTempDir("Test.kt")
+          fixture.findFileInTempDir("Test.kt"),
         )
         .first()
 
@@ -307,9 +310,9 @@ class PreviewPickerTests {
 
     val model = getFirstModel(fileContent)
     val preview =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(
+      AnnotationFilePreviewElementFinder.findPreviewElements(
           fixture.project,
-          fixture.findFileInTempDir("Test.kt")
+          fixture.findFileInTempDir("Test.kt"),
         )
         .first()
 
@@ -388,7 +391,7 @@ class PreviewPickerTests {
     // Device
     assertEquals(
       PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED,
-      testTracker.valuesRegistered[index++]
+      testTracker.valuesRegistered[index++],
     )
 
     // Orientation
@@ -396,7 +399,7 @@ class PreviewPickerTests {
     assertEquals(PreviewPickerValue.ORIENTATION_LANDSCAPE, testTracker.valuesRegistered[index++])
     assertEquals(
       PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE,
-      testTracker.valuesRegistered[index++]
+      testTracker.valuesRegistered[index++],
     )
 
     // Density
@@ -406,7 +409,7 @@ class PreviewPickerTests {
     assertEquals(PreviewPickerValue.DENSITY_XXX_HIGH, testTracker.valuesRegistered[index++])
     assertEquals(
       PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE,
-      testTracker.valuesRegistered[index++]
+      testTracker.valuesRegistered[index++],
     )
 
     // DimensionUnit
@@ -414,13 +417,13 @@ class PreviewPickerTests {
     assertEquals(PreviewPickerValue.UNIT_PIXELS, testTracker.valuesRegistered[index++])
     assertEquals(
       PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE,
-      testTracker.valuesRegistered[index++]
+      testTracker.valuesRegistered[index++],
     )
 
     // Width/Height
     assertEquals(
       PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED,
-      testTracker.valuesRegistered[index++]
+      testTracker.valuesRegistered[index++],
     )
     assertEquals(PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index])
   }
@@ -478,15 +481,15 @@ class PreviewPickerTests {
   private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(fixture.project, file.virtualFile)
         .first()
     val model =
       ReadAction.compute<PsiPropertiesModel, Throwable> {
         PreviewPickerPropertiesModel.fromPreviewElement(
           project,
           module,
-          noParametersPreview.previewElementDefinitionPsi,
-          NoOpTracker
+          noParametersPreview.previewElementDefinition,
+          NoOpTracker,
         )
       }
     var expectedModificationsCountdown = 3
@@ -544,19 +547,19 @@ class PreviewPickerTests {
 
   private suspend fun getFirstModel(
     fileContent: String,
-    tracker: ComposePickerTracker = NoOpTracker
+    tracker: ComposePickerTracker = NoOpTracker,
   ): PsiPropertiesModel {
     val file = fixture.configureByText("Test.kt", fileContent)
     val preview =
-      AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
+      AnnotationFilePreviewElementFinder.findPreviewElements(fixture.project, file.virtualFile)
         .first()
     ConfigurationManager.getOrCreateInstance(module)
     return ReadAction.compute<PsiPropertiesModel, Throwable> {
       PreviewPickerPropertiesModel.fromPreviewElement(
         project,
         module,
-        preview.previewElementDefinitionPsi,
-        tracker
+        preview.previewElementDefinition,
+        tracker,
       )
     }
   }

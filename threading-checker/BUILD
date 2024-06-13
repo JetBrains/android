@@ -5,11 +5,11 @@ iml_module(
     name = "intellij.android.threading-checker",
     srcs = ["src"],
     iml_files = ["intellij.android.threading-checker.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
@@ -27,7 +27,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module]",

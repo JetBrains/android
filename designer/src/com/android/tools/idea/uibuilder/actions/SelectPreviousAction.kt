@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class SelectPreviousAction(private val surface: DesignSurface<*>) : AnAction() {
+class SelectPreviousAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getData(DESIGN_SURFACE) ?: return
     val selectable = surface.selectableComponents
     if (selectable.isEmpty()) {
       return

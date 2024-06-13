@@ -15,31 +15,23 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.toml
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.android.tools.idea.gradle.dsl.utils.EXT_DECLARATIVE_TOML
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
-import org.jetbrains.kotlin.tools.projectWizard.core.ignore
-import org.junit.Assume
+import com.intellij.testFramework.VfsTestUtil
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
+import org.mockito.Mockito
 
-@RunWith(Parameterized::class)
-class TomlDslWriterTest(private val fileName: String) : LightPlatformTestCase() {
-
+class TomlDslWriterTest: LightPlatformTestCase() {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "For file: {0}")
@@ -63,8 +55,6 @@ class TomlDslWriterTest(private val fileName: String) : LightPlatformTestCase() 
 
   @Test
   fun testSingleLiteralDottedName() {
-    Assume.assumeTrue("Notation is specified only for catalog", !isDeclarative())
-    if(isDeclarative()) ignore()
     val contents = mapOf("foo.bar" to "val")
     val expected = """
       "foo.bar" = "val"
@@ -242,8 +232,8 @@ class TomlDslWriterTest(private val fileName: String) : LightPlatformTestCase() 
   }
 
   private fun doTest(contents: Map<String,Any>, expected: String) {
-    val libsTomlFile = writeLibsTomlFile("")
-    val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
+    val libsTomlFile = VfsTestUtil.createFile(project.guessProjectDir()!!, "gradle/libs.versions.toml", "")
+    val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
     mapToProperties(contents, dslFile)
     WriteCommandAction.runWriteCommandAction(project) {
@@ -252,18 +242,6 @@ class TomlDslWriterTest(private val fileName: String) : LightPlatformTestCase() 
     }
     val text = VfsUtil.loadText(libsTomlFile).replace("\r", "")
     assertEquals(expected, text)
-  }
-
-  private fun writeLibsTomlFile(text: String): VirtualFile {
-    lateinit var libsTomlFile: VirtualFile
-    runWriteAction {
-      val file: File = File(project.basePath, fileName).getCanonicalFile()
-      FileUtil.createParentDirs(file)
-      val parent = VfsUtil.findFile(file.parentFile.toPath(), true)!!
-      libsTomlFile = parent.createChildData(this, file.name)
-      VfsUtil.saveText(libsTomlFile, text)
-    }
-    return libsTomlFile
   }
 
   private fun mapToProperties(map: Map<String,Any>, dslFile: GradleDslFile) {
@@ -284,7 +262,4 @@ class TomlDslWriterTest(private val fileName: String) : LightPlatformTestCase() 
     }
     map.forEach { (k, v) -> populate(k, v, dslFile) }
   }
-
-  private fun isDeclarative() = fileName.endsWith(EXT_DECLARATIVE_TOML)
-
 }

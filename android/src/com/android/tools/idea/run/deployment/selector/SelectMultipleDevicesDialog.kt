@@ -91,6 +91,16 @@ internal class SelectMultipleDevicesDialog(
         "Some of the selected targets are for the same device. Each target should be for a different device."
       return ValidationInfo(message, null)
     }
+    if (
+      targets.size > 1 &&
+        (targets.any {
+          it.device.androidDevice.appPreferredAbi != null && it.device.androidDevice.abis.size > 1
+        } || targets.distinctBy { it.device.androidDevice.appPreferredAbi }.size != 1)
+    ) {
+      val message =
+        "Some of the targets have a preferred ABI set. However, the preferred ABI may be ignored when deploying to multiple devices."
+      return ValidationInfo(message, null)
+    }
     return null
   }
 }

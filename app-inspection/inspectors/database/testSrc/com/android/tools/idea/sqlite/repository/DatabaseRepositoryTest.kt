@@ -104,12 +104,12 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     val future1 =
       databaseRepository.runQuery(
         databaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
       )
     val future2 =
       databaseRepository.runQuery(
         databaseId2,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2"),
       )
 
     pumpEventsAndWaitForFuture(future1)
@@ -120,7 +120,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     val future3 =
       databaseRepository.runQuery(
         databaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3"),
       )
 
     pumpEventsAndWaitForFuture(future3)
@@ -146,12 +146,12 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     val future1 =
       databaseRepository.runQuery(
         databaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
       )
     val future2 =
       databaseRepository.runQuery(
         databaseId2,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2"),
       )
 
     pumpEventsAndWaitForFuture(future1)
@@ -161,7 +161,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     val future3 =
       databaseRepository.runQuery(
         databaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3"),
       )
 
     pumpEventsAndWaitForFutureException(future3)
@@ -221,12 +221,12 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     val future1 =
       databaseRepository.executeStatement(
         databaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
       )
     val future2 =
       databaseRepository.executeStatement(
         databaseId2,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2"),
       )
 
     pumpEventsAndWaitForFuture(future1)
@@ -237,7 +237,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     val future3 =
       databaseRepository.executeStatement(
         databaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3"),
       )
     pumpEventsAndWaitForFuture(future3)
 
@@ -259,16 +259,16 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
         "t1",
         listOf(
           SqliteColumn("c1", SqliteAffinity.TEXT, false, true),
-          SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+          SqliteColumn("c2", SqliteAffinity.TEXT, false, false),
         ),
         null,
-        false
+        false,
       )
     val targetRow =
       SqliteRow(
         listOf(
           SqliteColumnValue("c1", SqliteValue.fromAny("0")),
-          SqliteColumnValue("c2", SqliteValue.fromAny("oldC2"))
+          SqliteColumnValue("c2", SqliteValue.fromAny("oldC2")),
         )
       )
     val targetColumnName = "c2"
@@ -283,7 +283,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
         targetTable,
         targetRow,
         targetColumnName,
-        newValue
+        newValue,
       )
     pumpEventsAndWaitForFuture(future1)
 
@@ -294,7 +294,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
           SqliteStatementType.UPDATE,
           "UPDATE t1 SET c2 = ? WHERE c1 = ?",
           listOf("new", "0").toSqliteValues(),
-          "UPDATE t1 SET c2 = 'new' WHERE c1 = '0'"
+          "UPDATE t1 SET c2 = 'new' WHERE c1 = '0'",
         )
       )
   }
@@ -306,17 +306,17 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
         "t1",
         listOf(
           SqliteColumn("c1", SqliteAffinity.TEXT, false, false),
-          SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+          SqliteColumn("c2", SqliteAffinity.TEXT, false, false),
         ),
         RowIdName.ROWID,
-        false
+        false,
       )
     val targetRow =
       SqliteRow(
         listOf(
           SqliteColumnValue("rowid", SqliteValue.fromAny("0")),
           SqliteColumnValue("c1", SqliteValue.fromAny("oldC1")),
-          SqliteColumnValue("c2", SqliteValue.fromAny("oldC2"))
+          SqliteColumnValue("c2", SqliteValue.fromAny("oldC2")),
         )
       )
     val targetColumnName = "c2"
@@ -331,7 +331,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
         targetTable,
         targetRow,
         targetColumnName,
-        newValue
+        newValue,
       )
     pumpEventsAndWaitForFuture(future1)
 
@@ -342,7 +342,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
           SqliteStatementType.UPDATE,
           "UPDATE t1 SET c2 = ? WHERE rowid = ?",
           listOf("new", "0").toSqliteValues(),
-          "UPDATE t1 SET c2 = 'new' WHERE rowid = '0'"
+          "UPDATE t1 SET c2 = 'new' WHERE rowid = '0'",
         )
       )
   }
@@ -356,7 +356,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
       databaseRepository.selectOrdered(
         databaseId1,
         SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
-        OrderBy.Asc("c1")
+        OrderBy.Asc("c1"),
       )
     pumpEventsAndWaitForFuture(future)
 
@@ -365,7 +365,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
       .query(
         SqliteStatement(
           SqliteStatementType.SELECT,
-          "SELECT * FROM (SELECT * FROM t1) ORDER BY c1 ASC"
+          "SELECT * FROM (SELECT * FROM t1) ORDER BY c1 ASC",
         )
       )
   }
@@ -379,7 +379,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
       databaseRepository.selectOrdered(
         databaseId1,
         SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
-        OrderBy.Desc("c1")
+        OrderBy.Desc("c1"),
       )
     pumpEventsAndWaitForFuture(future)
 
@@ -388,7 +388,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
       .query(
         SqliteStatement(
           SqliteStatementType.SELECT,
-          "SELECT * FROM (SELECT * FROM t1) ORDER BY c1 DESC"
+          "SELECT * FROM (SELECT * FROM t1) ORDER BY c1 DESC",
         )
       )
   }
@@ -402,7 +402,7 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
       databaseRepository.selectOrdered(
         databaseId1,
         SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
-        OrderBy.NotOrdered
+        OrderBy.NotOrdered,
       )
     pumpEventsAndWaitForFuture(future)
 
@@ -431,13 +431,13 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFutureException(
       databaseRepository.runQuery(
         databaseId1,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3"),
       )
     )
     pumpEventsAndWaitForFutureException(
       databaseRepository.runQuery(
         databaseId2,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3")
+        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3"),
       )
     )
   }

@@ -23,6 +23,7 @@ private fun PsiFile.runOnDocument(runnable: (PsiDocumentManager, Document) -> Un
 
   WriteCommandAction.runWriteCommandAction(project) { runnable(documentManager, document) }
 }
+
 /** Extension to replace the first occurrence of the [find] string to [replace] */
 private fun PsiFile.replaceStringOnce(find: String, replace: String) =
   runOnDocument { documentManager, document ->
@@ -34,6 +35,7 @@ private fun PsiFile.replaceStringOnce(find: String, replace: String) =
     document.replaceString(index, index + find.length, replace)
     documentManager.commitDocument(document)
   }
+
 /** Helper class do test change tracking and asserting on specific types of changes. */
 private class ChangeTracker {
   private var refreshCounter = 0
@@ -117,7 +119,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       composeTest,
       tracker::onRefresh,
       testRootDisposable,
-      mergeQueue = testMergeQueue
+      mergeQueue = testMergeQueue,
     )
 
     tracker.assertRefreshed {
@@ -129,7 +131,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
     tracker.assertRefreshed {
       composeTest.replaceStringOnce(
         "NoComposablePreview(\"hello\")",
-        "NoComposablePreview(\"bye\")"
+        "NoComposablePreview(\"bye\")",
       )
     }
     tracker.assertRefreshed {
@@ -170,7 +172,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       composeTest,
       { saveCount++ },
       testRootDisposable,
-      mergeQueue = testMergeQueue
+      mergeQueue = testMergeQueue,
     )
     assertEquals(0, saveCount)
     FileDocumentManager.getInstance().saveAllDocuments()
@@ -209,7 +211,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       composeTest,
       tracker::onRefresh,
       testRootDisposable,
-      mergeQueue = testMergeQueue
+      mergeQueue = testMergeQueue,
     )
     val lookupManager = LookupManager.getInstance(project)
 
@@ -218,7 +220,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
         lookupManager.showLookup(
           myFixture.editor,
           LookupElementBuilder.create("Test"),
-          LookupElementBuilder.create("TestB")
+          LookupElementBuilder.create("TestB"),
         )!!
 
       // Perform guarded change ensures that the completion popup is not closed on change.
@@ -239,7 +241,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
           lookupManager.showLookup(
             myFixture.editor,
             LookupElementBuilder.create("Test"),
-            LookupElementBuilder.create("TestB")
+            LookupElementBuilder.create("TestB"),
           )
       }
       // Perform guarded change ensures that the completion popup is not closed on change.

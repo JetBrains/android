@@ -46,6 +46,7 @@ import com.intellij.ide.CopyProvider
 import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -64,6 +65,7 @@ import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import java.awt.Point
 import java.awt.datatransfer.Transferable
 import java.awt.dnd.DnDConstants
@@ -255,7 +257,7 @@ public class MyWebView extends android.webkit.WebView {
       .browse(
         eq("https://developer.android.com/reference/android/widget/TextView.html"),
         isNull(),
-        isNull()
+        isNull(),
       )
   }
 
@@ -284,7 +286,7 @@ public class MyWebView extends android.webkit.WebView {
         AndroidXConstants.CONSTRAINT_LAYOUT.defaultName(),
         representation,
         "Layouts",
-        -1
+        -1,
       )
   }
 
@@ -305,7 +307,7 @@ public class MyWebView extends android.webkit.WebView {
       verify(statusBar)
         .notifyProgressByBalloon(
           eq(MessageType.WARNING),
-          eq("Dragging from the Palette is not available while indices are updating.")
+          eq("Dragging from the Palette is not available while indices are updating."),
         )
     }
   }
@@ -408,13 +410,16 @@ public class MyWebView extends android.webkit.WebView {
     setUpLayoutDesignSurface()
     myPanel!!.categoryList.selectedIndex = BUTTON_CATEGORY_INDEX
     myPanel!!.itemList.selectedIndex = CHECKBOX_ITEM_INDEX
-    val event: AnActionEvent = mock()
+    val event =
+      TestActionEvent.createTestEvent {
+        if (CommonDataKeys.PROJECT.`is`(it)) projectRule.project else null
+      }
     myPanel!!.androidDocAction.actionPerformed(event)
     verify(BrowserLauncher.instance)
       .browse(
         eq("https://developer.android.com/reference/android/widget/CheckBox.html"),
         isNull(),
-        isNull()
+        isNull(),
       )
   }
 
@@ -429,7 +434,7 @@ public class MyWebView extends android.webkit.WebView {
       .browse(
         eq("https://d.android.com/r/studio-ui/designer/material/checkbox"),
         isNull(),
-        isNull()
+        isNull(),
       )
   }
 
@@ -499,7 +504,7 @@ public class MyWebView extends android.webkit.WebView {
         ProgressIndicatorUtils.runActionAndCancelBeforeWrite(
           app,
           { error("No writes allowed") },
-          { ui.mouse.rightClick(x, y) }
+          { ui.mouse.rightClick(x, y) },
         )
       }
     }
@@ -518,7 +523,7 @@ public class MyWebView extends android.webkit.WebView {
   private fun checkTypingStartsFiltering(
     component: JComponent,
     character: Char,
-    expectSearchStarted: Boolean
+    expectSearchStarted: Boolean,
   ) {
     val toolWindow = TestToolWindow()
     myPanel!!.registerCallbacks(toolWindow)
@@ -530,7 +535,7 @@ public class MyWebView extends android.webkit.WebView {
           System.currentTimeMillis(),
           0,
           KeyEvent.VK_UNDEFINED,
-          character
+          character,
         )
       )
     }
@@ -612,7 +617,7 @@ public class MyWebView extends android.webkit.WebView {
             .id("@id/myText")
             .matchParentWidth()
             .height("100dp")
-        )
+        ),
     )
 
   private fun imitateDragAndDrop(handler: TransferHandler, component: JComponent): Boolean {
@@ -626,7 +631,7 @@ public class MyWebView extends android.webkit.WebView {
         "exportDone",
         JComponent::class.java,
         Transferable::class.java,
-        Int::class.javaPrimitiveType
+        Int::class.javaPrimitiveType,
       )
     exportDone.isAccessible = true
     exportDone.invoke(handler, component, transferable, DnDConstants.ACTION_MOVE)

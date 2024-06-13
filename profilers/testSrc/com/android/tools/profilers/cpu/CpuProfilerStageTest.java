@@ -46,12 +46,14 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.tasks.TaskFinishedState;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -844,7 +846,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void exitStageShouldCallParserAbort() {
     StudioProfilers profilers = myStage.getStudioProfilers();
 
-    FakeParserCancelParsing parser = new FakeParserCancelParsing(myServices);
+    FakeParserCancelParsing parser = new FakeParserCancelParsing(profilers);
     CpuProfilerStage stage = new CpuProfilerStage(profilers, parser);
     stage.enter();
     assertThat(parser.isAbortParsingCalled()).isFalse();
@@ -937,8 +939,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     private boolean myAbortParsingCalled = false;
 
-    FakeParserCancelParsing(@NotNull IdeProfilerServices services) {
-      super(services);
+    FakeParserCancelParsing(@NotNull StudioProfilers profilers) {
+      super(profilers);
     }
 
     @Override
@@ -950,7 +952,12 @@ public final class CpuProfilerStageTest extends AspectObserver {
     @NotNull
     @Override
     public CompletableFuture<CpuCapture> parse(
-      @NotNull File traceFile, long traceId, @Nullable TraceType preferredProfilerType, int idHint, @Nullable String nameHint) {
+      @NotNull File traceFile,
+      long traceId,
+      @Nullable TraceType preferredProfilerType,
+      int idHint,
+      @Nullable String nameHint,
+      @NotNull Consumer<TaskFinishedState> trackTaskFinished) {
       CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
       capture.cancel(true);
       return capture;

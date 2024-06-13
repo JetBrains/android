@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.mvvm.PreviewViewModel
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
@@ -36,21 +37,20 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
-import org.apache.commons.lang3.time.DurationFormatUtils
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
+import org.apache.commons.lang3.time.DurationFormatUtils
 
 /** A generic implementation of [PreviewViewModel]. */
 open class CommonPreviewViewModel(
   private val previewView: PreviewView,
   private val projectBuildStatusManager: ProjectBuildStatusManager,
+  private val previewRefreshManager: PreviewRefreshManager,
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
   private val hasRenderErrors: () -> Boolean,
-  private val previewRefreshNotificationFactory: (durationString: String) -> Notification
+  private val previewRefreshNotificationFactory: (durationString: String) -> Notification,
 ) : PreviewViewModel, PreviewViewModelStatus {
-  private val refreshCallsCount = AtomicInteger(0)
   private val hasRendered = AtomicBoolean(false)
   private val hasPreviews = AtomicBoolean(false)
 
@@ -71,12 +71,10 @@ open class CommonPreviewViewModel(
   }
 
   override fun refreshStarted() {
-    refreshCallsCount.incrementAndGet()
     updateNotifications()
   }
 
   override fun refreshFinished() {
-    refreshCallsCount.decrementAndGet()
     updateNotifications()
   }
 
@@ -169,7 +167,10 @@ open class CommonPreviewViewModel(
   }
 
   override val isRefreshing: Boolean
-    get() = refreshCallsCount.get() > 0
+    get() =
+      previewRefreshManager.refreshingTypeFlow.value != null ||
+        DumbService.isDumb(project) ||
+        projectBuildStatusManager.isBuilding
 
   override val hasErrorsAndNeedsBuild: Boolean
     get() = hasPreviews.get() && (!hasRendered.get() || hasRenderErrors())
@@ -180,13 +181,17 @@ open class CommonPreviewViewModel(
   override val isOutOfDate: Boolean
     get() = projectBuildStatusManager.status is ProjectStatus.OutOfDate
 
+  override val areResourcesOutOfDate: Boolean
+    get() =
+      (projectBuildStatusManager.status as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate == true
+
   override val previewedFile: PsiFile?
     get() = psiFilePointer.element
 }
 
 /**
  * Converts the given duration to a display string that contains minutes (if the duration is greater
- * than 60s), seconds, and milliseconds.
+ * than 60s), seconds and milliseconds.
  */
 private fun Duration.toDisplayString(): String {
   val durationMs = toMillis()

@@ -44,7 +44,7 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
  * Common base class for {@link ProductFlavorDslElement} and {@link DefaultConfigDslElement}
  */
 public abstract class AbstractProductFlavorDslElement extends AbstractFlavorTypeDslElement {
-  public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"externalNativeBuild", ExternalNativeBuildOptionsDslElement.EXTERNAL_NATIVE_BUILD_OPTIONS},
     {"ndk", NdkOptionsDslElement.NDK_OPTIONS},
     {"vectorDrawables", VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS}
@@ -52,7 +52,9 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
 
   @Override
   @NotNull
-  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

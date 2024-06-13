@@ -13,6 +13,6 @@ class TextViewEx : TextView {
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     init {
-        setOnTouchListener <caret>{ _, _ -> true }
+        setOnTouchListener { _, _<caret> -> true }
     }
 }

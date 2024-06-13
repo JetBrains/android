@@ -44,7 +44,7 @@ class ViewVisualLintIssueProvider(parentDisposable: Disposable) :
         Issue.Suppress(
           "Suppress",
           type.toSuppressActionDescription(),
-          ViewVisualLintSuppressTask(type, components)
+          ViewVisualLintSuppressTask(type, components),
         )
       )
     }
@@ -60,8 +60,8 @@ class ViewVisualLintIssueProvider(parentDisposable: Disposable) :
  */
 class ViewVisualLintSuppressTask(
   private val typeToSuppress: VisualLintErrorType,
-  private val components: List<NlComponent>
-) : Runnable {
+  private val components: List<NlComponent>,
+) : VisualLintSuppressTask {
 
   override fun run() {
     val attributeToAdd = typeToSuppress.ignoredAttributeValue
@@ -94,7 +94,7 @@ class ViewVisualLintSuppressTask(
         .trackIssueIgnored(
           typeToSuppress,
           VisualLintOrigin.XML_LINTING,
-          transactions.first().component.model.facet
+          transactions.first().component.model.facet,
         )
       // All suppresses should in the same undo/redo action.
       WriteCommandAction.runWriteCommandAction(
@@ -102,8 +102,10 @@ class ViewVisualLintSuppressTask(
         typeToSuppress.toSuppressActionDescription(),
         null,
         { transactions.forEach { it.commit() } },
-        *files
+        *files,
       )
     }
   }
+
+  override fun isValid(): Boolean = components.isNotEmpty()
 }

@@ -5,13 +5,13 @@ iml_module(
     name = "intellij.android.deploy",
     srcs = ["src"],
     iml_files = ["intellij.android.deploy.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_data = glob(["testData/**"]) + ["//prebuilts/studio/sdk:platform-tools"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -27,5 +27,7 @@ iml_module(
         "//tools/adt/idea/build-common:intellij.android.buildCommon[module]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
     ],
 )

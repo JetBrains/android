@@ -74,7 +74,7 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
     assertThat(classesMetadataAppPackageInApp.map { it.fqcn to it.file })
       .containsExactly(
         "com.example.myapplication.SecondFragmentArgs" to "nav_graph.xml",
-        "com.example.myapplication.SecondFragmentDirections" to "nav_graph.xml"
+        "com.example.myapplication.SecondFragmentDirections" to "nav_graph.xml",
       )
 
     // check contents when providing lib package name in app module.
@@ -90,7 +90,7 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
         "com.example.mylibrary.FirstFragmentArgs" to "nav_graph.xml",
         "com.example.mylibrary.FirstFragmentDirections" to "nav_graph.xml",
         "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
-        "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
+        "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml",
       )
 
     // check contents for library module
@@ -106,7 +106,7 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
     assertThat(classesMetadataInLib.map { it.fqcn to it.file })
       .containsExactly(
         "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
-        "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
+        "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml",
       )
 
     // check contents for excluded library module
@@ -122,7 +122,7 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
     assertThat(classesMetadataInLibExcluded.map { it.fqcn to it.file })
       .containsExactly(
         "com.example.mylibrary.SecondFragmentArgs" to "excludedlibnav_graph.xml",
-        "com.example.mylibrary.SecondFragmentDirections" to "excludedlibnav_graph.xml"
+        "com.example.mylibrary.SecondFragmentDirections" to "excludedlibnav_graph.xml",
       )
   }
 }

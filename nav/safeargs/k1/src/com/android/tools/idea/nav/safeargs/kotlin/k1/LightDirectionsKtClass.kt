@@ -100,7 +100,7 @@ class LightDirectionsKtClass(
   private val destination: NavDestinationData,
   sourceElement: SourceElement,
   containingDescriptor: DeclarationDescriptor,
-  private val storageManager: StorageManager
+  private val storageManager: StorageManager,
 ) :
   ClassDescriptorImpl(
     containingDescriptor,
@@ -110,7 +110,7 @@ class LightDirectionsKtClass(
     emptyList(),
     sourceElement,
     false,
-    storageManager
+    storageManager,
   ) {
 
   private val LOG
@@ -141,7 +141,7 @@ class LightDirectionsKtClass(
         emptyList(),
         directionsClassDescriptor.source,
         false,
-        storageManager
+        storageManager,
       ) {
       private val companionScope = storageManager.createLazyValue { CompanionObjectScope() }
       private val companionObject = this
@@ -165,14 +165,14 @@ class LightDirectionsKtClass(
               directionsClassDescriptor.builtIns.getKotlinType(
                 "androidx.navigation.NavDirections",
                 null,
-                directionsClassDescriptor.module
+                directionsClassDescriptor.module,
               )
             destination
               .getActionsWithResolvedArguments(
                 navEntry.data,
                 navInfo.packageName,
                 adjustArgumentsWithDefaults =
-                  (navInfo.navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
+                  (navInfo.navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS),
               )
               .asSequence()
               .mapNotNull { action ->
@@ -187,7 +187,7 @@ class LightDirectionsKtClass(
                           arg.type,
                           arg.defaultValue,
                           directionsClassDescriptor.module,
-                          arg.isNonNull()
+                          arg.isNonNull(),
                         )
                       val hasDefaultValue = arg.defaultValue != null
                       ValueParameterDescriptorImpl(
@@ -201,7 +201,7 @@ class LightDirectionsKtClass(
                         false,
                         false,
                         null,
-                        SourceElement.NO_SOURCE
+                        SourceElement.NO_SOURCE,
                       )
                     }
                     .toList()
@@ -217,7 +217,7 @@ class LightDirectionsKtClass(
                           it as XmlTagImpl,
                           IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
                           methodName,
-                          companionObject.fqNameSafe.asString()
+                          companionObject.fqNameSafe.asString(),
                         )
                       )
                     } ?: directionsClassDescriptor.source
@@ -226,7 +226,7 @@ class LightDirectionsKtClass(
                   name = methodName,
                   returnType = navDirectionType,
                   valueParametersProvider = valueParametersProvider,
-                  sourceElement = resolvedSourceElement
+                  sourceElement = resolvedSourceElement,
                 )
               }
               .toList()
@@ -234,7 +234,7 @@ class LightDirectionsKtClass(
 
         override fun getContributedDescriptors(
           kindFilter: DescriptorKindFilter,
-          nameFilter: (Name) -> Boolean
+          nameFilter: (Name) -> Boolean,
         ): Collection<DeclarationDescriptor> {
           return companionMethods().filter {
             kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && nameFilter(it.name)
@@ -243,7 +243,7 @@ class LightDirectionsKtClass(
 
         override fun getContributedFunctions(
           name: Name,
-          location: LookupLocation
+          location: LookupLocation,
         ): Collection<SimpleFunctionDescriptor> {
           return companionMethods().filter { it.name == name }
         }
@@ -260,7 +260,7 @@ class LightDirectionsKtClass(
 
     override fun getContributedDescriptors(
       kindFilter: DescriptorKindFilter,
-      nameFilter: (Name) -> Boolean
+      nameFilter: (Name) -> Boolean,
     ): Collection<DeclarationDescriptor> {
       return classifiers().filter {
         kindFilter.acceptsKinds(DescriptorKindFilter.SINGLETON_CLASSIFIERS_MASK) &&
@@ -270,7 +270,7 @@ class LightDirectionsKtClass(
 
     override fun getContributedClassifier(
       name: Name,
-      location: LookupLocation
+      location: LookupLocation,
     ): ClassifierDescriptor? {
       return classifiers().firstOrNull { it.name == name }
     }

@@ -44,47 +44,55 @@ class MyMessagingService : Service() {
         }
     }
 
-    private fun sendNotification(conversationId: Int,
-                                 message: String,
-                                 participant: String,
-                                 timestamp: Long) {
+    private fun sendNotification(
+        conversationId: Int,
+        message: String,
+        participant: String,
+        timestamp: Long
+    ) {
         // A pending Intent for reads
-        val readPendingIntent = PendingIntent.getBroadcast(applicationContext,
-                conversationId,
-                createIntent(conversationId, READ_ACTION),
-                PendingIntent.FLAG_UPDATE_CURRENT)
+        val readPendingIntent = PendingIntent.getBroadcast(
+            applicationContext,
+            conversationId,
+            createIntent(conversationId, READ_ACTION),
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
 
         // Build a RemoteInput for receiving voice input in a Car Notification
         val remoteInput = RemoteInput.Builder(EXTRA_VOICE_REPLY)
-                .setLabel("Reply by voice")
-                .build()
+            .setLabel("Reply by voice")
+            .build()
 
         // Building a Pending Intent for the reply action to trigger
-        val replyIntent = PendingIntent.getBroadcast(applicationContext,
-                conversationId,
-                createIntent(conversationId, REPLY_ACTION),
-                PendingIntent.FLAG_UPDATE_CURRENT)
+        val replyIntent = PendingIntent.getBroadcast(
+            applicationContext,
+            conversationId,
+            createIntent(conversationId, REPLY_ACTION),
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
 
         // Create the UnreadConversation and populate it with the participant name,
         // read and reply intents.
         val unreadConversationBuilder = UnreadConversation.Builder(participant)
-                .setLatestTimestamp(timestamp)
-                .setReadPendingIntent(readPendingIntent)
-                .setReplyAction(replyIntent, remoteInput)
+            .setLatestTimestamp(timestamp)
+            .setReadPendingIntent(readPendingIntent)
+            .setReplyAction(replyIntent, remoteInput)
 
         val builder = NotificationCompat.Builder(applicationContext)
-                // Set the application notification icon:
-                //.setSmallIcon(R.drawable.notification_icon)
+            // Set the application notification icon:
+            //.setSmallIcon(R.drawable.notification_icon)
 
-                // Set the large icon, for example a picture of the other recipient of the message
-                //.setLargeIcon(personBitmap)
+            // Set the large icon, for example a picture of the other recipient of the message
+            //.setLargeIcon(personBitmap)
 
-                .setContentText(message)
-                .setWhen(timestamp)
-                .setContentTitle(participant)
-                .setContentIntent(readPendingIntent)
-                .extend(CarExtender()
-                        .setUnreadConversation(unreadConversationBuilder.build()))
+            .setContentText(message)
+            .setWhen(timestamp)
+            .setContentTitle(participant)
+            .setContentIntent(readPendingIntent)
+            .extend(
+                CarExtender()
+                    .setUnreadConversation(unreadConversationBuilder.build())
+            )
 
         mNotificationManager.notify(conversationId, builder.build())
     }

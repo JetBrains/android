@@ -21,6 +21,7 @@ import com.android.resources.ResourceType
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
+import java.lang.RuntimeException
 import java.util.zip.ZipFile
 
 internal fun forEveryResource(apkPath: String, processor: ResourceEntryProcessor) {
@@ -37,7 +38,8 @@ internal fun forEveryResource(apkPath: String, processor: ResourceEntryProcessor
             val qualifierString =
               binResConfig.toString().let { if (it == "default") "" else it }
             val folderConfig =
-              FolderConfiguration.getConfigForQualifierString(qualifierString)!!
+              FolderConfiguration.getConfigForQualifierString(qualifierString) ?:
+              throw RuntimeException("Unrecognized configuration $qualifierString")
 
             typeChunk.entries.forEach { (rowId, typeChunkEntry) ->
               val binaryId =

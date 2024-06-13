@@ -15,23 +15,17 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.isTestFile
-import com.android.tools.preview.ComposePreviewElementInstance
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
 import com.intellij.psi.util.parentOfType
@@ -41,8 +35,6 @@ import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
-import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
-import javax.swing.JComponent
 
 fun Segment?.containsOffset(offset: Int) =
   this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false
@@ -63,19 +55,6 @@ fun SceneView.getRootComponent(): NlComponent? {
 fun SceneView.isRootComponentSelected() =
   getRootComponent()?.let { surface.selectionModel.isSelected(it) } == true
 
-/** Create [ActionToolbar] with enabled navigation. */
-fun createToolbarWithNavigation(rootComponent: JComponent, place: String, actions: List<AnAction>) =
-  createToolbarWithNavigation(rootComponent, place, DefaultActionGroup(actions))
-
-/** Create [ActionToolbar] with enabled navigation. */
-fun createToolbarWithNavigation(rootComponent: JComponent, place: String, actions: ActionGroup) =
-  ActionManager.getInstance().createActionToolbar(place, actions, true).apply {
-    targetComponent = rootComponent
-    layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
-    ActionToolbarUtil.makeToolbarNavigable(this)
-    setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
-  }
-
 /**
  * Whether fast preview is available. In addition to checking its normal availability from
  * [FastPreviewManager], we also verify that essentials mode is not enabled, because fast preview
@@ -83,10 +62,10 @@ fun createToolbarWithNavigation(rootComponent: JComponent, place: String, action
  */
 fun isFastPreviewAvailable(project: Project) =
   FastPreviewManager.getInstance(project).isAvailable &&
-    !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+    !PreviewEssentialsModeManager.isEssentialsModeEnabled
 
-fun DataContext.previewElement(): ComposePreviewElementInstance? =
-  getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
+  getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 
 /**
  * Whether this function is not in a test file and is properly annotated with

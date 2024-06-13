@@ -21,10 +21,12 @@ import com.android.tools.idea.logcat.message.readLogcatMessage
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.trace
+import com.intellij.util.io.sanitizeFileName
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
+import kotlin.io.path.inputStream
 import kotlin.io.path.name
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
@@ -39,10 +41,7 @@ private val logger = Logger.getInstance(MessagesFile::class.java)
  * rather than deleting entries from the start of the file when the size is exceeded, we keep a
  * rolling set of 2 files. This results in us actually keeping up to `2*maxSize` which is OK.
  */
-internal class MessagesFile(
-  private val name: String,
-  private val maxSizeBytes: Int,
-) {
+internal class MessagesFile(private val name: String, private val maxSizeBytes: Int) {
   private val tempFileFactory = TempFileFactory.getInstance()
   private var file: Path? = null
   private var previousFile: Path? = null
@@ -52,7 +51,7 @@ internal class MessagesFile(
   /** Initialize the temporary file */
   fun initialize() {
     file =
-      tempFileFactory.createTempFile("studio-$name", ".bin").also {
+      tempFileFactory.createTempFile("studio-${sanitizeFileName(name)}", ".bin").also {
         outputStream = ObjectOutputStream(it.outputStream())
       }
     sizeBytes = 0

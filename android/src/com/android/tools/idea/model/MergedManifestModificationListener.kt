@@ -17,14 +17,17 @@ package com.android.tools.idea.model
 
 import com.android.SdkConstants
 import com.android.ide.common.util.PathString
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isManifestFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.EditorFactory
@@ -45,6 +48,9 @@ import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.analysis.providers.analysisMessageBus
+import org.jetbrains.kotlin.analysis.providers.topics.KotlinTopics
+import org.jetbrains.kotlin.idea.util.toKtModulesForModificationEvents
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -64,9 +70,7 @@ class MergedManifestModificationListener(
   private val psiDocumentManager = PsiDocumentManager.getInstance(project)
   private val fileDocumentManager = FileDocumentManager.getInstance()
 
-  private class Request(val facet: AndroidFacet, val future: Future<*>)
-
-  private val lastRequestToUpdateModificationTrackers = AtomicReference<Request?>()
+  private val lastModificationTrackerUpdateTask = AtomicReference<Pair<AndroidFacet, Future<*>>?>()
 
   private val trackerUpdaterExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
     "Merged Manifest Modification Tracker Updater Pool",
@@ -128,39 +132,32 @@ class MergedManifestModificationListener(
   }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
-    lastRequestToUpdateModificationTrackers.getAndUpdate { request ->
-      if (request?.facet == facet) {
-        // This is to optimize the use case that the user is actively editing one file, and a backlog of same requests
-        // are created and pending there. Thus we can just leave one pending request and cancel the others. In order
-        // to make it simple, we only cache the last request, and cancel it, if the same new request comes and the old
-        // one is still in progress.
-        request.future.cancel(true).let {
-          thisLogger().debug {
-            "Request for updating '${request.facet.module}' is cancelled with status=\"$it\"."
-          }
-        }
-      }
-
-      requestToUpdateModificationTrackers(facet)
+    val newTask = trackerUpdaterExecutor.submit { flushCaches(facet) }
+    val (oldFacet, oldTask) = lastModificationTrackerUpdateTask.getAndSet(facet to newTask) ?: return
+    // This is to optimize the use case that the user is actively editing one file, and a backlog of same requests
+    // are created and pending there. Thus we can just leave one pending request and cancel the others. In order
+    // to make it simple, we only cache the last request, and cancel it, if the same new request comes and the old
+    // one is still in progress.
+    if (oldFacet == facet && oldTask.cancel(true)) {
+      thisLogger().debug { "Request for updating '${facet.module}' is cancelled." }
     }
   }
 
-  private fun requestToUpdateModificationTrackers(facet: AndroidFacet): Request {
-    val future = trackerUpdaterExecutor.submit {
-      for (module in facet.module.getTransitiveResourceDependents()) {
-        MergedManifestModificationTracker.getInstance(module).manifestChanged()
-      }
+  private fun flushCaches(facet: AndroidFacet) {
+    val ktModules = facet.module.getTransitiveResourceDependents().flatMap {
+      MergedManifestModificationTracker.getInstance(it).manifestChanged()
+      it.toKtModulesForModificationEvents()
+    }.toList()
 
-      lastRequestToUpdateModificationTrackers.getAndUpdate { request ->
-        if (request != null && request.facet == facet) {
-          null
-        }
-        else {
-          request
-        }
+    runInEdt {
+      runWriteAction {
+        if (facet.isDisposed || facet.module.project.isDisposed) return@runWriteAction
+        // The manifest does not belong to any Gradle source set, so we need to manually flush Kotlin analysis caches
+        // so that changes to the XML file can cause re-resolution of references to the Manifest class.
+        val publisher = facet.module.project.analysisMessageBus.syncPublisher(KotlinTopics.MODULE_OUT_OF_BLOCK_MODIFICATION)
+        ktModules.forEach(publisher::onModification)
       }
     }
-    return Request(facet, future)
   }
 
   /**
@@ -173,9 +170,10 @@ class MergedManifestModificationListener(
     }
   }
 
-  private class SubscriptionService(private val project: Project) {
+  @Service(Service.Level.PROJECT)
+  private class SubscriptionService(private val project: Project) : Disposable.Default {
     val subscriber = object : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project),
-                                                                                             project) {
+                                                                                             this) {
       override fun subscribe() {
         // To receive all changes happening in the VFS. File modifications may
         // not be picked up immediately if such changes are not saved on the disk yet
@@ -190,9 +188,7 @@ class MergedManifestModificationListener(
     }
 
     fun onProjectOpened() {
-      project.listenUntilNextSync(listener = object : ProjectSystemSyncManager.SyncResultListener {
-        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) = subscriber.ensureSubscribed()
-      })
+      project.listenUntilNextSync { subscriber.ensureSubscribed() }
     }
 
     fun ensureSubscribed() = subscriber.ensureSubscribed()

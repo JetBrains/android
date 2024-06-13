@@ -185,7 +185,7 @@ class NlNewPropertyItemTest {
         "center",
         "fill",
         "fill_horizontal",
-        "fill_vertical"
+        "fill_vertical",
       )
 
     property.flag("center")?.value = "true"
@@ -217,7 +217,7 @@ class NlNewPropertyItemTest {
         "tools:textSize",
         "tools:textColor",
         "tools:gravity",
-        "tools:srcCompat"
+        "tools:srcCompat",
       )
   }
 
@@ -244,7 +244,7 @@ class NlNewPropertyItemTest {
         "tools:textSize",
         "tools:textColor",
         "tools:gravity",
-        "tools:srcCompat"
+        "tools:srcCompat",
       )
   }
 
@@ -301,7 +301,7 @@ class NlNewPropertyItemTest {
           FQCN_TEXT_VIEW,
           "android",
           model,
-          components
+          components,
         )
       }
     add(table, property0)

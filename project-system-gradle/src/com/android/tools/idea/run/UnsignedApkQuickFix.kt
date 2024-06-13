@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
@@ -30,6 +31,7 @@ import com.intellij.openapi.options.ConfigurationQuickFix
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBLabel
@@ -47,8 +49,8 @@ constructor(
   val module: Module,
   val selectedBuildTypeName: String,
   val callback: Runnable?,
-  private val makeSigningConfigSelector: (GradleBuildModel) -> SigningConfigSelector
-) : ConfigurationQuickFix {
+  private val makeSigningConfigSelector: (GradleBuildModel) -> SigningConfigSelector,
+) : ConfigurationQuickFix, Disposable {
   /**
    * Instantiates a dialog as the quick fix action for unsigned APK error. When user closed the
    * dialog with the OK button, the selected signing config is picked.
@@ -60,13 +62,21 @@ constructor(
   constructor(
     module: Module,
     selectedBuildTypeName: String,
-    callback: Runnable?
+    callback: Runnable?,
   ) : this(
     module,
     selectedBuildTypeName,
     callback,
-    { gradleBuildModel -> SigningConfigSelectorDialog(gradleBuildModel.android().signingConfigs()) }
+    { gradleBuildModel -> SigningConfigSelectorDialog(gradleBuildModel.android().signingConfigs()) },
   )
+
+  init {
+    @Suppress("IncorrectParentDisposable") Disposer.register(module, this)
+  }
+
+  override fun dispose() {
+    unsignedApkQuickFix = null
+  }
 
   override fun applyFix(dataContext: DataContext) {
     val gradleBuildModel =
@@ -87,7 +97,7 @@ constructor(
               module.project,
               "Select Signing Config",
               null,
-              { gradleBuildModel.applyChanges() }
+              { gradleBuildModel.applyChanges() },
             )
             // Trigger Gradle sync for the signingConfig to take effect.
             GradleSyncInvoker.getInstance()
@@ -104,7 +114,7 @@ constructor(
                   override fun syncFailed(project: Project, errorMessage: String) {
                     callback?.run()
                   }
-                }
+                },
               )
           }
       }
@@ -128,7 +138,7 @@ constructor(
     fun create(
       module: Module,
       buildType: String,
-      quickFixCallback: Runnable?
+      quickFixCallback: Runnable?,
     ): UnsignedApkQuickFix? {
       if (
         unsignedApkQuickFix == null ||
@@ -136,6 +146,7 @@ constructor(
           unsignedApkQuickFix?.selectedBuildTypeName != buildType ||
           (quickFixCallback != null && unsignedApkQuickFix?.callback != quickFixCallback)
       ) {
+        unsignedApkQuickFix?.let { Disposer.dispose(it) }
         unsignedApkQuickFix = UnsignedApkQuickFix(module, buildType, quickFixCallback)
       }
 
@@ -185,7 +196,7 @@ class SigningConfigSelectorDialog(signingConfigs: Collection<SigningConfigModel>
           add(JBLabel("Debug keys should be strictly used for development purposes only."))
           add(HyperlinkLabel("Learn more").apply { setHyperlinkTarget(DOC_URL) })
         },
-        BorderLayout.NORTH
+        BorderLayout.NORTH,
       )
       add(signingConfigComboBox, BorderLayout.CENTER)
     }

@@ -18,10 +18,14 @@ package com.android.tools.idea.refactoring.modularize
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.refactoring.PackageWrapper
+import com.intellij.refactoring.util.RefactoringUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import com.intellij.util.CommonJavaRefactoringUtil
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.k2.refactoring.move.processor.K2MoveFilesHandler
 import org.jetbrains.kotlin.idea.refactoring.move.moveFilesOrDirectories.MoveKotlinFileHandler
 import org.jetbrains.kotlin.idea.util.sourceRoots
 
@@ -61,11 +65,16 @@ class AndroidModularizeKotlinRefactoringTest : AndroidTestCase() {
     )
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
 
-    runWriteAction {
-      val psiDirectory = CommonJavaRefactoringUtil.createPackageDirectoryInSourceRoot(
-        PackageWrapper(myFixture.psiManager, "p1.p2"), myAdditionalModules[0].sourceRoots[0])
+    val moveHandler = if (KotlinPluginModeProvider.isK2Mode()) K2MoveFilesHandler() else MoveKotlinFileHandler()
 
-      MoveKotlinFileHandler().findUsages(activity, psiDirectory, true, true)
+    @OptIn(KaAllowAnalysisOnEdt::class)
+    allowAnalysisOnEdt {
+      runWriteAction {
+        val psiDirectory = RefactoringUtil.createPackageDirectoryInSourceRoot(
+          PackageWrapper(myFixture.psiManager, "p1.p2"), myAdditionalModules[0].sourceRoots[0])
+
+        moveHandler.findUsages(activity, psiDirectory, true, true)
+      }
     }
   }
 }

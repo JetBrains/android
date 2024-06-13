@@ -36,10 +36,10 @@ import org.mockito.Mockito.verifyNoInteractions
 
 class FtlDeviceCatalogServiceTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
-  val project: Project get() = projectRule.project
+  val project: Project
+    get() = projectRule.project
 
   private val mockCloudAuthenticator: CloudAuthenticator = mock(CloudAuthenticator::class.java)
 
@@ -47,7 +47,7 @@ class FtlDeviceCatalogServiceTest {
 
   @Before
   fun setUp() {
-    CloudAuthenticator.setInstance(mockCloudAuthenticator)
+    projectRule.replaceService(CloudAuthenticator::class.java, mockCloudAuthenticator)
   }
 
   @Test
@@ -59,7 +59,9 @@ class FtlDeviceCatalogServiceTest {
     ftlDeviceCatalogService.updateDeviceCatalogTaskAction(project, mockProgressIndicator)
 
     assertTrue(ftlDeviceCatalogService.state.isCacheFresh())
-    assertTrue(matchFtlDeviceCatalog(ftlDeviceCatalogService.state.myDeviceCatalog, fullAndroidDeviceCatalog))
+    assertTrue(
+      matchFtlDeviceCatalog(ftlDeviceCatalogService.state.myDeviceCatalog, fullAndroidDeviceCatalog)
+    )
     verify(mockCloudAuthenticator).androidDeviceCatalog
   }
 
@@ -96,14 +98,22 @@ class FtlDeviceCatalogServiceTest {
   @Test
   fun testFtlEnabled_moduleLevelSetting() {
     val fixture = projectRule.fixture
-    fixture.addFileToProject("build.gradle", """
+    fixture.addFileToProject(
+      "build.gradle",
+      """
       plugins {
         id 'com.google.firebase.testlab`
       }
-    """.trimIndent())
-    fixture.addFileToProject("gradle.properties", """
+    """
+        .trimIndent(),
+    )
+    fixture.addFileToProject(
+      "gradle.properties",
+      """
       android.experimental.testOptions.managedDevices.customDevice=true
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     assertTrue(isFtlPluginEnabled(project, project.modules))
   }

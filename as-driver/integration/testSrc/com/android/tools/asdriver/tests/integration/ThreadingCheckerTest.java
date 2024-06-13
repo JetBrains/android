@@ -45,7 +45,6 @@ public class ThreadingCheckerTest {
 
     AndroidStudioInstallation installation = androidSystem.getInstallation();
     installation.addVmOption("-Didea.is.internal=true");
-    installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.instrumentation.threading.ThreadingChecker");
 
     try (Display display = Display.createDefault();
          AndroidStudio studio = installation.run(display)) {

@@ -33,6 +33,7 @@ import com.android.tools.idea.common.surface.DragOverEvent;
 import com.android.tools.idea.common.surface.DropEvent;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
+import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -90,7 +91,7 @@ import org.jetbrains.annotations.Nullable;
  * new unique id's (and any internal references to each other are also updated.)</li>
  * </ul>
  */
-public class DragDropInteraction extends Interaction {
+public class DragDropInteraction implements Interaction {
 
   /**
    * The surface associated with this interaction.
@@ -139,6 +140,8 @@ public class DragDropInteraction extends Interaction {
   SceneComponent myCurrentViewgroup = null;
   private boolean myDoesAcceptDropAtLastPosition = true;
 
+  private InteractionInformation myStartInfo;
+
   public DragDropInteraction(@NotNull DesignSurface<?> designSurface,
                              @NotNull List<NlComponent> dragged) {
     myDesignSurface = designSurface;
@@ -166,17 +169,13 @@ public class DragDropInteraction extends Interaction {
     assert event instanceof DragEnterEvent : "The instance of event should be DragEnterEvent but it is " + event.getClass() +
                                              "; The dragged component is " + myDraggedComponents +
                                              "; The SceneView is " + mySceneView +
-                                             ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
+                                             ", start (x, y) = " + event.getInfo().getX() + ", " + event.getInfo().getY() +
+                                             ", start mask is " + event.getInfo().getModifiersEx();
 
+    myStartInfo = event.getInfo();
     DropTargetDragEvent dropEvent = ((DragEnterEvent)event).getEventObject();
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    begin(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx());
-  }
-
-  @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-    super.begin(x, y, modifiersEx);
-    moveTo(x, y, modifiersEx, false);
+    moveTo(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx(), false);
     for (SceneView sceneView : myDesignSurface.getSceneViews()) {
       sceneView.onDragStart();
     }
@@ -228,7 +227,8 @@ public class DragDropInteraction extends Interaction {
       String errorMessage = "The instance of event should be DropEvent but it is " + event.getClass() +
                             "; The dragged component is " + myDraggedComponents +
                             "; The SceneView is " + mySceneView +
-                            ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
+                            ", start (x, y) = " + myStartInfo.getX() + ", " + myStartInfo.getY() +
+                            ", start mask is " + myStartInfo.getModifiersEx();
       Logger.getInstance(getClass()).info("Unexpected event type: " + errorMessage);
       cancel(event);
       return;
@@ -378,7 +378,9 @@ public class DragDropInteraction extends Interaction {
           myDragHandler = myCurrentHandler.createDragHandler(editorImpl, myDragReceiver, myDraggedComponents, myType);
           if (myDragHandler != null) {
             myDragHandler
-              .start(Coordinates.getAndroidXDip(mySceneView, myStartX), Coordinates.getAndroidYDip(mySceneView, myStartY), myStartMask);
+              .start(Coordinates.getAndroidXDip(mySceneView, myStartInfo.getX()),
+                     Coordinates.getAndroidYDip(mySceneView, myStartInfo.getY()),
+                     myStartInfo.getModifiersEx());
           }
         }
         else {

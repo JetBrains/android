@@ -15,121 +15,76 @@
  */
 package com.android.tools.idea.flags
 
+import com.android.tools.idea.IdeChannel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import kotlin.test.assertFailsWith
 
+/**
+ * An exhaustive test for ChannelDefault, mostly as documentation of the expected semantic
+ * as this is used to make behavior changes based on the version of Studio
+ */
 @RunWith(JUnit4::class)
 class ChannelDefaultTest {
+
   @Test
-  fun devOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 dev" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(2)
+  fun dev() {
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 dev" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 nightly" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 canary" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 beta" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1 rc" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.DEV) { "Iguana | 2023.1.1" }).isFalse()
   }
 
   @Test
-  fun nightlyOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 Nightly" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(3)
+  fun nightly() {
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 dev" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 nightly" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 canary" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 beta" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1 rc" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.NIGHTLY) { "Iguana | 2023.1.1" }).isFalse()
   }
 
   @Test
-  fun canaryOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 Canary" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(4)
+  fun canary() {
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 dev" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 nightly" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 canary" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 beta" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1 rc" }).isFalse()
+    assertThat(enabledUpTo(IdeChannel.Channel.CANARY) { "Iguana | 2023.1.1" }).isFalse()
   }
 
   @Test
-  fun betaOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 Beta" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(5)
+  fun beta() {
+    val failure = assertFailsWith<IllegalStateException> {
+      enabledUpTo(IdeChannel.Channel.BETA) { throw AssertionError("version should be unused") }
+    }
+    assertThat(failure.message).isEqualTo("Flags must not be conditional between Beta, RC and Stable")
   }
 
   @Test
-  fun rcOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 RC" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(6)
+  fun rc() {
+    val failure = assertFailsWith<IllegalStateException> {
+      enabledUpTo(IdeChannel.Channel.RC) { throw AssertionError("version should be unused") }
+    }
+    assertThat(failure.message).isEqualTo("Flags must not be conditional between Beta, RC and Stable")
   }
 
   @Test
-  fun stableOverride() {
-    val versionProvider = { "Iguana | 2023.1.1" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(7)
+  fun stable() {
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 dev" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 nightly" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 canary" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 beta" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1 rc" }).isTrue()
+    assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1" }).isTrue()
   }
 
-  @Test
-  fun noMatchingOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 Dev" }
 
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(1)
-  }
+  private fun enabledUpTo(channel: IdeChannel.Channel, versionProvider: () -> String) = ChannelDefault.enabledUpTo(channel, versionProvider).get()
 }

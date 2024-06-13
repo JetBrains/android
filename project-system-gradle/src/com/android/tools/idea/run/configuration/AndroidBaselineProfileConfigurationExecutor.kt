@@ -17,11 +17,11 @@ package com.android.tools.idea.run.configuration
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
@@ -33,7 +33,6 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.notification.NotificationDisplayType
@@ -44,22 +43,18 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
-import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
-import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.io.OutputStream
-import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.nio.file.Path
 
 class AndroidBaselineProfileConfigurationExecutor(
   val env: ExecutionEnvironment,
@@ -107,14 +102,22 @@ class AndroidBaselineProfileConfigurationExecutor(
   private suspend fun runGradleTask(indicator: ProgressIndicator, devices: List<IDevice>): RunContentDescriptor {
     val console = createConsole()
     val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date())
-    console.println("$date: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
+    console.println("$date: Launching ${configuration.name} on '${env.executionTarget.displayName}'.")
     indicator.text = "Start baseline profile gradle task"
 
-    val externalTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
+    val gradleInitScriptFile = getGradleInitScriptFile()
+    val deviceSerials = devices.joinToString(",") { device -> device.serialNumber }
+    val envVar = mapOf(("ANDROID_SERIAL" to deviceSerials))
+    val argList = mutableListOf<String>().apply {
+      add("--init-script=${gradleInitScriptFile.absolutePath}")
+      configuration.getFilterArgument()?.let { add(it) }
+    }
+
+    val taskId = ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
 
     val handler = object : ProcessHandler() {
       override fun destroyProcessImpl() {
-        notifyProcessTerminated(if (GradleBuildInvoker.getInstance(project).stopBuild(externalTaskId)) 0 else -1)
+        notifyProcessTerminated(if (GradleBuildInvoker.getInstance(project).stopBuild(taskId)) 0 else -1)
       }
 
       override fun detachProcessImpl() {
@@ -125,72 +128,38 @@ class AndroidBaselineProfileConfigurationExecutor(
       override fun getProcessInput(): OutputStream? = null
     }
 
-    val listener = object: ExternalSystemTaskNotificationListenerAdapter() {
-      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
-        console.print(text, if (stdOut) ConsoleViewContentType.NORMAL_OUTPUT else ConsoleViewContentType.ERROR_OUTPUT)
-      }
-
-      override fun onSuccess(id: ExternalSystemTaskId) {
-        val notification = notificationGroup
-          .createNotification("Baseline profile for the project \"${project.name}\" has been generated.", NotificationType.INFORMATION)
-          .setTitle("Baseline profile added")
-          .setImportant(true)
-        notification.addAction(object : AnAction("Open Run tool window") {
-          override fun actionPerformed(e: AnActionEvent) {
-            RunContentManager.getInstance(project).toFrontRunContent(DefaultRunExecutor.getRunExecutorInstance(), handler)
-            notification.expire()
-          }
-        })
-        Notifications.Bus.notify(notification, project)
-      }
-
-      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
-        val notification = notificationGroup
-          .createNotification("Baseline profile generation for the project \"${project.name}\" has failed.", NotificationType.ERROR)
-          .setTitle("Baseline profile error")
-          .setImportant(true)
-        Notifications.Bus.notify(notification, project)
-      }
-
-      override fun onEnd(id: ExternalSystemTaskId) {
-        if (id == externalTaskId) {
-          RunContentManager.getInstance(project).allDescriptors.find {
-            it.executionId == env.executionId
-          }?.let {
-            it.processHandler?.detachProcess()
-          }
+    GradleBuildInvoker.getInstance(project).generateBaselineProfileSources(taskId, configuration.modules, envVar, argList, configuration.generateAllVariants).apply {
+      addListener({
+        if (this.get().isBuildSuccessful) {
+          val notification = notificationGroup
+            .createNotification("Baseline profile for the project \"${project.name}\" has been generated.", NotificationType.INFORMATION)
+            .setTitle("Baseline profile added")
+            .setImportant(true)
+          notification.addAction(object : AnAction("Open Run tool window") {
+            override fun actionPerformed(e: AnActionEvent) {
+              RunContentManager.getInstance(project).toFrontRunContent(DefaultRunExecutor.getRunExecutorInstance(), handler)
+              notification.expire()
+            }
+          })
+          Notifications.Bus.notify(notification, project)
+        } else if (!this.get().isBuildCancelled)  {
+          val notification = notificationGroup
+            .createNotification("Baseline profile generation for the project \"${project.name}\" has failed.", NotificationType.ERROR)
+            .setTitle("Baseline profile error")
+            .setImportant(true)
+          Notifications.Bus.notify(notification, project)
         }
-      }
+
+        // This listener only gets called after the build finishes, so it should be safe to detach here.
+        handler.detachProcess()
+      }, AppExecutorUtil.getAppExecutorService())
     }
 
-    GradleBuildInvoker.Request(
-      project,
-      externalTaskId,
-      GradleBuildInvoker.Request.RequestData(
-        BuildMode.DEFAULT_BUILD_MODE,
-        File(configuration.getPath()!!), // TODO(b/306255267) : Use GradleTaskFinder instead of hardcoding task name
-        configuration.getTaskNames(),
-        executionSettings = getGradleExecutionSettings(project, devices)),
-      isWaitForCompletion = false,
-      doNotShowBuildOutputOnFailure = false,
-      listener = listener)
-      .let {
-        GradleBuildInvoker.getInstance(project).executeTasks(it)
-      }.let {
-        it.addListener({
-                         if (it.isDone) {
-                           handler.detachProcess()
-                         }
-                       }, AppExecutorUtil.getAppExecutorService())
-      }
-
+    AndroidSessionInfo.create(handler, devices, "Baseline Profile Task: ${taskId.id}")
     return createRunContentDescriptor(handler, console, env)
   }
 
-  private fun getGradleExecutionSettings(
-    project: Project,
-    devices: List<IDevice>,
-  ): GradleExecutionSettings {
+  private fun getGradleInitScriptFile(): File {
     val initScriptFile = File.createTempFile("initScript", ".gradle.kts", Path.of(FileUtil.getTempDirectory()).toFile()).apply {
       deleteOnExit()
     }
@@ -227,13 +196,7 @@ class AndroidBaselineProfileConfigurationExecutor(
         }
       }
     """.trimIndent())
-    return GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
-      // Add an environmental variable to filter connected devices for selected devices.
-      val deviceSerials = devices.joinToString(",") { device -> device.serialNumber }
-      withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))
-      configuration.getFilterArgument()?.let { withArgument(it) }
-      withArgument("--init-script=${initScriptFile.absolutePath}")
-    }
+    return initScriptFile
   }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor {

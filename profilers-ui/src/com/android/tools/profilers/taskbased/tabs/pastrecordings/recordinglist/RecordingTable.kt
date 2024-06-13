@@ -15,30 +15,24 @@
  */
 package com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_SEPARATOR_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.RECORDING_TASKS_COL_WIDTH_DP
@@ -47,14 +41,18 @@ import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensi
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP
 import com.android.tools.profilers.taskbased.common.table.leftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.rightAlignedColumnText
+import com.android.tools.profilers.tasks.ProfilerTaskType
+import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
+import org.jetbrains.jewel.foundation.lazy.SelectionMode
+import org.jetbrains.jewel.foundation.lazy.items
+import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
 @Composable
 fun RecordingListRow(selectedRecording: SessionItem?,
-                     onRecordingSelection: (SessionItem?) -> Unit,
                      recording: SessionItem,
-                     supportedTasks: String) {
+                     supportedTask: ProfilerTaskType) {
   Row(
     modifier = Modifier
       .fillMaxWidth()
@@ -63,21 +61,15 @@ fun RecordingListRow(selectedRecording: SessionItem?,
         if (recording == selectedRecording)
           TABLE_ROW_SELECTION_BACKGROUND_COLOR
         else
-          TABLE_ROW_BACKGROUND_COLOR
+          Color.Transparent
       )
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
-      .selectable(
-        selected = recording == selectedRecording,
-        onClick = {
-          val newSelectedRecording = if (recording != selectedRecording) recording else null
-          onRecordingSelection(newSelectedRecording)
-        })
       .testTag("RecordingListRow")
   ) {
     leftAlignedColumnText(recording.name, rowScope = this)
     rightAlignedColumnText(text = TimeFormatter.getLocalizedDateTime(recording.sessionMetaData.startTimestampEpochMs),
                            colWidth = RECORDING_TIME_COL_WIDTH_DP)
-    rightAlignedColumnText(text = supportedTasks, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
+    rightAlignedColumnText(text = supportedTask.description, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
   }
 }
 
@@ -98,27 +90,34 @@ fun RecordingListHeader() {
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionItem?, onRecordingSelection: (SessionItem?) -> Unit,
-                   createStringOfSupportedTasks: (SessionItem) -> String) {
-  val listState = rememberLazyListState()
+                   getSupportedTask: (SessionItem) -> ProfilerTaskType) {
+  val listState = rememberSelectableLazyListState()
 
-  Box(modifier = Modifier.fillMaxSize().background(TABLE_ROW_BACKGROUND_COLOR)) {
-    LazyColumn(
-      state = listState
+  Box {
+    SelectableLazyColumn (
+      state = listState,
+      selectionMode = SelectionMode.Single,
+      onSelectedIndexesChanged = {
+        // The - 1 is to account for the sticky header.
+        if (it.isNotEmpty() && recordingList[it.first() - 1] != selectedRecording) {
+          val newSelectedDeviceProcess = recordingList[it.first() - 1]
+          onRecordingSelection(newSelectedDeviceProcess)
+        }
+      }
     ) {
-      stickyHeader {
+      stickyHeader(key = Integer.MAX_VALUE) {
         RecordingListHeader()
         Divider(color = TABLE_SEPARATOR_COLOR, modifier = Modifier.fillMaxWidth(), thickness = 1.dp, orientation = Orientation.Horizontal)
       }
       items(items = recordingList) { recording ->
-        RecordingListRow(selectedRecording, onRecordingSelection, recording, createStringOfSupportedTasks(recording))
+        RecordingListRow(selectedRecording, recording, getSupportedTask(recording))
       }
     }
 
     VerticalScrollbar(
-      adapter = rememberScrollbarAdapter(listState),
+      adapter = rememberScrollbarAdapter(listState.lazyListState),
       modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
     )
   }

@@ -17,8 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.REQUEST
-import com.intellij.util.ui.JBUI
-import javax.swing.JComponent
+import com.intellij.ui.components.JBTabbedPane
 
 // Use Application Headers as title because the infrastructure added headers of HttpURLConnection
 // may be missed if users do not set.
@@ -26,27 +25,28 @@ private const val HEADERS_TITLE = "Application Headers"
 
 /** Tab which shows a request's headers and payload. */
 internal class RequestTabContent : TabContent() {
-  private val contentPanel = createVerticalPanel(TAB_SECTION_VGAP)
+  private val tabs = JBTabbedPane()
 
   override val title = "Request"
 
-  override fun createComponent(): JComponent {
-    contentPanel.border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
-    return createVerticalScrollPane(contentPanel)
-  }
+  override fun createComponent() = tabs
 
   override fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory) {
-    contentPanel.removeAll()
+    val selectedTitle = tabs.getSelectedTabTitle()
+    tabs.removeAll()
     if (data == null) {
       return
     }
     val headersComponent = dataComponentFactory.createHeaderComponent(REQUEST)
     if (headersComponent != null) {
-      contentPanel.add(createHideablePanel(HEADERS_TITLE, headersComponent, null))
+      tabs.add(HEADERS_TITLE, createVerticalScrollPane(headersComponent))
     }
     val bodyComponent = dataComponentFactory.createBodyComponent(REQUEST)
     if (bodyComponent != null) {
-      contentPanel.add(bodyComponent)
+      tabs.add(SECTION_TITLE_BODY, bodyComponent)
+    }
+    if (selectedTitle != null) {
+      tabs.setSelectedTab(selectedTitle)
     }
   }
 }

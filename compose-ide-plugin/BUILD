@@ -11,8 +11,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
@@ -20,10 +21,11 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//tools/adt/idea/compose-ide-plugin:compiler-hosted",
+        "//tools/adt/idea/compose-ide-plugin:compose-compiler",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module]",
+        "//tools/adt/idea/completion:intellij.android.completion[module]",
     ],
 )
 
@@ -51,13 +53,14 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/.idea/libraries:truth",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "@intellij//:intellij-sdk[test]",
+        "@intellij//:com.intellij.java",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
+        "@intellij//:org.jetbrains.kotlin[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
@@ -68,7 +71,7 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
-        "//tools/adt/idea/compose-ide-plugin:compiler-hosted",
+        "//tools/adt/idea/compose-ide-plugin:compose-compiler",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
@@ -77,7 +80,7 @@ iml_module(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "compiler-hosted",
-    jars = ["lib/compiler-hosted.jar"],
+    name = "compose-compiler",
+    jars = ["//tools/adt/idea/compose-ide-plugin/compose-compiler:compose-compiler.jar"],
     visibility = ["//visibility:public"],
 )

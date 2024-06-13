@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import android.view.View;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -35,10 +37,12 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -46,7 +50,9 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
@@ -427,5 +433,197 @@ public class NlEditorTest {
       .waitForRenderToFinish();
     assertThat(view.getScrollY()).isGreaterThan(viewScroll);
     assertThat(layoutEditor.getScrollPosition().getY()).isGreaterThan(surfacePosition.getY());
+  }
+
+  private static void assertImagesAreDifferent(
+    BufferedImage image1,
+    BufferedImage image2,
+    float minPercentDifference
+  ) throws IOException {
+    boolean areDifferent = false;
+    try {
+      assertImageSimilar("image", image1, image2, minPercentDifference);
+    } catch (AssertionError e) {
+      areDifferent = true;
+    }
+    assertTrue("Images are not different enough", areDifferent);
+  }
+
+  @Test
+  public void switchOrientation() throws IOException {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture nlEditorFixture = editor.getLayoutEditor();
+    nlEditorFixture
+      .waitForRenderToFinish()
+      .collapseToolWindows()
+      .showOnlyDesignView()
+      .zoomToFit();
+    BufferedImage originalRender = nlEditorFixture
+      .getAllSceneViews()
+      .get(0)
+      .image();
+    assertNotNull("Image should have been rendered", originalRender);
+    assertTrue(
+      String.format("The rendered result should not be empty (%d, %d)", originalRender.getWidth(), originalRender.getHeight()),
+      originalRender.getWidth() > 1 && originalRender.getHeight() > 1);
+
+    nlEditorFixture.getConfigToolbar()
+      .setOrientationAsLandscape()
+      .requireOrientation("Landscape");
+    nlEditorFixture.waitForRenderToFinish();
+
+    BufferedImage landscapeRender = nlEditorFixture
+      .getAllSceneViews()
+      .get(0)
+      .image();
+    assertImagesAreDifferent(
+      originalRender,
+      landscapeRender,
+      0.2f
+    );
+
+    nlEditorFixture.getConfigToolbar()
+      .setOrientationAsPortrait()
+      .requireOrientation("Portrait");
+    nlEditorFixture.waitForRenderToFinish();
+
+    assertImageSimilar(
+      "image",
+      originalRender,
+      Objects.requireNonNull(nlEditorFixture
+                               .getAllSceneViews()
+                               .get(0)
+                               .image()),
+      0.0f
+    );
+  }
+
+  @Test
+  public void switchApi() throws IOException {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture nlEditorFixture = editor.getLayoutEditor();
+    nlEditorFixture
+      .waitForRenderToFinish()
+      .collapseToolWindows()
+      .showOnlyDesignView()
+      .zoomToFit();
+    BufferedImage originalRender = nlEditorFixture
+      .getAllSceneViews()
+      .get(0)
+      .image();
+    assertNotNull("Image should have been rendered", originalRender);
+    assertTrue(
+      String.format("The rendered result should not be empty (%d, %d)", originalRender.getWidth(), originalRender.getHeight()),
+      originalRender.getWidth() > 1 && originalRender.getHeight() > 1);
+
+    ImmutableList<String> apis = ImmutableList.of("34", "25");
+    for (String api : apis) {
+      nlEditorFixture.getConfigToolbar()
+        .chooseApiLevel(api)
+        .requireApiLevel(api);
+      nlEditorFixture.waitForRenderToFinish();
+
+      BufferedImage apiRender = nlEditorFixture
+        .getAllSceneViews()
+        .get(0)
+        .image();
+      assertImageSimilar(
+        "image",
+        originalRender,
+        apiRender,
+        0f
+      );
+    }
+  }
+
+  @Test
+  public void switchRtl() throws IOException {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/linear_layout.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture nlEditorFixture = editor.getLayoutEditor();
+    nlEditorFixture
+      .waitForRenderToFinish()
+      .collapseToolWindows()
+      .showOnlyDesignView()
+      .zoomToFit();
+
+    BufferedImage originalRender = nlEditorFixture
+      .getAllSceneViews()
+      .get(0)
+      .image();
+    assertNotNull("Image should have been rendered", originalRender);
+    assertTrue(
+      String.format("The rendered result should not be empty (%d, %d)", originalRender.getWidth(), originalRender.getHeight()),
+      originalRender.getWidth() > 1 && originalRender.getHeight() > 1);
+
+    nlEditorFixture.getConfigToolbar().setLocale("Hebrew (iw)");
+    nlEditorFixture.waitForRenderToFinish();
+
+    BufferedImage rtlRender = nlEditorFixture
+      .getAllSceneViews()
+      .get(0)
+      .image();
+    assertImagesAreDifferent(
+      originalRender,
+      rtlRender,
+      // This layout is fairly small so switching to RTL does not make a big difference. ~0.4%
+      0.2f
+    );
+
+    nlEditorFixture.getConfigToolbar().setLocale("English (en)");
+    nlEditorFixture.waitForRenderToFinish();
+
+    assertImageSimilar(
+      "image",
+      originalRender,
+      Objects.requireNonNull(nlEditorFixture
+                               .getAllSceneViews()
+                               .get(0)
+                               .image()),
+      0f
+    );
+  }
+
+  @Test
+  public void switchTheme() throws IOException {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/linear_layout.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture nlEditorFixture = editor.getLayoutEditor();
+    nlEditorFixture
+      .waitForRenderToFinish()
+      .collapseToolWindows()
+      .showOnlyDesignView()
+      .zoomToFit();
+
+    nlEditorFixture
+      .getConfigToolbar()
+      .setTheme("AppCompat.NoActionBar")
+      .requireTheme("NoActionBar");
+  }
+
+  @Test
+  public void testLintRun() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+
+    ProblemsPaneFixture problemsPane = new ProblemsPaneFixture(ideFrameFixture);
+    problemsPane.activate();
+
+    ideFrameFixture.getEditor().open("app/src/main/res/layout/constraint.xml").getLayoutEditor().waitForRenderToFinish();
+    assertThat(problemsPane.isTabSelected("Layout and Qualifiers")).isTrue();
+    assertThat(problemsPane.sharedPanelIssueCount()).isAtLeast(1);
   }
 }

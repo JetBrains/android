@@ -54,7 +54,7 @@ internal class SimpleFileLinkFilter(private val project: Project) : Filter, Dumb
         ResultItem(
           offset + range.first,
           offset + range.last + 1,
-          hyperlinkInfoFactory.createMultipleFilesHyperlinkInfo(files, lineNumber - 1, project)
+          hyperlinkInfoFactory.createMultipleFilesHyperlinkInfo(files, lineNumber - 1, project),
         )
       }
     return when {

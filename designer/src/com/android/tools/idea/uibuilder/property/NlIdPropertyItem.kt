@@ -29,8 +29,10 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.refactoring.actions.RenameElementAction
+import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import org.jetbrains.android.refactoring.renaming.NEW_NAME_RESOURCE
 
@@ -40,7 +42,7 @@ open class NlIdPropertyItem(
   componentName: String,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
-  optionalValue2: Any? = null
+  optionalValue2: Any? = null,
 ) :
   NlPropertyItem(
     ANDROID_URI,
@@ -52,7 +54,7 @@ open class NlIdPropertyItem(
     model,
     listOf(components.first()),
     optionalValue1,
-    optionalValue2
+    optionalValue2,
   ) {
 
   // TODO(b/120919869): The snapshot value in NlComponent may be stale.
@@ -92,10 +94,15 @@ open class NlIdPropertyItem(
     get() = ""
 
   private fun readIdFromPsi(): String? {
-    val tag = firstTag ?: return null
-    return if (AndroidPsiUtils.isValid(tag))
-      AndroidPsiUtils.getAttributeSafely(tag, ANDROID_URI, ATTR_ID)
-    else null
+    return SlowOperations.allowSlowOperations(
+      ThrowableComputable {
+        firstTag?.let {
+          if (AndroidPsiUtils.isValid(it))
+            AndroidPsiUtils.getAttributeSafely(it, ANDROID_URI, ATTR_ID)
+          else null
+        }
+      }
+    )
   }
 
   private fun toValue(id: String): String? {
@@ -119,7 +126,7 @@ open class NlIdPropertyItem(
     value: XmlAttributeValue?,
     oldId: String,
     newId: String,
-    newValue: String?
+    newValue: String?,
   ): Boolean {
     if (oldId.isEmpty() || newId.isEmpty() || newValue == null || value == null || !value.isValid) {
       return false

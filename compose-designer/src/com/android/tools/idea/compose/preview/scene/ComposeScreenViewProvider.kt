@@ -16,12 +16,12 @@
 package com.android.tools.idea.compose.preview.scene
 
 import com.android.flags.ifEnabled
+import com.android.tools.idea.common.surface.DEVICE_CONFIGURATION_SHAPE_POLICY
 import com.android.tools.idea.common.surface.Layer
+import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneLayer
-import com.android.tools.idea.common.surface.SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY
-import com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.util.isRootComponentSelected
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -47,7 +47,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
 
   override fun createPrimarySceneView(
     surface: NlDesignSurface,
-    manager: LayoutlibSceneManager
+    manager: LayoutlibSceneManager,
   ): ScreenView =
     ScreenView.newBuilder(surface, manager)
       .withLayersProvider {
@@ -75,7 +75,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
                     (!StudioFlags.COMPOSE_PREVIEW_SELECTION.get() ||
                       sceneView.isRootComponentSelected())
                 }
-              },
+              }
             )
             add(
               UiCheckWarningLayer(it) {
@@ -95,16 +95,15 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
           }
           .build()
       }
-      .withShapePolicy {
-        (if (
-            COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
-              ?.displaySettings
-              ?.showDecoration == true
-          )
-            DEVICE_CONFIGURATION_SHAPE_POLICY
-          else SQUARE_SHAPE_POLICY)
-          .getShape(it)
-      }
+      .withShapePolicy(
+        if (
+          PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
+            ?.displaySettings
+            ?.showDecoration == true
+        )
+          DEVICE_CONFIGURATION_SHAPE_POLICY
+        else SQUARE_SHAPE_POLICY
+      )
       .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
       .build()
 

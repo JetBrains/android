@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.google.common.base.Strings.emptyToNull;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.google.common.base.Strings.emptyToNull;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class ArtifactDependencySpecImpl implements ArtifactDependencySpec {
   @NotNull private String name;

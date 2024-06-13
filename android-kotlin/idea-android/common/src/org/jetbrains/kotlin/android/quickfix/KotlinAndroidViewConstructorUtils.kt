@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.base.psi.replaced
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.JvmNames
+import org.jetbrains.kotlin.name.JvmStandardClassIds
 import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtSuperTypeEntry
@@ -65,7 +65,7 @@ object KotlinAndroidViewConstructorUtils {
 
         val primaryConstructor = ktClass.createPrimaryConstructorIfAbsent().replaced(newPrimaryConstructor)
         primaryConstructor.valueParameterList?.let { ShortenReferencesFacility.getInstance().shorten(it) }
-        primaryConstructor.addAnnotation(JvmNames.JVM_OVERLOADS_CLASS_ID)
+        primaryConstructor.addAnnotation(JvmStandardClassIds.JVM_OVERLOADS_CLASS_ID)
 
         element.replace(psiFactory.createSuperTypeCallEntry(element.text + superCallSignature))
     }

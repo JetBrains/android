@@ -22,6 +22,8 @@ import com.android.ide.common.resources.ResourcesUtil;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -157,8 +159,19 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     final Set<Module> modulesSet = new HashSet<>();
     modulesSet.add(module);
 
-    for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
-      modulesSet.add(depFacet.getModule());
+    AndroidModuleSystem moduleSystem =
+      ProjectSystemService.getInstance(module.getProject()).getProjectSystem().getModuleSystem(module);
+    if (moduleSystem.isRClassTransitive()) {
+      // If the module's R class is transitive, it makes sense that the resource can be created in a dependent module.
+      // If it's not, then the resource must be created only on the module defining the R class.
+      for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
+        Module depModule = depFacet.getModule();
+        AndroidModuleSystem depModuleSystem =
+          ProjectSystemService.getInstance(module.getProject()).getProjectSystem().getModuleSystem(depModule);
+        if (depModuleSystem.getSupportsAndroidResources()) {
+          modulesSet.add(depModule);
+        }
+      }
     }
 
     assert !modulesSet.isEmpty();

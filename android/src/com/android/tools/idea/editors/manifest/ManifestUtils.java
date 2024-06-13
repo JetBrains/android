@@ -29,7 +29,7 @@ import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
-import com.android.manifmerger.IntentFilterNodeKeyResolver;
+import com.android.manifmerger.ManifestModel;
 import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
@@ -85,18 +85,6 @@ public class ManifestUtils {
       } else {
         return Collections.emptyList();
       }
-      Node parentNode = element.getParentNode();
-      if (parentNode instanceof Element) {
-        Element parentElement = (Element)parentNode;
-        // special case when parent element is an intent-filter because the intent-filter sub-element node keys are not necessarily
-        // unique in the xml file, but the sub-elements have the same history as the intent-filter
-        if (TAG_INTENT_FILTER.equals(parentElement.getTagName())) {
-          XmlNode.NodeKey parentKey = getNodeKey(manifest, parentElement);
-          if (parentKey != null) {
-            return actions.getNodeRecords(parentKey);
-          }
-        }
-      }
       XmlNode.NodeKey key = getNodeKey(manifest, element);
       if (key == null) {
         return Collections.emptyList();
@@ -114,23 +102,18 @@ public class ManifestUtils {
     return Collections.emptyList();
   }
 
-  @Nullable/*can not find report node for xml tag*/
+  @Nullable
   static XmlNode.NodeKey getNodeKey(@NotNull MergedManifestSnapshot manifest, @NotNull Element element) {
-    XmlNode.NodeKey key = manifest.getNodeKey(element.getNodeName());
+    // We could just return the result of XmlNode.NodeKey.fromXml, but the previous version of this
+    // code preferred to find the key in "manifest"; if the key is not found, we make an attempt to
+    // re-create the key using the tag name and the name attribute. It is not clear if this is
+    // really needed, but we keep it, just in case.
+    String elementId = XmlNode.NodeKey.fromXml(element, new ManifestModel()).toString();
+    XmlNode.NodeKey key = manifest.getNodeKey(elementId);
     if (key == null) {
       Attr nameAttribute = element.getAttributeNodeNS(ANDROID_URI, ATTR_NAME);
       if (nameAttribute != null) {
         key = manifest.getNodeKey(element.getTagName() + "#" + nameAttribute.getValue());
-      }
-      else {
-        Attr glEsVersionAttribute = element.getAttributeNodeNS(ANDROID_URI, ATTRIBUTE_GLESVERSION);
-        if (glEsVersionAttribute != null) {
-          key = manifest.getNodeKey(element.getTagName() + "#" + glEsVersionAttribute.getValue());
-        } else if (TAG_INTENT_FILTER.equals(element.getTagName())) {
-          key = manifest.getNodeKey(element.getTagName() + "#" + IntentFilterNodeKeyResolver.INSTANCE.getKey(element));
-        } else {
-          key = null;
-        }
       }
     }
     return key;

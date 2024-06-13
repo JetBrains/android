@@ -18,12 +18,13 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.log.LogWrapper
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.addIfNotNull
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClassInitializer
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
@@ -34,119 +35,93 @@ import kotlin.system.measureTimeMillis
 
 private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder::class.java))
 
-private class PsiState(leafNodes: List<LeafPsiElement>) {
-  // This operation is O(1) for leaf nodes, since they directly contain their text.
-  val text = leafNodes.map { it.text }
-
-  override fun hashCode(): Int {
-    return text.hashCode()
+@RequiresReadLock
+fun getPsiValidationState(psiFile: PsiFile): PsiState {
+  val state = PsiState(psiFile)
+  val traverseMs = measureTimeMillis {
+    psiFile.accept(state)
   }
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as PsiState
-
-    return text == other.text
-  }
+  logger.info("Live Edit: PSI validator traversed PSI in $traverseMs ms")
+  return state
 }
 
-class PsiValidator {
-  private var oldVisitors = mutableMapOf<KtFile, Visitor>()
-
-  fun beforeChanges(ktFile: KtFile) {
-    if (ktFile in oldVisitors) {
-      return
-    }
-    val validateMs = measureTimeMillis {
-      val visitor = Visitor()
-      ktFile.accept(visitor)
-      oldVisitors[ktFile] = visitor
-    }
-    logger.info("Live Edit: PSI validator traversed PSI in $validateMs ms")
+@RequiresReadLock
+fun validatePsiChanges(old: PsiState, new: PsiState): List<LiveEditUpdateException> {
+  if (old.psiFile != new.psiFile) {
+    throw IllegalArgumentException("No reason to check differences between distinct PSI files")
   }
-
-  fun validatePsiChanges(ktFile: KtFile): MutableList<LiveEditUpdateException> {
-    val errors = mutableListOf<LiveEditUpdateException>()
-    val validateMs = measureTimeMillis {
-      val old = oldVisitors[ktFile]
-      if (old == null) {
-        logger.warning("No old PSI to diff against for ${ktFile.name}")
-        return errors
-      }
-      val new = Visitor()
-      ktFile.accept(new)
-
-      errors.addIfNotNull(validateProperties(ktFile, old.properties, new.properties))
-      errors.addIfNotNull(validateInitBlocks(ktFile, old.initBlocks, new.initBlocks))
-      errors.addIfNotNull(validateConstructors(ktFile, old.primaryConstructors, new.primaryConstructors))
-      errors.addIfNotNull(validateConstructors(ktFile, old.secondaryConstructors, new.secondaryConstructors))
-    }
-    logger.info("Live Edit: PSI validator checked PSI in $validateMs ms")
-    return errors
+  val errors = mutableListOf<LiveEditUpdateException>()
+  val validateMs = measureTimeMillis {
+    errors.addIfNotNull(validateProperties(old.psiFile, old.properties, new.properties))
+    errors.addIfNotNull(validateInitBlocks(old.psiFile, old.initBlocks, new.initBlocks))
+    errors.addIfNotNull(validateConstructors(old.psiFile, old.primaryConstructors, new.primaryConstructors))
+    errors.addIfNotNull(validateConstructors(old.psiFile, old.secondaryConstructors, new.secondaryConstructors))
   }
-
-  fun validationFinished(ktFile: KtFile) {
-    oldVisitors.remove(ktFile)
-  }
+  logger.info("Live Edit: PSI validator checked PSI in $validateMs ms")
+  return errors
 }
 
-private fun validateConstructors(ktFile: KtFile,
-                                 oldConstructors: Map<List<FqName?>, PsiState>,
-                                 newConstructors: Map<List<FqName?>, PsiState>): LiveEditUpdateException? {
+private fun validateConstructors(psiFile: PsiFile,
+                                 oldConstructors: Map<List<String?>, String>,
+                                 newConstructors: Map<List<String?>, String>): LiveEditUpdateException? {
   for (entry in oldConstructors) {
     val other = newConstructors[entry.key] ?: continue
     if (other != entry.value) {
-      return LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                    "in $ktFile, modified constructor $entry.key", ktFile, null)
+      return LiveEditUpdateException.unsupportedSourceModificationConstructor("in $psiFile, modified constructor $entry.key")
     }
   }
   return null
 }
 
-private fun validateInitBlocks(ktFile: KtFile, oldInit: Map<Int, PsiState>, newInit: Map<Int, PsiState>): LiveEditUpdateException? {
+private fun validateInitBlocks(psiFile: PsiFile, oldInit: Map<Int, String>, newInit: Map<Int, String>): LiveEditUpdateException? {
   // We don't care about the exact offsets of each init block, only that the relative order of blocks has remained the same.
   val old = oldInit.toSortedMap().map { it.value }
   val new = newInit.toSortedMap().map { it.value }
   if (old != new) {
-    return LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                  "in $ktFile, modified init block", ktFile, null)
+    return LiveEditUpdateException.unsupportedSourceModificationInit("in $psiFile, modified init block", psiFile)
   }
   return null
 }
 
-private fun validateProperties(ktFile: KtFile, oldProps: Map<FqName, PsiState>, newProps: Map<FqName, PsiState>): LiveEditUpdateException? {
+private fun validateProperties(psiFile: PsiFile, oldProps: Map<FqName, String>, newProps: Map<FqName, String>): LiveEditUpdateException? {
   for (entry in oldProps) {
     val other = newProps[entry.key] ?: continue
     if (other != entry.value) {
-      return LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                    "in $ktFile, modified property ${entry.key.shortName()} of ${entry.key.parent()}", ktFile, null)
+      return LiveEditUpdateException.unsupportedSourceModificationModifiedField(
+        "$psiFile", "modified property ${entry.key.shortName()} of ${entry.key.parent()}")
     }
   }
   return null
 }
 
-private class Visitor : KtTreeVisitorVoid() {
-  val properties = mutableMapOf<FqName, PsiState>()
-  val initBlocks = mutableMapOf<Int, PsiState>()
-  val primaryConstructors = mutableMapOf<List<FqName?>, PsiState>()
-  val secondaryConstructors = mutableMapOf<List<FqName?>, PsiState>()
+class PsiState(val psiFile: PsiFile) : KtTreeVisitorVoid() {
+  // Map of fully qualified property name to the code of the initializer or delegate.
+  val properties = mutableMapOf<FqName, String>()
+
+  // Map of the file position of the init block to the kotlin code of the init block.
+  val initBlocks = mutableMapOf<Int, String>()
+
+  // Map of constructor parameter types to kotlin code of the constructor. The constructor accepting
+  // an integer and a string will have the key ["Int", "String"].
+  val primaryConstructors = mutableMapOf<List<String?>, String>()
+
+  // Map of secondary constructor parameter types to kotlin code of the constructor.
+  val secondaryConstructors = mutableMapOf<List<String?>, String>()
 
   override fun visitPrimaryConstructor(constructor: KtPrimaryConstructor) {
-    val params = constructor.valueParameters.map { it.kotlinFqName }
-    primaryConstructors[params] = PsiState(flatten(constructor))
+    val params = constructor.valueParameters.map { it.typeReference?.getTypeText() }
+    primaryConstructors[params] = flatten(constructor)
     super.visitPrimaryConstructor(constructor)
   }
 
   override fun visitSecondaryConstructor(constructor: KtSecondaryConstructor) {
-    val params = constructor.valueParameters.map { it.kotlinFqName }
-    secondaryConstructors[params] = PsiState(flatten(constructor))
+    val params = constructor.valueParameters.map { it.typeReference?.getTypeText() }
+    secondaryConstructors[params] = flatten(constructor)
     super.visitSecondaryConstructor(constructor)
   }
 
   override fun visitClassInitializer(initializer: KtClassInitializer) {
-    initBlocks[initializer.startOffset] = PsiState(flatten(initializer))
+    initBlocks[initializer.startOffset] =flatten(initializer)
     super.visitClassInitializer(initializer)
   }
 
@@ -156,13 +131,19 @@ private class Visitor : KtTreeVisitorVoid() {
       return
     }
     val fqName = property.kotlinFqName ?: return
-    properties[fqName] = PsiState(flatten(property))
+
+    // Only check property initializers and delegates; changes to the property getter, setter, name,
+    // and type are handled by the class differ.
+    if (property.hasDelegateExpressionOrInitializer()) {
+      properties[fqName] = flatten(property.delegateExpressionOrInitializer!!)
+    }
     super.visitProperty(property)
   }
 }
 
-// Traverses a PSI tree and returns a preorder traversal of all leaf nodes, ignoring whitespace and comments.
-private fun flatten(elem: PsiElement): List<LeafPsiElement> {
+// Performs a preorder traversal of a PSI tree and returns a string concatenation of the contents of all leaf nodes,
+// ignoring whitespace and comments.
+private fun flatten(elem: PsiElement): String {
   val leafs = mutableListOf<LeafPsiElement>()
   val queue = ArrayDeque<PsiElement>()
   queue.addFirst(elem)
@@ -180,5 +161,5 @@ private fun flatten(elem: PsiElement): List<LeafPsiElement> {
       }
     }
   }
-  return leafs
+  return leafs.joinToString { it.text }
 }
