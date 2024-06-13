@@ -147,7 +147,12 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int, val projectToCompareAgain
       }
       if (enableAnalyzers && isMetricAnalyzed) {
         val analyzers = mutableListOf<Analyzer>(EDivisiveAnalyzer)
-        metricToCompareAgainst?.let { analyzers.add(UTestAnalyzer(it)) }
+        // When running from a release branch, an additional analyzer to make a comparison
+        // between the release branch and the main branch is added.
+        if (System.getProperty("running.from.release.branch").toBoolean()) {
+          analyzers.add(UTestAnalyzer.forComparingWithMainBranch())
+        }
+        metricToCompareAgainst?.let { analyzers.add(UTestAnalyzer.forMetricComparison(it)) }
         setAnalyzers(CPU_BENCHMARK, analyzers)
       }
       commit()
