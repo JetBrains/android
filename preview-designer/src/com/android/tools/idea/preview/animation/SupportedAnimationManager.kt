@@ -26,9 +26,7 @@ import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
-import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineName
@@ -122,9 +120,6 @@ abstract class SupportedAnimationManager(
 
   private val tabScrollPane =
     JBScrollPane().apply { border = MatteBorder(1, 1, 0, 0, JBColor.border()) }
-
-  /** [Timeline] parent when animation in new tab is selected. */
-  private val tabTimelineParent = JPanel(BorderLayout())
 
   val tab by lazy {
     AnimationTab(rootComponent, playbackControls, animationState.changeStateActions, freezeAction)
