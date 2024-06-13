@@ -103,26 +103,26 @@ open class DesignToolsSplitEditor(
     }
   }
 
-  override fun getShowEditorAction(): SplitEditorAction {
+  override val showEditorAction: SplitEditorAction
+    get() {
     if (textViewToolbarAction == null) {
-      textViewToolbarAction =
-        MyToolBarAction(super.getShowEditorAction(), DesignerEditorPanel.State.DEACTIVATED)
+      textViewToolbarAction = MyToolBarAction(super.showEditorAction, DesignerEditorPanel.State.DEACTIVATED)
     }
     return textViewToolbarAction!!
   }
 
-  override fun getShowEditorAndPreviewAction(): SplitEditorAction {
+  override val showEditorAndPreviewAction: SplitEditorAction
+    get() {
     if (splitViewToolbarAction == null) {
-      splitViewToolbarAction =
-        MyToolBarAction(super.getShowEditorAndPreviewAction(), DesignerEditorPanel.State.SPLIT)
+      splitViewToolbarAction = MyToolBarAction(super.showEditorAndPreviewAction, DesignerEditorPanel.State.SPLIT)
     }
     return splitViewToolbarAction!!
   }
 
-  override fun getShowPreviewAction(): SplitEditorAction {
+  override val showPreviewAction: SplitEditorAction
+    get() {
     if (designViewToolbarAction == null) {
-      designViewToolbarAction =
-        MyToolBarAction(super.getShowPreviewAction(), DesignerEditorPanel.State.FULL)
+      designViewToolbarAction = MyToolBarAction(super.showPreviewAction, DesignerEditorPanel.State.FULL)
     }
     return designViewToolbarAction!!
   }
