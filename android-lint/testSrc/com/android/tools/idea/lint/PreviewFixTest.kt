@@ -143,25 +143,26 @@ class PreviewFixTest : AbstractAndroidLintTest() {
 
   fun testIntentionPreviewConvertToDp() {
     // Test that the intention preview for ConvertToDpQuickFix works as expected
-    val file =
-      myFixture.configureByText(
-        "layout.xml", /*language=XML */
-        """
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
-            <Button android:textSize="50px"  />
-        </LinearLayout>
-        """
-          .trimIndent(),
-      )
-    checkPreviewFix(
-      file,
-      "50^px",
-      { ConvertToDpQuickFix() },
+    myFixture.configureByText(
+      "layout.xml", /*language=XML */
       """
-      @@ -2 +2
-      -     <Button android:textSize="50px"  />
-      +     <Button android:textSize="50dp"  />
-      """,
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+          <Button android:textSize="50px"  />
+      </LinearLayout>
+      """
+        .trimIndent(),
+    )
+
+    val element = myFixture.findElementByText("textSize", PsiElement::class.java)
+    val fix = ModCommandLintQuickFix(ConvertToDpQuickFix(element)).rawIntention()
+    myFixture.launchAction(fix)
+    myFixture.checkResult(
+      """
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+          <Button android:textSize="50dp"  />
+      </LinearLayout>
+      """
+        .trimIndent()
     )
   }
 
