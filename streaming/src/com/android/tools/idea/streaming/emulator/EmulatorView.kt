@@ -38,6 +38,7 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.io.grpc.stub.StreamObserver
@@ -986,7 +987,11 @@ class EmulatorView(
         return
       }
       // Multiplying wheelRotation by -1 because AWT assigns the opposite sign to Qt/Android.
-      getOrCreateMouseWheelSender().onNext(WheelEvent.newBuilder().setDy(-event.wheelRotation * 120).build())
+      val wheelEvent = WheelEvent.newBuilder().setDy(-event.wheelRotation * 120).build()
+      if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
+        LOG.info("injectWheel: sending ${shortDebugString(wheelEvent)}")
+      }
+      getOrCreateMouseWheelSender().onNext(wheelEvent)
     }
 
     private fun getOrCreateMouseWheelSender(): StreamObserver<WheelEvent> {
