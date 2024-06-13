@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.uisettings.ui
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.uisettings.binding.DefaultTwoWayProperty
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
@@ -58,7 +59,7 @@ internal enum class WearFontScale(val percent: Int) {
 /**
  * A model for the [UiSettingsPanel] with bindable properties for getting and setting various Android settings.
  */
-internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api: Int, private val isWear: Boolean = false) {
+internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api: Int, private val deviceType: DeviceType) {
   private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
 
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
@@ -85,7 +86,7 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
    * See [FontScale]
    */
   private fun numberOfFontScales(api: Int): Int = when {
-    isWear -> WearFontScale.entries.size
+    deviceType == DeviceType.WEAR -> WearFontScale.entries.size
     api == 33 -> 4
     else -> FontScale.entries.size
   }
@@ -94,7 +95,7 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
    * The scaleMap for the current device type.
    */
   private val scaleMap: List<Int>
-    get() = if (isWear) WearFontScale.scaleMap else FontScale.scaleMap
+    get() = if (deviceType == DeviceType.WEAR) WearFontScale.scaleMap else FontScale.scaleMap
 
   private fun toFontScaleInPercent(fontIndex: Int): Int =
     scaleMap[fontIndex.coerceIn(0, fontScaleMaxIndex.value)]

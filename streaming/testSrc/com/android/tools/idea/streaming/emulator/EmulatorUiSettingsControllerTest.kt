@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.adblib.testing.FakeAdbDeviceServices
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.UsageTrackerRule
@@ -25,7 +26,7 @@ import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
-import com.google.wireless.android.sdk.stats.DeviceInfo.DeviceType
+import com.google.wireless.android.sdk.stats.DeviceInfo.DeviceType.LOCAL_EMULATOR
 import com.google.wireless.android.sdk.stats.UiDeviceSettingsEvent.OperationKind
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.RuleChain
@@ -59,7 +60,7 @@ class EmulatorUiSettingsControllerTest {
   private val usages: List<LoggedUsage>
     get() = usageRule.usages
 
-  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), DEFAULT_DENSITY, 33) } // Pixel 8 Pro
+  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), DEFAULT_DENSITY, 33, DeviceType.HANDHELD) } // Pixel 8 Pro
   private val controller: EmulatorUiSettingsController by lazy { createController() }
 
   @Before
@@ -368,7 +369,8 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun resetAppLanguageShouldNotUseNull() {
     appLanguageResetCommandDoesNotContainNull(FACTORY_RESET_COMMAND)
-    appLanguageResetCommandDoesNotContainNull(FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE)
+    appLanguageResetCommandDoesNotContainNull(FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO)
+    appLanguageResetCommandDoesNotContainNull(FACTORY_RESET_COMMAND_FOR_WEAR)
   }
 
   private fun appLanguageResetCommandDoesNotContainNull(commands: String) {
@@ -388,7 +390,7 @@ class EmulatorUiSettingsControllerTest {
     for ((index, expected) in operations.withIndex()) {
       val event = usages[index].studioEvent
       assertThat(event.kind).isEqualTo(EventKind.UI_DEVICE_SETTINGS_EVENT)
-      assertThat(event.deviceInfo.deviceType).isEqualTo(DeviceType.LOCAL_EMULATOR)
+      assertThat(event.deviceInfo.deviceType).isEqualTo(LOCAL_EMULATOR)
       assertThat(event.deviceInfo.buildApiLevelFull).isEqualTo("33")
       assertThat(event.uiDeviceSettingsEvent.operation).isEqualTo(expected)
     }

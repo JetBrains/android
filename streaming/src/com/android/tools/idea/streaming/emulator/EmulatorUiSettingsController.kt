@@ -19,6 +19,7 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.shellAsLines
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -26,7 +27,6 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.Ru
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
-import com.android.tools.idea.streaming.uisettings.data.hasLimitedUiSettingsSupport
 import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
 import com.android.tools.idea.streaming.uisettings.ui.FontScale
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController
@@ -94,7 +94,13 @@ internal const val POPULATE_LANGUAGE_COMMAND =
   "echo $APP_LANGUAGE_DIVIDER; " +
   "cmd locale get-app-locales %s; "  // Parameter: applicationId
 
-internal const val FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE =
+internal const val FACTORY_RESET_COMMAND_FOR_WEAR =
+  "cmd locale set-app-locales %s --locales; " +
+  "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
+  "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
+  "settings put system font_scale 1; " // Parameters: applicationId
+
+internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
   "cmd uimode night no; " +
   "cmd locale set-app-locales %s --locales; " +
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
@@ -137,7 +143,7 @@ internal class EmulatorUiSettingsController(
   private val decimalFormat = DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.ROOT))
   private var readApplicationId = ""
   private var readPhysicalDensity = 160
-  private val hasLimitedUiSettingsSupportForDevice = emulatorConfig.deviceType.hasLimitedUiSettingsSupport
+  private val deviceType = emulatorConfig.deviceType
   private var lastDarkMode = false
   private var lastGestureNavigation = false
   private var lastLocaleTag = ""
@@ -360,11 +366,11 @@ internal class EmulatorUiSettingsController(
 
   override fun reset() {
     scope.launch {
-      var command = if (hasLimitedUiSettingsSupportForDevice) {
-        FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE.format(readApplicationId)
-      }
-      else {
-        FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity)
+      var command = when (deviceType) {
+        DeviceType.WEAR -> FACTORY_RESET_COMMAND_FOR_WEAR.format(readApplicationId)
+        DeviceType.TV,
+        DeviceType.AUTOMOTIVE -> FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO.format(readApplicationId)
+        else -> FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity)
       }
       if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
         command += FACTORY_RESET_DEBUG_LAYOUT
@@ -375,14 +381,17 @@ internal class EmulatorUiSettingsController(
   }
 
   private fun updateResetButton() {
-    var isDefault = !lastDarkMode && lastLocaleTag.isEmpty() && !lastTalkBack && lastFontScale == FontScale.NORMAL.percent
-    if (!hasLimitedUiSettingsSupportForDevice) {
-      isDefault =
-        isDefault &&
-        lastGestureNavigation &&
-        !lastSelectToSpeak &&
-        lastDensity == readPhysicalDensity
+    var isDefault = lastLocaleTag.isEmpty() && !lastTalkBack && lastFontScale == FontScale.NORMAL.percent
+    val extraChecks = when (deviceType) {
+      DeviceType.WEAR -> true
+      DeviceType.TV,
+      DeviceType.AUTOMOTIVE -> !lastDarkMode
+      else -> !lastDarkMode &&
+              lastGestureNavigation &&
+              !lastSelectToSpeak &&
+              lastDensity == readPhysicalDensity
     }
+    isDefault = isDefault && extraChecks
     if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
       isDefault = isDefault && !lastDebugLayout
     }
