@@ -23,11 +23,11 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Default {@link SceneManager.SceneComponentHierarchyProvider}. It will create one {@link SceneComponent} per
+ * Default {@link SceneComponentHierarchyProvider}. It will create one {@link SceneComponent} per
  * every given {@link NlComponent}. It will move the existing components in the {@link SceneManager} to their correct
  * position if they already existed.
  */
-public class DefaultSceneManagerHierarchyProvider implements SceneManager.SceneComponentHierarchyProvider {
+public class DefaultSceneManagerHierarchyProvider implements SceneComponentHierarchyProvider {
   @Override
   @NotNull
   public List<SceneComponent> createHierarchy(@NotNull SceneManager manager, @NotNull NlComponent component) {

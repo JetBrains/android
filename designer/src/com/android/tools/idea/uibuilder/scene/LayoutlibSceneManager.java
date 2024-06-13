@@ -46,6 +46,7 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.SceneUpdateListener;
 import com.android.tools.idea.common.scene.TargetProvider;
@@ -320,7 +321,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * @param designSurface              the {@link DesignSurface} user to present the result of the renders.
    * @param renderTaskDisposerExecutor {@link Executor} to be used for running the slow {@link #dispose()} calls.
    * @param renderingQueueFactory      a factory to create a {@link RenderingQueue}.
-   * @param sceneComponentProvider     a {@link SceneManager.SceneComponentHierarchyProvider} providing the mapping from
+   * @param sceneComponentProvider     a {@link SceneComponentHierarchyProvider} providing the mapping from
    *                                   {@link NlComponent} to {@link SceneComponent}s.
    * @param sceneUpdateListener        a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    * @param layoutScannerConfig        a {@link LayoutScannerConfiguration} for layout validation from Accessibility Testing Framework.
@@ -394,7 +395,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    *
    * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
-   * @param sceneComponentProvider a {@link SceneManager.SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
+   * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
    *                               {@link SceneComponent}s.
    * @param sceneUpdateListener    a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    * @param sessionClockFactory    a factory to create a session clock used in the interactive preview.
@@ -1477,7 +1478,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   }
 
   /**
-   * Default {@link SceneManager.SceneComponentHierarchyProvider} for {@link LayoutlibSceneManager}.
+   * Default {@link SceneComponentHierarchyProvider} for {@link LayoutlibSceneManager}.
    * It provides the functionality to sync the {@link NlComponent} hierarchy and the data from Layoutlib to {@link SceneComponent}.
    */
   protected static class LayoutlibSceneManagerHierarchyProvider extends DefaultSceneManagerHierarchyProvider {
