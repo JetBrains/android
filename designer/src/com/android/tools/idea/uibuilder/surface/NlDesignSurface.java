@@ -42,6 +42,7 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.scene.SceneUpdateListener;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
@@ -480,10 +481,10 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
 
   /**
-   * Default {@link LayoutlibSceneManager} provider with update listener {@link SceneManager.SceneUpdateListener }
+   * Default {@link LayoutlibSceneManager} provider with update listener {@link SceneUpdateListener }
    */
   @NotNull
-  public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model, @Nullable SceneManager.SceneUpdateListener listener) {
+  public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model, @Nullable SceneUpdateListener listener) {
     LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, new LayoutScannerEnabled(), listener);
     RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
     sceneManager.setShowDecorations(settings.getShowDecorations());

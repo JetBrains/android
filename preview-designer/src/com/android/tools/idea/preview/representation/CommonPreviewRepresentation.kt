@@ -18,7 +18,7 @@ package com.android.tools.idea.preview.representation
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
-import com.android.tools.idea.common.scene.SceneManager.SceneUpdateListener
+import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread

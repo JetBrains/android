@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.scene
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
@@ -68,10 +68,10 @@ fun updateAnimationInspectorToolbarIcon(
 }
 
 /**
- * [SceneManager.SceneUpdateListener] for Compose Preview. It provides the ability to update the
- * Compose Preview toolbar based on the root Composable.
+ * [SceneUpdateListener] for Compose Preview. It provides the ability to update the Compose Preview
+ * toolbar based on the root Composable.
  */
-class ComposeSceneUpdateListener : SceneManager.SceneUpdateListener {
+class ComposeSceneUpdateListener : SceneUpdateListener {
   override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
     val previewManager = component.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val previewElementInstance = component.model.dataContext.previewElement() ?: return

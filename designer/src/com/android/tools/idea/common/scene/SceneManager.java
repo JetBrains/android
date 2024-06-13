@@ -69,20 +69,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     void syncFromNlComponent(@NotNull SceneComponent sceneComponent);
   }
 
-  /**
-   * Listener that allows performing additional operations affected by the scene root component when updating the scene.
-   */
-  public interface SceneUpdateListener {
-    void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface<?> designSurface);
-  }
-
-  public static class DefaultSceneUpdateListener implements SceneUpdateListener {
-    @Override
-    public void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface<?> designSurface) {
-      // By default, don't do anything extra when updating the scene.
-    }
-  }
-
   public static final boolean SUPPORTS_LOCKING = false;
 
   @NotNull private final NlModel myModel;
@@ -92,7 +78,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   @Nullable private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
   @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
-  @NotNull private final SceneManager.SceneUpdateListener mySceneUpdateListener;
+  @NotNull private final SceneUpdateListener mySceneUpdateListener;
 
   @NotNull private final Object myActivationLock = new Object();
   @GuardedBy("myActivationLock")
@@ -111,7 +97,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     @NotNull NlModel model,
     @NotNull DesignSurface<?> surface,
     @Nullable SceneComponentHierarchyProvider sceneComponentProvider,
-    @Nullable SceneManager.SceneUpdateListener sceneUpdateListener) {
+    @Nullable SceneUpdateListener sceneUpdateListener) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
