@@ -253,14 +253,14 @@ class ImagePoolImpl implements ImagePool {
 
     ImageImpl pooledImage = new ImageImpl(w, h, image);
     final BufferedImage imagePointer = image;
+    final Bucket.Element imageElement = new Bucket.Element(imagePointer);
     FinalizablePhantomReference<ImagePool.Image> reference =
       new FinalizablePhantomReference<ImagePool.Image>(pooledImage, myFinalizableReferenceQueue) {
       @Override
       public void finalizeReferent() {
         // This method might be called twice if the user has manually called the free() method. The second call will have no effect.
         if (myReferences.remove(this)) {
-          Bucket.Element element = new Bucket.Element(imagePointer);
-          boolean accepted = bucket.offer(element);
+          boolean accepted = bucket.offer(imageElement);
           if (bucketStats != null) {
             if (accepted) {
               bucketStats.returnedImageAccepted();
@@ -276,9 +276,9 @@ class ImagePoolImpl implements ImagePool {
           }
 
           if (!accepted) {
-            myTotalAllocatedBytes.add(-element.getImageEstimatedSize());
+            myTotalAllocatedBytes.add(-imageElement.getImageEstimatedSize());
           }
-          myTotalInUseBytes.add(-element.getImageEstimatedSize());
+          myTotalInUseBytes.add(-imageElement.getImageEstimatedSize());
           if (freedCallback != null) {
             freedCallback.accept(imagePointer);
           }
