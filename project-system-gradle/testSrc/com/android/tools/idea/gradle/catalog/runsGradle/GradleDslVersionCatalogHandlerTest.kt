@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.catalog.runsGradle
 
 import com.android.tools.idea.gradle.catalog.GradleDslVersionCatalogHandler
+import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
@@ -53,6 +55,34 @@ class GradleDslVersionCatalogHandlerTest  {
     assertThat(catalogMap).hasSize(2)
     assertThat(catalogMap.values.map { it.exists() }.all { it }).isTrue()
     assertThat(catalogMap.values.map { it.name }).isEqualTo(listOf("libs.versions.toml", "libsTest.versions.toml"))
+
+    assertThat(catalogMap.keys).isEqualTo(setOf("libs", "libsTest"))
+  }
+
+  @Test
+  fun testGetVersionCatalogFilesWithTomlExtension() {
+    projectRule.projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG,
+                            null,
+                            AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+                            null){ Unit
+      it.resolve("settings.gradle")
+        .replaceContent { content ->
+          content
+            .replace("versionCatalogs {", // need to add libs record with custom file name
+                     "versionCatalogs { " +
+                     "    libs {\n" +
+                     "      from(files(\"./gradle/libs.toml\"))\n" +
+                     "    }")
+            .replace("libsTest.versions.toml","libsTest.toml")
+        }
+      it.resolve("gradle/libs.versions.toml").renameTo(it.resolve("gradle/libs.toml"))
+      it.resolve("gradle/libsTest.versions.toml").renameTo(it.resolve("gradle/libsTest.toml"))
+    }
+    val catalogMap = GradleDslVersionCatalogHandler().getVersionCatalogFiles(project)
+
+    assertThat(catalogMap).hasSize(2)
+    assertThat(catalogMap.values.map { it.exists() }.all { it }).isTrue()
+    assertThat(catalogMap.values.map { it.name }).isEqualTo(listOf("libs.toml", "libsTest.toml"))
 
     assertThat(catalogMap.keys).isEqualTo(setOf("libs", "libsTest"))
   }

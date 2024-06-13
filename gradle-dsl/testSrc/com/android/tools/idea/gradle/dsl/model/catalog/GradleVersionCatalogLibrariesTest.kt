@@ -172,6 +172,21 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testImportedDependencies() {
+    writeToBuildFile("")
+    writeToVersionCatalogFile(TestFile.GET_IMPORTED_DECLARATIONS)
+
+    val catalogModel = projectBuildModel.versionCatalogsModel
+    val deps = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations().getAll()
+    assertSize(1, deps.toList())
+
+    val dep = deps.toList()[0].second
+    // once we have too many version attributes we show only require in compact notation
+    assertThat(dep.compactNotation(), equalTo("junit:junit:4.13.2"))
+    assertThat(deps.toList()[0].first, equalTo("junit"))
+  }
+
+  @Test
   fun testAllAliases() {
     writeToBuildFile("")
     writeToVersionCatalogFile(TestFile.GET_ALL_DECLARATIONS)
@@ -498,7 +513,8 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
   }
 
   internal enum class TestFile(private val path: @SystemDependent String) : TestFileName {
-    GET_ALL_DECLARATIONS("allDeclarations.versions.toml"), ;
+    GET_ALL_DECLARATIONS("allDeclarations.versions.toml"),
+    GET_IMPORTED_DECLARATIONS("imported.versions.toml"), ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/versionCatalogLibraryDeclarationModel/$path", extension)
