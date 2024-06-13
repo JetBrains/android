@@ -22,7 +22,6 @@ import com.android.sdklib.devices.Device;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +32,12 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class NameComparatorTest {
-  private final Comparator<Device> myComparator = new NameComparator();
-
   @Test
   public void comparePhone() {
     // Arrange
     var expectedDevices = List.of(mockDevice("Small Phone"),
                                   mockDevice("Medium Phone"),
+                                  mockDevice("Resizable (Experimental)"),
                                   mockDevice("Pixel Fold"),
                                   mockDevice("Pixel 8a"),
                                   mockDevice("Pixel 8 Pro"),
@@ -61,13 +59,13 @@ public final class NameComparatorTest {
                                   mockDevice("Pixel 2 XL"),
                                   mockDevice("Pixel 2"),
                                   mockDevice("Pixel XL"),
-                                  mockDevice("Pixel"),
-                                  mockDevice("Resizable (Experimental)"));
+                                  mockDevice("Pixel"));
 
     var actualDevices = shuffle(expectedDevices);
+    var comparator = new NameComparator(() -> true);
 
     // Act
-    actualDevices.sort(myComparator);
+    actualDevices.sort(comparator);
 
     // Assert
     assertEquals(expectedDevices, actualDevices);
@@ -81,9 +79,10 @@ public final class NameComparatorTest {
                                   mockDevice("Pixel C"));
 
     var actualDevices = shuffle(expectedDevices);
+    var comparator = new NameComparator();
 
     // Act
-    actualDevices.sort(myComparator);
+    actualDevices.sort(comparator);
 
     // Assert
     assertEquals(expectedDevices, actualDevices);
@@ -98,9 +97,10 @@ public final class NameComparatorTest {
                                   mockDevice("Wear OS Large Round"));
 
     var actualDevices = shuffle(expectedDevices);
+    var comparator = new NameComparator();
 
     // Act
-    actualDevices.sort(myComparator);
+    actualDevices.sort(comparator);
 
     // Assert
     assertEquals(expectedDevices, actualDevices);
@@ -114,9 +114,10 @@ public final class NameComparatorTest {
                                   mockDevice("Large Desktop"));
 
     var actualDevices = shuffle(expectedDevices);
+    var comparator = new NameComparator();
 
     // Act
-    actualDevices.sort(myComparator);
+    actualDevices.sort(comparator);
 
     // Assert
     assertEquals(expectedDevices, actualDevices);
@@ -130,9 +131,10 @@ public final class NameComparatorTest {
                                   mockDevice("Television (1080p)"));
 
     var actualDevices = shuffle(expectedDevices);
+    var comparator = new NameComparator();
 
     // Act
-    actualDevices.sort(myComparator);
+    actualDevices.sort(comparator);
 
     // Assert
     assertEquals(expectedDevices, actualDevices);
@@ -173,9 +175,10 @@ public final class NameComparatorTest {
                                   mockDevice("10.1\" WXGA (Tablet)"));
 
     var actualDevices = shuffle(expectedDevices);
+    var comparator = new NameComparator();
 
     // Act
-    actualDevices.sort(myComparator);
+    actualDevices.sort(comparator);
 
     // Assert
     assertEquals(expectedDevices, actualDevices);
@@ -197,6 +200,8 @@ public final class NameComparatorTest {
   @Test
   public void compareIdsAreDifferent() {
     // Arrange
+    var comparator = new NameComparator();
+
     // system-images;android-21;android-tv;x86
     var device1 = mockDevice("Android TV (1080p)", "Android TV (1080p)");
 
@@ -204,7 +209,7 @@ public final class NameComparatorTest {
     var device2 = mockDevice("Android TV (1080p)", "tv_1080p");
 
     // Act
-    var result = myComparator.compare(device1, device2);
+    var result = comparator.compare(device1, device2);
 
     // Assert
     assertTrue(result < 0);
