@@ -81,6 +81,13 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
   val differentFromDefault: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
   var resetAction: () -> Unit = {}
 
+  /***
+   * If font scale or density is not settable, we are likely connected to an OEM device that has
+   * "Permission Monitoring" turned on. In order to change system & secure settings the user will need to disable
+   * this in the developer options.
+   */
+  val permissionMonitoringDisabled: ReadOnlyProperty<Boolean> = fontScaleSettable.and(screenDensitySettable)
+
   /**
    * The font scale settings for wear has 6 values, API 33 has 4 values, and for API 34+ there are 7 possible values.
    * See [FontScale]

@@ -48,8 +48,8 @@ internal const val DENSITY_TITLE = "Display Size:"
 internal const val DEBUG_LAYOUT_TITLE = "Debug Layout:"
 internal const val RESET_BUTTON_TEXT = "Reset"
 private const val RESET_TITLE = "Reset to factory defaults"
-private const val PERMISSION_HINT_LINE1 = "More options may be available if \"Disable permission monitoring\" is turned on in"
-private const val PERMISSION_HINT_LINE2 = "\"Developer Options\" and the device is restarted."
+internal const val PERMISSION_HINT_LINE1 = "More options may be available if \"Disable permission monitoring\" is turned on in"
+internal const val PERMISSION_HINT_LINE2 = "\"Developer Options\" and the device is restarted."
 
 /**
  * Custom horizontal spacing between labels and controls.
@@ -89,7 +89,7 @@ internal class UiSettingsPanel(
               .accessibleName(GESTURE_NAVIGATION_TITLE)
               .bind(model.gestureNavigation)
               .apply { component.name = GESTURE_NAVIGATION_TITLE }
-          }.visibleIf(model.gestureOverlayInstalled)
+          }.visibleIf(model.permissionMonitoringDisabled.and(model.gestureOverlayInstalled))
         }
 
         row(label(APP_LANGUAGE_TITLE)) {
@@ -105,7 +105,7 @@ internal class UiSettingsPanel(
             .accessibleName(TALKBACK_TITLE)
             .bind(model.talkBackOn)
             .apply { component.name = TALKBACK_TITLE }
-        }.visibleIf(model.talkBackInstalled)
+        }.visibleIf(model.talkBackInstalled.and(model.permissionMonitoringDisabled))
 
         if (deviceType == DeviceType.HANDHELD) {
           row(label(SELECT_TO_SPEAK_TITLE)) {
@@ -113,7 +113,7 @@ internal class UiSettingsPanel(
               .accessibleName(SELECT_TO_SPEAK_TITLE)
               .bind(model.selectToSpeakOn)
               .apply { component.name = SELECT_TO_SPEAK_TITLE }
-          }.visibleIf(model.talkBackInstalled)
+          }.visibleIf(model.talkBackInstalled.and(model.permissionMonitoringDisabled))
         }
 
         row(label(FONT_SCALE_TITLE)) {
@@ -123,7 +123,7 @@ internal class UiSettingsPanel(
             .bindSliderPosition(model.fontScaleIndex)
             .bindSliderMaximum(model.fontScaleMaxIndex)
             .apply { component.name = FONT_SCALE_TITLE }
-        }.visibleIf(model.fontScaleSettable)
+        }.visibleIf(model.permissionMonitoringDisabled)
 
         if (deviceType == DeviceType.HANDHELD) {
           row(label(DENSITY_TITLE)) {
@@ -133,7 +133,7 @@ internal class UiSettingsPanel(
               .bindSliderPosition(model.screenDensityIndex)
               .bindSliderMaximum(model.screenDensityMaxIndex)
               .apply { component.name = DENSITY_TITLE }
-          }.visibleIf(model.screenDensitySettable)
+          }.visibleIf(model.permissionMonitoringDisabled)
         }
 
         if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
@@ -150,7 +150,7 @@ internal class UiSettingsPanel(
             addToTop(JBLabel(PERMISSION_HINT_LINE1, UIUtil.ComponentStyle.MINI))
             addToBottom(JBLabel(PERMISSION_HINT_LINE2, UIUtil.ComponentStyle.MINI))
           })
-        }.visibleIf((model.fontScaleSettable.and(model.screenDensitySettable)).not())
+        }.visibleIf(model.permissionMonitoringDisabled.not())
 
         row(label(RESET_TITLE)) {
           button(RESET_BUTTON_TEXT) {
