@@ -34,3 +34,42 @@ interface SceneComponentHierarchyProvider {
    */
   fun syncFromNlComponent(sceneComponent: SceneComponent)
 }
+
+/**
+ * Default [SceneComponentHierarchyProvider]. It will create one [SceneComponent] per every given
+ * [NlComponent]. It will move the existing components in the [SceneManager] to their correct
+ * position if they already existed.
+ */
+open class DefaultSceneManagerHierarchyProvider : SceneComponentHierarchyProvider {
+  override fun createHierarchy(
+    manager: SceneManager,
+    component: NlComponent,
+  ): List<SceneComponent> {
+    val sceneComponent =
+      manager.scene.getSceneComponent(component)
+        ?: SceneComponent(manager.scene, component, manager.getHitProvider(component))
+    val oldChildren: MutableSet<SceneComponent> = HashSet(sceneComponent.children.filterNotNull())
+    for (nlChild in component.children.filterNotNull()) {
+      val children = createHierarchy(manager, nlChild)
+      oldChildren.removeAll(children.toSet())
+      for (child in children) {
+        // Even the parent of child is the same, re-add it to make the order same as NlComponent.
+        child.removeFromParent()
+        sceneComponent.addChild(child)
+      }
+    }
+    for (child in oldChildren) {
+      if (child is TemporarySceneComponent && child.getParent() === sceneComponent) {
+        // ignore TemporarySceneComponent since its associated NlComponent has not been added to the
+        // hierarchy.
+        continue
+      }
+      if (child.parent === sceneComponent) {
+        child.removeFromParent()
+      }
+    }
+    return listOf(sceneComponent)
+  }
+
+  override fun syncFromNlComponent(sceneComponent: SceneComponent) {}
+}
