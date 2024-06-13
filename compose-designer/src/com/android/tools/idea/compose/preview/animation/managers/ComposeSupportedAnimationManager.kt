@@ -50,12 +50,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
-import java.awt.BorderLayout
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.border.MatteBorder
-import kotlin.math.max
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -64,6 +58,12 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.awt.BorderLayout
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.border.MatteBorder
+import kotlin.math.max
 
 private val LOG = Logger.getInstance(SupportedAnimationManager::class.java)
 
@@ -141,7 +141,7 @@ open class ComposeSupportedAnimationManager(
           if (tabInfo == null) {
             tabInfo =
               TabInfo(tabComponent).apply {
-                text = tabTitle
+                setText(tabTitle)
                 tabbedPane.addTabWithCloseButton(this) { tabInfo = null }
               }
           }

@@ -31,17 +31,17 @@ import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
 import com.intellij.util.io.await
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.kotlin.utils.findIsInstanceAnd
 import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.math.max
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.kotlin.utils.findIsInstanceAnd
 
 /**
  * Minimum duration for the timeline. For transitions as snaps duration is 0. Minimum timeline
@@ -389,7 +389,7 @@ abstract class AnimationPreview<T : AnimationManager>(
       hideNoAnimationPanel()
       tabbedPane.addTab(
         TabInfo(coordinationTab).apply {
-          text = "${message("animation.inspector.tab.all.title")}  "
+          setText("${message("animation.inspector.tab.all.title")}  ")
         },
         0,
       )
