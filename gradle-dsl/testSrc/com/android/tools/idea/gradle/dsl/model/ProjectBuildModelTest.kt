@@ -31,7 +31,10 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.utils.vfs.createFile
 import junit.framework.Assert
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
@@ -1840,6 +1843,35 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
   }
 
+  @Test
+  fun testApplyCatalogWithTomlFilename() {
+    writeToSettingsFile(TestFile.SETTINGS_FILE_CATALOG_TOML_FILENAME)
+    runWriteAction<Unit, IOException> {
+      val libs = myVersionCatalogFile.parent.createFile("libs.toml")
+      val foo = myVersionCatalogFile.parent.createFile("foo.toml")
+      createFileAndWriteContent(libs, TestFile.VERSION_CATALOG_MAP_NOTATION)
+      createFileAndWriteContent(foo, TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+    }
+    val catalogs = projectBuildModel.versionCatalogsModel
+
+    assertNotNull(catalogs.catalogNames())
+    val libsModel = catalogs.getVersionCatalogModel ("libs")
+    assertNotNull(libsModel)
+    assertNotNull(libsModel!!.libraryDeclarations().getAll()["adep"])
+
+    val fooModel = catalogs.getVersionCatalogModel ("foo")
+    assertNotNull(fooModel)
+    assertNotNull(fooModel!!.pluginDeclarations().getAll()["app"])
+  }
+
+  private fun createFileAndWriteContent(file: VirtualFile, content: TestFileName) {
+    assertTrue(file.exists())
+    val testFile: File = content.toFile(myTestDataResolvedPath, "")
+    val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
+    assertTrue(virtualTestFile?.exists() == true)
+    saveFileUnderWrite(file, VfsUtilCore.loadText(virtualTestFile!!))
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG("addDependencyReferenceToVersionCatalog"),
     ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_BUNDLE_EXPECTED("addDependencyReferenceToVersionCatalogBundleExpected"),
@@ -1863,6 +1895,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     SETTINGS_FILE_UPDATES_CORRECTLY_SETTINGS_EXPECTED("settingsFileUpdatesCorrectlySettingsExpected"),
     SETTINGS_FILE_ADDITIONAL_CATALOG("settingsFileAdditionalCatalog"),
     SETTINGS_FILE_ADDITIONAL_CATALOG_WITH_EXTENSION("settingsFileAdditionalCatalogWithExtension"),
+    SETTINGS_FILE_CATALOG_TOML_FILENAME("versionCatalogsTomlFileName"),
 
     PROJECT_MODELS_SAVES_FILES("projectModelSavesFiles"),
     PROJECT_MODELS_SAVES_FILES_SUB("projectModelSavesFiles_sub"),
