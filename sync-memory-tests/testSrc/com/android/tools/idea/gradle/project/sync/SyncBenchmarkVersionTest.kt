@@ -29,8 +29,8 @@ import org.junit.Test
 class SyncBenchmarkVersionTest {
 
   @Test
-  fun `sync benchmarks are ahead of latest`() {
-    val benchmarkVersions = AgpVersionSoftwareEnvironmentDescriptor.FOR_SYNC_BENCHMARKS
+  fun `gradle snapshot benchmarks are ahead of latest`() {
+    val benchmarkVersions = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
     val latestVersions = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
 
     Truth.assertThat(benchmarkVersions.resolvedAgpVersion() >= latestVersions.resolvedAgpVersion()).isTrue()

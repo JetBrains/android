@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.FEATURE_RUNTIME_CLASSPATH_1000
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_100_NAME
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_190_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_1000_GRADLE_SNAPSHOT_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
@@ -42,7 +43,7 @@ import kotlin.time.Duration.Companion.minutes
 
 class Benchmark200CpuTest  {
   @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_200_NAME, STANDARD_200)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 75, enableAnalyzers = false)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 0, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(3.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
@@ -110,4 +111,11 @@ private fun runTest(benchmarkTestRule: BenchmarkTestRule,
     }
     measureSyncExecutionTimeRule.recordMeasurements(benchmarkTestRule.projectName)
   }
+}
+
+class Benchmark1000CpuLatestGradleTest {
+  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_1000_GRADLE_SNAPSHOT_NAME, STANDARD_1000, useLatestGradle = true)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15, projectToCompareAgainst = SUBSET_1000_NAME)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
+  @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }

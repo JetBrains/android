@@ -83,6 +83,7 @@ enum class BenchmarkProject(val projectPath: String, val maxHeapMB: Int, val dif
 interface ProjectSetupRule {
   val projectName: String
   val project: BenchmarkProject
+  val useLatestGradle: Boolean
   fun openProject(body: (Project) -> Any = {})
   fun addListener(listener: GradleSyncListenerWithRoot)
 }
@@ -90,6 +91,7 @@ interface ProjectSetupRule {
 class ProjectSetupRuleImpl(
   override val projectName: String,
   override val project: BenchmarkProject,
+  override val useLatestGradle: Boolean,
   testEnvironmentRuleProvider: () -> IntegrationTestEnvironmentRule) : ProjectSetupRule, ExternalResource() {
   private val listeners = mutableListOf<GradleSyncListenerWithRoot>()
   val testEnvironmentRule: IntegrationTestEnvironmentRule by lazy(testEnvironmentRuleProvider)
@@ -109,7 +111,11 @@ class ProjectSetupRuleImpl(
       testProjectTemplateFromPath(
         path = DIRECTORY,
         testDataPath = rootDirectory.toString()),
-        agpVersion =  AgpVersionSoftwareEnvironmentDescriptor.FOR_SYNC_BENCHMARKS
+        agpVersion =
+        if (useLatestGradle)
+          AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
+        else
+          AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
     ).open(
       updateOptions = {
         it.copy(
