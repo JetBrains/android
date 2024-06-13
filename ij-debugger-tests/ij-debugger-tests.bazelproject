@@ -1,0 +1,14 @@
+directories:
+  tools/adt/idea/jps-build
+  tools/adt/idea/ij-debugger-tests
+  prebuilts/tools/jps-build-caches
+  tools/idea/bazel
+  tools/idea/plugins/kotlin/jvm-debugger
+
+additional_languages:
+  kotlin
+  python
+
+# Unused but required
+android_sdk_platform: android-34
+

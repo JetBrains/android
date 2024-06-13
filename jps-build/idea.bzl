@@ -1,3 +1,5 @@
+"""This module implements JPS rules."""
+
 def idea_source(
         name,
         include,
@@ -5,6 +7,18 @@ def idea_source(
         target_dir,
         base_dir = None,
         **kwargs):
+    """Bundles IDEA sources.
+
+    Args:
+        name: the name of the target
+        include: included paths
+        exclude: excluded paths
+        target_dir: target dir
+        base_dir: base dir
+        **kwargs: arguments to pass through to genrule
+
+    """
+
     cmd = "tar -chf $@"
     if base_dir:
         cmd += " -C " + base_dir
@@ -187,7 +201,7 @@ jps_test = rule(
     implementation = _jps_test_impl,
 )
 
-JpsSourceInfo = provider(fields = ["files", "strip_prefix", "zips"])
+JpsSourceInfo = provider("Source info", fields = ["files", "strip_prefix", "zips"])
 
 def _jps_cache_impl(ctx):
     return JpsSourceInfo(files = ctx.files.srcs, strip_prefix = ctx.attr.strip_prefix, zips = [])
