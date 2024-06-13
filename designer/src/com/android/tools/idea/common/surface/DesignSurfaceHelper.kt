@@ -53,7 +53,7 @@ import javax.swing.JComponent
 
 private val logger: Logger by lazy { Logger.getInstance("DesignSurfaceHelper") }
 
-fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
+internal fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
   return StudioResourceRepositoryManager.getModuleResources(facet)
     .hasResources(ResourceNamespace.TODO(), type, name)
 }
@@ -218,7 +218,7 @@ fun DesignSurface<*>.updateSceneViewVisibilities(visibilityFunc: (SceneView) -> 
 @UiThread
 fun FileEditor.getDesignSurface(): DesignSurface<*>? {
   return when (this) {
-    is TextEditorWithPreview -> getPreviewEditor().getDesignSurface()
+    is TextEditorWithPreview -> previewEditor.getDesignSurface()
     // Check if there is a design surface in the context of presentation. For example, Compose and
     // CustomView preview.
     is SourceCodePreview ->

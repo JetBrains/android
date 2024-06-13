@@ -461,7 +461,7 @@ open class MultiRepresentationPreview(
       super.update(e)
       removeAll()
       val previewEditor =
-        (e.getData(FILE_EDITOR) as? TextEditorWithPreview)?.getPreviewEditor()
+        (e.getData(FILE_EDITOR) as? TextEditorWithPreview)?.previewEditor
           as? MultiRepresentationPreview ?: return
 
       // We need just a single previewEditor here (any) to retrieve (read) the states and currently
