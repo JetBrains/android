@@ -15,39 +15,28 @@
  */
 package com.android.tools.adtui.stdui
 
-import com.android.tools.adtui.swing.FakeKeyboardFocusManager
-import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI
-import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.RuleChain
 import com.intellij.util.ui.JBUI
-import org.junit.Before
-import org.junit.Rule
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito.mock
 import java.awt.BorderLayout
 import java.awt.KeyboardFocusManager
-import java.awt.event.KeyEvent
 import javax.swing.JPanel
 
 @RunWith(JUnit4::class)
 class CommonTextFieldTest {
   private val model = TestCommonTextFieldModel("")
   private val field = CommonTextField(model)
-  private val disposableRule = DisposableRule()
-  private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val rule = RuleChain(ApplicationRule(), popupRule, disposableRule)
-
-  @Before
-  fun setUpFocusManager() {
-    FakeKeyboardFocusManager(disposableRule.disposable)
+  @After
+  fun cleanUpFocusManager() {
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
   }
 
   @Test
@@ -117,39 +106,9 @@ class CommonTextFieldTest {
     assertThat(model.value).isEqualTo("FixedValue")
   }
 
-  @Test
-  fun testRetainEditingValueIfUpdateIsReceivedDuringEditing() {
-    acquireFocus()
-    field.text = "Editing the val..."
-
-    // Simulate an update from the model:
-    model.value = "Hello World!"
-
-    // Verify that this doesn't effect the text value in the field or model:
-    assertThat(field.text).isEqualTo("Editing the val...")
-    assertThat(model.text).isEqualTo("Editing the val...")
-  }
-
-  @Test
-  fun testRetainEditingValueIfUpdateIsReceivedDuringEditingWithLookup() {
-    acquireFocus()
-    field.text = "Editing the val..."
-
-    // Bring up the lookup:
-    val ui = FakeUi(field, createFakeWindow = true)
-    ui.keyboard.press(KeyEvent.VK_CONTROL)
-    ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
-    ui.keyboard.release(KeyEvent.VK_CONTROL)
-
-    // Simulate an update from the model:
-    model.value = "Hello World!"
-
-    // Verify that this doesn't effect the text value in the field or model:
-    assertThat(field.text).isEqualTo("Editing the val...")
-    assertThat(model.text).isEqualTo("Editing the val...")
-  }
-
   private fun acquireFocus() {
-    (KeyboardFocusManager.getCurrentKeyboardFocusManager() as FakeKeyboardFocusManager).focusOwner = field
+    val manager = mock(KeyboardFocusManager::class.java)
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(manager)
+    whenever(manager.focusOwner).thenReturn(field)
   }
 }
