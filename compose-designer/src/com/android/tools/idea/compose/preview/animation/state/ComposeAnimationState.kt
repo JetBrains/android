@@ -21,30 +21,37 @@ import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.state.AnimationState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
 
-/** Compose animation state. */
+/** Compose [AnimationState] */
 interface ComposeAnimationState : AnimationState {
 
   companion object {
-    /** Create an [ComposeAnimationState] based on [ComposeAnimationType] and type of state. */
+    /**
+     * Creates a [ComposeAnimationState] that represents the state of this [ComposeAnimation].
+     *
+     * @param tracker The [ComposeAnimationTracker] to track the animation.
+     * @param scope The [CoroutineScope] associated with the [AnimationManager], used to manage
+     *   coroutine operations within the state.
+     * @return A [ComposeAnimationState] corresponding to the animation's type and animation's state
+     *   type.
+     */
     fun ComposeAnimation.createState(
       tracker: ComposeAnimationTracker,
-      callback: () -> Unit,
+      scope: CoroutineScope,
     ): ComposeAnimationState {
       val unit = ComposeUnit.parseStateUnit(this.states.firstOrNull())
       return when (this.type) {
-        ComposeAnimationType.ANIMATED_VISIBILITY -> SingleState(tracker, callback)
+        ComposeAnimationType.ANIMATED_VISIBILITY -> SingleState(tracker, scope)
         ComposeAnimationType.TRANSITION_ANIMATION,
         ComposeAnimationType.ANIMATE_X_AS_STATE,
         ComposeAnimationType.ANIMATED_CONTENT ->
           when {
-            unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-            unit !is AnimationUnit.UnitUnknown -> PickerState(tracker, callback)
-            states.firstOrNull() is Boolean -> FromToState(tracker, callback)
-            states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
-            else -> FromToState(tracker, callback)
+            unit is ComposeUnit.Color -> ComposeColorState(tracker, scope)
+            unit !is AnimationUnit.UnitUnknown -> PickerState(tracker, scope)
+            states.firstOrNull() is Boolean -> FromToState(tracker, scope)
+            states.firstOrNull() is Enum<*> -> FromToState(tracker, scope)
+            else -> FromToState(tracker, scope)
           }
         ComposeAnimationType.ANIMATED_VALUE,
         ComposeAnimationType.ANIMATABLE,
@@ -57,20 +64,12 @@ interface ComposeAnimationState : AnimationState {
     }
   }
 
-  var callbackEnabled: Boolean
-
   /** Set list of available states. */
   fun updateStates(states: Set<Any>)
-
-  /** Hash code of selected state. */
-  fun stateHashCode(): Int
 
   /** Get selected state for the [index]. */
   fun getState(index: Int = 0): Any?
 
   /** Set a start state. */
   fun setStartState(state: Any?)
-
-  override val stateHashCode
-    get() = MutableStateFlow(stateHashCode()).asStateFlow()
 }

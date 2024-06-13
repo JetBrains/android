@@ -150,6 +150,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       }
 
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { toolbar, ui ->
+      delayUntilCondition(200) { transitionCalls == 1 }
       assertEquals(1, transitionCalls)
       delayUntilCondition(200) { stateCalls == 1 }
       assertEquals(1, stateCalls)

@@ -16,10 +16,11 @@
 package com.android.tools.idea.compose.preview.animation.state
 
 import com.intellij.openapi.actionSystem.AnAction
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /** [ComposeAnimationState] when selection of the state is not available for the animation. */
 class EmptyState : ComposeAnimationState {
-  override fun stateHashCode() = 0
 
   override fun updateStates(states: Set<Any>) {}
 
@@ -27,7 +28,7 @@ class EmptyState : ComposeAnimationState {
 
   override fun setStartState(state: Any?) {}
 
-  override var callbackEnabled = false
+  override val stateHashCode: StateFlow<Int> = MutableStateFlow(0)
 
   override val changeStateActions: List<AnAction>
     get() = emptyList()

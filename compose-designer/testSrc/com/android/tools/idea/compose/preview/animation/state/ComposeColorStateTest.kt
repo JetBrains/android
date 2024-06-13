@@ -20,6 +20,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
@@ -27,7 +28,8 @@ import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.RunsInEdt
 import java.awt.Color
 import java.awt.Dimension
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,16 +39,20 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
-class ColorPickerStateTest {
+class ComposeColorStateTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private val minimumSize = Dimension(10, 10)
 
+  @RunsInEdt
   @Test
   fun statesAreCorrect() {
     val state =
-      ColorPickerState(NoopComposeAnimationTracker) {}
+      ComposeColorState(
+          NoopComposeAnimationTracker,
+          AndroidCoroutineScope(projectRule.testRootDisposable),
+        )
         .apply {
           setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
         }
@@ -54,14 +60,16 @@ class ColorPickerStateTest {
     assertEquals(listOf(0f, 0f, 1f, 1f), state.getState(1))
   }
 
+  @RunsInEdt
   @Test
   fun createCard() {
-    var callbacks = 0
     val state =
-      ColorPickerState(NoopComposeAnimationTracker) { callbacks++ }
+      ComposeColorState(
+          NoopComposeAnimationTracker,
+          AndroidCoroutineScope(projectRule.testRootDisposable),
+        )
         .apply {
           setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
-          callbackEnabled = true
         }
     val card =
       AnimationCard(
@@ -78,27 +86,24 @@ class ColorPickerStateTest {
         )
         .apply { size = Dimension(300, 300) }
 
-    ApplicationManager.getApplication().invokeAndWait {
-      val ui =
-        FakeUi(card).apply {
-          updateToolbars()
-          layoutAndDispatchEvents()
-        }
+    val ui =
+      FakeUi(card).apply {
+        updateToolbars()
+        layoutAndDispatchEvents()
+      }
 
-      val toolbarComponents = card.findToolbar("AnimationCard").component.components
-      assertEquals(5, toolbarComponents.size)
-      // All components are visible
-      toolbarComponents.forEach { assertBigger(minimumSize, it.size) }
-      // Default hash.
-      val hash = state.stateHashCode()
-      // Swap state.
-      ui.clickOn(toolbarComponents[1])
-      // State hashCode has changed.
-      assertNotEquals(hash, state.stateHashCode())
-      // The states swapped.
-      assertEquals(1, callbacks)
-      assertEquals(listOf(0f, 0f, 1f, 1f), state.getState(0)) // Blue
-      assertEquals(listOf(1f, 0f, 0f, 1f), state.getState(1)) // Red
-    }
+    val toolbarComponents = card.findToolbar("AnimationCard").component.components
+    assertEquals(5, toolbarComponents.size)
+    // All components are visible
+    toolbarComponents.forEach { assertBigger(minimumSize, it.size) }
+    // Default hash.
+    val hash = state.stateHashCode.value
+    // Swap state.
+    ui.clickOn(toolbarComponents[1])
+    // State hashCode has changed.
+    assertNotEquals(hash, state.stateHashCode.value)
+    // The states swapped.
+    assertEquals(listOf(0f, 0f, 1f, 1f), state.getState(0)) // Blue
+    assertEquals(listOf(1f, 0f, 0f, 1f), state.getState(1)) // Red
   }
 }

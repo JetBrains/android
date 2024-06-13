@@ -123,7 +123,6 @@ class ComposeAnimationPreview(
           tabbedPane,
           rootComponent,
           playbackControls,
-          { longTimeout -> resetTimelineAndUpdateWindowSize(longTimeout) },
           { updateTimelineElements() },
           scope,
         )
@@ -142,7 +141,6 @@ class ComposeAnimationPreview(
           tabbedPane,
           rootComponent,
           playbackControls,
-          { longTimeout -> resetTimelineAndUpdateWindowSize(longTimeout) },
           { updateTimelineElements() },
           scope,
         )

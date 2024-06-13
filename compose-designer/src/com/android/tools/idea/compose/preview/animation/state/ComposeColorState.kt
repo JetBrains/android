@@ -15,34 +15,21 @@
  */
 package com.android.tools.idea.compose.preview.animation.state
 
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.preview.animation.state.SwapAction
-import com.android.tools.idea.preview.animation.state.ToolbarLabel
-import com.intellij.openapi.actionSystem.AnAction
+import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.idea.preview.animation.state.ColorAnimationState
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * [ComposeAnimationState] for animations where initial and target states should be selected with a
  * color picker.
  */
-class ColorPickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  ComposeAnimationState {
-
-  override var callbackEnabled = false
-
-  /** [stateCallback] should be enabled or disabled with [callbackEnabled]. */
-  protected val stateCallback = { if (callbackEnabled) callback() }
-
-  private val initialState =
-    ColorStateAction(tracker = tracker, onPropertiesUpdated = stateCallback)
-  private val targetState = ColorStateAction(tracker = tracker, onPropertiesUpdated = stateCallback)
-
-  override fun stateHashCode(): Int =
-    (initialState.stateHashCode() to targetState.stateHashCode()).hashCode()
+class ComposeColorState(tracker: AnimationTracker, scope: CoroutineScope) :
+  ComposeAnimationState, ColorAnimationState(tracker, scope) {
 
   override fun getState(index: Int): Any {
-    return if (index == 0) initialState.getStateAsComponents()
-    else targetState.getStateAsComponents()
+    return if (index == 0) ComposeUnit.Color.create(fromState.value).components
+    else ComposeUnit.Color.create(toState.value).components
   }
 
   override fun setStartState(state: Any?) {
@@ -57,20 +44,8 @@ class ColorPickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
   }
 
   fun setStates(initialColor: ComposeUnit.Color?, targetColor: ComposeUnit.Color?) {
-    if (initialColor != null && targetColor != null) {
-      initialState.state = initialColor
-      targetState.state = targetColor
+    if (initialColor?.color != null && targetColor?.color != null) {
+      setStates(initialColor.color, targetColor.color)
     }
   }
-
-  override val changeStateActions: List<AnAction> =
-    listOf(
-      SwapAction(tracker) {
-        initialState.swapWith(targetState)
-        stateCallback()
-      },
-      initialState,
-      ToolbarLabel("to"),
-      targetState,
-    )
 }

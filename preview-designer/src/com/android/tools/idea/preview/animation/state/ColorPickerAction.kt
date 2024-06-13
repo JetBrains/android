@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation.state
+
+package com.android.tools.idea.preview.animation.state
 
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
-import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.preview.animation.InspectorLayout.colorButtonOffset
+import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -28,18 +28,42 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
-import com.intellij.ui.JBColor
 import java.awt.Color
+import java.awt.Component
 import java.awt.Graphics
 import javax.swing.JComponent
+import kotlinx.coroutines.flow.MutableStateFlow
 
-private val DEFAULT_COLOR: Color = JBColor.WHITE
+interface ColorPicker {
+  fun show(initialColor: Color, restoreFocusComponent: Component?, onColorPicked: (Color) -> Unit)
+}
+
+// Real implementation using createAndShowColorPickerPopup
+private object ColorPickerImpl : ColorPicker {
+
+  override fun show(
+    initialColor: Color,
+    restoreFocusComponent: Component?,
+    onColorPicked: (Color) -> Unit,
+  ) {
+    createAndShowColorPickerPopup(
+      initialColor,
+      initialColorResource = null,
+      configuration = null,
+      resourcePickerSources = listOf(),
+      restoreFocusComponent,
+      locationToShow = null,
+      colorPickedCallback = onColorPicked,
+      colorResourcePickedCallback = {},
+    )
+  }
+}
 
 /** [AnAction] displaying the color state. It opens a color picker to select it. */
-class ColorStateAction(
-  defaultState: ComposeUnit.Color = ComposeUnit.Color.create(DEFAULT_COLOR),
-  val tracker: ComposeAnimationTracker,
-  private val onPropertiesUpdated: () -> Unit,
+class ColorPickerAction(
+  val tracker: AnimationTracker,
+  private val flow: MutableStateFlow<Color>,
+  private val colorPicker: ColorPicker = ColorPickerImpl,
 ) : CustomComponentAction, AnAction() {
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
@@ -54,47 +78,27 @@ class ColorStateAction(
 
       override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
-        g.color = state.color ?: DEFAULT_COLOR
+        g.color = flow.value
         g.fillRect(
-          colorButtonOffset,
-          colorButtonOffset,
-          width - 2 * colorButtonOffset,
-          height - 2 * colorButtonOffset,
+          InspectorLayout.colorButtonOffset,
+          InspectorLayout.colorButtonOffset,
+          width - 2 * InspectorLayout.colorButtonOffset,
+          height - 2 * InspectorLayout.colorButtonOffset,
         )
       }
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    createAndShowColorPickerPopup(
-      initialColor = state.color ?: DEFAULT_COLOR,
-      initialColorResource = null,
-      configuration = null,
-      resourcePickerSources = listOf(),
-      restoreFocusComponent = e.componentToRestoreFocusTo(),
-      locationToShow = null,
-      colorPickedCallback = {
-        state = ComposeUnit.Color.create(it)
-        onPropertiesUpdated()
-      },
-      colorResourcePickedCallback = {},
-    )
-    tracker.openPicker()
+    colorPicker.show(flow.value, e.componentToRestoreFocusTo()) { pickedColor ->
+      flow.value = pickedColor
+      tracker.openPicker()
+    }
   }
 
-  var state: ComposeUnit.Color = defaultState
-
-  fun getStateAsComponents(): Any {
-    return state.components.toList()
-  }
-
-  fun stateHashCode(): Int {
-    return state.hashCode()
-  }
-
-  fun swapWith(other: ColorStateAction) {
-    val saveState = state
-    state = other.state
-    other.state = saveState
+  fun swapWith(other: ColorPickerAction) {
+    val saveState = flow.value
+    flow.value = other.flow.value
+    other.flow.value = saveState
   }
 }
