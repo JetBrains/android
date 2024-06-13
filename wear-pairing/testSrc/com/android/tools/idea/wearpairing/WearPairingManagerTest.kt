@@ -58,7 +58,6 @@ class WearPairingManagerTest {
     mapOf(AvdManager.AVD_INI_TAG_ID to "android-wear", AvdManager.AVD_INI_ANDROID_API to "28")
   private val avdWearInfo =
     AvdInfo(
-      "My Wear",
       Paths.get("ini"),
       Paths.get("id2"),
       Mockito.mock(ISystemImage::class.java),
@@ -106,7 +105,6 @@ class WearPairingManagerTest {
       )
     val avdPhoneInfo =
       AvdInfo(
-        "My Phone",
         Paths.get("ini"),
         Paths.get(phoneDevice.deviceID),
         Mockito.mock(ISystemImage::class.java),
