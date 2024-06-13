@@ -75,7 +75,7 @@ enum class TestProject(
   COMPATIBILITY_TESTS_AS_36_NO_IML(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML, patch = { updateProjectJdk(it) }),
   ANDROID_KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.ANDROID_KOTLIN_MULTIPLATFORM,
-    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_82 },
   ),
   SIMPLE_APPLICATION(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
   SIMPLE_APPLICATION_NO_PARALLEL_SYNC(
