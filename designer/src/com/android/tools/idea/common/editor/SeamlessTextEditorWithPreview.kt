@@ -81,7 +81,10 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(
       setPureTextEditorVisibility()
     } else {
       // Restore the visibility of the components depending on the current layout.
-      if (layout != null) setEditorLayout(layout)
+      val layout = getLayout()
+      if (layout != null) {
+        setEditorLayout(layout)
+      }
     }
   }
 
@@ -94,27 +97,28 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(
     myPreview.component.isVisible = false
   }
 
-  override fun isShowActionsInTabs(): Boolean {
-    // TextEditorWithPreview#getTabActions() is a ConditionalActionGroup that shows the actions when
-    // isShowActionsInTabs() returns true and hides them otherwise. This condition is checked on
-    // each action group update, which happens every 500ms. We need to override
-    // the TextEditorWithPreview to include a check of isPureTextEditor because we want to hide the
-    // actions in text-only mode.
-    return super.isShowActionsInTabs() && !isPureTextEditor
-  }
+  // TextEditorWithPreview#getTabActions() is a ConditionalActionGroup that shows the actions when
+  // isShowActionsInTabs() returns true and hides them otherwise. This condition is checked on
+  // each action group update, which happens every 500ms. We need to override
+  // the TextEditorWithPreview to include a check of isPureTextEditor because we want to hide the
+  // actions in text-only mode.
+  override val isShowActionsInTabs: Boolean
+    get() = super.isShowActionsInTabs && !isPureTextEditor
 
-  // Even though isPureTextEditor is meant to be persistent this editor delegates keeping the state
+  // Even though isPureTextEditor is meant to be persistent, this editor delegates keeping the state
   // persistent to the clients
   var isPureTextEditor: Boolean = true
     set(value) {
-      // Toolbar should be hidden if file the file is handled as pure-text
+      // The Toolbar should be hidden if file the file is handled as pure-text
       toolbarComponent?.isVisible = !value
       if (value) {
         setPureTextEditorVisibility()
         setEditorLayout(Layout.SHOW_EDITOR)
       } else {
         // Restore the visibility of the components depending on the current layout.
-        if (layout != null) setEditorLayout(layout)
+        getLayout()?.let {
+          setEditorLayout(it)
+        }
       }
       field = value
     }

@@ -25,10 +25,10 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
-import java.awt.event.ComponentEvent
-import java.awt.event.ComponentListener
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.awt.event.ComponentEvent
+import java.awt.event.ComponentListener
 
 /** Converts the [PreferredVisibility] value into the equivalent [TextEditorWithPreview.Layout]. */
 private fun PreferredVisibility?.toTextEditorLayout(): TextEditorWithPreview.Layout? =
@@ -98,22 +98,19 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
    * Action that replaces the default "Show Editor" action with one that registers when the user has
    * clicked it explicitly.
    */
-  private val showEditorAction: SplitEditorAction =
-    SplitEditorActionDelegate(super.getShowEditorAction())
+  private val _showEditorAction: SplitEditorAction = SplitEditorActionDelegate(super.showEditorAction)
 
   /**
    * Action that replaces the default "Show Editor And Preview" action with one that registers when
    * the user has clicked it explicitly.
    */
-  private var showEditorAndPreviewAction: SplitEditorAction =
-    SplitEditorActionDelegate(super.getShowEditorAndPreviewAction())
+  private var _showEditorAndPreviewAction: SplitEditorAction = SplitEditorActionDelegate(super.showEditorAndPreviewAction)
 
   /**
    * Action that replaces the default "Show Preview" action with one that registers when the user
    * has clicked it explicitly.
    */
-  private var showPreviewAction: SplitEditorAction =
-    SplitEditorActionDelegate(super.getShowPreviewAction())
+  private var _showPreviewAction: SplitEditorAction = SplitEditorActionDelegate(super.showPreviewAction)
 
   init {
     isPureTextEditor = preview.representationNames.isEmpty()
@@ -215,9 +212,12 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     }
   }
 
-  override fun getShowEditorAction(): SplitEditorAction = showEditorAction
+  override val showEditorAction: SplitEditorAction
+    get() = _showEditorAction
 
-  override fun getShowEditorAndPreviewAction(): SplitEditorAction = showEditorAndPreviewAction
+  override val showEditorAndPreviewAction: SplitEditorAction
+    get() = _showEditorAndPreviewAction
 
-  override fun getShowPreviewAction(): SplitEditorAction = showPreviewAction
+  override val showPreviewAction: SplitEditorAction
+    get() = _showPreviewAction
 }
