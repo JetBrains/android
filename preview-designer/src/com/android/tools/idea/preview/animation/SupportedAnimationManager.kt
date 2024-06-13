@@ -254,4 +254,8 @@ abstract class SupportedAnimationManager(
 }
 
 private fun CoroutineScope.createChildScope(name: String) =
-  CoroutineScope(SupervisorJob(coroutineContext[Job]) + CoroutineName("AnimationManager.$name"))
+  CoroutineScope(
+    this.coroutineContext +
+      SupervisorJob(coroutineContext[Job]) +
+      CoroutineName("AnimationManager.$name")
+  )
