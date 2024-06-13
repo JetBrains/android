@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.uisettings.ui
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
@@ -55,19 +56,24 @@ class UiSettingsPanelTest {
   private lateinit var model: UiSettingsModel
   private lateinit var panel: UiSettingsPanel
   private var lastCommand: String = ""
+  private val deviceTypeFromTestName: DeviceType
+    get() = when {
+      nameRule.methodName.endsWith("Wear") -> DeviceType.WEAR
+      nameRule.methodName.endsWith("Tv") -> DeviceType.TV
+      nameRule.methodName.endsWith("Automotive") -> DeviceType.AUTOMOTIVE
+      else -> DeviceType.HANDHELD
+    }
 
   @Before
   fun before() {
-    model = UiSettingsModel(Dimension(1344, 2992), 480, 34)
+    val deviceType = deviceTypeFromTestName
+    model = UiSettingsModel(Dimension(1344, 2992), 480, 34, deviceType)
     model.appLanguage.addElement(DEFAULT_LANGUAGE)
     model.appLanguage.addElement(DANISH_LANGUAGE)
     model.appLanguage.addElement(RUSSIAN_LANGUAGE)
     model.appLanguage.selection.setFromController(DEFAULT_LANGUAGE)
 
-    panel = UiSettingsPanel(
-      model,
-      limitedSupport = nameRule.methodName == "testLimitedControls"
-    )
+    panel = UiSettingsPanel(model, deviceType)
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
     model.gestureNavigation.uiChangeListener = ChangeListener { lastCommand = "gestures=$it" }
     model.appLanguage.selection.uiChangeListener = ChangeListener { lastCommand = "locale=${it?.tag}" }
@@ -204,7 +210,31 @@ class UiSettingsPanelTest {
   }
 
   @Test
-  fun testLimitedControls() {
+  fun testControlsForWear() {
+    assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == FONT_SCALE_TITLE }).isNotNull()
+
+    assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
+  }
+
+  @Test
+  fun testControlsForAutomotive() {
+    assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == FONT_SCALE_TITLE }).isNotNull()
+
+    assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
+  }
+
+  @Test
+  fun testControlsForTv() {
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()

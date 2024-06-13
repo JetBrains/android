@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.ide.common.resources.configuration.LocaleQualifier
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.res.AppLanguageInfo
@@ -51,7 +52,7 @@ class DeviceUiSettingsControllerTest {
   private val testRootDisposable
     get() = agentRule.disposable
 
-  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), 480, API_LEVEL) }
+  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), 480, API_LEVEL, DeviceType.HANDHELD) }
   private val device: FakeDevice by lazy { agentRule.connectDevice("Pixel 8", API_LEVEL, Dimension(1080, 2280)) }
   private val agent: FakeScreenSharingAgent by lazy { device.agent }
   private val controller: DeviceUiSettingsController by lazy { createUiSettingsController() }
