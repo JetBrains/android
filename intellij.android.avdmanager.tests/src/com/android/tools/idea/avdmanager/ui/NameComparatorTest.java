@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.avdmanager.ui.NameComparator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,6 +41,10 @@ public final class NameComparatorTest {
     var expectedDevices = List.of(mockDevice("Small Phone"),
                                   mockDevice("Medium Phone"),
                                   mockDevice("Pixel Fold"),
+                                  mockDevice("Pixel 8a"),
+                                  mockDevice("Pixel 8 Pro"),
+                                  mockDevice("Pixel 8"),
+                                  mockDevice("Pixel 7a"),
                                   mockDevice("Pixel 7 Pro"),
                                   mockDevice("Pixel 7"),
                                   mockDevice("Pixel 6a"),
@@ -59,7 +62,6 @@ public final class NameComparatorTest {
                                   mockDevice("Pixel 2"),
                                   mockDevice("Pixel XL"),
                                   mockDevice("Pixel"),
-                                  mockDevice("7.6\" Fold-in with outer display"),
                                   mockDevice("Resizable (Experimental)"));
 
     var actualDevices = shuffle(expectedDevices);
