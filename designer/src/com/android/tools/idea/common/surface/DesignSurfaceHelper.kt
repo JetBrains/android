@@ -53,7 +53,7 @@ import org.jetbrains.android.facet.ResourceFolderManager
 
 private val logger: Logger by lazy { Logger.getInstance("DesignSurfaceHelper") }
 
-fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
+internal fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
   return StudioResourceRepositoryManager.getModuleResources(facet)
     .hasResources(ResourceNamespace.TODO(), type, name)
 }
