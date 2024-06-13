@@ -20,6 +20,7 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeAnimation
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
@@ -71,6 +72,34 @@ class ComposeAnimationPreviewTest : InspectorTests() {
 
   private val animations =
     ComposeAnimationType.values().map { createComposeAnimation(it.toString(), type = it) }
+
+  private suspend fun subscribeAnimations(animations: List<ComposeAnimation>) {
+    surface.sceneManagers.forEach { it.render() }
+    val clock = getClock()
+    animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
+  }
+
+  private suspend fun createFakeUiForInspector(inspector: ComposeAnimationPreview) =
+    withContext(uiThread) {
+      FakeUi(inspector.component.apply { size = Dimension(500, 400) }).apply {
+        updateToolbars()
+        layoutAndDispatchEvents()
+      }
+    }
+
+  private fun createTransitionAnimation(
+    states: Set<AnimationState> = setOf(AnimationState.State1, AnimationState.State2)
+  ): ComposeAnimation {
+    return object : ComposeAnimation {
+      override val animationObject =
+        object {
+          @Suppress("unused") // Method is called via reflection.
+          fun getCurrentState() = AnimationState.State1
+        }
+      override val type = ComposeAnimationType.TRANSITION_ANIMATION
+      override val states = states
+    }
+  }
 
   @Test
   fun subscribeAndUnsubscribe() = runBlocking {
@@ -205,46 +234,36 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun comboBoxesDisplayComposeAnimationStates() {
+  fun comboBoxesDisplayComposeAnimationStates() = runBlocking {
     val inspector = createAndOpenInspector()
-
     val animationStates = setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
+    val transitionAnimation = createTransitionAnimation(animationStates)
 
-    val transitionAnimation =
-      object : ComposeAnimation {
-        override val animationObject =
-          object {
-            @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = AnimationState.State1
-          }
-        override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states = animationStates
-      }
+    subscribeAnimations(listOf(transitionAnimation))
 
-    runBlocking {
-      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
-      withContext(uiThread) {
-        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
-        ui.updateToolbars()
-        ui.layoutAndDispatchEvents()
-        (inspector.component.findToolbar("AnimationCard") as JComponent).let {
-          // Freeze, swap, from state, label, to state components.
-          assertEquals(5, it.componentCount)
-          assertEquals("State1", it.components[2].findComboBox().text)
-          assertEquals("State2", it.components[4].findComboBox().text)
-          // Swap
-          ui.clickOn(it.components[1])
-          assertEquals("State2", it.components[2].findComboBox().text)
-          assertEquals("State1", it.components[4].findComboBox().text)
-        }
-      }
+    val ui = createFakeUiForInspector(inspector)
+
+    // Find the AnimationCard toolbar
+    val animationCardToolbar = inspector.component.findToolbar("AnimationCard") as JComponent
+
+    // Assertions
+    assertEquals(5, animationCardToolbar.componentCount)
+    assertEquals("State1", animationCardToolbar.components[2].findComboBox().text) // From state
+    assertEquals("State2", animationCardToolbar.components[4].findComboBox().text) // To state
+
+    withContext(uiThread) {
+      // Simulate clicking the "Swap" button
+      ui.clickOn(animationCardToolbar.components[1])
     }
+
+    // Check if states have been swapped
+    assertEquals("State2", animationCardToolbar.components[2].findComboBox().text) // From state
+    assertEquals("State1", animationCardToolbar.components[4].findComboBox().text) // To state
   }
 
   @Test
-  fun animatedVisibilityComboBoxDisplayAllVisibilityStates() {
+  fun animatedVisibilityComboBoxDisplayAllVisibilityStates() = runBlocking {
     val inspector = createAndOpenInspector()
-
     val animatedVisibilityAnimation =
       object : ComposeAnimation {
         override val animationObject = Any()
@@ -252,143 +271,103 @@ class ComposeAnimationPreviewTest : InspectorTests() {
         override val states = setOf("Enter", "Exit")
       }
 
-    runBlocking {
-      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), animatedVisibilityAnimation)
-        .join()
-      withContext(uiThread) {
-        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
-        ui.updateToolbars()
-        ui.layoutAndDispatchEvents()
-        (inspector.component.findToolbar("AnimationCard") as JComponent).let {
-          // Freeze, swap, state components.
-          assertEquals(3, it.componentCount)
-          assertEquals("Enter", it.components[2].findComboBox().text)
-          ui.clickOn(it.components[1])
-          assertEquals("Exit", it.components[2].findComboBox().text)
-        }
-      }
+    subscribeAnimations(listOf(animatedVisibilityAnimation))
+
+    val ui = createFakeUiForInspector(inspector)
+
+    // Find the AnimationCard toolbar
+    val animationCardToolbar = inspector.component.findToolbar("AnimationCard") as JComponent
+
+    // Assertions
+    assertEquals(3, animationCardToolbar.componentCount)
+    assertEquals("Enter", animationCardToolbar.components[2].findComboBox().text) // Initial state
+
+    withContext(uiThread) {
+      // Simulate clicking the "Swap" button
+      ui.clickOn(animationCardToolbar.components[1])
     }
+
+    // Check if state has changed
+    assertEquals("Exit", animationCardToolbar.components[2].findComboBox().text)
   }
 
   @Test
-  fun changeClockTime() {
+  fun changeClockTime() = runBlocking {
     val inspector = createAndOpenInspector()
 
-    val transitionAnimation =
-      object : ComposeAnimation {
-        override val animationObject =
-          object {
-            @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = AnimationState.State1
-          }
-        override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states =
-          setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
-      }
+    subscribeAnimations(listOf(createTransitionAnimation()))
 
-    runBlocking {
-      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
-
-      withContext(uiThread) {
-        // We can get any of the combo boxes, since "from" and "to" states should be the same.
-        val sliders =
-          TreeWalker(inspector.component)
-            .descendantStream()
-            .filter { it is JSlider }
-            .collect(Collectors.toList())
-        assertEquals(1, sliders.size) //
-        val timelineSlider = sliders[0] as JSlider
-        timelineSlider.value = 100
-        PlatformTestUtil
-          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-        timelineSlider.value = 200
-        PlatformTestUtil
-          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-      }
+    withContext(uiThread) {
+      // We can get any of the combo boxes, since "from" and "to" states should be the same.
+      val sliders =
+        TreeWalker(inspector.component)
+          .descendantStream()
+          .filter { it is JSlider }
+          .collect(Collectors.toList())
+      assertEquals(1, sliders.size) //
+      val timelineSlider = sliders[0] as JSlider
+      timelineSlider.value = 100
+      PlatformTestUtil
+        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      timelineSlider.value = 200
+      PlatformTestUtil
+        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
     }
   }
 
   @Test
-  fun playbackControlActions() {
+  fun playbackControlActions() = runBlocking {
     val numberOfPlaybackControls = 7
     val inspector = createAndOpenInspector()
 
-    val transitionAnimation =
-      object : ComposeAnimation {
-        override val animationObject =
-          object {
-            @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = AnimationState.State1
-          }
-        override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states =
-          setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
-      }
+    subscribeAnimations(listOf(createTransitionAnimation()))
 
-    runBlocking {
-      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
-
-      withContext(uiThread) {
-        val toolbars =
-          TreeWalker(inspector.component)
-            .descendantStream()
-            .filter { it is ActionToolbarImpl }
-            .collect(Collectors.toList())
-            .map { it as ActionToolbarImpl }
-        val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
-        assertNotNull(playbackControls)
-        assertEquals(numberOfPlaybackControls, playbackControls!!.actions.size)
-        val actionEvent = Mockito.mock(AnActionEvent::class.java)
-        // Press loop
-        val loopAction = playbackControls.actions[0] as ToggleAction
-        loopAction.setSelected(actionEvent, true)
-        PlatformTestUtil
-          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-        // Play and pause
-        val playAction = playbackControls.actions[2]
-        playAction.actionPerformed(actionEvent)
-        PlatformTestUtil
-          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-        playAction.actionPerformed(actionEvent)
-        PlatformTestUtil
-          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-        // Go to start.
-        val goToStart = playbackControls.actions[1]
-        goToStart.actionPerformed(actionEvent)
-        PlatformTestUtil
-          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-        // Go to end.
-        val toToEnd = playbackControls.actions[3]
-        toToEnd.actionPerformed(actionEvent)
-        PlatformTestUtil
-          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-        // Un-press loop
-        loopAction.setSelected(actionEvent, false)
-        PlatformTestUtil
-          .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-      }
+    withContext(uiThread) {
+      val toolbars =
+        TreeWalker(inspector.component)
+          .descendantStream()
+          .filter { it is ActionToolbarImpl }
+          .collect(Collectors.toList())
+          .map { it as ActionToolbarImpl }
+      val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
+      assertNotNull(playbackControls)
+      assertEquals(numberOfPlaybackControls, playbackControls!!.actions.size)
+      val actionEvent = Mockito.mock(AnActionEvent::class.java)
+      // Press loop
+      val loopAction = playbackControls.actions[0] as ToggleAction
+      loopAction.setSelected(actionEvent, true)
+      PlatformTestUtil
+        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Play and pause
+      val playAction = playbackControls.actions[2]
+      playAction.actionPerformed(actionEvent)
+      PlatformTestUtil
+        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      playAction.actionPerformed(actionEvent)
+      PlatformTestUtil
+        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Go to start.
+      val goToStart = playbackControls.actions[1]
+      goToStart.actionPerformed(actionEvent)
+      PlatformTestUtil
+        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Go to end.
+      val toToEnd = playbackControls.actions[3]
+      toToEnd.actionPerformed(actionEvent)
+      PlatformTestUtil
+        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Un-press loop
+      loopAction.setSelected(actionEvent, false)
+      PlatformTestUtil
+        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
     }
   }
 
   @Test
-  fun resizeInspector() {
+  fun resizeInspector() = runBlocking {
     val inspector = createAndOpenInspector()
+    subscribeAnimations(listOf(createTransitionAnimation()))
 
-    val transitionAnimation =
-      object : ComposeAnimation {
-        override val animationObject =
-          object {
-            @Suppress("unused") // Method is called via reflection.
-            fun getCurrentState() = AnimationState.State1
-          }
-        override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states =
-          setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
-      }
-
-    runBlocking {
-      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
-    }
     inspector.component.setSize(
       inspector.component.size.width * 2,
       inspector.component.size.height * 2,
@@ -396,125 +375,118 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun animationStatesInferredForBoolean() {
+  fun animationStatesInferredForBoolean() = runBlocking {
     val inspector = createAndOpenInspector()
     val transitionAnimation =
       object : ComposeAnimation {
-        override val animationObject = Any() // Note that `getCurrentState` is not provided.
+        override val animationObject = Any()
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
-        override val states = setOf(true) // Note that `false` is not provided
+        override val states = setOf(true)
       }
 
-    runBlocking {
-      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), transitionAnimation).join()
+    subscribeAnimations(listOf(transitionAnimation))
 
-      withContext(uiThread) {
-        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
-        ui.updateToolbars()
-        ui.layoutAndDispatchEvents()
-        (inspector.component.findToolbar("AnimationCard") as JComponent).let {
-          // Freeze, swap, from state, label, to state components.
-          assertEquals(5, it.componentCount)
-          assertEquals("true", it.components[2].findComboBox().text)
-          assertEquals("false", it.components[4].findComboBox().text)
-          // false inferred because the animation states received had a boolean
+    val ui = createFakeUiForInspector(inspector)
 
-          // Swap
-          ui.clickOn(it.components[1])
-          assertEquals("false", it.components[2].findComboBox().text)
-          assertEquals("true", it.components[4].findComboBox().text)
-        }
-      }
+    // Find the AnimationCard toolbar
+    val animationCardToolbar = inspector.component.findToolbar("AnimationCard") as JComponent
+
+    // Assertions
+    assertEquals(5, animationCardToolbar.componentCount)
+    assertEquals("true", animationCardToolbar.components[2].findComboBox().text) // From state
+    assertEquals(
+      "false",
+      animationCardToolbar.components[4].findComboBox().text,
+    ) // To state (inferred)
+
+    withContext(uiThread) {
+      // Simulate clicking the "Swap" button
+      ui.clickOn(animationCardToolbar.components[1])
+    }
+
+    // Check if states have been swapped
+    assertEquals("false", animationCardToolbar.components[2].findComboBox().text) // From state
+    assertEquals("true", animationCardToolbar.components[4].findComboBox().text) // To state
+  }
+
+  @Test
+  fun tabsAreNamedFromAnimationLabel() = runBlocking {
+    val inspector = createAndOpenInspector()
+
+    val animation1 = createComposeAnimation("repeatedLabel")
+
+    val animationWithSameLabel = createComposeAnimation("repeatedLabel")
+
+    val animatedValueWithNullLabel =
+      createComposeAnimation(type = ComposeAnimationType.ANIMATED_VALUE)
+
+    val transitionAnimationWithNullLabel =
+      createComposeAnimation(type = ComposeAnimationType.TRANSITION_ANIMATION)
+
+    val animatedVisibilityWithNullLabel =
+      createComposeAnimation(type = ComposeAnimationType.ANIMATED_VISIBILITY)
+
+    subscribeAnimations(
+      listOf(
+        animation1,
+        animationWithSameLabel,
+        animatedValueWithNullLabel,
+        transitionAnimationWithNullLabel,
+        animatedVisibilityWithNullLabel,
+      )
+    )
+
+    assertEquals(5, inspector.tabCount())
+    assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
+    assertEquals(
+      "repeatedLabel (1)",
+      inspector.getAnimationTitleAt(1),
+    ) // repeated titles get their index incremented
+    assertEquals(
+      "Animated Value",
+      inspector.getAnimationTitleAt(2),
+    ) // null labels use default title
+    assertEquals(
+      "Transition Animation",
+      inspector.getAnimationTitleAt(3),
+    ) // null labels use default title
+    assertEquals(
+      "Animated Visibility",
+      inspector.getAnimationTitleAt(4),
+    ) // null labels use default title
+  }
+
+  @Test
+  fun `cards and timeline elements are added to coordination panel`() = runBlocking {
+    val inspector = createAndOpenInspector()
+    subscribeAnimations(animations)
+
+    withContext(uiThread) {
+      val cards = findAllCards(inspector.component)
+      val timeline = TestUtils.findTimeline(inspector.component)
+      // 11 cards and 11 TimelineElements are added to coordination panel.
+      assertEquals(11, cards.size)
+      assertInstanceOf<AnimationCard>(cards[0])
+      assertInstanceOf<LabelCard>(cards[1])
+      assertInstanceOf<AnimationCard>(cards[2])
+      assertInstanceOf<LabelCard>(cards[3])
+      assertInstanceOf<LabelCard>(cards[4])
+      assertInstanceOf<AnimationCard>(cards[5])
+      assertInstanceOf<AnimationCard>(cards[6])
+      assertInstanceOf<LabelCard>(cards[7])
+      assertInstanceOf<AnimationCard>(cards[8])
+      assertInstanceOf<LabelCard>(cards[9])
+      assertInstanceOf<LabelCard>(cards[10])
+      assertEquals(11, timeline.sliderUI.elements.size)
+      // Only coordination tab is opened.
+      assertEquals(1, inspector.tabbedPane.tabCount)
     }
   }
 
   @Test
-  fun tabsAreNamedFromAnimationLabel() {
+  fun `managers are created for each animation`(): Unit = runBlocking {
     val inspector = createAndOpenInspector()
-    val clock = getClock()
-
-    runBlocking {
-      val animation1 = createComposeAnimation("repeatedLabel")
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation1).join()
-
-      val animationWithSameLabel = createComposeAnimation("repeatedLabel")
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animationWithSameLabel).join()
-
-      val animatedValueWithNullLabel =
-        createComposeAnimation(type = ComposeAnimationType.ANIMATED_VALUE)
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animatedValueWithNullLabel).join()
-
-      val transitionAnimationWithNullLabel =
-        createComposeAnimation(type = ComposeAnimationType.TRANSITION_ANIMATION)
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, transitionAnimationWithNullLabel)
-        .join()
-
-      val animatedVisibilityWithNullLabel =
-        createComposeAnimation(type = ComposeAnimationType.ANIMATED_VISIBILITY)
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
-        .join()
-
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
-        .join()
-      assertEquals(5, inspector.tabCount())
-      assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
-      assertEquals(
-        "repeatedLabel (1)",
-        inspector.getAnimationTitleAt(1),
-      ) // repeated titles get their index incremented
-      assertEquals(
-        "Animated Value",
-        inspector.getAnimationTitleAt(2),
-      ) // null labels use default title
-      assertEquals(
-        "Transition Animation",
-        inspector.getAnimationTitleAt(3),
-      ) // null labels use default title
-      assertEquals(
-        "Animated Visibility",
-        inspector.getAnimationTitleAt(4),
-      ) // null labels use default title
-    }
-  }
-
-  @Test
-  fun `cards and timeline elements are added to coordination panel`() {
-    val inspector = createAndOpenInspector()
-    val clock = getClock()
-
-    runBlocking {
-      animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
-
-      withContext(uiThread) {
-        val cards = findAllCards(inspector.component)
-        val timeline = TestUtils.findTimeline(inspector.component)
-        // 11 cards and 11 TimelineElements are added to coordination panel.
-        assertEquals(11, cards.size)
-        assertInstanceOf<AnimationCard>(cards[0])
-        assertInstanceOf<LabelCard>(cards[1])
-        assertInstanceOf<AnimationCard>(cards[2])
-        assertInstanceOf<LabelCard>(cards[3])
-        assertInstanceOf<LabelCard>(cards[4])
-        assertInstanceOf<AnimationCard>(cards[5])
-        assertInstanceOf<AnimationCard>(cards[6])
-        assertInstanceOf<LabelCard>(cards[7])
-        assertInstanceOf<AnimationCard>(cards[8])
-        assertInstanceOf<LabelCard>(cards[9])
-        assertInstanceOf<LabelCard>(cards[10])
-        assertEquals(11, timeline.sliderUI.elements.size)
-        // Only coordination tab is opened.
-        assertEquals(1, inspector.tabbedPane.tabCount)
-      }
-    }
-  }
-
-  @Test
-  fun `managers are created for each animation`() {
-    val inspector = createAndOpenInspector()
-    val clock = getClock()
-    runBlocking {
-      animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
-    }
+    subscribeAnimations(animations)
 
     assertEquals(11, inspector.animations.size)
     assertInstanceOf<ComposeAnimationManager>(inspector.animations[0])
@@ -528,22 +500,6 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     assertInstanceOf<ComposeAnimationManager>(inspector.animations[8])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[9])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[10])
-  }
-
-  @Test
-  fun `preview inspector`() {
-    val inspector = createAndOpenInspector()
-    val clock = getClock()
-    runBlocking {
-      animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
-      withContext(uiThread) {
-        val ui = FakeUi(inspector.apply { component.size = Dimension(600, 500) }.component)
-        ui.updateToolbars()
-        ui.layoutAndDispatchEvents()
-        // Uncomment to preview.
-        // ui.render()
-      }
-    }
   }
 
   @Test
@@ -581,9 +537,8 @@ class ComposeAnimationPreviewTest : InspectorTests() {
       psiPointerOne,
     ) {}
 
-    val clock = getClock()
     runBlocking {
-      animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
+      subscribeAnimations(animations)
 
       assertNotNull(ComposeAnimationInspectorManager.currentInspector)
       assertEquals(11, ComposeAnimationInspectorManager.currentInspector!!.tabCount())
@@ -602,22 +557,20 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() {
+  fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() = runBlocking {
     val inspector = createAndOpenInspector()
-    runBlocking {
-      ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), createComposeAnimation()).join()
+    subscribeAnimations(listOf(createComposeAnimation()))
 
-      assertNotNull(inspector.tabbedPane.parent)
-      assertEquals(1, inspector.tabCount())
-      assertNull(inspector.noAnimationsPanel())
-      assertEquals(1, inspector.animationPreviewCardsCount())
+    assertNotNull(inspector.tabbedPane.parent)
+    assertEquals(1, inspector.tabCount())
+    assertNull(inspector.noAnimationsPanel())
+    assertEquals(1, inspector.animationPreviewCardsCount())
 
-      ComposeAnimationInspectorManager.invalidate(psiFilePointer).join()
-      assertNotNull(inspector.noAnimationsPanel())
-      assertNull(inspector.tabbedPane.parent)
-      assertEquals(0, inspector.tabCount())
-      assertEquals(0, inspector.animationPreviewCardsCount())
-    }
+    ComposeAnimationInspectorManager.invalidate(psiFilePointer).join()
+    assertNotNull(inspector.noAnimationsPanel())
+    assertNull(inspector.tabbedPane.parent)
+    assertEquals(0, inspector.tabCount())
+    assertEquals(0, inspector.animationPreviewCardsCount())
   }
 
   @Test
