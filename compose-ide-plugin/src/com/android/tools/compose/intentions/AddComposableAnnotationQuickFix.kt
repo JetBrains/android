@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.analysis.api.KaIdeApi
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
@@ -72,6 +73,7 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
 
   override fun getText(): String = displayText
 
+  @OptIn(KaIdeApi::class)
   override fun invoke(project: Project, editor: Editor?, file: KtFile) {
     element?.addAnnotation(ComposeClassIds.Composable)
 

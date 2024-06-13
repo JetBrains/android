@@ -42,6 +42,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
@@ -165,6 +166,7 @@ class EmbeddedCompilerClientImpl private constructor(
     generationState.factory.asList().forEach { it.writeTo(outputDirectory) }
   }
 
+  @OptIn(KaExperimentalApi::class)
   private suspend fun compileKtFilesForK2(inputs: List<KtFile>, outputDirectory: Path) {
     readAction {
       runWithCompileLock {

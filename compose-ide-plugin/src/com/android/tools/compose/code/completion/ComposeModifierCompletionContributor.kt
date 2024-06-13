@@ -40,6 +40,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.KaIdeApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
@@ -277,6 +279,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
    * In the meantime, this method checks whether the containing class/object of the function is
    * visible from the completion position. If not, then it will be filtered out from results.
    */
+  @OptIn(KaExperimentalApi::class)
   private fun KtFunction.isVisibleFromCompletionPosition(completionPosition: PsiElement): Boolean {
     // This is Compose, we should always be completing in a KtFile. If not, let's just assume things
     // are visible so as not to muck with
@@ -394,6 +397,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       as KtSimpleNameExpression
   }
 
+  @OptIn(KaExperimentalApi::class)
   private fun KaSession.getExtensionFunctionsForModifier(
     nameExpression: KtSimpleNameExpression,
     originalPosition: PsiElement,
@@ -554,6 +558,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       super.handleInsert(context)
     }
 
+    @OptIn(KaIdeApi::class)
     private fun handleInsertK2(context: InsertionContext) {
       val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
       val ktFile = context.file as KtFile

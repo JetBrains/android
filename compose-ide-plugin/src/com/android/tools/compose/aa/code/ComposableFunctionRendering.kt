@@ -16,6 +16,7 @@
 package com.android.tools.compose.aa.code
 
 import com.android.tools.compose.code.ComposableFunctionRenderParts
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionLikeSymbol
@@ -52,6 +53,7 @@ internal fun KaSession.getComposableFunctionRenderParts(
   return ComposableFunctionRenderParts(parameters, tail)
 }
 
+@OptIn(KaExperimentalApi::class)
 private fun KaSession.renderValueParameters(
   valueParamsInParen: List<KaValueParameterSymbol>,
   closingString: String

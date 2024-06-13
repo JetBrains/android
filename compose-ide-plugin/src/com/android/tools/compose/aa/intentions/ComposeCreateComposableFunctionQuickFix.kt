@@ -22,6 +22,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSiblingAfter
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
@@ -114,6 +115,7 @@ class ComposeCreateComposableFunctionQuickFix(
      *
      * See b/267429486.
      */
+    @OptIn(KaExperimentalApi::class)
     private fun KaSession.buildNewComposableFunction(
       unresolvedCall: KtCallExpression,
       unresolvedName: String,

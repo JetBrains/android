@@ -39,6 +39,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.utils.editor.commitToPsi
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
@@ -110,6 +111,7 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileByteArray(inputFiles: L
 /**
  * Compile the given files without calling into [LiveEditCompiler]. Should only be used to set up for tests.
  */
+@OptIn(KaExperimentalApi::class)
 fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFile>): List<ByteArray> {
   return ApplicationManager.getApplication().runReadAction(Computable<List<ByteArray>> {
     runWithCompileLock {
