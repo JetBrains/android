@@ -87,7 +87,7 @@ fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, 
   }
 }
 
-fun copyLayoutToMainModuleSourceSet(
+internal fun copyLayoutToMainModuleSourceSet(
   project: Project,
   facet: AndroidFacet,
   layout: String,
@@ -216,9 +216,9 @@ fun DesignSurface<*>.updateSceneViewVisibilities(visibilityFunc: (SceneView) -> 
 
 /** Obtain the [DesignSurface] associated to a [FileEditor] if any. */
 @UiThread
-fun FileEditor.getDesignSurface(): DesignSurface<*>? =
-  when (this) {
-    is TextEditorWithPreview -> previewEditor.getDesignSurface()
+fun FileEditor.getDesignSurface(): DesignSurface<*>? {
+  return when (this) {
+    is TextEditorWithPreview -> getPreviewEditor().getDesignSurface()
     // Check if there is a design surface in the context of presentation. For example, Compose and
     // CustomView preview.
     is SourceCodePreview ->
@@ -227,3 +227,4 @@ fun FileEditor.getDesignSurface(): DesignSurface<*>? =
       }
     else -> DataManager.getInstance().getDataContext(component).getData(DESIGN_SURFACE)
   }
+}

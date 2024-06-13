@@ -43,7 +43,6 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.fileEditor.impl.text.TextEditorPsiDataProvider
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
-import com.intellij.pom.Navigatable
 import com.intellij.ui.ExperimentalUI
 import com.intellij.util.containers.orNull
 import javax.swing.Icon
@@ -67,13 +66,13 @@ abstract class SplitEditor<P : FileEditor>(
   DataProvider {
 
   private val textViewAction =
-    SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction(), true)
+    SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.showEditorAction, true)
 
   private val splitViewAction =
     SplitEditorAction(
       "Split",
       AllIcons.General.LayoutEditorPreview,
-      super.getShowEditorAndPreviewAction(),
+      super.showEditorAndPreviewAction,
       true,
     )
 
@@ -81,7 +80,7 @@ abstract class SplitEditor<P : FileEditor>(
     SplitEditorAction(
       "Design",
       AllIcons.General.LayoutPreviewOnly,
-      super.getShowPreviewAction(),
+      super.showPreviewAction,
       false,
     )
 
@@ -91,7 +90,8 @@ abstract class SplitEditor<P : FileEditor>(
         selectAction(actions.previous(actions.indexOf(getSelectedAction())), true)
     }
 
-  override fun isShowFloatingToolbar() = false
+  override val isShowFloatingToolbar: Boolean
+    get() = false
 
   private val navigateRightAction =
     object : AnAction() {
@@ -126,11 +126,14 @@ abstract class SplitEditor<P : FileEditor>(
     return thisComponent
   }
 
-  override fun getShowEditorAction() = textViewAction
+  override val showEditorAction: SplitEditorAction
+    get() = textViewAction
 
-  override fun getShowEditorAndPreviewAction() = splitViewAction
+  override val showEditorAndPreviewAction: SplitEditorAction
+    get() = splitViewAction
 
-  override fun getShowPreviewAction() = previewViewAction
+  override val showPreviewAction: SplitEditorAction
+    get() = previewViewAction
 
   override fun getData(dataId: String): Any? {
     if (LangDataKeys.IDE_VIEW.`is`(dataId)) {
@@ -139,7 +142,7 @@ abstract class SplitEditor<P : FileEditor>(
         .getData(dataId, editor, editor.caretModel.currentCaret)
     }
     if (SPLIT_TEXT_EDITOR_KEY.`is`(dataId)) {
-      return textEditor
+      return myEditor
     }
     return null
   }
@@ -168,25 +171,25 @@ abstract class SplitEditor<P : FileEditor>(
 
   fun isDesignMode() = previewViewAction.isSelected(getFakeActionEvent())
 
-  fun selectTextMode(userExplicitlyTriggered: Boolean) =
-    selectAction(showEditorAction, userExplicitlyTriggered)
+  fun selectTextMode(userExplicitlyTriggered: Boolean) = selectAction(showEditorAction, userExplicitlyTriggered)
 
-  fun selectSplitMode(userExplicitlyTriggered: Boolean) =
-    selectAction(showEditorAndPreviewAction, userExplicitlyTriggered)
+  fun selectSplitMode(userExplicitlyTriggered: Boolean) = selectAction(showEditorAndPreviewAction, userExplicitlyTriggered)
 
-  fun selectDesignMode(userExplicitlyTriggered: Boolean) =
-    selectAction(showPreviewAction, userExplicitlyTriggered)
+  fun selectDesignMode(userExplicitlyTriggered: Boolean) = selectAction(showPreviewAction, userExplicitlyTriggered)
 
-  protected fun selectAction(action: SplitEditorAction, userExplicitlyTriggered: Boolean) =
+  protected fun selectAction(action: SplitEditorAction, userExplicitlyTriggered: Boolean) {
     action.setSelected(getFakeActionEvent(), true, userExplicitlyTriggered)
+  }
 
   protected fun getSelectedAction() = actions.firstOrNull { it.isSelected(getFakeActionEvent()) }
 
-  private fun List<SplitEditorAction>.next(selectedIndex: Int): SplitEditorAction =
-    this[(selectedIndex + 1) % this.size]
+  private fun List<SplitEditorAction>.next(selectedIndex: Int): SplitEditorAction {
+    return this[(selectedIndex + 1) % this.size]
+  }
 
-  private fun List<SplitEditorAction>.previous(selectedIndex: Int): SplitEditorAction =
-    this[(this.size + selectedIndex - 1) % this.size]
+  private fun List<SplitEditorAction>.previous(selectedIndex: Int): SplitEditorAction {
+    return this[(this.size + selectedIndex - 1) % this.size]
+  }
 
   /**
    * TODO (b/149212539): Register these shortcuts to plugin xml file to support custom keymap. Then
@@ -227,13 +230,14 @@ abstract class SplitEditor<P : FileEditor>(
       return null
     }
 
-    private fun getBackgroundDataProvider() =
-      TextEditorPsiDataProvider()
+    private fun getBackgroundDataProvider(): DataProvider? {
+      return TextEditorPsiDataProvider()
         .getData(
           PlatformCoreDataKeys.BGT_DATA_PROVIDER.name,
           editor,
           editor.caretModel.currentCaret,
         ) as? DataProvider
+    }
   }
 
   /**
@@ -276,7 +280,7 @@ abstract class SplitEditor<P : FileEditor>(
       // exception. This disables the popup when showDefaultGutterPopup is false allowing to avoid
       // the popup when the text editor
       // is not visible. See http://b/208596732.
-      (textEditor.editor as? EditorEx)
+      (myEditor.editor as? EditorEx)
         ?.gutterComponentEx
         ?.setShowDefaultGutterPopup(showDefaultGutterPopup)
       if (userExplicitlySelected) {
