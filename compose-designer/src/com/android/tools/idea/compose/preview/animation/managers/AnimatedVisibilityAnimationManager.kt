@@ -37,7 +37,6 @@ class AnimatedVisibilityAnimationManager(
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
-  resetCallback: suspend (Boolean) -> Unit,
   updateTimelineElementsCallback: suspend () -> Unit,
   scope: CoroutineScope,
 ) :
@@ -52,7 +51,6 @@ class AnimatedVisibilityAnimationManager(
     tabbedPane,
     rootComponent,
     playbackControls,
-    resetCallback,
     updateTimelineElementsCallback,
     scope,
   ) {
@@ -71,6 +69,5 @@ class AnimatedVisibilityAnimationManager(
       val finalState = state ?: animation.states.firstOrNull()
       animationState.setStartState(finalState)
     }
-    updateAnimatedVisibility()
   }
 }

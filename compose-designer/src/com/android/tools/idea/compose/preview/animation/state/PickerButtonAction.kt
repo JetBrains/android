@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,21 @@ import com.intellij.openapi.ui.popup.Balloon
 import java.awt.Component
 import javax.swing.JButton
 import javax.swing.JComponent
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * A button displaying the "initial to target" state. It opens a picker to select these states.
  *
  * @see [AnimatedPropertiesModel] for more details about the picker.
  */
-class PickerButtonAction(val tracker: ComposeAnimationTracker, private val onClick: () -> Unit) :
-  CustomComponentAction, AnAction() {
+class PickerButtonAction(val tracker: ComposeAnimationTracker) : CustomComponentAction, AnAction() {
+
+  private val _state: MutableStateFlow<Pair<AnimationUnit.Unit<*>, AnimationUnit.Unit<*>>> =
+    MutableStateFlow(AnimationUnit.UnitUnknown(null) to AnimationUnit.UnitUnknown(null))
+
+  val state: StateFlow<Pair<AnimationUnit.Unit<*>, AnimationUnit.Unit<*>>> = _state.asStateFlow()
 
   private val stateListeners: MutableList<() -> Unit> = mutableListOf()
 
@@ -68,46 +75,36 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker, private val onCli
   override fun actionPerformed(e: AnActionEvent) {
     PsiPickerManager.show(
       location = e.locationFromEvent(),
-      displayTitle = initialState.getPickerTitle(),
+      displayTitle = state.value.first.getPickerTitle(),
       balloonPosition = Balloon.Position.above,
       model =
-        AnimatedPropertiesModel(initialState, targetState) { initial, target ->
-          setUnitStates(initial, target)
-          onClick()
+        AnimatedPropertiesModel(_state.value.first, _state.value.second) { initial, target ->
+          updateState(initial, target)
         },
     )
     tracker.openPicker()
   }
 
-  private lateinit var initialState: AnimationUnit.Unit<*>
-  private lateinit var targetState: AnimationUnit.Unit<*>
   private val stateText: String
-    get() = "$initialState to $targetState"
+    get() = "${state.value.first} to ${state.value.second}"
 
   fun swapStates() {
-    setUnitStates(targetState, initialState)
+    _state.value = _state.value.second to _state.value.first
   }
 
-  fun getState(index: Int): List<*> {
-    return if (index == 0) initialState.components.toList() else targetState.components.toList()
-  }
-
-  fun stateHashCode(): Int {
-    return Pair(initialState.hashCode(), targetState.hashCode()).hashCode()
-  }
+  fun getState(index: Int): List<*> = _state.value.toList()[index].components
 
   fun updateInitialState(initial: Any?) {
-    initialState = ComposeUnit.parseStateUnit(initial)
-    stateListeners.forEach { it() }
+    updateState(ComposeUnit.parseStateUnit(initial), _state.value.second)
   }
 
-  fun updateStates(initial: Any, target: Any) {
-    setUnitStates(ComposeUnit.parseStateUnit(initial), ComposeUnit.parseStateUnit(target))
+  fun updateTargetState(target: Any?) {
+    updateState(_state.value.first, ComposeUnit.parseStateUnit(target))
   }
 
-  private fun setUnitStates(initial: AnimationUnit.Unit<*>, target: AnimationUnit.Unit<*>) {
-    initialState = initial
-    targetState = target
-    stateListeners.forEach { it() }
+  // Private helper function to update the state and notify observers
+  private fun updateState(initial: AnimationUnit.Unit<*>, target: AnimationUnit.Unit<*>) {
+    _state.value = initial to target
+    stateListeners.forEach { it() } // Notify listeners (needed for backward compatibility)
   }
 }

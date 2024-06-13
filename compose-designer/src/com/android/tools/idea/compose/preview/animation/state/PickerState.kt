@@ -18,21 +18,19 @@ package com.android.tools.idea.compose.preview.animation.state
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.preview.animation.state.SwapAction
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.platform.util.coroutines.flow.mapStateIn
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * [ComposeAnimationState] for animations where initial and target states should be selected with a
  * picker.
  */
-class PickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) : ComposeAnimationState {
+class PickerState(tracker: ComposeAnimationTracker, scope: CoroutineScope) : ComposeAnimationState {
 
-  override var callbackEnabled = false
+  private val buttonAction = PickerButtonAction(tracker)
 
-  /** [stateCallback] should be enabled or disabled with [callbackEnabled]. */
-  protected val stateCallback = { if (callbackEnabled) callback() }
-
-  private val buttonAction = PickerButtonAction(tracker, stateCallback)
-
-  override fun stateHashCode(): Int = buttonAction.stateHashCode()
+  override val stateHashCode =
+    buttonAction.state.mapStateIn(scope) { (initial, target) -> Pair(initial, target).hashCode() }
 
   override fun getState(index: Int): List<*> {
     return buttonAction.getState(index)
@@ -40,21 +38,13 @@ class PickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) : Comp
 
   override fun setStartState(state: Any?) {
     buttonAction.updateInitialState(state)
-    stateCallback()
   }
 
   override fun updateStates(states: Set<Any>) {
-    val initial = states.firstOrNull() ?: return
-    val target = states.lastOrNull() ?: return
-    buttonAction.updateStates(initial, target)
+    buttonAction.updateInitialState(states.firstOrNull())
+    buttonAction.updateTargetState(states.lastOrNull())
   }
 
   override val changeStateActions: List<AnAction> =
-    listOf(
-      SwapAction(tracker) {
-        buttonAction.swapStates()
-        stateCallback()
-      },
-      buttonAction,
-    )
+    listOf(SwapAction(tracker) { buttonAction.swapStates() }, buttonAction)
 }
