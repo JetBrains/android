@@ -16,22 +16,18 @@
 package com.android.tools.idea.device.explorer.files
 
 import com.intellij.AbstractBundle
-import com.intellij.openapi.util.NotNullLazyValue
 import org.jetbrains.annotations.PropertyKey
 import java.util.ResourceBundle
-import java.util.function.Supplier
 
 private const val BUNDLE_NAME = "messages.DeviceFileExplorerBundle"
 
-class DeviceExplorerBundle private constructor() {
-  companion object {
-    private val bundle: Supplier<ResourceBundle> = NotNullLazyValue.softLazy {
-      ResourceBundle.getBundle(BUNDLE_NAME)
-    }
+object DeviceExplorerBundle {
+  private val bundle by lazy {
+    ResourceBundle.getBundle(BUNDLE_NAME)
+  }
 
-    @JvmStatic
-    fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any?): String {
-      return AbstractBundle.message(bundle.get(), key, *params)
-    }
+  @JvmStatic
+  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any?): String {
+    return AbstractBundle.message(bundle = bundle, key = key, params = params)
   }
 }
