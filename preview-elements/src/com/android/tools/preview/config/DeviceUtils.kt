@@ -46,7 +46,7 @@ const val DEFAULT_DEVICE_ID = "pixel_5"
 /** id for the default wear os device when no device is specified by the user. */
 const val DEFAULT_WEAROS_DEVICE_ID = "wearos_small_round"
 
-/** Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin */
+/** Used for `Round Chin` devices. */
 const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 
 fun Device.toDeviceConfig(): DeviceConfig {
@@ -125,12 +125,7 @@ fun DeviceConfig.createDeviceInstance(): Device {
               sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) /
                 pixelDensity.dpiValue
             screenRound = if (deviceConfig.isRound) ScreenRound.ROUND else ScreenRound.NOTROUND
-            chin =
-              when {
-                deviceConfig.shape == Shape.Chin -> CHIN_SIZE_PX_FOR_ROUND_CHIN
-                deviceConfig.isRound -> deviceConfig.chinSize.roundToInt()
-                else -> 0
-              }
+            chin = if (deviceConfig.isRound) deviceConfig.chinSize.roundToInt() else 0
             size = ScreenSize.getScreenSize(diagonalLength)
             ratio = ScreenRatio.create(xDimension, yDimension)
           }
