@@ -1,0 +1,7 @@
+dependencyResolutionManagement {
+  versionCatalogs {
+    testLibs {
+      from files('gradle/testLibs.versions.toml')
+    }
+  }
+}
