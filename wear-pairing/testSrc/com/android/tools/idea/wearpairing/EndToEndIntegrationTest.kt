@@ -99,7 +99,6 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
       mapOf(AvdManager.AVD_INI_TAG_ID to "android-wear", AvdManager.AVD_INI_ANDROID_API to "28")
     val avdWearInfo =
       AvdInfo(
-        "My Wear",
         Paths.get("ini"),
         Paths.get("folder"),
         Mockito.mock(ISystemImage::class.java),

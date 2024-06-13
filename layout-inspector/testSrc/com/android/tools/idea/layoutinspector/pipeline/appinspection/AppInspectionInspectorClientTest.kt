@@ -1252,9 +1252,8 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       properties[AvdManager.AVD_INI_TAG_DISPLAY] = tag.display
     }
     return AvdInfo(
-      "myAvd-$apiLevel",
-      Paths.get("myIni"),
-      Paths.get("/android/avds/myAvd-$apiLevel"),
+      Paths.get("/android/avds/myAvd-${apiLevel}.ini"),
+      Paths.get("/android/avds/myAvd-${apiLevel}.avd"),
       systemImage,
       properties,
       null,
