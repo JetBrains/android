@@ -1,0 +1,35 @@
+/*
+ * Copyright (C) 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.preview.animation.state
+
+import com.intellij.openapi.actionSystem.AnAction
+
+/**
+ * Interface for managing the states of an animation.
+ *
+ * State can be a single state, like visibility or most commonly initial and target state (from
+ * color A to B, from int A to B, from Compose state A to B, etc)
+ */
+interface AnimationStateManager {
+  /**
+   * Calculates a hash code that uniquely identifies the current state of the animation. Primarily
+   * used to compare animation states for equality.
+   */
+  fun stateHashCode(): Int
+
+  /** A list of actions that can be performed to change the state of the animation. */
+  val changeStateActions: List<AnAction>
+}

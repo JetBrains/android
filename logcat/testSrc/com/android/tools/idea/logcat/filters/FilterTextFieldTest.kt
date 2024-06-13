@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.FakeAndroidProjectDetector
+import com.android.tools.idea.logcat.FakeAndroidProjectDetector
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
+import com.android.tools.idea.logcat.filters.FilterTextField.FilterUpdated
 import com.android.tools.idea.logcat.filters.FilterTextField.HistoryList
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.logcat.util.waitForCondition
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
@@ -57,13 +58,13 @@ import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
 
 /** Tests for [FilterTextField] */
 class FilterTextFieldTest {
@@ -243,7 +244,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_render() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
       fakeLogcatPresenter.processMessages(
@@ -262,7 +263,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderOnlyFavorites() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = true)
       fakeLogcatPresenter.processMessages(
@@ -281,7 +282,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNoFavorites() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = false)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
       fakeLogcatPresenter.processMessages(
@@ -300,7 +301,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNamedFilter() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
       fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "Foo")))
 
@@ -314,7 +315,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNamedFilterWithSameName() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foobar", isFavorite = false)
       fakeLogcatPresenter.processMessages(
@@ -334,7 +335,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNamedNamedOrder() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "name:Foo named favorite", isFavorite = true)
       filterHistory.add(logcatFilterParser, "favorite", isFavorite = true)
       filterHistory.add(logcatFilterParser, "name:Foo named", isFavorite = false)
@@ -371,16 +372,13 @@ class FilterTextFieldTest {
   }
 
   @Test
-  fun documentListenerIsCalled() = runBlocking {
+  fun trackFilterUpdates() = runBlocking {
     @Suppress("ConvertLambdaToReference") // More readable like this
     val filterTextField = runInEdtAndGet { filterTextField() }
-    val filterChangedListener = mock<FilterTextField.FilterChangedListener>()
 
-    filterTextField.addFilterChangedListener(filterChangedListener)
     runInEdtAndWait { filterTextField.text = "foo" }
 
-    filterTextField.notifyFilterChangedTask.await()
-    verify(filterChangedListener).onFilterChanged("foo", false)
+    waitForCondition { filterTextField.filterUpdateFlow.value == FilterUpdated("foo", false) }
   }
 
   @RunsInEdt

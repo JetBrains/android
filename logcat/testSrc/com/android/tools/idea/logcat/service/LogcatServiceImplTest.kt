@@ -48,7 +48,6 @@ import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -202,8 +201,6 @@ class LogcatServiceImplTest {
   }
 
   /** Test that calling with `duration` only blocks for the specified duration */
-  @Suppress("OPT_IN_IS_NOT_ENABLED")
-  @OptIn(ExperimentalTime::class)
   @Test
   fun readLogcat_withTimeout() = runBlocking {
     val service = logcatServiceImpl()

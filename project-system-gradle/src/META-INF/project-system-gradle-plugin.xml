@@ -142,6 +142,8 @@
     <psi.referenceContributor language="TOML"
                               implementation="com.android.tools.idea.gradle.catalog.VersionCatalogDependencyReferenceContributor" order="first"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.gradle.refactoring.VersionCatalogDescriptionProvider" order="first"/>
+    <lang.documentationProvider language="TOML" implementationClass="com.android.tools.idea.gradle.service.VersionCatalogDocumentationProvider" />
+
     <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.navigation.VersionCatalogGoToDeclarationHandler"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
@@ -234,6 +236,8 @@
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateGradleJvmFromHardcodedNamesSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.InitializeGradleLocalJavaHomeListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.SdkIndexIssuesSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">

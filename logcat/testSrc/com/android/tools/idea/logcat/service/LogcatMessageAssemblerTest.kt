@@ -37,6 +37,7 @@ import java.nio.CharBuffer
 import java.time.Instant
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.text.Charsets.UTF_8
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.SendChannel
@@ -69,7 +70,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun singleCompleteLogMessage() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       assembler.processNewLines(
@@ -102,7 +103,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun multipleCompleteLogMessage() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       assembler.processNewLines(
@@ -165,7 +166,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun twoBatches_messageSplit() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device2", channel)
 
       assembler.processNewLines(
@@ -235,7 +236,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun twoBatches_messageNotSplit() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device2", channel)
 
       assembler.processNewLines(
@@ -318,7 +319,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun twoBatchesSplitOnUserEmittedEmptyLine() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       assembler.processNewLines(
@@ -389,7 +390,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun messageSplitAcrossThreeBatches() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       assembler.processNewLines(
@@ -449,7 +450,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun systemLines() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       assembler.processNewLines(
@@ -502,7 +503,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun linesWithoutHeader_dropped() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       assembler.processNewLines(
@@ -544,7 +545,7 @@ class LogcatMessageAssemblerTest {
    */
   @Test
   fun multipleBatchesWithIntervals() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       assembler.processNewLines(
@@ -679,7 +680,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun realLogcat_oneBatch() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       assembler.processNewLines(
@@ -699,7 +700,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun realLogcat_smallBatches() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       TestResources.getFile("/logcatFiles/real-logcat-from-device.txt")
@@ -719,7 +720,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun realLogcat_largeBatches() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
       TestResources.getFile("/logcatFiles/real-logcat-from-device.txt")
@@ -739,7 +740,7 @@ class LogcatMessageAssemblerTest {
 
   @Test
   fun missingApplicationId_usesProcessName() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       processNameMonitor.addProcessName("device1", 5, "", "processName")
 
       val assembler = logcatMessageAssembler("device1", channel)

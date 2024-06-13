@@ -188,7 +188,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <titleInfoProvider implementation="com.intellij.android.safemode.SafeMode$TitleProvider"/>
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidPsiTreeChangeListener$MyStartupActivity"/>
-    <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild$MyStartupActivity"/>
     <applicationInitializedListener implementation="com.android.tools.idea.progress.StudioProgressManagerAdapter$Installer" />
@@ -609,13 +608,13 @@
     <!-- Default settings should match with the values specified in ProjectUpgradeNotification.kt -->
     <notificationGroup id="Android Gradle Upgrade Notification" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Thanks for the feedback!" displayType="BALLOON" bundle="messages.AndroidBundle" key="feedback.notifications.title"/>
-    <notificationGroup id="Logcat" displayType="BALLOON" isLogByDefault="true" />
     <notificationGroup id="DeviceMirrorBenchmarking" displayType="STICKY_BALLOON" key="android.emulator" />
     <notificationGroup id="Font Downloading Problems" displayType="BALLOON" isLogByDefault="true" />
     <notificationGroup id="Create Diagnostic Report" displayType="BALLOON" isLogByDefault="true" />
     <notificationGroup id="Feature Survey" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Essentials Mode" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Import Android Test Results" displayType="BALLOON" />
+    <notificationGroup id="Google Play SDK Index Notifications" displayType="STICKY_BALLOON" isLogByDefault="true" />
 
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 

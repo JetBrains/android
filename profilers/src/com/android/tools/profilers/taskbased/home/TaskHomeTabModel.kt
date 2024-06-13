@@ -166,7 +166,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
         profilers.ideServices.enableStartupTask(selectedTaskType, _taskRecordingType.value)
 
         val prefersProfileable = taskGridModel.selectedTaskType.value.prefersProfileable
-        profilers.ideServices.buildAndLaunchAction(prefersProfileable, selectedDevice!!.featureLevel)
+        profilers.ideServices.buildAndLaunchAction(prefersProfileable, selectedDevice!!)
 
         // Reset process selection as process will be recreated and thus the original selection will be lost.
         processListModel.resetProcessSelection()

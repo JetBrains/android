@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.settings;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
@@ -25,9 +26,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class VersionCatalogModelImpl extends GradleDslBlockModel implements VersionCatalogModel {
   public static String FROM = "mFrom";
+  private DependencyResolutionManagementModel _dependencyResolutionManagement;
 
-  public VersionCatalogModelImpl(VersionCatalogDslElement element) {
+  public VersionCatalogModelImpl(VersionCatalogDslElement element, DependencyResolutionManagementModel dependencyResolutionManagement) {
     super(element);
+    _dependencyResolutionManagement = dependencyResolutionManagement;
   }
 
   @Override
@@ -38,7 +41,8 @@ public class VersionCatalogModelImpl extends GradleDslBlockModel implements Vers
   @Override
   public @NotNull ResolvedPropertyModel from() {
     GradlePropertyModelBuilder builder = GradlePropertyModelBuilder.create(myDslElement, FROM);
-    if (myDslElement.getName().equals(DEFAULT_CATALOG_NAME)) {
+    String name = _dependencyResolutionManagement.catalogDefaultName();
+    if (myDslElement.getName().equals(name)) {
       builder = builder.withDefault(DEFAULT_CATALOG_FILE);
     }
     return builder.addTransform(new SingleArgumentMethodTransform("files")).buildResolved();

@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.settings;
 
+import static com.android.tools.idea.gradle.dsl.parser.settings.DependencyResolutionManagementDslElement.DEFAULT_LIBRARIES_EXTENSION_NAME;
+
+import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.settings.VersionCatalogModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class VersionCatalogsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<VersionCatalogsDslElement> VERSION_CATALOGS =
@@ -43,19 +48,30 @@ public class VersionCatalogsDslElement extends GradleDslElementMap implements Gr
 
   @Override
   public boolean implicitlyExists(@NotNull String name) {
-    return name.equals("libs");
+    return name.equals(calculateDefaultCatalogName(getParent()));
   }
 
   public VersionCatalogsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-    VersionCatalogDslElement libs = new VersionCatalogDslElement(this, GradleNameElement.fake("libs"));
+    String defaultCatalogName = calculateDefaultCatalogName(parent);
+    VersionCatalogDslElement libs = new VersionCatalogDslElement(this, GradleNameElement.fake(defaultCatalogName));
     addDefaultProperty(libs);
   }
 
-  public @NotNull List<VersionCatalogModel> get() {
+  public static String calculateDefaultCatalogName(@Nullable GradleDslElement versionCatalogsParent) {
+    if (versionCatalogsParent instanceof DependencyResolutionManagementDslElement resolutionManagement) {
+      GradleDslElement name = resolutionManagement.getPropertyElement(DEFAULT_LIBRARIES_EXTENSION_NAME);
+      if (name instanceof GradleDslLiteral literal) {
+        return literal.getValue(String.class);
+      }
+    }
+    return VersionCatalogModel.DEFAULT_CATALOG_NAME;
+  }
+
+  public @NotNull List<VersionCatalogModel> get(DependencyResolutionManagementModel parent) {
     List<VersionCatalogModel> result = new ArrayList<>();
     for (VersionCatalogDslElement dslElement : getValues(VersionCatalogDslElement.class)) {
-      result.add(new VersionCatalogModelImpl(dslElement));
+      result.add(new VersionCatalogModelImpl(dslElement, parent));
     }
     return result;
   }

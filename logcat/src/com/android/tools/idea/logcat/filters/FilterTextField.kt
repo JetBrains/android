@@ -31,15 +31,20 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
-import com.android.tools.idea.logcat.util.ReschedulableTask
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionButtonComponent
+import com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ex.ActionButtonLook
+import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -48,6 +53,7 @@ import com.intellij.openapi.keymap.Keymap
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapManagerListener
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
@@ -108,12 +114,17 @@ import javax.swing.SwingConstants.VERTICAL
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.min
+import kotlinx.coroutines.channels.BufferOverflow.DROP_LATEST
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-
-private const val APPLY_FILTER_DELAY_MS = 100L
 
 private val blankIcon = EmptyIcon.ICON_16
 
@@ -153,21 +164,22 @@ internal class FilterTextField(
   private val logcatPresenter: LogcatPresenter,
   private val filterParser: LogcatFilterParser,
   initialText: String,
-  var matchCase: Boolean,
+  matchCase: Boolean,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
 ) : BorderLayoutPanel() {
   private val filterHistory = AndroidLogcatFilterHistory.getInstance()
-
-  @TestOnly
-  internal val notifyFilterChangedTask =
-    ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
-  private val filterChangedListeners = mutableListOf<FilterChangedListener>()
   private val textField = FilterEditorTextField(project, logcatPresenter, androidProjectDetector)
   private val historyButton = InlineButton(FILTER_HISTORY)
   private val clearButton = ClearButton()
   private val favoriteButton = FavoriteButton()
   private val matchCaseButton = MatchCaseButton()
   private var filter: LogcatFilter? = filterParser.parse(initialText, matchCase)
+
+  var matchCase = matchCase
+    set(value) {
+      field = value
+      filterUpdateChannel.trySend(FilterUpdated(text, matchCase))
+    }
 
   private var isFavorite: Boolean = false
     set(value) {
@@ -180,6 +192,15 @@ internal class FilterTextField(
     set(value) {
       textField.text = value
     }
+
+  private val filterUpdateChannel =
+    Channel<FilterUpdated>(capacity = 1, onBufferOverflow = DROP_LATEST)
+  @VisibleForTesting
+  internal val filterUpdateFlow =
+    filterUpdateChannel
+      .consumeAsFlow()
+      .distinctUntilChanged()
+      .stateIn(AndroidCoroutineScope((logcatPresenter)), Eagerly, null)
 
   init {
     text = initialText
@@ -219,11 +240,7 @@ internal class FilterTextField(
             filter = filterParser.parse(text, matchCase)
             isFavorite = filterHistory.favorites.contains(text)
             filterHistory.mostRecentlyUsed = textField.text
-            notifyFilterChangedTask.reschedule(APPLY_FILTER_DELAY_MS) {
-              for (listener in filterChangedListeners) {
-                listener.onFilterChanged(text, matchCase)
-              }
-            }
+            filterUpdateChannel.trySend(FilterUpdated(text, matchCase))
             buttonPanel.isVisible = textField.text.isNotEmpty()
           }
         }
@@ -276,10 +293,7 @@ internal class FilterTextField(
       )
   }
 
-  @UiThread
-  fun addFilterChangedListener(listener: FilterChangedListener) {
-    filterChangedListeners.add(listener)
-  }
+  fun trackFilterUpdates() = filterUpdateFlow.filterNotNull()
 
   @TestOnly internal fun getEditorEx() = textField.editor as EditorEx
 
@@ -746,7 +760,6 @@ internal class FilterTextField(
         return component
       }
 
-      @Suppress("UnstableApiUsage") // isNewUI() is experimental
       private fun whiteIconForOldUI(icon: Icon): Icon =
         if (NewUI.isEnabled()) icon else ColoredIconGenerator.generateWhiteIcon(icon)
 
@@ -768,7 +781,7 @@ internal class FilterTextField(
       }
     }
 
-    object Separator : FilterHistoryItem() {
+    data object Separator : FilterHistoryItem() {
       // A standalone JSeparator here will change the background of the separator when it is
       // selected. Wrapping it with a JPanel
       // suppresses that behavior for some reason.
@@ -866,23 +879,49 @@ internal class FilterTextField(
     }
   }
 
-  private inner class MatchCaseButton :
-    HoverButton(
-      AllIcons.Actions.MatchCase,
-      LogcatBundle.message("logcat.filter.match.case.tooltip"),
+  /** Based on [com.intellij.find.SearchTextArea] */
+  private inner class ToggleMatchCase : CheckboxAction(), DumbAware {
+    init {
+      templatePresentation.text = LogcatBundle.message("logcat.filter.match.case.tooltip")
+      templatePresentation.icon = AllIcons.Actions.MatchCase
+      templatePresentation.hoveredIcon = AllIcons.Actions.MatchCaseHovered
+      templatePresentation.selectedIcon = AllIcons.Actions.MatchCaseSelected
+    }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+
+    override fun isSelected(e: AnActionEvent) = matchCase
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      matchCase = state
+    }
+  }
+
+  /** Based on [com.intellij.find.SearchTextArea.MyActionButton] */
+  private inner class MatchCaseButton private constructor(action: AnAction) :
+    ActionButton(
+      action,
+      action.templatePresentation.clone(),
+      "FilterTextField",
+      DEFAULT_MINIMUM_BUTTON_SIZE,
     ) {
-    override fun mouseClicked() {
-      matchCase = !matchCase
-      icon = if (matchCase) AllIcons.Actions.MatchCaseSelected else AllIcons.Actions.MatchCase
-      for (listener in filterChangedListeners) {
-        listener.onFilterChanged(this@FilterTextField.text, matchCase)
+
+    constructor() : this(ToggleMatchCase())
+
+    init {
+      isFocusable = true
+      updateIcon()
+    }
+
+    override fun getIcon(): Icon {
+      return when (isEnabled && isSelected) {
+        true -> presentation.selectedIcon ?: super.getIcon()
+        false -> super.getIcon()
       }
     }
   }
 
-  interface FilterChangedListener {
-    fun onFilterChanged(filter: String, matchCase: Boolean)
-  }
+  data class FilterUpdated(val filter: String, val matchCase: Boolean)
 
   private fun interface FilterStatusChanged {
     fun onFilterStatusChanged(filter: String, isFavorite: Boolean)

@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_FILE_NAME;
+
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogPlugins;
 import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogVersions;
 import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
-import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.catalog.GradleVersionCatalogPluginsImpl;
 import com.android.tools.idea.gradle.dsl.model.catalog.GradleVersionCatalogVersionsImpl;
 import com.android.tools.idea.gradle.dsl.model.catalog.GradleVersionCatalogLibrariesImpl;
@@ -105,6 +106,6 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
 
   @Override
   public boolean isDefault() {
-    return VersionCatalogModel.DEFAULT_CATALOG_NAME.equals(catalogName);
+    return DEFAULT_CATALOG_FILE_NAME.equals(catalogFile.getFile().getName());
   }
 }

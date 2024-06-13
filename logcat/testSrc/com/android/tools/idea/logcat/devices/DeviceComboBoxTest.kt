@@ -33,6 +33,7 @@ import com.intellij.ui.components.JBList
 import java.nio.file.Path
 import javax.swing.JLabel
 import kotlin.io.path.writeText
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -67,7 +68,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun noDevice_noSelection(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
 
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
@@ -79,7 +80,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun noInitialDevice_selectsFirstDevice(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
@@ -97,7 +98,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun withInitialDevice_selectsInitialDevice(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val deviceComboBox =
         deviceComboBox(initialItem = DeviceItem(device2), selectionEvents = selectionEvents)
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
@@ -116,7 +117,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun withInitialDevice_selectsInitialFile(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val fileSystem = createInMemoryFileSystem()
       val path = fileSystem.getPath("file.logcat").apply { writeText("") }
 
@@ -137,7 +138,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun selectedDeviceStateChanges_selectsDevice(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
@@ -154,7 +155,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun unselectedDeviceStateChanges_doesNotSelect(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
@@ -172,7 +173,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun userSelection_sendsToFlow(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
@@ -236,7 +237,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun addOrSelectFile(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val fileSystem = createInMemoryFileSystem()
       val path = fileSystem.getPath("file.logcat").apply { writeText("") }
       val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)

@@ -112,7 +112,7 @@ class EmulatorConfiguration private constructor(
         emptyList()
       }
       var postures = emptyList<PostureDescriptor>()
-      for (type in PostureDescriptor.ValueType.values()) {
+      for (type in PostureDescriptor.ValueType.entries) {
         val key = when (type) {
           PostureDescriptor.ValueType.HINGE_ANGLE -> "hw.sensor.hinge_angles_posture_definitions"
           else -> "hw.sensor.roll_percentages_posture_definitions"
@@ -202,7 +202,7 @@ class EmulatorConfiguration private constructor(
 
     private fun parseDisplayMode(mode: String, postureMode: Int): DisplayMode {
       val segments = Splitter.on('-').splitToList(mode)
-      val displayModeId = DisplayModeValue.values()[segments[1].toInt()]
+      val displayModeId = DisplayModeValue.entries[segments[1].toInt()]
       val width = segments[2].toInt()
       val height = segments[3].toInt()
       if (width <= 0 || height <= 0) {

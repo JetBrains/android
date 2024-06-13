@@ -25,8 +25,4 @@
     <extensionPoint qualifiedName="com.android.tools.idea.adddevicedialog.deviceSourceProvider"
                     interface="com.android.tools.idea.adddevicedialog.DeviceSourceProvider"/>
   </extensionPoints>
-
-  <extensions defaultExtensionNs="com.android.tools.idea.adddevicedialog">
-    <deviceSourceProvider implementation="com.android.tools.idea.adddevicedialog.localavd.LocalVirtualDeviceSourceProvider"/>
-  </extensions>
 </idea-plugin>

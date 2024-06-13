@@ -127,8 +127,7 @@ class StreamingToolWindowManagerTest {
   private val provisionerRule = DeviceProvisionerRule()
   @get:Rule
   val ruleChain = RuleChain(agentRule, provisionerRule, emulatorRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule,
-                            EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule,
-                            FlagRule(StudioFlags.DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS, true))
+                            EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
   private val toolWindow: TestToolWindow by lazy { createToolWindow() }

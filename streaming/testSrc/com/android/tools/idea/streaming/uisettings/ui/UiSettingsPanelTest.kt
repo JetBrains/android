@@ -81,6 +81,7 @@ class UiSettingsPanelTest {
   @Test
   fun testSetDarkModeFromUi() {
     val checkBox = panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }
+    assertThat(checkBox.accessibleContext.accessibleName).isEqualTo(DARK_THEME_TITLE)
     assertThat(checkBox.isSelected).isFalse()
 
     checkBox.doClick()
@@ -94,6 +95,7 @@ class UiSettingsPanelTest {
   fun testGestureOverlayNotInstalled() {
     model.gestureOverlayInstalled.setFromController(false)
     val checkBox = panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }
+    assertThat(checkBox.accessibleContext.accessibleName).isEqualTo(GESTURE_NAVIGATION_TITLE)
     assertThat(checkBox.isVisible).isFalse()
   }
 
@@ -114,6 +116,7 @@ class UiSettingsPanelTest {
   @Test
   fun testChangeLanguageFromUi() {
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }
+    assertThat(comboBox.accessibleContext.accessibleName).isEqualTo(APP_LANGUAGE_TITLE)
     assertThat(comboBox.isVisible).isTrue()
     assertThat(comboBox.selectedIndex).isEqualTo(0)
 
@@ -130,6 +133,7 @@ class UiSettingsPanelTest {
   @Test
   fun testSetTalkBackFromUi() {
     val checkBox = panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }
+    assertThat(checkBox.accessibleContext.accessibleName).isEqualTo(TALKBACK_TITLE)
     assertThat(checkBox.isVisible).isFalse()
     model.talkBackInstalled.setFromController(true)
     assertThat(checkBox.isVisible).isTrue()
@@ -146,6 +150,7 @@ class UiSettingsPanelTest {
   @Test
   fun testSetSelectToSpeakFromUi() {
     val checkBox = panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }
+    assertThat(checkBox.accessibleContext.accessibleName).isEqualTo(SELECT_TO_SPEAK_TITLE)
     assertThat(checkBox.isVisible).isFalse()
     model.talkBackInstalled.setFromController(true)
     assertThat(checkBox.isVisible).isTrue()
@@ -162,9 +167,10 @@ class UiSettingsPanelTest {
   @Test
   fun testSetFontScaleFromUi() {
     val slider = panel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }
+    assertThat(slider.accessibleContext.accessibleName).isEqualTo(FONT_SCALE_TITLE)
     assertThat(slider.value).isEqualTo(FontScale.NORMAL.ordinal)
 
-    slider.value = FontScale.values().size - 1
+    slider.value = FontScale.entries.size - 1
     waitForCondition(1.seconds) { lastCommand == "fontScale=200" }
 
     slider.value = 0
@@ -174,6 +180,7 @@ class UiSettingsPanelTest {
   @Test
   fun testSetDensityFromUi() {
     val slider = panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }
+    assertThat(slider.accessibleContext.accessibleName).isEqualTo(DENSITY_TITLE)
     assertThat(slider.value).isEqualTo(1)
 
     val densities = GoogleDensityRange.computeDensityRange(Dimension(1344, 2992), 480)
@@ -187,6 +194,7 @@ class UiSettingsPanelTest {
   @Test
   fun testResetButton() {
     val button = panel.getDescendant<JButton> { it.name == RESET_BUTTON_TEXT }
+    assertThat(button.accessibleContext.accessibleName).isEqualTo(RESET_BUTTON_TEXT)
     model.differentFromDefault.setFromController(false)
     assertThat(button.model.isEnabled).isFalse()
     model.differentFromDefault.setFromController(true)

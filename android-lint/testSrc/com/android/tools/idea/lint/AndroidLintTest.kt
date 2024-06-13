@@ -736,13 +736,13 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   fun testNotificationPermission() {
     val manifest =
       myFixture.addFileToProject(
-        "AndroidManifest.xml",
+        "AndroidManifest.xml", /*language=XML*/
         """
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="p1.p2">
-          <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="33" />
-          <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-      </manifest>
-      """
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="p1.p2">
+            <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="33" />
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+        </manifest>
+        """
           .trimIndent(),
       )
     doTestWithFix(
@@ -750,16 +750,18 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       "Add Permission POST_NOTIFICATIONS",
       "/src/test/pkg/notificationPermission.kt",
       "kt",
+      false,
     )
     val updatedManifest = manifest.text
     assertEquals(
+      /*language=XML*/
       """
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="p1.p2">
           <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="33" />
           <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
           <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
       </manifest>
-    """
+      """
         .trimIndent(),
       updatedManifest,
     )

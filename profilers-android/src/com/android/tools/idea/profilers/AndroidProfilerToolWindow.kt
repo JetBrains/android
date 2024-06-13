@@ -141,7 +141,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val devices = DeviceAndSnapshotComboBoxTargetProvider.getInstance().getDeployTarget(project).getAndroidDevices(project)
     try {
       val selections = devices.map {
-        ToolbarDeviceSelection(it.name, it.version.featureLevel, it.isRunning,
+        ToolbarDeviceSelection(it.name, it.version.featureLevel, it.isRunning, it.isDebuggable,
                                if (it.isRunning) it.launchedDevice.get().serialNumber else "", it.icon)
       }
       return selections
@@ -192,7 +192,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   private fun initializeProfilerTab() {
-    profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, ideProfilerComponents)
+    profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, window,
+                                                                                                      ideProfilerComponents, project)
     else StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
     Disposer.register(this, profilersTab)
 

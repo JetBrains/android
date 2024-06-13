@@ -27,7 +27,6 @@ import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -120,6 +119,7 @@ import java.util.concurrent.TimeoutException
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
@@ -755,6 +755,7 @@ class LogcatMainPanelTest {
     waitForCondition { logcatMainPanel.logcatServiceJob == null }
   }
 
+  @Ignore("b/344987760")
   @Test
   fun resumeLogcat_jobResumed() = runBlocking {
     val message1 =
@@ -764,15 +765,15 @@ class LogcatMainPanelTest {
       )
     deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel().also { waitForCondition { it.getConnectedDevice() != null && it.logcatServiceJob != null} }
+      logcatMainPanel().also {
+        waitForCondition { it.getConnectedDevice() != null && it.logcatServiceJob != null }
+      }
     }
     logcatMainPanel.pauseLogcat()
     waitForCondition { logcatMainPanel.logcatServiceJob == null }
 
     logcatMainPanel.resumeLogcat()
-    waitForCondition {
-      !logcatMainPanel.isLogcatPaused() && logcatMainPanel.logcatServiceJob != null
-    }
+    waitForCondition { fakeLogcatService.invocations.get() == 2 }
     fakeLogcatService.logMessages(message1)
 
     waitForCondition { logcatMainPanel.editor.document.lineCount == 2 }

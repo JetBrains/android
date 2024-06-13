@@ -34,6 +34,7 @@
         serviceImplementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTrackerImpl" />
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
+    <postStartupActivity implementation="com.android.tools.idea.debug.AndroidDebuggerAddFilterStartupActivity"/>
   </extensions>
 
   <projectListeners>

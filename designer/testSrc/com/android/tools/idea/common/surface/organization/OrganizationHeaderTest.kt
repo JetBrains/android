@@ -20,7 +20,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
-import com.android.tools.adtui.compose.JewelTestTheme
+import com.android.tools.adtui.compose.StudioTestTheme
 import com.intellij.util.ui.UIUtil
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -38,7 +38,7 @@ class OrganizationHeaderTest {
   @Test
   fun openAndCloseGroup() {
     val group = OrganizationGroup("method", "group")
-    composeTestRule.setContent { JewelTestTheme(darkMode = false) { OrganizationHeader(group) } }
+    composeTestRule.setContent { StudioTestTheme(darkMode = false) { OrganizationHeader(group) } }
     assertEquals(true, group.isOpened.value)
     composeTestRule.onNodeWithTag("openButton").performClick()
     assertEquals(false, group.isOpened.value)
@@ -49,7 +49,7 @@ class OrganizationHeaderTest {
   @Test
   fun nameIsDisplayed() {
     val group = OrganizationGroup("method", "Organization Display Name")
-    composeTestRule.setContent { JewelTestTheme(darkMode = false) { OrganizationHeader(group) } }
+    composeTestRule.setContent { StudioTestTheme(darkMode = false) { OrganizationHeader(group) } }
     composeTestRule
       .onNodeWithTag("displayName", true)
       .assertTextContains("Organization Display Name")
@@ -69,7 +69,7 @@ class OrganizationHeaderTest {
   fun previewHeader() {
     val group = OrganizationGroup("method", "Organization Group")
     singleWindowApplication(title = "Preview") {
-      JewelTestTheme(darkMode = false) { OrganizationHeader(group) }
+      StudioTestTheme(darkMode = false) { OrganizationHeader(group) }
     }
   }
 }

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.ml.xmltocompose
 
+import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.buildPrompt
-import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.toList
@@ -91,7 +91,7 @@ private constructor(private val project: Project, private val nShots: List<Strin
     buildPrompt(project) {
       userMessage {
         text("$PROMPT_PREFIX ${nShots.joinToString(" ")}", filesUsed = emptyList())
-        code(xml, XMLLanguage.INSTANCE, filesUsed = emptyList())
+        code(xml, MimeType.XML, filesUsed = emptyList())
       }
     }
 

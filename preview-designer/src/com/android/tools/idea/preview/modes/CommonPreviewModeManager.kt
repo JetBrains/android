@@ -17,13 +17,22 @@ package com.android.tools.idea.preview.modes
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 /** Common implementation of a [PreviewModeManager]. */
 class CommonPreviewModeManager : PreviewModeManager {
 
-  private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default())
+  private val _mode = MutableStateFlow<PreviewMode>(getStoredDefaultValue())
   override val mode = _mode.asStateFlow()
   private val lock = Any()
+
+  private fun getStoredDefaultValue() =
+    when (AndroidEditorSettings.getInstance().globalState.preferredPreviewLayoutMode) {
+      AndroidEditorSettings.LayoutType.LIST -> PreviewMode.Default(LIST_LAYOUT_OPTION)
+      AndroidEditorSettings.LayoutType.GRID -> PreviewMode.Default(GRID_LAYOUT_OPTION)
+      AndroidEditorSettings.LayoutType.GALLERY -> PreviewMode.Gallery(null)
+      else -> PreviewMode.Default()
+    }
 
   /**
    * When entering one of the [PreviewMode.Focus] modes (interactive, animation, etc.), the previous

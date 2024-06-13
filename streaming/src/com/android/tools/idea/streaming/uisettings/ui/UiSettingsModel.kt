@@ -35,7 +35,7 @@ internal enum class FontScale(val percent: Int) {
   LARGE_200(200);  // Added in API 34
 
   companion object {
-    val scaleMap = FontScale.values().map { it.percent }
+    val scaleMap = FontScale.entries.map { it.percent }
   }
 }
 
@@ -51,7 +51,7 @@ internal enum class WearFontScale(val percent: Int) {
   LARGEST(124);
 
   companion object {
-    val scaleMap = WearFontScale.values().map { it.percent }
+    val scaleMap = WearFontScale.entries.map { it.percent }
   }
 }
 
@@ -85,9 +85,9 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
    * See [FontScale]
    */
   private fun numberOfFontScales(api: Int): Int = when {
-    isWear -> WearFontScale.values().size
+    isWear -> WearFontScale.entries.size
     api == 33 -> 4
-    else -> FontScale.values().size
+    else -> FontScale.entries.size
   }
 
   /**

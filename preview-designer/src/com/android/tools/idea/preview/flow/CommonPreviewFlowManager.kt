@@ -21,7 +21,7 @@ import com.android.tools.idea.concurrency.SyntaxErrorUpdate
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.concurrency.syntaxErrorFlow
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -150,7 +150,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
   fun <K : PsiPreviewElement> CoroutineScope.initializeFlows(
     disposable: Disposable,
     previewModeManager: PreviewModeManager,
-    psiCodeFileChangeDetectorService: PsiCodeFileChangeDetectorService,
+    psiCodeFileOutOfDateStatusReporter: PsiCodeFileOutOfDateStatusReporter,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     invalidate: () -> Unit,
     requestRefresh: () -> Unit,
@@ -306,11 +306,11 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
               // problems removed.
               .filter {
                 isFastPreviewAvailable() &&
-                  psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()
+                  psiCodeFileOutOfDateStatusReporter.outOfDateFiles.isNotEmpty()
               }
               .filter { file ->
                 // We only care about this in Kotlin files when they are out of date.
-                psiCodeFileChangeDetectorService.outOfDateKtFiles
+                psiCodeFileOutOfDateStatusReporter.outOfDateKtFiles
                   .map { it.virtualFile }
                   .any { it == file }
               },
@@ -321,7 +321,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
             // trigger a compilation. Otherwise, we will just refresh normally.
             if (
               isFastPreviewAvailable() &&
-                psiCodeFileChangeDetectorService.outOfDateKtFiles.isNotEmpty()
+                psiCodeFileOutOfDateStatusReporter.outOfDateKtFiles.isNotEmpty()
             ) {
               try {
                 requestFastPreviewRefresh()

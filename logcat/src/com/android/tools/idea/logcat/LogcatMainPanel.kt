@@ -46,12 +46,12 @@ import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarActi
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PauseLogcatAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
-import com.android.tools.idea.logcat.actions.RestartLogcatAction
+import com.android.tools.idea.logcat.actions.RestartOrReloadLogcatAction
 import com.android.tools.idea.logcat.actions.SaveLogcatAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.devices.DeviceComboBox
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
 import com.android.tools.idea.logcat.files.LogcatFileData
@@ -335,7 +335,7 @@ constructor(
   private val projectAppMonitor =
     ProjectAppMonitor(project.getService(ProcessNameMonitor::class.java), packageNamesProvider)
 
-  @VisibleForTesting internal var logcatServiceJob: Job? = null
+  @Volatile @VisibleForTesting internal var logcatServiceJob: Job? = null
   private var editorWidth = 0
 
   init {
@@ -343,7 +343,9 @@ constructor(
       installPopupHandler(
         object : ContextMenuPopupHandler() {
           override fun getActionGroup(event: EditorMouseEvent): ActionGroup =
-            getPopupActionGroup(splitterPopupActionGroup.getChildren(null))
+            getPopupActionGroup(
+              splitterPopupActionGroup.getChildren(null, ActionManager.getInstance())
+            )
         }
       )
       if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
@@ -531,7 +533,7 @@ constructor(
             is StartLogcat -> startLogcat(it.device).also { isLogcatPaused = false }
             StopLogcat -> connectedDevice.set(null).let { null }
             PauseLogcat -> null.also { isLogcatPaused = true }
-            is LoadLogcatFile -> loadLogcatFile(it.logcatFileData).let { null }
+            is LoadLogcatFile -> loadLogcatFile(it.logcatFileData, loadFilter = true).let { null }
           }
       }
     }
@@ -729,6 +731,8 @@ constructor(
 
   override fun getSelectedDevice() = deviceComboBox.getSelectedDevice()
 
+  override fun getSelectedItem(): DeviceComboItem? = deviceComboBox.item
+
   override fun countFilterMatches(filter: LogcatFilter?): Int {
     return LogcatMasterFilter(filter)
       .filter(messageBacklog.get().messages)
@@ -746,7 +750,7 @@ constructor(
     return DefaultActionGroup().apply {
       add(ClearLogcatAction())
       add(PauseLogcatAction())
-      add(RestartLogcatAction())
+      add(RestartOrReloadLogcatAction())
       add(LogcatScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
@@ -850,6 +854,11 @@ constructor(
     coroutineScope.launch { logcatServiceChannel.send(StartLogcat(device)) }
   }
 
+  override fun reloadFile() {
+    val path = deviceComboBox.getSelectedFile() ?: return
+    coroutineScope.launch { loadLogcatFile(LogcatFileIo().readLogcat(path), loadFilter = false) }
+  }
+
   override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
 
   override fun isShowing(): Boolean {
@@ -914,17 +923,19 @@ constructor(
     }
   }
 
-  private suspend fun loadLogcatFile(data: LogcatFileData?) {
-    val filter = data.safeGetFilter()
+  private suspend fun loadLogcatFile(data: LogcatFileData?, loadFilter: Boolean) {
     withContext(uiThread) {
       document.setText("")
-      setFilter(filter)
       messageBacklog.get().clear()
-      applyFilter(logcatFilterParser.parse(filter, headerPanel.filterMatchCase))
+      if (loadFilter) {
+        val filter = data.safeGetFilter()
+        if (filter != null) {
+          setFilter(filter)
+          applyFilter(logcatFilterParser.parse(filter, headerPanel.filterMatchCase))
+        }
+      }
     }
-    if (data != null) {
-      processMessages(data.logcatMessages)
-    }
+    data?.logcatMessages?.chunked(500)?.forEach { processMessages(it) }
   }
 
   private fun scrollToEnd() {
@@ -1002,9 +1013,9 @@ constructor(
   private sealed class LogcatServiceEvent {
     class StartLogcat(val device: Device) : LogcatServiceEvent()
 
-    object StopLogcat : LogcatServiceEvent()
+    data object StopLogcat : LogcatServiceEvent()
 
-    object PauseLogcat : LogcatServiceEvent()
+    data object PauseLogcat : LogcatServiceEvent()
 
     class LoadLogcatFile(val logcatFileData: LogcatFileData?) : LogcatServiceEvent()
   }
@@ -1027,7 +1038,7 @@ constructor(
   }
 }
 
-private fun LogcatPanelConfig.getInitialItem(): DeviceComboBox.DeviceComboItem? {
+private fun LogcatPanelConfig.getInitialItem(): DeviceComboItem? {
   return when {
     device != null -> DeviceItem(device)
     file != null -> FileItem(Path.of(file))

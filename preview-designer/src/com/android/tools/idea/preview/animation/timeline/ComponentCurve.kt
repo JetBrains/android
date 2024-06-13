@@ -85,11 +85,14 @@ class ComponentCurve(
             // Do nothing if curve is flat.
           }
           else -> {
-            val stepY = (maxY - minY) / (component.maxValue - animationYMin)
+            val valueRange = component.maxValue - component.minValue
+            val yRange = maxY - minY
+            val stepY = if (valueRange != 0.0) yRange / valueRange else 0.0
+
             component.points.forEach { (ms, value) ->
               curve.lineTo(
                 positionProxy.xPositionForValue(ms).toDouble(),
-                maxY - (value.toDouble() - animationYMin) * stepY,
+                maxY - (value - animationYMin) * stepY,
               )
             }
           }

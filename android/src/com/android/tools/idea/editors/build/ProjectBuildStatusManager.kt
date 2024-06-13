@@ -169,16 +169,23 @@ private class ProjectBuildStatusManagerImpl(
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().isBuilding ||
         FastPreviewManager.getInstance(project).isCompiling
 
-  private val psiCodeFileChangeDetector = PsiCodeFileChangeDetectorService.getInstance(project)
+  private val myPsiCodeFileUpToDateStatusRecorder = PsiCodeFileUpToDateStatusRecorder.getInstance(project)
   private val buildListener =
     object : ProjectSystemBuildManager.BuildListener {
       private val buildCounter = AtomicInteger(0)
-      private val outOfDateFilesBeforeBuild = mutableSetOf<PsiFile>()
+
+      /**
+       * Holds a list of actions that make up-to-date those files that were out-of-date when the build started.
+       *
+       * Actions obtained from [PsiCodeFileUpToDateStatusRecorder] are added to the list by [buildStarted] method and are removed
+       * when the build completes in [buildCompleted]. If the build fails the removed actions are simply discarded without being invoked.
+       */
+      private val preparedMarkUpToDateActions = mutableListOf<PsiCodeFileUpToDateStatusRecorder.MarkUpToDateAction>()
 
       override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
         val buildCount = buildCounter.incrementAndGet()
         LOG.debug("buildStarted $mode, buildCount = $buildCount")
-        outOfDateFilesBeforeBuild.addAll(psiCodeFileChangeDetector.outOfDateFiles)
+        preparedMarkUpToDateActions.add(myPsiCodeFileUpToDateStatusRecorder.prepareMarkUpToDate())
         if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
           // For a clean build, we know the project will need a build
           projectBuildStatusFlow.value = ProjectBuildStatus.NeedsBuild
@@ -195,14 +202,14 @@ private class ProjectBuildStatusManagerImpl(
           // More builds are still pending
           return
         }
-        val outOfDateFilesToClear = outOfDateFilesBeforeBuild.toSet() // Create a copy
-        outOfDateFilesBeforeBuild.clear()
+        val outOfDateFilesToClear = preparedMarkUpToDateActions.toSet() // Create a copy
+        preparedMarkUpToDateActions.clear()
         if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
           return
         }
         val newProjectBuildStatus =
           if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
-            psiCodeFileChangeDetector.markAsUpToDate(outOfDateFilesToClear)
+            outOfDateFilesToClear.forEach { it.markUpToDate() }
             // Clear the resources out of date flag
             areResourcesOutOfDateFlow.value = false
             ProjectBuildStatus.Built
@@ -232,7 +239,7 @@ private class ProjectBuildStatusManagerImpl(
   init {
     scope.launch(dispatcher) {
       combine(
-        PsiCodeFileChangeDetectorService.getInstance(project).fileUpdatesFlow,
+        PsiCodeFileOutOfDateStatusReporter.getInstance(project).fileUpdatesFlow,
         projectBuildStatusFlow,
         areResourcesOutOfDateFlow,
         fastPreviewCompileFlow(project, parentDisposable)
@@ -269,7 +276,7 @@ private class ProjectBuildStatusManagerImpl(
             result: CompilationResult,
             files: Collection<PsiFile>
           ) {
-            if (result.isSuccess) psiCodeFileChangeDetector.markAsUpToDate(files)
+            if (result.isSuccess) myPsiCodeFileUpToDateStatusRecorder.markAsUpToDate(files)
           }
         }
       )

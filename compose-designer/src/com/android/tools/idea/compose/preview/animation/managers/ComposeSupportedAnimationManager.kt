@@ -23,8 +23,8 @@ import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.getAnimatedProperties
 import com.android.tools.idea.compose.preview.animation.setClockTime
-import com.android.tools.idea.compose.preview.animation.state.AnimationState
-import com.android.tools.idea.compose.preview.animation.state.AnimationState.Companion.createState
+import com.android.tools.idea.compose.preview.animation.state.ComposeAnimationState
+import com.android.tools.idea.compose.preview.animation.state.ComposeAnimationState.Companion.createState
 import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
 import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
 import com.android.tools.idea.preview.animation.AnimatedProperty
@@ -74,7 +74,7 @@ open class ComposeSupportedAnimationManager(
     updateTimelineElementsCallback,
   ) {
 
-  override val animationStateManager: AnimationState =
+  override val animationStateManager: ComposeAnimationState =
     animation.createState(tracker, animation.findCallback())
 
   override suspend fun resetCallback(longTimeout: Boolean) {

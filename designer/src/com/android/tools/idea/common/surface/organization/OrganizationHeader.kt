@@ -30,11 +30,12 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.compose.StudioTheme
 import com.intellij.icons.ExpUiIcons
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import javax.swing.JComponent
-import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
@@ -83,5 +84,9 @@ fun OrganizationHeader(group: OrganizationGroup) {
 @OptIn(ExperimentalJewelApi::class)
 fun createOrganizationHeader(group: OrganizationGroup): JComponent {
   enableNewSwingCompositing()
-  return ComposePanel().apply { setContent { SwingBridgeTheme { OrganizationHeader(group) } } }
+  return ComposePanel().apply { setContent { StudioTheme { OrganizationHeader(group) } } }
+}
+
+fun createTestOrganizationHeader(group: OrganizationGroup): JComponent {
+  return JBLabel(group.displayName.value)
 }

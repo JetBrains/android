@@ -63,7 +63,7 @@ private val IS_FILTERS =
     "crash" to { CrashFilter(it) },
     "firebase" to { RegexFilter(firebaseRegex, TAG, matchCase = true, it) },
     "stacktrace" to { StackTraceFilter(it) },
-  ) + LogLevel.values().associate { level -> level.stringValue to { ExactLevelFilter(level, it) } }
+  ) + LogLevel.entries.associate { level -> level.stringValue to { ExactLevelFilter(level, it) } }
 
 /** Parses a Logcat Filter expression into a [LogcatFilter] */
 internal class LogcatFilterParser(

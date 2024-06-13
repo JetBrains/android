@@ -17,17 +17,16 @@ package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.animation.actions.ColorStateAction
-import com.android.tools.idea.preview.animation.actions.SwapAction
-import com.android.tools.idea.preview.animation.actions.ToolbarLabel
+import com.android.tools.idea.preview.animation.state.SwapAction
+import com.android.tools.idea.preview.animation.state.ToolbarLabel
 import com.intellij.openapi.actionSystem.AnAction
 
 /**
- * [AnimationState] for animations where initial and target states should be selected with a color
- * picker.
+ * [ComposeAnimationState] for animations where initial and target states should be selected with a
+ * color picker.
  */
 class ColorPickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  AnimationState(callback) {
+  ComposeAnimationState(callback) {
 
   private val initialState =
     ColorStateAction(tracker = tracker, onPropertiesUpdated = stateCallback)

@@ -21,8 +21,10 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.surface.NopInteractionHandler
+import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
@@ -220,6 +222,7 @@ class ComposePreviewViewImplTest {
           1.0,
           true,
         )
+      previewView.component.findDescendant<SceneViewPanel>()!!.setNoComposeHeadersForTests()
       fakeUi.root.validate()
     }
 

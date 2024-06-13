@@ -33,6 +33,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.parseComposeGroups
+import com.android.tools.idea.run.deployment.liveedit.analysis.toStringWithLineInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.addIfNotNull
 import org.jetbrains.kotlin.backend.common.output.OutputFile
@@ -88,7 +89,7 @@ internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassPro
     }
 
     val groupTable = computeGroupTable(irClasses, groups)
-    debug.log("$groupTable")
+    debug.log(groupTable.toStringWithLineInfo(sourceFile))
 
     // If a Composable lambda is created in a non-Compose context, re-instantiating it requires restarting the activity. The most common
     // occurrence of this is a lambda passed to setContent() inside the onCreate() method of a Compose activity
@@ -127,11 +128,11 @@ internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassPro
 
       val group = groupTable.getComposeGroup(method)
 
-      // Changes to non-composable methods require activity restart to ensure we re-run the changes. The ComposableSingletons class is not
-      // directly associated with a group but is a special case.
+      // Changes to non-composable methods require a full state invalidation to ensure we re-run the changes. The ComposableSingletons class
+      // is not directly associated with a group but is a special case.
       if (group == null && !method.clazz.name.contains("ComposableSingletons$")) {
-        logger.info("LiveEdit will restart activity due to non-Compose changes in $method")
-        outputs.invalidateMode = InvalidateMode.RESTART_ACTIVITY
+        logger.info("LiveEdit will fully invalidate the tree due to non-Compose changes in $method")
+        outputs.invalidateMode = InvalidateMode.SAVE_AND_LOAD
         outputs.hasNonComposeChanges = true
         break
       }

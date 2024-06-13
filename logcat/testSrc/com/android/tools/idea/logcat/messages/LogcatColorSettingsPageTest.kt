@@ -32,8 +32,8 @@ class LogcatColorSettingsPageTest {
     val descriptors =
       logcatColorSettingsPage.attributeDescriptors.associate { it.displayName to it.key }
 
-    assertThat(descriptors.size).isEqualTo(LogLevel.values().size * 2)
-    for (level in LogLevel.values()) {
+    assertThat(descriptors.size).isEqualTo(LogLevel.entries.size * 2)
+    for (level in LogLevel.entries) {
       val name = level.name.lowercase(Locale.getDefault()).usLocaleCapitalize()
       assertThat(descriptors)
         .containsEntry(
@@ -52,8 +52,8 @@ class LogcatColorSettingsPageTest {
   fun additionalHighlightingTagToDescriptorMap() {
     val map = logcatColorSettingsPage.additionalHighlightingTagToDescriptorMap
 
-    assertThat(map.size).isEqualTo(LogLevel.values().size * 2)
-    for (level in LogLevel.values()) {
+    assertThat(map.size).isEqualTo(LogLevel.entries.size * 2)
+    for (level in LogLevel.entries) {
       assertThat(map).containsEntry(level.toIndicatorTag(), colors.getLogLevelKey(level))
       assertThat(map).containsEntry(level.toMessageTag(), colors.getMessageKey(level))
     }
@@ -69,8 +69,8 @@ class LogcatColorSettingsPageTest {
         .filter { it.contains("Sample") }
         .map { it.substring(it.indexOf("<")) }
 
-    assertThat(lines.size).isEqualTo(LogLevel.values().size)
-    for (level in LogLevel.values()) {
+    assertThat(lines.size).isEqualTo(LogLevel.entries.size)
+    for (level in LogLevel.entries) {
       val indicatorTag = level.toIndicatorTag()
       val messageTag = level.toMessageTag()
       assertThat(lines)
@@ -81,6 +81,6 @@ class LogcatColorSettingsPageTest {
   }
 }
 
-private fun LogLevel.toIndicatorTag() = "${priorityLetter.toLowerCase()}"
+private fun LogLevel.toIndicatorTag() = "${priorityLetter.lowercaseChar()}"
 
-private fun LogLevel.toMessageTag() = "${priorityLetter.toLowerCase()}m"
+private fun LogLevel.toMessageTag() = "${priorityLetter.lowercaseChar()}m"

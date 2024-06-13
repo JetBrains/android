@@ -396,19 +396,20 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun disableBitmapCapturingTrueWhenInRunningDevices(): Unit = withEmbeddedLayoutInspector {
-    runBlocking {
-      val disableBitmapScreenshotReceived = ReportingCountDownLatch(1)
-      inspectionRule.viewInspector.listenWhen({ it.hasDisableBitmapScreenshotCommand() }) { command
-        ->
-        assertThat(command.disableBitmapScreenshotCommand.disable).isTrue()
-        disableBitmapScreenshotReceived.countDown()
-      }
+  fun enableBitmapCapturingTrueWhenInStandalone() =
+    withEmbeddedLayoutInspector(false) {
+      runBlocking {
+        val enableBitmapScreenshotReceived = ReportingCountDownLatch(1)
+        inspectionRule.viewInspector.listenWhen({ it.hasEnableBitmapScreenshotCommand() }) { command
+          ->
+          assertThat(command.enableBitmapScreenshotCommand.enable).isTrue()
+          enableBitmapScreenshotReceived.countDown()
+        }
 
-      inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-      disableBitmapScreenshotReceived.await(TIMEOUT, TIMEOUT_UNIT)
+        inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+        enableBitmapScreenshotReceived.await(TIMEOUT, TIMEOUT_UNIT)
+      }
     }
-  }
 
   @Test
   fun statsInitializedWhenConnectedA() {

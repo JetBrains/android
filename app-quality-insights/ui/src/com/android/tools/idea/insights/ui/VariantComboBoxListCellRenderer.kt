@@ -18,12 +18,15 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.idea.insights.IssueVariant
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBFont
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Font
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.Icon
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
@@ -31,6 +34,9 @@ import javax.swing.SwingConstants
 sealed interface Row {
   fun getRendererComponent(): Component
 }
+
+private val labelFont: Font
+  get() = UIUtil.getLabelFont()
 
 /** A row containing variant information. */
 data class VariantRow(
@@ -74,6 +80,7 @@ data class VariantRow(
       this.icon = icon
       toolTipText = value
       text = value
+      font = labelFont
     }
   }
 }
@@ -96,25 +103,26 @@ data class DisabledTextRow(val text: String) : Row {
 
 /** Represents the header of the variants list. */
 object HeaderRow : Row {
-  private val rendererComponent =
-    JPanel(BorderLayout()).apply {
-      add(
-        JBLabel("Variants").apply {
-          isOpaque = false
-          font = font.deriveFont(JBFont.BOLD)
-        },
-        BorderLayout.WEST,
-      )
-      add(
-        JBLabel("Impact").apply {
-          isOpaque = false
-          horizontalAlignment = SwingConstants.RIGHT
-          font = font.deriveFont(JBFont.BOLD)
-        },
-        BorderLayout.EAST,
-      )
-      isOpaque = false
-    }
+  private val component: JComponent
+    get() =
+      JPanel(BorderLayout()).apply {
+        add(
+          JBLabel("Variants").apply {
+            isOpaque = false
+            font = labelFont.deriveFont(JBFont.BOLD)
+          },
+          BorderLayout.WEST,
+        )
+        add(
+          JBLabel("Impact").apply {
+            isOpaque = false
+            horizontalAlignment = SwingConstants.RIGHT
+            font = labelFont.deriveFont(JBFont.BOLD)
+          },
+          BorderLayout.EAST,
+        )
+        isOpaque = false
+      }
 
-  override fun getRendererComponent() = rendererComponent
+  override fun getRendererComponent() = component
 }

@@ -24,7 +24,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.preview.FilePreviewElementProvider
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewElementFilter
@@ -146,7 +146,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
   fun CoroutineScope.initializeFlows(
     disposable: Disposable,
     previewModeManager: PreviewModeManager,
-    psiCodeFileChangeDetectorService: PsiCodeFileChangeDetectorService,
+    psiCodeFileOutOfDateStatusReporter: PsiCodeFileOutOfDateStatusReporter,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     invalidate: () -> Unit,
     requestRefresh: () -> Unit,
@@ -162,7 +162,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
         initializeFlows(
           disposable = disposable,
           previewModeManager = previewModeManager,
-          psiCodeFileChangeDetectorService = psiCodeFileChangeDetectorService,
+          psiCodeFileOutOfDateStatusReporter = psiCodeFileOutOfDateStatusReporter,
           psiFilePointer = psiFilePointer,
           invalidate = invalidate,
           requestRefresh = requestRefresh,

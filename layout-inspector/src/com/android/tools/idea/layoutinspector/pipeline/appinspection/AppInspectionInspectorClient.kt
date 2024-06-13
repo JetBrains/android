@@ -58,6 +58,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -185,29 +186,19 @@ class AppInspectionInspectorClient(
 
         logEventToMetrics(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-        when (val setFlagResult = debugViewAttributes.set(process.device)) {
-          is SetFlagResult.Set -> {
-            if (!setFlagResult.previouslySet) {
-              // Show the banner only if debugViewAttributes has changed.
-              showActivityRestartedInBanner(notificationModel)
-            }
-          }
-          is SetFlagResult.Failure -> {
-            showUnableToSetDebugViewAttributesBanner(notificationModel)
-          }
-          is SetFlagResult.Cancelled -> {}
-        }
+        val debugViewAttributesDeferred = coroutineScope.async { enableDebugViewAttributes() }
+        val enableBitmapScreenshotsDeferred = coroutineScope.async { enableBitmapScreenshots() }
 
-        val completableDeferred = CompletableDeferred<Unit>()
+        // Perform setup operations in parallel.
+        debugViewAttributesDeferred.await()
+        enableBitmapScreenshotsDeferred.await()
+
+        val viewUpdateDeferred = CompletableDeferred<Unit>()
         val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->
-          completableDeferred.complete(Unit)
+          viewUpdateDeferred.complete(Unit)
         }
 
         model.addModificationListener(updateListener)
-
-        if (inspectorClientSettings.disableBitmapScreenshot) {
-          disableBitmapScreenshots(true)
-        }
 
         if (inLiveMode) {
           startFetchingInternal()
@@ -216,7 +207,7 @@ class AppInspectionInspectorClient(
         }
 
         // wait until we start receiving updates
-        completableDeferred.await()
+        viewUpdateDeferred.await()
         model.removeModificationListener(updateListener)
       }
       .recover { t ->
@@ -228,6 +219,28 @@ class AppInspectionInspectorClient(
         }
         throw t
       }
+  }
+
+  private suspend fun enableBitmapScreenshots() {
+    if (inspectorClientSettings.enableBitmapScreenshot) {
+      enableBitmapScreenshots(true)
+    }
+  }
+
+  /** Enables debug view attributes and shows a banner when necessary. */
+  private suspend fun enableDebugViewAttributes() {
+    when (val setFlagResult = debugViewAttributes.set(process.device)) {
+      is SetFlagResult.Set -> {
+        if (!setFlagResult.previouslySet) {
+          // Show the banner only if debugViewAttributes has changed.
+          showActivityRestartedInBanner(notificationModel)
+        }
+      }
+      is SetFlagResult.Failure -> {
+        showUnableToSetDebugViewAttributesBanner(notificationModel)
+      }
+      is SetFlagResult.Cancelled -> {}
+    }
   }
 
   /**
@@ -323,9 +336,9 @@ class AppInspectionInspectorClient(
     viewInspector?.startFetching(continuous = true)
   }
 
-  private suspend fun disableBitmapScreenshots(disable: Boolean) {
-    // TODO(b/265150325) disableBitmapScreenshots to stats
-    viewInspector?.disableBitmapScreenshots(disable)
+  private suspend fun enableBitmapScreenshots(enable: Boolean) {
+    // TODO(b/265150325) enableBitmapScreenshots to stats
+    viewInspector?.enableBitmapScreenshots(enable)
   }
 
   override suspend fun stopFetching() {

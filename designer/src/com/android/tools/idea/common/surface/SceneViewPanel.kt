@@ -24,7 +24,9 @@ import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.organization.SceneViewHeader
+import com.android.tools.idea.common.surface.organization.createOrganizationHeader
 import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
+import com.android.tools.idea.common.surface.organization.createTestOrganizationHeader
 import com.android.tools.idea.common.surface.organization.paintLines
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -47,6 +49,7 @@ import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 /**
  * A [JPanel] responsible for displaying [SceneView]s provided by the [sceneViewProvider].
@@ -60,7 +63,7 @@ import kotlinx.coroutines.launch
  * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and
  *   measuring the [SceneView]s
  */
-internal class SceneViewPanel(
+class SceneViewPanel(
   private val sceneViewProvider: () -> Collection<SceneView>,
   private val interactionLayersProvider: () -> Collection<Layer>,
   private val actionManagerProvider: () -> ActionManager<*>,
@@ -140,20 +143,32 @@ internal class SceneViewPanel(
     }
   }
 
+  private var organizationWasEnabled = false
+
   @UiThread
   private fun revalidateSceneViews() {
     // Check if the SceneViews are still valid
     val designSurfaceSceneViews = sceneViewProvider()
     val currentSceneViews = findSceneViews()
 
-    if (designSurfaceSceneViews == currentSceneViews) return // No updates
+    if (
+      designSurfaceSceneViews == currentSceneViews &&
+        organizationWasEnabled == organizationIsEnabled()
+    )
+      return // No updates
 
     // Invalidate the current components
     removeAll()
 
     // Headers to be added.
+    organizationWasEnabled = organizationIsEnabled()
     val headers =
-      if (organizationIsEnabled()) designSurfaceSceneViews.createOrganizationHeaders(this)
+      if (organizationWasEnabled)
+        designSurfaceSceneViews.createOrganizationHeaders(
+          this,
+          if (useTestNonComposeHeaders) ::createTestOrganizationHeader
+          else ::createOrganizationHeader,
+        )
       else mutableMapOf()
 
     groups.clear()
@@ -203,6 +218,21 @@ internal class SceneViewPanel(
       ?.currentLayout
       ?.value
       ?.organizationEnabled == true
+
+  /** Use [createTestOrganizationHeader] instead of [createOrganizationHeader] if true. */
+  private var useTestNonComposeHeaders = false
+
+  /**
+   * Due to issue b/346722476 in Compose for Desktop, some of FakeUI tests are failing with some of
+   * the Compose for Desktop components. [setNoComposeHeadersForTests] allows to use test
+   * non-compose component [createTestOrganizationHeader] instead of compose
+   * [createOrganizationHeader] for these tests. Should ONLY be used if a FakeUI test is failing
+   * with same b/346722476 error.
+   */
+  @TestOnly
+  fun setNoComposeHeadersForTests() {
+    useTestNonComposeHeaders = true
+  }
 
   override fun doLayout() {
     revalidateSceneViews()

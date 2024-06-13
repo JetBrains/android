@@ -16,17 +16,16 @@
 package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
-import com.android.tools.idea.compose.preview.animation.actions.EnumStateAction
-import com.android.tools.idea.preview.animation.actions.SwapAction
+import com.android.tools.idea.preview.animation.state.SwapAction
 
 /**
- * [AnimationState] to control animations like AnimatedVisibility.
+ * [ComposeAnimationState] to control animations like AnimatedVisibility.
  *
  * @param tracker usage tracker for animation tooling
  * @param callback when state has changed
  */
 class SingleState(private val tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  AnimationState(callback) {
+  ComposeAnimationState(callback) {
 
   private val enumState = EnumStateAction(stateCallback)
 

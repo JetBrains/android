@@ -26,7 +26,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.adtui.compose.JewelTestTheme
+import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -87,7 +87,7 @@ class RecordingScreenTest {
     singleWindowApplication(
       title = "Testing Recording Screen in Light Theme",
     ) {
-      JewelTestTheme(darkMode = false) {
+      StudioTestTheme(darkMode = false) {
         setupRecording(isStoppable = true)
         val stage = CpuProfilerStage(myProfilers)
         val recordingScreenModel = stage.recordingScreenModel!!
@@ -104,7 +104,7 @@ class RecordingScreenTest {
     singleWindowApplication(
       title = "Testing Recording Screen in Dark Theme",
     ) {
-      JewelTestTheme(darkMode = true) {
+      StudioTestTheme(darkMode = true) {
         setupRecording(isStoppable = true)
         val stage = CpuProfilerStage(myProfilers)
         val recordingScreenModel = stage.recordingScreenModel!!
@@ -121,7 +121,7 @@ class RecordingScreenTest {
     singleWindowApplication(
       title = "Testing Recording Screen in Light Theme",
     ) {
-      JewelTestTheme(darkMode = false) {
+      StudioTestTheme(darkMode = false) {
         setupRecording(isStoppable = false)
         val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
         RecordingScreen(recordingScreenModel)
@@ -135,7 +135,7 @@ class RecordingScreenTest {
     singleWindowApplication(
       title = "Testing Recording Screen in Dark Theme",
     ) {
-      JewelTestTheme(darkMode = true) {
+      StudioTestTheme(darkMode = true) {
         setupRecording(isStoppable = false)
         val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
         RecordingScreen(recordingScreenModel)
@@ -147,7 +147,7 @@ class RecordingScreenTest {
   fun `test stoppable (CPU) recording screen`() {
     val stage = CpuProfilerStage(myProfilers)
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         setupRecording(isStoppable = true)
         val recordingScreenModel = stage.recordingScreenModel!!
         RecordingScreen(recordingScreenModel)
@@ -165,7 +165,7 @@ class RecordingScreenTest {
   @Test
   fun `test non stoppable (memory) recording screen`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         setupRecording(isStoppable = false)
         val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
         RecordingScreen(recordingScreenModel)
@@ -177,11 +177,11 @@ class RecordingScreenTest {
   }
 
   @Test
-  fun `test clicking stop button disables button`() {
+  fun `test clicking stop button disables button and enters stopping state`() {
     val stage = CpuProfilerStage(myProfilers)
     val recordingScreenModel = stage.recordingScreenModel!!
     composeTestRule.setContent {
-      JewelTestTheme (darkMode = true) {
+      StudioTestTheme (darkMode = true) {
         setupRecording(isStoppable = false)
         RecordingScreen(recordingScreenModel)
       }
@@ -202,6 +202,13 @@ class RecordingScreenTest {
 
     // Because the stop button has been clicked, the stop button should have been disabled to prevent further stop attempts.
     composeTestRule.onNodeWithTag("StopRecordingButton").assertIsNotEnabled()
+
+    // Make sure the in progress recording text has been replaced with the stopping text, as the UI has entered the stopping state.
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.RECORDING_IN_PROGRESS).assertDoesNotExist()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.STOPPING_IN_PROGRESS).assertIsDisplayed()
+    // Make sure the timer has been replaced with the stopping time warning, as the UI has entered the stopping state.
+    composeTestRule.onNodeWithText("min").assertDoesNotExist()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.STOPPING_TIME_WARNING).assertIsDisplayed()
   }
 
   private fun setupRecording(isStoppable: Boolean) {

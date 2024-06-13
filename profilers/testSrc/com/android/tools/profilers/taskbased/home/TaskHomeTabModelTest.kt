@@ -78,7 +78,7 @@ class TaskHomeTabModelTest {
   fun `test retrieval of most recent device selection`() {
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
     taskHomeTabModel.processListModel.onDeviceSelection(device)
-    assertThat(taskHomeTabModel.selectedDevice).isEqualTo(ProfilerDeviceSelection(device.model, 0, true, device))
+    assertThat(taskHomeTabModel.selectedDevice).isEqualTo(ProfilerDeviceSelection(device.model, 0, true, false, device))
   }
 
   @Test
@@ -133,7 +133,7 @@ class TaskHomeTabModelTest {
   fun `test canTaskStartFromNow with default device instance selected and no process selected`() {
     // Create and set device to be default instance of Common.Device, this should cause `canTaskRunFromRunningProcess` to return false.
     // This simulates a running device selection detected from toolbar, with the corresponding device from the pipeline not found yet.
-    val selectedDevice = ProfilerDeviceSelection("FakeDevice", 30, true, Common.Device.getDefaultInstance())
+    val selectedDevice = ProfilerDeviceSelection("FakeDevice", 30, true, false, Common.Device.getDefaultInstance())
     // Create an empty process instance as if there is no running device from transport pipeline found, there is no process to be selected
     val selectedProcess = Common.Process.getDefaultInstance()
     // Set a valid task type and add its corresponding task handler so the task handler can be used to check if the selected device and
@@ -284,7 +284,7 @@ class TaskHomeTabModelTest {
     // Select the task and populate the respective task handler
     taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.CALLSTACK_SAMPLE)
     assertTrue(canTaskStartFromNow(ProfilerTaskType.CALLSTACK_SAMPLE,
-                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, selectedDevice),
+                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, false, selectedDevice),
                                    selectedProcess, myProfilers.taskHandlers))
 
     // Populate current task handler to simulate valid state (due to lack of interface with tool window code, the current task handler can
@@ -301,7 +301,7 @@ class TaskHomeTabModelTest {
     // Attempt start of new task (should attempt to stop previous, Callstack Sample task)
     taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.NATIVE_ALLOCATIONS)
     assertTrue(canTaskStartFromNow(ProfilerTaskType.NATIVE_ALLOCATIONS,
-                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, selectedDevice),
+                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, false, selectedDevice),
                                    selectedProcess, myProfilers.taskHandlers))
 
     // Because it is difficult to simulate the launch of an actual task recording (as it requires launching a new tab), attempting a new

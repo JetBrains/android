@@ -19,7 +19,6 @@ import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.impl.PromptBuilderImpl
-import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
@@ -128,7 +127,7 @@ interface PromptBuilder {
      * @see com.android.tools.idea.studiobot.StudioBot.isContextAllowed
      * @see com.android.tools.idea.studiobot.AiExcludeService
      */
-    fun code(code: String, language: Language?, filesUsed: Collection<VirtualFile>)
+    fun code(code: String, language: MimeType?, filesUsed: Collection<VirtualFile>)
 
     /**
      * Adds data of a given type, for multi-modal models.

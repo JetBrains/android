@@ -26,7 +26,7 @@ import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.android.tools.adtui.compose.JewelTestTheme
+import com.android.tools.adtui.compose.StudioTestTheme
 import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.jewel.ui.component.Text
@@ -41,7 +41,7 @@ class AddDeviceWizardTest {
     val source = TestDeviceSource()
     TestDevices.allTestDevices.forEach(source::add)
     val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
-    composeTestRule.setContent { JewelTestTheme { wizard.Content() } }
+    composeTestRule.setContent { StudioTestTheme { wizard.Content() } }
 
     composeTestRule.onNodeWithText("Newest on device").performClick()
     composeTestRule
@@ -63,7 +63,7 @@ class AddDeviceWizardTest {
       }
     TestDevices.allTestDevices.forEach(source::add)
     val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
-    composeTestRule.setContent { JewelTestTheme { wizard.Content() } }
+    composeTestRule.setContent { StudioTestTheme { wizard.Content() } }
 
     composeTestRule.onNodeWithText("Television (4K)").performClick()
     composeTestRule.waitForIdle()
@@ -94,7 +94,7 @@ class AddDeviceWizardTest {
 
     TestDevices.allTestDevices.forEach(source::add)
     val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
-    composeTestRule.setContent { JewelTestTheme { wizard.Content() } }
+    composeTestRule.setContent { StudioTestTheme { wizard.Content() } }
 
     assertThat(wizard.nextAction.action).isNull()
 

@@ -18,11 +18,13 @@ package com.android.tools.idea.lint.inspections
 import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix
 import com.android.tools.idea.lint.inspections.AndroidLintMissingPermissionInspection.AddPermissionFix
 import com.android.tools.lint.checks.NotificationPermissionDetector
 import com.android.tools.lint.checks.PermissionDetector
 import com.android.tools.lint.detector.api.LintFix
 import com.intellij.psi.PsiElement
+import com.intellij.util.containers.map2Array
 
 class AndroidLintNotificationPermissionInspection :
   AndroidLintInspectionBase(
@@ -38,11 +40,7 @@ class AndroidLintNotificationPermissionInspection :
     if (quickfixData is LintFix.DataMap) {
       val names = quickfixData.getStringList(PermissionDetector.KEY_MISSING_PERMISSIONS)
       if (names != null) {
-        val fixes: MutableList<LintIdeQuickFix> = ArrayList(names.size)
-        for (name in names) {
-          fixes.add(AddPermissionFix(name, Int.MAX_VALUE))
-        }
-        return fixes.toTypedArray()
+        return names.map2Array { ModCommandLintQuickFix(AddPermissionFix(it, Int.MAX_VALUE)) }
       }
     }
     return super.getQuickFixes(startElement, endElement, message, quickfixData)

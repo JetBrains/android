@@ -228,40 +228,36 @@
   </configurable>
   <configurable id="nele.options" configurable_name="UI Tools">
     <option name="code" hit="Code" />
-    <option name="compose" hit="Compose files with previews:" />
-    <option name="files" hit="Compose files with previews:" />
-    <option name="previews" hit="Compose files with previews:" />
-    <option name="with" hit="Compose files with previews:" />
-    <option name="compose" hit="Compose files without previews:" />
-    <option name="files" hit="Compose files without previews:" />
-    <option name="previews" hit="Compose files without previews:" />
-    <option name="without" hit="Compose files without previews:" />
     <option name="default" hit="Default" />
-    <option name="default" hit="Default Editor Mode" />
-    <option name="editor" hit="Default Editor Mode" />
-    <option name="mode" hit="Default Editor Mode" />
     <option name="design" hit="Design" />
-    <option name="drawables" hit="Drawables:" />
+    <option name="editor" hit="Editor View Mode:" />
+    <option name="mode" hit="Editor View Mode:" />
+    <option name="view" hit="Editor View Mode:" />
     <option name="enable" hit="Enable live updates" />
     <option name="live" hit="Enable live updates" />
     <option name="updates" hit="Enable live updates" />
     <option name="essentials" hit="Essentials" />
-    <option name="files" hit="Other Kotlin files:" />
-    <option name="kotlin" hit="Other Kotlin files:" />
-    <option name="other" hit="Other Kotlin files:" />
-    <option name="e" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
-    <option name="g" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
-    <option name="layout" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
-    <option name="menu" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
-    <option name="navigation" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
-    <option name="other" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
-    <option name="resources" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="gallery" hit="Gallery" />
+    <option name="grid" hit="Grid" />
+    <option name="kotlin" hit="Kotlin:" />
+    <option name="list" hit="List" />
     <option name="preview" hit="Preview Settings" />
     <option name="settings" hit="Preview Settings" />
     <option name="resource" hit="Resource Usage:" />
     <option name="usage" hit="Resource Usage:" />
+    <option name="resource" hit="Resource:" />
+    <option name="annotation" hit="Show split mode if file contains preview annotation" />
+    <option name="contains" hit="Show split mode if file contains preview annotation" />
+    <option name="file" hit="Show split mode if file contains preview annotation" />
+    <option name="if" hit="Show split mode if file contains preview annotation" />
+    <option name="mode" hit="Show split mode if file contains preview annotation" />
+    <option name="preview" hit="Show split mode if file contains preview annotation" />
+    <option name="show" hit="Show split mode if file contains preview annotation" />
+    <option name="split" hit="Show split mode if file contains preview annotation" />
     <option name="split" hit="Split" />
     <option name="tools" hit="UI Tools" />
     <option name="ui" hit="UI Tools" />
+    <option name="mode" hit="View Mode:" />
+    <option name="view" hit="View Mode:" />
   </configurable>
 </options>

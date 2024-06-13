@@ -132,6 +132,16 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region Transport
+  private static final FlagGroup TRANSPORT = new FlagGroup(FLAGS, "transport", "Transport");
+
+  public static final Flag<Boolean> TRANSPORT_CONSERVATIVE_COPY = new BooleanFlag(
+    TRANSPORT, "conservative.copy", "Conservative copy",
+    "Copy transport and agent files only if they have changed since the latest push to the device",
+    true
+  );
+  //endregion
+
   //region Profiler
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
@@ -624,6 +634,14 @@ public final class StudioFlags {
     "Enable Logcat Protobuf format",
     true
   );
+
+  public static final Flag<Long> LOGCAT_FILE_RELOAD_DELAY_MS = new LongFlag(
+    LOGCAT,
+    "file.reload.delay.ms",
+    "Delay before reloading Logcat from file after filter change",
+    "Delay before reloading Logcat from file after filter change. If `<= 0`, file will not be reloaded",
+    TimeUnit.SECONDS.toMillis(1)
+  );
   //endregion
 
   //region Project System
@@ -968,7 +986,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS = new BooleanFlag(
     DEVICE_MIRRORING, "remote.templates.in.plus", "Show remote device templates in plus action",
     "Show and allow starting remote device from their templates through the plus action",
-    false);
+    true);
   public static final Flag<Boolean> DEVICE_MIRRORING_USE_UINPUT = new BooleanFlag(
     DEVICE_MIRRORING, "use.uinput", "Use uinput module (https://kernel.org/doc/html/v4.12/input/uinput.html)",
     "Use uinput module ((https://kernel.org/doc/html/v4.12/input/uinput.html) for injecting input events",
@@ -1246,6 +1264,12 @@ public final class StudioFlags {
     PREVIEW_COMMON, "essentials.mode", "Enable Preview Essentials Mode",
     "If enabled, Preview Essentials Mode will be enabled.",
     ChannelDefault.enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> GALLERY_PREVIEW = new BooleanFlag(
+    PREVIEW_COMMON, "preview.gallery.dropdown", "Enable new Gallery view with dropdown",
+    "If enabled, Gallery view will only have dropdown selector instead of tabs.",
+    true);
+
   //endregion
 
   //region Compose
@@ -1380,7 +1404,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_GROUP_LAYOUT = new BooleanFlag(
     COMPOSE, "preview.group.layout", "Enable organization of Compose Preview in groups",
     "If enabled, multiple previews associated with composable will be grouped. Please invalidates file caches after " +
-    "enabling or disabling (File -> Invalidate Caches...)", false);
+    "enabling or disabling (File -> Invalidate Caches...)", ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> PREVIEW_DYNAMIC_ZOOM_TO_FIT = new BooleanFlag(
     COMPOSE, "preview.dynamic.zoom.to.fit", "Enable dynamic Zoom to Fit in preview",
@@ -1937,7 +1961,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
                     "Enables the \"Suggest Commit Message\" button in the Commit tool window",
-                    false);
+                    true);
 
   public static final Flag<Boolean> README_GENERATION =
     new BooleanFlag(STUDIOBOT, "readme.generation",

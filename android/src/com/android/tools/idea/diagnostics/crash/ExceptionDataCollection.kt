@@ -83,11 +83,17 @@ class ExceptionDataCollection {
     private val regex = Regex("""(.*)\$[0-9]+""")
     fun calculateSignature(t: Throwable): String {
       val digest = MessageDigest.getInstance("SHA-1")
-      val originalStackTrace = t.stackTrace
-      if (t.stackTrace.isEmpty()) {
+
+      var rootCause = t
+      while (true) {
+        rootCause = rootCause.cause ?: break
+      }
+      val originalStackTrace = rootCause.stackTrace
+
+      if (originalStackTrace.isEmpty()) {
         return "MissingCrashedThreadStack"
       }
-      val stackTrace = removeLoggerErrorFrames(t.stackTrace)
+      val stackTrace = removeLoggerErrorFrames(originalStackTrace)
       val isLoggerError = originalStackTrace.size != stackTrace.size
       val sb = StringBuilder()
       stackTrace.slice(1 until min(6, stackTrace.size)).joinTo(sb, "") {
@@ -102,7 +108,7 @@ class ExceptionDataCollection {
         else
           ""
       }
-      val className = if (isLoggerError) LOGGER_ERROR_MESSAGE_EXCEPTION else t.javaClass.name
+      val className = if (isLoggerError) LOGGER_ERROR_MESSAGE_EXCEPTION else rootCause.javaClass.name
       val signaturePrefix = "$className at ${stackTrace[0].className}.${stackTrace[0].methodName}"
       sb.append(signaturePrefix)
       val hashBytes = digest.digest(sb.toString().toByteArray(Charset.forName("UTF-8")))

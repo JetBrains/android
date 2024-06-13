@@ -19,11 +19,15 @@ import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.palette.PalettePanel;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JListItemFixture;
+import org.fest.swing.query.ComponentShowingQuery;
+import org.fest.swing.query.ComponentSizeQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,8 +39,9 @@ import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 
-public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Component> {
+public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, PalettePanel> {
   private final PalettePanel myNewPalette;
   private SearchTextFieldFixture mySearchField;
 
@@ -50,9 +55,52 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
     myNewPalette = palette;
   }
 
+  public boolean isShowing() {
+    return ComponentShowingQuery.isShowing(target());
+  }
+
   @NotNull
   public JListFixture getCategoryList() {
     return new JListFixture(robot(), myNewPalette.getCategoryList());
+  }
+
+  public JListFixture getItemList() {
+    return new JListFixture(robot(), myNewPalette.getItemList());
+  }
+
+  @Nullable
+  public LayoutEditorFileType getLayoutEditorFileType() {
+    return execute(new GuiQuery<>() {
+      @Override
+      protected @Nullable LayoutEditorFileType executeInEDT() {
+        return target().getLayoutEditorFileType();
+      }
+    });
+  }
+
+  @Nullable
+  public String getPaletteId() {
+    LayoutEditorFileType type = getLayoutEditorFileType();
+    return type != null ? type.getPaletteId() : null;
+  }
+
+  /**
+   * When the palette is being created it may not be done with laying itself out.
+   * Both the category list and the item list must be showing and have a positive width.
+   * The {@link #getItemList(String)} may fail if we do not wait for initialization since
+   * it a mouse click is generated based on the size of the category list.
+   */
+  public void waitForInitialization(int secondsToWait, LayoutEditorFileType expectedType) {
+    Wait.seconds(secondsToWait)
+      .expecting("Palette is initialized")
+      .until(() ->
+               isShowing() &&
+               expectedType.getPaletteId().equals(getPaletteId()) &&
+               ComponentShowingQuery.isShowing(getCategoryList().target()) &&
+               ComponentSizeQuery.sizeOf(getCategoryList().target()).width > 0 &&
+               ComponentShowingQuery.isShowing(getItemList().target()) &&
+               ComponentSizeQuery.sizeOf(getItemList().target()).width > 0
+      );
   }
 
   /**

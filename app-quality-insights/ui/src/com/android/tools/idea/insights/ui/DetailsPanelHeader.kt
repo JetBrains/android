@@ -23,7 +23,6 @@ import com.intellij.openapi.ui.putUserData
 import com.intellij.openapi.util.Key
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.util.preferredWidth
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -85,9 +84,11 @@ class DetailsPanelHeader(
   val usersCountLabel = JLabel(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE)
   private val countsPanel =
     transparentPanel().apply {
-      add(eventsCountLabel)
-      add(usersCountLabel)
-      border = JBUI.Borders.emptyRight(5)
+      layout = BoxLayout(this, BoxLayout.X_AXIS)
+      add(eventsCountLabel, Box.CENTER_ALIGNMENT)
+      add(Box.createHorizontalStrut(8))
+      add(usersCountLabel, Box.CENTER_ALIGNMENT)
+      border = JBUI.Borders.emptyRight(8)
     }
 
   @VisibleForTesting val variantPanel: JPanel
@@ -126,7 +127,6 @@ class DetailsPanelHeader(
     add(countsPanel, BorderLayout.EAST)
     border =
       CompoundBorder(JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.emptyLeft(8))
-    preferredSize = Dimension(0, JBUIScale.scale(28))
 
     addComponentListener(
       object : ComponentAdapter() {
@@ -136,6 +136,11 @@ class DetailsPanelHeader(
         }
       }
     )
+  }
+
+  override fun updateUI() {
+    super.updateUI()
+    preferredSize = Dimension(0, JBUI.scale(35))
   }
 
   fun clear() {

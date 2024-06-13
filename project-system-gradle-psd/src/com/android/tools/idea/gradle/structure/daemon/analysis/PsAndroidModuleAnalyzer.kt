@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.concurrency.UiThread
+import com.android.ide.common.gradle.RichVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
@@ -78,7 +80,8 @@ class PsAndroidModuleAnalyzer(
           resolved
             .getReverseDependencies()
             .filterIsInstance<ReverseDependency.Declared>()  // TODO(b/74948244): Implement POM dependency promotion analysis.
-            .filter { it.spec < resolved.spec }.map {
+            .filter { it.spec != resolved.spec }
+            .map {
               PathSpaceAndPromotedTo(it, resolved.spec) to resolved
             }
         }
@@ -93,17 +96,18 @@ class PsAndroidModuleAnalyzer(
           .map { PsMessageScope(it.artifact.parent.buildTypeName, it.artifact.parent.productFlavorNames, it.artifact.name) }
           .toSet())
       val declaredVersion = spec.version
-      val message = if (declaredVersion == null)
-        "Gradle provided version ${promotedTo.version}"
-      else
-        "Gradle promoted library version from $declaredVersion to ${promotedTo.version}"
+      val promotedVersion = promotedTo.version
+      val (message, severity) = when {
+        declaredVersion == null -> "Gradle provided version $promotedVersion" to INFO
+        promotedVersion == null -> "Gradle promotion from $declaredVersion to unknown version" to WARNING
+        RichVersion.parse(declaredVersion).lowerBound.isPrefixInfimum ->
+          "Gradle provided version $promotedVersion for $declaredVersion" to INFO
+        Version.parse(declaredVersion) > Version.parse(promotedVersion) ->
+          "Gradle demoted library version from $declaredVersion to $promotedVersion" to WARNING
+        else -> "Gradle promoted library version from $declaredVersion to $promotedVersion" to INFO
+      }
       // TODO(b/110690694): Provide a detailed message showing all known places which request different versions of the same library.
-      PsGeneralIssue(
-        message,
-        "in: ${scopes.joinToString("\n") { it.toString() }}",
-        path,
-        PROJECT_ANALYSIS,
-        INFO)
+      PsGeneralIssue(message, "in: ${scopes.joinToString("\n") { it.toString() }}", path, PROJECT_ANALYSIS, severity)
     }
   }
 

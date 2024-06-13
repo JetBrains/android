@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.animation
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.actions.FreezeAction
+import com.android.tools.idea.preview.animation.state.AnimationStateManager
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineLine

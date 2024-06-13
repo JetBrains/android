@@ -16,18 +16,17 @@
 package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
-import com.android.tools.idea.compose.preview.animation.actions.EnumStateAction
-import com.android.tools.idea.preview.animation.actions.SwapAction
-import com.android.tools.idea.preview.animation.actions.ToolbarLabel
+import com.android.tools.idea.preview.animation.state.SwapAction
+import com.android.tools.idea.preview.animation.state.ToolbarLabel
 
 /**
- * [AnimationState] to control comboBoxes for animations like updateTransition.
+ * [ComposeAnimationState] to control comboBoxes for animations like updateTransition.
  *
  * @param tracker usage tracker for animation tooling
  * @param callback when state has changed
  */
 class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  AnimationState(callback) {
+  ComposeAnimationState(callback) {
 
   private val fromState = EnumStateAction {
     stateCallback()

@@ -42,6 +42,9 @@ void DisplayManager::InitializeStatics(Jni jni) {
 
     get_display_info_method_ = display_manager_global_class_.GetMethod("getDisplayInfo", "(I)Landroid/view/DisplayInfo;");
     get_display_ids_method_ = display_manager_global_class_.GetMethod("getDisplayIds", "()[I");
+    if (Agent::feature_level() >= 35) {
+      request_display_power_method_ = display_manager_global_class_.FindMethod("requestDisplayPower", "(IZ)V");
+    }
 
     JClass display_info_class = jni.GetClass("android/view/DisplayInfo");
     logical_width_field_ = display_info_class.GetFieldId("logicalWidth", "I");
@@ -169,10 +172,19 @@ VirtualDisplay DisplayManager::CreateVirtualDisplay(
       jni, create_virtual_display_method_, JString(jni, name).ref(), width, height, display_id, SurfaceToJava(jni, surface).ref()));
 }
 
+void DisplayManager::RequestDisplayPower(Jni jni, int32_t display_id, bool on) {
+  InitializeStatics(jni);
+  if (request_display_power_method_ != nullptr) {
+    Log::D("Turning display %s", on ? "on" : "off");
+    display_manager_global_.CallVoidMethod(jni, request_display_power_method_, display_id, jboolean(on));
+  }
+}
+
 JClass DisplayManager::display_manager_global_class_;
 JObject DisplayManager::display_manager_global_;
 jmethodID DisplayManager::get_display_info_method_ = nullptr;
 jmethodID DisplayManager::get_display_ids_method_ = nullptr;
+jmethodID DisplayManager::request_display_power_method_ = nullptr;
 jfieldID DisplayManager::logical_width_field_ = nullptr;
 jfieldID DisplayManager::logical_height_field_ = nullptr;
 jfieldID DisplayManager::logical_density_dpi_field_ = nullptr;

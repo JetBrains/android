@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.actions.ml.utils.transformAndShowD
 import com.android.tools.idea.compose.preview.isMultiPreviewAnnotation
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.kotlin.fqNameMatches
+import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -32,7 +33,6 @@ import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
@@ -152,7 +152,7 @@ abstract class GenerateComposePreviewBaseAction(text: String) : AnAction(text) {
               transform = { function -> function.text },
               separator = "\n\n",
             ),
-            KotlinLanguage.INSTANCE,
+            MimeType.KOTLIN,
             listOf(it.virtualFile),
           )
         }

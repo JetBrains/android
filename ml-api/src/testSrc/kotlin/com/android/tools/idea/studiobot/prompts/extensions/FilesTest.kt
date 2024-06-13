@@ -18,13 +18,13 @@ package com.android.tools.idea.studiobot.prompts.extensions
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.studiobot.prompts.impl.PromptImpl
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.replaceService
 import org.junit.Test
@@ -61,7 +61,7 @@ class FilesTest : BasePlatformTestCase() {
             Prompt.UserMessage(
               listOf(
                 Prompt.Message.TextChunk("The contents of the file \"/src/$path\" are:", filesUsed),
-                Prompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
+                Prompt.Message.CodeChunk(contents, MimeType.TEXT, filesUsed),
               )
             )
           )
@@ -85,7 +85,7 @@ class FilesTest : BasePlatformTestCase() {
             Prompt.UserMessage(
               listOf(
                 Prompt.Message.TextChunk("The contents of the file \"/src/$path\" are:", filesUsed),
-                Prompt.Message.CodeChunk(contents, PlainTextLanguage.INSTANCE, filesUsed),
+                Prompt.Message.CodeChunk(contents, MimeType.TEXT, filesUsed),
               )
             )
           )
@@ -117,23 +117,15 @@ class FilesTest : BasePlatformTestCase() {
               listOf(
                 Prompt.Message.TextChunk("The file \"/src/$path\" is open.", filesUsed),
                 Prompt.Message.TextChunk("The contents before the selected text are:", filesUsed),
-                Prompt.Message.CodeChunk(
-                  contents.take(selectionStart),
-                  PlainTextLanguage.INSTANCE,
-                  filesUsed,
-                ),
+                Prompt.Message.CodeChunk(contents.take(selectionStart), MimeType.TEXT, filesUsed),
                 Prompt.Message.TextChunk("The selected text is:", filesUsed),
                 Prompt.Message.CodeChunk(
                   contents.subSequence(selectionStart, selectionEnd).toString(),
-                  PlainTextLanguage.INSTANCE,
+                  MimeType.TEXT,
                   filesUsed,
                 ),
                 Prompt.Message.TextChunk("The contents after the selected text are:", filesUsed),
-                Prompt.Message.CodeChunk(
-                  contents.drop(selectionEnd),
-                  PlainTextLanguage.INSTANCE,
-                  filesUsed,
-                ),
+                Prompt.Message.CodeChunk(contents.drop(selectionEnd), MimeType.TEXT, filesUsed),
               )
             )
           )
@@ -164,17 +156,9 @@ class FilesTest : BasePlatformTestCase() {
               listOf(
                 Prompt.Message.TextChunk("The file \"/src/$path\" is open.", filesUsed),
                 Prompt.Message.TextChunk("The contents before the caret are:", filesUsed),
-                Prompt.Message.CodeChunk(
-                  contents.take(caretOffset),
-                  PlainTextLanguage.INSTANCE,
-                  filesUsed,
-                ),
+                Prompt.Message.CodeChunk(contents.take(caretOffset), MimeType.TEXT, filesUsed),
                 Prompt.Message.TextChunk("The contents after the caret are:", filesUsed),
-                Prompt.Message.CodeChunk(
-                  contents.drop(caretOffset),
-                  PlainTextLanguage.INSTANCE,
-                  filesUsed,
-                ),
+                Prompt.Message.CodeChunk(contents.drop(caretOffset), MimeType.TEXT, filesUsed),
               )
             )
           )

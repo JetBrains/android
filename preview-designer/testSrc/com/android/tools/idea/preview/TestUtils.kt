@@ -59,6 +59,8 @@ val NoopAnimationTracker =
 
     override fun unlockAnimation() {}
 
+    override fun openPicker() {}
+
     override fun triggerSwapStatesAction() {}
   }
 

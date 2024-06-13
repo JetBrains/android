@@ -16,8 +16,8 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.flags.junit.FlagRule
-import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.FakeAndroidProjectDetector
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
@@ -43,7 +43,7 @@ private val STRING_KEYS = listOf("line", "message", "package", "tag")
 private val ALL_STRING_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten()
 
 private val IS_VALUES =
-  listOf("crash ", "firebase ", "stacktrace ") + LogLevel.values().map { "${it.stringValue} " }
+  listOf("crash ", "firebase ", "stacktrace ") + LogLevel.entries.map { "${it.stringValue} " }
 
 /** Tests for [LogcatFilterCompletionContributor] */
 class LogcatFilterCompletionContributorTest {
@@ -226,7 +226,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_levels_withoutWhitespace() {
-    val levels = LogLevel.values().map { "${it.name.lowercase()} " }
+    val levels = LogLevel.entries.map { "${it.name.lowercase()} " }
     fixture.configure("level:$caret")
 
     fixture.completeBasic()
@@ -236,7 +236,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_levels_withWhitespace() {
-    val levels = LogLevel.values().map { "${it.name.lowercase()} " }
+    val levels = LogLevel.entries.map { "${it.name.lowercase()} " }
     fixture.configure("level:  $caret")
 
     fixture.completeBasic()
@@ -246,7 +246,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_levels_lowercase() {
-    LogLevel.values()
+    LogLevel.entries
       .map { it.name.lowercase() }
       .forEach {
         // Use a prefix of 3 letters so all levels get a single completion and insert it rather than
@@ -259,7 +259,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_levels_uppercase() {
-    LogLevel.values()
+    LogLevel.entries
       .map { it.name.uppercase() }
       .forEach {
         // Use a prefix of 3 letters so all levels get a single completion and insert it rather than

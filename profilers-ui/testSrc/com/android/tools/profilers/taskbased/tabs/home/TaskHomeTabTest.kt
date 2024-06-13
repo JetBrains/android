@@ -32,7 +32,7 @@ import androidx.compose.ui.test.onParent
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.adtui.compose.JewelTestTheme
+import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -102,7 +102,7 @@ class TaskHomeTabTest {
     singleWindowApplication(
       title = "Testing TaskHomeTab",
     ) {
-      JewelTestTheme(darkMode = false) {
+      StudioTestTheme(darkMode = false) {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -114,7 +114,7 @@ class TaskHomeTabTest {
     singleWindowApplication(
       title = "Testing TaskHomeTab",
     ) {
-      JewelTestTheme(darkMode = true) {
+      StudioTestTheme(darkMode = true) {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -123,7 +123,7 @@ class TaskHomeTabTest {
   @Test
   fun `selecting device, process, and task enable start profiler task button`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -170,13 +170,13 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting dead preferred process and startup-capable task`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
 
     // Select the offline device
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, ""))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, false, ""))
     assertThat(taskHomeTabModel.selectedDevice).isNotNull()
     // Make sure device selection is also registered in data model
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -212,7 +212,7 @@ class TaskHomeTabTest {
   fun `test selecting an alive, non preferred process and startup capable task`() {
     // should not allow for startup dropdown option to be present
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -225,7 +225,7 @@ class TaskHomeTabTest {
                                             TaskModelTestUtils.createProcess(20, "not.preferred.process", Common.Process.State.ALIVE, 456,
                                                                              Common.Process.ExposureLevel.PROFILEABLE), myTransportService,
                                             myTimer)
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, "123"))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, false, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 
@@ -254,13 +254,13 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting dead preferred process and non startup capable task`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
 
     // Select the offline device
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, ""))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, false, ""))
     assertThat(taskHomeTabModel.selectedDevice).isNotNull()
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -291,7 +291,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting alive, profileable preferred process and non startup capable task`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -304,7 +304,7 @@ class TaskHomeTabTest {
       TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
       TaskModelTestUtils.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
       myTransportService, myTimer)
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, "123"))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, false, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 
@@ -331,7 +331,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting alive, debuggable preferred process and non startup capable task`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -382,7 +382,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting profileable process and debuggable only task`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -433,13 +433,13 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting dead preferred process and startup-capable task enables profiler task start button`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
 
     // Select the offline device
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, ""))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, false, ""))
     assertThat(taskHomeTabModel.selectedDevice).isNotNull()
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -473,7 +473,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting alive preferred process and startup capable task`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
@@ -486,7 +486,7 @@ class TaskHomeTabTest {
       TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
       TaskModelTestUtils.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
       myTransportService, myTimer)
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, "123"))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, false, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 
@@ -549,7 +549,7 @@ class TaskHomeTabTest {
   @Test
   fun `test recording type dropdown appears for applicable tasks only`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }

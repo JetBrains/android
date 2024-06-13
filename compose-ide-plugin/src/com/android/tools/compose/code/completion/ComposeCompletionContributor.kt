@@ -241,6 +241,17 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     parts.parameters?.let { appendTailText(it, /* grayed= */ false) }
     parts.tail?.let { appendTailText(" $it", /* grayed= */ true) }
 
+    // K2 does not split tail into multiple fragments. For example, K1 has
+    // {"(a: Int)", " ", "(com.example)"} as the tail fragments, while K2 has
+    // {"(a: Int) (com.example)"} as one single tail fragment. We manually remove parameters
+    // from the tail to match their behaviors.
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      existingTailFragments.firstOrNull()?.let {
+        appendTailText(it.removeParameters(), it.isGrayed)
+        return
+      }
+    }
+
     // Copy the remaining fragments that came from the Kotlin plugin.
     for (fragment in existingTailFragments.drop(1)) {
       // Technically each fragment may have a color associated with it which we are not persisting.
@@ -252,6 +263,22 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
       else appendTailText(fragment.text, fragment.isGrayed)
     }
   }
+}
+
+/** A function to remove the first "(.*)" string from [LookupElementPresentation.TextFragment]. */
+private fun LookupElementPresentation.TextFragment.removeParameters(): String {
+  if (text.firstOrNull() != '(') return text
+  var parenOpenCount = 0
+  for (i in text.indices) {
+    when (text[i]) {
+      '(' -> ++parenOpenCount
+      ')' -> {
+        --parenOpenCount
+        if (parenOpenCount == 0) return text.substring(startIndex = i + 1)
+      }
+    }
+  }
+  return ""
 }
 
 /**

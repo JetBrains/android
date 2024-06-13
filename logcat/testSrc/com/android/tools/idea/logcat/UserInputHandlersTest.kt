@@ -327,7 +327,9 @@ class UserInputHandlersTest {
       ?: throw IllegalStateException("ACTIONS_KEY not found")
 
   private fun EditorEx.pressEnter() {
-    getActions().first { it.shortcutSet == ENTER }.actionPerformed(TestActionEvent())
+    getActions()
+      .first { it.shortcutSet == ENTER }
+      .actionPerformed(TestActionEvent.createTestEvent())
   }
 
   private fun EditorEx.pressTab() {
@@ -369,5 +371,6 @@ private fun EditorEx.append(text: String) {
 
 private fun List<AnAction>.performAction(id: String) {
   val shortcuts = KeymapManager.getInstance().activeKeymap.getShortcuts(id)
-  first { it.shortcutSet.shortcuts.contentEquals(shortcuts) }.actionPerformed(TestActionEvent())
+  first { it.shortcutSet.shortcuts.contentEquals(shortcuts) }
+    .actionPerformed(TestActionEvent.createTestEvent())
 }

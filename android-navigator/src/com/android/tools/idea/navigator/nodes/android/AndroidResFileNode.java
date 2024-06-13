@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes.android;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
+import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidViewNodes;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.google.common.base.Joiner;
@@ -33,6 +34,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.ide.common.resources.FileResourceNameValidator.getErrorTextForFileResource;
+import static com.android.resources.ResourceConstants.FD_RES_DRAWABLE;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
@@ -52,6 +55,13 @@ public class AndroidResFileNode extends PsiFileNode implements Comparable {
     String text = data.getPresentableText();
     data.addText(text, REGULAR_ATTRIBUTES);
     data.setPresentableText(text);
+    PsiDirectory parentDir = getValue().getParent();
+    if (text != null && parentDir != null && parentDir.getName().equals(FD_RES_DRAWABLE)) {
+      String errorText = getErrorTextForFileResource(text, ResourceFolderType.DRAWABLE);
+      if (errorText != null) {
+        data.setTooltip(errorText);
+      }
+    }
 
     String qualifier = getQualifier();
     if (qualifier != null) {

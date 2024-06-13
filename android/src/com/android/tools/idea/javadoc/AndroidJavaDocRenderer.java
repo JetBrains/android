@@ -116,7 +116,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidJavaDocRenderer {
-
   /** Renders the Javadoc for a resource of given type and name. */
   @Nullable
   public static String render(@NotNull Module module, @NotNull ResourceType type, @NotNull String name, boolean framework) {
@@ -408,7 +407,7 @@ public class AndroidJavaDocRenderer {
       if (items.size() == 1) {
         renderToHtml(builder, items.get(0), url, true, items.get(0).value);
       } else {
-        builder.beginTable("valign=\"top\"");
+        builder.beginTable("valign=\"top\"", "white-space: nowrap;");
 
         boolean haveFlavors = haveFlavors(items);
         if (haveFlavors) {

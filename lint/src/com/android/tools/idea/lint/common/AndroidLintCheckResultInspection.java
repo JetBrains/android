@@ -36,7 +36,7 @@ public class AndroidLintCheckResultInspection extends AndroidLintInspectionBase 
                                          @Nullable LintFix fixData) {
     String suggested = LintFix.getString(fixData, CheckResultDetector.KEY_SUGGESTION, null);
     if (suggested != null) {
-      return new LintIdeQuickFix[]{new ReplaceCallFix(suggested)};
+      return new LintIdeQuickFix[]{new ModCommandLintQuickFix(new ReplaceCallFix(suggested, startElement))};
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);

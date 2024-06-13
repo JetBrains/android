@@ -21,9 +21,11 @@ import org.jetbrains.annotations.NotNull;
 
 public interface VersionCatalogModel extends GradleBlockModel {
   String DEFAULT_CATALOG_NAME = "libs";
-  String DEFAULT_CATALOG_FILE = "gradle/libs.versions.toml";
+  String DEFAULT_CATALOG_FILE_NAME = "libs.versions.toml";
+  String DEFAULT_CATALOG_FILE = "gradle/" + DEFAULT_CATALOG_FILE_NAME;
 
-  @NotNull String getName();
+  @NotNull
+  String getName();
 
   /**
    * Strictly speaking, from() takes a Dependency, rather than (as currently modelled) a string specification within a call to
@@ -31,5 +33,6 @@ public interface VersionCatalogModel extends GradleBlockModel {
    *
    * @return a resolved property model
    */
-  @NotNull ResolvedPropertyModel from();
+  @NotNull
+  ResolvedPropertyModel from();
 }
