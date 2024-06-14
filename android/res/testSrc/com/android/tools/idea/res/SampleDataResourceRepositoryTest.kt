@@ -113,7 +113,6 @@ class SampleDataResourceRepositoryTest {
       string1
       string2
       string3
-      
       """
         .trimIndent(),
     )
@@ -138,7 +137,6 @@ class SampleDataResourceRepositoryTest {
       string1
       string2
       string3
-      
       """
         .trimIndent(),
     )
@@ -147,7 +145,6 @@ class SampleDataResourceRepositoryTest {
       """
       1
       2
-      
       """
         .trimIndent(),
     )
@@ -156,7 +153,6 @@ class SampleDataResourceRepositoryTest {
       """
       @string/test1
       @string/invalid
-      
        """
         .trimIndent(),
     )
@@ -196,7 +192,8 @@ class SampleDataResourceRepositoryTest {
       <resources>
         <string name="test1">Hello 1</string>
         <string name="test2">Hello 2</string>
-      </resources>"""
+      </resources>
+      """
         .trimIndent(),
     )
 
@@ -283,7 +280,6 @@ class SampleDataResourceRepositoryTest {
         string1
         string2
         string3
-        
         """
           .trimIndent(),
       )
@@ -436,7 +432,6 @@ class SampleDataResourceRepositoryTest {
         string1
         string2
         string3
-        
         """
           .trimIndent(),
       )
