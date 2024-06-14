@@ -37,7 +37,6 @@ import com.intellij.openapi.ui.popup.ListPopup
 import com.intellij.ui.ClickListener
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RoundedLineBorder
-import com.intellij.ui.popup.KeepingPopupOpenAction
 import com.intellij.ui.popup.util.PopupState
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
@@ -104,7 +103,7 @@ abstract class WarningsFilterToggleAction(
   uiName: String,
   val warningsModel: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers
-) : AnAction(uiName), DumbAware, KeepingPopupOpenAction {
+) : AnAction(uiName), DumbAware {
 
   private val toggleableIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getIcon("checkmark"))
   private val toggleableSelectedIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getSelectedIcon("checkmark"))
@@ -112,6 +111,7 @@ abstract class WarningsFilterToggleAction(
   init {
     templatePresentation.icon = toggleableIcon
     templatePresentation.selectedIcon = toggleableSelectedIcon
+    templatePresentation.isMultiChoice = true
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -279,7 +279,7 @@ abstract class TasksFilterToggleAction(
   uiName: String,
   val tasksModel: TasksDataPageModel,
   val actionHandlers: ViewActionHandlers
-) : AnAction(uiName), DumbAware, KeepingPopupOpenAction {
+) : AnAction(uiName), DumbAware {
 
   private val toggleableIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getIcon("checkmark"))
   private val toggleableSelectedIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getSelectedIcon("checkmark"))
@@ -287,6 +287,7 @@ abstract class TasksFilterToggleAction(
   init {
     templatePresentation.icon = toggleableIcon
     templatePresentation.selectedIcon = toggleableSelectedIcon
+    templatePresentation.isMultiChoice = true
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
