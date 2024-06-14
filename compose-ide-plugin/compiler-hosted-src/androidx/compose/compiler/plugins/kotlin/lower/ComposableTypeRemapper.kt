@@ -496,7 +496,6 @@ class ComposerTypeRemapper(
         val functionCls = context.function(newArgSize)
 
         return IrSimpleTypeImpl(
-            null,
             functionCls,
             type.nullability,
             newIrArguments.map { remapTypeArgument(it) },
@@ -509,7 +508,6 @@ class ComposerTypeRemapper(
 
     private fun underlyingRemapType(type: IrSimpleType): IrType {
         return IrSimpleTypeImpl(
-            null,
             symbolRemapper.getReferencedClassifier(type.classifier),
             type.nullability,
             type.arguments.map { remapTypeArgument(it) },

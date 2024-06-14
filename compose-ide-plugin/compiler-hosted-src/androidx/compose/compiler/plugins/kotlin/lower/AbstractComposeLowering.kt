@@ -92,7 +92,6 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrElseBranchImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrSetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrWhenImpl
@@ -784,7 +783,7 @@ abstract class AbstractComposeLowering(
     }
 
     protected fun irIf(condition: IrExpression, body: IrExpression): IrExpression {
-        return IrIfThenElseImpl(
+        return IrWhenImpl(
             UNDEFINED_OFFSET,
             UNDEFINED_OFFSET,
             context.irBuiltIns.unitType,
@@ -804,7 +803,7 @@ abstract class AbstractComposeLowering(
         startOffset: Int = UNDEFINED_OFFSET,
         endOffset: Int = UNDEFINED_OFFSET
     ) =
-        IrIfThenElseImpl(startOffset, endOffset, type, IrStatementOrigin.IF).apply {
+        IrWhenImpl(startOffset, endOffset, type, IrStatementOrigin.IF).apply {
             branches.add(
                 IrBranchImpl(
                     startOffset,

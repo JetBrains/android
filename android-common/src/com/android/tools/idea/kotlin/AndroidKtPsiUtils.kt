@@ -27,9 +27,8 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue.KaErrorConstantValue
-import org.jetbrains.kotlin.analysis.api.calls.singleConstructorCallOrNull
-import org.jetbrains.kotlin.analysis.api.calls.symbol
-import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
+import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
@@ -109,7 +108,7 @@ fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
 fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
+      resolveCallOld()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
     }
   } else {
     analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
@@ -209,7 +208,7 @@ fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValu
 inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KaSession? = null): T? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      evaluate(KtConstantEvaluationMode.CONSTANT_LIKE_EXPRESSION_EVALUATION)
+      evaluate()
         ?.takeUnless { it is KaErrorConstantValue }
         ?.value as? T
     }
@@ -313,7 +312,7 @@ private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): K
     allowAnalysisFromWriteAction {
       analyze(this) {
         annotationEntries.find { annotationEntry ->
-          val annotationConstructorCall = annotationEntry.resolveCall()?.singleConstructorCallOrNull() ?: return null
+          val annotationConstructorCall = annotationEntry.resolveCallOld()?.singleConstructorCallOrNull() ?: return null
           annotationConstructorCall.symbol.containingClassId == classId
         }
       }

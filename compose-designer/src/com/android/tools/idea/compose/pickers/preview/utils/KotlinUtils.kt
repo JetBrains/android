@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview.utils
 
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.calls.KtFunctionCall
+import org.jetbrains.kotlin.analysis.api.resolution.KaFunctionCall
 import org.jetbrains.kotlin.analysis.api.symbols.KaConstructorSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionLikeSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
@@ -50,7 +50,7 @@ internal fun KaSession.containingPackage(functionSymbol: KaFunctionLikeSymbol) =
   }
 
 internal fun KaSession.getArgumentForParameter(
-  functionCall: KtFunctionCall<*>,
+  functionCall: KaFunctionCall<*>,
   parameterSymbol: KaValueParameterSymbol
 ) =
   functionCall.argumentMapping.entries
