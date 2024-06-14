@@ -62,7 +62,8 @@ object TaskBasedUxStrings {
   // Task starting point dropdown strings
   const val STARTING_POINT_DROPDOWN_TITLE = "Start profiler task from"
   const val STARTUP_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT = "Process start"
-  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT = "restarts process"
+  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT_START = "starts process"
+  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT_RESTART = "restarts process"
   const val NOW_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT = "Now"
   const val NOW_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT = "attaches to selected process"
 
