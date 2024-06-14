@@ -68,7 +68,5 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
   }
 
   @Override
-  public void addToolbarActions(@NotNull List<ViewAction> actions) {
-    actions.add(new ScrollViewHandler.ToggleRenderModeAction());
-  }
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {}
 }
