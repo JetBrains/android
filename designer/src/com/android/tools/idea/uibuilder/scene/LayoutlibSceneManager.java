@@ -20,6 +20,9 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
+import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.getTriggerFromChangeType;
+import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.shouldRefreshInPowerSaveMode;
+import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.updateTargetProviders;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -36,7 +39,6 @@ import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -47,10 +49,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.SceneUpdateListener;
-import com.android.tools.idea.common.scene.TargetProvider;
-import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
-import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
@@ -67,11 +66,9 @@ import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.io.PsiFileUtil;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
@@ -108,7 +105,6 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.event.KeyEvent;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -272,35 +268,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * If true, this {@link LayoutlibSceneManager} will retain the last successful image even if the new result is an error.
    */
   private boolean myCacheSuccessfulRenderImage = false;
-
-  protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable ChangeType changeType) {
-    if (changeType == null) {
-      return null;
-    }
-
-    switch (changeType) {
-      case RESOURCE_EDIT:
-      case RESOURCE_CHANGED:
-        return LayoutEditorRenderResult.Trigger.RESOURCE_CHANGE;
-      case EDIT:
-      case ADD_COMPONENTS:
-      case DELETE:
-      case DND_COMMIT:
-      case DND_END:
-      case DROP:
-      case RESIZE_END:
-      case RESIZE_COMMIT:
-        return LayoutEditorRenderResult.Trigger.EDIT;
-      case BUILD:
-        return LayoutEditorRenderResult.Trigger.BUILD;
-      case CONFIGURATION_CHANGE:
-      case UPDATE_HIERARCHY:
-      case MODEL_ACTIVATION:
-        break;
-    }
-
-    return null;
-  }
 
   /**
    * Configuration for layout validation from Accessibility Testing Framework through Layoutlib.
@@ -621,29 +588,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
   }
 
-  private static void updateTargetProviders(@NotNull SceneComponent component, @NotNull Runnable whenUpdated) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent(), whenUpdated);
-    component.setTargetProvider(handler);
-
-    for (SceneComponent child : component.getChildren()) {
-      updateTargetProviders(child, whenUpdated);
-    }
-  }
-
-
-  /**
-   * Set of {@link com.android.tools.idea.common.model.ChangeType}s that, when in Power Save Mode, will not refresh the
-   * scene automatically.
-   */
-  private static final EnumSet<ChangeType> powerModeChangesNotTriggeringRefresh = EnumSet.of(
-    ChangeType.RESOURCE_CHANGED,
-    ChangeType.RESOURCE_EDIT
-  );
-
   /**
    * Records whether this {@link LayoutlibSceneManager} is out of date and needs to be refreshed.
-   * This can happen when Studio is in Power Save mode, changes in {@link #powerModeChangesNotTriggeringRefresh} will not
-   * trigger an automatic refresh.
    */
   private final AtomicBoolean isOutOfDate = new AtomicBoolean(false);
 
@@ -667,7 +613,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     @Override
     public void modelChanged(@NotNull NlModel model) {
       if (EssentialsMode.isEnabled() &&
-          powerModeChangesNotTriggeringRefresh.contains(model.getLastChangeType())) {
+          !shouldRefreshInPowerSaveMode(model.getLastChangeType())) {
         isOutOfDate.set(true);
         return;
       }
