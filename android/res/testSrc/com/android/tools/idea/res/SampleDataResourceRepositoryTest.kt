@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.SampleDataResourceValue
 import com.android.ide.common.resources.ResourceRepository
+import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -206,32 +207,28 @@ class SampleDataResourceRepositoryTest {
     waitForUpdates(StudioResourceRepositoryManager.getInstance(facet).sampleDataResources)
     val resolver = configuration.resourceResolver
 
-    assertThat(resolver.findResValue("@sample/strings", false)!!.value).isEqualTo("string1")
-    assertThat(resolver.findResValue("@sample/ints", false)!!.value).isEqualTo("1")
-    assertThat(resolver.findResValue("@sample/strings", false)!!.value).isEqualTo("string2")
-    assertThat(resolver.findResValue("@sample/strings", false)!!.value).isEqualTo("string3")
-    assertThat(resolver.findResValue("@sample/ints", false)!!.value).isEqualTo("2")
+    assertThat(resolver.findResValue("@sample/strings")).isEqualTo("string1")
+    assertThat(resolver.findResValue("@sample/ints")).isEqualTo("1")
+    assertThat(resolver.findResValue("@sample/strings")).isEqualTo("string2")
+    assertThat(resolver.findResValue("@sample/strings")).isEqualTo("string3")
+    assertThat(resolver.findResValue("@sample/ints")).isEqualTo("2")
 
     // Test passing json references
-    assertThat(resolver.findResValue("@sample/users.json/users/name", false)!!.value)
-      .isEqualTo("Name1")
+    assertThat(resolver.findResValue("@sample/users.json/users/name")).isEqualTo("Name1")
 
     // The order of the returned paths might depend on the file system
     val imagePaths =
-      setOf(
-        resolver.findResValue("@sample/images", false)!!.value,
-        resolver.findResValue("@sample/images", false)!!.value,
-      )
+      setOf(resolver.findResValue("@sample/images"), resolver.findResValue("@sample/images"))
     assertThat(imagePaths)
       .containsExactly(image1.virtualFile.canonicalPath, image2.virtualFile.canonicalPath)
 
     // Check that we wrap around
-    assertThat(resolver.findResValue("@sample/strings", false)!!.value).isEqualTo("string1")
+    assertThat(resolver.findResValue("@sample/strings")).isEqualTo("string1")
     val reference =
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "strings")
-    assertThat(resolver.getResolvedResource(reference)!!.value).isEqualTo("string2")
-    assertThat(resolver.findResValue("@sample/ints", false)!!.value).isEqualTo("1")
-    assertThat(imagePaths).contains(resolver.findResValue("@sample/images", false)!!.value)
+    assertThat(resolver.getResolvedResource(reference)?.value).isEqualTo("string2")
+    assertThat(resolver.findResValue("@sample/ints")).isEqualTo("1")
+    assertThat(imagePaths).contains(resolver.findResValue("@sample/images"))
 
     // Check reference resolution
     assertThat(
@@ -243,8 +240,8 @@ class SampleDataResourceRepositoryTest {
               "test",
               "@sample/refs",
             )
-          )!!
-          .value
+          )
+          ?.value
       )
       .isEqualTo("Hello 1")
     // @string/invalid does not exist so the sample data will just return the unresolved reference
@@ -257,18 +254,16 @@ class SampleDataResourceRepositoryTest {
               "test",
               "@sample/refs",
             )
-          )!!
-          .value
+          )
+          ?.value
       )
       .isEqualTo("@string/invalid")
 
     // Check indexing (all calls should return the same)
-    assertThat(resolver.findResValue("@sample/users.json/users/name[1]", false)!!.value)
-      .isEqualTo("Name2")
-    assertThat(resolver.findResValue("@sample/users.json/users/name[1]", false)!!.value)
-      .isEqualTo("Name2")
+    assertThat(resolver.findResValue("@sample/users.json/users/name[1]")).isEqualTo("Name2")
+    assertThat(resolver.findResValue("@sample/users.json/users/name[1]")).isEqualTo("Name2")
 
-    assertThat(resolver.findResValue("@sample/invalid", false)).isNull()
+    assertThat(resolver.findResValue("@sample/invalid")).isNull()
 
     val elementRef =
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "strings[1]")
@@ -450,8 +445,8 @@ class SampleDataResourceRepositoryTest {
       ConfigurationManager.getOrCreateInstance(projectRule.module)
         .getConfiguration(layout.virtualFile)
         .resourceResolver
-    assertThat(resolver.findResValue("@sample/strings", false)!!.value).isEqualTo("string1")
-    assertThat(resolver.findResValue("@sample/strings", false)!!.value).isEqualTo("string2")
+    assertThat(resolver.findResValue("@sample/strings")).isEqualTo("string1")
+    assertThat(resolver.findResValue("@sample/strings")).isEqualTo("string2")
     ApplicationManager.getApplication().runWriteAction {
       try {
         sampleDataFile.virtualFile.setBinaryContent(
@@ -473,7 +468,7 @@ class SampleDataResourceRepositoryTest {
     // The cursor does not get reset when the file is changed so we expect "new3" as opposed as
     // getting "new1"
     // Ignored temporarily since cache invalidation needs still work
-    // assertEquals("new3", resolver.findResValue("@sample/strings", false).getValue());
+    // assertEquals("new3", resolver.newFindResValue("@sample/strings", false).getValue());
   }
 
   @Test
@@ -520,8 +515,8 @@ class SampleDataResourceRepositoryTest {
         "lorem_data",
         "@sample/lorem[4:10]",
       )
-    assertThat(resolver.dereference(sampledLorem)!!.value).isEqualTo("Lorem ipsum dolor sit amet.")
-    assertThat(resolver.dereference(sampledLorem)!!.value)
+    assertThat(resolver.dereference(sampledLorem)?.value).isEqualTo("Lorem ipsum dolor sit amet.")
+    assertThat(resolver.dereference(sampledLorem)?.value)
       .isEqualTo("Lorem ipsum dolor sit amet, consectetur.")
   }
 
@@ -568,9 +563,8 @@ class SampleDataResourceRepositoryTest {
       ConfigurationManager.getOrCreateInstance(projectRule.module)
         .getConfiguration(layout.virtualFile)
     val resolver = configuration.resourceResolver
-    assertThat(resolver.findResValue("@sample/lib.csv/name", false)!!.value).isEqualTo("LibName1")
-    assertThat(resolver.findResValue("@sample/transitive.csv/name", false)!!.value)
-      .isEqualTo("TransitiveName1")
+    assertThat(resolver.findResValue("@sample/lib.csv/name")).isEqualTo("LibName1")
+    assertThat(resolver.findResValue("@sample/transitive.csv/name")).isEqualTo("TransitiveName1")
   }
 
   @Test
@@ -620,7 +614,7 @@ class SampleDataResourceRepositoryTest {
       ConfigurationManager.getOrCreateInstance(projectRule.module)
         .getConfiguration(layout.virtualFile)
     val resolver = configuration.resourceResolver
-    assertThat(resolver.findResValue("@sample/users.csv/name", false)!!.value).isEqualTo("AppName1")
+    assertThat(resolver.findResValue("@sample/users.csv/name")).isEqualTo("AppName1")
   }
 }
 
@@ -629,3 +623,14 @@ private fun ResourceRepository.getSampleDataResources() =
 
 private fun ResourceRepository.getSampleDataResources(resName: String) =
   getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, resName)
+
+private fun ResourceResolver.findResValue(reference: String) =
+  dereference(
+      ResourceValueImpl(
+        ResourceNamespace.RES_AUTO,
+        ResourceType.ID,
+        "com.android.ide.common.rendering.api.RenderResources",
+        reference,
+      )
+    )
+    ?.value
