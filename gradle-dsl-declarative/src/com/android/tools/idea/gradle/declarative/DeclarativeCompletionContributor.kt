@@ -16,6 +16,12 @@
 package com.android.tools.idea.gradle.declarative
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.declarative.ElementType.BLOCK
+import com.android.tools.idea.gradle.declarative.ElementType.BOOLEAN
+import com.android.tools.idea.gradle.declarative.ElementType.FACTORY
+import com.android.tools.idea.gradle.declarative.ElementType.INTEGER
+import com.android.tools.idea.gradle.declarative.ElementType.LONG
+import com.android.tools.idea.gradle.declarative.ElementType.STRING
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeFile
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlockGroup
@@ -25,7 +31,9 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
-import com.intellij.codeInsight.completion.PrioritizedLookupElement
+import com.intellij.codeInsight.completion.InsertHandler
+import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.patterns.PatternCondition
@@ -35,6 +43,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.SchemaFunction
 
 private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
   override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean =
@@ -47,6 +58,18 @@ private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiEl
     psiElement().withParent(DeclarativeBlockGroup::class.java),
     psiElement().withParent(DeclarativeFile::class.java),
   )
+
+private enum class ElementType(val str: String) {
+  STRING("String"),
+  INTEGER("Integer"),
+  LONG("Long"),
+  BOOLEAN("Boolean"),
+  BLOCK("Block element"),
+  FACTORY("Factory"),
+  PROPERTY("Property")
+}
+
+private data class Suggestion(val name: String, val type: ElementType)
 
 class DeclarativeCompletionContributor : CompletionContributor() {
   init {
@@ -61,17 +84,49 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 
         val module = ModuleUtil.findModuleForPsiElement(parameters.originalFile) ?: return
         val schema = service.getSchema(module) ?: return
-        result.addAllElements(getSuggestionList(parameters.position.parent, schema).map { s: String ->
-          PrioritizedLookupElement.withPriority(LookupElementBuilder.create(s), 1.0)
+        result.addAllElements(getSuggestionList(parameters.position.parent, schema).map {
+          val element = LookupElementBuilder.create(it.name)
+            .withTypeText(it.type.str, null, true)
+          element.withInsertHandler(insert(it.type))
         })
       }
     }
   }
 
-  private fun getSuggestionList(parent: PsiElement, schema: DeclarativeSchema): List<String> {
+  private fun insert(type: ElementType): InsertHandler<LookupElement?> =
+    InsertHandler { context: InsertionContext, _: LookupElement ->
+      val editor = context.editor
+      val document = editor.document
+      context.commitDocument()
+      when(type){
+        STRING -> {
+          document.insertString(context.tailOffset, " = \"\"")
+          editor.caretModel.moveToOffset(context.tailOffset - 1)
+        }
+        BLOCK -> {
+          val text = document.text
+          val lineStartOffset = text.substring(0, context.tailOffset).indexOfLast { it == '\n'} + 1
+          val whiteSpace = " ".repeat(context.startOffset - lineStartOffset)
+
+          document.insertString(context.tailOffset, " {\n$whiteSpace  \n$whiteSpace}")
+          editor.caretModel.moveToOffset(context.tailOffset - whiteSpace.length - 2)
+        }
+        FACTORY -> {
+          document.insertString(context.tailOffset, "()")
+          editor.caretModel.moveToOffset(context.tailOffset - 1)
+        }
+        INTEGER, LONG, BOOLEAN -> {
+          document.insertString(context.tailOffset, " = ")
+          editor.caretModel.moveToOffset(context.tailOffset)
+        }
+        else -> editor.caretModel.moveToOffset(context.tailOffset)
+      }
+    }
+
+  private fun getSuggestionList(parent: PsiElement, schema: DeclarativeSchema): List<Suggestion> {
     val path = getPath(parent)
 
-    if (path.isEmpty()) return schema.getRootMemberFunctions().map { it.simpleName }
+    if (path.isEmpty()) return schema.getRootMemberFunctions().map { Suggestion(it.simpleName, getType(it.receiver)) }
     var index = 0
     var currentName = getTopLevelReceiverByName(path[index], schema)
     while (index < path.size - 1) {
@@ -80,8 +135,29 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       currentName = getReceiverByName(path[index], dataClass.memberFunctions)
     }
     val element = schema.getDataClassesByFqName()[currentName]  ?: return emptyList()
-    return element.properties.map { it.name } + element.memberFunctions.map { it.simpleName }
+    return element.properties.map { Suggestion(it.name, getType(it.valueType)) } +
+           element.memberFunctions.map { Suggestion(it.simpleName, if(isBlock(it)) BLOCK else FACTORY) }
   }
+
+  // blocks are functions with unit return type
+  private fun isBlock(schema: SchemaFunction):Boolean {
+    return when(val returnType = schema.returnValueType){
+      is DataTypeRef.Type -> returnType.dataType is DataType.UnitType
+      else -> false
+    }
+  }
+
+  private fun getType(type: DataTypeRef):ElementType =
+    when (type) {
+      is DataTypeRef.Name -> BLOCK
+      is DataTypeRef.Type -> when (type.dataType) {
+        is DataType.IntDataType -> INTEGER
+        is DataType.LongDataType -> LONG
+        is DataType.StringDataType -> STRING
+        is DataType.BooleanDataType -> BOOLEAN
+        else -> ElementType.PROPERTY
+      }
+    }
 
   // create path - list of identifiers from root element to parent
   private fun getPath(parent: PsiElement): List<String> {
