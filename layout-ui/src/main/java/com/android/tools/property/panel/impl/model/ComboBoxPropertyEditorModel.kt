@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.property.panel.api.ActionEnumValue
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.google.common.util.concurrent.Futures
 import com.intellij.util.text.nullize
@@ -276,14 +277,19 @@ class ComboBoxPropertyEditorModel(
     _popupVisible = false
   }
 
-  fun selectEnumValue() {
+  /**
+   * Select the value at the current selected index.
+   *
+   * Use [newTextValue] to let the UI controls see the new value before changing the property value.
+   */
+  fun selectEnumValue(newTextValue: NewEnumValueCallback) {
     val newValue = selectedValue
     if (newValue != null) {
 
       // Be aware that we may loose focus on the next line,
       // if the EnumValue is an action that displays a dialog.
       // This is why we set text=value just before calling select.
-      if (newValue.select(property)) {
+      if (newValue.select(property, newTextValue)) {
         text = newValue.value ?: ""
         setPendingValue(newValue.value)
       }
