@@ -20,6 +20,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KtDiagnosticCheckerFilter
+import org.jetbrains.kotlin.analysis.api.diagnostics.KaSeverity
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.diagnostics.Severity
@@ -106,7 +107,7 @@ object DirectiveBasedActionUtils {
       allowAnalysisOnEdt {
         analyze(ktFile) {
           ktFile.collectDiagnosticsForFile(KtDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
-            .filter { it.severity == Severity.ERROR }
+            .filter { it.severity == KaSeverity.ERROR }
             .map { it.defaultMessage.replace("\n", "<br>") }
             .sorted()
         }

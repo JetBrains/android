@@ -26,8 +26,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.calls.successfulFunctionCallOrNull
-import org.jetbrains.kotlin.analysis.api.calls.symbol
+import org.jetbrains.kotlin.analysis.api.resolution.successfulFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
@@ -152,7 +152,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
           super.visitCallExpression(expression)
           if (KotlinPluginModeProvider.isK2Mode()) {
             analyze(expression) {
-              val resolvedCall = expression.resolveCall()?.successfulFunctionCallOrNull() ?: return
+              val resolvedCall = expression.resolveCallOld()?.successfulFunctionCallOrNull() ?: return
               val callableSymbol = resolvedCall.partiallyAppliedSymbol.symbol
 
               // For compatibility between versions and with existence of different methods
@@ -285,7 +285,7 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
           super.visitCallExpression(expression)
           if (KotlinPluginModeProvider.isK2Mode()) {
             analyze(expression) {
-              val resolvedCall = expression.resolveCall()?.successfulFunctionCallOrNull() ?: return
+              val resolvedCall = expression.resolveCallOld()?.successfulFunctionCallOrNull() ?: return
               val callableSymbol = resolvedCall.partiallyAppliedSymbol.symbol
 
               // For compatibility between versions and with existence of different methods

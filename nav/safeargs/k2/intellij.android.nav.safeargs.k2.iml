@@ -19,6 +19,6 @@
     <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="kotlin.base.analysis" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-providers" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-platform-interface" level="project" />
   </component>
 </module>

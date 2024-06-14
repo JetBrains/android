@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
 import org.jetbrains.kotlin.backend.common.serialization.signature.PublicIdSignatureComputer
+import org.jetbrains.kotlin.backend.common.validateIr
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.IrVerificationMode
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsGlobalDeclarationTable
@@ -91,7 +92,15 @@ class ComposeIrGenerationExtension(
 
         // Input check.  This should always pass, else something is horribly wrong upstream.
         // Necessary because oftentimes the issue is upstream (compiler bug, prior plugin, etc)
-        validateIr(moduleFragment, pluginContext.irBuiltIns, irVerificationMode)
+        validateIr(messageCollector ?: MessageCollector.NONE, irVerificationMode) {
+          performBasicIrValidation(
+            moduleFragment,
+            pluginContext.irBuiltIns,
+            phaseName = "Before Compose Compiler Plugin",
+            checkProperties = true,
+            checkTypes = false, // TODO: Re-enable checking types (KT-68663)
+          )
+        }
 
         // create a symbol remapper to be used across all transforms
         val symbolRemapper = ComposableSymbolRemapper()
@@ -290,6 +299,15 @@ class ComposeIrGenerationExtension(
         }
 
         // Verify that our transformations didn't break something
-        validateIr(moduleFragment, pluginContext.irBuiltIns, irVerificationMode)
+        validateIr(messageCollector ?: MessageCollector.NONE, irVerificationMode) {
+          performBasicIrValidation(
+            moduleFragment,
+            pluginContext.irBuiltIns,
+            phaseName = "After Compose Compiler Plugin",
+            checkProperties = true,
+            checkTypes = false, // This should be enabled, the fact this doesn't work is a Compose bug.
+          )
+        }
+
     }
 }

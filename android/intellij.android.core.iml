@@ -230,7 +230,7 @@
     <orderEntry type="module" module-name="kotlin.idea" />
     <orderEntry type="module" module-name="intellij.idea.customization.base" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-providers" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-platform-interface" level="project" />
     <orderEntry type="library" name="javapoet" level="project" />
   </component>
 </module>

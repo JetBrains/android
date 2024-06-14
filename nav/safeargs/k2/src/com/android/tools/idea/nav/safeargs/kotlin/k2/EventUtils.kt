@@ -18,8 +18,8 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.util.messages.Topic
+import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
 import org.jetbrains.kotlin.analysis.project.structure.KtModule
-import org.jetbrains.kotlin.analysis.providers.analysisMessageBus
 import org.jetbrains.kotlin.idea.util.toKtModulesForModificationEvents
 
 internal fun <T : Any> Module.fireEvent(topic: Topic<T>, callEventHandler: T.(KtModule) -> Unit) =

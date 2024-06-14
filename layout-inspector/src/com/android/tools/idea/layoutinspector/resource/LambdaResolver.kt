@@ -27,7 +27,7 @@ import com.intellij.psi.impl.source.tree.LeafElement
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
-import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
@@ -403,7 +403,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       if (this != null) {
         // K2 plugin - use Analysis API in existing analysis session.
         return call
-          .resolveCall()
+          .resolveCallOld()
           ?.singleFunctionCallOrNull()
           ?.argumentMapping
           ?.get(argument.getArgumentExpression())

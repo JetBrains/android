@@ -23,9 +23,9 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.analysis.providers.analysisMessageBus
-import org.jetbrains.kotlin.analysis.providers.topics.KotlinModuleStateModificationKind
-import org.jetbrains.kotlin.analysis.providers.topics.KotlinTopics
+import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleStateModificationKind
 
 /** Raises module-change events when a module's SafeArgs eligibility state may have changed. */
 @Service(Service.Level.PROJECT)
@@ -47,7 +47,7 @@ class ChangeListenerProjectService(private val project: Project) : Disposable.De
   }
 
   private fun dispatchSafeArgsModeChange(module: Module) {
-    module.fireEvent(KotlinTopics.MODULE_STATE_MODIFICATION) {
+    module.fireEvent(KotlinModificationTopics.MODULE_STATE_MODIFICATION) {
       onModification(it, KotlinModuleStateModificationKind.UPDATE)
     }
   }
@@ -57,7 +57,7 @@ class ChangeListenerProjectService(private val project: Project) : Disposable.De
     // state-change event here, so we don't unnecessarily invalidate binary module cached data.
     runWriteAction {
       project.analysisMessageBus
-        .syncPublisher(KotlinTopics.GLOBAL_SOURCE_MODULE_STATE_MODIFICATION)
+        .syncPublisher(KotlinModificationTopics.GLOBAL_SOURCE_MODULE_STATE_MODIFICATION)
         .onModification()
     }
   }
