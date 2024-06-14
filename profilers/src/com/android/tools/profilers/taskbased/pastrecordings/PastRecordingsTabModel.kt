@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting
  * task button click, reading the recording and Profiler task selection and using such values to launch the Profiler task.
  */
 class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
-  @VisibleForTesting
   val recordingListModel = RecordingListModel(profilers, taskHandlers, taskGridModel::resetTaskSelection, taskGridModel::onTaskSelection,
                                               ::onEnterTaskButtonClick)
 

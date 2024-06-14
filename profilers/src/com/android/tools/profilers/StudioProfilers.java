@@ -57,6 +57,7 @@ import com.android.tools.profilers.taskbased.TaskNotifications;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection;
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection;
+import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel;
 import com.android.tools.profilers.tasks.ProfilerTaskLauncher;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils;
@@ -194,6 +195,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   private final TaskHomeTabModel myTaskHomeTabModel;
 
+  /**
+   * Data model for the Task-Based UX's past recordings tab.
+   */
+  @NotNull
+  private final PastRecordingsTabModel myPastRecordingsTabModel;
+
   @NotNull
   private final Map<ProfilerTaskType, ProfilerTaskHandler> myTaskHandlers;
 
@@ -292,7 +299,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     mySessionChangeListener = new HashMap<>();
     myDeviceToStreamIds = new HashMap<>();
     myStreamIdToStreams = new HashMap<>();
-    myTaskHomeTabModel = new TaskHomeTabModel(this);
     myTaskHandlers = taskHandlers;
     myCreateTaskTab = createTaskTab;
     myOpenTaskTab = openTaskTab;
@@ -302,6 +308,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myStage.enter();
 
     myUpdater = new Updater(timer);
+
+    myTaskHomeTabModel = new TaskHomeTabModel(this);
+    myPastRecordingsTabModel = new PastRecordingsTabModel(this);
 
     // Order in which events are added to profilersBuilder will be order they appear in monitor stage
     ImmutableList.Builder<StudioProfiler> profilersBuilder = new ImmutableList.Builder<>();
@@ -422,6 +431,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public TaskHomeTabModel getTaskHomeTabModel() {
     return myTaskHomeTabModel;
+  }
+
+  @NotNull
+  public PastRecordingsTabModel getPastRecordingsTabModel() {
+    return myPastRecordingsTabModel;
   }
 
   /**
