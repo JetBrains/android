@@ -37,6 +37,7 @@ import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JSeparator
 import javax.swing.border.CompoundBorder
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -91,6 +92,16 @@ class DetailsPanelHeader(
       border = JBUI.Borders.emptyRight(8)
     }
 
+  private val titleVariantSeparatorPanel =
+    JPanel(BorderLayout()).apply {
+      add(
+        JSeparator(JSeparator.VERTICAL).apply {
+          foreground = JBUI.CurrentTheme.Toolbar.SEPARATOR_COLOR
+        }
+      )
+      border = JBUI.Borders.empty(5, 2)
+    }
+
   @VisibleForTesting val variantPanel: JPanel
 
   init {
@@ -109,10 +120,11 @@ class DetailsPanelHeader(
         transparentPanel(BorderLayout()).apply {
           isVisible = false
           add(variantComboBox, BorderLayout.CENTER)
-          border = JBUI.Borders.customLineLeft(JBColor.border())
         }
+      titleVariantSeparatorPanel.isVisible = true
     } else {
       variantPanel = transparentPanel().apply { isVisible = false }
+      titleVariantSeparatorPanel.isVisible = false
     }
 
     val contentPanel =
@@ -120,6 +132,7 @@ class DetailsPanelHeader(
         layout = BoxLayout(this, BoxLayout.X_AXIS)
         add(titleLabel)
         add(Box.createHorizontalStrut(5))
+        add(titleVariantSeparatorPanel)
         add(variantPanel)
       }
 
