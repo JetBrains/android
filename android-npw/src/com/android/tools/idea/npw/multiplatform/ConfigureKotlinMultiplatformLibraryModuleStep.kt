@@ -19,6 +19,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.module.ConfigureModuleStep
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.ui.DialogPanel
@@ -48,6 +49,11 @@ class ConfigureKotlinMultiplatformLibraryModuleStep(
     }
 
   }.withBorder(empty(6))
+
+  override fun onProceeding() {
+    super.onProceeding()
+    model.template.set(GradleAndroidModuleTemplate.createMultiplatformModuleTemplate(model.project, model.moduleName.get()))
+  }
 
   override fun getPreferredFocusComponent() = moduleName
 }

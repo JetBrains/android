@@ -60,7 +60,9 @@ class ModuleModelTest : AndroidGradleTestCase() {
   fun testKmpModuleCreationAndAssemble() {
     loadProject(TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM)
 
-    val kmpModuleModel = NewKotlinMultiplatformLibraryModuleModel(project, ":", projectSyncInvoker)
+    val kmpModuleModel = NewKotlinMultiplatformLibraryModuleModel(project, ":", projectSyncInvoker).apply {
+      packageName.set("com.example.kmplibrary")
+    }
     multiTemplateRenderer.requestRender(kmpModuleModel.renderer)
 
     val module = myFixture.project.findModule("kmplibrary")

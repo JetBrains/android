@@ -21,6 +21,7 @@ import com.android.tools.idea.npw.module.recipes.addLocalTests
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.src.exampleAndroidMain
+import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.src.exampleCommonMain
 import com.android.tools.idea.npw.module.recipes.setKotlinVersion
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.Language
@@ -57,7 +58,12 @@ private fun RecipeExecutor.generateModule(
   val buildFile = if (useKts) SdkConstants.FN_BUILD_GRADLE_KTS else SdkConstants.FN_BUILD_GRADLE
 
   save(
-    buildKmpGradle(),
+    buildKmpGradle(
+      projectData.agpVersion,
+      data.namespace,
+      data.apis.buildApi.apiString,
+      data.apis.minApi.apiString,
+    ),
     data.rootDir.resolve(buildFile)
   )
 
@@ -65,11 +71,14 @@ private fun RecipeExecutor.generateModule(
   applyPlugin("org.jetbrains.kotlin.multiplatform", projectData.kotlinVersion)
   applyPlugin("com.android.kotlin.multiplatform.library", projectData.agpVersion)
 
-
   save(manifestXml, data.manifestDir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML))
   save(gitignore(), data.rootDir.resolve(".gitignore"))
 
   addAndroidMain(packageName, data.srcDir, language)
+  data.commonSrcDir?.let { dir ->
+    addCommonMain(packageName, dir, language)
+  }
+
   addLocalTests(packageName, data.unitTestDir, language)
   addInstrumentedTests(packageName, useAndroidX, false, data.testDir, language)
 }
@@ -81,5 +90,15 @@ fun RecipeExecutor.addAndroidMain(
   save(
     exampleAndroidMain(packageName),
     outFolder.resolve("AndroidPlatform.$ext")
+  )
+}
+
+fun RecipeExecutor.addCommonMain(
+  packageName: String, outFolder: File, language: Language
+) {
+  val ext = language.extension
+  save(
+    exampleCommonMain(packageName),
+    outFolder.resolve("Platform.$ext")
   )
 }
