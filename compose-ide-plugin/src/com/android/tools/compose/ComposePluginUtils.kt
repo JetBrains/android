@@ -28,17 +28,16 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
-import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.calls.KtCallableMemberCall
-import org.jetbrains.kotlin.analysis.api.calls.calls
-import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.resolution.calls
+import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaLocalVariableSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
@@ -119,7 +118,7 @@ internal fun KtElement.callReturnTypeFqName() =
     allowAnalysisOnEdt {
       analyze(this) {
         val call =
-          this@callReturnTypeFqName.resolveCall()?.calls?.firstOrNull()
+          this@callReturnTypeFqName.resolveCallOld()?.calls?.firstOrNull()
             as? KtCallableMemberCall<*, *>
         call?.let { asFqName(it.symbol.returnType) }
       }
@@ -131,7 +130,7 @@ internal fun KtElement.callReturnTypeFqName() =
 // TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType`
 // and `KtTypeRenderer`.
 internal fun KaSession.asFqName(type: KtType) =
-  type.expandedClassSymbol?.classId?.asSingleFqName()
+  type.expandedSymbol?.classId?.asSingleFqName()
 
 internal fun KtFunction.hasComposableAnnotation() =
   if (KotlinPluginModeProvider.isK2Mode()) {
@@ -142,7 +141,7 @@ internal fun KtFunction.hasComposableAnnotation() =
 
 internal fun KaSession.isComposableInvocation(callableSymbol: KaCallableSymbol): Boolean {
   fun hasComposableAnnotation(annotated: KtAnnotated?) =
-    annotated != null && annotated.hasAnnotation(ComposeClassIds.Composable)
+    annotated != null && ComposeClassIds.Composable in annotated.annotations
 
   val type = callableSymbol.returnType
   if (hasComposableAnnotation(type)) return true
