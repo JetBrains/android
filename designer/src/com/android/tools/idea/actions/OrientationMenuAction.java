@@ -22,10 +22,10 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationProjectState;
 import com.android.tools.idea.configurations.ConfigurationFileUtil;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
+import com.android.tools.idea.configurations.ConfigurationProjectState;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -88,7 +88,7 @@ public class OrientationMenuAction extends DropDownAction {
 
       if (myIncludeUiMode) {
         addSeparator();
-        DefaultActionGroup uiModeGroup = createSubMenuGroup(() -> "_UI Mode");
+        DefaultActionGroup uiModeGroup = new DefaultActionGroup("_UI Mode", true);
         UiMode currentUiMode = configuration.getUiMode();
         for (UiMode uiMode : UiMode.values()) {
           String title = uiMode.getShortDisplayValue();

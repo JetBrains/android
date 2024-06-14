@@ -32,7 +32,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.icons.copyIcon
 import com.intellij.util.ui.JBUI
 
 /** [DropDownAction] that allows switching the layout manager in the surface. */
@@ -41,14 +40,7 @@ class SwitchSurfaceLayoutManagerAction(
   private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
 ) : DropDownAction("Switch Layout", "Changes the layout of the preview elements.", null) {
 
-  /**
-   * When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
-   * multi-choice group, even [Presentation.setMultiChoice] sets to false. We clone the icon here so
-   * we can control the multi-choice state of this action ourselves.
-   *
-   * @see com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup
-   */
-  private val enabledIcon = copyIcon(AllIcons.Debugger.RestoreLayout, null, true)
+  private val enabledIcon = AllIcons.Debugger.RestoreLayout
   private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutOption) :
