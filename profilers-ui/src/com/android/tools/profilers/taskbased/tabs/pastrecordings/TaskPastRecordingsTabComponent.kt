@@ -20,12 +20,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.tabs.TaskTabComponent
+import com.android.tools.profilers.taskbased.tabs.pastrecordings.banner.PastRecordingsBanner
 import com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist.RecordingList
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.TaskActionBar
 
@@ -37,6 +40,10 @@ fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, idePro
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
     val recordingListModel = pastRecordingsTabModel.recordingListModel
+    val isBannerClosed by pastRecordingsTabModel.isBannerClosed.collectAsState()
+    if (!pastRecordingsTabModel.isRecordingBannerNotShownAgain() && !isBannerClosed) {
+      PastRecordingsBanner(pastRecordingsTabModel::onRecordingBannerClose, pastRecordingsTabModel::onRecordingBannerDontShowAgainClick)
+    }
     RecordingList(recordingListModel, Modifier.weight(1f))
     ToolWindowHorizontalDivider()
     TaskActionBar(pastRecordingsTabModel, ideProfilerComponents)
