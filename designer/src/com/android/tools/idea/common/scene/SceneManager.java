@@ -210,18 +210,11 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   protected final void updateFromComponent(@NotNull SceneComponent component, @NotNull Set<SceneComponent> seenComponents) {
     seenComponents.add(component);
 
-    syncFromNlComponent(component);
+    mySceneComponentProvider.syncFromNlComponent(component);
 
     for (SceneComponent child : component.getChildren()) {
       updateFromComponent(child, seenComponents);
     }
-  }
-
-  /**
-   * Updates a single SceneComponent from its corresponding NlComponent.
-   */
-  protected final void syncFromNlComponent(SceneComponent sceneComponent) {
-    mySceneComponentProvider.syncFromNlComponent(sceneComponent);
   }
 
   @NotNull
