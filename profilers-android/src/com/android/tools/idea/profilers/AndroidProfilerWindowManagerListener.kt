@@ -67,13 +67,13 @@ class AndroidProfilerWindowManagerListener constructor(private val project: Proj
       }
 
       if (hasAliveSession) {
-        val hidePrompt = profilers.ideServices.temporaryProfilerPreferences.getBoolean(HIDE_STOP_PROMPT, false)
+        val hidePrompt = profilers.ideServices.persistentProfilerPreferences.getBoolean(HIDE_STOP_PROMPT, false)
         val confirm = hidePrompt || profilersView.ideProfilerComponents.createUiMessageHandler().displayOkCancelMessage(
           "Confirm Stop ${if (isTaskBasedUxEnabled) "Task" else "Profiling"}",
           "Hiding the window will stop the current ${if (isTaskBasedUxEnabled) "ongoing task" else "profiling session"}. Are you sure?",
           "Yes", "Cancel",
           null) { doNotShow: Boolean ->
-          profilers.ideServices.temporaryProfilerPreferences.setBoolean(HIDE_STOP_PROMPT, doNotShow)
+          profilers.ideServices.persistentProfilerPreferences.setBoolean(HIDE_STOP_PROMPT, doNotShow)
         }
 
         if (!confirm) {
