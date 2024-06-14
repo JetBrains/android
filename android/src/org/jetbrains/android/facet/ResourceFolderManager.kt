@@ -124,8 +124,8 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
       }
 
       module.isScreenshotTestModule() -> sourceProviderManager.run {
-        val sources = currentDeviceTestSourceProviders[CommonTestType.SCREENSHOT_TEST]?.flatMap { it.resDirectories } ?: listOf()
-        val generated = generatedDeviceTestSources[CommonTestType.SCREENSHOT_TEST]?.resDirectories ?: listOf()
+        val sources = currentHostTestSourceProviders[CommonTestType.SCREENSHOT_TEST]?.flatMap { it.resDirectories } ?: listOf()
+        val generated = generatedHostTestSources[CommonTestType.SCREENSHOT_TEST]?.resDirectories ?: listOf()
         (sources + generated).toList()
       }
 
