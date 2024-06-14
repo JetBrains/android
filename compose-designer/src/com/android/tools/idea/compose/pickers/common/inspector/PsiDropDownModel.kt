@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.google.common.util.concurrent.Futures
@@ -187,10 +188,10 @@ constructor(
     return result
   }
 
-  fun selectEnumValue() {
+  fun selectEnumValue(newEnumValue: NewEnumValueCallback) {
     val newValue = selectedValue
     if (newValue != null) {
-      newValue.select(property)
+      newValue.select(property, newEnumValue)
       fireValueChanged()
     }
   }

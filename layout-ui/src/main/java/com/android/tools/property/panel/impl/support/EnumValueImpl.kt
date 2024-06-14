@@ -17,6 +17,7 @@ package com.android.tools.property.panel.impl.support
 
 import com.android.tools.property.panel.api.ActionEnumValue
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -93,10 +94,14 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
       indented == otherActionValue.indented
   }
 
-  override fun select(property: PropertyItem): Boolean {
+  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
     ApplicationManager.getApplication().invokeLater {
       val propertyContext = DataContext {
-        if (EnumValue.Companion.PROPERTY_ITEM_KEY.`is`(it)) property else null
+        when {
+          EnumValue.PROPERTY_ITEM_KEY.`is`(it) -> property
+          EnumValue.NEW_ENUM_VALUE_CALLBACK_KEY.`is`(it) -> newEnumValue
+          else -> null
+        }
       }
       val event =
         AnActionEvent(

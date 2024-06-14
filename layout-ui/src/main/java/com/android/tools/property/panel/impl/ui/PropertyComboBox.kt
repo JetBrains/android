@@ -209,7 +209,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
     // and certain keystrokes
     addActionListener {
       if (!inSetup) {
-        model.selectEnumValue()
+        model.selectEnumValue { newText -> textField.text = newText }
       }
     }
 
