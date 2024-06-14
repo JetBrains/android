@@ -27,6 +27,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -150,7 +151,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     SceneComponent sceneComponent = scene.getSceneComponent(item);
     if (sceneComponent == null) {
-      sceneComponent = manager.createTemporaryComponent(item);
+      sceneComponent = new TemporarySceneComponent(scene, item);
     }
     List<NlComponent> itemAsList = Collections.singletonList(sceneComponent.getNlComponent());
     return new GroupDragHandler(mockViewEditor(model), new ViewGroupHandler(), scene.getSceneComponent(menu), itemAsList, DragType.MOVE);

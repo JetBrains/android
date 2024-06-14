@@ -27,7 +27,6 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.SceneUpdateListener
-import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
 import com.android.tools.idea.common.surface.DesignSurface
@@ -60,10 +59,6 @@ class TestSceneManager(
   override fun doCreateSceneView(): SceneView = TestSceneView(100, 100, this)
 
   override fun getSceneScalingFactor(): Float = 1f
-
-  override fun createTemporaryComponent(component: NlComponent): TemporarySceneComponent {
-    throw UnsupportedOperationException()
-  }
 
   override fun requestRenderAsync(): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
