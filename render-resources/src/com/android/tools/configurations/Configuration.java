@@ -203,6 +203,8 @@ public class Configuration {
   private boolean myUseThemedIcon = false;
   private Wallpaper myWallpaper = null;
   private Consumer<BufferedImage> myImageTransformation = null;
+  private boolean myGestureNav = false;
+  private boolean myEdgeToEdge = false;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -895,6 +897,34 @@ public class Configuration {
   @Nullable
   public String getWallpaperPath() {
     return myWallpaper != null ? myWallpaper.getResourcePath() : null;
+  }
+
+  /**
+   * Sets whether the rendering should be edge-to-edge
+   */
+  public void setEdgeToEdge(boolean edgeToEdge) {
+    myEdgeToEdge = edgeToEdge;
+  }
+
+  /**
+   * Returns whether the rendering should be edge-to-ege
+   */
+  public boolean isEdgeToEdge() {
+    return myEdgeToEdge;
+  }
+
+  /**
+   * Sets whether the rendering should use the gesture version of the navigation bar
+   */
+  public void setGestureNav(boolean gestureNav) {
+    myGestureNav = gestureNav;
+  }
+
+  /**
+   * Returns whether the rendering should use the gesture version of the navigation bar
+   */
+  public boolean isGestureNav() {
+    return myGestureNav;
   }
 
   /**
