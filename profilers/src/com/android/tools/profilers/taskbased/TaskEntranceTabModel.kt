@@ -59,10 +59,10 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers): AspectObser
                       "recording will ${if (isTaskOngoing) "terminate your ongoing recording." else "close your currently open task."}"
 
       // Retrieve user selection for "Do not ask again" checkbox on dialog. Prevent dialog from showing if true.
-      val hidePrompt = profilers.ideServices.temporaryProfilerPreferences.getBoolean(HIDE_NEW_TASK_PROMPT, false)
+      val hidePrompt = profilers.ideServices.persistentProfilerPreferences.getBoolean(HIDE_NEW_TASK_PROMPT, false)
       val confirm = hidePrompt || profilers.ideServices.openOkCancelDialog(dialogMsg, dialogTitle) { doNotShow: Boolean ->
         // Save user's preference to not see dialog again.
-        profilers.ideServices.temporaryProfilerPreferences.setBoolean(HIDE_NEW_TASK_PROMPT, doNotShow)
+        profilers.ideServices.persistentProfilerPreferences.setBoolean(HIDE_NEW_TASK_PROMPT, doNotShow)
       }
 
       // If the user cancels, we cancel the stoppage of the current task and start of the new one.
