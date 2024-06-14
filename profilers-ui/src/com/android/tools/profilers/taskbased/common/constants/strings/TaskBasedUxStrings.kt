@@ -80,6 +80,13 @@ object TaskBasedUxStrings {
   // Delete recording strings
   const val DELETE_RECORDING_DESC = "Delete recording"
 
+  // Recording banner message
+  const val RECORDING_BANNER_MESSAGE = "Profiler recordings are not preserved across Android Studio restarts. If the task supports " +
+                                       "exporting you can export the recording to preserve it."
+
+  // Do not show again option text
+  const val DONT_SHOW_AGAIN_TITLE = "Don't show again"
+
   fun getTaskTooltip(taskType: ProfilerTaskType) = when(taskType) {
     ProfilerTaskType.SYSTEM_TRACE -> "Captures a trace that can help you understand how your app interacts with system resources"
     ProfilerTaskType.HEAP_DUMP -> "Dumps the heap showing which objects in your app are using memory at the time of capture"
