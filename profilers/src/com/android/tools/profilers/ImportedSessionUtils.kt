@@ -99,9 +99,19 @@ object ImportedSessionUtils {
     val timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file)
     val sessionStartTimeNs = timestampsNs.first
     val sessionEndTimeNs = timestampsNs.second
+    val profilers = sessionsManager.studioProfilers
     when {
-      // Select the session if the file has already been imported.
-      sessionsManager.setSessionById(sessionStartTimeNs) -> {}
+      // If the session of the file has already been imported, the session representing the imported file is selected. In Task-Based UX, in
+      // addition to being selected, the session/recording is also opened in the task tab.
+      sessionsManager.sessionIdToSessionItems.containsKey(sessionStartTimeNs) -> {
+        if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+          val session = sessionsManager.sessionIdToSessionItems[sessionStartTimeNs]!!
+          profilers.pastRecordingsTabModel.recordingListModel.openRecording(session)
+        }
+        else {
+          sessionsManager.setSessionById(sessionStartTimeNs)
+        }
+      }
       else ->
         try {
           Files.readAllBytes(Paths.get(file.path))

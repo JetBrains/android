@@ -102,9 +102,16 @@ class RecordingListModel(val profilers: StudioProfilers,
     val difference = newRecordingList.toSet() - oldRecordingList.toSet()
     // Confirm there is one, new recording added. If so, auto open the new recording.
     if (newRecordingList.size > oldRecordingList.size && difference.size == 1 && difference.first().isImported()) {
-      onRecordingSelection(difference.first())
-      openProfilerTask()
+      openRecording(difference.first())
     }
+  }
+
+  /**
+   * Selects the recording and launches it in the task tab with its respective task type.
+   */
+  fun openRecording(recording: SessionItem) {
+    onRecordingSelection(recording)
+    openProfilerTask()
   }
 
   @VisibleForTesting
