@@ -15,19 +15,48 @@
  */
 package com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary
 
+import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
+import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
 
-fun buildKmpGradle(): String {
-  val androidTargetBlock = """
-    androidLibrary {
-      namespace = "com.example.kmplibrary"
-      compileSdk = 33
-      minSdk = 22
-    }
-  """.trimIndent()
+fun buildKmpGradle(
+  agpVersion: AgpVersion,
+  packageName: String,
+  compileApiString: String,
+  minApi: String,
+): String {
+  val androidTargetBlock = androidTargetConfig(
+    agpVersion = agpVersion,
+    compileApiString = compileApiString,
+    minApi = minApi,
+    packageName = packageName,
+  )
 
   val sourceSetConfigurationsBlock = """
     sourceSets {
+      getByName("androidMain") {
+        dependencies {
+          // put your android target dependencies here
+        }
+      }
+      getByName("androidInstrumentedTest") {
+        dependencies {
+          implementation("androidx.test:runner:1.4.0-alpha06")
+          implementation("androidx.test:core:1.4.0-alpha06")
+          implementation("androidx.test.ext:junit:1.1.5")
+        }   
+      }
+      commonMain {
+        dependencies {
+          // put your common multiplatform dependencies here
+        }
+      }
+      commonTest {
+        dependencies {
+          implementation("junit:junit:4.13.2")
+        }
+      }
     }
   """.trimIndent()
 
@@ -44,5 +73,31 @@ fun buildKmpGradle(): String {
     $kotlinBlock
     """
 
-  return allBlocks
+  return allBlocks.gradleToKtsIfKts(true)
+}
+
+private fun androidTargetConfig(
+  agpVersion: AgpVersion,
+  packageName: String,
+  compileApiString: String,
+  minApi: String,
+): String {
+  return """
+    androidLibrary {
+      namespace '$packageName'
+      ${toAndroidFieldVersion("compileSdk", compileApiString, agpVersion)}
+      ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}
+      
+      withAndroidTestOnJvmBuilder {
+          compilationName = "unitTest"
+          defaultSourceSetName = "androidUnitTest"
+      }
+      
+      withAndroidTestOnDeviceBuilder {
+          compilationName = "instrumentedTest"
+          defaultSourceSetName = "androidInstrumentedTest"
+          sourceSetTreeName = "test"
+      }
+    }
+    """.trimIndent()
 }
