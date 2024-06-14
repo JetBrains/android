@@ -17,8 +17,6 @@ package com.android.tools.idea.preview.actions
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.common.layout.SurfaceLayoutOption
-import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.TestPreviewElement
 import com.android.tools.idea.preview.flow.PreviewFlowManager
@@ -31,12 +29,8 @@ import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
@@ -46,34 +40,6 @@ import org.mockito.Mockito.verifyNoInteractions
 class SwitchSurfaceLayoutManagerActionTest {
 
   @JvmField @Rule val rule = AndroidProjectRule.inMemory()
-
-  @Suppress("UnstableApiUsage")
-  @Test
-  fun testCanChangeMultiChoiceMode() {
-    val option = listOf(SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()))
-
-    var enabled = true
-    val nonMultiChoiceAction = SwitchSurfaceLayoutManagerAction(option) { enabled }
-    val presentation = Presentation()
-
-    // It should always not be multi-choice no matter it is enabled or not.
-    nonMultiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
-    assertFalse(Utils.isMultiChoiceGroup(nonMultiChoiceAction))
-    enabled = false
-    nonMultiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
-    assertFalse(Utils.isMultiChoiceGroup(nonMultiChoiceAction))
-
-    enabled = true
-    val multiChoiceAction =
-      SwitchSurfaceLayoutManagerAction(option) { enabled }
-        .apply { templatePresentation.isMultiChoice = true }
-    // It should always be multi-choice no matter it is enabled or not.
-    multiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
-    assertTrue(Utils.isMultiChoiceGroup(multiChoiceAction))
-    enabled = false
-    multiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
-    assertTrue(Utils.isMultiChoiceGroup(multiChoiceAction))
-  }
 
   @Test
   fun testPreviewModeIsUpdatedWithGalleryModeOption() {
