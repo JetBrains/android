@@ -27,6 +27,7 @@ object TaskBasedUxDimensions {
   val TASK_GRID_HORIZONTAL_SPACE_DP = 25.dp
   val TASK_GRID_VERTICAL_SPACE_DP = 10.dp
   val TASK_GRID_HORIZONTAL_PADDING_DP = 50.dp
+  val TASK_GRID_VERTICAL_PADDING_DP = 10.dp
   const val MAX_NUM_TASKS_IN_ROW = 5
 
   // Task tooltip width
