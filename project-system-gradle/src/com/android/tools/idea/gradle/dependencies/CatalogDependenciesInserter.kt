@@ -140,18 +140,27 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
   /**
    * Adds plugin to module but insert/check version catalog first
    * Project build file/settings stay intact
+   *
+   * If the plugin has already been applied to the module, but it's not already in the version
+   * catalog, the version catalog is not updated (otherwise the plugin would be added to the
+   * version catalog, but the catalog reference would not actually be used).
    */
   override fun addPluginToModule(pluginId: String,
                                  version: String,
                                  buildModel: GradleBuildModel,
-                                 matcher: PluginMatcher): Set<PsiFile> =
-    getOrAddPluginToCatalog(pluginId, version, matcher) { alias, changedFiles ->
+                                 matcher: PluginMatcher): Set<PsiFile> {
+    if (buildModel.hasPlugin(matcher) &&
+        findCatalogPluginDeclaration(getCatalogModel(), matcher) == null) {
+      return emptySet()
+    }
+    return getOrAddPluginToCatalog(pluginId, version, matcher) { alias, changedFiles ->
       val reference = ReferenceTo(getCatalogModel().plugins().findProperty(alias))
       if (!buildModel.hasPlugin(matcher)) {
         buildModel.applyPlugin(reference, null)
         changedFiles.addIfNotNull(buildModel.psiElement?.containingFile)
       }
     }
+  }
 
   override fun addDependency(configuration: String,
                              dependency: String,

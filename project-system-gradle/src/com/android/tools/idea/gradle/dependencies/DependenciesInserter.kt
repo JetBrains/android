@@ -37,10 +37,12 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
    * buildscript dependencies section.
    * In case none above found (new project) we fall back to adding project level plugin alias
    * (as plugin itself is declared in version catalog for new projects) to root project plugin block.
+   *
+   * The plugin is applied to each of the modules in [buildModels]
    */
   fun addPlugin(pluginId: String,
                 classpathDependency: String,
-                buildModel: GradleBuildModel,
+                buildModels: List<GradleBuildModel>,
                 pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId),
                 classpathMatcher: DependencyMatcher = GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME,
                                                                                  classpathDependency)): Set<PsiFile> {
@@ -48,21 +50,23 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
     require(dependency.version != null) { "Classpath $classpathDependency version is empty" }
     val version = dependency.version!!.toString()
     val projectBuildModel = projectModel.projectBuildModel ?: error("Build model for root project not found")
-    val result = sequenceOf(
-      lazy { tryAddToPluginsManagementBlock(pluginId, version, projectBuildModel, pluginMatcher) },
-      lazy { tryAddToPluginsBlock(pluginId, version, projectBuildModel, pluginMatcher) },
-      lazy { tryAddToBuildscriptDependencies(classpathDependency, projectBuildModel, classpathMatcher) }
-    ).firstOrNull { it.value.succeed }?.value
     val updatedFiles = mutableSetOf<PsiFile>()
+    if (!hasPlugin(pluginMatcher, classpathMatcher)) {
+      val result = sequenceOf(
+        lazy { tryAddToPluginsManagementBlock(pluginId, version, projectBuildModel, pluginMatcher) },
+        lazy { tryAddToPluginsBlock(pluginId, version, projectBuildModel, pluginMatcher) },
+        lazy { tryAddToBuildscriptDependencies(classpathDependency, projectBuildModel, classpathMatcher) }
+      ).firstOrNull { it.value.succeed }?.value
 
-    // in case there is nothing - we force adding plugin to root project plugins block
-    result?.changedFiles?.let { updatedFiles.addAll(it) } ?: updatedFiles.addAll(
-      addPlugin(pluginId, version, apply = false, projectBuildModel, projectBuildModel)
-    )
+      // in case there is nothing - we force adding plugin to root project plugins block
+      result?.changedFiles?.let { updatedFiles.addAll(it) } ?: updatedFiles.addAll(
+        addPlugin(pluginId, version, apply = false, projectBuildModel, projectBuildModel)
+      )
+    }
 
-
-
-    updatedFiles.addAll(addPluginToModule(pluginId, version, buildModel))
+    buildModels.forEach {
+      updatedFiles.addAll(addPluginToModule(pluginId, version, it))
+    }
 
     return updatedFiles
   }
@@ -131,6 +135,28 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
         return TryAddResult(updatedFiles, true)
       }
     return TryAddResult.failed()
+  }
+
+  /**
+   * Returns whether the project already has the plugin (via pluginManagement block, plugins block,
+   * or buildscript classpath dependency)
+   */
+  private fun hasPlugin(
+    pluginMatcher: PluginMatcher,
+    classpathMatcher: DependencyMatcher
+  ): Boolean {
+    val pluginManagementPlugins =
+      projectModel.projectSettingsModel?.pluginManagement()?.plugins()?.plugins()
+    if (pluginManagementPlugins?.any { pluginMatcher.match(it) } == true) {
+      return true
+    }
+    if (projectModel.projectBuildModel?.plugins()?.any { pluginMatcher.match(it)} == true) {
+      return true
+    }
+    if (projectModel.projectBuildModel?.buildscript()?.dependencies()?.hasArtifact(classpathMatcher) == true) {
+      return true
+    }
+    return false
   }
 
   @JvmOverloads
