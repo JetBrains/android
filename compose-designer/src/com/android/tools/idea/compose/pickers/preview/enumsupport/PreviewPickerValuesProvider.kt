@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.pickers.preview.enumsupport
 import com.android.SdkConstants
 import com.android.ide.common.resources.Locale
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.pickers.base.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.pickers.base.enumsupport.EnumValuesProvider
@@ -48,8 +49,13 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.util.text.nullize
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
+
+@VisibleForTesting
+internal fun IAndroidTarget.displayName(): String =
+  "${version.apiLevel}${versionName?.let { " (Android $it)" } ?: ""}"
 
 object PreviewPickerValuesProvider {
   @JvmStatic
@@ -178,12 +184,8 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
     ?.targets
     ?.filter { it.isLayoutLibTarget && it.version.apiLevel >= minTargetSdk }
     ?.distinctBy { it.version.apiLevel }
-    ?.map { target ->
-      EnumValue.item(
-        target.version.apiLevel.toString(),
-        "${target.version.apiLevel} (Android ${target.versionName})",
-      )
-    } ?: emptyList()
+    ?.map { target -> EnumValue.item(target.version.apiLevel.toString(), target.displayName()) }
+    ?: emptyList()
 }
 
 private fun createGroupEnumProvider(
