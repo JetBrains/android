@@ -295,6 +295,11 @@ public final class StudioFlags {
     NELE, "detached.attached.toolwindows", "Allow floating attached tool windows",
     "Allows floating attached tool windows (partly broken).",
     false);
+
+  public static final Flag<Boolean> NELE_SYSTEM_UI_OPTIONS = new BooleanFlag(
+    NELE, "system.ui.options", "Enable system UI options",
+    "Enable an action to customize the system UI for previews.",
+    false);
   //endregion
 
   //region Resource Repository
