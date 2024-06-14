@@ -764,19 +764,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
   }
 
-  /**
-   * Whether we should render just the viewport
-   */
-  private static boolean ourRenderViewPort;
-
-  public static void setRenderViewPort(boolean state) {
-    ourRenderViewPort = state;
-  }
-
-  public static boolean isRenderViewPort() {
-    return ourRenderViewPort;
-  }
-
   public void setTransparentRendering(boolean enabled) {
     if (useTransparentRendering != enabled) {
       useTransparentRendering = enabled;
