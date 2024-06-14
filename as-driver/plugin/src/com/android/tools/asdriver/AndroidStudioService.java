@@ -42,6 +42,7 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.ex.ApplicationEx;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Document;
@@ -66,6 +67,9 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
+import com.jetbrains.performancePlugin.CommandLogger;
+import com.jetbrains.performancePlugin.CommandsRunner;
+import com.jetbrains.performancePlugin.PlaybackRunnerExtended;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -76,6 +80,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -203,6 +208,38 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
 
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
+  }
+
+  @Override
+  public void executeCommands(ASDriver.ExecuteCommandsRequest request,
+                                                StreamObserver<ASDriver.ExecuteCommandsResponse> responseObserver) {
+    Project project = request.hasProjectName()
+                      ? findProjectByName(request.getProjectName())
+                      : Arrays.stream(ProjectManager.getInstance().getOpenProjects()).findFirst().orElse(null);
+    if (project == null) {
+      throw new NoSuchElementException("Unable to find an open project to execute performance testing scenario.");
+    }
+    ASDriver.ExecuteCommandsResponse.Builder builder = ASDriver.ExecuteCommandsResponse.newBuilder();
+
+    ApplicationManager.getApplication().invokeAndWait(
+      () -> {
+        PlaybackRunnerExtended playback =
+          new PlaybackRunnerExtended(String.join("\n", request.getCommandsList()), new CommandLogger(), project);
+        CompletableFuture<?> scriptCallback = playback.run();
+        CommandsRunner.setActionCallback(scriptCallback);
+        scriptCallback.thenRun(
+            () -> builder.setResult(ASDriver.ExecuteCommandsResponse.Result.OK))
+          .exceptionally(response -> {
+            ApplicationManagerEx.getApplicationEx().exit(true, true, 1);
+
+            builder.setErrorMessage(response.getMessage());
+            builder.setResult(ASDriver.ExecuteCommandsResponse.Result.ERROR);
+            return null;
+          }).thenRun(() -> {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+          });
+      });
   }
 
   /**
@@ -364,50 +401,6 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         String.format("No project found by the name \"%s\". Open projects: %s", projectName, Arrays.toString(projects)));
     }
     return foundProject.get();
-  }
-
-  @Override
-  public void openFile(ASDriver.OpenFileRequest request, StreamObserver<ASDriver.OpenFileResponse> responseObserver) {
-    ASDriver.OpenFileResponse.Builder builder = ASDriver.OpenFileResponse.newBuilder();
-    builder.setResult(ASDriver.OpenFileResponse.Result.ERROR);
-    String projectName = request.getProject();
-    String fileName = request.getFile();
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      try {
-        Project project = findProjectByName(projectName);
-        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(new File(fileName));
-        if (virtualFile == null) {
-          // Fall back to interpreting the file name as project-relative.
-          String basePath = project.getBasePath();
-          if (basePath == null) {
-            System.err.println("File does not exist on filesystem with path: " + fileName +
-                               ". Base path for project \"" + projectName + "\" not found.");
-            return;
-          }
-          File relativeFile = Path.of(basePath, fileName).toFile().getCanonicalFile();
-          virtualFile = LocalFileSystem.getInstance().findFileByIoFile(relativeFile);
-          if (virtualFile == null) {
-            System.err.println("File does not exist on filesystem with any path in: [" + fileName + ", " + relativeFile.getPath() + "]");
-            return;
-          }
-        }
-
-        FileEditorManager manager = FileEditorManager.getInstance(project);
-        manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
-        goToLine(request.hasLine() ? request.getLine() : null, request.hasColumn() ? request.getColumn() : null);
-
-        builder.setResult(ASDriver.OpenFileResponse.Result.OK);
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-        if (!StringUtil.isEmpty(e.getMessage())) {
-          builder.setErrorMessage(e.getMessage());
-        }
-      }
-    });
-
-    responseObserver.onNext(builder.build());
-    responseObserver.onCompleted();
   }
 
   @Override
@@ -736,34 +729,6 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
                                                     "allow for project selection.%n", numProjects));
     }
     return projects[0];
-  }
-
-  /**
-   * @param line 0-indexed line number. If null, use the current line. This default (and the
-   *             column's default) match {@link com.intellij.ide.util.GotoLineNumberDialog}'s
-   *             defaults.
-   * @param column 0-indexed column number. If null, use column 0.
-   */
-  private void goToLine(Integer line, Integer column) {
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      try {
-        Project firstProject = getSingleProject();
-        Editor editor = FileEditorManager.getInstance(firstProject).getSelectedTextEditor();
-        CaretModel caretModel = editor.getCaretModel();
-        int lineToUse = line == null ? caretModel.getLogicalPosition().line : line;
-        int columnToUse = column == null ? 0 : column;
-
-        LogicalPosition position = new LogicalPosition(lineToUse, columnToUse);
-        caretModel.removeSecondaryCarets();
-        caretModel.moveToLogicalPosition(position);
-        editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
-        editor.getSelectionModel().removeSelection();
-        IdeFocusManager.getGlobalInstance().requestFocus(editor.getContentComponent(), true);
-      }
-      catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    });
   }
 
   /**
