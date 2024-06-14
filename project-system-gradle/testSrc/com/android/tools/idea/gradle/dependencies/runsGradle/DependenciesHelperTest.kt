@@ -651,7 +651,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
 
              val changed = helper.addPlugin("com.google.gms.google-services",
                                             "com.google.gms:google-services:4.3.14",
-                                            moduleModel)
+                                            listOf(moduleModel))
              assertThat(changed.size).isEqualTo(2)
            },
            {
@@ -690,7 +690,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
 
              val changed = helper.addPlugin("com.google.gms.google-services",
                                             "com.google.gms:google-services:4.3.14",
-                                            moduleModel)
+                                            listOf(moduleModel))
              assertThat(changed.size).isEqualTo(2)
            },
            {
@@ -709,13 +709,98 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            })
   }
 
+  /**
+   * Test case when addPlugin is called for an existing plugin (with version catalog)
+   */
+  @Test
+  fun testSmartAddPluginWithCatalogWithExistingPlugin() {
+    val env = BuildEnvironment.getInstance()
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           {
+             val settingsFile = File(project.basePath, "settings.gradle")
+             val settingsFileText = settingsFile.readText()
+             FileUtil.writeToFile(
+               settingsFile,
+               settingsFileText.replace("pluginManagement {", "pluginManagement {\n  plugins {}")
+             )
+           },
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+
+             val changed =
+               helper.addPlugin(
+                 "com.android.application",
+                 "com.android.tools.build:gradle:${env.gradlePluginVersion}",
+                 listOf(moduleModel)
+               )
+             assertThat(changed.size).isEqualTo(0)
+           },
+           {
+             val settingsContent = project.getTextForFile("settings.gradle")
+             assertThat(settingsContent).isNotEmpty()
+             assertThat(settingsContent).doesNotContain("com.android.application")
+
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalogContent).isNotEmpty()
+             assertThat(catalogContent).doesNotContain("com.android.application")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent,"'com.android.application'")).isEqualTo(1)
+           })
+  }
+
+  /**
+   * Test case when addPlugin is called for an existing plugin (without version catalog)
+   */
+  @Test
+  fun testSmartAddPluginNoCatalogWithExistingPlugin() {
+    val env = BuildEnvironment.getInstance()
+    doTest(SIMPLE_APPLICATION,
+           {
+             val settingsFile = File(project.basePath, "settings.gradle")
+             val settingsFileText = settingsFile.readText()
+             FileUtil.writeToFile(
+               settingsFile,
+               """
+                 pluginManagement {
+                   plugins {
+                   }
+                 }
+                 """.trimIndent() + "\n" + settingsFileText
+             )
+           },
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+
+             val changed =
+               helper.addPlugin(
+                 "com.android.application",
+                 "com.android.tools.build:gradle:${env.gradlePluginVersion}",
+                 listOf(moduleModel)
+               )
+             assertThat(changed.size).isEqualTo(0)
+           },
+           {
+             val settingsContent = project.getTextForFile("settings.gradle")
+             assertThat(settingsContent).isNotEmpty()
+             assertThat(settingsContent).doesNotContain("com.android.application")
+
+             assertThat(project.doesFileExists("gradle/libs.versions.toml")).isFalse()
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent,"apply plugin: 'com.android.application'")).isEqualTo(1)
+           })
+  }
+
   @Test
   fun testSmartAddPluginNoCatalogPluginsBlock() {
     doTest(MIGRATE_BUILD_CONFIG,
            { _, moduleModel, helper ->
              val changed = helper.addPlugin("com.google.gms.google-services",
                                             "com.google.gms:google-services:4.3.14",
-                                            moduleModel)
+                                            listOf(moduleModel))
              assertThat(changed.size).isEqualTo(2)
            },
            {
@@ -739,7 +824,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { _, moduleModel, helper ->
              val changed = helper.addPlugin("com.google.gms.google-services",
                                             "com.google.gms:google-services:4.3.14",
-                                            moduleModel)
+                                            listOf(moduleModel))
              assertThat(changed.size).isEqualTo(3)
            },
            {
@@ -765,7 +850,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { _, moduleModel, helper ->
              val changed = helper.addPlugin("com.google.gms.google-services",
                                             "com.google.gms:google-services:4.3.14",
-                                            moduleModel)
+                                            listOf(moduleModel))
              assertThat(changed.size).isEqualTo(3)
            },
            {

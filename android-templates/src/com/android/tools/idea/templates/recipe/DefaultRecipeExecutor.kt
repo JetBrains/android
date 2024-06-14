@@ -160,7 +160,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   private fun applyPluginToProjectAndModule(plugin: String, classpath: String, buildModel: GradleBuildModel) {
     val projectModel = projectBuildModel ?: return
     val dependenciesHelper = DependenciesHelper.withModel(projectModel)
-    dependenciesHelper.addPlugin(plugin, classpath, buildModel)
+    dependenciesHelper.addPlugin(plugin, classpath, listOf(buildModel))
   }
 
   private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
