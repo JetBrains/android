@@ -56,13 +56,6 @@ internal constructor(
       return false
     }
 
-    if (
-      androidVersion.featureLevel < AndroidVersion.MIN_EMULATOR_FOLDABLE_DEVICE_API &&
-        device.isFoldable
-    ) {
-      return false
-    }
-
     return true
   }
 
