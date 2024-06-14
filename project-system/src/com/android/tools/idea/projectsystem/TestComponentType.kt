@@ -17,15 +17,19 @@ package com.android.tools.idea.projectsystem
 
 sealed interface TestComponentType {
   val type: String
+
+  sealed interface HostTest : TestComponentType
+  sealed interface DeviceTest : TestComponentType
 }
 
 sealed interface CommonTestType : TestComponentType {
-
-  enum class HostTest(override val type: String) : CommonTestType {
+  /** Do not use this class directly: use the [TestComponentType.HostTest] interface or the [Companion] fields. */
+  enum class HostTest(override val type: String) : CommonTestType, TestComponentType.HostTest {
     UNIT_TEST("_unit_test_"),
     SCREENSHOT_TEST("_screenshot_test_")
   }
-  enum class DeviceTest(override val type: String) : CommonTestType {
+  /** Do not use this class directly: use the [TestComponentType.DeviceTest] interface or the [Companion] fields. */
+  enum class DeviceTest(override val type: String) : CommonTestType, TestComponentType.DeviceTest {
     ANDROID_TEST("_android_test_")
   }
 

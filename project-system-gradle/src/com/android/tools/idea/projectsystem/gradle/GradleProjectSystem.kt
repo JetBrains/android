@@ -451,11 +451,11 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(ScopeType.MAIN),
     generatedHostTestSources =
     model.selectedVariant.hostTestArtifacts.associate {
-      it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
+      it.name.toHostTestSourceProviderName() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
                                                       },
     generatedDeviceTestSources =
     model.selectedVariant.deviceTestArtifacts.associate {
-      it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
+      it.name.toDeviceTestSourceProviderName() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
                                                         },
     generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider(ScopeType.TEST_FIXTURES)
       ?: emptySourceProvider(ScopeType.TEST_FIXTURES)
@@ -496,14 +496,18 @@ fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: Androi
   return projectSystem.getBuiltApksForSelectedVariant(androidFacet, this, forTests)
 }
 
-private fun IdeArtifactName.toSourceProviderNames(): TestComponentType {
-  return when (this) {
+private fun IdeArtifactName.toHostTestSourceProviderName(): TestComponentType.HostTest =
+  when (this) {
     IdeArtifactName.UNIT_TEST -> CommonTestType.UNIT_TEST
-    IdeArtifactName.ANDROID_TEST -> CommonTestType.ANDROID_TEST
     IdeArtifactName.SCREENSHOT_TEST -> CommonTestType.SCREENSHOT_TEST
-    else -> error("Unknown testArtifact name $this")
+    else -> error("Unknown host test artifact name $this")
   }
-}
+
+private fun IdeArtifactName.toDeviceTestSourceProviderName(): TestComponentType.DeviceTest =
+  when (this) {
+    IdeArtifactName.ANDROID_TEST -> CommonTestType.ANDROID_TEST
+    else -> error("Unknown device test artifact name $this")
+  }
 
 private fun IdeArtifactName.toKnownScopeType() =
   when (this) {
