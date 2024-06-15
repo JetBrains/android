@@ -16,14 +16,14 @@
 package com.android.tools.idea.streaming.benchmark
 
 import com.android.tools.idea.util.fsm.StateMachine
-import com.android.utils.time.TimeSource
-import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.math.Quantiles
 import com.intellij.openapi.diagnostic.Logger
 import java.util.Timer
 import kotlin.concurrent.scheduleAtFixedRate
 import kotlin.math.roundToLong
 import kotlin.time.Duration
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 /** Class that conducts a generic benchmarking operation. */
 class Benchmarker<InputType>(
