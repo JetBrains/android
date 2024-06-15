@@ -81,7 +81,7 @@ class DeployAndHandleErrorKtTest {
     }
     catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
-      assertThat(e.message!!.contains(detailedReason))
+      assertThat(e.message!!).contains(detailedReason)
     }
   }
 

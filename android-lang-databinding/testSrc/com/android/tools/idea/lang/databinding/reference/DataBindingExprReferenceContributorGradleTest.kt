@@ -145,7 +145,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
                                                                                              false)[0].sourceElement!! as PsiMethod
     // If both of these are true, it means XML can reach Java and Java can reach XML
-    assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0]))
+    assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0])).isTrue()
     assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
   }
 
@@ -163,7 +163,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
                                                                                              false)[0].sourceElement!! as PsiMethod
     // If both of these are true, it means XML can reach Java and Java can reach XML
-    assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0]))
+    assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0])).isTrue()
     assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
   }
 
@@ -181,7 +181,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
                                                                                              false)[0].sourceElement!! as PsiMethod
     // If both of these are true, it means XML can reach Java and Java can reach XML
-    assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0]))
+    assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0])).isTrue()
     assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
   }
 
@@ -199,7 +199,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     val psiMethod = fixture.findClass("com.android.example.appwithdatabinding.MyAdapter")
       .findMethodsByName("bindOnClick3", false)[0].sourceElement!! as PsiMethod
     // If both of these are true, it means XML can reach Java and Java can reach XML
-    assertThat(parameterReference.isReferenceTo(psiMethod))
+    assertThat(parameterReference.isReferenceTo(psiMethod)).isTrue()
     assertThat(parameterReference.resolve()).isEqualTo(psiMethod)
   }
 }

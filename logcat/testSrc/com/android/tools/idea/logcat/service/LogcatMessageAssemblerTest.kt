@@ -572,7 +572,7 @@ class LogcatMessageAssemblerTest {
             "Message 1",
           )
         )
-      assertThat(channel.isEmpty)
+      assertThat(channel.isEmpty).isTrue()
       testScheduler.advanceTimeBy(100)
       testScheduler.runCurrent()
       assertThat(channel.receive())
@@ -614,7 +614,7 @@ class LogcatMessageAssemblerTest {
             "Message 3",
           )
         )
-      assertThat(channel.isEmpty)
+      assertThat(channel.isEmpty).isTrue()
       testScheduler.advanceTimeBy(100)
       testScheduler.runCurrent()
       assertThat(channel.receive())
@@ -656,7 +656,7 @@ class LogcatMessageAssemblerTest {
             "Message 5",
           )
         )
-      assertThat(channel.isEmpty)
+      assertThat(channel.isEmpty).isTrue()
       testScheduler.advanceTimeBy(100)
       testScheduler.runCurrent()
       assertThat(channel.receive())
@@ -675,7 +675,8 @@ class LogcatMessageAssemblerTest {
         )
       channel.close()
       advanceUntilIdle()
-      assertThat(channel.isEmpty)
+      // TODO(b/347771901) Uncomment and fix
+      // assertThat(channel.isEmpty).isTrue()
     }
 
   @Test

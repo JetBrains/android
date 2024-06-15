@@ -72,7 +72,7 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
   fun getPrefixPackage_worksAsExpected() {
     fun assertExpectedPrefix(expected: String, textWithCaret: String) {
       val offset = textWithCaret.indexOf(caret)
-      assertThat(offset >= 0)
+      assertThat(offset).isAtLeast(0)
       val text = textWithCaret.replace(caret, "")
       assertThat(DataBindingCompletionSupportImpl.getPackagePrefix(text, offset)).isEqualTo(expected)
     }

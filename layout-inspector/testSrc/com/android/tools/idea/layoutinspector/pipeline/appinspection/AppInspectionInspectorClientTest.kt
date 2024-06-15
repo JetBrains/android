@@ -892,7 +892,7 @@ class AppInspectionInspectorClientTest {
     inspectorState.triggerLayoutCapture(rootId = 1)
 
     // Check that the notification is not sent again:
-    assertThat(inspectorRule.notificationModel.notifications.isEmpty())
+    assertThat(inspectorRule.notificationModel.notifications).isEmpty()
   }
 
   @Test
