@@ -15,12 +15,23 @@
  */
 package com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.android.tools.profilers.sessions.SessionItem
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.NO_RECORDINGS_INSTRUCTIONS_TEXT
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.NO_RECORDINGS_TITLE
+import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
 
 @Composable
@@ -28,7 +39,22 @@ fun RecordingList(recordingListModel: RecordingListModel, modifier: Modifier = M
   Column(modifier = modifier) {
     val selectedRecording by recordingListModel.selectedRecording.collectAsState()
     val recordingList by recordingListModel.recordingList.collectAsState()
-    RecordingTable(recordingList = recordingList, selectedRecording = selectedRecording,
-                   onRecordingSelection = recordingListModel::onRecordingSelection)
+    if (recordingList.isEmpty()) {
+      EmptyRecordingMessage()
+    }
+    else {
+      RecordingTable(recordingList = recordingList, selectedRecording = selectedRecording,
+                     onRecordingSelection = recordingListModel::onRecordingSelection)
+    }
+  }
+}
+
+@Composable
+fun EmptyRecordingMessage() {
+  Column(modifier = Modifier.fillMaxSize().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally,
+         verticalArrangement = Arrangement.Center) {
+    EllipsisText(text = NO_RECORDINGS_TITLE, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+    Spacer(Modifier.height(8.dp))
+    EllipsisText(text = NO_RECORDINGS_INSTRUCTIONS_TEXT)
   }
 }

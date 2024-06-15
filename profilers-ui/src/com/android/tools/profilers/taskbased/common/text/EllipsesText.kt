@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import org.jetbrains.jewel.ui.component.Text
@@ -35,16 +36,17 @@ fun EllipsisText(modifier: Modifier = Modifier,
                  text: String,
                  maxLines: Int = 1,
                  fontSize: TextUnit = TextUnit.Unspecified,
+                 fontWeight: FontWeight? = null,
                  lineHeight: TextUnit = TextUnit.Unspecified,
                  color: Color = Color.Unspecified) {
   var hasVisualOverflow by remember { mutableStateOf(false) }
   if (hasVisualOverflow) {
     Tooltip(tooltip = { Text(text) }) {
-      EllipsisTextContent(text, maxLines, fontSize, lineHeight, color, modifier) { hasVisualOverflow = it.hasVisualOverflow }
+      EllipsisTextContent(text, maxLines, fontSize, fontWeight, lineHeight, color, modifier) { hasVisualOverflow = it.hasVisualOverflow }
     }
   }
   else {
-    EllipsisTextContent(text, maxLines, fontSize, lineHeight, color, modifier) { hasVisualOverflow = it.hasVisualOverflow }
+    EllipsisTextContent(text, maxLines, fontSize, fontWeight, lineHeight, color, modifier) { hasVisualOverflow = it.hasVisualOverflow }
   }
 }
 
@@ -52,10 +54,11 @@ fun EllipsisText(modifier: Modifier = Modifier,
 private fun EllipsisTextContent(text: String,
                                 maxLines: Int,
                                 fontSize: TextUnit,
+                                fontWeight: FontWeight?,
                                 lineHeight: TextUnit,
                                 color: Color,
                                 modifier: Modifier,
                                 onTextLayout: (TextLayoutResult) -> Unit) {
-  Text(text = text, maxLines = maxLines, overflow = TextOverflow.Ellipsis, fontSize = fontSize, lineHeight = lineHeight,
-       color = color, modifier = modifier, onTextLayout = onTextLayout)
+  Text(text = text, maxLines = maxLines, overflow = TextOverflow.Ellipsis, fontSize = fontSize, fontWeight = fontWeight,
+       lineHeight = lineHeight, color = color, modifier = modifier, onTextLayout = onTextLayout)
 }
