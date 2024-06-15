@@ -22,6 +22,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.IconManager
 import com.intellij.ui.JBColor
+import com.intellij.ui.NewUiValue
 import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
@@ -49,6 +50,7 @@ class ColoredIconGeneratorTest {
     wasDarkMode = !JBColor.isBright()
     IconManager.activate(null)
     IconLoader.activate()
+    NewUiValue.initialize { true }
   }
 
   @After
