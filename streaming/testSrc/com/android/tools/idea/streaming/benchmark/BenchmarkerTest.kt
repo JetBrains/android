@@ -20,13 +20,13 @@ import com.android.testutils.MockitoKt.argumentCaptor
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.streaming.benchmark.Benchmarker.Adapter
-import com.android.utils.time.TestTimeSource
 import com.google.common.truth.Truth.assertThat
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
+import kotlin.time.TestTimeSource
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4

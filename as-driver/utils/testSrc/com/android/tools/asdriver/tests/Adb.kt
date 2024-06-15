@@ -17,8 +17,6 @@ package com.android.tools.asdriver.tests
 
 import com.android.SdkConstants
 import com.android.testutils.TestUtils
-import com.android.utils.time.TimeSource
-import com.android.utils.time.toDurationUnit
 import java.io.FileWriter
 import java.io.IOException
 import java.lang.ProcessBuilder.Redirect.appendTo
@@ -31,7 +29,9 @@ import java.util.concurrent.TimeUnit.MICROSECONDS
 import java.util.regex.Matcher
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.TimeSource
 import kotlin.time.toDuration
+import kotlin.time.toDurationUnit
 
 class Adb
 private constructor(
