@@ -95,7 +95,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
         else listOf(samplingMenu, forceGcButton, stopButton)
       assertThat(descendants).containsAllIn(expected)
       assertThat(expected.all { it.isVisible }).isTrue()
-      assertThat(unexpected.all { !it.isVisible || it !in descendants })
+      assertThat(unexpected.all { !it.isVisible || it !in descendants }).isTrue()
     }
   }
 
@@ -208,7 +208,8 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     stageView.apply {
       val descendants = (TreeWalker(component).descendants() + TreeWalker(toolbar).descendants()).toSet()
       listOf(stopButton, forceGcButton, samplingMenu).forEach {
-        assertThat(it !in descendants || !it.isVisible)
+        // TODO(b/347773042) Uncomment and fix
+        // assertThat(it !in descendants || !it.isVisible).isTrue()
       }
     }
   }

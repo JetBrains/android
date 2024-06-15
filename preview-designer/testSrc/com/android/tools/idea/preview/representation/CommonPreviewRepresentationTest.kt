@@ -57,7 +57,6 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.rendering.RenderAsyncActionExecutor
-import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -264,9 +263,9 @@ class CommonPreviewRepresentationTest {
       val surface = preview.previewView.mainSurface
 
       assertTrue(surface.getData(PreviewModeManager.KEY.name) is PreviewModeManager)
-      assertThat(surface.getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
-      assertThat(surface.getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
-      assertThat(surface.getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
+      assertTrue(surface.getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
+      assertTrue(surface.getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
+      assertTrue(surface.getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
       assertTrue(surface.getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
       assertTrue(surface.getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
 

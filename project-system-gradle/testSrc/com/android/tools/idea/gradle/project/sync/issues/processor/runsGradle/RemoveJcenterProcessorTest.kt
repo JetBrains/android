@@ -51,8 +51,11 @@ class RemoveJcenterProcessorTest : AndroidGradleTestCase() {
     // Confirm it is there
     projectBuildModel = ProjectBuildModel.get(project)
     assertThat(projectBuildModel.projectBuildModel!!.buildscript().repositories().containsMethodCall("jcenter"))
+      .isTrue()
     assertThat(projectBuildModel.getModuleBuildModel(module)!!.repositories().containsMethodCall("jcenter"))
+      .isTrue()
     assertThat(projectBuildModel.projectSettingsModel!!.dependencyResolutionManagement().repositories().containsMethodCall("jcenter"))
+      .isTrue()
 
     val processor = RemoveJcenterProcessor(project, listOf(module))
 
@@ -75,8 +78,11 @@ class RemoveJcenterProcessorTest : AndroidGradleTestCase() {
     assertTrue(synced)
     projectBuildModel = ProjectBuildModel.get(project)
     assertThat(!projectBuildModel.projectBuildModel!!.buildscript().repositories().containsMethodCall("jcenter"))
+      .isTrue()
     assertThat(!projectBuildModel.getModuleBuildModel(module)!!.repositories().containsMethodCall("jcenter"))
+      .isTrue()
     assertThat(!projectBuildModel.projectSettingsModel!!.dependencyResolutionManagement().repositories().containsMethodCall("jcenter"))
+      .isTrue()
   }
 }
 

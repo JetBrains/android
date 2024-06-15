@@ -113,7 +113,7 @@ class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
           TestCase.fail("Build was successful even with a bad key alias")
         }
         val buildErrorCause: String = getInvocationErrorsCause(result)
-        Truth.assertThat(buildErrorCause.contains("Failed to read key androiddebugkey from store"))
+        Truth.assertThat(buildErrorCause).contains("Failed to read key androiddebugkey from store")
       }
       catch (e: InterruptedException) {
         throw RuntimeException(e)

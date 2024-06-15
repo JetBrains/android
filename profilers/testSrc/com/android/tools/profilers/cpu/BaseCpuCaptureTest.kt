@@ -47,11 +47,11 @@ class BaseCpuCaptureTest {
     )
     val capture = BaseCpuCapture(42, TraceType.SIMPLEPERF, true, null, Range(0.0, 1.0), captureTrees,
                                  setOf("path"))
-    assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel)
+    assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel).isTrue()
     capture.collapseNodesWithTags(setOf("path"))
-    assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data !is NoSymbolModel)
+    assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data !is NoSymbolModel).isTrue()
     capture.collapseNodesWithTags(setOf())
-    assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel)
+    assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel).isTrue()
   }
 
   /**

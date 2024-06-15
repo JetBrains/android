@@ -64,7 +64,7 @@ class EssentialsModeTest : LightPlatform4TestCase() {
 
     EssentialsMode.setEnabled(true, project)
 
-    Truth.assertThat(tracker.usages.size > 0)
+    Truth.assertThat(tracker.usages.size).isGreaterThan(0)
     Truth.assertThat(tracker.usages[0].studioEvent.kind == AndroidStudioEvent.EventKind.ESSENTIALS_MODE_EVENT).isTrue()
     Truth.assertThat(tracker.usages[0].studioEvent.essentialsModeEvent.enabled).isTrue()
 

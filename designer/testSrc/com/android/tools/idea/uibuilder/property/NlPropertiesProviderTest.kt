@@ -282,7 +282,7 @@ class NlPropertiesProviderTest {
   }
 
   private fun PropertiesTable<NlPropertyItem>.check(name: String, type: NlPropertyType) {
-    assertThat(contains(ANDROID_URI, name))
+    assertThat(contains(ANDROID_URI, name)).isTrue()
     assertThat(get(ANDROID_URI, name).type).isEqualTo(type)
   }
 
