@@ -19,6 +19,7 @@ import com.intellij.notification.NotificationGroup
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.progress.Cancellation
 import com.intellij.openapi.project.Project
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
@@ -58,7 +59,9 @@ interface GradleSyncState {
 
   companion object {
     @JvmField
-    val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
+    val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = Cancellation.forceNonCancellableSectionInClassInitializer {
+      NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
+    }
 
     /**
      * These methods allow the registering of listeners to [GradleSyncState].

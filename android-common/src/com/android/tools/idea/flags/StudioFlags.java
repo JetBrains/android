@@ -17,6 +17,7 @@ package com.android.tools.idea.flags;
 
 import static com.android.tools.idea.IdeChannel.Channel.CANARY;
 import static com.android.tools.idea.IdeChannel.Channel.DEV;
+import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 import com.android.flags.BooleanFlag;
 import com.android.flags.EnumFlag;
@@ -29,19 +30,16 @@ import com.android.flags.LongFlag;
 import com.android.flags.StringFlag;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.progress.Cancellation;
 import java.io.File;
-import com.intellij.util.PlatformUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
-
-import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 /**
  * A collection of all feature flags used by Android Studio. These flags can be used to gate
@@ -59,7 +57,7 @@ public final class StudioFlags {
     Application app = ApplicationManager.getApplication();
     FlagOverrides userOverrides;
     if (app != null && !app.isUnitTestMode()) {
-      userOverrides = StudioFlagSettings.getInstance();
+      userOverrides = Cancellation.forceNonCancellableSectionInClassInitializer(() -> StudioFlagSettings.getInstance());
     }
     else {
       userOverrides = new DefaultFlagOverrides();
@@ -123,7 +121,8 @@ public final class StudioFlags {
     NPW, "genai.template",
     "Enable GenAI template",
     "Allows the GenAI template to be used.",
-    ChannelDefault.enabledUpTo(CANARY));
+    Cancellation.forceNonCancellableSectionInClassInitializer(() -> ChannelDefault.enabledUpTo(CANARY))
+  );
   //endregion
 
   //region Memory Usage Reporting
@@ -299,7 +298,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GENERATE_BASELINE_PROFILE_GUTTER_ICON = new BooleanFlag(
     RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
     "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
-    "Changing the value of this flag requires restarting " + getFullProductName() + ".",
+     "Changing the value of this flag requires restarting " + Cancellation.forceNonCancellableSectionInClassInitializer(() -> getFullProductName()) + ".",
     true);
 
   public static final Flag<Boolean> DELTA_INSTALL = new BooleanFlag(
