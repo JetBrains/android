@@ -138,7 +138,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
     var transitionCalls = 0
     var stateCalls = 0
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun getTransitions(animation: Any, clockTimeMsStep: Long) =
           super.getTransitions(animation, clockTimeMsStep).also { transitionCalls++ }
 
@@ -171,7 +171,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
     var numberOfCalls = 0
 
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun updateFromAndToStates(
           animation: ComposeAnimation,
           fromState: Any,
@@ -213,7 +213,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
   fun changeTime() {
     var numberOfCalls = 0
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun getAnimatedProperties(animation: Any): List<ComposeAnimatedProperty> =
           super.getAnimatedProperties(animation).also { numberOfCalls++ }
       }
@@ -237,7 +237,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
   private fun setupAndCheckToolbar(
     type: ComposeAnimationType,
     states: Set<Any>,
-    clock: TestClock = TestClockWithCoordination(),
+    clock: TestClock = TestClock(),
     checkToolbar: suspend (JComponent, FakeUi) -> Unit,
   ) {
     val inspector = createAndOpenInspector()
