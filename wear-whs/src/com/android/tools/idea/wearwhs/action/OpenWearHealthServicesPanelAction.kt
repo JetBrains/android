@@ -90,6 +90,7 @@ class OpenWearHealthServicesPanelAction :
         .setRequestFocus(true)
         .setAnimationCycle(200)
         .setFillColor(secondaryPanelBackground)
+        .setBorderColor(secondaryPanelBackground)
         .createBalloon()
 
     AndroidCoroutineScope(balloon).launch {

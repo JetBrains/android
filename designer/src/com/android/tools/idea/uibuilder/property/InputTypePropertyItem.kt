@@ -78,6 +78,7 @@ class InputTypePropertyItem(
                 .setBlockClicksThroughBalloon(true)
                 .setAnimationCycle(200)
                 .setFillColor(secondaryPanelBackground)
+                .setBorderColor(secondaryPanelBackground)
                 .createBalloon() as BalloonImpl
 
             panel.balloon = balloon
