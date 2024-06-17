@@ -98,6 +98,10 @@ object AnimationUnit {
       else
         components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
 
+    override fun hashCode(): Int {
+      return components.fold(1) { hash, element -> 31 * hash + (element?.hashCode() ?: 0) }
+    }
+
     override fun toString(componentId: Int): String {
       return buildString {
         append("( ")
@@ -113,6 +117,14 @@ object AnimationUnit {
         }
         append(" )")
       }
+    }
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true // Same reference
+      if (other !is BaseUnit<*>) return false // Different type
+      if (components.size != other.components.size) return false // Different size
+      // Compare components pairwise, handling nulls
+      return components.zip(other.components).all { (a, b) -> a == b || (a == null && b == null) }
     }
   }
 
@@ -164,6 +176,12 @@ object AnimationUnit {
 
   open class UnitUnknown(val any: Any?) : Unit<Any?> {
     override val components = listOf(any)
+
+    override fun hashCode(): Int = any.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+      return other is UnitUnknown && any == other.any
+    }
 
     override fun toString(componentId: Int) = any.toString()
 

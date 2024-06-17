@@ -88,7 +88,7 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker, private val onCli
     setUnitStates(targetState, initialState)
   }
 
-  fun getState(index: Int): Any {
+  fun getState(index: Int): List<*> {
     return if (index == 0) initialState.components.toList() else targetState.components.toList()
   }
 
@@ -96,12 +96,16 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker, private val onCli
     return Pair(initialState.hashCode(), targetState.hashCode()).hashCode()
   }
 
+  fun updateInitialState(initial: Any?) {
+    initialState = ComposeUnit.parseStateUnit(initial)
+    stateListeners.forEach { it() }
+  }
+
   fun updateStates(initial: Any, target: Any) {
     setUnitStates(ComposeUnit.parseStateUnit(initial), ComposeUnit.parseStateUnit(target))
   }
 
-  private fun setUnitStates(initial: AnimationUnit.Unit<*>?, target: AnimationUnit.Unit<*>?) {
-    if (initial == null || target == null) return
+  private fun setUnitStates(initial: AnimationUnit.Unit<*>, target: AnimationUnit.Unit<*>) {
     initialState = initial
     targetState = target
     stateListeners.forEach { it() }
