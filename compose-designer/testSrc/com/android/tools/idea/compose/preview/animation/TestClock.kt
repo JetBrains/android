@@ -36,7 +36,7 @@ internal open class TestClock {
   }
 
   open fun getAnimatedProperties(animation: Any) =
-    listOf<ComposeAnimatedProperty>(
+    listOf(
       ComposeAnimatedProperty("Int", 1),
       ComposeAnimatedProperty("IntSnap", 1),
       ComposeAnimatedProperty("Float", 1f),
