@@ -38,8 +38,8 @@
     <notificationGroup id="Running Devices Messages"
                        displayType="BALLOON"
                        toolWindowId="Running Devices"
-                       bundle="messages.AndroidBundle"
-                       key="android.streaming.notification.title"/>
+                       bundle="messages.StreamingBundle"
+                       key="streaming.notification.title"/>
 
     <keymapExtension implementation="com.android.tools.idea.streaming.actions.StreamingKeymapExtension"/>
 
