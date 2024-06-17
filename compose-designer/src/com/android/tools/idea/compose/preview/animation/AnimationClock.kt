@@ -41,11 +41,6 @@ internal fun AnimationClock.getMaxDurationMsPerIteration(): Long {
 }
 
 /** Seeks each animation being tracked to the given [clockTimeMillis]. */
-internal fun AnimationClock.setClockTime(clockTimeMillis: Long) {
-  setClockTimeFunction.invoke(clock, clockTimeMillis)
-}
-
-/** Seeks each animation being tracked to the given [clockTimeMillis]. */
 internal fun AnimationClock.setClockTimes(clockTimeMillis: Map<ComposeAnimation, Long>) {
   setClockTimesFunction.invoke(clock, clockTimeMillis)
 }
@@ -95,9 +90,6 @@ class AnimationClock(val clock: Any) {
 
   /** Function `getMaxDurationPerIteration` of [clock]. */
   val getMaxDurationPerIteration by lazy { findClockFunction("getMaxDurationPerIteration") }
-
-  /** Function `setClockTime` of [clock]. */
-  val setClockTimeFunction by lazy { findClockFunction("setClockTime") }
 
   /** Function `setClockTimes` of [clock]. */
   val setClockTimesFunction by lazy { findClockFunction("setClockTimes") }
