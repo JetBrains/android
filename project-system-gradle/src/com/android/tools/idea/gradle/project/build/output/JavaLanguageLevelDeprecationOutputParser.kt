@@ -19,18 +19,22 @@ import com.android.tools.idea.gradle.project.build.quickFixes.OpenBuildJdkInfoLi
 import com.android.tools.idea.gradle.project.build.quickFixes.PickLanguageLevelInPSDQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
+import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaToolchainQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.issue.BuildIssue
+import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
+import com.intellij.pom.Navigatable
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.lang.JavaVersion
 import org.jetbrains.annotations.VisibleForTesting
@@ -80,7 +84,9 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
       issueComposer.addQuickFix(PickLanguageLevelInPSDQuickFix())
       issueComposer.addQuickFix(DescribedOpenGradleJdkSettingsQuickfix())
       issueComposer.addQuickFix(OpenBuildJdkInfoLinkQuickFix())
-      return issueComposer.composeBuildIssue()
+      return issueComposer.composeErrorMessageAwareBuildIssue(
+        BuildErrorMessage.newBuilder().setErrorShownType(BuildErrorMessage.ErrorType.JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL).build()
+      )
     }
 
     fun suggestedLanguageLevelForCompiler(compilerVersion: JavaVersion): LanguageLevel = when {

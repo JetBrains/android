@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.build.output
 import com.android.SdkConstants
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser
 import com.android.ide.common.resources.MergingException
+import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
@@ -71,8 +72,11 @@ fun toBuildErrorMessage(buildEvent: BuildEvent): BuildErrorMessage? {
   }
 }
 
-
 private fun addStatsFromBuildIssue(buildEvent: BuildIssueEvent): BuildErrorMessage? {
+  val issue = buildEvent.issue
+  if (issue is ErrorMessageAwareBuildIssue) {
+    return issue.buildErrorMessage
+  }
   val buildErrorMessageBuilder = BuildErrorMessage.newBuilder()
   when(buildEvent.issue.title) {
     TomlErrorParser.BUILD_ISSUE_TITLE -> BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
