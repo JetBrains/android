@@ -45,19 +45,18 @@ class JankSummaryDetailsViewTest {
     }
     val v = JankSummaryDetailsView(PROFILERS_VIEW, MODEL)
     listOf("Jank type",
+           "Layer name",
            "Display timing",
-           "App deadline",
-           "Actual render time",
            "Expected duration",
            "Actual duration").forEach { title ->
-      assertThat(v.any { it is JLabel && title in it.text })
+      assertThat(v.any { it is JLabel && title in it.text }).isTrue()
     }
-    assertThat(v.any(isCollapsibleTable("Events associated with Jank")))
-    assertThat(v.any(isCollapsibleTable("States")))
+    assertThat(v.any(isCollapsibleTable("Events associated with frame"))).isTrue()
+    assertThat(v.any(isCollapsibleTable("states"))).isTrue()
   }
 }
 
-private fun Component.any(satisfies: (Component) -> Boolean) = TreeWalker(this).ancestorStream().anyMatch(satisfies)
+private fun Component.any(satisfies: (Component) -> Boolean) = TreeWalker(this).descendantStream().anyMatch(satisfies)
 private val FAKE_MAIN_THREAD = CpuThreadInfo(0, "Main", true)
 private val FAKE_GPU_THREAD = CpuThreadInfo(1, "GPU completion", false)
 private val FAKE_RENDER_THREAD = CpuThreadInfo(2, CpuThreadInfo.RENDER_THREAD_NAME, false)
