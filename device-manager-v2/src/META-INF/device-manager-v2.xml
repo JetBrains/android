@@ -22,6 +22,12 @@
                 icon="StudioIcons.Shell.ToolWindows.DEVICE_MANAGER"
                 librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                 factoryClass="com.android.tools.idea.devicemanagerv2.DeviceManager2ToolWindowFactory"/>
+    <notificationGroup id="Device Manager Messages"
+                       displayType="BALLOON"
+                       toolWindowId="Device Manager 2"
+                       bundle="messages.DeviceManagerBundle"
+                       key="device.manager.notification.title"/>
+
   </extensions>
   <actions>
     <group id="Android.DeviceManager.TypeSpecificActions">
