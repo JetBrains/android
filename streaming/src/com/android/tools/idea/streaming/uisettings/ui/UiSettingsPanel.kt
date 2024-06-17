@@ -31,7 +31,6 @@ import com.intellij.ui.dsl.builder.actionListener
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import java.awt.Font
 import javax.swing.AbstractButton
 import javax.swing.JSlider
 import javax.swing.LayoutFocusTraversalPolicy
@@ -75,7 +74,7 @@ internal class UiSettingsPanel(
         separator()
 
         if (deviceType != DeviceType.WEAR) {
-          row(label(DARK_THEME_TITLE)) {
+          row(JBLabel(DARK_THEME_TITLE)) {
             checkBox("")
               .accessibleName(DARK_THEME_TITLE)
               .bind(model.inDarkMode)
@@ -84,7 +83,7 @@ internal class UiSettingsPanel(
         }
 
         if (deviceType == DeviceType.HANDHELD) {
-          row(label(GESTURE_NAVIGATION_TITLE)) {
+          row(JBLabel(GESTURE_NAVIGATION_TITLE)) {
             checkBox("")
               .accessibleName(GESTURE_NAVIGATION_TITLE)
               .bind(model.gestureNavigation)
@@ -92,7 +91,7 @@ internal class UiSettingsPanel(
           }.visibleIf(model.permissionMonitoringDisabled.and(model.gestureOverlayInstalled))
         }
 
-        row(label(APP_LANGUAGE_TITLE)) {
+        row(JBLabel(APP_LANGUAGE_TITLE)) {
           comboBox(model.appLanguage)
             .accessibleName(APP_LANGUAGE_TITLE)
             .bindItem(model.appLanguage.selection)
@@ -100,7 +99,7 @@ internal class UiSettingsPanel(
             .align(AlignX.FILL)
         }.visibleIf(model.appLanguage.sizeIsAtLeast(2))
 
-        row(label(TALKBACK_TITLE)) {
+        row(JBLabel(TALKBACK_TITLE)) {
           checkBox("")
             .accessibleName(TALKBACK_TITLE)
             .bind(model.talkBackOn)
@@ -108,7 +107,7 @@ internal class UiSettingsPanel(
         }.visibleIf(model.talkBackInstalled.and(model.permissionMonitoringDisabled))
 
         if (deviceType == DeviceType.HANDHELD) {
-          row(label(SELECT_TO_SPEAK_TITLE)) {
+          row(JBLabel(SELECT_TO_SPEAK_TITLE)) {
             checkBox("")
               .accessibleName(SELECT_TO_SPEAK_TITLE)
               .bind(model.selectToSpeakOn)
@@ -116,7 +115,7 @@ internal class UiSettingsPanel(
           }.visibleIf(model.talkBackInstalled.and(model.permissionMonitoringDisabled))
         }
 
-        row(label(FONT_SCALE_TITLE)) {
+        row(JBLabel(FONT_SCALE_TITLE)) {
           slider(0, model.fontScaleMaxIndex.value, 1, 1)
             .accessibleName(FONT_SCALE_TITLE)
             .noLabels()
@@ -126,7 +125,7 @@ internal class UiSettingsPanel(
         }.visibleIf(model.permissionMonitoringDisabled)
 
         if (deviceType == DeviceType.HANDHELD) {
-          row(label(DENSITY_TITLE)) {
+          row(JBLabel(DENSITY_TITLE)) {
             slider(0, model.screenDensityIndex.value, 1, 1)
               .accessibleName(DENSITY_TITLE)
               .noLabels()
@@ -137,7 +136,7 @@ internal class UiSettingsPanel(
         }
 
         if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
-          row(label(DEBUG_LAYOUT_TITLE)) {
+          row(JBLabel(DEBUG_LAYOUT_TITLE)) {
             checkBox("")
               .accessibleName(DEBUG_LAYOUT_TITLE)
               .bind(model.debugLayout)
@@ -152,7 +151,7 @@ internal class UiSettingsPanel(
           })
         }.visibleIf(model.permissionMonitoringDisabled.not())
 
-        row(label(RESET_TITLE)) {
+        row(JBLabel(RESET_TITLE)) {
           button(RESET_BUTTON_TEXT) {
             model.resetAction()
           }.apply { component.name = RESET_BUTTON_TEXT }
@@ -171,12 +170,6 @@ internal class UiSettingsPanel(
    */
   private fun title(title: String): JBLabel =
     JBLabel(title).apply { foreground = UIUtil.getInactiveTextColor() }
-
-  /**
-   * Create a bold label.
-   */
-  private fun label(labelText: String): JBLabel =
-    JBLabel(labelText).apply { font = font.deriveFont(Font.BOLD) }
 
   /**
    * Bind a [Boolean] property to an [AbstractButton] cell.
