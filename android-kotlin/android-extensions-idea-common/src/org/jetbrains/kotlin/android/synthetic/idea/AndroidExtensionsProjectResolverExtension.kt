@@ -21,7 +21,6 @@ import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import org.gradle.api.Project
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.ANDROID_COMPILER_PLUGIN_ID
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.DEFAULT_CACHE_IMPL_OPTION
@@ -32,10 +31,6 @@ import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHandler
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
-import org.jetbrains.plugins.gradle.tooling.Message
-import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext
-import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
-import java.io.Serializable
 
 class AndroidExtensionProperties {
     var hasAndroidExtensionsPlugin: Boolean = false
@@ -44,20 +39,6 @@ class AndroidExtensionProperties {
 }
 
 val ANDROID_EXTENSION_PROPERTIES = Key.create(AndroidExtensionProperties::class.java, 1)
-
-private const val DEFAULT_CACHE_IMPLEMENTATION_DEFAULT_VALUE = "hashMap"
-
-interface AndroidExtensionsGradleModel : Serializable {
-    val hasAndroidExtensionsPlugin: Boolean
-    val isExperimental: Boolean
-    val defaultCacheImplementation: String
-}
-
-class AndroidExtensionsGradleModelImpl(
-  override val hasAndroidExtensionsPlugin: Boolean,
-  override val isExperimental: Boolean,
-  override val defaultCacheImplementation: String
-) : AndroidExtensionsGradleModel
 
 @Suppress("unused")
 class AndroidExtensionsProjectResolverExtension : AbstractProjectResolverExtension() {
@@ -74,50 +55,6 @@ class AndroidExtensionsProjectResolverExtension : AbstractProjectResolverExtensi
             })
         }
         super.populateModuleExtraModels(gradleModule, ideModule)
-    }
-}
-
-class AndroidExtensionsModelBuilderService : ModelBuilderService {
-    override fun reportErrorMessage(modelName: String, project: Project, context: ModelBuilderContext, exception: Exception) {
-        context.messageReporter.createMessage()
-          .withGroup(this)
-          .withKind(Message.Kind.WARNING)
-          .withTitle("Gradle import errors")
-          .withText("Unable to build Android Extensions plugin configuration")
-          .withException(exception)
-          .reportMessage(project)
-    }
-
-
-    override fun canBuild(modelName: String?): Boolean = modelName == AndroidExtensionsGradleModel::class.java.name
-
-    override fun buildAll(modelName: String?, project: Project): Any {
-        val androidExtensionsPlugin = project.plugins.findPlugin("kotlin-android-extensions")
-
-        val androidExtensionsExtension = project.extensions.findByName("androidExtensions")
-
-        val isExperimental = androidExtensionsExtension?.let { ext ->
-            val isExperimentalMethod = ext::class.java.methods
-                                         .firstOrNull { it.name == "isExperimental" && it.parameterCount == 0 }
-                                       ?: return@let false
-
-            isExperimentalMethod.invoke(ext) as? Boolean
-        } ?: false
-
-        val defaultCacheImplementation = androidExtensionsExtension?.let { ext ->
-            val defaultCacheImplementationMethod = ext::class.java.methods.firstOrNull {
-                it.name == "getDefaultCacheImplementation" && it.parameterCount == 0
-            } ?: return@let DEFAULT_CACHE_IMPLEMENTATION_DEFAULT_VALUE
-
-            val enumValue = defaultCacheImplementationMethod.invoke(ext) ?: return@let DEFAULT_CACHE_IMPLEMENTATION_DEFAULT_VALUE
-
-            val optionNameMethod = enumValue::class.java.methods.firstOrNull { it.name == "getOptionName" && it.parameterCount == 0 }
-                                   ?: return@let DEFAULT_CACHE_IMPLEMENTATION_DEFAULT_VALUE
-
-            optionNameMethod.invoke(enumValue) as? String
-        } ?: DEFAULT_CACHE_IMPLEMENTATION_DEFAULT_VALUE
-
-        return AndroidExtensionsGradleModelImpl(androidExtensionsPlugin != null, isExperimental, defaultCacheImplementation)
     }
 }
 
