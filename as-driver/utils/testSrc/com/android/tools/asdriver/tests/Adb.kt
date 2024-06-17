@@ -33,22 +33,24 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.toDuration
 
-class Adb private constructor(
+class Adb
+private constructor(
   private val sdk: AndroidSdk,
   private val env: Map<String, String>,
   private val process: Process? = null,
   private val stdout: Path? = null,
   private val stderr: Path? = null,
   private val headerSize: Int = 0,
-): AutoCloseable {
+) : AutoCloseable {
 
   @Throws(IOException::class)
   override fun close() {
-    when(process) {
+    when (process) {
       null -> runCommand("kill-server")
       else -> {
         if (process.isAlive) process.destroy()
-        val footer = "=== Stream closed at: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS").format(Date())} ==="
+        val footer =
+          "=== Stream closed at: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS").format(Date())} ==="
         FileWriter(stdout.toString(), true).use { it.write(footer) }
         FileWriter(stderr.toString(), true).use { it.write(footer) }
       }
@@ -81,14 +83,21 @@ class Adb private constructor(
     LogFile(stdout, headerSize).waitForMatchingLine(expectedRegex, timeout, unit)
 
   @JvmSynthetic
-  fun waitForLog(expectedRegex: String, timeout: Duration): Matcher = waitForLog(expectedRegex, timeout.inWholeMicroseconds, MICROSECONDS)
+  fun waitForLog(expectedRegex: String, timeout: Duration): Matcher =
+    waitForLog(expectedRegex, timeout.inWholeMicroseconds, MICROSECONDS)
 
-  /** Waits for the expected regular expressions to show up in the logs for this [Adb], in order. The timeout is for all lines. */
+  /**
+   * Waits for the expected regular expressions to show up in the logs for this [Adb], in order. The
+   * timeout is for all lines.
+   */
   @Throws(IOException::class, InterruptedException::class)
   fun waitForLogs(expectedRegexes: Iterable<String>, timeout: Long, unit: TimeUnit): List<Matcher> =
     waitForLogs(expectedRegexes, timeout.toDuration(unit.toDurationUnit()))
 
-  /** Waits for the expected regular expressions to show up in the logs for this [Adb], in order. The timeout is for all lines. */
+  /**
+   * Waits for the expected regular expressions to show up in the logs for this [Adb], in order. The
+   * timeout is for all lines.
+   */
   @JvmSynthetic
   fun waitForLogs(expectedRegexes: Iterable<String>, timeout: Duration): List<Matcher> {
     val start = TimeSource.Monotonic.markNow()
@@ -113,16 +122,16 @@ class Adb private constructor(
     runCommand("shell", "svc", "wifi", "disable")
   }
 
-  @Throws(IOException::class)
-  fun runCommand(vararg command: String): Adb = exec(sdk, env, *command)
+  @Throws(IOException::class) fun runCommand(vararg command: String): Adb = exec(sdk, env, *command)
 
   @Throws(IOException::class)
-  fun runCommand(vararg command: String, emulator: Emulator): Adb = exec(sdk, env, *command, emulator=emulator)
+  fun runCommand(vararg command: String, emulator: Emulator): Adb =
+    exec(sdk, env, *command, emulator = emulator)
 
   @JvmSynthetic
   @Throws(IOException::class)
   fun runCommand(vararg command: String, emulator: Emulator? = null, block: (Adb.() -> Unit)) {
-    exec(sdk, env, *command, emulator=emulator).use { with(it, block) }
+    exec(sdk, env, *command, emulator = emulator).use { with(it, block) }
   }
 
   companion object {
@@ -133,28 +142,48 @@ class Adb private constructor(
 
     @JvmStatic
     @Throws(IOException::class)
-    fun start(sdk: AndroidSdk, env: Map<String, String>, startServer: Boolean, vararg params: String): Adb {
+    fun start(
+      sdk: AndroidSdk,
+      env: Map<String, String>,
+      startServer: Boolean,
+      vararg params: String,
+    ): Adb {
       if (!startServer) return Adb(sdk, env)
       val command = arrayOf("server") + params.filter(String::isNotBlank).toTypedArray()
       return exec(sdk, env, *command)
     }
 
     @Throws(IOException::class)
-    private fun exec(sdk: AndroidSdk, env: Map<String, String>, vararg params: String, emulator: Emulator? = null): Adb {
+    private fun exec(
+      sdk: AndroidSdk,
+      env: Map<String, String>,
+      vararg params: String,
+      emulator: Emulator? = null,
+    ): Adb {
       val logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_logs")
       val stdout = logsDir.resolve("stdout.txt").also { Files.createFile(it) }
       val stderr = logsDir.resolve("stderr.txt").also { Files.createFile(it) }
-      val header = "=== $stdout ${params.joinToString("-")} ${env.entries.joinToString { "${it.key}=${it.value}" }} ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS").format(Date())} ===\n"
+      val header =
+        "=== $stdout ${params.joinToString("-")} ${env.entries.joinToString { "${it.key}=${it.value}" }} ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS").format(Date())} ===\n"
       FileWriter(stdout.toString()).use { it.write(header) }
       FileWriter(stderr.toString()).use { it.write(header) }
-      val command = listOf(sdk.sourceDir.resolve(SdkConstants.FD_PLATFORM_TOOLS).resolve(SdkConstants.FN_ADB).toString()) + params
-      System.out.printf("Adb invocation '${command.joinToString(" ")}' has stdout log at: $stdout%n")
-      val pb = ProcessBuilder(command).apply {
-        redirectOutput(appendTo(stdout.toFile()))
-        redirectError(appendTo(stderr.toFile()))
-        environment().putAll(env)
-        emulator?.let { environment()["ANDROID_SERIAL"] = emulator.serialNumber }
-      }
+      val command =
+        listOf(
+          sdk.sourceDir
+            .resolve(SdkConstants.FD_PLATFORM_TOOLS)
+            .resolve(SdkConstants.FN_ADB)
+            .toString()
+        ) + params
+      System.out.printf(
+        "Adb invocation '${command.joinToString(" ")}' has stdout log at: $stdout%n"
+      )
+      val pb =
+        ProcessBuilder(command).apply {
+          redirectOutput(appendTo(stdout.toFile()))
+          redirectError(appendTo(stderr.toFile()))
+          environment().putAll(env)
+          emulator?.let { environment()["ANDROID_SERIAL"] = emulator.serialNumber }
+        }
       return Adb(sdk, env, pb.start(), stdout, stderr, header.toByteArray().size)
     }
   }

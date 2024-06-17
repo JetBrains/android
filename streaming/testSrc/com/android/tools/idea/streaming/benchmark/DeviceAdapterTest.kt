@@ -30,13 +30,6 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
@@ -54,12 +47,18 @@ import kotlin.test.assertFailsWith
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 /** Tests the [DeviceAdapter] class. */
 @RunWith(JUnit4::class)
 class DeviceAdapterTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private val deviceDisplaySize = Dimension(WIDTH, HEIGHT)
   private val displayRectangle = Rectangle(deviceDisplaySize)
@@ -70,25 +69,37 @@ class DeviceAdapterTest {
   private val p = Point(42, 99)
   private val returnedInputs: MutableList<Pair<Point, TimeMark>> = mutableListOf()
   private val errors: MutableList<String> = mutableListOf()
-  private val callbacks = object: Benchmarker.Adapter.Callbacks<Point> {
-    override fun inputReturned(input: Point, effectiveDispatchTime: TimeMark) { returnedInputs.add(input to effectiveDispatchTime) }
-    override fun onReady() { onReadyCalls++ }
-    override fun onFailedToBecomeReady(msg: String) { errors.add(msg) }
-  }
-  private val fakeInstaller = object : StreamingBenchmarkerAppInstaller {
-    override suspend fun installBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
-      installCalls++
-      return installSuccess
+  private val callbacks =
+    object : Benchmarker.Adapter.Callbacks<Point> {
+      override fun inputReturned(input: Point, effectiveDispatchTime: TimeMark) {
+        returnedInputs.add(input to effectiveDispatchTime)
+      }
+
+      override fun onReady() {
+        onReadyCalls++
+      }
+
+      override fun onFailedToBecomeReady(msg: String) {
+        errors.add(msg)
+      }
     }
-    override suspend fun launchBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
-      launchCalls++
-      return launchSuccess
+  private val fakeInstaller =
+    object : StreamingBenchmarkerAppInstaller {
+      override suspend fun installBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
+        installCalls++
+        return installSuccess
+      }
+
+      override suspend fun launchBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
+        launchCalls++
+        return launchSuccess
+      }
+
+      override suspend fun uninstallBenchmarkingApp(): Boolean {
+        uninstallCalls++
+        return true
+      }
     }
-    override suspend fun uninstallBenchmarkingApp(): Boolean {
-      uninstallCalls++
-      return true
-    }
-  }
   private var installCalls = 0
   private var installSuccess = true
   private var launchCalls = 0
@@ -213,17 +224,17 @@ class DeviceAdapterTest {
     view.notifyFrame(INITIALIZED_FRAME)
 
     UIUtil.pump()
-    val configCharEvents = listOf(MAX_BITS, LATENCY_MAX_BITS, BITS_PER_CHANNEL).joinToString(",").map { KeyEvent.KEY_TYPED to it }
+    val configCharEvents =
+      listOf(MAX_BITS, LATENCY_MAX_BITS, BITS_PER_CHANNEL).joinToString(",").map {
+        KeyEvent.KEY_TYPED to it
+      }
     val expectedKeyEvents =
-      listOf(
-        KeyEvent.KEY_PRESSED to KeyEvent.VK_UP,
-        KeyEvent.KEY_RELEASED to KeyEvent.VK_UP,
-      ) +
-      configCharEvents +
-      listOf(
-        KeyEvent.KEY_PRESSED to KeyEvent.VK_ENTER,
-        KeyEvent.KEY_RELEASED to KeyEvent.VK_ENTER,
-      )
+      listOf(KeyEvent.KEY_PRESSED to KeyEvent.VK_UP, KeyEvent.KEY_RELEASED to KeyEvent.VK_UP) +
+        configCharEvents +
+        listOf(
+          KeyEvent.KEY_PRESSED to KeyEvent.VK_ENTER,
+          KeyEvent.KEY_RELEASED to KeyEvent.VK_ENTER,
+        )
     assertThat(keyEvents).isEqualTo(expectedKeyEvents)
   }
 
@@ -268,9 +279,7 @@ class DeviceAdapterTest {
     adapter.ready()
     adapter.frameRendered(INITIALIZED_FRAME)
 
-    repeat(10) {
-      adapter.frameRendered(NONE_TOUCHABLE_FRAME)
-    }
+    repeat(10) { adapter.frameRendered(NONE_TOUCHABLE_FRAME) }
     assertThat(errors).isEmpty()
 
     // This should be plenty of time to hit the limit
@@ -323,8 +332,8 @@ class DeviceAdapterTest {
 
     assertThat(multiStepAdapter.numInputs()).isEqualTo(MAX_TOUCHES)
 
-    assertThat(multiStepAdapter.inputs().asSequence().toList()).isEqualTo(
-      oneStepAdapter.inputs().asSequence().chunked(step).map {it.first()}.toList())
+    assertThat(multiStepAdapter.inputs().asSequence().toList())
+      .isEqualTo(oneStepAdapter.inputs().asSequence().chunked(step).map { it.first() }.toList())
   }
 
   @Test
@@ -339,7 +348,9 @@ class DeviceAdapterTest {
       assertThat(onReadyCalls).isEqualTo(bitsPerChannel + 1)
       assertThat(errors).isEmpty()
 
-      customAdapter.frameRendered(point.toBufferedImage(bitsPerChannel = bitsPerChannel, latency = latency))
+      customAdapter.frameRendered(
+        point.toBufferedImage(bitsPerChannel = bitsPerChannel, latency = latency)
+      )
 
       assertThat(returnedInputs).hasSize(bitsPerChannel + 1)
       assertThat(returnedInputs.last().first).isEqualTo(point)
@@ -353,37 +364,56 @@ class DeviceAdapterTest {
     spikiness: Int = 1,
     bitsPerChannel: Int = 4,
     latencyBits: Int = 6,
-  ) : DeviceAdapter {
+  ): DeviceAdapter {
     return DeviceAdapter(
-      projectRule.project,
-      target = StreamingBenchmarkTarget("Device Name", "12345", view),
-      bitsPerChannel = bitsPerChannel,
-      latencyBits = latencyBits,
-      maxTouches = maxTouches,
-      step = step,
-      spikiness = spikiness,
-      timeSource = testTimeSource,
-      installer = fakeInstaller,
-      coroutineScope = TestCoroutineScope(TestCoroutineDispatcher()),
-      ).apply { setCallbacks(callbacks) }
+        projectRule.project,
+        target = StreamingBenchmarkTarget("Device Name", "12345", view),
+        bitsPerChannel = bitsPerChannel,
+        latencyBits = latencyBits,
+        maxTouches = maxTouches,
+        step = step,
+        spikiness = spikiness,
+        timeSource = testTimeSource,
+        installer = fakeInstaller,
+        coroutineScope = TestCoroutineScope(TestCoroutineDispatcher()),
+      )
+      .apply { setCallbacks(callbacks) }
   }
 
   inner class TestDisplayView(override val deviceDisplaySize: Dimension) : AbstractDisplayView(0) {
     init {
       displayRectangle = Rectangle(deviceDisplaySize)
-      val mouseListener = object : MouseListener {
-        override fun mouseClicked(e: MouseEvent) {}
-        override fun mousePressed(e: MouseEvent) { mousePressedLocations.add(e.location) }
-        override fun mouseReleased(e: MouseEvent) { mouseReleasedLocations.add(e.location) }
-        override fun mouseEntered(e: MouseEvent) {}
-        override fun mouseExited(e: MouseEvent) {}
-      }
+      val mouseListener =
+        object : MouseListener {
+          override fun mouseClicked(e: MouseEvent) {}
+
+          override fun mousePressed(e: MouseEvent) {
+            mousePressedLocations.add(e.location)
+          }
+
+          override fun mouseReleased(e: MouseEvent) {
+            mouseReleasedLocations.add(e.location)
+          }
+
+          override fun mouseEntered(e: MouseEvent) {}
+
+          override fun mouseExited(e: MouseEvent) {}
+        }
       addMouseListener(mouseListener)
-      val keyListener = object : KeyListener {
-        override fun keyTyped(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_TYPED to e.keyChar) }
-        override fun keyPressed(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_PRESSED to e.keyCode) }
-        override fun keyReleased(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_RELEASED to e.keyCode) }
-      }
+      val keyListener =
+        object : KeyListener {
+          override fun keyTyped(e: KeyEvent) {
+            keyEvents.add(KeyEvent.KEY_TYPED to e.keyChar)
+          }
+
+          override fun keyPressed(e: KeyEvent) {
+            keyEvents.add(KeyEvent.KEY_PRESSED to e.keyCode)
+          }
+
+          override fun keyReleased(e: KeyEvent) {
+            keyEvents.add(KeyEvent.KEY_RELEASED to e.keyCode)
+          }
+        }
       addKeyListener(keyListener)
       Disposer.register(projectRule.disposable, this)
     }
@@ -394,8 +424,11 @@ class DeviceAdapterTest {
       get() = 0
 
     override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {}
+
     override fun canZoom() = false
+
     override fun computeActualSize() = deviceDisplaySize
+
     override fun dispose() {}
 
     fun notifyFrame(frame: BufferedImage) {
@@ -410,40 +443,47 @@ class DeviceAdapterTest {
     private const val HEIGHT = 100
     private const val LATENCY_MAX_BITS = 6
     private val MAX_BITS = ceil(log2(max(WIDTH, HEIGHT).toDouble())).roundToInt()
-    private val ALL_TOUCHABLE_FRAME = bufferedImage {_, _ -> Color.GREEN}
-    private val NONE_TOUCHABLE_FRAME = bufferedImage {_, _ -> Color.RED}
-    private val TOUCHABLE_AREA_FRAME = bufferedImage {i, j ->
+    private val ALL_TOUCHABLE_FRAME = bufferedImage { _, _ -> Color.GREEN }
+    private val NONE_TOUCHABLE_FRAME = bufferedImage { _, _ -> Color.RED }
+    private val TOUCHABLE_AREA_FRAME = bufferedImage { i, j ->
       if ((i in 1 until WIDTH - 1) && (j in 1 until HEIGHT - 1)) Color.GREEN else Color.RED
     }
     private val INITIALIZED_GRADIENT = listOf(Color.RED, Color.GREEN, Color.BLUE)
-    private val INITIALIZED_FRAME = bufferedImage { i, _ -> interpolate(INITIALIZED_GRADIENT, i / WIDTH.toDouble()) }
+    private val INITIALIZED_FRAME = bufferedImage { i, _ ->
+      interpolate(INITIALIZED_GRADIENT, i / WIDTH.toDouble())
+    }
 
-    private fun Int.bits(maxBits: Int = MAX_BITS) : String = toUInt().toString(2).padStart(maxBits, '0')
+    private fun Int.bits(maxBits: Int = MAX_BITS): String =
+      toUInt().toString(2).padStart(maxBits, '0')
 
-    private fun List<String>.toColor() : Color {
+    private fun List<String>.toColor(): Color {
       require(!isEmpty()) { "Must provide at least one value." }
-      return when(size) {
+      return when (size) {
         1 -> Color(get(0).toColorChannel(), 0, 0)
         2 -> Color(get(0).toColorChannel(), get(1).toColorChannel(), 0)
-        else ->  Color(get(0).toColorChannel(), get(1).toColorChannel(), get(2).toColorChannel())
+        else -> Color(get(0).toColorChannel(), get(1).toColorChannel(), get(2).toColorChannel())
       }
     }
 
-    private fun String.toColorChannel() : Int {
+    private fun String.toColorChannel(): Int {
       require(length in 1..8) { "Cannot fit $length bits in a color channel." }
       return (toInt(2) * (255 / ((1 shl length) - 1).toDouble())).roundToInt().coerceIn(0, 255)
     }
 
-    private fun Int.toColors(maxBits: Int = MAX_BITS, bitsPerChannel: Int = BITS_PER_CHANNEL): List<Color> {
+    private fun Int.toColors(
+      maxBits: Int = MAX_BITS,
+      bitsPerChannel: Int = BITS_PER_CHANNEL,
+    ): List<Color> {
       require(this >= 0) { "Cannot encode a negative integer" }
       require(bitsPerChannel in 0..8) { "Can only use 1 to 8 bits per color channel." }
-      if (bitsPerChannel == 0) return bits(maxBits).map { if (it == '1') Color.WHITE else Color.BLACK }
+      if (bitsPerChannel == 0)
+        return bits(maxBits).map { if (it == '1') Color.WHITE else Color.BLACK }
       return bits(maxBits).chunked(bitsPerChannel).chunked(3) { it.toColor() }
     }
 
     /**
-     * Gets the item out of the list that is the same proportion of the way through the list as [value] is
-     * through [min, max].
+     * Gets the item out of the list that is the same proportion of the way through the list as
+     * [value] is through [min, max].
      */
     private fun <T> List<T>.getFractional(min: Int, max: Int, value: Int): T {
       val index = (size * (value - min) / (max - min).toDouble()).toInt().coerceIn(indices)
@@ -460,7 +500,8 @@ class DeviceAdapterTest {
     ): BufferedImage {
       val xColors = x.toColors(maxBits, bitsPerChannel)
       val yColors = y.toColors(maxBits, bitsPerChannel)
-      val latencyColors = latency.inWholeMilliseconds.toInt().toColors(latencyMaxBits, bitsPerChannel)
+      val latencyColors =
+        latency.inWholeMilliseconds.toInt().toColors(latencyMaxBits, bitsPerChannel)
       return bufferedImage(width, height) { i, j ->
         if (j <= height / 2) {
           if (i < width / 2) {
@@ -468,22 +509,22 @@ class DeviceAdapterTest {
           } else {
             yColors.getFractional(0, height / 2, j)
           }
-        }
-        else if (j in (height * 17 / 20) until height) {
+        } else if (j in (height * 17 / 20) until height) {
           latencyColors.getFractional(height * 17 / 20, height, j)
-        }
-        else {
+        } else {
           Color.BLACK
         }
       }
     }
 
-    private fun bufferedImage(width: Int = WIDTH, height: Int = HEIGHT, pixelColorSupplier: (Int, Int) -> Color): BufferedImage {
+    private fun bufferedImage(
+      width: Int = WIDTH,
+      height: Int = HEIGHT,
+      pixelColorSupplier: (Int, Int) -> Color,
+    ): BufferedImage {
       val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
       repeat(width) { i ->
-        repeat(height) { j ->
-          bufferedImage.setRGB(i, j, pixelColorSupplier(i,j).rgb)
-        }
+        repeat(height) { j -> bufferedImage.setRGB(i, j, pixelColorSupplier(i, j).rgb) }
       }
       return bufferedImage
     }
