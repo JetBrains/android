@@ -128,9 +128,7 @@ class AnimationClock(val clock: Any) {
   val getAnimatedVisibilityStateFunction by lazy { findClockFunction("getAnimatedVisibilityState") }
 
   @VisibleForTesting
-  fun findClockFunction(functionName: String): Method = findClockFunctionIfExists(functionName)!!
-
-  private fun findClockFunctionIfExists(functionName: String): Method? =
+  fun findClockFunction(functionName: String): Method =
     clock::class
       .java
       .methods
@@ -141,5 +139,5 @@ class AnimationClock(val clock: Any) {
         val normalizedName = it.name.substringBefore('-')
         normalizedName == functionName
       }
-      ?.apply { isAccessible = true }
+      ?.apply { isAccessible = true }!!
 }
