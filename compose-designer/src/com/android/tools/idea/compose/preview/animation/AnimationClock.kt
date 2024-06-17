@@ -47,7 +47,7 @@ internal fun AnimationClock.setClockTime(clockTimeMillis: Long) {
 
 /** Seeks each animation being tracked to the given [clockTimeMillis]. */
 internal fun AnimationClock.setClockTimes(clockTimeMillis: Map<ComposeAnimation, Long>) {
-  setClockTimesFunction?.invoke(clock, clockTimeMillis)
+  setClockTimesFunction.invoke(clock, clockTimeMillis)
 }
 
 /**
@@ -100,7 +100,7 @@ class AnimationClock(val clock: Any) {
   val setClockTimeFunction by lazy { findClockFunction("setClockTime") }
 
   /** Function `setClockTimes` of [clock]. */
-  val setClockTimesFunction by lazy { findClockFunctionIfExists("setClockTimes") }
+  val setClockTimesFunction by lazy { findClockFunction("setClockTimes") }
 
   /** Function `updateFromAndToStates` of [clock]. */
   val updateFromAndToStatesFunction by lazy { findClockFunction("updateFromAndToStates") }
