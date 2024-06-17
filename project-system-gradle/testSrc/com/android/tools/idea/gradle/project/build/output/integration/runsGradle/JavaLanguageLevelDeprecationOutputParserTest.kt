@@ -41,6 +41,7 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
+import com.google.wireless.android.sdk.stats.BuildErrorMessage.ErrorType.JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL
 import com.google.wireless.android.sdk.stats.BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.BuildIssueEvent
@@ -125,8 +126,7 @@ root > 'failed'
       }
     }
 
-    // TODO add proper error type for this.
-    verifyStats(UNKNOWN_ERROR_TYPE)
+    verifyStats(JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL)
   }
 
   /**
@@ -227,8 +227,7 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
       }
     }
     assertThat(buildEvents.finishEventFailures()).isEmpty()
-    // TODO add proper error type for this.
-    verifyStats(UNKNOWN_ERROR_TYPE)
+    verifyStats(JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL)
   }
 
   @Test
@@ -284,8 +283,7 @@ root > 'failed'
     }
     expect.that(buildEvents.finishEventFailures()).isEmpty()
 
-    // TODO add proper error type for this.
-    verifyStats(UNKNOWN_ERROR_TYPE)
+    verifyStats(JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL)
   }
 
   @Test
