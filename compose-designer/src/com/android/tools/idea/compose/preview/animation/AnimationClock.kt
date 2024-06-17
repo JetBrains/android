@@ -97,26 +97,12 @@ class AnimationClock(val clock: Any) {
   /** Function `updateFromAndToStates` of [clock]. */
   val updateFromAndToStatesFunction by lazy { findClockFunction("updateFromAndToStates") }
 
-  /**
-   * Function `updateAnimatedVisibilityState` of [clock]. This API was added in Compose
-   * 1.1.0-alpha04, and trying to call it when using early Compose versions will cause a crash and
-   * the corresponding preview will not render properly. In order to make sure this method exists,
-   * the caller should first check if the animation type is
-   * ComposeAnimationType.ANIMATED_VISIBILITY, which was also introduced in the same Compose version
-   * and represents the animation type for which this method makes sense to be called.
-   */
+  /** Function `updateAnimatedVisibilityState` of [clock]. */
   val updateAnimatedVisibilityStateFunction by lazy {
     findClockFunction("updateAnimatedVisibilityState")
   }
 
-  /**
-   * Function `getAnimatedVisibilityState` of [clock]. This API was added in Compose 1.1.0-alpha04,
-   * and trying to call it when using early Compose versions will cause a crash and the
-   * corresponding preview will not render properly. In order to make sure this method exists, the
-   * caller should first check if the animation type is ComposeAnimationType.ANIMATED_VISIBILITY,
-   * which was also introduced in the same Compose version and represents the animation type for
-   * which this method makes sense to be called.
-   */
+  /** Function `getAnimatedVisibilityState` of [clock]. */
   val getAnimatedVisibilityStateFunction by lazy { findClockFunction("getAnimatedVisibilityState") }
 
   @VisibleForTesting
