@@ -25,6 +25,7 @@ import com.android.utils.FlightRecorder;
 import com.android.utils.TraceUtils;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.Cancellation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,7 +45,7 @@ public class ResourceUpdateTracer {
   private static final Logger LOG = Logger.getInstance(ResourceUpdateTracer.class);
 
   static {
-    if (ResourceUpdateTraceSettings.getInstance().getEnabled()) {
+    if (Cancellation.forceNonCancellableSectionInClassInitializer(() -> ResourceUpdateTraceSettings.getInstance().getEnabled())) {
       startTracing();
     }
   }
