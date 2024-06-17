@@ -1610,7 +1610,7 @@ public final class StudioFlags {
     "resizable.experimental.tweaks.enabled",
     "Enable the UI tweaks for the Resizable (Experimental) device definition",
     "Enable the UI tweaks for the Resizable (Experimental) device definition",
-    true);
+    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> DEVICE_CATALOG_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
