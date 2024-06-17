@@ -175,7 +175,7 @@ abstract class SupportedAnimationManager(
       positionProxy.valueForXPosition(minX + offsetPx) - positionProxy.valueForXPosition(minX)
     else positionProxy.valueForXPosition(maxX + offsetPx) - positionProxy.valueForXPosition(maxX)
 
-  protected abstract fun loadTransitionFromLibrary(): Transition?
+  protected abstract fun loadTransitionFromLibrary(): Transition
 
   /**
    * Load transition for current animation state. If transition was loaded before, the cached result
@@ -185,7 +185,7 @@ abstract class SupportedAnimationManager(
     val stateHash = animationState.stateHashCode.value
     if (!cachedTransitions.containsKey(stateHash)) {
       executeInRenderSession(longTimeout) {
-        loadTransitionFromLibrary()?.let { transition -> cachedTransitions[stateHash] = transition }
+        cachedTransitions[stateHash] = loadTransitionFromLibrary()
       }
     }
     currentTransition = cachedTransitions.getOrDefault(stateHash, Transition())
