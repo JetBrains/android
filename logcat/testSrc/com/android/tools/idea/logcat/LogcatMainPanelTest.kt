@@ -328,6 +328,50 @@ class LogcatMainPanelTest {
   }
 
   @Test
+  fun applyFilter_resetsFormatter() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet {
+      this@LogcatMainPanelTest.logcatMainPanel().also {
+        it.formattingOptions =
+          it.formattingOptions.copy(tagFormat = TagFormat(hideDuplicates = true))
+      }
+    }
+
+    logcatMainPanel.processMessages(
+      listOf(
+        LogcatMessage(
+          LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
+          "message1",
+        ),
+        LogcatMessage(
+          LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
+          "message2",
+        ),
+      )
+    )
+
+    logcatMainPanel.messageProcessor.onIdle {
+      logcatMainPanel.applyFilter(StringFilter("message", LINE, matchCase = true, EMPTY_RANGE))
+    }
+
+    ConcurrencyUtil.awaitQuiescence(
+      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
+      5,
+      SECONDS,
+    )
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(logcatMainPanel.editor.document.immutableText())
+        .isEqualTo(
+          """
+            1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+            1970-01-01 04:00:01.000     1-2                             app1                                 I  message2
+
+          """
+            .trimIndent()
+        )
+    }
+  }
+
+  @Test
   fun appendMessages_disposedEditor(): Unit = runBlocking {
     val logcatMainPanel = runInEdtAndGet { logcatMainPanel().also { Disposer.dispose(it) } }
 
