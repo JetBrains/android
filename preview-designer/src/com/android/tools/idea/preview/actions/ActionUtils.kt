@@ -200,10 +200,12 @@ fun hasSceneViewErrors(dataContext: DataContext) =
   dataContext.getData(SCENE_VIEW)?.hasRenderErrors() == true
 
 /**
- * Wraps an `AnAction` to conditionally control its enabled state.
+ * Wraps an [AnAction] to conditionally control its enabled state as well as control whether the
+ * action can be performed.
  *
- * Enables the wrapped action only if `isEnabled(DataContext)` is true. When disabled, optionally
- * displays a reason using `reasonForDisabling(DataContext)`.
+ * Enables the wrapped action only if [isEnabled] is `true`. When disabled, optionally displays a
+ * reason using [reasonForDisabling]. The wrapped [AnAction] will only be able to be performed
+ * through the [actionPerformed] method if [isEnabled] returns `true`.
  *
  * @param delegate The original action.
  * @param isEnabled Determines if the action should be enabled.
@@ -222,6 +224,16 @@ private class EnableUnderConditionWrapper(
     if (!e.presentation.isEnabled) {
       reasonForDisabling(e.dataContext)?.let { e.presentation.description = it }
     }
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    // It sometimes takes a second or so for the action to update its presentation enabled
+    // state, meaning the action can still be enabled when isEnabled returns false.
+    // In those cases, we want to  prevent the user from performing the action.
+    if (!isEnabled(e.dataContext)) {
+      return
+    }
+    super.actionPerformed(e)
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
