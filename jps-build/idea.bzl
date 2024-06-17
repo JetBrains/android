@@ -174,12 +174,20 @@ def _jps_test_impl(ctx):
         "--env TEST_MODULE '" + ctx.attr.module + "'",
     ]
 
-    ctx.actions.write(output = ctx.outputs.executable, content = " ".join(cmd), is_executable = True)
-    runfiles = ctx.runfiles(files = [
+    files = [
         ctx.file._test_runner,
         ctx.file._bazel_runner,
         jvmargs_file,
-    ] + files)
+    ] + files
+
+    for name, value in ctx.attr.env.items():
+        cmd.append("--env %s %s" % (name, value))
+
+    for d in ctx.attr.data:
+        files.extend(d[DefaultInfo].files.to_list())
+
+    ctx.actions.write(output = ctx.outputs.executable, content = " ".join(cmd), is_executable = True)
+    runfiles = ctx.runfiles(files = files)
     runfiles = runfiles.merge(ctx.attr._jps_build.default_runfiles)
     runfiles = runfiles.merge(ctx.attr._java_runtime.default_runfiles)
     return DefaultInfo(executable = ctx.outputs.executable, runfiles = runfiles)
@@ -189,6 +197,8 @@ jps_test = rule(
         "download_cache": attr.string(),
         "test_suite": attr.string(),
         "module": attr.string(),
+        "data": attr.label_list(allow_files = True),
+        "env": attr.string_dict(),
         "deps": attr.label_list(allow_files = True),
         "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build"),
         "_test_runner": attr.label(allow_single_file = True, default = "//tools/adt/idea/jps-build:test_runner"),
