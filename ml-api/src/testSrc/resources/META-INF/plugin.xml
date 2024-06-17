@@ -18,5 +18,5 @@
   <name>Ml-Api Tests</name>
   <id>com.android.tools.idea.studiobot.ml-api-tests</id>
   <vendor>Google</vendor>
-  <xi:include href="/META-INF/aiplugin-api.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/aiplugin-api.xml"/>
 </idea-plugin>

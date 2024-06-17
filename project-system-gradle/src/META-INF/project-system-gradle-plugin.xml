@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="/META-INF/project-system-gradle-plugin-k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
-  <xi:include href="/META-INF/project-system-gradle-plugin-k2.xml" xpointer="xpointer(/idea-plugin/*)" includeIf="idea.kotlin.plugin.use.k2"/>
+  <xi:include href="/META-INF/project-system-gradle-plugin-k1.xml" includeUnless="idea.kotlin.plugin.use.k2"/>
+  <xi:include href="/META-INF/project-system-gradle-plugin-k2.xml" includeIf="idea.kotlin.plugin.use.k2"/>
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends>org.jetbrains.kotlin</depends>
