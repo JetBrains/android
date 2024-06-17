@@ -73,5 +73,5 @@
             text="WebpSupportTestAction" internal="true"/>
   </actions>
 
-  <xi:include href="/META-INF/splittingtabs.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/splittingtabs.xml"/>
 </idea-plugin>
