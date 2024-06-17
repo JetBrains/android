@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.errors
 
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc
 import com.android.tools.idea.rendering.StudioHtmlLinkManager
 import com.android.tools.idea.rendering.errors.WearTileRenderErrorContributor.isHandledByWearTileContributor
@@ -22,10 +24,12 @@ import com.android.tools.idea.rendering.errors.WearTileRenderErrorContributor.re
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.rendering.RenderLogger
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.psi.PsiFile
 import javax.swing.event.HyperlinkListener
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -34,6 +38,12 @@ class WearTileRenderErrorContributorTest {
 
   private val linkManager = StudioHtmlLinkManager()
   private val nopLinkHandler = HyperlinkListener {}
+  private val sourceFile = mock<PsiFile>()
+
+  @Before
+  fun setup() {
+    whenever(sourceFile.name).thenReturn("TileServiceWithWrongUseOfContext.kt")
+  }
 
   @Test
   fun `invalid context usage`() {
@@ -43,6 +53,13 @@ class WearTileRenderErrorContributorTest {
       java.lang.NullPointerException: Cannot invoke "android.content.Context.checkPermission(String, int, int)" because "this.mBase" is null
       	at android.content.ContextWrapper.checkPermission(ContextWrapper.java:944)
       	at androidx.core.content.ContextCompat.checkSelfPermission(ContextCompat.java:604)
+      	at com.example.tile.TileServiceWithWrongUseOfContextKt.tileLayout(TileServiceWithWrongUseOfContext.kt:92)
+      	at com.example.tile.TileServiceWithWrongUseOfContextKt.tile(TileServiceWithWrongUseOfContext.kt:85)
+      	at com.example.tile.TileServiceWithWrongUseOfContextKt.access${'$'}tile(TileServiceWithWrongUseOfContext.kt:1)
+      	at com.example.tile.TileServiceWithWrongUseOfContext.tileWithWrongContext(TileServiceWithWrongUseOfContext.kt:59)
+      	at com.example.tile.TileServiceWithWrongUseOfContext.access${'$'}tileWithWrongContext(TileServiceWithWrongUseOfContext.kt:36)
+      	at com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1.invoke(TileServiceWithWrongUseOfContext.kt:48)
+      	at com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1.invoke(TileServiceWithWrongUseOfContext.kt:47)
       	at androidx.wear.tiles.tooling.TileServiceViewAdapter.previewTile(TileServiceViewAdapter.kt:127)
       	at androidx.wear.tiles.tooling.TileServiceViewAdapter.previewTile${'$'}default(TileServiceViewAdapter.kt:114)
       	at androidx.wear.tiles.tooling.TileServiceViewAdapter.init${'$'}tiles_tooling_release(TileServiceViewAdapter.kt:111)
@@ -82,13 +99,22 @@ class WearTileRenderErrorContributorTest {
         addBrokenClass("androidx.wear.tiles.tooling.TileServiceViewAdapter", throwable)
       }
     assertTrue(isHandledByWearTileContributor(throwable))
-    val issues = reportWearTileErrors(logger, linkManager, nopLinkHandler)
+    val issues = reportWearTileErrors(logger, linkManager, nopLinkHandler, sourceFile)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("Invalid Context used", issues[0].summary)
     assertEquals(
       "It seems like the Tile Preview failed to render due to the <A HREF=\"https://developer.android.com/reference/android/content/Context\">Context</A>." +
-        " Any Context used within a preview must come from the preview method's parameter, otherwise it will not be properly initialised.<BR/>" +
+        " Any Context used within a preview must come from the preview method's parameter, otherwise it will not be properly initialised.<BR/><BR/>" +
+        "Possible related stack trace elements are:<DL>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContextKt#tileLayout;TileServiceWithWrongUseOfContext.kt:92\">com.example.tile.TileServiceWithWrongUseOfContextKt.tileLayout(TileServiceWithWrongUseOfContext.kt:92)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContextKt#tile;TileServiceWithWrongUseOfContext.kt:85\">com.example.tile.TileServiceWithWrongUseOfContextKt.tile(TileServiceWithWrongUseOfContext.kt:85)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContextKt#access${'$'}tile;TileServiceWithWrongUseOfContext.kt:1\">com.example.tile.TileServiceWithWrongUseOfContextKt.access${'$'}tile(TileServiceWithWrongUseOfContext.kt:1)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext#tileWithWrongContext;TileServiceWithWrongUseOfContext.kt:59\">com.example.tile.TileServiceWithWrongUseOfContext.tileWithWrongContext(TileServiceWithWrongUseOfContext.kt:59)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext#access${'$'}tileWithWrongContext;TileServiceWithWrongUseOfContext.kt:36\">com.example.tile.TileServiceWithWrongUseOfContext.access${'$'}tileWithWrongContext(TileServiceWithWrongUseOfContext.kt:36)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1#invoke;TileServiceWithWrongUseOfContext.kt:48\">com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1.invoke(TileServiceWithWrongUseOfContext.kt:48)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1#invoke;TileServiceWithWrongUseOfContext.kt:47\">com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1.invoke(TileServiceWithWrongUseOfContext.kt:47)</A>" +
+        "</DL><BR/>" +
         "<A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
     )
@@ -136,7 +162,7 @@ class WearTileRenderErrorContributorTest {
         addBrokenClass("androidx.some.ClassName", throwable)
       }
     assertFalse(isHandledByWearTileContributor(throwable))
-    val issues = reportWearTileErrors(logger, linkManager, nopLinkHandler)
+    val issues = reportWearTileErrors(logger, linkManager, nopLinkHandler, sourceFile)
     assertEquals(0, issues.size)
   }
 }
