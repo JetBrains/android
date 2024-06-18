@@ -13,484 +13,637 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res
 
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
-import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
-import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
-import static com.intellij.testFramework.UsefulTestCase.assertSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceValueImpl
+import com.android.ide.common.rendering.api.SampleDataResourceValue
+import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceRepository
+import com.android.ide.common.util.PathString
+import com.android.resources.ResourceType
+import com.android.tools.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.AndroidModuleDependency
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
+import com.android.tools.idea.testing.AndroidProjectStubBuilder
+import com.android.tools.idea.testing.waitForUpdates
+import com.android.tools.idea.util.toVirtualFile
+import com.google.common.base.Charsets
+import com.google.common.collect.ImmutableSet
+import com.google.common.collect.Iterables
+import com.google.common.collect.Lists
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.UsefulTestCase
+import java.io.File
+import java.io.IOException
+import java.util.concurrent.TimeoutException
+import java.util.stream.Collectors
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.ResourceValueImpl;
-import com.android.ide.common.rendering.api.SampleDataResourceValue;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceType;
-import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.testing.AndroidModuleDependency;
-import com.android.tools.idea.testing.AndroidModuleModelBuilder;
-import com.android.tools.idea.testing.AndroidProjectBuilder;
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.res.LocalResourceRepository;
-import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.EdtRule;
-import com.intellij.testFramework.RunsInEdt;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-/**
- * Test for {@link SampleDataResourceRepository} and {@link SampleDataListener}.
- */
+/** Test for [SampleDataResourceRepository] and [SampleDataListener]. */
 @RunsInEdt
-@SuppressWarnings("DataFlowIssue")
-public class SampleDataResourceRepositoryTest {
+class SampleDataResourceRepositoryTest {
   @Rule
-  public final AndroidProjectRule myProjectRule = AndroidProjectRule.withAndroidModels(
-    new AndroidModuleModelBuilder(":", "debug",
-                                  new AndroidProjectBuilder().withAndroidModuleDependencyList(
-                                    (it, variant) -> Lists.newArrayList(new AndroidModuleDependency(":lib", "debug")))),
-    new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()
-      .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)
-      .withAndroidModuleDependencyList((it, variant) -> Lists.newArrayList(new AndroidModuleDependency(":transitive", "debug")))),
-    new AndroidModuleModelBuilder(":transitive", "debug", new AndroidProjectBuilder()
-      .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_LIBRARY))
-  );
-  @Rule
-  public final EdtRule myEdtRule = new EdtRule();
-  private AndroidModuleSystem myAppModuleSystem;
-  private AndroidFacet myFacet;
+  val myProjectRule: AndroidProjectRule =
+    withAndroidModels(
+      AndroidModuleModelBuilder(
+        ":",
+        "debug",
+        AndroidProjectBuilder().withAndroidModuleDependencyList {
+          it: AndroidProjectStubBuilder?,
+          variant: String? ->
+          Lists.newArrayList(AndroidModuleDependency(":lib", "debug"))
+        },
+      ),
+      AndroidModuleModelBuilder(
+        ":lib",
+        "debug",
+        AndroidProjectBuilder()
+          .withProjectType { it: AndroidProjectStubBuilder? ->
+            IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
+          }
+          .withAndroidModuleDependencyList { it: AndroidProjectStubBuilder?, variant: String? ->
+            Lists.newArrayList(AndroidModuleDependency(":transitive", "debug"))
+          },
+      ),
+      AndroidModuleModelBuilder(
+        ":transitive",
+        "debug",
+        AndroidProjectBuilder().withProjectType { it: AndroidProjectStubBuilder? ->
+          IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
+        },
+      ),
+    )
+  @Rule val myEdtRule: EdtRule = EdtRule()
+  private var myAppModuleSystem: AndroidModuleSystem? = null
+  private var myFacet: AndroidFacet? = null
 
   @Before
-  public void setUp() throws Exception {
-    myAppModuleSystem = ProjectSystemUtil.getModuleSystem(myProjectRule.getModule());
-    myFacet = AndroidFacet.getInstance(myProjectRule.getModule());
+  @Throws(Exception::class)
+  fun setUp() {
+    myAppModuleSystem = myProjectRule.module.getModuleSystem()
+    myFacet = AndroidFacet.getInstance(myProjectRule.module)
   }
 
   @After
-  public void tearDown() throws Exception {
-    SampleDataResourceItem.invalidateCache();
+  @Throws(Exception::class)
+  fun tearDown() {
+    SampleDataResourceItem.invalidateCache()
   }
 
-  @NotNull
-  private static Collection<ResourceItem> getResources(@NotNull ResourceRepository repo) {
-    return repo.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
-  }
-
-  @NotNull
-  private static List<ResourceItem> getResources(@NotNull ResourceRepository repo, @NotNull String resName) {
-    return repo.getResources(RES_AUTO, ResourceType.SAMPLE_DATA, resName);
-  }
-
-  @NotNull
-  private PsiFile addLayoutFile() {
+  private fun addLayoutFile(): PsiFile {
     @Language("XML")
-    String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                        "    android:layout_width=\"match_parent\"\n" +
-                        "    android:layout_height=\"match_parent\" />";
+    val layoutText =
+      """<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />"""
 
-    return myProjectRule.getFixture().addFileToProject("src/main/res/layout/layout.xml", layoutText);
+    return myProjectRule.fixture.addFileToProject("src/main/res/layout/layout.xml", layoutText)
   }
 
   @Test
-  public void testDataLoad() throws InterruptedException, TimeoutException {
-    myProjectRule.getFixture().addFileToProject("sampledata/strings",
-                                                "string1\n" +
-                                                "string2\n" +
-                                                "string3\n");
-    myProjectRule.getFixture().addFileToProject("sampledata/images/image1.png",
-                                                "Insert image here\n");
-    myProjectRule.getFixture().addFileToProject("sampledata/images/image2.jpg",
-                                                "Insert image here 2\n");
-    myProjectRule.getFixture().addFileToProject("sampledata/images/image3.png",
-                                                "Insert image here 3\n");
-    myProjectRule.getFixture().addFileToProject("sampledata/root_image.png",
-                                                "Insert image here 3\n");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
-    waitForUpdates(repo);
+  @Throws(InterruptedException::class, TimeoutException::class)
+  fun testDataLoad() {
+    myProjectRule.fixture.addFileToProject(
+      "sampledata/strings",
+      """
+                                                 string1
+                                                 string2
+                                                 string3
+                                                 
+                                                 """
+        .trimIndent(),
+    )
+    myProjectRule.fixture.addFileToProject("sampledata/images/image1.png", "Insert image here\n")
+    myProjectRule.fixture.addFileToProject("sampledata/images/image2.jpg", "Insert image here 2\n")
+    myProjectRule.fixture.addFileToProject("sampledata/images/image3.png", "Insert image here 3\n")
+    myProjectRule.fixture.addFileToProject("sampledata/root_image.png", "Insert image here 3\n")
+    val repo = SampleDataResourceRepository(myFacet!!, myProjectRule.testRootDisposable)
+    waitForUpdates(repo)
 
-    assertEquals(3, getResources(repo).size());
-    assertEquals(1, getResources(repo, "strings").size());
-    assertEquals(1, getResources(repo, "images").size());
-    assertEquals(1, getResources(repo, "root_image.png").size());
+    Assert.assertEquals(3, getResources(repo).size.toLong())
+    Assert.assertEquals(1, getResources(repo, "strings").size.toLong())
+    Assert.assertEquals(1, getResources(repo, "images").size.toLong())
+    Assert.assertEquals(1, getResources(repo, "root_image.png").size.toLong())
   }
 
   @Test
-  public void testResolver() throws InterruptedException, TimeoutException {
+  @Throws(InterruptedException::class, TimeoutException::class)
+  fun testResolver() {
     @Language("XML")
-    String stringsText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                         "<resources>\n" +
-                         "  <string name=\"test1\">Hello 1</string>\n" +
-                         "  <string name=\"test2\">Hello 2</string>\n" +
-                         "</resources>";
+    val stringsText =
+      """<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="test1">Hello 1</string>
+  <string name="test2">Hello 2</string>
+</resources>"""
 
-    myProjectRule.getFixture().addFileToProject("sampledata/strings",
-                                                "string1\n" +
-                                                "string2\n" +
-                                                "string3\n");
-    myProjectRule.getFixture().addFileToProject("sampledata/ints",
-                                                "1\n" +
-                                                "2\n");
-    myProjectRule.getFixture().addFileToProject("sampledata/refs",
-                                                "@string/test1\n" +
-                                                "@string/invalid\n");
-    myProjectRule.getFixture().addFileToProject("sampledata/users.json",
-                                                // language="JSON"
-                                                "{\n" +
-                                                "  \"users\": [\n" +
-                                                "    {\n" +
-                                                "      \"name\": \"Name1\",\n" +
-                                                "      \"surname\": \"Surname1\"\n" +
-                                                "    },\n" +
-                                                "    {\n" +
-                                                "      \"name\": \"Name2\",\n" +
-                                                "      \"surname\": \"Surname2\"\n" +
-                                                "    },\n" +
-                                                "    {\n" +
-                                                "      \"name\": \"Name3\",\n" +
-                                                "      \"surname\": \"Surname3\",\n" +
-                                                "      \"phone\": \"555-00000\"\n" +
-                                                "    }\n" +
-                                                "  ]\n" +
-                                                "}");
-    PsiFile image1 = myProjectRule.getFixture().addFileToProject("sampledata/images/image1.png",
-                                                                 "Insert image here\n");
-    PsiFile image2 = myProjectRule.getFixture().addFileToProject("sampledata/images/image2.jpg",
-                                                                 "Insert image here 2\n");
-    myProjectRule.getFixture().addFileToProject("src/main/res/values/strings.xml", stringsText);
-    PsiFile layout = addLayoutFile();
-    Configuration configuration =
-      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
-    waitForUpdates(StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources());
-    ResourceResolver resolver = configuration.getResourceResolver();
-    assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
-    assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
-    assertEquals("string2", resolver.findResValue("@sample/strings", false).getValue());
-    assertEquals("string3", resolver.findResValue("@sample/strings", false).getValue());
-    assertEquals("2", resolver.findResValue("@sample/ints", false).getValue());
+    myProjectRule.fixture.addFileToProject(
+      "sampledata/strings",
+      """
+                                                 string1
+                                                 string2
+                                                 string3
+                                                 
+                                                 """
+        .trimIndent(),
+    )
+    myProjectRule.fixture.addFileToProject(
+      "sampledata/ints",
+      """
+                                                 1
+                                                 2
+                                                 
+                                                 """
+        .trimIndent(),
+    )
+    myProjectRule.fixture.addFileToProject(
+      "sampledata/refs",
+      """
+                                                 @string/test1
+                                                 @string/invalid
+                                                 
+                                                 """
+        .trimIndent(),
+    )
+    myProjectRule.fixture.addFileToProject(
+      "sampledata/users.json", // language="JSON"
+      """{
+  "users": [
+    {
+      "name": "Name1",
+      "surname": "Surname1"
+    },
+    {
+      "name": "Name2",
+      "surname": "Surname2"
+    },
+    {
+      "name": "Name3",
+      "surname": "Surname3",
+      "phone": "555-00000"
+    }
+  ]
+}""",
+    )
+    val image1 =
+      myProjectRule.fixture.addFileToProject("sampledata/images/image1.png", "Insert image here\n")
+    val image2 =
+      myProjectRule.fixture.addFileToProject(
+        "sampledata/images/image2.jpg",
+        "Insert image here 2\n",
+      )
+    myProjectRule.fixture.addFileToProject("src/main/res/values/strings.xml", stringsText)
+    val layout = addLayoutFile()
+    val configuration: Configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.module)
+        .getConfiguration(layout.virtualFile)
+    waitForUpdates(StudioResourceRepositoryManager.getInstance(myFacet!!).sampleDataResources)
+    val resolver = configuration.resourceResolver
+    Assert.assertEquals("string1", resolver.findResValue("@sample/strings", false)!!.value)
+    Assert.assertEquals("1", resolver.findResValue("@sample/ints", false)!!.value)
+    Assert.assertEquals("string2", resolver.findResValue("@sample/strings", false)!!.value)
+    Assert.assertEquals("string3", resolver.findResValue("@sample/strings", false)!!.value)
+    Assert.assertEquals("2", resolver.findResValue("@sample/ints", false)!!.value)
 
     // Test passing json references
-    assertEquals("Name1", resolver.findResValue("@sample/users.json/users/name", false).getValue());
+    Assert.assertEquals(
+      "Name1",
+      resolver.findResValue("@sample/users.json/users/name", false)!!.value,
+    )
 
     // The order of the returned paths might depend on the file system
-    Set<String> imagePaths = ImmutableSet.of(
-      resolver.findResValue("@sample/images", false).getValue(),
-      resolver.findResValue("@sample/images", false).getValue());
-    assertTrue(imagePaths.contains(image1.getVirtualFile().getCanonicalPath()));
-    assertTrue(imagePaths.contains(image2.getVirtualFile().getCanonicalPath()));
+    val imagePaths: Set<String?> =
+      ImmutableSet.of(
+        resolver.findResValue("@sample/images", false)!!.value,
+        resolver.findResValue("@sample/images", false)!!.value,
+      )
+    Assert.assertTrue(imagePaths.contains(image1.virtualFile.canonicalPath))
+    Assert.assertTrue(imagePaths.contains(image2.virtualFile.canonicalPath))
 
     // Check that we wrap around
-    assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
-    ResourceReference reference = new ResourceReference(RES_AUTO, ResourceType.SAMPLE_DATA, "strings");
-    assertEquals("string2", resolver.getResolvedResource(reference).getValue());
-    assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
-    assertTrue(imagePaths.contains(resolver.findResValue("@sample/images", false).getValue()));
+    Assert.assertEquals("string1", resolver.findResValue("@sample/strings", false)!!.value)
+    val reference =
+      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "strings")
+    Assert.assertEquals("string2", resolver.getResolvedResource(reference)!!.value)
+    Assert.assertEquals("1", resolver.findResValue("@sample/ints", false)!!.value)
+    Assert.assertTrue(imagePaths.contains(resolver.findResValue("@sample/images", false)!!.value))
 
     // Check reference resolution
-    assertEquals("Hello 1", resolver.resolveResValue(
-      new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
+    Assert.assertEquals(
+      "Hello 1",
+      resolver
+        .resolveResValue(
+          ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "test", "@sample/refs")
+        )!!
+        .value,
+    )
     // @string/invalid does not exist so the sample data will just return the unresolved reference
-    assertEquals("@string/invalid", resolver.resolveResValue(
-      new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
+    Assert.assertEquals(
+      "@string/invalid",
+      resolver
+        .resolveResValue(
+          ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "test", "@sample/refs")
+        )!!
+        .value,
+    )
 
     // Check indexing (all calls should return the same)
-    assertEquals("Name2", resolver.findResValue("@sample/users.json/users/name[1]", false).getValue());
-    assertEquals("Name2", resolver.findResValue("@sample/users.json/users/name[1]", false).getValue());
+    Assert.assertEquals(
+      "Name2",
+      resolver.findResValue("@sample/users.json/users/name[1]", false)!!.value,
+    )
+    Assert.assertEquals(
+      "Name2",
+      resolver.findResValue("@sample/users.json/users/name[1]", false)!!.value,
+    )
 
+    Assert.assertNull(resolver.findResValue("@sample/invalid", false))
 
-    assertNull(resolver.findResValue("@sample/invalid", false));
-
-    ResourceReference elementRef = new ResourceReference(RES_AUTO, ResourceType.SAMPLE_DATA, "strings[1]");
-    assertNotNull(resolver.getResolvedResource(elementRef));
+    val elementRef =
+      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "strings[1]")
+    Assert.assertNotNull(resolver.getResolvedResource(elementRef))
   }
 
   @Test
-  public void testSampleDataFileInvalidation_addAndDeleteFile() throws IOException, InterruptedException, TimeoutException {
-    LocalResourceRepository<VirtualFile> repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
-    waitForUpdates(repo);
-    assertTrue(getResources(repo).isEmpty());
+  @Throws(IOException::class, InterruptedException::class, TimeoutException::class)
+  fun testSampleDataFileInvalidation_addAndDeleteFile() {
+    val repo = StudioResourceRepositoryManager.getInstance(myFacet!!).sampleDataResources
+    waitForUpdates(repo)
+    Assert.assertTrue(getResources(repo).isEmpty())
 
-    PsiFile strings = myProjectRule.getFixture().addFileToProject("sampledata/strings",
-                                                                  "string1\n" +
-                                                                  "string2\n" +
-                                                                  "string3\n");
-    waitForUpdates(repo);
-    assertEquals(1, getResources(repo).size());
-    assertEquals(1, getResources(repo, "strings").size());
+    val strings =
+      myProjectRule.fixture.addFileToProject(
+        "sampledata/strings",
+        """
+                                                                string1
+                                                                string2
+                                                                string3
+                                                                
+                                                                """
+          .trimIndent(),
+      )
+    waitForUpdates(repo)
+    Assert.assertEquals(1, getResources(repo).size.toLong())
+    Assert.assertEquals(1, getResources(repo, "strings").size.toLong())
 
-    WriteAction.runAndWait(() -> strings.getVirtualFile().delete(null));
-    waitForUpdates(repo);
-    assertTrue(getResources(repo).isEmpty());
+    WriteAction.runAndWait<IOException> { strings.virtualFile.delete(null) }
+    waitForUpdates(repo)
+    Assert.assertTrue(getResources(repo).isEmpty())
   }
 
   @Test
-  public void testSampleDataFileInvalidation_deleteSampleDataDirectory() throws IOException, InterruptedException, TimeoutException {
-    LocalResourceRepository<VirtualFile> repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
+  @Throws(IOException::class, InterruptedException::class, TimeoutException::class)
+  fun testSampleDataFileInvalidation_deleteSampleDataDirectory() {
+    val repo = StudioResourceRepositoryManager.getInstance(myFacet!!).sampleDataResources
 
-    myProjectRule.getFixture().addFileToProject("sampledata/strings", "string1\n");
-    waitForUpdates(repo);
-    assertEquals(1, getResources(repo).size());
+    myProjectRule.fixture.addFileToProject("sampledata/strings", "string1\n")
+    waitForUpdates(repo)
+    Assert.assertEquals(1, getResources(repo).size.toLong())
 
-    VirtualFile sampleDir = toVirtualFile(myAppModuleSystem.getSampleDataDirectory());
-    WriteAction.runAndWait(() -> sampleDir.delete(null));
-    waitForUpdates(repo);
-    assertTrue(getResources(repo).isEmpty());
+    val sampleDir = myAppModuleSystem!!.getSampleDataDirectory().toVirtualFile()
+    WriteAction.runAndWait<IOException> { sampleDir!!.delete(null) }
+    waitForUpdates(repo)
+    Assert.assertTrue(getResources(repo).isEmpty())
   }
 
   @Test
-  public void testSampleDataFileInvalidation_moveFiles() throws IOException, InterruptedException, TimeoutException {
-    LocalResourceRepository<VirtualFile> repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
+  @Throws(IOException::class, InterruptedException::class, TimeoutException::class)
+  fun testSampleDataFileInvalidation_moveFiles() {
+    val repo = StudioResourceRepositoryManager.getInstance(myFacet!!).sampleDataResources
 
-    VirtualFile sampleDir = toVirtualFile(
-      WriteAction.computeAndWait(() -> myAppModuleSystem.getOrCreateSampleDataDirectory())
-    );
-    PsiFile stringsOutside = myProjectRule.getFixture().addFileToProject("strings", "string1\n");
+    val sampleDir =
+      WriteAction.computeAndWait<PathString?, IOException> {
+          myAppModuleSystem!!.getOrCreateSampleDataDirectory()
+        }
+        .toVirtualFile()
+    val stringsOutside = myProjectRule.fixture.addFileToProject("strings", "string1\n")
 
     // move strings into sample data directory
-    WriteAction.runAndWait(() -> stringsOutside.getVirtualFile().move(null, sampleDir));
-    waitForUpdates(repo);
-    assertEquals(1, getResources(repo).size());
+    WriteAction.runAndWait<IOException> { stringsOutside.virtualFile.move(null, sampleDir!!) }
+    waitForUpdates(repo)
+    Assert.assertEquals(1, getResources(repo).size.toLong())
 
     // move strings out of sample data directory
-    VirtualFile stringsInside = sampleDir.findChild(stringsOutside.getName());
-    WriteAction.runAndWait(() -> stringsInside.move(null, sampleDir.getParent()));
-    waitForUpdates(repo);
-    assertTrue(getResources(repo).isEmpty());
+    val stringsInside = sampleDir!!.findChild(stringsOutside.name)
+    WriteAction.runAndWait<IOException> { stringsInside!!.move(null, sampleDir.parent) }
+    waitForUpdates(repo)
+    Assert.assertTrue(getResources(repo).isEmpty())
   }
 
   @Test
-  public void testSampleDataFileInvalidation_moveSampleDataDirectory() throws IOException, InterruptedException, TimeoutException {
-    LocalResourceRepository<VirtualFile> repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
+  @Throws(IOException::class, InterruptedException::class, TimeoutException::class)
+  fun testSampleDataFileInvalidation_moveSampleDataDirectory() {
+    val repo = StudioResourceRepositoryManager.getInstance(myFacet!!).sampleDataResources
 
-    VirtualFile sampleDir = toVirtualFile(
-      WriteAction.computeAndWait(() -> myAppModuleSystem.getOrCreateSampleDataDirectory())
-    );
-    myProjectRule.getFixture().addFileToProject("sampledata/strings", "string1\n");
-    waitForUpdates(repo);
-    assertEquals(1, getResources(repo).size());
+    val sampleDir =
+      WriteAction.computeAndWait<PathString?, IOException> {
+          myAppModuleSystem!!.getOrCreateSampleDataDirectory()
+        }
+        .toVirtualFile()
+    myProjectRule.fixture.addFileToProject("sampledata/strings", "string1\n")
+    waitForUpdates(repo)
+    Assert.assertEquals(1, getResources(repo).size.toLong())
 
-    WriteAction.runAndWait(() -> {
-      VirtualFile newParent = sampleDir.getParent().createChildDirectory(null, "somewhere_else");
-      sampleDir.move(null, newParent);
-    });
-    waitForUpdates(repo);
-    assertTrue(getResources(repo).isEmpty());
+    WriteAction.runAndWait<IOException> {
+      val newParent = sampleDir!!.parent.createChildDirectory(null, "somewhere_else")
+      sampleDir.move(null, newParent)
+    }
+    waitForUpdates(repo)
+    Assert.assertTrue(getResources(repo).isEmpty())
   }
 
   @Test
-  public void testJsonSampleData() throws InterruptedException, TimeoutException {
-    myProjectRule.getFixture().addFileToProject("sampledata/users.json",
-                                                "{\n" +
-                                                "  \"users\": [\n" +
-                                                "    {\n" +
-                                                "      \"name\": \"Name1\",\n" +
-                                                "      \"surname\": \"Surname1\"\n" +
-                                                "    },\n" +
-                                                "    {\n" +
-                                                "      \"name\": \"Name2\",\n" +
-                                                "      \"surname\": \"Surname2\"\n" +
-                                                "    },\n" +
-                                                "    {\n" +
-                                                "      \"name\": \"Name3\",\n" +
-                                                "      \"surname\": \"Surname3\",\n" +
-                                                "      \"phone\": \"555-00000\"\n" +
-                                                "    }\n" +
-                                                "  ]\n" +
-                                                "}");
-    myProjectRule.getFixture().addFileToProject("sampledata/invalid.json",
-                                                "{\n" +
-                                                "  \"users\": [\n" +
-                                                "    {\n" +
-                                                "      \"name\": \"Name1\",\n" +
-                                                "      \"surname\": \"Surname1\"\n" +
-                                                "    },\n");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
-    waitForUpdates(repo);
+  @Throws(InterruptedException::class, TimeoutException::class)
+  fun testJsonSampleData() {
+    myProjectRule.fixture.addFileToProject(
+      "sampledata/users.json",
+      """{
+  "users": [
+    {
+      "name": "Name1",
+      "surname": "Surname1"
+    },
+    {
+      "name": "Name2",
+      "surname": "Surname2"
+    },
+    {
+      "name": "Name3",
+      "surname": "Surname3",
+      "phone": "555-00000"
+    }
+  ]
+}""",
+    )
+    myProjectRule.fixture.addFileToProject(
+      "sampledata/invalid.json",
+      """{
+  "users": [
+    {
+      "name": "Name1",
+      "surname": "Surname1"
+    },
+""",
+    )
+    val repo = SampleDataResourceRepository(myFacet!!, myProjectRule.testRootDisposable)
+    waitForUpdates(repo)
 
-    // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
-    assertEquals(3, getResources(repo).size());
-    assertEquals(1, getResources(repo, "users.json/users/name").size());
+    // Three different items are expected, one for the users/name path, other for users/surname and
+    // a last one for users/phone
+    Assert.assertEquals(3, getResources(repo).size.toLong())
+    Assert.assertEquals(1, getResources(repo, "users.json/users/name").size.toLong())
   }
 
   @Test
-  public void testCsvSampleData() throws InterruptedException, TimeoutException {
-    myProjectRule.getFixture().addFileToProject("sampledata/users.csv",
-                                                "name,surname,phone\n" +
-                                                "Name1,Surname1\n" +
-                                                "Name2,Surname2\n" +
-                                                "Name3,Surname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
-    waitForUpdates(repo);
+  @Throws(InterruptedException::class, TimeoutException::class)
+  fun testCsvSampleData() {
+    myProjectRule.fixture.addFileToProject(
+      "sampledata/users.csv",
+      """
+                                                 name,surname,phone
+                                                 Name1,Surname1
+                                                 Name2,Surname2
+                                                 Name3,Surname3,555-00000
+                                                 """
+        .trimIndent(),
+    )
+    val repo = SampleDataResourceRepository(myFacet!!, myProjectRule.testRootDisposable)
+    waitForUpdates(repo)
 
-    // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
-    assertEquals(3, getResources(repo).size());
-    assertEquals(1, getResources(repo, "users.csv/name").size());
+    // Three different items are expected, one for the users/name path, other for users/surname and
+    // a last one for users/phone
+    Assert.assertEquals(3, getResources(repo).size.toLong())
+    Assert.assertEquals(1, getResources(repo, "users.csv/name").size.toLong())
   }
 
   @Test
-  public void testResolverCacheInvalidation() {
-    PsiFile sampleDataFile = myProjectRule.getFixture().addFileToProject("sampledata/strings",
-                                                                         "string1\n" +
-                                                                         "string2\n" +
-                                                                         "string3\n");
-    PsiFile layout = addLayoutFile();
-    Configuration configuration =
-      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
-    ResourceResolver resolver = configuration.getResourceResolver();
-    assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
-    assertEquals("string2", resolver.findResValue("@sample/strings", false).getValue());
-    ApplicationManager.getApplication().runWriteAction(() -> {
+  fun testResolverCacheInvalidation() {
+    val sampleDataFile =
+      myProjectRule.fixture.addFileToProject(
+        "sampledata/strings",
+        """
+                                                                       string1
+                                                                       string2
+                                                                       string3
+                                                                       
+                                                                       """
+          .trimIndent(),
+      )
+    val layout = addLayoutFile()
+    val configuration: Configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.module)
+        .getConfiguration(layout.virtualFile)
+    val resolver = configuration.resourceResolver
+    Assert.assertEquals("string1", resolver.findResValue("@sample/strings", false)!!.value)
+    Assert.assertEquals("string2", resolver.findResValue("@sample/strings", false)!!.value)
+    ApplicationManager.getApplication().runWriteAction {
       try {
-        sampleDataFile.getVirtualFile().setBinaryContent(("new1\n" +
-                                                          "new2\n" +
-                                                          "new3\n" +
-                                                          "new4\n").getBytes(Charsets.UTF_8));
-        PsiDocumentManager.getInstance(myProjectRule.getProject()).commitAllDocuments();
+        sampleDataFile.virtualFile.setBinaryContent(
+          """new1
+new2
+new3
+new4
+"""
+            .toByteArray(Charsets.UTF_8)
+        )
+        PsiDocumentManager.getInstance(myProjectRule.project).commitAllDocuments()
+      } catch (e: IOException) {
+        e.printStackTrace()
       }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+    }
 
-    // The cursor does not get reset when the file is changed so we expect "new3" as opposed as getting "new1"
+    // The cursor does not get reset when the file is changed so we expect "new3" as opposed as
+    // getting "new1"
     // Ignored temporarily since cache invalidation needs still work
-    //assertEquals("new3", resolver.findResValue("@sample/strings", false).getValue());
+    // assertEquals("new3", resolver.findResValue("@sample/strings", false).getValue());
   }
 
   @Test
-  public void testImageResources() throws InterruptedException, TimeoutException {
-    myProjectRule.getFixture().addFileToProject("sampledata/images/image1.png", "\n");
-    myProjectRule.getFixture().addFileToProject("sampledata/images/image2.png", "\n");
-    myProjectRule.getFixture().addFileToProject("sampledata/images/image3.png", "\n");
-    PsiFile rootImagePsiFile = myProjectRule.getFixture().addFileToProject("sampledata/root_image.png", "\n");
+  @Throws(InterruptedException::class, TimeoutException::class)
+  fun testImageResources() {
+    myProjectRule.fixture.addFileToProject("sampledata/images/image1.png", "\n")
+    myProjectRule.fixture.addFileToProject("sampledata/images/image2.png", "\n")
+    myProjectRule.fixture.addFileToProject("sampledata/images/image3.png", "\n")
+    val rootImagePsiFile = myProjectRule.fixture.addFileToProject("sampledata/root_image.png", "\n")
 
+    val repository = StudioResourceRepositoryManager.getAppResources(myFacet!!)
+    waitForUpdates(repository)
+    val items =
+      repository.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA).values()
+    UsefulTestCase.assertSize(2, items)
+    val item =
+      Iterables.getOnlyElement(
+        repository.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "images")
+      ) as SampleDataResourceItem
+    Assert.assertEquals("images", item.name)
+    Assert.assertEquals(SampleDataResourceItem.ContentType.IMAGE, item.contentType)
+    val value = item.resourceValue as SampleDataResourceValue
+    val fileNames =
+      value.valueAsLines
+        .stream()
+        .map { file: String? -> File(file).name }
+        .collect(Collectors.toList())
+    UsefulTestCase.assertContainsElements(fileNames, "image1.png", "image2.png", "image3.png")
 
-    LocalResourceRepository<VirtualFile> repository = StudioResourceRepositoryManager.getAppResources(myFacet);
-    waitForUpdates(repository);
-    Collection<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
-    assertSize(2, items);
-    SampleDataResourceItem item =
-      (SampleDataResourceItem)Iterables.getOnlyElement(
-        repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA, "images"));
-    assertEquals("images", item.getName());
-    assertEquals(SampleDataResourceItem.ContentType.IMAGE, item.getContentType());
-    SampleDataResourceValue value = (SampleDataResourceValue)item.getResourceValue();
-    List<String> fileNames = value.getValueAsLines().stream()
-      .map(file -> new File(file).getName())
-      .collect(Collectors.toList());
-    assertContainsElements(fileNames, "image1.png", "image2.png", "image3.png");
-
-    SampleDataResourceItem rootImageItem =
-      (SampleDataResourceItem)Iterables.getOnlyElement(repository.getResources(
-        RES_AUTO, ResourceType.SAMPLE_DATA, "root_image.png"));
-    assertEquals(rootImageItem.getContentType(), rootImageItem.getContentType());
-    assertEquals(rootImagePsiFile.getVirtualFile().getPath(), rootImageItem.getValueText());
+    val rootImageItem =
+      Iterables.getOnlyElement(
+        repository.getResources(
+          ResourceNamespace.RES_AUTO,
+          ResourceType.SAMPLE_DATA,
+          "root_image.png",
+        )
+      ) as SampleDataResourceItem
+    Assert.assertEquals(rootImageItem.contentType, rootImageItem.contentType)
+    Assert.assertEquals(rootImagePsiFile.virtualFile.path, rootImageItem.valueText)
   }
 
   @Test
-  public void testSubsetSampleData() {
-    PsiFile layout = addLayoutFile();
-    Configuration configuration =
-      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
-    ResourceResolver resolver = configuration.getResourceResolver();
-    ResourceValue sampledLorem =
-      new ResourceValueImpl(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA, "lorem_data", "@sample/lorem[4:10]");
-    assertEquals("Lorem ipsum dolor sit amet.", resolver.dereference(sampledLorem).getValue());
-    assertEquals("Lorem ipsum dolor sit amet, consectetur.", resolver.dereference(sampledLorem).getValue());
+  fun testSubsetSampleData() {
+    val layout = addLayoutFile()
+    val configuration: Configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.module)
+        .getConfiguration(layout.virtualFile)
+    val resolver = configuration.resourceResolver
+    val sampledLorem: ResourceValue =
+      ResourceValueImpl(
+        ResourceNamespace.TOOLS,
+        ResourceType.SAMPLE_DATA,
+        "lorem_data",
+        "@sample/lorem[4:10]",
+      )
+    Assert.assertEquals("Lorem ipsum dolor sit amet.", resolver.dereference(sampledLorem)!!.value)
+    Assert.assertEquals(
+      "Lorem ipsum dolor sit amet, consectetur.",
+      resolver.dereference(sampledLorem)!!.value,
+    )
   }
 
   @Test
-  public void testResetWithNoRepo() {
-    StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
+  fun testResetWithNoRepo() {
+    StudioResourceRepositoryManager.getInstance(myFacet!!).resetAllCaches()
   }
 
   @Test
-  public void testSampleDataInLibrary() throws InterruptedException, TimeoutException {
-    myProjectRule.getFixture().addFileToProject("lib/sampledata/lib.csv",
-                                                "name,surname,phone\n" +
-                                                "LibName1,LibSurname1\n" +
-                                                "LibName2,LibSurname2\n" +
-                                                "LibName3,LibSurname3,555-00000");
-    myProjectRule.getFixture().addFileToProject("transitive/sampledata/transitive.csv",
-                                                "name,surname,phone\n" +
-                                                "TransitiveName1,TransitiveSurname1\n" +
-                                                "TransitiveName2,TransitiveSurname2\n" +
-                                                "TransitiveName3,TransitiveSurname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
-    waitForUpdates(repo);
+  @Throws(InterruptedException::class, TimeoutException::class)
+  fun testSampleDataInLibrary() {
+    myProjectRule.fixture.addFileToProject(
+      "lib/sampledata/lib.csv",
+      """
+                                                 name,surname,phone
+                                                 LibName1,LibSurname1
+                                                 LibName2,LibSurname2
+                                                 LibName3,LibSurname3,555-00000
+                                                 """
+        .trimIndent(),
+    )
+    myProjectRule.fixture.addFileToProject(
+      "transitive/sampledata/transitive.csv",
+      """
+                                                 name,surname,phone
+                                                 TransitiveName1,TransitiveSurname1
+                                                 TransitiveName2,TransitiveSurname2
+                                                 TransitiveName3,TransitiveSurname3,555-00000
+                                                 """
+        .trimIndent(),
+    )
+    val repo = SampleDataResourceRepository(myFacet!!, myProjectRule.testRootDisposable)
+    waitForUpdates(repo)
 
-    // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
-    assertEquals(6, getResources(repo).size());
-    assertEquals(1, getResources(repo, "lib.csv/name").size());
-    assertEquals(1, getResources(repo, "transitive.csv/name").size());
+    // Three different items are expected, one for the users/name path, other for users/surname and
+    // a last one for users/phone
+    Assert.assertEquals(6, getResources(repo).size.toLong())
+    Assert.assertEquals(1, getResources(repo, "lib.csv/name").size.toLong())
+    Assert.assertEquals(1, getResources(repo, "transitive.csv/name").size.toLong())
 
-    PsiFile layout = addLayoutFile();
-    Configuration configuration =
-      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
-    ResourceResolver resolver = configuration.getResourceResolver();
-    assertEquals("LibName1", resolver.findResValue("@sample/lib.csv/name", false).getValue());
-    assertEquals("TransitiveName1", resolver.findResValue("@sample/transitive.csv/name", false).getValue());
+    val layout = addLayoutFile()
+    val configuration: Configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.module)
+        .getConfiguration(layout.virtualFile)
+    val resolver = configuration.resourceResolver
+    Assert.assertEquals("LibName1", resolver.findResValue("@sample/lib.csv/name", false)!!.value)
+    Assert.assertEquals(
+      "TransitiveName1",
+      resolver.findResValue("@sample/transitive.csv/name", false)!!.value,
+    )
   }
 
   @Test
-  public void testMultiModuleAppOverrides() throws InterruptedException, TimeoutException {
-    myProjectRule.getFixture().addFileToProject("sampledata/users.csv",
-                                                "name,surname,phone\n" +
-                                                "AppName1,AppSurname1\n" +
-                                                "AppName2,AppSurname2\n" +
-                                                "AppName3,AppSurname3,555-00000");
-    myProjectRule.getFixture().addFileToProject("lib/sampledata/users.csv",
-                                                "name,surname,phone\n" +
-                                                "LibName1,LibSurname1\n" +
-                                                "LibName2,LibSurname2\n" +
-                                                "LibName3,LibSurname3,555-00000");
-    myProjectRule.getFixture().addFileToProject("transitive/sampledata/users.csv",
-                                                "name,surname,phone\n" +
-                                                "TransitiveName1,TransitiveSurname1\n" +
-                                                "TransitiveName2,TransitiveSurname2\n" +
-                                                "TransitiveName3,TransitiveSurname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
-    waitForUpdates(repo);
+  @Throws(InterruptedException::class, TimeoutException::class)
+  fun testMultiModuleAppOverrides() {
+    myProjectRule.fixture.addFileToProject(
+      "sampledata/users.csv",
+      """
+                                                 name,surname,phone
+                                                 AppName1,AppSurname1
+                                                 AppName2,AppSurname2
+                                                 AppName3,AppSurname3,555-00000
+                                                 """
+        .trimIndent(),
+    )
+    myProjectRule.fixture.addFileToProject(
+      "lib/sampledata/users.csv",
+      """
+                                                 name,surname,phone
+                                                 LibName1,LibSurname1
+                                                 LibName2,LibSurname2
+                                                 LibName3,LibSurname3,555-00000
+                                                 """
+        .trimIndent(),
+    )
+    myProjectRule.fixture.addFileToProject(
+      "transitive/sampledata/users.csv",
+      """
+                                                 name,surname,phone
+                                                 TransitiveName1,TransitiveSurname1
+                                                 TransitiveName2,TransitiveSurname2
+                                                 TransitiveName3,TransitiveSurname3,555-00000
+                                                 """
+        .trimIndent(),
+    )
+    val repo = SampleDataResourceRepository(myFacet!!, myProjectRule.testRootDisposable)
+    waitForUpdates(repo)
 
-    PsiFile layout = addLayoutFile();
-    // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
-    assertEquals(3, getResources(repo).size());
-    assertEquals(1, getResources(repo, "users.csv/name").size());
-    Configuration configuration =
-      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
-    ResourceResolver resolver = configuration.getResourceResolver();
-    assertEquals("AppName1", resolver.findResValue("@sample/users.csv/name", false).getValue());
+    val layout = addLayoutFile()
+    // Three different items are expected, one for the users/name path, other for users/surname and
+    // a last one for users/phone
+    Assert.assertEquals(3, getResources(repo).size.toLong())
+    Assert.assertEquals(1, getResources(repo, "users.csv/name").size.toLong())
+    val configuration: Configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.module)
+        .getConfiguration(layout.virtualFile)
+    val resolver = configuration.resourceResolver
+    Assert.assertEquals("AppName1", resolver.findResValue("@sample/users.csv/name", false)!!.value)
+  }
+
+  companion object {
+    private fun getResources(repo: ResourceRepository): Collection<ResourceItem> {
+      return repo.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA).values()
+    }
+
+    private fun getResources(repo: ResourceRepository, resName: String): List<ResourceItem> {
+      return repo.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, resName)
+    }
   }
 }
