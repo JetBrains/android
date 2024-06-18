@@ -47,21 +47,24 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
     NioFiles.setReadOnly(distsDir.toPath(), true)
 
     runSyncAndCheckBuildIssueFailure(
-      preparedProject,
-      { buildIssue ->
+      preparedProject = preparedProject,
+      verifyBuildIssue = { buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.description).contains("Could not install Gradle distribution from 'https://services.gradle.org/distributions/gradle-8.3-rc-2-bin.zip'.")
         expect.that(buildIssue.description).contains("Reason: java.lang.RuntimeException: Could not create parent directory for lock file ")
         expect.that(buildIssue.description).contains("""
-          Please ensure Android Studio can write to the specified Gradle wrapper distribution directory.
-          You can also change Gradle home directory in Gradle Settings.
-        """.trimIndent())
+                Please ensure Android Studio can write to the specified Gradle wrapper distribution directory.
+                You can also change Gradle home directory in Gradle Settings.
+              """.trimIndent())
         expect.that(buildIssue.quickFixes.map { it::class.java }).isEqualTo(listOf(
           UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java,
           GradleWrapperSettingsOpenQuickFix::class.java
         ))
       },
-      AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
+      expectedPhasesReported = """
+        FAILURE : SYNC_TOTAL
+      """.trimIndent()
     )
   }
 
@@ -93,7 +96,10 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
           OpenStudioProxySettingsQuickFix::class.java
         ))
       },
-      AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR
+      AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
+      expectedPhasesReported = """
+        FAILURE : SYNC_TOTAL
+      """.trimIndent()
     )
   }
 
@@ -126,7 +132,10 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
           OpenStudioProxySettingsQuickFix::class.java
         ))
       },
-      AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR
+      AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
+      expectedPhasesReported = """
+        FAILURE : SYNC_TOTAL
+      """.trimIndent()
     )
   }
 }

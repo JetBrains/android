@@ -58,7 +58,8 @@ class UnsupportedJdkMinimumVersionIssueCheckerTest : AbstractIssueCheckerIntegra
         expect.that(buildIssue.description).isEqualTo(expectedText.toString())
         expect.that(buildIssue.quickFixes).hasSize(2)
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED,
+      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
     )
   }
 }
