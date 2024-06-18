@@ -48,7 +48,10 @@ class AndroidModuleRootConfigurable(
   override fun dispose() = Unit
 }
 
-// TODO(b/142099752): this could be a general mechanism attached to the descriptors
+// TODO(b/142099752): this should be a general mechanism attached to the descriptors
+private fun viewBindingPresent(context: PsContext, module: PsAndroidModule) =
+  context.project.androidGradlePluginVersion.maybeValue
+    ?.let { AgpVersion.tryParse(it) }?.isAtLeastIncludingPreviews(3, 6, 0) ?: false
 private fun dependenciesInfoPresent(context: PsContext, module: PsAndroidModule) =
   module.projectType == PsModuleType.ANDROID_APP &&
   context.project.androidGradlePluginVersion.maybeValue
@@ -66,11 +69,12 @@ fun androidModulePropertiesModel(context: PsContext, module: PsAndroidModule) =
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_SOURCE_COMPATIBILITY),
       uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_TARGET_COMPATIBILITY)
-      // TODO(b/142099752): Properly configure condition when it is available and enable.
-      /*,
-      uiProperty(AndroidModuleDescriptors.viewBindingEnabled, ::simplePropertyEditor,
-                 null)*/
-    ) + when (dependenciesInfoPresent(context, module)) {
+    )
+    + when (viewBindingPresent(context, module)) {
+      true -> listOf(uiProperty(AndroidModuleDescriptors.viewBindingEnabled, ::simplePropertyEditor, null))
+      false -> listOf()
+    }
+    + when (dependenciesInfoPresent(context, module)) {
       true -> listOf(
         uiProperty(AndroidModuleDescriptors.includeDependenciesInfoInApk, ::simplePropertyEditor, null),
         uiProperty(AndroidModuleDescriptors.includeDependenciesInfoInBundle, ::simplePropertyEditor, null))
