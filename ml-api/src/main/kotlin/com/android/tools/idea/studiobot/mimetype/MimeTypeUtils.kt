@@ -643,7 +643,9 @@ fun MimeType.Companion.forPsiElement(element: PsiElement): MimeType? {
 }
 
 fun MimeType.Companion.forVirtualFile(project: Project, file: VirtualFile): MimeType? {
-  val ideLanguage = LanguageUtil.getLanguageForPsi(project, file) ?: return null
+  val ideLanguage =
+    LanguageUtil.getLanguageForPsi(project, file)
+      ?: return file.extension?.let { MimeType.fromExtension(it) }
   return MimeType.fromLanguage(ideLanguage, file)
 }
 
