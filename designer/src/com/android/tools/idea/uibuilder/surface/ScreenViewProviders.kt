@@ -255,7 +255,7 @@ internal fun visualizationProvider(
 private fun findColorBlindMode(sceneManager: SceneManager): ColorBlindMode? {
   val model: NlModel = sceneManager.model
   for (mode in ColorBlindMode.values()) {
-    if (mode.displayName == model.modelDisplayName.value) {
+    if (mode.displayName == model.displaySettings.modelDisplayName.value) {
       return mode
     }
   }

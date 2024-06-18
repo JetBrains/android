@@ -58,9 +58,10 @@ internal class PreviewSurfaceActionManager(
   }
 
   override fun createSceneViewLabel(sceneView: SceneView, scope: CoroutineScope): LabelPanel {
+    val displaySettings = sceneView.sceneManager.model.displaySettings
     return InteractiveLabelPanel(
-      sceneView.sceneManager.model.modelDisplayName,
-      sceneView.sceneManager.model.tooltip,
+      displaySettings.modelDisplayName,
+      displaySettings.tooltip,
       scope,
       suspend { navigationHandler.handleNavigate(sceneView, false) },
     )
