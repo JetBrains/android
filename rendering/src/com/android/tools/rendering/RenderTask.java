@@ -683,6 +683,8 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_USE_GESTURE_NAV, configuration.isGestureNav());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_EDGE_TO_EDGE, configuration.isEdgeToEdge());
 
     params.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
     params.setImageTransformation(configuration.getImageTransformation());
