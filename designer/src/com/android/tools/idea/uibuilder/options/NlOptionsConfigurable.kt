@@ -37,10 +37,12 @@ private val DISPLAY_NAME =
   if (IdeInfo.getInstance().isAndroidStudio) "UI Tools"
   else message("android.uibuilder.nloptionsconfigurable.displayName")
 
-@VisibleForTesting const val LABEL_TRACK_PAD = "Track Pad"
+@VisibleForTesting
+val LABEL_TRACK_PAD = message("android.uibuilder.nloptionsconfigurable.track.pad")
 
 @VisibleForTesting
-const val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = "Magnify zooming (pinch) sensitivity"
+val LABEL_MAGNIFY_ZOOMING_SENSITIVITY =
+  message("android.uibuilder.nloptionsconfigurable.magnify.sensitivity")
 
 private val MAGNIFY_SUPPORTED =
   SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
@@ -118,8 +120,8 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
     val showMagnify = MAGNIFY_SUPPORTED && !GraphicsEnvironment.isHeadless()
 
     return panel {
-      group("Editor View Mode") {
-        row("Resources:") {
+      group(message("android.uibuilder.nloptionsconfigurable.editor.view.mode")) {
+        row(message("android.uibuilder.nloptionsconfigurable.resource")) {
           editorModeComboBox()
             .bindItem(
               { state.preferredResourcesEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
@@ -127,7 +129,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
             )
             .apply { preferredResourcesEditorMode = component }
         }
-        row("Kotlin:") {
+        row(message("android.uibuilder.nloptionsconfigurable.kotlin")) {
           editorModeComboBox()
             .bindItem(
               { state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
@@ -176,8 +178,8 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         }
       }
 
-      group("Preview Settings") {
-        row(message("android.uibuilder.nloptionsconfigurable.view.mode.default")) {
+      group(message("android.uibuilder.nloptionsconfigurable.preview.settings")) {
+        row(message("android.uibuilder.nloptionsconfigurable.view.mode")) {
           editorPreviewLayoutModeComboBox()
             .bindItem(
               { state.preferredPreviewLayoutMode ?: AndroidEditorSettings.LayoutType.GRID },
@@ -199,7 +201,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
             }
             indent {
               row {
-                checkBox("Enable live updates")
+                checkBox(message("android.uibuilder.nloptionsconfigurable.enable.live.updates"))
                   .bindSelected(fastPreviewState::isEnabled) { fastPreviewState.isEnabled = it }
                   .enabledIf(defaultModeRadioButton.selected)
               }
@@ -217,9 +219,8 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
           }
         } else {
           row {
-            checkBox("Enable live updates").bindSelected(fastPreviewState::isEnabled) {
-              fastPreviewState.isEnabled = it
-            }
+            checkBox(message("android.uibuilder.nloptionsconfigurable.enable.live.updates"))
+              .bindSelected(fastPreviewState::isEnabled) { fastPreviewState.isEnabled = it }
           }
         }
       }
