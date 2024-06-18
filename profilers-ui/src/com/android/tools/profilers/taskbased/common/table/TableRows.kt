@@ -37,7 +37,7 @@ import org.jetbrains.jewel.ui.component.Tooltip
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: RowScope) {
+fun LeftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: RowScope) {
   with(rowScope) {
     Box(
       modifier = Modifier.weight(1f).fillMaxHeight().padding(horizontal = 5.dp),
@@ -58,7 +58,7 @@ fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: 
 }
 
 @Composable
-fun rightAlignedColumnText(text: String, colWidth: Dp) {
+fun RightAlignedColumnText(text: String, colWidth: Dp) {
   Box(
     modifier = Modifier.width(colWidth).fillMaxHeight().padding(horizontal = 5.dp),
     contentAlignment = Alignment.CenterEnd

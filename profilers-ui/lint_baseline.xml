@@ -177,26 +177,4 @@
             column="42"/>
     </issue>
 
-    <issue
-        id="ComposableNaming"
-        message="Composable functions that return Unit should start with an uppercase letter"
-        errorLine1="fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: RowScope) {"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/profilers/taskbased/common/table/TableRows.kt"
-            line="42"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="ComposableNaming"
-        message="Composable functions that return Unit should start with an uppercase letter"
-        errorLine1="fun rightAlignedColumnText(text: String, colWidth: Dp) {"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/profilers/taskbased/common/table/TableRows.kt"
-            line="62"
-            column="5"/>
-    </issue>
-
 </issues>
