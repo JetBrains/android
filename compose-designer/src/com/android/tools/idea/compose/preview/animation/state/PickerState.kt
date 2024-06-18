@@ -34,12 +34,13 @@ class PickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) : Comp
 
   override fun stateHashCode(): Int = buttonAction.stateHashCode()
 
-  override fun getState(index: Int): Any {
+  override fun getState(index: Int): List<*> {
     return buttonAction.getState(index)
   }
 
   override fun setStartState(state: Any?) {
-    state?.let { buttonAction.updateStates(it, it) }
+    buttonAction.updateInitialState(state)
+    stateCallback()
   }
 
   override fun updateStates(states: Set<Any>) {
