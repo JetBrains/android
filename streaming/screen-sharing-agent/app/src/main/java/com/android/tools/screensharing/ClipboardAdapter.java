@@ -94,7 +94,7 @@ public class ClipboardAdapter {
                         numberOfParameters == 4 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT) :
                         numberOfParameters == 5 ?
-                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, true) :
+                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, null) :
                         null;
     if (clipData == null || clipData.getItemCount() == 0) {
       return "";
