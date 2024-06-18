@@ -20,8 +20,10 @@ import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshot
+import com.android.sdklib.deviceprovisioner.providedBy
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.INDIRECT
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -54,7 +56,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
     coroutineScope: CoroutineScope,
     adbSession: AdbSession,
     project: Project?,
-    avdManager: LocalEmulatorProvisionerPlugin.AvdManager = AvdManagerImpl(project)
+    avdManager: LocalEmulatorProvisionerPlugin.AvdManager = AvdManagerImpl(project),
   ): DeviceProvisionerPlugin {
     return LocalEmulatorProvisionerPlugin(
       coroutineScope,
@@ -65,10 +67,13 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
           handheld = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE,
           wear = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR,
           tv = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV,
-          automotive = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+          automotive = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR,
         ),
       defaultPresentation = StudioDefaultDeviceActionPresentation,
       diskIoThread,
+      pluginExtensions =
+        listOf(DeviceSource::class providedBy { LocalVirtualDeviceSource.create(project, it) }),
+      handleExtensions = emptyList(),
     )
   }
 }
@@ -109,7 +114,7 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
 
   override suspend fun bootAvdFromSnapshot(
     avdInfo: AvdInfo,
-    snapshot: LocalEmulatorSnapshot
+    snapshot: LocalEmulatorSnapshot,
   ): Unit =
     withContext(workerThread) {
       val snapshotPath = snapshot.path.fileName.toString()
@@ -138,7 +143,7 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
           Messages.showErrorDialog(
             project,
             "Failed to wipe data. Please check that the emulator and its files are not in use and try again.",
-            "Wipe Data Error"
+            "Wipe Data Error",
           )
         }
       }
@@ -153,7 +158,7 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
             MessageDialogBuilder.okCancel(
                 "Could Not Delete All AVD Files",
                 "There may be additional files remaining in the AVD directory. To fully delete " +
-                  "the AVD, open the directory and manually delete the files."
+                  "the AVD, open the directory and manually delete the files.",
               )
               .yesText("Open Directory")
               .noText("OK")
