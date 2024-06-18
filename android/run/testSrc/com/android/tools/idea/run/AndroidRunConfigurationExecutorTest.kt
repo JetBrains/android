@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.run
 
+import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory
+import com.android.adblib.ddmlibcompatibility.testutils.createAdbSession
+import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.idevicemanager.IDeviceManagerFactory
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.sdklib.AndroidVersion
@@ -47,7 +51,6 @@ import com.android.tools.idea.run.AndroidRunConfiguration.Companion.DO_NOTHING
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
-import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.flags.override
@@ -94,17 +97,23 @@ class AndroidRunConfigurationExecutorTest {
     val ACTIVITY_NAME = "google.simpleapplication.MyActivity"
   }
 
-  val fakeAdb: FakeAdbTestRule = FakeAdbTestRule()
+  val fakeAdb: FakeAdbTestRule = FakeAdbTestRule().withIDeviceManagerFactoryFactory { iDeviceManagerFactoryFactory() }
 
   val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
   val cleaner = MockitoCleanerRule()
 
+  val closeables = CloseablesRule()
+
   val usageTrackerRule = UsageTrackerRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(cleaner).around(usageTrackerRule).around(projectRule).around(fakeAdb)
+  val chain = RuleChain.outerRule(cleaner).around(closeables).around(usageTrackerRule).around(projectRule).around(fakeAdb)
 
+  private val iDeviceManagerFactoryFactory: () -> IDeviceManagerFactory = {
+    val adbSession = fakeAdb.createAdbSession(closeables)
+    AdbLibIDeviceManagerFactory(adbSession)
+  }
 
   @Test
   fun runSucceeded() {
