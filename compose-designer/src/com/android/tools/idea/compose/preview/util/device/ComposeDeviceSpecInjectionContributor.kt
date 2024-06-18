@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
-import com.android.tools.idea.compose.preview.isPreviewAnnotation
+import com.android.tools.idea.compose.preview.ComposePreviewAnnotationChecker
 import com.android.tools.idea.preview.util.device.DeviceSpecInjectionContributor
-import org.jetbrains.uast.UAnnotation
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 
 class ComposeDeviceSpecInjectionContributor : DeviceSpecInjectionContributor() {
-  override fun isPreviewAnnotation(annotation: UAnnotation): Boolean =
-    annotation.isPreviewAnnotation()
+  override fun isInPreviewAnnotation(psiElement: PsiElement): Boolean =
+    psiElement.parentOfType<KtAnnotationEntry>()?.let { parent ->
+      ComposePreviewAnnotationChecker.isPreview(parent)
+    } ?: false
 }
