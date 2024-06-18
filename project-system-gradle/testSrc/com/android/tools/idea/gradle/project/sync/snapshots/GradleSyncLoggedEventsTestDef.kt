@@ -26,9 +26,8 @@ import com.android.tools.idea.testing.ModelVersion
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.gradle.toolingExtension.util.GradleVersionUtil
 import com.intellij.openapi.project.Project
-import org.gradle.util.GradleVersion
-import org.jetbrains.plugins.gradle.frameworkSupport.buildscript.isGradleAtLeast
 import java.io.File
 import java.util.Locale
 
@@ -258,7 +257,8 @@ data class GradleSyncLoggedEventsTestDef(
 
     /** Gradle Phases are only available since Gradle 7.6 */
     private fun String.filterExpectedPhases(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): String {
-      if (agpVersion.gradleVersion == null || GradleVersion.version(agpVersion.gradleVersion).isGradleAtLeast("7.6")) {
+      val gradleVersion = agpVersion.gradleVersion
+      if (gradleVersion == null || GradleVersionUtil.isGradleAtLeast(gradleVersion, "7.6")) {
         return this
       }
       return lineSequence()
