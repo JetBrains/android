@@ -36,7 +36,7 @@ import javax.swing.JPanel
 import kotlinx.coroutines.CompletableDeferred
 
 val SceneViewPeerPanel.displayName: String
-  get() = sceneView.sceneManager.model.modelDisplayName.value ?: ""
+  get() = sceneView.sceneManager.model.displaySettings.modelDisplayName.value ?: ""
 
 class TestComposePreviewView(
   parentDisposable: Disposable,

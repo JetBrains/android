@@ -52,7 +52,7 @@ class PreviewElementDebugLogger(private val log: Logger) {
 
     // Log any rendering errors
     surface.sceneManagers.forEach {
-      val modelName = it.model.modelDisplayName.value
+      val modelName = it.model.displaySettings.modelDisplayName.value
       it.renderResult?.let { result ->
         val renderLogger = result.logger
         log(
