@@ -43,6 +43,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
@@ -262,23 +263,26 @@ private fun createWearHealthServicesPanelHeader(
     }
     .launchIn(uiScope)
   val eventTriggersDropDownButton =
-    CommonDropDownButton(
-        CommonAction("", AllIcons.Actions.More).apply {
-          addChildrenActions(
-            EVENT_TRIGGER_GROUPS.map { eventTriggerGroup ->
-              CommonAction(eventTriggerGroup.eventGroupLabel, null).apply {
-                addChildrenActions(
-                  eventTriggerGroup.eventTriggers.map { eventTrigger ->
-                    CommonAction(eventTrigger.eventLabel, null) {
-                      workerScope.launch { stateManager.triggerEvent(eventTrigger) }
+    object :
+        CommonDropDownButton(
+          CommonAction("", AllIcons.Actions.More).apply {
+            addChildrenActions(
+              EVENT_TRIGGER_GROUPS.map { eventTriggerGroup ->
+                CommonAction(eventTriggerGroup.eventGroupLabel, null).apply {
+                  addChildrenActions(
+                    eventTriggerGroup.eventTriggers.map { eventTrigger ->
+                      CommonAction(eventTrigger.eventLabel, null) {
+                        workerScope.launch { stateManager.triggerEvent(eventTrigger) }
+                      }
                     }
-                  }
-                )
+                  )
+                }
               }
-            }
-          )
-        }
-      )
+            )
+          }
+        ) {
+        override fun isFocusable(): Boolean = true
+      }
       .apply { toolTipText = WearWhsBundle.message("wear.whs.panel.trigger.events") }
   val statusLabel =
     JLabel(WearWhsBundle.message("wear.whs.panel.test.data.inactive")).apply {
@@ -362,5 +366,9 @@ internal fun createWearHealthServicesPanel(
     add(createWearHealthServicesPanelHeader(stateManager, uiScope, workerScope), BorderLayout.NORTH)
     add(content, BorderLayout.CENTER)
     add(footer, BorderLayout.SOUTH)
+
+    isFocusCycleRoot = true
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = LayoutFocusTraversalPolicy()
   }
 }
