@@ -26,7 +26,12 @@ import com.intellij.openapi.actionSystem.AnAction
  * color picker.
  */
 class ColorPickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  ComposeAnimationState(callback) {
+  ComposeAnimationState {
+
+  override var callbackEnabled = false
+
+  /** [stateCallback] should be enabled or disabled with [callbackEnabled]. */
+  protected val stateCallback = { if (callbackEnabled) callback() }
 
   private val initialState =
     ColorStateAction(tracker = tracker, onPropertiesUpdated = stateCallback)
