@@ -37,8 +37,14 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionButtonComponent
+import com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ex.ActionButtonLook
+import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -47,6 +53,7 @@ import com.intellij.openapi.keymap.Keymap
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapManagerListener
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
@@ -157,7 +164,7 @@ internal class FilterTextField(
   private val logcatPresenter: LogcatPresenter,
   private val filterParser: LogcatFilterParser,
   initialText: String,
-  var matchCase: Boolean,
+  matchCase: Boolean,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
 ) : BorderLayoutPanel() {
   private val filterHistory = AndroidLogcatFilterHistory.getInstance()
@@ -167,6 +174,12 @@ internal class FilterTextField(
   private val favoriteButton = FavoriteButton()
   private val matchCaseButton = MatchCaseButton()
   private var filter: LogcatFilter? = filterParser.parse(initialText, matchCase)
+
+  var matchCase = matchCase
+    set(value) {
+      field = value
+      filterUpdateChannel.trySend(FilterUpdated(text, matchCase))
+    }
 
   private var isFavorite: Boolean = false
     set(value) {
@@ -866,15 +879,45 @@ internal class FilterTextField(
     }
   }
 
-  private inner class MatchCaseButton :
-    HoverButton(
-      AllIcons.Actions.MatchCase,
-      LogcatBundle.message("logcat.filter.match.case.tooltip"),
+  /** Based on [com.intellij.find.SearchTextArea] */
+  private inner class ToggleMatchCase : CheckboxAction(), DumbAware {
+    init {
+      templatePresentation.text = LogcatBundle.message("logcat.filter.match.case.tooltip")
+      templatePresentation.icon = AllIcons.Actions.MatchCase
+      templatePresentation.hoveredIcon = AllIcons.Actions.MatchCaseHovered
+      templatePresentation.selectedIcon = AllIcons.Actions.MatchCaseSelected
+    }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+
+    override fun isSelected(e: AnActionEvent) = matchCase
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      matchCase = state
+    }
+  }
+
+  /** Based on [com.intellij.find.SearchTextArea.MyActionButton] */
+  private inner class MatchCaseButton private constructor(action: AnAction) :
+    ActionButton(
+      action,
+      action.templatePresentation.clone(),
+      "FilterTextField",
+      DEFAULT_MINIMUM_BUTTON_SIZE,
     ) {
-    override fun mouseClicked() {
-      matchCase = !matchCase
-      icon = if (matchCase) AllIcons.Actions.MatchCaseSelected else AllIcons.Actions.MatchCase
-      filterUpdateChannel.trySend(FilterUpdated(text, matchCase))
+
+    constructor() : this(ToggleMatchCase())
+
+    init {
+      isFocusable = true
+      updateIcon()
+    }
+
+    override fun getIcon(): Icon {
+      return when (isEnabled && isSelected) {
+        true -> presentation.selectedIcon ?: super.getIcon()
+        false -> super.getIcon()
+      }
     }
   }
 
