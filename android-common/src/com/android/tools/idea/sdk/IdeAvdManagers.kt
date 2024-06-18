@@ -23,6 +23,7 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.sdk.DeviceManagerCache
 import com.android.tools.sdk.DeviceManagers
 import com.android.utils.ILogger
+import com.intellij.openapi.diagnostic.ControlFlowException
 import java.nio.file.Path
 
 /**
@@ -63,6 +64,7 @@ internal class AvdManagerCacheImpl(
         } catch (e: AndroidLocationsException) {
           throw e
         } catch (e: Exception) {
+          if (e is ControlFlowException) throw e
           // This is somewhat suspect
           logger.error(e, "Exception during AvdManager initialization")
           return null
