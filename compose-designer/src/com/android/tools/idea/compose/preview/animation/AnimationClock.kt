@@ -87,12 +87,8 @@ class AnimationClock(val clock: Any) {
   /** Function `getAnimatedProperties` of [clock]. */
   val getAnimatedPropertiesFunction by lazy { findClockFunction("getAnimatedProperties") }
 
-  /**
-   * Function `getTransitions` of [clock]. This API was added in Compose UI Tooling 1.1.0-alpha05.
-   * For early versions `getAnimatedProperties` should be called instead. The caller should first
-   * check if this method exists.
-   */
-  val getTransitionsFunction: Method? by lazy { findClockFunctionIfExists("getTransitions") }
+  /** Function `getTransitions` of [clock]. */
+  val getTransitionsFunction: Method by lazy { findClockFunction("getTransitions") }
 
   /** Function `getMaxDuration` of [clock]. */
   val getMaxDurationFunction by lazy { findClockFunction("getMaxDuration") }

@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.animation.AnimationClock
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.getAnimatedProperties
-import com.android.tools.idea.compose.preview.animation.setClockTime
 import com.android.tools.idea.compose.preview.animation.state.ComposeAnimationState
 import com.android.tools.idea.compose.preview.animation.state.ComposeAnimationState.Companion.createState
 import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
@@ -166,9 +165,9 @@ open class ComposeSupportedAnimationManager(
     val builders: MutableMap<Int, AnimatedProperty.Builder> = mutableMapOf()
     val clockTimeMsStep = max(1, maxDurationPerIteration.value / DEFAULT_CURVE_POINTS_NUMBER)
 
-    fun getTransitions() {
+    try {
       val composeTransitions =
-        animationClock.getTransitionsFunction?.invoke(
+        animationClock.getTransitionsFunction.invoke(
           animationClock.clock,
           animation,
           clockTimeMsStep,
@@ -187,25 +186,6 @@ open class ComposeSupportedAnimationManager(
           }
         builders[index] = builder
       }
-    }
-
-    fun getAnimatedProperties() {
-      for (clockTimeMs in 0..maxDurationPerIteration.value step clockTimeMsStep) {
-        animationClock.setClockTime(clockTimeMs)
-        val properties = animationClock.getAnimatedProperties(animation)
-        for ((index, property) in properties.withIndex()) {
-          ComposeUnit.parse(property).let { unit ->
-            if (unit is AnimationUnit.NumberUnit) {
-              builders.getOrPut(index) { AnimatedProperty.Builder() }.add(clockTimeMs.toInt(), unit)
-            }
-          }
-        }
-      }
-    }
-
-    try {
-      if (animationClock.getTransitionsFunction != null) getTransitions()
-      else getAnimatedProperties()
     } catch (e: Exception) {
       LOG.warn("Failed to load the Compose Animation properties", e)
     }
