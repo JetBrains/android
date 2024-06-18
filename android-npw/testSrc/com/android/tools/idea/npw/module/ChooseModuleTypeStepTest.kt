@@ -85,8 +85,9 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       message("android.wizard.module.import.eclipse.title"),
       message("android.wizard.module.new.java.or.kotlin.library"),
       if (StudioFlags.NPW_NEW_BASELINE_PROFILES_MODULE.get()) message("android.wizard.module.new.baselineprofiles.module.app") else null,
-      message("android.wizard.module.new.benchmark.module.app")
-    ).filterNot {
+      message("android.wizard.module.new.benchmark.module.app"),
+      if (StudioFlags.NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE.get()) message("android.wizard.module.new.kotlin.multiplatform.library") else null,
+      ).filterNot {
       it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title")
     }.filterNotNull()
 
