@@ -40,7 +40,6 @@ import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
-import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JLabel
@@ -294,21 +293,21 @@ class UiSettingsPanelTest {
     focusManager.focusOwner = panel
     panel.transferFocus()
 
-    assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.hasFocus()).isTrue()
+    assertThat(focusManager.focusOwner?.name).isEqualTo(DARK_THEME_TITLE)
     ui.keyboard.pressAndRelease(VK_SPACE)
     waitForCondition(1.seconds) { lastCommand == "dark=true" }
     ui.keyboard.pressAndRelease(VK_TAB)
     model.differentFromDefault.setFromController(true)
 
+    assertThat(focusManager.focusOwner?.name).isEqualTo(GESTURE_NAVIGATION_TITLE)
     val navigationComboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
-    assertThat(navigationComboBox.hasFocus()).isTrue()
     // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
     navigationComboBox.selectedItem = true
     waitForCondition(1.seconds) { lastCommand == "gestures=true" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
+    assertThat(focusManager.focusOwner?.name).isEqualTo(APP_LANGUAGE_TITLE)
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }
-    assertThat(comboBox.hasFocus()).isTrue()
     // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
     comboBox.selectedIndex = 1
     waitForCondition(1.seconds) { lastCommand == "locale=da" }
@@ -317,42 +316,64 @@ class UiSettingsPanelTest {
     waitForCondition(1.seconds) { lastCommand == "locale=ru" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
-    assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.hasFocus()).isTrue()
+    assertThat(focusManager.focusOwner?.name).isEqualTo(TALKBACK_TITLE)
     ui.keyboard.pressAndRelease(VK_SPACE)
     waitForCondition(1.seconds) { lastCommand == "talkBackOn=true" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
-    assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.hasFocus()).isTrue()
+    assertThat(focusManager.focusOwner?.name).isEqualTo(SELECT_TO_SPEAK_TITLE)
     ui.keyboard.pressAndRelease(VK_SPACE)
     waitForCondition(1.seconds) { lastCommand == "selectToSpeakOn=true" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
-    assertThat(panel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }.hasFocus()).isTrue()
+    assertThat(focusManager.focusOwner?.name).isEqualTo(FONT_SCALE_TITLE)
     ui.keyboard.pressAndRelease(VK_RIGHT)
     waitForCondition(1.seconds) { lastCommand == "fontScale=115" }
     ui.keyboard.pressAndRelease(VK_RIGHT)
     waitForCondition(1.seconds) { lastCommand == "fontScale=130" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
-    assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.hasFocus()).isTrue()
+    assertThat(focusManager.focusOwner?.name).isEqualTo(DENSITY_TITLE)
     ui.keyboard.pressAndRelease(VK_RIGHT)
     waitForCondition(1.seconds) { lastCommand == "density=544" }
     ui.keyboard.pressAndRelease(VK_RIGHT)
     waitForCondition(1.seconds) { lastCommand == "density=608" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
-    assertThat(panel.getDescendant<JButton> { it.name == RESET_TITLE }.hasFocus()).isTrue()
+    assertThat(focusManager.focusOwner?.name).isEqualTo(RESET_TITLE)
     ui.keyboard.pressAndRelease(VK_SPACE)
     waitForCondition(1.seconds) { lastCommand == "reset" }
     model.differentFromDefault.setFromController(false)
 
     // Activating the reset button should disable the reset button, and the focus will transfer to the next control:
-    assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.hasFocus()).isTrue()
+    assertThat(focusManager.focusOwner?.name).isEqualTo(DARK_THEME_TITLE)
 
     // Back tab will now skip the reset button:
     ui.keyboard.press(VK_SHIFT)
     ui.keyboard.pressAndRelease(VK_TAB)
     ui.keyboard.release(VK_SHIFT)
     assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.hasFocus()).isTrue()
+  }
+
+  @Test
+  fun testFirstFocusedComponentWithActiveResetLink() {
+    model.screenDensity.setFromController(560)
+    val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
+    focusManager.focusOwner = panel
+    panel.transferFocus()
+
+    // The Reset link should not be selected as the first focused component:
+    assertThat(focusManager.focusOwner?.name).isEqualTo(DARK_THEME_TITLE)
+  }
+
+  @Test
+  fun testFirstFocusedComponentWithActiveResetLinkForWear() {
+    model.screenDensity.setFromController(560)
+    val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
+    focusManager.focusOwner = panel
+    panel.transferFocus()
+
+    // The Reset link should not be selected as the first focused component, and Wear does not have Dark Mode:
+    assertThat(focusManager.focusOwner?.name).isEqualTo(APP_LANGUAGE_TITLE)
   }
 }
