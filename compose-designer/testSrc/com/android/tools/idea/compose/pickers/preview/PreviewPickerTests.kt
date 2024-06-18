@@ -441,9 +441,9 @@ class PreviewPickerTests {
     // The Night/NotNight is not explicitly set
     val nightModeUndefined = UiMode.NORMAL
 
-    nightModeOption.select(uiModeProperty)
-    notNightOption.select(uiModeProperty)
-    nightModeUndefined.select(uiModeProperty)
+    nightModeOption.select(uiModeProperty) {}
+    notNightOption.select(uiModeProperty) {}
+    nightModeUndefined.select(uiModeProperty) {}
 
     assertEquals(3, testTracker.valuesRegistered.size)
     assertEquals(PreviewPickerValue.UI_MODE_NIGHT, testTracker.valuesRegistered[0])

@@ -25,6 +25,7 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.android.facet.AndroidFacet
@@ -75,12 +76,15 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
   private class SelectFontAction(private val facet: AndroidFacet) : AnAction("More Fonts...") {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val property = event.getData(EnumValue.Companion.PROPERTY_ITEM_KEY) as NlPropertyItem
+      val property = event.getData(EnumValue.PROPERTY_ITEM_KEY) as NlPropertyItem
+      val newEnumValue =
+        event.getData(EnumValue.NEW_ENUM_VALUE_CALLBACK_KEY) as NewEnumValueCallback
       // TODO: May need namespace resolver when fonts from libraries are supported
       val dialog = MoreFontsDialog(facet, property.resolvedValue, true)
       dialog.show()
       val font = if (dialog.isOK) dialog.resultingFont else null
       if (font != null) {
+        newEnumValue.newValue(font)
         property.value = font
       }
     }

@@ -124,7 +124,7 @@ private class WrappedComboBox(
     // and certain keystrokes
     addActionListener {
       if (!inSetup) {
-        model.selectEnumValue()
+        model.selectEnumValue { textField.text = it }
       }
     }
     addPopupMenuListener(

@@ -123,7 +123,15 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   private fun setFromModel() {
     updatingFromModel = true
     try {
-      text = editorModel.value
+      if (hasFocus() || _lookup?.isVisible == true) {
+        // b/341537014:
+        // If the user is actively editing, we should not take a new text value from the model,
+        // since that would remove the users work. Instead set the model value to the edited value.
+        editorModel.text = text
+      } else {
+        // The user is not actively editing, take a new text value from the model.
+        text = editorModel.value
+      }
       isEnabled = editorModel.enabled
       isEditable = editorModel.editable
       emptyText.text = editorModel.placeHolderValue

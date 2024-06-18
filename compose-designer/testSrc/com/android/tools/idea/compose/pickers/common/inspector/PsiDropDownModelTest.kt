@@ -47,7 +47,7 @@ internal class PsiDropDownModelTest {
     assertEquals("value2", (model.selectedItem as? EnumValue)?.value)
 
     // Apply selection, should reflect on property
-    model.selectEnumValue()
+    model.selectEnumValue {}
     assertEquals("value2", property.value)
   }
 }
