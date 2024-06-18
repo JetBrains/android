@@ -94,6 +94,11 @@ internal class MessageFormatter(
     }
   }
 
+  fun reset() {
+    previousTag = null
+    previousPid = null
+  }
+
   private fun insertStudioBotText(message: String): String {
     val split = message.split("\n", ignoreCase = false, limit = 2)
     assert(split.size > 1)

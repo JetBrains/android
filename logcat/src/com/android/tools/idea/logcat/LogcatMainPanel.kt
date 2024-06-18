@@ -499,7 +499,7 @@ constructor(
           } else {
             logcatServiceChannel.send(StopLogcat)
             withContext(uiThread) {
-              document.setText("")
+              clearDocument()
               noLogsBanner.isVisible = false
             }
           }
@@ -720,7 +720,7 @@ constructor(
   @UiThread
   override fun reloadMessages() {
     editor.settings.customSoftWrapIndent = formattingOptions.getHeaderWidth()
-    document.setText("")
+    clearDocument()
     coroutineScope.launch(workerThread) {
       messageProcessor.appendMessages(messageBacklog.get().messages)
       withContext(uiThread) { noLogsBanner.isVisible = isLogsMissing() }
@@ -804,7 +804,7 @@ constructor(
     packages.clear()
     processNames.clear()
     documentAppender.reset()
-    withContext(uiThread) { document.setText("") }
+    withContext(uiThread) { clearDocument() }
   }
 
   override fun clearMessageView() {
@@ -840,7 +840,7 @@ constructor(
       }
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
       withContext(uiThread) {
-        document.setText("")
+        clearDocument()
         noLogsBanner.isVisible = isLogsMissing()
         processMessages(systemMessages)
       }
@@ -901,7 +901,7 @@ constructor(
   }
 
   private suspend fun startLogcat(device: Device): Job {
-    withContext(uiThread) { document.setText("") }
+    withContext(uiThread) { clearDocument() }
     messageBacklog.get().clear()
 
     return coroutineScope.launch(Dispatchers.IO) {
@@ -925,7 +925,7 @@ constructor(
 
   private suspend fun loadLogcatFile(data: LogcatFileData?, loadFilter: Boolean) {
     withContext(uiThread) {
-      document.setText("")
+      clearDocument()
       messageBacklog.get().clear()
       if (loadFilter) {
         val filter = data.safeGetFilter()
@@ -936,6 +936,12 @@ constructor(
       }
     }
     data?.logcatMessages?.chunked(500)?.forEach { processMessages(it) }
+  }
+
+  @UiThread
+  private fun clearDocument() {
+    document.setText("")
+    messageFormatter.reset()
   }
 
   private fun scrollToEnd() {
