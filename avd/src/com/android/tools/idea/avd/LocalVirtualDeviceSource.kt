@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
@@ -55,20 +56,24 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 internal class LocalVirtualDeviceSource(
   private val project: Project?,
+  private val provisioner: LocalEmulatorProvisionerPlugin,
   systemImages: ImmutableCollection<SystemImage>,
   private val skins: ImmutableCollection<Skin>,
 ) : DeviceSource {
   private var systemImages by mutableStateOf(systemImages)
 
   companion object {
-    internal fun create(project: Project?): LocalVirtualDeviceSource {
+    internal fun create(
+      project: Project?,
+      provisioner: LocalEmulatorProvisionerPlugin,
+    ): LocalVirtualDeviceSource {
       val images = SystemImage.getSystemImages().toImmutableList()
 
       val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
 
-      return LocalVirtualDeviceSource(project, images, skins)
+      return LocalVirtualDeviceSource(project, provisioner, images, skins)
     }
   }
 
@@ -132,6 +137,7 @@ internal class LocalVirtualDeviceSource(
     }
 
     VirtualDevices().add(device, image)
+    provisioner.refreshDevices()
     close()
   }
 

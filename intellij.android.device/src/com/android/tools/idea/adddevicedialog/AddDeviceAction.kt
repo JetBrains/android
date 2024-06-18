@@ -15,26 +15,25 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.sdklib.deviceprovisioner.extensions
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.AndroidPluginDisposable
 
 private class AddDeviceAction private constructor() : DumbAwareAction() {
   override fun actionPerformed(event: AnActionEvent) {
-    val project = event.project
+    // TODO(b/349112418): Support use without a project
+    val project = event.project ?: return
 
-    val parent =
-      if (project == null) AndroidPluginDisposable.getApplicationInstance()
-      else AndroidPluginDisposable.getProjectInstance(project)
+    val provisioner = project.service<DeviceProvisionerService>().deviceProvisioner
 
-    AndroidCoroutineScope(parent, AndroidDispatchers.workerThread).launch {
-      val sources =
-        DeviceSourceProvider.deviceSourceProviders.mapNotNull { it.createDeviceSource(project) }
-
+    AndroidCoroutineScope(project, AndroidDispatchers.workerThread).launch {
+      val sources = provisioner.extensions<DeviceSource>()
       withContext(AndroidDispatchers.uiThread) {
         AddDeviceWizard(sources, project).createDialog().show()
       }

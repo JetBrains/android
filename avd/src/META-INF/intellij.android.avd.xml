@@ -17,7 +17,4 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <deviceProvisioner implementation="com.android.tools.idea.avd.LocalEmulatorProvisionerFactory"/>
   </extensions>
-  <extensions defaultExtensionNs="com.android.tools.idea.adddevicedialog">
-    <deviceSourceProvider implementation="com.android.tools.idea.avd.LocalVirtualDeviceSourceProvider"/>
-  </extensions>
 </idea-plugin>

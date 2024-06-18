@@ -14,9 +14,7 @@
           </stringArguments>
           <arrayArguments>
             <arrayArg name="pluginClasspaths">
-              <args>
-                <arg>$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/compose/compiler/compiler-hosted/1.5.7/compiler-hosted-1.5.7.jar</arg>
-              </args>
+              <args>$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/compose/compiler/compiler-hosted/1.5.7/compiler-hosted-1.5.7.jar</args>
             </arrayArg>
           </arrayArguments>
         </compilerArguments>
@@ -41,5 +39,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
+    <orderEntry type="module" module-name="intellij.android.adb" />
   </component>
 </module>
