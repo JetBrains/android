@@ -41,8 +41,6 @@ intellij {
 }
 
 dependencies {
-  implementation("androidx.compose.foundation:foundation-desktop:1.6.7")
-
   // MUST align version with the Jewel dependency in adt-ui-compose
   // MUST align -XXX suffix in artifact ID to the target IJP version
   // See https://github.com/JetBrains/Jewel/releases for the release notes
@@ -53,15 +51,16 @@ dependencies {
     exclude(group = "org.jetbrains.kotlinx")
   }
 
+  // Do not bring in Material (we use Jewel) and Coroutines (the IDE has its own)
+  api(compose.desktop.currentOs) {
+    exclude(group = "org.jetbrains.compose.material")
+    exclude(group = "org.jetbrains.kotlinx")
+  }
 }
 
 sourceSets {
   main {
-    resources {
-      srcDirs("src/resources")
-    }
-    kotlin {
-      srcDirs("src")
-    }
+    resources { srcDirs("src/resources") }
+    kotlin { srcDirs("src") }
   }
 }
