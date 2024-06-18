@@ -57,6 +57,7 @@
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.ddmlibcompatibility" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>
