@@ -87,11 +87,10 @@ internal class LocalVirtualDeviceSource(
 
   @Composable
   private fun WizardPageScope.ConfigurationPage(device: DeviceProfile) {
-    val configureDevicePanelState =
-      remember(device) { ConfigureDevicePanelState(skins, device as VirtualDevice) }
+    device as VirtualDevice
 
-    val api = device.apiRange.upperEndpoint()
-    val images = systemImages.filter { it.androidVersion.apiLevel == api }.toImmutableList()
+    val configureDevicePanelState = remember(device) { ConfigureDevicePanelState(skins, device) }
+    val images = systemImages.filter { it.matches(device) }.toImmutableList()
 
     // TODO: http://b/342003916
     val systemImageTableSelectionState = remember { TableSelectionState(images.first()) }

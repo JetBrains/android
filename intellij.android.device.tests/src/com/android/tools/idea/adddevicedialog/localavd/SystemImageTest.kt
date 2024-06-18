@@ -24,19 +24,74 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.devices.Storage
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.generated.addon.v3.AddonDetailsType
 import com.android.sdklib.repository.generated.common.v3.ApiDetailsType
 import com.android.sdklib.repository.generated.common.v3.IdDisplayType
 import com.android.sdklib.repository.generated.sysimg.v4.SysImgDetailsType
 import com.android.testutils.MockitoKt
+import com.google.common.collect.Range
+import kotlinx.collections.immutable.toImmutableSet
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class SystemImageTest {
+  @Test
+  fun matchesApiLevelEqualsApiRangeUpperEndpoint() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-34-ext10;google_apis_playstore;arm64-v8a",
+        "Google Play ARM 64 v8a System Image",
+        AndroidVersion(34, null, 10, false),
+        Services.GOOGLE_PLAY_STORE,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        setOf<Abi>().toImmutableSet(),
+        Storage(1_549_122_970),
+      )
+
+    val device = MockitoKt.mock<VirtualDevice>()
+    MockitoKt.whenever(device.apiRange).thenReturn(Range.closed(34, 34))
+
+    // Act
+    val matches = image.matches(device)
+
+    // Assert
+    assertTrue(matches)
+  }
+
+  @Test
+  fun matches() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "add-ons;addon-google_apis-google-10",
+        "Google APIs",
+        AndroidVersion(10),
+        Services.GOOGLE_APIS,
+        setOf(Abi.ARMEABI).toImmutableSet(),
+        setOf<Abi>().toImmutableSet(),
+        Storage(65_781_578),
+      )
+
+    val device = MockitoKt.mock<VirtualDevice>()
+    MockitoKt.whenever(device.apiRange).thenReturn(Range.closed(34, 34))
+
+    // Act
+    val matches = image.matches(device)
+
+    // Assert
+    assertFalse(matches)
+  }
+
   @Test
   fun testToStringIsRemote() {
     // Arrange

@@ -46,6 +46,9 @@ internal constructor(
   internal val translatedAbis: ImmutableCollection<Abi>,
   private val size: Storage,
 ) {
+  internal fun matches(device: VirtualDevice) =
+    androidVersion.apiLevel == device.apiRange.upperEndpoint()
+
   override fun toString() = if (isRemote) "$name (${size.toUiString()})" else name
 
   internal companion object {
