@@ -179,8 +179,12 @@ open class ComposeSupportedAnimationManager(
             .setStartTimeMs(composeTransition.startTimeMillis.toInt())
             .setEndTimeMs(composeTransition.endTimeMillis.toInt())
         composeTransition.values
-          .mapValues { ComposeUnit.parseNumberUnit(it.value) }
-          .forEach { (ms, unit) -> unit?.let { builder.add(ms.toInt(), unit) } }
+          .mapValues { ComposeUnit.parseStateUnit(it.value) }
+          .forEach { (ms, unit) ->
+            if (unit is AnimationUnit.NumberUnit) {
+              builder.add(ms.toInt(), unit)
+            }
+          }
         builders[index] = builder
       }
     }
@@ -190,8 +194,10 @@ open class ComposeSupportedAnimationManager(
         animationClock.setClockTime(clockTimeMs)
         val properties = animationClock.getAnimatedProperties(animation)
         for ((index, property) in properties.withIndex()) {
-          ComposeUnit.parse(property)?.let { unit ->
-            builders.getOrPut(index) { AnimatedProperty.Builder() }.add(clockTimeMs.toInt(), unit)
+          ComposeUnit.parse(property).let { unit ->
+            if (unit is AnimationUnit.NumberUnit) {
+              builders.getOrPut(index) { AnimatedProperty.Builder() }.add(clockTimeMs.toInt(), unit)
+            }
           }
         }
       }
@@ -218,7 +224,7 @@ open class ComposeSupportedAnimationManager(
         try {
           properties =
             getAnimatedProperties(animation).map {
-              AnimationUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
+              AnimationUnit.TimelineUnit(it.label, ComposeUnit.parseStateUnit(it))
             }
         } catch (e: Exception) {
           LOG.warn("Failed to get the Compose Animation properties", e)
