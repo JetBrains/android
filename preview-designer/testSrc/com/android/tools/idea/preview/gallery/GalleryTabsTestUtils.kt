@@ -20,7 +20,12 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import java.awt.Component
 import java.util.stream.Collectors
 
+@Deprecated("b/344884593")
+/** Find [ActionToolbarImpl] corresponding to [GalleryTabs]. */
 fun findGalleryTabs(parent: Component) = findToolbar(parent, "Gallery Tabs")
+
+/** Find [ActionToolbarImpl] corresponding to [GalleryView]. */
+fun findGalleryView(parent: Component) = findToolbar(parent, "Select Preview")
 
 private fun findToolbar(parent: Component, place: String): ActionToolbarImpl =
   TreeWalker(parent)
