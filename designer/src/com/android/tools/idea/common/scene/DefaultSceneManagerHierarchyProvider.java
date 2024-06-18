@@ -35,7 +35,6 @@ public class DefaultSceneManagerHierarchyProvider implements SceneManager.SceneC
     if (sceneComponent == null) {
       sceneComponent = new SceneComponent(manager.getScene(), component, manager.getHitProvider(component));
     }
-    sceneComponent.setToolLocked(SceneManager.isComponentLocked(component));
     Set<SceneComponent> oldChildren = new HashSet<>(sceneComponent.getChildren());
     for (NlComponent nlChild : component.getChildren()) {
       List<SceneComponent> children = createHierarchy(manager, nlChild);
@@ -59,7 +58,5 @@ public class DefaultSceneManagerHierarchyProvider implements SceneManager.SceneC
   }
 
   @Override
-  public void syncFromNlComponent(@NotNull SceneComponent sceneComponent) {
-    sceneComponent.setToolLocked(false); // the root is always unlocked.
-  }
+  public void syncFromNlComponent(@NotNull SceneComponent sceneComponent) {}
 }

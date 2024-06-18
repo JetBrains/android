@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -68,8 +67,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
      */
     void syncFromNlComponent(@NotNull SceneComponent sceneComponent);
   }
-
-  public static final boolean SUPPORTS_LOCKING = false;
 
   @NotNull private final NlModel myModel;
   @NotNull private final DesignSurface<?> myDesignSurface;
@@ -221,24 +218,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   @NotNull
   protected NlComponent getRoot() {
     return getModel().getTreeReader().getComponents().get(0).getRoot();
-  }
-
-  /**
-   * Returns false if the value of the tools:visible attribute is false, true otherwise.
-   * When a component is not tool visible, it will not be rendered by the Scene mechanism (though it might be by others, e.g. layoutlib),
-   * and no interaction will be possible with it from the design surface.
-   *
-   * @param component component to look at
-   * @return tool visibility status
-   */
-  public static boolean isComponentLocked(@NotNull NlComponent component) {
-    if (SUPPORTS_LOCKING) {
-      String attribute = component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED);
-      if (attribute != null) {
-        return attribute.equals(SdkConstants.VALUE_TRUE);
-      }
-    }
-    return false;
   }
 
   /**
