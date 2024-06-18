@@ -60,8 +60,9 @@ object ExportSnapshotAction :
 
   override fun update(event: AnActionEvent) {
     super.update(event)
+    val layoutInspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
     event.presentation.isEnabled =
-      event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient?.isConnected ?: false
+      layoutInspector?.currentClient?.isConnected == true && layoutInspector.renderModel.isActive
   }
 
   override fun actionPerformed(event: AnActionEvent) {
