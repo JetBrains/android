@@ -1,0 +1,12 @@
+dependencyResolutionManagement {
+  versionCatalogs {
+    libs {
+      from 'com.mycompany:new-catalog:1.0'
+    }
+    foo {
+    }
+    bar {
+      from 'org.example:foo:1.0'
+    }
+  }
+}
