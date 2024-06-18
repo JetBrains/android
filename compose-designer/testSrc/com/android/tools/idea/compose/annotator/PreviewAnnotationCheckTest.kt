@@ -104,7 +104,7 @@ internal class PreviewAnnotationCheckTest {
       """
       Bad value type for: shape, width, unit.
 
-      Parameter: shape should be one of: Normal, Square, Round, Chin.
+      Parameter: shape should be one of: Normal, Round.
       Parameter: width should have Integer value.
       Parameter: unit should be one of: px, dp.
 
