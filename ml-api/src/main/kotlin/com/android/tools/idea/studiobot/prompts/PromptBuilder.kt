@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.studiobot.prompts
 
+import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.impl.PromptBuilderImpl
@@ -212,6 +213,20 @@ interface PromptBuilder {
    * build prod features that use function calling.
    */
   @Experimental fun functions(builderAction: FunctionsBuilder.() -> Unit)
+
+  /**
+   * This is an experimental API, and no prod models currently support function calling.
+   *
+   * TODO(b/344944954): Handle .aiexclude and other problems before productionizing
+   */
+  @Experimental fun functionCall(call: Content.FunctionCall)
+
+  /**
+   * This is an experimental API, and no prod models currently support function calling.
+   *
+   * TODO(b/344944954): Handle .aiexclude and other problems before productionizing
+   */
+  @Experimental fun functionResponse(name: String, response: String)
 }
 
 class MalformedPromptException(message: String) : RuntimeException(message)
