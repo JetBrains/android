@@ -104,15 +104,15 @@ def _read_plugin_id(path: Path):
   # The id of a plugin is defined as the id tag and if missing, the name tag.
   ids = xml.findall("id")
   if len(ids) > 1:
-    sys.exit("Too many plugin ids found in plugin: " + path)
+    sys.exit(f"Too many plugin ids found in plugin: {path}")
   if len(ids) == 1:
     return ids[0].text
   names = xml.findall("name")
   if len(names) > 1:
-    sys.exit("Too many plugin names found (for plugin without id): " + path)
+    sys.exit(f"Too many plugin names found (for plugin without id): {path}")
   if len(names) == 1:
     return names[0].text
-  sys.exit("Cannot find plugin id or name tag for plugin: " + path)
+  sys.exit(f"Cannot find plugin id or name tag for plugin: {path}")
 
 
 def _read_plugin_jars(idea_home: Path):
