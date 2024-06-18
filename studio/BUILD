@@ -183,6 +183,7 @@ studio_plugin(
             "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view",
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
             "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
+            "//tools/adt/idea/avd:intellij.android.avd",
             "//tools/adt/idea/intellij.android.device",
             "//tools/adt/idea/android:intellij.android.core",
             "//tools/adt/idea/android-navigator:intellij.android.navigator",
