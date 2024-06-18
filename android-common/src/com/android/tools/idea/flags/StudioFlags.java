@@ -457,7 +457,7 @@ public final class StudioFlags {
     "Use adblib to track devices (IDevice)",
     "Use adblib instead of ddmlib to track and implement `IDevice` instances. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    ChannelDefault.enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER = new BooleanFlag(
     RUNDEBUG,
