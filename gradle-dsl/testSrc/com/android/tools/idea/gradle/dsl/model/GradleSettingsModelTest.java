@@ -514,6 +514,22 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testParseImportedVersionCatalogs() throws IOException {
+    writeToSettingsFile(TestFile.PARSE_IMPORTED_VERSION_CATALOGS);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+
+    List<VersionCatalogModel> versionCatalogs = dependencyResolutionManagementModel.versionCatalogs();
+    assertSize(3, versionCatalogs);
+    assertEquals("libs", versionCatalogs.get(0).getName());
+    assertEquals("gradle/libs.versions.toml", versionCatalogs.get(0).from().toString());
+    assertEquals("foo", versionCatalogs.get(1).getName());
+    assertEquals("com.mycompany:catalog:1.0", versionCatalogs.get(1).from().toString());
+    assertEquals("bar", versionCatalogs.get(2).getName());
+    assertMissingProperty(versionCatalogs.get(2).from());
+  }
+
+  @Test
   public void testAddVersionCatalogs() throws IOException {
     writeToSettingsFile(TestFile.ADD_VERSION_CATALOGS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
@@ -604,6 +620,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     ADD_PLUGINS_BLOCK_EXPECTED("addPluginsBlockExpected"),
     ADD_PLUGINS_BLOCK_WITH_PLUGIN_MANAGEMENT_EXPECTED("addPluginsBlockWithPluginManagementExpected"),
     PARSE_VERSION_CATALOGS("parseVersionCatalogs"),
+    PARSE_IMPORTED_VERSION_CATALOGS("parseImportedVersionCatalog"),
     ADD_VERSION_CATALOGS("addVersionCatalogs"),
     ADD_VERSION_CATALOGS_EXPECTED("addVersionCatalogsExpected"),
     EDIT_VERSION_CATALOGS("editVersionCatalogs"),
