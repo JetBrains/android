@@ -64,8 +64,9 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
 
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val gestureOverlayInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
-  val gestureNavigation: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
-  val appLanguage = UiComboBoxModel<AppLanguage>()
+  val navigationModel = UiComboBoxModel(false).apply { addAll(listOf(true, false)) }
+  val gestureNavigation: TwoWayProperty<Boolean> = navigationModel.selection
+  val appLanguage = UiComboBoxModel<AppLanguage?>(null)
   val talkBackInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
   val talkBackOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val selectToSpeakOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)

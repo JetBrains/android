@@ -21,12 +21,12 @@ import com.intellij.ui.layout.ComponentPredicate
 import javax.swing.DefaultComboBoxModel
 
 /**
- * A MutableComboBoxModel with a [TwoWayProperty] controlling the selection and a predicate for the presence of multiple languages.
+ * A MutableComboBoxModel with a [TwoWayProperty] controlling the selection and a predicate for the presence of multiple elements.
  */
-internal class UiComboBoxModel<T>: DefaultComboBoxModel<T>() {
+internal class UiComboBoxModel<T>(initialValue: T): DefaultComboBoxModel<T>() {
 
-  val selection: TwoWayProperty<T?> = object : DefaultTwoWayProperty<T?>(null) {
-    override fun setFromUi(newValue: T?) {
+  val selection: TwoWayProperty<T> = object : DefaultTwoWayProperty<T>(initialValue) {
+    override fun setFromUi(newValue: T) {
       super.setFromUi(newValue)
       this@UiComboBoxModel.selectedItem = newValue
     }

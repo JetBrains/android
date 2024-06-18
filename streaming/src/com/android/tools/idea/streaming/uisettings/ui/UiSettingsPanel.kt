@@ -35,6 +35,7 @@ import javax.swing.AbstractButton
 import javax.swing.JComponent
 import javax.swing.JSlider
 import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.ListCellRenderer
 import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
@@ -90,10 +91,15 @@ internal class UiSettingsPanel(
 
         if (deviceType == DeviceType.HANDHELD) {
           row(JBLabel(GESTURE_NAVIGATION_TITLE)) {
-            checkBox("")
+            comboBox(model.navigationModel)
               .accessibleName(GESTURE_NAVIGATION_TITLE)
-              .bind(model.gestureNavigation)
-              .apply { component.name = GESTURE_NAVIGATION_TITLE }
+              .bindItem(model.navigationModel.selection)
+              .apply {
+                component.name = GESTURE_NAVIGATION_TITLE
+                component.renderer = ListCellRenderer { _, value, _, _, _ ->
+                  JBLabel(if (value == true) "Gesture navigation" else "3 Button navigation")
+                }
+              }
           }.visibleIf(model.permissionMonitoringDisabled.and(model.gestureOverlayInstalled))
         }
 
@@ -180,10 +186,10 @@ internal class UiSettingsPanel(
     return actionListener { _, c -> predicate.setFromUi(c.isSelected) }
   }
 
-  private fun <T> Cell<ComboBox<T>>.bindItem(property: TwoWayProperty<T?>): Cell<ComboBox<T>> {
+  private fun <T> Cell<ComboBox<T>>.bindItem(property: TwoWayProperty<T>): Cell<ComboBox<T>> {
     property.addControllerListener { selected -> component.selectedItem = selected }
     component.selectedItem = property.value
-    component.addActionListener { property.setFromUi(component.selectedItem as? T) }
+    component.addActionListener { property.setFromUi(component.selectedItem as T) }
     return this
   }
 
