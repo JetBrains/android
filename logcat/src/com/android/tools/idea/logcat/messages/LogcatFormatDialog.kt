@@ -265,9 +265,7 @@ internal class LogcatFormatDialog(
   private fun Panel.headerPanel() {
     panel {
       row(LogcatBundle.message("logcat.format.presets.dialog.view")) {
-        comboBox(FormattingOptions.Style.values().toList())
-          .bindItem(formattingStyle)
-          .named("formattingStyle")
+        comboBox(FormattingOptions.Style.entries).bindItem(formattingStyle).named("formattingStyle")
         checkBox(LogcatBundle.message("logcat.format.presets.dialog.default"))
           .bindSelected(setAsDefault)
           .named("setAsDefault")
@@ -318,7 +316,7 @@ internal class LogcatFormatDialog(
       }
       indent {
           row(LogcatBundle.message("logcat.header.options.timestamp.format")) {
-            comboBox(TimestampFormat.Style.values().toList())
+            comboBox(TimestampFormat.Style.entries)
               .bindItem(timestampStyle)
               .named("timestampFormat")
           }

@@ -23,7 +23,7 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 import java.util.Locale
 
-private val epockTimeFormatter: DateTimeFormatter =
+private val epochTimeFormatter: DateTimeFormatter =
   DateTimeFormatterBuilder()
     .appendValue(ChronoField.INSTANT_SECONDS)
     .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
@@ -40,7 +40,7 @@ data class LogcatHeader(
   val timestamp: Instant,
 ) {
   override fun toString(): String {
-    val epoch = epockTimeFormatter.format(timestamp)
+    val epoch = epochTimeFormatter.format(timestamp)
     val priority = logLevel.priorityLetter
     return "$epoch: $priority/$tag($pid:$tid) $applicationId/$processName"
   }
@@ -59,7 +59,7 @@ data class LogcatHeader(
 }
 
 internal fun ObjectInput.readLogcatHeader(): LogcatHeader {
-  val logLevel = LogLevel.values()[readInt()]
+  val logLevel = LogLevel.entries[readInt()]
   val pid = readInt()
   val tid = readInt()
   val applicationId = readUTF()

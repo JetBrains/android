@@ -84,7 +84,7 @@ class AskStudioBotActionTest {
     action.update(event)
 
     assertThat(event.presentation.isEnabledAndVisible).isTrue()
-    assertThat(event.presentation.text).isEqualTo("Explain this log entry")
+    assertThat(event.presentation.text).isEqualTo("Explain This Log Entry")
   }
 
   @Test
@@ -99,7 +99,7 @@ class AskStudioBotActionTest {
     action.update(event)
 
     assertThat(event.presentation.isEnabledAndVisible).isTrue()
-    assertThat(event.presentation.text).isEqualTo("Explain this crash")
+    assertThat(event.presentation.text).isEqualTo("Explain This Crash")
   }
 
   @Test
@@ -117,7 +117,7 @@ class AskStudioBotActionTest {
     action.update(event)
 
     assertThat(event.presentation.isEnabledAndVisible).isTrue()
-    assertThat(event.presentation.text).isEqualTo("Explain this selection")
+    assertThat(event.presentation.text).isEqualTo("Explain This Selection")
   }
 
   @Test

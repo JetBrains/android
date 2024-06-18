@@ -114,7 +114,7 @@ private val LEVEL_LOOKUP
 
 private val LEVEL_LOOKUPS
   get() =
-    LogLevel.values().map {
+    LogLevel.entries.map {
       createLookupElement(
         "$LEVEL_KEY${it.stringValue} ",
         message("logcat.filter.completion.hint.level.value", it.name),
@@ -123,7 +123,7 @@ private val LEVEL_LOOKUPS
 
 private val LEVEL_LOOKUPS_LOWERCASE
   get() =
-    LogLevel.values().map {
+    LogLevel.entries.map {
       createLookupElement(
         "${it.name.lowercase()} ",
         message("logcat.filter.completion.hint.level.value", it.name),
@@ -132,7 +132,7 @@ private val LEVEL_LOOKUPS_LOWERCASE
 
 private val LEVEL_LOOKUPS_UPPERCASE
   get() =
-    LogLevel.values().map {
+    LogLevel.entries.map {
       createLookupElement(
         "${it.name.uppercase()} ",
         message("logcat.filter.completion.hint.level.value", it.name),
@@ -145,7 +145,7 @@ private val IS_VALUES =
     Pair("firebase", message("logcat.filter.completion.hint.is.firebase")),
     Pair("stacktrace", message("logcat.filter.completion.hint.is.stacktrace")),
   ) +
-    LogLevel.values().map {
+    LogLevel.entries.map {
       Pair(it.stringValue, message("logcat.filter.completion.hint.is.level", it.name))
     }
 
