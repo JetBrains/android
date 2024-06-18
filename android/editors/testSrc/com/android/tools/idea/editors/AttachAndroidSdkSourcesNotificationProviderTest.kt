@@ -50,8 +50,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class AttachAndroidSdkSourcesNotificationProviderTest {
   // TODO(b/291755082): Update to 34 once 34 sources are published
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk(AndroidVersion(33))
+  @get:Rule val projectRule = AndroidProjectRule.withSdk(AndroidVersion(33))
 
   private val mockFileEditor: FileEditor = mock()
   private val mockModelWizardDialog: ModelWizardDialog = mock()
@@ -72,10 +71,8 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
     whenever(sdkData.sdkHandler).thenReturn(sdkHandler)
 
     repositoryPackages.setRemotePkgInfos(
-      listOf(
-        FakeRemotePackage("sources;android-30"),
-        FakeRemotePackage("sources;android-33")
-      ))
+      listOf(FakeRemotePackage("sources;android-30"), FakeRemotePackage("sources;android-33"))
+    )
 
     val androidSdks = AndroidSdks.getInstance()
     originalAndroidSdkData = androidSdks.tryToChooseAndroidSdk()
@@ -188,10 +185,12 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
     assertThat(provider.requestedPaths).containsExactly("sources;android-30")
   }
 
-  private fun invokeCreateNotificationPanel(virtualFile: VirtualFile): AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel? {
-    val panelCreationFunction = runReadAction {
-      provider.collectNotificationData(projectRule.project, virtualFile)
-    } ?: return null
+  private fun invokeCreateNotificationPanel(
+    virtualFile: VirtualFile
+  ): AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel? {
+    val panelCreationFunction =
+      runReadAction { provider.collectNotificationData(projectRule.project, virtualFile) }
+        ?: return null
 
     val panel = panelCreationFunction.apply(mockFileEditor)
 
@@ -217,14 +216,18 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   }
 
   /**
-   * Test implementation of [AttachAndroidSdkSourcesNotificationProvider] that mocks the call to create an SDK download dialog.
+   * Test implementation of [AttachAndroidSdkSourcesNotificationProvider] that mocks the call to
+   * create an SDK download dialog.
    */
   private inner class TestAttachAndroidSdkSourcesNotificationProvider :
     AttachAndroidSdkSourcesNotificationProvider() {
     var requestedPaths: List<String>? = null
       private set
 
-    override fun createSdkDownloadDialog(project: Project, requestedPaths: List<String>?): ModelWizardDialog {
+    override fun createSdkDownloadDialog(
+      project: Project,
+      requestedPaths: List<String>?,
+    ): ModelWizardDialog {
       this.requestedPaths = requestedPaths
       return mockModelWizardDialog
     }
