@@ -218,12 +218,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   }
 
   /**
-   * Creates a {@link TemporarySceneComponent} in our Scene.
-   */
-  @NotNull
-  abstract public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component);
-
-  /**
    * Updates a single SceneComponent from its corresponding NlComponent.
    */
   protected final void syncFromNlComponent(SceneComponent sceneComponent) {

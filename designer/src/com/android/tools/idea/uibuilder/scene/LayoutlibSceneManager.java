@@ -454,34 +454,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   @Override
   @NotNull
-  public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component) {
-    Scene scene = getScene();
-
-    assert scene.getRoot() != null;
-
-    TemporarySceneComponent tempComponent = new TemporarySceneComponent(getScene(), component);
-    tempComponent.setTargetProvider(new TargetProvider() {
-      @NotNull
-      @Override
-      public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-        return Collections.emptyList();
-      }
-
-      @Override
-      public boolean shouldAddCommonDragTarget(@NotNull SceneComponent component) {
-        return true;
-      }
-    });
-    scene.setAnimated(false);
-    scene.getRoot().addChild(tempComponent);
-    syncFromNlComponent(tempComponent);
-    scene.setAnimated(true);
-
-    return tempComponent;
-  }
-
-  @Override
-  @NotNull
   public SceneDecoratorFactory getSceneDecoratorFactory() {
     return DECORATOR_FACTORY;
   }

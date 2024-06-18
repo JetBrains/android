@@ -219,8 +219,6 @@ open class NavSceneManager(
     }
   }
 
-  override fun createTemporaryComponent(component: NlComponent) = TemporarySceneComponent(scene, component)
-
   override fun requestRenderAsync(): CompletableFuture<Void> {
     val wasEmpty = scene.root == null || scene.root?.childCount == 0
     update()
