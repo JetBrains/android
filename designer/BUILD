@@ -74,7 +74,7 @@ iml_module(
             "shard_count": 4,
         },
     },
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
         ":test_deps",

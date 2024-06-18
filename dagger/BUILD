@@ -28,7 +28,7 @@ iml_module(
     generate_k2_tests = True,
     iml_files = ["intellij.android.dagger.tests.iml"],
     tags = [
-        "no_test_windows",  # b/135665870
+        "noci:studio-win",  # b/135665870
     ],
     test_class = "com.android.tools.tests.AndroidDaggerTestSuite",
     test_data = [

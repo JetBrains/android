@@ -54,7 +54,7 @@ iml_module(
             ],
             "tags": [
                 "no_test_mac",  # b/113099009
-                "no_test_windows",  # b/135665870
+                "noci:studio-win",  # b/135665870
             ],
         },
         "other": {
@@ -135,7 +135,7 @@ generate_old_agp_tests_from_list(
             tags = [
                 "block-network",
                 "no_test_mac",
-                "no_test_windows",
+                "noci:studio-win",
             ],
             test_class = "com.android.build.attribution.AndroidBuildAttributionOldAgpTestSuite",
         ),

@@ -52,7 +52,7 @@ iml_module(
         "other": {},
     },
     tags = [
-        "no_test_windows",  # b/135665870
+        "noci:studio-win",  # b/135665870
     ],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
     test_data = glob(["testData/**"]) + [
