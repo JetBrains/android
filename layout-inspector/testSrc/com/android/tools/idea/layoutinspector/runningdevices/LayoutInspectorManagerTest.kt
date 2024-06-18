@@ -120,6 +120,7 @@ class LayoutInspectorManagerTest {
         notificationModel,
         coroutineScope,
         displayViewRule.disposable,
+        metrics = mock(),
       )
 
     fakeForegroundProcessDetection = FakeForegroundProcessDetection()
