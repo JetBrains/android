@@ -157,6 +157,7 @@ class SessionItemTest {
 
   @Test
   fun testImportedHprofSessionName() {
+    myIdeServices.enableTaskBasedUx(false)
     val device = onlineDevice { deviceId = NEW_DEVICE_ID }
     val process = debuggableProcess { deviceId = NEW_DEVICE_ID; pid = NEW_PROCESS_ID }
     generateMemoryCaptureEvents()
