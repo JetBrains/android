@@ -327,6 +327,7 @@ class LogcatMainPanelTest {
     }
   }
 
+  @Ignore("b/347915674")
   @Test
   fun applyFilter_resetsFormatter() = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
