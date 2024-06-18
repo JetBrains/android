@@ -986,7 +986,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS = new BooleanFlag(
     DEVICE_MIRRORING, "remote.templates.in.plus", "Show remote device templates in plus action",
     "Show and allow starting remote device from their templates through the plus action",
-    false);
+    true);
   public static final Flag<Boolean> DEVICE_MIRRORING_USE_UINPUT = new BooleanFlag(
     DEVICE_MIRRORING, "use.uinput", "Use uinput module (https://kernel.org/doc/html/v4.12/input/uinput.html)",
     "Use uinput module ((https://kernel.org/doc/html/v4.12/input/uinput.html) for injecting input events",
