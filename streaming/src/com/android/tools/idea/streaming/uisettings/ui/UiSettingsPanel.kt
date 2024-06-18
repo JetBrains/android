@@ -75,6 +75,7 @@ internal class UiSettingsPanel(
 
         row(label(DARK_THEME_TITLE)) {
           checkBox("")
+            .accessibleName(DARK_THEME_TITLE)
             .bind(model.inDarkMode)
             .apply { component.name = DARK_THEME_TITLE }
         }
@@ -82,6 +83,7 @@ internal class UiSettingsPanel(
         if (!limitedSupport) {
           row(label(GESTURE_NAVIGATION_TITLE)) {
             checkBox("")
+              .accessibleName(GESTURE_NAVIGATION_TITLE)
               .bind(model.gestureNavigation)
               .apply { component.name = GESTURE_NAVIGATION_TITLE }
           }.visibleIf(model.gestureOverlayInstalled)
@@ -89,6 +91,7 @@ internal class UiSettingsPanel(
 
         row(label(APP_LANGUAGE_TITLE)) {
           comboBox(model.appLanguage)
+            .accessibleName(APP_LANGUAGE_TITLE)
             .bindItem(model.appLanguage.selection)
             .apply { component.name = APP_LANGUAGE_TITLE }
             .align(AlignX.FILL)
@@ -96,6 +99,7 @@ internal class UiSettingsPanel(
 
         row(label(TALKBACK_TITLE)) {
           checkBox("")
+            .accessibleName(TALKBACK_TITLE)
             .bind(model.talkBackOn)
             .apply { component.name = TALKBACK_TITLE }
         }.visibleIf(model.talkBackInstalled)
@@ -103,6 +107,7 @@ internal class UiSettingsPanel(
         if (!limitedSupport) {
           row(label(SELECT_TO_SPEAK_TITLE)) {
             checkBox("")
+              .accessibleName(SELECT_TO_SPEAK_TITLE)
               .bind(model.selectToSpeakOn)
               .apply { component.name = SELECT_TO_SPEAK_TITLE }
           }.visibleIf(model.talkBackInstalled)
@@ -110,6 +115,7 @@ internal class UiSettingsPanel(
 
         row(label(FONT_SCALE_TITLE)) {
           slider(0, model.fontScaleMaxIndex.value, 1, 1)
+            .accessibleName(FONT_SCALE_TITLE)
             .noLabels()
             .bindSliderPosition(model.fontScaleIndex)
             .bindSliderMaximum(model.fontScaleMaxIndex)
@@ -119,6 +125,7 @@ internal class UiSettingsPanel(
         if (!limitedSupport) {
           row(label(DENSITY_TITLE)) {
             slider(0, model.screenDensityIndex.value, 1, 1)
+              .accessibleName(DENSITY_TITLE)
               .noLabels()
               .bindSliderPosition(model.screenDensityIndex)
               .bindSliderMaximum(model.screenDensityMaxIndex)
@@ -129,6 +136,7 @@ internal class UiSettingsPanel(
         if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
           row(label(DEBUG_LAYOUT_TITLE)) {
             checkBox("")
+              .accessibleName(DEBUG_LAYOUT_TITLE)
               .bind(model.debugLayout)
               .apply { component.name = DEBUG_LAYOUT_TITLE }
           }
