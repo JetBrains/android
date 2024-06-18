@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.settings;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.parser.settings.DependencyResolutionManagementDslElement.DEFAULT_LIBRARIES_EXTENSION_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogDslElement.VERSION_CATALOG;
 import static com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogsDslElement.VERSION_CATALOGS;
 
@@ -46,14 +48,20 @@ public class DependencyResolutionManagementModelImpl extends GradleDslBlockModel
   @Override
   public @NotNull List<VersionCatalogModel> versionCatalogs() {
     VersionCatalogsDslElement versionCatalogs = myDslElement.ensurePropertyElement(VERSION_CATALOGS);
-    return versionCatalogs.get();
+    return versionCatalogs.get(this);
+  }
+
+  @NotNull
+  public String catalogDefaultName() {
+    String value = getModelForProperty(DEFAULT_LIBRARIES_EXTENSION_NAME).getValue(STRING_TYPE);
+    return value == null ? VersionCatalogModel.DEFAULT_CATALOG_NAME : value;
   }
 
   @Override
   public @NotNull VersionCatalogModel addVersionCatalog(@NotNull String name) {
     VersionCatalogsDslElement versionCatalogs = myDslElement.ensurePropertyElement(VERSION_CATALOGS);
     VersionCatalogDslElement versionCatalog = versionCatalogs.ensureNamedPropertyElement(VERSION_CATALOG, GradleNameElement.create(name));
-    return new VersionCatalogModelImpl(versionCatalog);
+    return new VersionCatalogModelImpl(versionCatalog, this);
   }
 
   @Override
