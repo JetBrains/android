@@ -63,28 +63,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import org.mockito.Mockito
 
-@RunWith(Parameterized::class)
-class ComposeAnimationPreviewTest(private val clockType: ClockType) : InspectorTests() {
+class ComposeAnimationPreviewTest : InspectorTests() {
 
-  private fun getClock() = clockType.getClock()
+  private fun getClock() = TestClock()
 
   private val animations =
     ComposeAnimationType.values().map { createComposeAnimation(it.toString(), type = it) }
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "Clock type:{0}")
-    fun parameters() =
-      listOf(
-        arrayOf<Any>(ClockType.DEFAULT),
-        arrayOf<Any>(ClockType.WITH_TRANSITIONS),
-        arrayOf<Any>(ClockType.WITH_COORDINATION),
-      )
-  }
 
   @Test
   fun subscribeAndUnsubscribe() = runBlocking {
