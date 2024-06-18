@@ -19,69 +19,69 @@
     <supportsKotlinK2Mode/>
   </extensions>
 
-  <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-adb-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/database-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-lang-databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-navigator.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-room.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-dagger.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/app-insights-api.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/app-insights.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/mlkit.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/streaming.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/safeargs.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/pipeline.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/play-vitals.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/profilers.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/profilers-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/project-system-apk-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/project-system-gradle-upgrade.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/connection-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/layout-inspector-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/app-inspection.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/app-inspection-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/app-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/network-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/utp.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/backgroundtask-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/gradle-dsl.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/gradle-dsl-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/gradle-dsl-declarative.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/gradle-dsl-toml.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/intellij.android.device.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/intellij.android.avd.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/logcat.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/intellij.android.device-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-npw.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/wizard-template-impl.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-templates.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/device-manager.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/threading-checker.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/device-manager-v2.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/wear-pairing.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/wear-whs.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-execution-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-deploy.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/google-login.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/samples-browser.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/native-symbolizer.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/native-symbolizer-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/aiplugin-api.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-plugin.xml"/>
+  <xi:include href="/META-INF/android-kotlin.xml"/>
+  <xi:include href="/META-INF/android-adb.xml"/>
+  <xi:include href="/META-INF/android-adb-ui.xml"/>
+  <xi:include href="/META-INF/adt-ui.xml"/>
+  <xi:include href="/META-INF/database-inspector.xml"/>
+  <xi:include href="/META-INF/android-lang.xml"/>
+  <xi:include href="/META-INF/android-lang-databinding.xml"/>
+  <xi:include href="/META-INF/android-navigator.xml"/>
+  <xi:include href="/META-INF/android-room.xml"/>
+  <xi:include href="/META-INF/android-dagger.xml"/>
+  <xi:include href="/META-INF/app-insights-api.xml"/>
+  <xi:include href="/META-INF/app-insights.xml"/>
+  <xi:include href="/META-INF/databinding.xml"/>
+  <xi:include href="/META-INF/mlkit.xml"/>
+  <xi:include href="/META-INF/sdk-updates.xml"/>
+  <xi:include href="/META-INF/streaming.xml"/>
+  <xi:include href="/META-INF/safeargs.xml"/>
+  <xi:include href="/META-INF/pipeline.xml"/>
+  <xi:include href="/META-INF/play-vitals.xml"/>
+  <xi:include href="/META-INF/profilers.xml"/>
+  <xi:include href="/META-INF/profilers-gradle.xml"/>
+  <xi:include href="/META-INF/project-system-plugin.xml"/>
+  <xi:include href="/META-INF/project-system-apk-plugin.xml"/>
+  <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml"/>
+  <xi:include href="/META-INF/project-system-gradle-plugin.xml"/>
+  <xi:include href="/META-INF/project-system-gradle-upgrade.xml"/>
+  <xi:include href="/META-INF/assistant.xml"/>
+  <xi:include href="/META-INF/connection-assistant.xml"/>
+  <xi:include href="/META-INF/whats-new-assistant.xml"/>
+  <xi:include href="/META-INF/layout-inspector.xml"/>
+  <xi:include href="/META-INF/layout-inspector-gradle.xml"/>
+  <xi:include href="/META-INF/app-inspection.xml"/>
+  <xi:include href="/META-INF/app-inspection-gradle.xml"/>
+  <xi:include href="/META-INF/app-inspector.xml"/>
+  <xi:include href="/META-INF/build-attribution.xml"/>
+  <xi:include href="/META-INF/lint-plugin.xml"/>
+  <xi:include href="/META-INF/network-inspector.xml"/>
+  <xi:include href="/META-INF/utp.xml"/>
+  <xi:include href="/META-INF/backgroundtask-inspector.xml"/>
+  <xi:include href="/META-INF/android-debuggers.xml"/>
+  <xi:include href="/META-INF/gradle-dsl.xml"/>
+  <xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>
+  <xi:include href="/META-INF/gradle-dsl-declarative.xml"/>
+  <xi:include href="/META-INF/gradle-dsl-toml.xml"/>
+  <xi:include href="/META-INF/intellij.android.device.xml"/>
+  <xi:include href="/META-INF/intellij.android.avd.xml"/>
+  <xi:include href="/META-INF/logcat.xml"/>
+  <xi:include href="/META-INF/intellij.android.device-explorer.xml"/>
+  <xi:include href="/META-INF/android-npw.xml"/>
+  <xi:include href="/META-INF/wizard-template-impl.xml"/>
+  <xi:include href="/META-INF/android-templates.xml"/>
+  <xi:include href="/META-INF/android-lint-plugin.xml"/>
+  <xi:include href="/META-INF/device-manager.xml"/>
+  <xi:include href="/META-INF/threading-checker.xml"/>
+  <xi:include href="/META-INF/device-manager-v2.xml"/>
+  <xi:include href="/META-INF/wear-pairing.xml"/>
+  <xi:include href="/META-INF/wear-whs.xml"/>
+  <xi:include href="/META-INF/android-execution-common.xml"/>
+  <xi:include href="/META-INF/android-deploy.xml"/>
+  <xi:include href="/META-INF/google-login.xml"/>
+  <xi:include href="/META-INF/samples-browser.xml"/>
+  <xi:include href="/META-INF/native-symbolizer.xml"/>
+  <xi:include href="/META-INF/native-symbolizer-gradle.xml"/>
+  <xi:include href="/META-INF/aiplugin-api.xml"/>
 </idea-plugin>

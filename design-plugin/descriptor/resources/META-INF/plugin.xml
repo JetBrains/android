@@ -34,15 +34,15 @@
     <supportsKotlinK2Mode/>
   </extensions>
 
-  <xi:include href="/META-INF/designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/naveditor.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/naveditor-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/compose-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/preview-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/customview.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/layoutlib.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/glance-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/wear-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/motion-editor.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/designer.xml"/>
+  <xi:include href="/META-INF/naveditor.xml"/>
+  <xi:include href="/META-INF/naveditor-gradle.xml"/>
+  <xi:include href="/META-INF/compose-designer.xml"/>
+  <xi:include href="/META-INF/preview-designer.xml"/>
+  <xi:include href="/META-INF/customview.xml"/>
+  <xi:include href="/META-INF/layoutlib.xml"/>
+  <xi:include href="/META-INF/glance-designer.xml"/>
+  <xi:include href="/META-INF/wear-designer.xml"/>
+  <xi:include href="/META-INF/motion-editor.xml"/>
 
 </idea-plugin>
