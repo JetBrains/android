@@ -17,7 +17,7 @@ def check_plugin(plugin_id, files, deps, external_xmls, out):
     # https://jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_configuration_file.html
     ids = [id.text for id in element.findall("name")]
 
-  if len(ids) != 1:
+  if len(set(ids)) != 1:
     print("Expected exactly one id, but found [%s]" % ",".join(ids))
     sys.exit(1)
   found_id = ids[0]
