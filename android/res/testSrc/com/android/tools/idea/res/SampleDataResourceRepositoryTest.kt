@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.SampleDataResourceValue
-import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
@@ -128,10 +127,10 @@ class SampleDataResourceRepositoryTest {
     val repo = SampleDataResourceRepository(facet, projectRule.testRootDisposable)
     waitForUpdates(repo)
 
-    assertEquals(3, getResources(repo).size)
-    assertEquals(1, getResources(repo, "strings").size)
-    assertEquals(1, getResources(repo, "images").size)
-    assertEquals(1, getResources(repo, "root_image.png").size)
+    assertEquals(3, repo.getSampleDataResources().size)
+    assertEquals(1, repo.getSampleDataResources("strings").size)
+    assertEquals(1, repo.getSampleDataResources("images").size)
+    assertEquals(1, repo.getSampleDataResources("root_image.png").size)
   }
 
   @Test
@@ -271,7 +270,7 @@ class SampleDataResourceRepositoryTest {
   fun testSampleDataFileInvalidation_addAndDeleteFile() {
     val repo = StudioResourceRepositoryManager.getInstance(facet).sampleDataResources
     waitForUpdates(repo)
-    assertTrue(getResources(repo).isEmpty())
+    assertTrue(repo.getSampleDataResources().isEmpty())
 
     val strings =
       projectRule.fixture.addFileToProject(
@@ -285,12 +284,12 @@ class SampleDataResourceRepositoryTest {
           .trimIndent(),
       )
     waitForUpdates(repo)
-    assertEquals(1, getResources(repo).size)
-    assertEquals(1, getResources(repo, "strings").size)
+    assertEquals(1, repo.getSampleDataResources().size)
+    assertEquals(1, repo.getSampleDataResources("strings").size)
 
     WriteAction.runAndWait<IOException> { strings.virtualFile.delete(null) }
     waitForUpdates(repo)
-    assertTrue(getResources(repo).isEmpty())
+    assertTrue(repo.getSampleDataResources().isEmpty())
   }
 
   @Test
@@ -299,12 +298,12 @@ class SampleDataResourceRepositoryTest {
 
     projectRule.fixture.addFileToProject("sampledata/strings", "string1\n")
     waitForUpdates(repo)
-    assertEquals(1, getResources(repo).size)
+    assertEquals(1, repo.getSampleDataResources().size)
 
     val sampleDir = requireNotNull(appModuleSystem.getSampleDataDirectory().toVirtualFile())
     WriteAction.runAndWait<IOException> { sampleDir.delete(null) }
     waitForUpdates(repo)
-    assertTrue(getResources(repo).isEmpty())
+    assertTrue(repo.getSampleDataResources().isEmpty())
   }
 
   @Test
@@ -323,13 +322,13 @@ class SampleDataResourceRepositoryTest {
     // move strings into sample data directory
     WriteAction.runAndWait<IOException> { stringsOutside.virtualFile.move(null, sampleDir) }
     waitForUpdates(repo)
-    assertEquals(1, getResources(repo).size)
+    assertEquals(1, repo.getSampleDataResources().size)
 
     // move strings out of sample data directory
     val stringsInside = requireNotNull(sampleDir.findChild(stringsOutside.name))
     WriteAction.runAndWait<IOException> { stringsInside.move(null, sampleDir.parent) }
     waitForUpdates(repo)
-    assertTrue(getResources(repo).isEmpty())
+    assertTrue(repo.getSampleDataResources().isEmpty())
   }
 
   @Test
@@ -345,14 +344,14 @@ class SampleDataResourceRepositoryTest {
       )
     projectRule.fixture.addFileToProject("sampledata/strings", "string1\n")
     waitForUpdates(repo)
-    assertEquals(1, getResources(repo).size)
+    assertEquals(1, repo.getSampleDataResources().size)
 
     WriteAction.runAndWait<IOException> {
       val newParent = sampleDir.parent.createChildDirectory(null, "somewhere_else")
       sampleDir.move(null, newParent)
     }
     waitForUpdates(repo)
-    assertTrue(getResources(repo).isEmpty())
+    assertTrue(repo.getSampleDataResources().isEmpty())
   }
 
   @Test
@@ -399,8 +398,8 @@ class SampleDataResourceRepositoryTest {
 
     // Three different items are expected, one for the users/name path, other for users/surname and
     // a last one for users/phone
-    assertEquals(3, getResources(repo).size)
-    assertEquals(1, getResources(repo, "users.json/users/name").size)
+    assertEquals(3, repo.getSampleDataResources().size)
+    assertEquals(1, repo.getSampleDataResources("users.json/users/name").size)
   }
 
   @Test
@@ -420,8 +419,8 @@ class SampleDataResourceRepositoryTest {
 
     // Three different items are expected, one for the users/name path, other for users/surname and
     // a last one for users/phone
-    assertEquals(3, getResources(repo).size)
-    assertEquals(1, getResources(repo, "users.csv/name").size)
+    assertEquals(3, repo.getSampleDataResources().size)
+    assertEquals(1, repo.getSampleDataResources("users.csv/name").size)
   }
 
   @Test
@@ -553,9 +552,9 @@ class SampleDataResourceRepositoryTest {
 
     // Three different items are expected, one for the users/name path, other for users/surname and
     // a last one for users/phone
-    assertEquals(6, getResources(repo).size)
-    assertEquals(1, getResources(repo, "lib.csv/name").size)
-    assertEquals(1, getResources(repo, "transitive.csv/name").size)
+    assertEquals(6, repo.getSampleDataResources().size)
+    assertEquals(1, repo.getSampleDataResources("lib.csv/name").size)
+    assertEquals(1, repo.getSampleDataResources("transitive.csv/name").size)
 
     val layout = addLayoutFile()
     val configuration =
@@ -610,22 +609,18 @@ class SampleDataResourceRepositoryTest {
     val layout = addLayoutFile()
     // Three different items are expected, one for the users/name path, other for users/surname and
     // a last one for users/phone
-    assertEquals(3, getResources(repo).size)
-    assertEquals(1, getResources(repo, "users.csv/name").size)
+    assertEquals(3, repo.getSampleDataResources().size)
+    assertEquals(1, repo.getSampleDataResources("users.csv/name").size)
     val configuration =
       ConfigurationManager.getOrCreateInstance(projectRule.module)
         .getConfiguration(layout.virtualFile)
     val resolver = configuration.resourceResolver
     assertEquals("AppName1", resolver.findResValue("@sample/users.csv/name", false)!!.value)
   }
-
-  companion object {
-    private fun getResources(repo: ResourceRepository): Collection<ResourceItem> {
-      return repo.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA).values()
-    }
-
-    private fun getResources(repo: ResourceRepository, resName: String): List<ResourceItem> {
-      return repo.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, resName)
-    }
-  }
 }
+
+private fun ResourceRepository.getSampleDataResources() =
+  getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA).values()
+
+private fun ResourceRepository.getSampleDataResources(resName: String) =
+  getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, resName)
