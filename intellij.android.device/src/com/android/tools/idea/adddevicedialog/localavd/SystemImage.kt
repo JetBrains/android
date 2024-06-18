@@ -23,6 +23,7 @@ import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.devices.Storage
 import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
@@ -43,7 +44,10 @@ internal constructor(
   internal val services: Services,
   internal val abis: ImmutableCollection<Abi>,
   internal val translatedAbis: ImmutableCollection<Abi>,
+  private val size: Storage,
 ) {
+  override fun toString() = if (isRemote) "$name (${size.toUiString()})" else name
+
   internal companion object {
     internal fun getSystemImages(): Collection<SystemImage> {
       val indicator = StudioLoggerProgressIndicator(SystemImage::class.java)
@@ -65,12 +69,20 @@ internal constructor(
 
     @VisibleForTesting
     internal fun from(repoPackage: RepoPackage): SystemImage {
-      val isRemote =
-        when (repoPackage) {
-          is RemotePackage -> true
-          is LocalPackage -> false
-          else -> throw IllegalArgumentException(repoPackage.toString())
+      val isRemote: Boolean
+      val size: Long
+
+      when (repoPackage) {
+        is RemotePackage -> {
+          isRemote = true
+          size = requireNotNull(repoPackage.archive).complete.size
         }
+        is LocalPackage -> {
+          isRemote = false
+          size = 0
+        }
+        else -> throw IllegalArgumentException(repoPackage.toString())
+      }
 
       val details = repoPackage.typeDetails as ApiDetailsType
 
@@ -82,6 +94,7 @@ internal constructor(
         repoPackage.getServices(details.androidVersion),
         details.abis.map(::valueOfString).toImmutableSet(),
         details.translatedAbis.map(::valueOfString).toImmutableSet(),
+        Storage(size),
       )
     }
 
