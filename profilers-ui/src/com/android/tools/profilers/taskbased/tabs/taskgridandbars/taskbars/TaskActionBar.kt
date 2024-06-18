@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.taskbased.common.buttons.OpenTaskButton
 import com.android.tools.profilers.taskbased.common.buttons.StartTaskButton
@@ -116,7 +117,8 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
                             profilers).takeIf { STARTUP_TASK_ERRORS.contains(it) }
         }
       TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
-                                isProfilingProcessFromNowEnabled, isProfilingProcessFromProcessStartEnabled, processStartDisabledReason)
+                                isProfilingProcessFromNowEnabled, isProfilingProcessFromProcessStartEnabled,
+                                selectedProcess.state == Common.Process.State.ALIVE, processStartDisabledReason)
       if (TaskHomeTabModel.doesTaskHaveRecordingTypes(selectedTaskType)) {
         Spacer(modifier = Modifier.width(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP))
         TaskRecordingTypeDropdown(taskRecordingType, taskHomeTabModel::setTaskRecordingType)
