@@ -17,7 +17,8 @@
 
 package com.android.tools.idea.wearwhs.view
 
-import com.android.tools.idea.concurrency.awaitStatus
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
@@ -32,8 +33,6 @@ import com.intellij.collaboration.async.mapState
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.fail
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Before
@@ -75,16 +74,27 @@ class WearHealthServicesStateManagerTest {
 
   private val loggedEvents = mutableListOf<AndroidStudioEvent.Builder>()
   private val logger = WearHealthServicesEventLogger { loggedEvents.add(it) }
-  private val deviceManager by lazy { FakeDeviceManager(capabilities) }
-  private val stateManager by lazy {
-    WearHealthServicesStateManagerImpl(deviceManager, logger, TEST_POLLING_INTERVAL_MILLISECONDS)
-      .also { it.serialNumber = "test" }
-  }
+  private lateinit var deviceManager: FakeDeviceManager
+  private lateinit var stateManager: WearHealthServicesStateManager
 
   @Before
   fun setUp() = runBlocking {
     loggedEvents.clear()
-    Disposer.register(projectRule.testRootDisposable, stateManager)
+
+    val testWorkerScope =
+      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    deviceManager = FakeDeviceManager(capabilities)
+    stateManager =
+      WearHealthServicesStateManagerImpl(
+          deviceManager,
+          logger,
+          testWorkerScope,
+          TEST_POLLING_INTERVAL_MILLISECONDS,
+        )
+        .also {
+          it.serialNumber = "test"
+          Disposer.register(projectRule.testRootDisposable, it)
+        }
     // Wait until the state manager is idle
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
   }
@@ -412,13 +422,6 @@ class WearHealthServicesStateManagerTest {
 
     // Verify that the value is updated
     stateManager.ongoingExercise.waitForValue(true)
-  }
-
-  private suspend fun <T> StateFlow<T>.waitForValue(
-    value: T,
-    timeoutSeconds: Long = TEST_MAX_WAIT_TIME_SECONDS,
-  ) {
-    awaitStatus("Timeout waiting for value $value", timeoutSeconds.seconds) { it == value }
   }
 
   @Test
