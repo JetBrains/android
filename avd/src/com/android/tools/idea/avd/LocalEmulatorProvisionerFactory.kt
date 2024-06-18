@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager
+package com.android.tools.idea.avd
 
 import com.android.adblib.AdbSession
 import com.android.sdklib.deviceprovisioner.DeviceIcons
@@ -24,6 +24,7 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.INDIRECT
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.ui.AvdOptionsModel
 import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
