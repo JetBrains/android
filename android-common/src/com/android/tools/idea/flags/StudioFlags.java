@@ -1606,6 +1606,14 @@ public final class StudioFlags {
     "Enable the UI tweaks for the Resizable (Experimental) device definition",
     "Enable the UI tweaks for the Resizable (Experimental) device definition",
     true);
+
+  public static final Flag<Boolean> DEVICE_CATALOG_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "device.catalog.enabled",
+    "Enable the Device Catalog for device creation",
+    "Enable new unified UI for creating AVDs and selecting Firebase devices",
+    false
+  );
   // endregion
 
   //region DDMLIB
