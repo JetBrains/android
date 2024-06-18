@@ -22,6 +22,7 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
@@ -64,8 +65,11 @@ internal constructor(
   internal val graphicAcceleration: GpuMode,
   internal val simulatedRam: StorageCapacity,
   internal val vmHeapSize: StorageCapacity,
-  internal val isFoldable: Boolean = false,
+  private val device: Device,
 ) : DeviceProfile {
+  internal val isFoldable
+    get() = device.defaultHardware.screen.isFoldable
+
   override val source: Class<out DeviceSource>
     get() = LocalVirtualDeviceSource::class.java
 
@@ -117,7 +121,7 @@ internal constructor(
     lateinit var graphicAcceleration: GpuMode
     lateinit var simulatedRam: StorageCapacity
     lateinit var vmHeapSize: StorageCapacity
-    var isFoldable = false
+    lateinit var device: Device
 
     fun copyFrom(profile: VirtualDevice) {
       super.copyFrom(profile)
@@ -136,6 +140,7 @@ internal constructor(
       graphicAcceleration = profile.graphicAcceleration
       simulatedRam = profile.simulatedRam
       vmHeapSize = profile.vmHeapSize
+      device = profile.device
     }
 
     override fun build(): VirtualDevice =
@@ -164,7 +169,7 @@ internal constructor(
         graphicAcceleration = graphicAcceleration,
         simulatedRam = simulatedRam,
         vmHeapSize = vmHeapSize,
-        isFoldable = isFoldable,
+        device = device,
       )
   }
 }

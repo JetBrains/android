@@ -19,9 +19,11 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.google.common.collect.Range
@@ -58,6 +60,7 @@ class VirtualDeviceTest {
         displayDensity = 200,
         displayDiagonalLength = 6.2,
         isRound = true,
+        device = MockitoKt.mock<Device>(),
       )
 
     assertThat(device.toBuilder().build()).isEqualTo(device)
