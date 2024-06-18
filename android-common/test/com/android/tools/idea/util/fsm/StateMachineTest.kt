@@ -17,14 +17,14 @@ package com.android.tools.idea.util.fsm
 
 import com.android.tools.idea.util.fsm.StateMachine.Config
 import com.android.tools.idea.util.fsm.StateMachine.SelfTransitionBehavior
-import com.android.utils.time.TestTimeSource
-import com.android.utils.time.TimeSource
-import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TestTimeSource
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 import org.apache.log4j.Level
 import org.junit.Test
 import org.junit.runner.RunWith

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.util.fsm
 
-import com.android.utils.time.TimeSource
-import com.android.utils.time.TimeSource.TimeMark
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import java.util.Locale
+import kotlin.time.TimeSource
 
 typealias Callback = () -> Unit
 
@@ -63,7 +62,7 @@ private constructor(
   private val transitionExitCallbacks: Map<StateEnum, List<Callback>>,
   private val illegalTransitionHandler: IllegalTransitionHandler<StateEnum>,
 ) {
-  private var lastTransitionTime: TimeMark = config.timeSource.markNow()
+  private var lastTransitionTime = config.timeSource.markNow()
 
   @Volatile
   var state: StateEnum = initialState

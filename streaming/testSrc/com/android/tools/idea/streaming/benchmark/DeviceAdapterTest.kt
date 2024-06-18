@@ -22,8 +22,6 @@ import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.testing.disposable
-import com.android.utils.time.TestTimeSource
-import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.progress.ProgressIndicator
@@ -47,6 +45,8 @@ import kotlin.test.assertFailsWith
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TestTimeSource
+import kotlin.time.TimeMark
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.junit.Before
