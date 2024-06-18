@@ -32,6 +32,13 @@ iml_module(
                 "perfgate-release",
             ],
         },
+        # Comparison tests
+        "Benchmark1000CpuLatestGradleTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestGradleTest",
+            "tags": [
+                "perfgate",
+            ],
+        },
         # Presubmit tests
         "SyncBenchmarkVersionTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.SyncBenchmarkVersionTest",
@@ -122,6 +129,7 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:gradle-distrib-latest-snapshot",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/data-binding:data_binding_runtime.zip",
     ],
