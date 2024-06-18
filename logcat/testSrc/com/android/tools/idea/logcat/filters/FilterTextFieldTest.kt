@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.FakeAndroidProjectDetector
+import com.android.tools.idea.logcat.FakeAndroidProjectDetector
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.LogcatPresenter
@@ -57,6 +57,7 @@ import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -243,7 +244,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_render() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
       fakeLogcatPresenter.processMessages(
@@ -262,7 +263,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderOnlyFavorites() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = true)
       fakeLogcatPresenter.processMessages(
@@ -281,7 +282,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNoFavorites() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = false)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
       fakeLogcatPresenter.processMessages(
@@ -300,7 +301,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNamedFilter() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
       fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "Foo")))
 
@@ -314,7 +315,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNamedFilterWithSameName() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foobar", isFavorite = false)
       fakeLogcatPresenter.processMessages(
@@ -334,7 +335,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNamedNamedOrder() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "name:Foo named favorite", isFavorite = true)
       filterHistory.add(logcatFilterParser, "favorite", isFavorite = true)
       filterHistory.add(logcatFilterParser, "name:Foo named", isFavorite = false)

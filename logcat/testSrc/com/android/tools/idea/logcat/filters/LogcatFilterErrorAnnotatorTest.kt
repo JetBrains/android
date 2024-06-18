@@ -90,7 +90,7 @@ class LogcatFilterErrorAnnotatorTest {
   @Test
   fun is_level_filter() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
-    LogLevel.values().forEach {
+    LogLevel.entries.forEach {
       val psi = parse("is:${it.stringValue}")
       val annotations = CodeInsightTestUtil.testAnnotator(annotator, *psi.children)
       assertThat(annotations.map(Annotation::toAnnotationInfo)).named(it.name).isEmpty()

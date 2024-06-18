@@ -1,5 +1,3 @@
-@file:Suppress("OPT_IN_USAGE")
-
 package com.android.tools.idea.logcat.actions
 
 import com.android.adblib.connectedDevicesTracker
@@ -29,13 +27,14 @@ import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import java.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -84,7 +83,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun forceStopAppAction_processExists_isEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
@@ -98,7 +97,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun forceStopAppAction_processDoesNotExists_isNotEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       editorRule.putLogcatMessages(logcatMessage(pid = 101))
@@ -111,7 +110,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun forceStopAppAction_systemProcess_isEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
@@ -125,7 +124,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun forceStopAppAction_unknownAppId_isEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
@@ -139,7 +138,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun killAppAction_processExists_isEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
@@ -153,7 +152,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun killAppAction_processDoesNotExists_isNotEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       editorRule.putLogcatMessages(logcatMessage(pid = 101))
@@ -166,7 +165,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun killAppAction_systemProcess_isEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
@@ -180,7 +179,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun crashAppAction_processExists_isEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
@@ -194,7 +193,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun crashAppAction_oldDevice_notVisible(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device25)
       val event = createEvent(device25)
       device.startClient(101)
@@ -207,7 +206,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun crashAppAction_processDoesNotExists_isNotEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       editorRule.putLogcatMessages(logcatMessage(pid = 101))
@@ -220,7 +219,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun crashAppAction_systemProcess_isEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
@@ -234,7 +233,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun crashAppAction_unknownAppId_isEnabled(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
@@ -266,7 +265,7 @@ class TerminateAppActionsTest {
 
   @Test
   fun killAction_actionPerformed(): Unit =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
@@ -298,11 +297,11 @@ class TerminateAppActionsTest {
 
   private fun createEvent(device: Device) =
     TestActionEvent.createTestEvent(
-      MapDataContext().apply {
-        put(PROJECT, project)
-        put(EDITOR, editor)
-        put(CONNECTED_DEVICE, device)
-      }
+      SimpleDataContext.builder()
+        .add(PROJECT, project)
+        .add(EDITOR, editor)
+        .add(CONNECTED_DEVICE, device)
+        .build()
     )
 
   /** Connect a device and wait for AdbSession to see it */

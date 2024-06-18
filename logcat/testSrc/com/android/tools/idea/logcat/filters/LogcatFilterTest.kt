@@ -318,7 +318,7 @@ class LogcatFilterTest {
   @Test
   fun levelFilter() {
     val levelFilter = LevelFilter(INFO, EMPTY_RANGE)
-    for (logLevel in LogLevel.values()) {
+    for (logLevel in LogLevel.entries) {
       assertThat(levelFilter.matches(logcatMessage(logLevel)))
         .named(logLevel.name)
         .isEqualTo(logLevel.ordinal >= INFO.ordinal)
@@ -328,7 +328,7 @@ class LogcatFilterTest {
   @Test
   fun levelExactFilter() {
     val levelFilter = ExactLevelFilter(INFO, EMPTY_RANGE)
-    for (logLevel in LogLevel.values()) {
+    for (logLevel in LogLevel.entries) {
       assertThat(levelFilter.matches(logcatMessage(logLevel)))
         .named(logLevel.name)
         .isEqualTo(logLevel.ordinal == INFO.ordinal)
