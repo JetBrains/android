@@ -59,6 +59,7 @@ import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
@@ -118,8 +119,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
    */
   private val modificationCount = AtomicLong()
 
-  private val projectBuildObserver =
-    ProjectBuildObserver(project, this, modificationCount::incrementAndGet, ::notice)
+  private val projectBuildObserver: AtomicReference<ProjectBuildObserver?> = AtomicReference()
 
   /** Set of events we've observed since the last notification. */
   private var events: EnumSet<Reason> = EnumSet.noneOf(Reason::class.java)
@@ -175,13 +175,22 @@ class ResourceNotificationManager private constructor(private val project: Proje
     }
 
     val module = facet.module
+
+    // Whenever we're adding a listener, we want to ensure we're getting build events. Doing this
+    // outside the lock below helps prevent any potential deadlocks.
+    requireNotNull(
+        projectBuildObserver.updateAndGet {
+          it ?: ProjectBuildObserver(project, this, modificationCount::incrementAndGet, ::notice)
+        }
+      )
+      .ensureListening()
+
     synchronized(observerLock) {
       val moduleEventObserver =
         moduleToObserverMap.computeIfAbsent(module) {
           if (moduleToObserverMap.isEmpty()) {
             if (projectPsiTreeObserver == null)
               projectPsiTreeObserver = ProjectPsiTreeObserver(::notice, ::isRelevantFile)
-            projectBuildObserver.startListening()
           }
           createModuleEventObserver(facet)
         }
@@ -227,6 +236,8 @@ class ResourceNotificationManager private constructor(private val project: Proje
       "If configuration is specified, file must be as well. $configuration $file"
     }
 
+    val toDispose: MutableList<Disposable> = mutableListOf()
+
     synchronized(observerLock) {
       if (configuration != null) {
         val configurationEventObserver = configurationToObserverMap[configuration]
@@ -254,11 +265,20 @@ class ResourceNotificationManager private constructor(private val project: Proje
         if (!moduleEventObserver.hasListeners()) {
           Disposer.dispose(moduleEventObserver)
           if (moduleToObserverMap.isEmpty() && projectPsiTreeObserver != null) {
-            projectBuildObserver.stopListening()
+            val oldProjectBuildObserver = projectBuildObserver.getAndSet(null)
+            if (oldProjectBuildObserver != null) {
+              oldProjectBuildObserver.stopListening()
+              toDispose.add(oldProjectBuildObserver)
+            }
+
             projectPsiTreeObserver = null
           }
         }
       }
+    }
+
+    for (disposable in toDispose) {
+      Disposer.dispose(disposable)
     }
   }
 
@@ -508,39 +528,38 @@ private class ModuleEventObserver(
 
 private class ProjectBuildObserver(
   private val project: Project,
-  private val parentDisposable: Disposable,
+  parentDisposable: Disposable,
   private val incrementModificationCount: () -> Unit,
   private val notice: (Reason, VirtualFile?) -> Unit,
-) : ProjectSystemBuildManager.BuildListener {
-  private var alreadyAddedBuildListener = false
-  private var ignoreBuildEvents = false
+) : Disposable.Default {
 
-  fun startListening() {
-    if (!alreadyAddedBuildListener) { // See comment in stopListening.
-      alreadyAddedBuildListener = true
-      project.getProjectSystem().getBuildManager().addBuildListener(parentDisposable, this)
+  private val isListening = AtomicBoolean(false)
+  private val hasStopped = AtomicBoolean(false)
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
+  fun ensureListening() {
+    if (!isListening.getAndSet(true) && !hasStopped.get()) {
+      project.getProjectSystem().getBuildManager().addBuildListener(this, BuildListener())
     }
-    ignoreBuildEvents = false
   }
 
   fun stopListening() {
-    // Unfortunately, we can't remove build tasks once they've been added.
-    //    https://youtrack.jetbrains.com/issue/IDEA-139893
-    // Therefore, we leave the listeners around, and make sure we only add
-    // them once -- and we also ignore any build events that appear when we're
-    // not intending to be actively listening
-    // ProjectBuilder.getInstance(myProject).removeAfterProjectBuildTask(this);
-    ignoreBuildEvents = true
+    hasStopped.set(true)
   }
 
-  override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {}
+  override fun dispose() {
+    stopListening()
+  }
 
-  override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {}
-
-  override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-    if (!ignoreBuildEvents) {
-      incrementModificationCount()
-      notice(Reason.PROJECT_BUILD, null)
+  inner class BuildListener : ProjectSystemBuildManager.BuildListener {
+    override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+      if (!hasStopped.get()) {
+        incrementModificationCount()
+        notice(Reason.PROJECT_BUILD, null)
+      }
     }
   }
 }
