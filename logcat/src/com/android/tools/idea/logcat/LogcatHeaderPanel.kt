@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.logcat.devices.DeviceComboBox
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.filters.FilterTextField
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
@@ -34,6 +35,9 @@ import java.awt.event.MouseEvent
 import javax.swing.GroupLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** A header for the Logcat panel. */
 internal class LogcatHeaderPanel(
@@ -50,16 +54,7 @@ internal class LogcatHeaderPanel(
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
 
   init {
-    filterTextField.apply {
-      font = Font.getFont(Font.MONOSPACED)
-      addFilterChangedListener(
-        object : FilterTextField.FilterChangedListener {
-          override fun onFilterChanged(filter: String, matchCase: Boolean) {
-            runInEdt { logcatPresenter.applyFilter(filterParser.parse(filter, matchCase)) }
-          }
-        }
-      )
-    }
+    filterTextField.font = Font.getFont(Font.MONOSPACED)
 
     addComponentListener(
       object : ComponentAdapter() {
@@ -79,6 +74,16 @@ internal class LogcatHeaderPanel(
           }
         }
       )
+    }
+
+    val scope = AndroidCoroutineScope(logcatPresenter)
+    scope.launch {
+      @Suppress("OPT_IN_USAGE")
+      filterTextField.trackFilterUpdates().debounce(100).collect {
+        withContext(uiThread) {
+          logcatPresenter.applyFilter(filterParser.parse(it.filter, it.matchCase))
+        }
+      }
     }
   }
 

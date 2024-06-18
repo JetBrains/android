@@ -31,7 +31,6 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
-import com.android.tools.idea.logcat.util.ReschedulableTask
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
@@ -108,12 +107,17 @@ import javax.swing.SwingConstants.VERTICAL
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.min
+import kotlinx.coroutines.channels.BufferOverflow.DROP_LATEST
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-
-private const val APPLY_FILTER_DELAY_MS = 100L
 
 private val blankIcon = EmptyIcon.ICON_16
 
@@ -157,11 +161,6 @@ internal class FilterTextField(
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
 ) : BorderLayoutPanel() {
   private val filterHistory = AndroidLogcatFilterHistory.getInstance()
-
-  @TestOnly
-  internal val notifyFilterChangedTask =
-    ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
-  private val filterChangedListeners = mutableListOf<FilterChangedListener>()
   private val textField = FilterEditorTextField(project, logcatPresenter, androidProjectDetector)
   private val historyButton = InlineButton(FILTER_HISTORY)
   private val clearButton = ClearButton()
@@ -180,6 +179,15 @@ internal class FilterTextField(
     set(value) {
       textField.text = value
     }
+
+  private val filterUpdateChannel =
+    Channel<FilterUpdated>(capacity = 1, onBufferOverflow = DROP_LATEST)
+  @VisibleForTesting
+  internal val filterUpdateFlow =
+    filterUpdateChannel
+      .consumeAsFlow()
+      .distinctUntilChanged()
+      .stateIn(AndroidCoroutineScope((logcatPresenter)), Eagerly, null)
 
   init {
     text = initialText
@@ -219,11 +227,7 @@ internal class FilterTextField(
             filter = filterParser.parse(text, matchCase)
             isFavorite = filterHistory.favorites.contains(text)
             filterHistory.mostRecentlyUsed = textField.text
-            notifyFilterChangedTask.reschedule(APPLY_FILTER_DELAY_MS) {
-              for (listener in filterChangedListeners) {
-                listener.onFilterChanged(text, matchCase)
-              }
-            }
+            filterUpdateChannel.trySend(FilterUpdated(text, matchCase))
             buttonPanel.isVisible = textField.text.isNotEmpty()
           }
         }
@@ -276,10 +280,7 @@ internal class FilterTextField(
       )
   }
 
-  @UiThread
-  fun addFilterChangedListener(listener: FilterChangedListener) {
-    filterChangedListeners.add(listener)
-  }
+  fun trackFilterUpdates() = filterUpdateFlow.filterNotNull()
 
   @TestOnly internal fun getEditorEx() = textField.editor as EditorEx
 
@@ -746,7 +747,6 @@ internal class FilterTextField(
         return component
       }
 
-      @Suppress("UnstableApiUsage") // isNewUI() is experimental
       private fun whiteIconForOldUI(icon: Icon): Icon =
         if (NewUI.isEnabled()) icon else ColoredIconGenerator.generateWhiteIcon(icon)
 
@@ -768,7 +768,7 @@ internal class FilterTextField(
       }
     }
 
-    object Separator : FilterHistoryItem() {
+    data object Separator : FilterHistoryItem() {
       // A standalone JSeparator here will change the background of the separator when it is
       // selected. Wrapping it with a JPanel
       // suppresses that behavior for some reason.
@@ -874,15 +874,11 @@ internal class FilterTextField(
     override fun mouseClicked() {
       matchCase = !matchCase
       icon = if (matchCase) AllIcons.Actions.MatchCaseSelected else AllIcons.Actions.MatchCase
-      for (listener in filterChangedListeners) {
-        listener.onFilterChanged(this@FilterTextField.text, matchCase)
-      }
+      filterUpdateChannel.trySend(FilterUpdated(text, matchCase))
     }
   }
 
-  interface FilterChangedListener {
-    fun onFilterChanged(filter: String, matchCase: Boolean)
-  }
+  data class FilterUpdated(val filter: String, val matchCase: Boolean)
 
   private fun interface FilterStatusChanged {
     fun onFilterStatusChanged(filter: String, isFavorite: Boolean)
