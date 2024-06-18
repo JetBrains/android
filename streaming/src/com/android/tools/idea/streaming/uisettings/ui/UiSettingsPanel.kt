@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.uisettings.ui
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.flags.StudioFlags
@@ -61,11 +62,11 @@ private val SPACING = object : IntelliJSpacingConfiguration() {
  * Displays a picker with setting shortcuts.
  *
  * @param model the UI settings model
- * @param limitedSupport Wear, Auto, and TV show a limited set of controls
+ * @param deviceType some controls are only available for certain device types
  */
 internal class UiSettingsPanel(
   private val model: UiSettingsModel,
-  limitedSupport: Boolean = false
+  deviceType: DeviceType
 ) : BorderLayoutPanel()  {
   init {
     add(panel {
@@ -73,14 +74,16 @@ internal class UiSettingsPanel(
         row(title(TITLE)) {}
         separator()
 
-        row(label(DARK_THEME_TITLE)) {
-          checkBox("")
-            .accessibleName(DARK_THEME_TITLE)
-            .bind(model.inDarkMode)
-            .apply { component.name = DARK_THEME_TITLE }
+        if (deviceType != DeviceType.WEAR) {
+          row(label(DARK_THEME_TITLE)) {
+            checkBox("")
+              .accessibleName(DARK_THEME_TITLE)
+              .bind(model.inDarkMode)
+              .apply { component.name = DARK_THEME_TITLE }
+          }
         }
 
-        if (!limitedSupport) {
+        if (deviceType == DeviceType.HANDHELD) {
           row(label(GESTURE_NAVIGATION_TITLE)) {
             checkBox("")
               .accessibleName(GESTURE_NAVIGATION_TITLE)
@@ -104,7 +107,7 @@ internal class UiSettingsPanel(
             .apply { component.name = TALKBACK_TITLE }
         }.visibleIf(model.talkBackInstalled)
 
-        if (!limitedSupport) {
+        if (deviceType == DeviceType.HANDHELD) {
           row(label(SELECT_TO_SPEAK_TITLE)) {
             checkBox("")
               .accessibleName(SELECT_TO_SPEAK_TITLE)
@@ -122,7 +125,7 @@ internal class UiSettingsPanel(
             .apply { component.name = FONT_SCALE_TITLE }
         }.visibleIf(model.fontScaleSettable)
 
-        if (!limitedSupport) {
+        if (deviceType == DeviceType.HANDHELD) {
           row(label(DENSITY_TITLE)) {
             slider(0, model.screenDensityIndex.value, 1, 1)
               .accessibleName(DENSITY_TITLE)

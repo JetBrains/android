@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.uisettings.ui
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.awt.Dimension
@@ -22,19 +23,19 @@ import java.awt.Dimension
 class UiSettingsModelTest {
   @Test
   fun api33PhoneHas4FontScales() {
-    val model = UiSettingsModel(Dimension(1080, 2400), physicalDensity = 420, api = 33, isWear = false)
+    val model = UiSettingsModel(Dimension(1080, 2400), physicalDensity = 420, api = 33, DeviceType.HANDHELD)
     model.checkAvailableFontScales(FontScale.scaleMap.subList(0, 4))
   }
 
   @Test
   fun api34PhoneHas7FontScales() {
-    val model = UiSettingsModel(Dimension(1080, 2400), physicalDensity = 420, api = 34, isWear = false)
+    val model = UiSettingsModel(Dimension(1080, 2400), physicalDensity = 420, api = 34, DeviceType.HANDHELD)
     model.checkAvailableFontScales(FontScale.scaleMap)
   }
 
   @Test
   fun wearHas6FontScales() {
-    val model = UiSettingsModel(Dimension(360, 360), physicalDensity = 420, api = 33, isWear = true)
+    val model = UiSettingsModel(Dimension(360, 360), physicalDensity = 420, api = 33, DeviceType.WEAR)
     model.checkAvailableFontScales(WearFontScale.scaleMap)
   }
 
