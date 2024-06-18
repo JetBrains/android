@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.annotator.check.device
 
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
+import com.android.tools.idea.preview.util.AvailableDevicesKey
 import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.Shape

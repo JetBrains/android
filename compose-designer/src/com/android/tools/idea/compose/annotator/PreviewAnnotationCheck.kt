@@ -28,9 +28,9 @@ import com.android.tools.idea.compose.annotator.check.common.Unknown
 import com.android.tools.idea.compose.annotator.check.device.DeviceSpecCheckState
 import com.android.tools.idea.compose.annotator.check.device.DeviceSpecCheckStateKey
 import com.android.tools.idea.compose.annotator.check.device.DeviceSpecRule
-import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
 import com.android.tools.idea.compose.preview.getContainingComposableUMethod
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.util.AvailableDevicesKey
 import com.android.tools.idea.preview.util.getSdkDevices
 import com.android.tools.preview.config.DEFAULT_DEVICE_ID
 import com.android.tools.preview.config.DEFAULT_DEVICE_ID_WITH_PREFIX
