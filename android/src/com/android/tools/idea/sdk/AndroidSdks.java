@@ -139,8 +139,7 @@ public class AndroidSdks {
   public AndroidSdkData tryToChooseAndroidSdk() {
     if (mySdkData == null) {
       if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
-        // TODO fix circular dependency between IdeSdks and AndroidSdks
-        File path = IdeSdks.getInstance().getAndroidSdkPath();
+        File path = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
         if (path != null) {
           mySdkData = AndroidSdkData.getSdkData(path);
           if (mySdkData != null) {
