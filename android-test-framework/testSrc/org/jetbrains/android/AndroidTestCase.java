@@ -288,6 +288,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       "fake-adb-server-connection-pool",
       // AdbService is application-level and so executor threads are reported as leaked
       "AdbService Executor",
+      // If gRPC is using NIO, long-running worker threads are created under this name.
+      // Non-NIO threads (grpc-default-worker-) are already ignored by ThreadLeakTracker.
+      "grpc-nio-worker-",
       // MonitorThread from ddmlib is often created during unrelated tests
       "Monitor");
   }
