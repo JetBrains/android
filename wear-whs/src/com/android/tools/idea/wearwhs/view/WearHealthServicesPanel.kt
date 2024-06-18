@@ -48,9 +48,12 @@ import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 private const val MAX_OVERRIDE_VALUE_LENGTH = 50
@@ -309,17 +312,30 @@ private fun createWearHealthServicesPanelHeader(
   )
 }
 
+/** Container for the Wear Health Services panel. */
+data class WearHealthServicesPanel(
+  /** The UI component containing the Wear Health Services panel. */
+  val component: JComponent,
+  /**
+   * Flow receiving an element when the user applies changes. The changes might still fail to be
+   * applied.
+   */
+  val onUserApplyChangesFlow: Flow<Unit>,
+)
+
 internal fun createWearHealthServicesPanel(
   stateManager: WearHealthServicesStateManager,
   uiScope: CoroutineScope,
   workerScope: CoroutineScope,
-): JPanel {
+): WearHealthServicesPanel {
   val content =
     JBScrollPane().apply {
       setViewportView(
         createCenterPanel(stateManager, uiScope, workerScope, stateManager.capabilitiesList)
       )
     }
+
+  val onApplyChangesChannel = Channel<Unit>()
   val footer =
     JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
       border = horizontalBorders
@@ -353,6 +369,7 @@ internal fun createWearHealthServicesPanel(
             isEnabled = false
             workerScope.launch {
               try {
+                onApplyChangesChannel.send(Unit)
                 stateManager.applyChanges()
               } finally {
                 uiScope.launch { isEnabled = true }
@@ -362,13 +379,20 @@ internal fun createWearHealthServicesPanel(
         }
       )
     }
-  return JPanel(BorderLayout()).apply {
-    add(createWearHealthServicesPanelHeader(stateManager, uiScope, workerScope), BorderLayout.NORTH)
-    add(content, BorderLayout.CENTER)
-    add(footer, BorderLayout.SOUTH)
+  return WearHealthServicesPanel(
+    component =
+      JPanel(BorderLayout()).apply {
+        add(
+          createWearHealthServicesPanelHeader(stateManager, uiScope, workerScope),
+          BorderLayout.NORTH,
+        )
+        add(content, BorderLayout.CENTER)
+        add(footer, BorderLayout.SOUTH)
 
-    isFocusCycleRoot = true
-    isFocusTraversalPolicyProvider = true
-    focusTraversalPolicy = LayoutFocusTraversalPolicy()
-  }
+        isFocusCycleRoot = true
+        isFocusTraversalPolicyProvider = true
+        focusTraversalPolicy = LayoutFocusTraversalPolicy()
+      },
+    onUserApplyChangesFlow = onApplyChangesChannel.receiveAsFlow(),
+  )
 }
