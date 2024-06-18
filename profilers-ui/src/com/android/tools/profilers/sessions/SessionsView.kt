@@ -306,10 +306,10 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
   }
 
   private fun confirm(prefKey: String, title: String, msg: String): Boolean =
-    profilers.ideServices.temporaryProfilerPreferences.getBoolean(prefKey, false) ||
+    profilers.ideServices.persistentProfilerPreferences.getBoolean(prefKey, false) ||
     ideProfilerComponents.createUiMessageHandler()
       .displayOkCancelMessage(title, msg, CONFIRM_BUTTON_TEXT, CANCEL_BUTTON_TEXT, null) {
-        profilers.ideServices.temporaryProfilerPreferences.setBoolean(prefKey, it)
+        profilers.ideServices.persistentProfilerPreferences.setBoolean(prefKey, it)
       }
 
   companion object {
