@@ -16,19 +16,18 @@
 package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.idea.common.model.DisplaySettings
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /** This label displays the [SceneView] model label. */
 class InteractiveLabelPanel(
-  displayName: StateFlow<String?>,
-  tooltip: StateFlow<String?>,
+  displaySettings: DisplaySettings,
   scope: CoroutineScope,
   private val onLabelClicked: (suspend () -> Boolean),
-) : LabelPanel(displayName, tooltip, scope) {
+) : LabelPanel(displaySettings, scope) {
 
   init {
     addMouseListener(
