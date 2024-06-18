@@ -35,7 +35,7 @@ import com.android.tools.idea.streaming.uisettings.ui.DARK_THEME_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DENSITY_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.FONT_SCALE_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.GESTURE_NAVIGATION_TITLE
-import com.android.tools.idea.streaming.uisettings.ui.RESET_BUTTON_TEXT
+import com.android.tools.idea.streaming.uisettings.ui.RESET_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
@@ -55,6 +55,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.components.ActionLink
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -64,7 +65,6 @@ import java.awt.Point
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.WindowFocusListener
-import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JComponent
@@ -133,7 +133,7 @@ class EmulatorUiSettingsActionTest {
   }
 
   @Test
-  fun testHasResetButton() {
+  fun testHasResetLink() {
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
@@ -143,7 +143,7 @@ class EmulatorUiSettingsActionTest {
     waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
     val balloon = popupFactory.getNextBalloon()
     waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component.findDescendant<JButton> { it.name == RESET_BUTTON_TEXT }).isNotNull()
+    assertThat(balloon.component.findDescendant<ActionLink> { it.name == RESET_TITLE }).isNotNull()
   }
 
   @Test
