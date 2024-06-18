@@ -90,5 +90,5 @@ class ComposeAnimationTracker(private val eventLogger: AnimationToolingUsageTrac
 
   override fun dragTimelineLine() = logEvent(ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE)
 
-  fun openPicker() = logEvent(ComposeAnimationToolingEventType.OPEN_PICKER)
+  override fun openPicker() = logEvent(ComposeAnimationToolingEventType.OPEN_PICKER)
 }
