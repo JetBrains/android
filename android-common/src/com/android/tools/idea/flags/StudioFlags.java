@@ -298,12 +298,6 @@ public final class StudioFlags {
     RESOURCE_REPOSITORY, "trace.size", "Maximum Size of Resource Repository Update Trace",
     "Size of the in-memory cyclic buffer used for tracing of resource repository updates",
     10000);
-
-  public static final Flag<Boolean> RESOURCE_REPOSITORY_NOTIFY_PARENT_ON_DISPOSE = new BooleanFlag(
-    RESOURCE_REPOSITORY, "notify.parent.on.dispose", "Notify parent resource repositories on disposal.",
-    "Allows a LocalResourceRepository that implements Disposable to notify its parents when it is being disposed, so that they can "
-    + "release any stale references.",
-    true);
   //endregion
 
   //region Run/Debug
