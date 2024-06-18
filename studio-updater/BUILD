@@ -26,7 +26,7 @@ iml_module(
 coverage_java_test(
     name = "integration_test",
     data = ["//tools/adt/idea/studio:updater_deploy.jar"],
-    tags = ["no_test_windows"],  # b/77288863
+    tags = ["noci:studio-win"],  # b/77288863
     test_class = "com.android.studio.updater.StudioPatchUpdaterIntegrationTest",
     runtime_deps = [":intellij.android.updater.studio-updater_testlib"],
 )

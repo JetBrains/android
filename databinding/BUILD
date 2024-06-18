@@ -39,7 +39,7 @@ iml_module(
     },
     tags = [
         "no_test_mac",
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",
     test_data = [

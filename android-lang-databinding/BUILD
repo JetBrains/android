@@ -31,7 +31,7 @@ iml_module(
     iml_files = ["intellij.android.lang-databinding.tests.iml"],
     tags = [
         "no_test_mac",  # b/113099009
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.lang.databinding.LangDataBindingTestSuite",
     test_data = [
