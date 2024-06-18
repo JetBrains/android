@@ -45,22 +45,23 @@ internal fun ApiFilter(apiFilterState: ApiLevelSelectionState) {
       modifier = Modifier.padding(2.dp),
       menuContent = {
         val apiLevels = buildList {
-          add(ApiLevelSelection(null))
+          add(ApiLevelSelection.Latest)
+          add(ApiLevelSelection.LatestStable)
           for (apiLevel in
             SdkVersionInfo.HIGHEST_KNOWN_API downTo SdkVersionInfo.LOWEST_ACTIVE_API) {
-            add(ApiLevelSelection(apiLevel))
+            add(ApiLevelSelection.ApiLevel(apiLevel))
           }
         }
         items(
           apiLevels.size,
-          isSelected = { index -> apiLevels[index] == apiFilterState.apiLevel },
-          onItemClick = { index -> apiFilterState.apiLevel = apiLevels[index] },
+          isSelected = { index -> apiLevels[index] == apiFilterState.apiLevelSelection },
+          onItemClick = { index -> apiFilterState.apiLevelSelection = apiLevels[index] },
         ) { index ->
           ApiLevel(apiLevels[index])
         }
       },
     ) {
-      ApiLevel(apiFilterState.apiLevel)
+      ApiLevel(apiFilterState.apiLevelSelection)
     }
   }
 }
@@ -82,25 +83,40 @@ internal fun ApiLevel(apiLevel: ApiLevelSelection) {
 
 @Stable
 internal class ApiLevelSelectionState : RowFilter<DeviceProfile> {
-  var apiLevel by mutableStateOf(ApiLevelSelection.Latest)
+  var apiLevelSelection: ApiLevelSelection by mutableStateOf(ApiLevelSelection.Latest)
 
-  override fun apply(device: DeviceProfile): Boolean =
-    apiLevel.apiLevel.let { it == null || device.apiRange.contains(it) }
+  override fun apply(device: DeviceProfile): Boolean = apiLevelSelection.apply(device) != null
 }
 
 /**
  * The API level is either a single specific level or "newest on device", which we represent as null
  * here.
  */
-internal class ApiLevelSelection(val apiLevel: Int?) {
-  val nameDetails: NameDetails =
-    if (apiLevel == null)
-      NameDetails("Newest on device", "Show most recent API available on device")
-    else
+sealed class ApiLevelSelection {
+  abstract val nameDetails: NameDetails
+
+  abstract fun apply(device: DeviceProfile): AndroidVersion?
+
+  data class ApiLevel(val apiLevel: Int) : ApiLevelSelection() {
+    override val nameDetails =
       AndroidVersion(apiLevel)
         .getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
 
-  companion object {
-    val Latest = ApiLevelSelection(null)
+    override fun apply(device: DeviceProfile): AndroidVersion? =
+      // TODO: Allow preview versions?
+      AndroidVersion(apiLevel).takeIf { device.apiLevels.contains(it) }
+  }
+
+  data object Latest : ApiLevelSelection() {
+    override val nameDetails = NameDetails("Latest", "Show latest API available")
+
+    override fun apply(device: DeviceProfile): AndroidVersion? = device.apiLevels.last()
+  }
+
+  data object LatestStable : ApiLevelSelection() {
+    override val nameDetails = NameDetails("Latest stable", "Show latest stable API available")
+
+    override fun apply(device: DeviceProfile): AndroidVersion? =
+      device.apiLevels.descendingSet().firstOrNull { !it.isPreview }
   }
 }
