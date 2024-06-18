@@ -90,7 +90,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val client = ProfilerClient(TransportService.channelName)
     profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
                                 { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) },
-                                { getToolbarDeviceSelections(project) }, { getPreferredProcessName(project) })
+                                { getToolbarDeviceSelections(project) }, { getPreferredProcessName(project) }, ::getCurrentTaskHandler)
 
     val navigator = ideProfilerServices.codeNavigator
     // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
@@ -319,6 +319,10 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     if (profilers.isStopped) {
       window.removeContent()
     }
+  }
+
+  private fun getCurrentTaskHandler(): ProfilerTaskHandler? {
+    return currentTaskHandler;
   }
 
   companion object {

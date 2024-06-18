@@ -132,6 +132,16 @@ interface IdeProfilerServices {
   fun openYesNoDialog(message: String, title: String, yesCallback: Runnable, noCallback: Runnable)
 
   /**
+   * Displays an ok/cancel dialog, warning the user and asking them if they want to proceed.
+   *
+   * @param message the message content
+   * @param title the title
+   * @param doNotShowSettingSaver callback to save users preference on showing the dialog again
+   * @return true if the user selects OK, false otherwise
+   */
+  fun openOkCancelDialog(message: String, title: String, doNotShowSettingSaver: Consumer<Boolean>): Boolean
+
+  /**
    * Opens a dialog asking the user to select items from the listbox.
    *
    * @param title                      tile to be provided to the dialog box.

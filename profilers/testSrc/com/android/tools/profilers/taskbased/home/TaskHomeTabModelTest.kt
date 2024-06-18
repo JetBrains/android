@@ -25,10 +25,12 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.TaskEntranceTabModel.Companion.HIDE_NEW_TASK_PROMPT
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromNow
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromProcessStart
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.addDeviceWithProcess
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createDevice
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createProcess
@@ -37,6 +39,7 @@ import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.Callsta
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.HeapDumpTaskHandler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -60,6 +63,8 @@ class TaskHomeTabModelTest {
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     taskHomeTabModel = TaskHomeTabModel(myProfilers)
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myProfilers.sessionsManager)
+    taskHandlers.forEach { (type, handler) -> myProfilers.addTaskHandler(type, handler) }
     ideProfilerServices.enableTaskBasedUx(true)
   }
 
@@ -264,5 +269,49 @@ class TaskHomeTabModelTest {
 
     taskHomeTabModel.processListModel.onProcessSelection(Common.Process.newBuilder().setName("FakeProcess").build())
     assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.CALLSTACK_SAMPLE)
+  }
+
+  @Test
+  fun `test starting new task with ongoing task attempts stop of ongoing task`() {
+    // Create and select the device
+    val selectedDevice = createDevice("FakeDevice", Common.Device.State.ONLINE, "12", AndroidVersion.VersionCodes.S)
+    taskHomeTabModel.processListModel.onDeviceSelection(selectedDevice)
+    // Create and select the process
+    val selectedProcess = createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, selectedDevice.deviceId)
+    addDeviceWithProcess(selectedDevice, selectedProcess, myTransportService, myTimer)
+    taskHomeTabModel.processListModel.onProcessSelection(selectedProcess)
+
+    // Select the task and populate the respective task handler
+    taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.CALLSTACK_SAMPLE)
+    assertTrue(canTaskStartFromNow(ProfilerTaskType.CALLSTACK_SAMPLE,
+                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, selectedDevice),
+                                   selectedProcess, myProfilers.taskHandlers))
+
+    // Populate current task handler to simulate valid state (due to lack of interface with tool window code, the current task handler can
+    // not be set when the task is started.
+    myProfilers.setCurrentTaskHandlerFetcher { myProfilers.taskHandlers[ProfilerTaskType.CALLSTACK_SAMPLE] }
+
+    // Start the task (this will not actually launch the task tab, it will only start the underlying session).
+    taskHomeTabModel.onEnterTaskButtonClick()
+
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(myProfilers.sessionsManager.isSessionAlive).isTrue()
+    assertThat(myProfilers.sessionsManager.currentTaskType).isEqualTo(ProfilerTaskType.CALLSTACK_SAMPLE)
+
+    // Attempt start of new task (should attempt to stop previous, Callstack Sample task)
+    taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.NATIVE_ALLOCATIONS)
+    assertTrue(canTaskStartFromNow(ProfilerTaskType.NATIVE_ALLOCATIONS,
+                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, selectedDevice),
+                                   selectedProcess, myProfilers.taskHandlers))
+
+    // Because it is difficult to simulate the launch of an actual task recording (as it requires launching a new tab), attempting a new
+    // task cant actually stop the previous task recording. However, to verify that the previous task recording was attempted to be stopped,
+    // the following assertion error can be expected on start of a new task.
+    val e = assertThrows(AssertionError::class.java) {
+      taskHomeTabModel.onEnterTaskButtonClick()
+    }
+    // Make sure that it attempted to stop the current/ongoing task (Callstack Sample)
+    assertThat(e.message).isEqualTo(
+      "There was an error with the Callstack Sample task. Error message: Cannot stop the task as the InterimStage was null.")
   }
 }
