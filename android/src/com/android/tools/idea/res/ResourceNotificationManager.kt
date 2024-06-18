@@ -236,7 +236,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
     }
   }
 
-  val psiListener: PsiTreeChangeListener? = ProjectPsiTreeObserver(::notice, ::isRelevantFile)
+  val psiListener: PsiTreeChangeListener? = ProjectPsiTreeChangeListener(::notice, ::isRelevantFile)
     /**
      * Returns an implementation of [PsiTreeChangeListener] that is not registered and is used as a
      * delegate (e.g in [AndroidPsiTreeChangeListener]).
@@ -578,7 +578,7 @@ private class ProjectBuildObserver(
   }
 }
 
-private class ProjectPsiTreeObserver(
+private class ProjectPsiTreeChangeListener(
   private val notice: (Reason, VirtualFile?) -> Unit,
   private val isRelevantFile: (VirtualFile?) -> Boolean,
 ) : PsiTreeChangeListener {
