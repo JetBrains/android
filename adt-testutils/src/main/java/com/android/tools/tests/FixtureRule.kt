@@ -33,7 +33,7 @@ import org.junit.rules.TestRule
  */
 interface FixtureRule : TestRule {
   val projectIfOpened: ProjectEx?
-  val project: ProjectEx
+  val project: Project
   val module: Module
   val fixture: CodeInsightTestFixture
   val disposable: Disposable
@@ -48,8 +48,8 @@ interface FixtureRule : TestRule {
         override val projectIfOpened: ProjectEx?
           get() = projectRule.projectIfOpened
 
-        override val project: ProjectEx
-          get() = projectRule.project
+        override val project: Project
+          get() = fixture.project
 
         override val module: Module
           get() = projectRule.module
@@ -58,7 +58,7 @@ interface FixtureRule : TestRule {
           get() = fixtureRule.fixture
 
         override val disposable: Disposable
-          get() = project.earlyDisposable
+          get() = projectRule.project.earlyDisposable
       }
     }
   }
