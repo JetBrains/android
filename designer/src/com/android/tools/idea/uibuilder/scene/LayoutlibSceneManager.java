@@ -47,6 +47,7 @@ import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.scene.SceneUpdateListener;
 import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
@@ -58,7 +59,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.modes.essentials.EssentialsMode;
-import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.RenderResultUtilKt;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
@@ -331,7 +331,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Function<Disposable, RenderingQueue> renderingQueueFactory,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                                  @Nullable SceneManager.SceneUpdateListener sceneUpdateListener,
+                                  @Nullable SceneUpdateListener sceneUpdateListener,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig,
                                   @NotNull Supplier<SessionClock> sessionClockFactory) {
     super(model, designSurface, sceneComponentProvider, sceneUpdateListener);
@@ -402,7 +402,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface<LayoutlibSceneManager> designSurface,
                                @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                               @NotNull SceneManager.SceneUpdateListener sceneUpdateListener,
+                               @NotNull SceneUpdateListener sceneUpdateListener,
                                @NotNull Supplier<SessionClock> sessionClockFactory) {
     this(
       model,
@@ -434,9 +434,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    * @param config configuration for layout validation when rendering.
-   * @param listener {@link SceneManager.SceneUpdateListener } allows performing additional operations affected by the scene root component when updating the scene.
+   * @param listener {@link SceneUpdateListener } allows performing additional operations affected by the scene root component when updating the scene.
    */
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config, @Nullable SceneManager.SceneUpdateListener listener) {
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config, @Nullable SceneUpdateListener listener) {
     this(
       model,
       designSurface,

@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
@@ -179,9 +180,11 @@ class SceneManagerTest {
   fun testSceneManagerListenerExceptionDoesNotBreakUpdate() {
     var sceneListenerWasInvoked = false
     val brokenListener =
-      SceneManager.SceneUpdateListener { _, _ ->
-        sceneListenerWasInvoked = true
-        throw NullPointerException()
+      object : SceneUpdateListener {
+        override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
+          sceneListenerWasInvoked = true
+          throw NullPointerException()
+        }
       }
     var createHierarchyWasInvoked = false
     val componentProvider =
