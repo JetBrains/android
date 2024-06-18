@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.ui.components.ActionLink
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -211,13 +212,13 @@ class UiSettingsPanelTest {
 
   @Test
   fun testResetButton() {
-    val button = panel.getDescendant<JButton> { it.name == RESET_BUTTON_TEXT }
-    assertThat(button.accessibleContext.accessibleName).isEqualTo(RESET_BUTTON_TEXT)
+    val link = panel.getDescendant<ActionLink> { it.name == RESET_TITLE }
+    assertThat(link.accessibleContext.accessibleName).isEqualTo(RESET_TITLE)
     model.differentFromDefault.setFromController(false)
-    assertThat(button.model.isEnabled).isFalse()
+    assertThat(link.isShowing).isFalse()
     model.differentFromDefault.setFromController(true)
-    assertThat(button.model.isEnabled).isTrue()
-    button.doClick()
+    assertThat(link.isShowing).isTrue()
+    link.doClick()
     waitForCondition(1.seconds) { lastCommand == "reset" }
   }
 
@@ -338,7 +339,7 @@ class UiSettingsPanelTest {
     waitForCondition(1.seconds) { lastCommand == "density=608" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
-    assertThat(panel.getDescendant<JButton> { it.name == RESET_BUTTON_TEXT }.hasFocus()).isTrue()
+    assertThat(panel.getDescendant<JButton> { it.name == RESET_TITLE }.hasFocus()).isTrue()
     ui.keyboard.pressAndRelease(VK_SPACE)
     waitForCondition(1.seconds) { lastCommand == "reset" }
     model.differentFromDefault.setFromController(false)

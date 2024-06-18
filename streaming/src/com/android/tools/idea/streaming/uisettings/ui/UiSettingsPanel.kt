@@ -32,6 +32,7 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import javax.swing.AbstractButton
+import javax.swing.JComponent
 import javax.swing.JSlider
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.plaf.UIResource
@@ -45,8 +46,7 @@ internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
 internal const val FONT_SCALE_TITLE = "Font Size:"
 internal const val DENSITY_TITLE = "Display Size:"
 internal const val DEBUG_LAYOUT_TITLE = "Debug Layout:"
-internal const val RESET_BUTTON_TEXT = "Reset"
-private const val RESET_TITLE = "Reset to factory defaults"
+internal const val RESET_TITLE = "Reset"
 internal const val PERMISSION_HINT_LINE1 = "More options may be available if \"Disable permission monitoring\" is turned on in"
 internal const val PERMISSION_HINT_LINE2 = "\"Developer Options\" and the device is restarted."
 
@@ -70,7 +70,13 @@ internal class UiSettingsPanel(
   init {
     add(panel {
       customizeSpacingConfiguration(SPACING) {
-        row(title(TITLE)) {}
+        row(title(TITLE)) {
+          link(RESET_TITLE) { model.resetAction() }
+            .accessibleName(RESET_TITLE)
+            .apply { component.name = RESET_TITLE }
+            .visibleIf(model.differentFromDefault)
+            .align(AlignX.RIGHT)
+        }
         separator()
 
         if (deviceType != DeviceType.WEAR) {
@@ -150,12 +156,6 @@ internal class UiSettingsPanel(
             addToBottom(JBLabel(PERMISSION_HINT_LINE2, UIUtil.ComponentStyle.MINI))
           })
         }.visibleIf(model.permissionMonitoringDisabled.not())
-
-        row(JBLabel(RESET_TITLE)) {
-          button(RESET_BUTTON_TEXT) {
-            model.resetAction()
-          }.apply { component.name = RESET_BUTTON_TEXT }
-        }.enabledIf(model.differentFromDefault)
       }
     })
     updateBackground()
@@ -211,9 +211,9 @@ internal class UiSettingsPanel(
     return this
   }
 
-  private fun Row.enabledIf(predicate: ReadOnlyProperty<Boolean>): Row {
-    enabled(predicate.value)
-    predicate.addControllerListener { enabled(it) }
+  private fun <T : JComponent> Cell<T>.visibleIf(predicate: ReadOnlyProperty<Boolean>): Cell<T> {
+    visible(predicate.value)
+    predicate.addControllerListener { visible(it) }
     return this
   }
 
