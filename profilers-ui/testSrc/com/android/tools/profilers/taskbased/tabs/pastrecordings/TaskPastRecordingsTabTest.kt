@@ -19,7 +19,6 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -47,6 +46,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class TaskPastRecordingsTabTest {
   private val myTimer = FakeTimer()
@@ -54,7 +54,7 @@ class TaskPastRecordingsTabTest {
   private val myComponents = FakeIdeProfilerComponents()
 
   @get:Rule
-  val composeTestRule = createComposeRule()
+  val composeTestRule = createStudioComposeTestRule()
 
   @get:Rule
   val ignoreTestRule = IgnoreTestRule()
@@ -113,9 +113,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `selecting recording and task enable open profiler task button`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-      }
+      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
     }
 
     val session = Common.Session.getDefaultInstance()
@@ -151,10 +149,8 @@ class TaskPastRecordingsTabTest {
 
   @Test
   fun `test selection of non-exportable recording does not enable the export button click action`() {
-    composeTestRule.setContent {
-      StudioTestTheme (darkMode = true) {
-        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-      }
+    composeTestRule.setContent (darkMode = true) {
+      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
     }
 
     val recordingListModel = pastRecordingsTabModel.recordingListModel
@@ -184,10 +180,8 @@ class TaskPastRecordingsTabTest {
 
   @Test
   fun `test selection of exportable recording enables export button click action`() {
-    composeTestRule.setContent {
-      StudioTestTheme (darkMode = true) {
-        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-      }
+    composeTestRule.setContent (darkMode = true) {
+      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
     }
 
     val recordingListModel = pastRecordingsTabModel.recordingListModel
@@ -217,10 +211,8 @@ class TaskPastRecordingsTabTest {
 
   @Test
   fun `test selection of deletable recording enables delete recording button click action`() {
-    composeTestRule.setContent {
-      StudioTestTheme (darkMode = true) {
-        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-      }
+    composeTestRule.setContent (darkMode = true) {
+      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
     }
 
     val recordingListModel = pastRecordingsTabModel.recordingListModel
@@ -247,10 +239,8 @@ class TaskPastRecordingsTabTest {
 
   @Test
   fun `test deletion of selected recording updates rendered list`() {
-    composeTestRule.setContent {
-      StudioTestTheme (darkMode = true) {
-        TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
-      }
+    composeTestRule.setContent (darkMode = true) {
+      TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
     }
 
     val recordingListModel = pastRecordingsTabModel.recordingListModel

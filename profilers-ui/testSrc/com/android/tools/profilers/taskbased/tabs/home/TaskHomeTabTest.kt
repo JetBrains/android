@@ -21,7 +21,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onChildAt
 import androidx.compose.ui.test.onFirst
@@ -54,13 +53,14 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class TaskHomeTabTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
   @get:Rule
-  val composeTestRule = createComposeRule()
+  val composeTestRule = createStudioComposeTestRule()
 
   @get:Rule
   val ignoreTestRule = IgnoreTestRule()
@@ -123,9 +123,7 @@ class TaskHomeTabTest {
   @Test
   fun `selecting device, process, and task enable start profiler task button`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
 
     // Populate the device.
@@ -164,9 +162,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting dead preferred process and startup-capable task`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
 
     // Select the offline device
@@ -203,9 +199,7 @@ class TaskHomeTabTest {
   fun `test selecting an alive, non preferred process and startup capable task`() {
     // should not allow for startup dropdown option to be present
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
 
     // Set the preferred process to a non-empty/null name so the dead/static entry is allowed to be added
@@ -245,9 +239,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting dead preferred process and non startup capable task`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
 
     // Select the offline device
@@ -282,9 +274,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting alive, profileable preferred process and non startup capable task`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
 
     // Set the preferred process to a non-empty/null name so the dead/static entry is allowed to be added
@@ -322,9 +312,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting alive, debuggable preferred process and non startup capable task`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
 
     // Populate the device.
@@ -373,9 +361,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting profileable process and debuggable only task`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
 
     // Populate the device.
@@ -424,9 +410,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting dead preferred process and startup-capable task enables profiler task start button`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
 
     // Select the offline device
@@ -464,9 +448,7 @@ class TaskHomeTabTest {
   @Test
   fun `test selecting alive preferred process and startup capable task`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
 
     // Set the preferred process to a non-empty/null name so the dead/static entry is allowed to be added
@@ -544,9 +526,7 @@ class TaskHomeTabTest {
   @Test
   fun `test recording type dropdown appears for applicable tasks only`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskHomeTab(taskHomeTabModel, myComponents)
-      }
+      TaskHomeTab(taskHomeTabModel, myComponents)
     }
     composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertDoesNotExist()
     // Selecting a task that has recording types should now show the recording type dropdown
