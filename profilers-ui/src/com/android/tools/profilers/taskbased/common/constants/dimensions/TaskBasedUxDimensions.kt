@@ -54,6 +54,9 @@ object TaskBasedUxDimensions {
   val RECORDING_TIME_COL_WIDTH_DP = 150.dp
   val RECORDING_TASKS_COL_WIDTH_DP = 200.dp
 
+  // Recording banner dimensions
+  val RECORDING_BANNER_PADDING_DP = 10.dp
+
   // Task action bar content padding.
   val TASK_ACTION_BAR_CONTENT_PADDING_DP = 5.dp
   val TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP = 10.dp
