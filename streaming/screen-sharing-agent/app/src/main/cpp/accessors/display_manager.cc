@@ -43,7 +43,7 @@ void DisplayManager::InitializeStatics(Jni jni) {
     get_display_info_method_ = display_manager_global_class_.GetMethod("getDisplayInfo", "(I)Landroid/view/DisplayInfo;");
     get_display_ids_method_ = display_manager_global_class_.GetMethod("getDisplayIds", "()[I");
     if (Agent::feature_level() >= 35) {
-      request_display_power_method_ = display_manager_global_class_.FindMethod("requestDisplayPower", "(IZ)V");
+      request_display_power_method_ = display_manager_global_class_.FindMethod("requestDisplayPower", "(IZ)Z");
     }
 
     JClass display_info_class = jni.GetClass("android/view/DisplayInfo");
