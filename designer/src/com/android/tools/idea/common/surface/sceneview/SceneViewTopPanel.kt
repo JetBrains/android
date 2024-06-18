@@ -17,7 +17,6 @@ package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.DesignSurfaceScrollPane
-import com.android.tools.idea.common.surface.LabelPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
