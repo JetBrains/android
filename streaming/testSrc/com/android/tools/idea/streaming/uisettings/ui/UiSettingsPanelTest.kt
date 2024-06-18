@@ -42,6 +42,7 @@ import java.awt.event.KeyEvent.VK_TAB
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
+import javax.swing.JLabel
 import javax.swing.JSlider
 import kotlin.time.Duration.Companion.seconds
 
@@ -55,6 +56,7 @@ class UiSettingsPanelTest {
 
   private lateinit var model: UiSettingsModel
   private lateinit var panel: UiSettingsPanel
+  private lateinit var ui: FakeUi
   private var lastCommand: String = ""
   private val deviceTypeFromTestName: DeviceType
     get() = when {
@@ -72,8 +74,13 @@ class UiSettingsPanelTest {
     model.appLanguage.addElement(DANISH_LANGUAGE)
     model.appLanguage.addElement(RUSSIAN_LANGUAGE)
     model.appLanguage.selection.setFromController(DEFAULT_LANGUAGE)
+    model.fontScaleSettable.setFromController(true)
+    model.screenDensitySettable.setFromController(true)
+    model.gestureOverlayInstalled.setFromController(true)
+    model.talkBackInstalled.setFromController(true)
 
     panel = UiSettingsPanel(model, deviceType)
+    ui = FakeUi(panel, createFakeWindow = true, parentDisposable = projectRule.disposable)
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
     model.gestureNavigation.uiChangeListener = ChangeListener { lastCommand = "gestures=$it" }
     model.appLanguage.selection.uiChangeListener = ChangeListener { lastCommand = "locale=${it?.tag}" }
@@ -88,6 +95,7 @@ class UiSettingsPanelTest {
   fun testSetDarkModeFromUi() {
     val checkBox = panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }
     assertThat(checkBox.accessibleContext.accessibleName).isEqualTo(DARK_THEME_TITLE)
+    assertThat(checkBox.isShowing).isTrue()
     assertThat(checkBox.isSelected).isFalse()
 
     checkBox.doClick()
@@ -102,14 +110,14 @@ class UiSettingsPanelTest {
     model.gestureOverlayInstalled.setFromController(false)
     val checkBox = panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }
     assertThat(checkBox.accessibleContext.accessibleName).isEqualTo(GESTURE_NAVIGATION_TITLE)
-    assertThat(checkBox.isVisible).isFalse()
+    assertThat(checkBox.isShowing).isFalse()
   }
 
   @Test
   fun testSetGestureNavigationFromUi() {
     model.gestureOverlayInstalled.setFromController(true)
     val checkBox = panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }
-    assertThat(checkBox.isVisible).isTrue()
+    assertThat(checkBox.isShowing).isTrue()
     assertThat(checkBox.isSelected).isFalse()
 
     checkBox.doClick()
@@ -123,7 +131,7 @@ class UiSettingsPanelTest {
   fun testChangeLanguageFromUi() {
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }
     assertThat(comboBox.accessibleContext.accessibleName).isEqualTo(APP_LANGUAGE_TITLE)
-    assertThat(comboBox.isVisible).isTrue()
+    assertThat(comboBox.isShowing).isTrue()
     assertThat(comboBox.selectedIndex).isEqualTo(0)
 
     comboBox.selectedIndex = 1
@@ -140,9 +148,10 @@ class UiSettingsPanelTest {
   fun testSetTalkBackFromUi() {
     val checkBox = panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }
     assertThat(checkBox.accessibleContext.accessibleName).isEqualTo(TALKBACK_TITLE)
-    assertThat(checkBox.isVisible).isFalse()
+    model.talkBackInstalled.setFromController(false)
+    assertThat(checkBox.isShowing).isFalse()
     model.talkBackInstalled.setFromController(true)
-    assertThat(checkBox.isVisible).isTrue()
+    assertThat(checkBox.isShowing).isTrue()
 
     assertThat(checkBox.isSelected).isFalse()
 
@@ -157,9 +166,10 @@ class UiSettingsPanelTest {
   fun testSetSelectToSpeakFromUi() {
     val checkBox = panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }
     assertThat(checkBox.accessibleContext.accessibleName).isEqualTo(SELECT_TO_SPEAK_TITLE)
-    assertThat(checkBox.isVisible).isFalse()
+    model.talkBackInstalled.setFromController(false)
+    assertThat(checkBox.isShowing).isFalse()
     model.talkBackInstalled.setFromController(true)
-    assertThat(checkBox.isVisible).isTrue()
+    assertThat(checkBox.isShowing).isTrue()
 
     assertThat(checkBox.isSelected).isFalse()
 
@@ -173,6 +183,7 @@ class UiSettingsPanelTest {
   @Test
   fun testSetFontScaleFromUi() {
     val slider = panel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }
+    assertThat(slider.isShowing).isTrue()
     assertThat(slider.accessibleContext.accessibleName).isEqualTo(FONT_SCALE_TITLE)
     assertThat(slider.value).isEqualTo(FontScale.NORMAL.ordinal)
 
@@ -186,6 +197,7 @@ class UiSettingsPanelTest {
   @Test
   fun testSetDensityFromUi() {
     val slider = panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }
+    assertThat(slider.isShowing).isTrue()
     assertThat(slider.accessibleContext.accessibleName).isEqualTo(DENSITY_TITLE)
     assertThat(slider.value).isEqualTo(1)
 
@@ -246,10 +258,37 @@ class UiSettingsPanelTest {
   }
 
   @Test
-  fun testKeyboardAccessibility() {
+  fun testControlsForOemWithPermissionMonitoring() {
     model.gestureOverlayInstalled.setFromController(true)
     model.talkBackInstalled.setFromController(true)
-    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = projectRule.disposable)
+
+    // Simulate Permission Monitoring enabled:
+    model.fontScaleSettable.setFromController(false)
+    assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isFalse()
+    assertThat(panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.isShowing).isFalse()
+    assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.isShowing).isFalse()
+    assertThat(panel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }.isShowing).isFalse()
+    assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.isShowing).isFalse()
+    assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE1 }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE2 }.isShowing).isTrue()
+
+    // Simulate Permission Monitoring disabled:
+    model.fontScaleSettable.setFromController(true)
+    assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE1 }.isShowing).isFalse()
+    assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE2 }.isShowing).isFalse()
+  }
+
+  @Test
+  fun testKeyboardAccessibility() {
     val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
     focusManager.focusOwner = panel
     panel.transferFocus()
