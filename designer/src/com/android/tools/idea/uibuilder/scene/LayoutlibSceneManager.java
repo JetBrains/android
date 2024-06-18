@@ -37,13 +37,11 @@ import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.ChangeType;
-import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider;
@@ -1475,35 +1473,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   public void setElapsedFrameTimeMs(long ms) {
     myElapsedFrameTimeMs = ms;
-  }
-
-  /**
-   * Default {@link SceneComponentHierarchyProvider} for {@link LayoutlibSceneManager}.
-   * It provides the functionality to sync the {@link NlComponent} hierarchy and the data from Layoutlib to {@link SceneComponent}.
-   */
-  protected static class LayoutlibSceneManagerHierarchyProvider extends DefaultSceneManagerHierarchyProvider {
-    @Override
-    public void syncFromNlComponent(@NotNull SceneComponent sceneComponent) {
-      super.syncFromNlComponent(sceneComponent);
-      NlComponent component = sceneComponent.getNlComponent();
-      boolean animate = sceneComponent.getScene().isAnimated() && !sceneComponent.hasNoDimension();
-      SceneManager manager = sceneComponent.getScene().getSceneManager();
-      if (animate) {
-        long time = System.currentTimeMillis();
-        sceneComponent.setPositionTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
-                                         Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)),
-                                         time);
-        sceneComponent.setSizeTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
-                                     Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)),
-                                     time);
-      }
-      else {
-        sceneComponent.setPosition(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
-                                   Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)));
-        sceneComponent.setSize(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
-                               Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)));
-      }
-    }
   }
 
   protected void fireOnInflateStart() {
