@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
  *   <li>The other devices (in reversed natural order)
  *   <li>Pixel XL
  *   <li>Pixel
- *   <li>7.6" Fold-in with outer display
  *   <li>Resizable (Experimental)
  * </ol>
  */
@@ -49,7 +48,6 @@ final class NameComparator implements Comparator<Device> {
     DEVICE,
     PIXEL_XL,
     PIXEL,
-    SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY,
     RESIZABLE_EXPERIMENTAL;
 
     @NotNull
@@ -60,7 +58,6 @@ final class NameComparator implements Comparator<Device> {
         case "Medium Tablet" -> MEDIUM_TABLET;
         case "Pixel XL" -> PIXEL_XL;
         case "Pixel" -> PIXEL;
-        case "7.6\" Fold-in with outer display" -> SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY;
         case "Resizable (Experimental)" -> RESIZABLE_EXPERIMENTAL;
         default -> DEVICE;
       };
