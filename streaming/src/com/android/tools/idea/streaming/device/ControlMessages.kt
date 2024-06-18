@@ -522,7 +522,7 @@ internal data class DisplayConfigurationResponse(override val requestId: Int, va
         val height = stream.readInt()
         val orientation = stream.readInt()
         val type = try {
-          DisplayType.values()[stream.readInt()]
+          DisplayType.entries[stream.readInt()]
         }
         catch (e: ArrayIndexOutOfBoundsException) {
           DisplayType.UNKNOWN
