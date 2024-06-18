@@ -88,7 +88,7 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
       );
     }
     catch (WaitTimedOutError ex) {
-      PerformanceWatcher.getInstance().dumpThreads("finish-timeout", true);
+      PerformanceWatcher.getInstance().dumpThreads("finish-timeout", true, false);
       throw ex;
     }
   }
