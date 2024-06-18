@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JSlider
 import junit.framework.TestCase.assertTrue
-import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -167,7 +167,9 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
   }
 
   @Test
-  fun faultyClock() {
+  fun `show error panel on faulty clock`() {
+    var numberOfCalls = 0
+
     val clock =
       object : TestClockWithCoordination() {
         override fun updateFromAndToStates(
@@ -175,12 +177,35 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
           fromState: Any,
           toState: Any,
         ) {
+          numberOfCalls++
           throw ClassCastException("updateFromAndToStates fails")
         }
       }
 
-    assertFailsWith<AssertionError>("No animation is added") {
-      setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { _, ui -> }
+    val inspector = createAndOpenInspector()
+
+    val animation =
+      object : ComposeAnimation {
+        override val animationObject = Any()
+        override val type = animationType
+        override val states = setOf("one", "two")
+      }
+
+    runBlocking {
+      surface.sceneManagers.forEach { it.render() }
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
+      withContext(uiThread) {
+        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+        ui.updateToolbars()
+        ui.layout()
+        delayUntilCondition(200) { numberOfCalls == 1 }
+        val errorPanel =
+          TreeWalker(ui.root)
+            .descendantStream()
+            .filter { it is JPanel && it.name == "Error Panel" }
+            .findFirst()
+        assertTrue(errorPanel.isPresent)
+      }
     }
   }
 
