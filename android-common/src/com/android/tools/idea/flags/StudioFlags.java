@@ -1599,6 +1599,13 @@ public final class StudioFlags {
     "Enable unified device manager alongside existing device manager",
     "Continue showing original Device Manager even with unified device manager enabled",
     false);
+
+  public static final Flag<Boolean> RESIZABLE_EXPERIMENTAL_TWEAKS_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "resizable.experimental.tweaks.enabled",
+    "Enable the UI tweaks for the Resizable (Experimental) device definition",
+    "Enable the UI tweaks for the Resizable (Experimental) device definition",
+    true);
   // endregion
 
   //region DDMLIB
