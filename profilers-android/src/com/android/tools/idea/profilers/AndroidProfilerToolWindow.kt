@@ -34,6 +34,7 @@ import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.taskbased.common.constants.strings.StringUtils
 import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection
@@ -243,6 +244,37 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     currentTaskHandler?.let { taskHandler ->
       val enterSuccessful = taskHandler.enter(taskArgs)
     }
+
+    val createdTaskTab = window.getContentManager().selectedContent!!
+
+    createdTaskTab.setDisposer {
+      onTaskTabClose()
+    }
+  }
+
+  private fun onTaskTabClose() {
+    // On close of the task tab, end the current session/task if its ongoing and reset the current session selection.
+    // If the current task/session is ongoing/alive, terminate it and reset the selected session to reflect that the closed task is
+    // no longer selected.
+    val sessionsManager = profilers.sessionsManager
+    if (sessionsManager.isSessionAlive) {
+      // Reset the session selection when the ongoing task's session is ended and processed by the SessionsManager.
+      sessionsManager.addDependency(this).onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) {
+        // Remove this aspect listener to prevent repetitive/future calls.
+        sessionsManager.removeDependencies(this)
+        // Reflect the selected task being removed by resetting the session selection.
+        sessionsManager.resetSessionSelection()
+      }
+      // Stop the task which will also stop the underlying session.
+      currentTaskHandler!!.stopTask()
+    }
+    // If the task is already terminated on close, there is no need to end ongoing session.
+    else {
+      // Reflect the selected task being removed by resetting the session selection.
+      sessionsManager.resetSessionSelection()
+    }
+    currentTaskHandler!!.exit()
+    currentTaskHandler = null
   }
 
   /**

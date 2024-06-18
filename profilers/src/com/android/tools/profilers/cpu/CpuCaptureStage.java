@@ -363,7 +363,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
         // Update the UI notifying the user that the trace is being loaded by the Perfetto Web UI
         getStudioProfilers().getIdeServices().getMainExecutor().execute(
           () -> {
-            getStudioProfilers().getSessionsManager().setSession(Common.Session.getDefaultInstance());
+            getStudioProfilers().getSessionsManager().resetSessionSelection();
             getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION));
             setState(State.ANALYZING);
           });
@@ -385,7 +385,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
             getStudioProfilers().getIdeServices().getMainExecutor().execute(
               () -> {
                 // Deselect the imported session so user may import it again to retry.
-                getStudioProfilers().getSessionsManager().setSession(Common.Session.getDefaultInstance());
+                getStudioProfilers().getSessionsManager().resetSessionSelection();
                 getStudioProfilers().setStage(new NullMonitorStage(
                   getStudioProfilers(),
                   "The profiler was unable to parse the trace file. Please make sure the file selected is a valid trace."));

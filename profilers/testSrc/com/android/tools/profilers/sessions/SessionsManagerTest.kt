@@ -75,6 +75,7 @@ class SessionsManagerTest {
       .onChange(SessionAspect.SELECTED_SESSION) { myObserver.selectedSessionChanged() }
       .onChange(SessionAspect.PROFILING_SESSION) { myObserver.profilingSessionChanged() }
       .onChange(SessionAspect.SESSIONS) { myObserver.sessionsChanged() }
+      .onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) { myObserver.ongoingSessionEnded() }
 
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
@@ -126,8 +127,8 @@ class SessionsManagerTest {
   }
 
   @Test
-  fun testBeginSessionWithTask() {
-    ideProfilerServices.enableTaskBasedUx(false)
+  fun testBeginAndEndSessionWithTask() {
+    ideProfilerServices.enableTaskBasedUx(true)
     val streamId = 1L
     val pid = 10
     val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId).setState(Common.Device.State.ONLINE).build()
@@ -153,6 +154,14 @@ class SessionsManagerTest {
     assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
     assertThat(myObserver.profilingSessionChangedCount).isEqualTo(1)
     assertThat(myObserver.selectedSessionChangedCount).isEqualTo(1)
+    // The ongoing session has not been terminated, and thus the ONGOING_SESSION_NEWLY_ENDED aspect has not been fired yet.
+    assertThat(myObserver.ongoingSessionEndedCount).isEqualTo(0)
+
+    myManager.endCurrentSession()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // The ongoing session has been terminated, resulting in the firing of the ONGOING_SESSION_NEWLY_ENDED aspect.
+    assertThat(myObserver.ongoingSessionEndedCount).isEqualTo(1)
   }
 
   @Test
@@ -655,6 +664,23 @@ class SessionsManagerTest {
   }
 
   @Test
+  fun testImportedSessionDoesNotTriggerSessionNewlyEndedAspectWithTaskBasedUXEnabled() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    myTransportService.addEventToStream(
+      1, ProfilersTestData.generateSessionStartEvent(1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 1).build())
+    myManager.update()
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
+
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, 2).build())
+    myManager.update()
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
+    // The imported session's id is 1, so we do not expect that to be the selected session's id.
+    assertThat(myManager.selectedSession.sessionId).isEqualTo(0)
+    // Aspect should not have been triggered at all with imported session.
+    assertThat(myObserver.ongoingSessionEndedCount).isEqualTo(0)
+  }
+
+  @Test
   fun testSessionsAspectOnlyTriggeredWithChanges() {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
@@ -1002,6 +1028,7 @@ class SessionsManagerTest {
     var selectedSessionChangedCount: Int = 0
     var profilingSessionChangedCount: Int = 0
     var sessionsChangedCount: Int = 0
+    var ongoingSessionEndedCount: Int = 0
 
     internal fun selectedSessionChanged() {
       selectedSessionChangedCount++
@@ -1013,6 +1040,10 @@ class SessionsManagerTest {
 
     internal fun sessionsChanged() {
       sessionsChangedCount++
+    }
+
+    internal fun ongoingSessionEnded() {
+      ongoingSessionEndedCount++
     }
   }
 }

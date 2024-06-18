@@ -25,7 +25,8 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import org.jetbrains.annotations.NotNull
 import java.util.Optional
 
-class LiveStage(@NotNull private val profilers : StudioProfilers) : StreamingStage(profilers) {
+class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: () -> Unit) : StreamingStage(profilers) {
+  constructor(profilers : StudioProfilers) : this(profilers, {})
 
   @NotNull
   val liveModels = mutableListOf<LiveDataModel>()
