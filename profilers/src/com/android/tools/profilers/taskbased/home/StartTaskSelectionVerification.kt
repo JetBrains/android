@@ -118,6 +118,49 @@ object TaskSelectionVerificationUtils {
     }
 
   /**
+   * Assuming an error with starting a task from 'process start', this method returns an error indicating which selection is causing such
+   * failure. If the reason is not caught by the conditions outlined, null is returned, allowing the caller to handle such result.
+   */
+  fun getStartTaskFromProcessStartError(selectedTaskType: ProfilerTaskType,
+                                        selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+                                        selectedProcess: Common.Process,
+                                        profilers: StudioProfilers): StartTaskSelectionError {
+    assert(!canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers))
+    return if (!isSelectedProcessPreferred(selectedProcess, profilers)){
+      StartTaskSelectionError.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK
+    }
+    else if (!profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)) {
+      StartTaskSelectionError.TASK_UNSUPPORTED_ON_STARTUP
+    }
+    else if (!TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, selectedDevice!!.featureLevel)) {
+      StartTaskSelectionError.STARTUP_TASK_USING_UNSUPPORTED_DEVICE
+    }
+    else {
+      StartTaskSelectionError.GENERAL_ERROR
+    }
+  }
+
+  /**
+   * Assuming an error with starting a task from 'now', this method returns an error indicating which selection is causing such
+   * failure. If the reason is not caught by the conditions outlined, null is returned, allowing the caller to handle such result.
+   */
+  private fun getStartTaskFromNowStartError(selectedTaskType: ProfilerTaskType,
+                                            selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+                                            selectedProcess: Common.Process,
+                                            taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>): StartTaskSelectionError {
+    assert(!canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, taskHandlers))
+    return if (!isDeviceSelectionOnline(selectedDevice!!)) {
+      StartTaskSelectionError.DEVICE_SELECTION_IS_OFFLINE
+    }
+    else if (!taskHandlers[selectedTaskType]!!.supportsDeviceAndProcess(selectedDevice.device, selectedProcess)) {
+      StartTaskSelectionError.TASK_UNSUPPORTED_BY_DEVICE_OR_PROCESS
+    }
+    else {
+      StartTaskSelectionError.GENERAL_ERROR
+    }
+  }
+
+  /**
    * This method assumes that the user cannot start the task and thus should only be called when an error is certain. That said, this
    * method inspects the user's selections and returns a respective an error enum.
    *
@@ -142,30 +185,11 @@ object TaskSelectionVerificationUtils {
     }
     // Errors when attempting to perform a startup task.
     else if (profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START) {
-      if (!isSelectedProcessPreferred(selectedProcess, profilers)){
-        StartTaskSelectionError.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK
-      }
-      else if (!profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)) {
-        StartTaskSelectionError.TASK_UNSUPPORTED_ON_STARTUP
-      }
-      else if (!TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, selectedDevice!!.featureLevel)) {
-        StartTaskSelectionError.STARTUP_TASK_USING_UNSUPPORTED_DEVICE
-      }
-      else {
-        StartTaskSelectionError.GENERAL_ERROR
-      }
+      getStartTaskFromProcessStartError(selectedTaskType, selectedDevice, selectedProcess, profilers)
     }
     // Errors when attempting to perform a task from "now".
     else if (profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW) {
-      if (!isDeviceSelectionOnline(selectedDevice!!)) {
-        StartTaskSelectionError.DEVICE_SELECTION_IS_OFFLINE
-      }
-      else if (!profilers.taskHandlers[selectedTaskType]!!.supportsDeviceAndProcess(selectedDevice.device, selectedProcess)) {
-        StartTaskSelectionError.TASK_UNSUPPORTED_BY_DEVICE_OR_PROCESS
-      }
-      else {
-        StartTaskSelectionError.GENERAL_ERROR
-      }
+      getStartTaskFromNowStartError(selectedTaskType, selectedDevice, selectedProcess, profilers.taskHandlers)
     }
     else {
       StartTaskSelectionError.GENERAL_ERROR
