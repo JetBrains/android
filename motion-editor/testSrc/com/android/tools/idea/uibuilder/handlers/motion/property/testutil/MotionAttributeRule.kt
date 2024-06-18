@@ -176,6 +176,7 @@ class MotionAttributeRule(
           queue,
         )
       model!!.surface = nlModel!!.surface
+      model!!.setResolver(nlModel!!.configuration.resourceResolver)
     }
   }
 

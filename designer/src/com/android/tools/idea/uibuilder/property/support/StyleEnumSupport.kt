@@ -40,7 +40,7 @@ const val OTHER_HEADER = "Other"
  */
 open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
   protected val facet = property.model.facet
-  protected val resolver = property.resolver
+  protected val resolver = property.model.resolver
   protected val derivedStyles = DerivedStyleFinder(facet, resolver)
   private var lastResult: List<EnumValue>? = null
 

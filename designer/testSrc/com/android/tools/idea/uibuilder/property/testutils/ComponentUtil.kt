@@ -117,7 +117,7 @@ object ComponentUtil {
         runBlocking {
           // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
           // asynchronously.
-          delayUntilCondition(10) { it.resolver != null }
+          delayUntilCondition(10) { it.model.resolver != null }
         }
       }
   }

@@ -159,8 +159,8 @@ open class TestableColorSelectionAction(
     var resourceValue: ResourceValue? = null
     val currentColor =
       if (resourceReference != null) {
-        resourceValue = property.resolver?.getResolvedResource(resourceReference)
-        property.resolver?.resolveColor(resourceValue, property.project)
+        resourceValue = property.model.resolver?.getResolvedResource(resourceReference)
+        property.model.resolver?.resolveColor(resourceValue, property.project)
       } else {
         property.resolveValueAsColor(property.rawValue)
       }
