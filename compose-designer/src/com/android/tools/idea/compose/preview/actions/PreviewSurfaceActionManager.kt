@@ -27,7 +27,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
-import com.android.tools.idea.preview.actions.disabledIfRefreshingOrHasErrors
+import com.android.tools.idea.preview.actions.disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -97,7 +97,7 @@ internal class PreviewSurfaceActionManager(
           EnableInteractiveAction(),
           DeployToDeviceAction(),
         )
-        .disabledIfRefreshingOrHasErrors()
+        .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview()
 
