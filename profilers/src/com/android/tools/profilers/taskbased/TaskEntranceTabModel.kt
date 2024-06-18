@@ -55,7 +55,7 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers): AspectObser
     if (currentTaskHandler != null) {
       val dialogTitle = if (isTaskOngoing) "Confirm Termination of Ongoing Recording" else "Confirm Close of Currently Open Task"
       // Prompt/warn the user that there can only be one task tab open at a time, so starting a new task will close the current one first.
-      val dialogMsg = "Profiler is currently capable of showing only one task at this time. Starting a new task or opening a task " +
+      val dialogMsg = "Profiler displays only one task at this time. Starting a new task or opening a task " +
                       "recording will ${if (isTaskOngoing) "terminate your ongoing recording." else "close your currently open task."}"
 
       // Retrieve user selection for "Do not ask again" checkbox on dialog. Prevent dialog from showing if true.
