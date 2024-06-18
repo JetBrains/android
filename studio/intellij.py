@@ -102,11 +102,11 @@ def _read_plugin_id(path: Path):
   xml = load_plugin_xml(jars, [])
 
   # The id of a plugin is defined as the id tag and if missing, the name tag.
-  ids = xml.findall("id")
-  if len(ids) > 1:
+  ids = [id.text for id in xml.findall("id")]
+  if len(set(ids)) > 1:
     sys.exit(f"Too many plugin ids found in plugin: {path}")
-  if len(ids) == 1:
-    return ids[0].text
+  if len(ids) >= 1:
+    return ids[0]
   names = xml.findall("name")
   if len(names) > 1:
     sys.exit(f"Too many plugin names found (for plugin without id): {path}")
