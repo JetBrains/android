@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.model.meta.getValue
@@ -24,6 +25,7 @@ import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.model.android.DependencyResultLocation
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
@@ -39,7 +41,8 @@ class PsProjectImpl(
   override val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 ) : PsChildModel(), PsProject {
   override val descriptor by PsProjectDescriptors
-  override var parsedModel: ProjectBuildModel = GradleModelProvider.getInstance().getProjectModel(ideProject); private set
+  override var parsedModel: ProjectBuildModel = GradleModelProvider.getInstance().getProjectModel(ideProject).withAgpVersionContext(ideProject)
+    private set
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override val buildScriptVariables: PsVariables
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
@@ -115,7 +118,7 @@ class PsProjectImpl(
         }
         isModified = false
       }
-      parsedModel = GradleModelProvider.getInstance().getProjectModel(ideProject)
+      parsedModel = GradleModelProvider.getInstance().getProjectModel(ideProject).withAgpVersionContext(ideProject)
       variables.refresh()
       buildScriptVariables.refresh()
       internalResolvedModuleModels = null
@@ -140,7 +143,7 @@ class PsProjectImpl(
       }
     }
     if (runnable()) {
-      parsedModel = GradleModelProvider.getInstance().getProjectModel(ideProject)
+      parsedModel = GradleModelProvider.getInstance().getProjectModel(ideProject).withAgpVersionContext(ideProject)
       variables.refresh()
       internalResolvedModuleModels = null
       moduleCollection.refresh()
@@ -175,3 +178,9 @@ fun PsProjectImpl.testResolve() {
   refreshFrom(GradleResolver().requestProjectResolved(ideProject, ideProject).get(90, TimeUnit.SECONDS))
 }
 
+private fun ProjectBuildModel.withAgpVersionContext(project: Project): ProjectBuildModel =
+  this.also {
+    GradleProjectSystemUtil.getLastSuccessfulAndroidGradlePluginVersion(project)?.let {
+      this.context.agpVersion = AndroidGradlePluginVersion.tryParse(it)
+    }
+  }
