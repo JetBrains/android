@@ -27,7 +27,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.adtui.compose.JewelTestTheme
+import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -87,7 +87,7 @@ class TaskGridTest {
     singleWindowApplication(
       title = "Testing TaskGrid in Dark Theme",
     ) {
-      JewelTestTheme(darkMode = false) {
+      StudioTestTheme(darkMode = false) {
         TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
       }
     }
@@ -99,7 +99,7 @@ class TaskGridTest {
     singleWindowApplication(
       title = "Testing TaskGrid in Dark Theme",
     ) {
-      JewelTestTheme(darkMode = false) {
+      StudioTestTheme(darkMode = false) {
         val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
                                                                                Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
         val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
@@ -115,7 +115,7 @@ class TaskGridTest {
     singleWindowApplication(
       title = "Testing TaskGrid in Dark Theme",
     ) {
-      JewelTestTheme(darkMode = true) {
+      StudioTestTheme(darkMode = true) {
         TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
       }
     }
@@ -127,7 +127,7 @@ class TaskGridTest {
     singleWindowApplication(
       title = "Testing TaskGrid in Dark Theme",
     ) {
-      JewelTestTheme(darkMode = true) {
+      StudioTestTheme(darkMode = true) {
         val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
                                                                                Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
         val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
@@ -141,7 +141,7 @@ class TaskGridTest {
   fun `correct number of task grid items are displayed and clickable`() {
     // There should be one task grid item for every task handler. Seven task handlers were added in the setup step of this test.
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
       }
     }
@@ -160,7 +160,7 @@ class TaskGridTest {
   @Test
   fun `clicking task registers task type selection in model`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
       }
     }
@@ -176,7 +176,7 @@ class TaskGridTest {
   @Test
   fun `only supported tasks show up on recording selection (single supported task)`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
                                                                                Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
         val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,

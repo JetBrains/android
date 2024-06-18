@@ -23,7 +23,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
-import com.android.tools.adtui.compose.JewelTestTheme
+import com.android.tools.adtui.compose.StudioTestTheme
 import org.junit.Rule
 import org.junit.Test
 
@@ -33,7 +33,7 @@ class DeviceTableTest {
   @Test
   fun toggleGoogleOem() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         val source = TestDeviceSource()
         source.apply { TestDevices.allTestDevices.forEach { add(it) } }
         DeviceTable(source.profiles)
@@ -52,7 +52,7 @@ class DeviceTableTest {
   @Test
   fun textSearch() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         val source = TestDeviceSource()
         source.apply { TestDevices.allTestDevices.forEach { add(it) } }
         DeviceTable(source.profiles)

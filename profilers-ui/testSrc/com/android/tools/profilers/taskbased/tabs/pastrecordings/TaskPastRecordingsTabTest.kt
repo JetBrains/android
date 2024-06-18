@@ -25,7 +25,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.adtui.compose.JewelTestTheme
+import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -92,7 +92,7 @@ class TaskPastRecordingsTabTest {
     singleWindowApplication(
       title = "Testing TaskPastRecordingTab",
     ) {
-      JewelTestTheme(darkMode = false) {
+      StudioTestTheme(darkMode = false) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -104,7 +104,7 @@ class TaskPastRecordingsTabTest {
     singleWindowApplication(
       title = "Testing TaskPastRecordingTab",
     ) {
-      JewelTestTheme(darkMode = true) {
+      StudioTestTheme(darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -113,7 +113,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `selecting recording and task enable open profiler task button`() {
     composeTestRule.setContent {
-      JewelTestTheme {
+      StudioTestTheme {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -152,7 +152,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `test selection of non-exportable recording does not enable the export button click action`() {
     composeTestRule.setContent {
-      JewelTestTheme (darkMode = true) {
+      StudioTestTheme (darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -185,7 +185,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `test selection of exportable recording enables export button click action`() {
     composeTestRule.setContent {
-      JewelTestTheme (darkMode = true) {
+      StudioTestTheme (darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -218,7 +218,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `test selection of deletable recording enables delete recording button click action`() {
     composeTestRule.setContent {
-      JewelTestTheme (darkMode = true) {
+      StudioTestTheme (darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
@@ -248,7 +248,7 @@ class TaskPastRecordingsTabTest {
   @Test
   fun `test deletion of selected recording updates rendered list`() {
     composeTestRule.setContent {
-      JewelTestTheme (darkMode = true) {
+      StudioTestTheme (darkMode = true) {
         TaskPastRecordingsTab(pastRecordingsTabModel, myComponents)
       }
     }
