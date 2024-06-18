@@ -47,6 +47,11 @@ internal constructor(
   private val size: Storage,
 ) {
   internal fun matches(device: VirtualDevice): Boolean {
+    // TODO: http://b/347053479
+    if (androidVersion.isPreview) {
+      return false
+    }
+
     if (androidVersion.apiLevel != device.androidVersion.apiLevel) {
       return false
     }
