@@ -310,11 +310,7 @@ class LogcatMainPanelTest {
       logcatMainPanel.applyFilter(StringFilter("tag1", LINE, matchCase = true, EMPTY_RANGE))
     }
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      5,
-      SECONDS,
-    )
+    awaitQuiescence()
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText())
         .isEqualTo(
@@ -336,6 +332,8 @@ class LogcatMainPanelTest {
           it.formattingOptions.copy(tagFormat = TagFormat(hideDuplicates = true))
       }
     }
+    // Changing the format triggers a reload, so we wait for quiescence
+    awaitQuiescence()
 
     logcatMainPanel.processMessages(
       listOf(
@@ -354,11 +352,7 @@ class LogcatMainPanelTest {
       logcatMainPanel.applyFilter(StringFilter("message", LINE, matchCase = true, EMPTY_RANGE))
     }
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      5,
-      SECONDS,
-    )
+    awaitQuiescence()
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText())
         .isEqualTo(
@@ -482,11 +476,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.clearMessageView()
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     runInEdtAndWait {}
     assertThat(logcatMainPanel.editor.document.immutableText().isEmpty())
     assertThat(logcatMainPanel.messageBacklog.get().messages).isEmpty()
@@ -505,11 +495,7 @@ class LogcatMainPanelTest {
 
     project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device1.serialNumber)
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     runInEdtAndWait {}
     assertThat(logcatMainPanel.editor.document.immutableText().isEmpty())
   }
@@ -527,11 +513,7 @@ class LogcatMainPanelTest {
 
     project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device2.serialNumber)
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     runInEdtAndWait {}
     assertThat(logcatMainPanel.editor.document.immutableText()).isEqualTo("not-empty")
   }
@@ -714,11 +696,7 @@ class LogcatMainPanelTest {
 
     runInEdtAndWait(logcatMainPanel::reloadMessages)
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
 
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText())
@@ -914,11 +892,7 @@ class LogcatMainPanelTest {
       logcatMainPanel.formattingOptions = COMPACT.formattingOptions
     }
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText().trim())
         .isEqualTo("04:00:01.000  W  message1")
@@ -1476,11 +1450,7 @@ class LogcatMainPanelTest {
 
     runInEdtAndWait { fakeProjectApplicationIdsProvider.setApplicationIds("app1") }
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText().trim())
         .isEqualTo(
@@ -1605,4 +1575,12 @@ private fun Document.waitForCondition(
     )
     throw e
   }
+}
+
+private fun awaitQuiescence() {
+  ConcurrencyUtil.awaitQuiescence(
+    AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
+    TIMEOUT_SEC,
+    SECONDS,
+  )
 }
