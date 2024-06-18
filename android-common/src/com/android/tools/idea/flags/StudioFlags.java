@@ -634,6 +634,14 @@ public final class StudioFlags {
     "Enable Logcat Protobuf format",
     true
   );
+
+  public static final Flag<Long> LOGCAT_FILE_RELOAD_DELAY_MS = new LongFlag(
+    LOGCAT,
+    "file.reload.delay.ms",
+    "Delay before reloading Logcat from file after filter change",
+    "Delay before reloading Logcat from file after filter change. If `<= 0`, file will not be reloaded",
+    TimeUnit.SECONDS.toMillis(1)
+  );
   //endregion
 
   //region Project System
