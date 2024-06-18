@@ -61,14 +61,29 @@ class TomlErrorParser : BuildOutputParser {
     if (firstDescriptionLine.endsWith("Invalid TOML catalog definition:")) {
       val description = StringBuilder().appendLine("Invalid TOML catalog definition.")
       val problemLine = reader.readLine() ?: return false
-      val catalogName = PROBLEM_LINE_PATTERN.matchEntire(problemLine)?.groupValues?.get(1) ?: return false
-      description.appendLine(problemLine)
-      val events = extractIssueInformation(catalogName, description, reader) +
-                   extractAliasBasedIssueInformation(description,reader)
-      events.forEach { messageConsumer.accept(it) }
-      BuildOutputParserUtils.consumeRestOfOutput(reader)
-      return events.isNotEmpty()
-    } else if (firstDescriptionLine.endsWith("Invalid catalog definition:")) {
+
+      PROBLEM_TOP_LEVEL_PATTERN.matchEntire(problemLine)?.let {
+        val (catalog, tableName) = it.destructured
+        description.appendLine(problemLine)
+        while (true) {
+          val descriptionLine = reader.readLine()
+          if (descriptionLine == null || descriptionLine.startsWith("> Invalid TOML catalog definition")) break
+          description.appendLine(descriptionLine)
+        }
+        messageConsumer.accept(extractTopLevelAlias(catalog, tableName, description, reader))
+        BuildOutputParserUtils.consumeRestOfOutput(reader)
+        return true
+      }
+      PROBLEM_LINE_PATTERN.matchEntire(problemLine)?.let {
+        val catalogName = it.groupValues[1]
+        description.appendLine(problemLine)
+        val events = extractIssueInformation(catalogName, description, reader)
+        events.forEach { messageConsumer.accept(it) }
+        BuildOutputParserUtils.consumeRestOfOutput(reader)
+        return events.isNotEmpty()
+      }
+    }
+    else if (firstDescriptionLine.endsWith("Invalid catalog definition:")) {
       val description = StringBuilder().appendLine("Invalid catalog definition.")
       val problemLine = reader.readLine() ?: return false
       description.appendLine(problemLine)
@@ -87,7 +102,7 @@ class TomlErrorParser : BuildOutputParser {
   private fun extractTopLevelAlias(catalog: String,
                                    alias: String,
                                    description: StringBuilder,
-                                   reader: BuildOutputInstantReader):BuildIssueEventImpl{
+                                   reader: BuildOutputInstantReader): BuildIssueEventImpl {
     val buildIssue = object : BuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
@@ -112,7 +127,7 @@ class TomlErrorParser : BuildOutputParser {
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
 
-  private fun getElementLineAndColumn(element: PsiElement):Pair<Int,Int>?  {
+  private fun getElementLineAndColumn(element: PsiElement): Pair<Int, Int>? {
     val document = element.containingFile.viewProvider.document ?: return null
     val lineNumber = document.getLineNumber(element.textOffset)
     val columnNumber = element.textOffset - document.getLineStartOffset(lineNumber)
@@ -123,7 +138,7 @@ class TomlErrorParser : BuildOutputParser {
                                       type: String,
                                       alias: String,
                                       description: StringBuilder,
-                                      reader: BuildOutputInstantReader):BuildIssueEventImpl? {
+                                      reader: BuildOutputInstantReader): BuildIssueEventImpl? {
 
     while (true) {
       val descriptionLine = reader.readLine() ?: return null
@@ -162,21 +177,6 @@ class TomlErrorParser : BuildOutputParser {
     val line: Int?,
     val column: Int?
   )
-
-
-
-  private fun extractAliasBasedIssueInformation(description: StringBuilder,
-                                      reader: BuildOutputInstantReader): List<BuildIssueEventImpl> {
-    while (true) {
-      val descriptionLine = reader.readLine() ?: return listOf()
-      if (descriptionLine.startsWith("> Invalid TOML catalog definition")) break
-      PROBLEM_TOP_LEVEL_PATTERN.matchEntire(descriptionLine)?.let {
-        val (catalog, tableName) = it.destructured
-        return listOf(extractTopLevelAlias(catalog, tableName, description, reader))
-      }
-    }
-    return listOf()
-  }
 
   private fun extractIssueInformation(catalog: String,
                                       description: StringBuilder,
@@ -229,16 +229,16 @@ class TomlErrorParser : BuildOutputParser {
   companion object {
     const val BUILD_ISSUE_TITLE: String = "Invalid TOML catalog definition."
     val PROBLEM_LINE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+),.*".toRegex()
-    val PROBLEM_ALIAS_PATTERN: Regex =  "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
+    val PROBLEM_ALIAS_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
     val PROBLEM_TOP_LEVEL_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), unknown top level elements \\[([^ ]+)\\].*".toRegex()
     val REASON_POSITION_PATTERN: Regex = "\\s+Reason: At line ([0-9]+), column ([0-9]+):.*".toRegex()
     val REASON_FILE_AND_POSITION_PATTERN: Regex = "\\s+Reason: In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
     val REASON_FILE_AND_POSITION_PATTERN_CONTINUATION: Regex = "\\s+In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
 
     private val TYPE_NAMING_PARSING = mapOf("bundle" to "bundles",
-                              "version" to "versions",
-                              "library" to "libraries",
-                              "plugin" to "plugins")
+                                            "version" to "versions",
+                                            "library" to "libraries",
+                                            "plugin" to "plugins")
   }
 
 }
