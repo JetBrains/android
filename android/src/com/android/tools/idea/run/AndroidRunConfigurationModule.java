@@ -45,7 +45,7 @@ public class AndroidRunConfigurationModule extends JavaRunConfigurationModule {
     Module module = getModule();
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if ( myIsTestConfiguration && facet != null && facet.getProperties().PROJECT_TYPE != PROJECT_TYPE_TEST) {
+      if (myIsTestConfiguration && facet != null && facet.getProperties().PROJECT_TYPE != PROJECT_TYPE_TEST) {
         module = ModuleSystemUtil.getAndroidTestModule(module);
       } else {
         module = ModuleSystemUtil.getMainModule(module);
