@@ -28,7 +28,8 @@ import org.jetbrains.jewel.ui.component.DefaultButton
 
 @Composable
 fun StartTaskButton(canStartTask: Boolean, isProfileablePreferredButNotPresent: Boolean, onClick: () -> Unit) {
-  EnterTaskButton(if (isProfileablePreferredButNotPresent) START_PROFILER_TASK_ANYWAY else START_PROFILER_TASK, canStartTask, onClick)
+  EnterTaskButton(if (isProfileablePreferredButNotPresent && canStartTask) START_PROFILER_TASK_ANYWAY else START_PROFILER_TASK,
+                  canStartTask, onClick)
 }
 
 @Composable
