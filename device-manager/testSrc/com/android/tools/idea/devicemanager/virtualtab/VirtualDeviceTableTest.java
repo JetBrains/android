@@ -68,8 +68,7 @@ public final class VirtualDeviceTableTest {
 
   @Test
   public void selectDevice() throws InterruptedException {
-    AvdInfo avdInfo = new AvdInfo("Pixel 5",
-                                  Paths.get("ini", "file"),
+    AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   null,
