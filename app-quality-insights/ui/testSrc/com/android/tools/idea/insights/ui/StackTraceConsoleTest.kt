@@ -20,6 +20,7 @@ import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.Blames
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.ExceptionStack
 import com.android.tools.idea.insights.Frame
@@ -267,6 +268,20 @@ class StackTraceConsoleTest {
             hyperlinks.findAllHyperlinksOnLine(2).isEmpty()
         }
       }
+    }
+  }
+
+  @Test
+  fun `when event is EMPTY, error message is printed`() = executeWithErrorProcessor {
+    runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
+      controllerRule.consumeInitialState(
+        fetchState,
+        eventsState = LoadingState.Ready(EventPage(listOf(Event.EMPTY), "")),
+      )
+      stackTraceConsole.consoleView.waitAllRequests()
+
+      assertThat(stackTraceConsole.consoleView.component.isVisible).isFalse()
+      assertThat(stackTraceConsole.emptyStatePane.isVisible).isTrue()
     }
   }
 }
