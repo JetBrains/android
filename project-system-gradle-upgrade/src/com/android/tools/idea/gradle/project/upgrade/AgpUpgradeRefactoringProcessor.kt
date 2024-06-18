@@ -112,9 +112,11 @@ internal const val LOG_CATEGORY = "Upgrade Assistant"
 private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
-  constructor(project: Project) : super(project) {
+  constructor(project: Project, agpVersion: AgpVersion) : super(project) {
     this.project = project
-    this.projectBuildModel = ProjectBuildModel.get(project)
+    this.projectBuildModel =
+      ProjectBuildModel.get(project)
+        .also { it.context.agpVersion = AndroidGradlePluginVersion.tryParse(agpVersion.toString()) }
   }
   constructor(processor: GradleBuildModelRefactoringProcessor): super(processor.project) {
     this.project = processor.project
@@ -261,7 +263,7 @@ class AgpUpgradeRefactoringProcessor(
   project: Project,
   val current: AgpVersion,
   val new: AgpVersion
-) : GradleBuildModelRefactoringProcessor(project) {
+) : GradleBuildModelRefactoringProcessor(project, current) {
 
   val uuid = UUID.randomUUID().toString()
   val agpVersionRefactoringProcessor by lazy { componentRefactoringProcessors.firstNotNullOf { it as? AgpVersionRefactoringProcessor } }
@@ -829,7 +831,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   val isBlocked: Boolean
     get() = blockProcessorReasons().isNotEmpty()
 
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project) {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current) {
     this.current = current
     this.new = new
     this.uuid = UUID.randomUUID().toString()
