@@ -379,11 +379,11 @@ class TestProjectSystemBuildManager(
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult = lastBuildResult
 
   override fun compileProject() {
-    simulateBuild(BuildMode.ASSEMBLE)
+    simulateBuild(BuildMode.COMPILE_OR_ASSEMBLE)
   }
 
   override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-    simulateBuild(BuildMode.COMPILE)
+    simulateBuild(BuildMode.COMPILE_OR_ASSEMBLE)
   }
 
   override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
