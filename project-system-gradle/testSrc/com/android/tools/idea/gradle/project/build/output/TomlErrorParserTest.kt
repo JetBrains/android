@@ -20,9 +20,14 @@ import com.google.common.base.Charsets
 import com.google.common.base.Splitter
 import com.google.common.truth.Truth
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.impl.BuildIssueEventImpl
+import com.intellij.build.issue.BuildIssue
+import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.pom.Navigatable
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -125,6 +130,72 @@ class TomlErrorParserTest {
     }
 
   }
+
+  @Test
+  @RunsInEdt
+  fun testTomlAliasDuplication() {
+    var file: VirtualFile? = null
+    var gradleDir: VirtualFile? = null
+    runWriteAction {
+      gradleDir = project.baseDir?.createChildDirectory(this, "gradle")
+      file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
+      file?.setBinaryContent("""
+          [versions]
+          coreKtx = "1.10.1"
+          [libraries]
+          androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+          androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+          androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+          """.trimIndent().toByteArray(Charsets.UTF_8))
+    }
+    try {
+      val buildOutput = getVersionCatalogDuplicationAliasBuildOutput(project.basePath!!)
+
+      val parser = TomlErrorParser()
+      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+      val consumer = TestMessageEventConsumer()
+
+      val line = reader.readLine()!!
+      val parsed = parser.parse(line, reader, consumer)
+      Truth.assertThat(parsed).isTrue()
+
+      class BuildIssueTest(val logicalLine:Int, val logicalColumn:Int):BuildIssue {
+        override val description: String = getVersionCatalogDuplicateAliasDescription(project.basePath!!)
+        override val quickFixes: List<BuildIssueQuickFix> = listOf()
+        override val title: String = "Invalid TOML catalog definition."
+        override fun getNavigatable(project: Project): Navigatable {
+          return OpenFileDescriptor(project, file!!, logicalLine, logicalColumn)
+        }
+      }
+
+      val expected = arrayOf(
+        BuildIssueEventImpl(reader.parentEventId, BuildIssueTest(13,0), MessageEvent.Kind.ERROR),
+        BuildIssueEventImpl(reader.parentEventId, BuildIssueTest(14,0), MessageEvent.Kind.ERROR)
+      )
+     val output = consumer.messageEvents.filterIsInstance<MessageEvent>()
+       Truth.assertThat(output).hasSize(2)
+         expected.zip(output).forEach {
+           Truth.assertThat(it.first.parentId).isEqualTo(it.second.parentId)
+           Truth.assertThat(it.first.message).isEqualTo(it.second.message)
+           Truth.assertThat(it.first.kind).isEqualTo(it.second.kind)
+           Truth.assertThat(it.first.description).isEqualTo(it.second.description)
+
+           (it.first.getNavigatable(project) as OpenFileDescriptor to
+             it.second.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
+             Truth.assertThat(ofd.first.line).isEqualTo(ofd.second.line)
+             Truth.assertThat(ofd.first.column).isEqualTo(ofd.second.column)
+             Truth.assertThat(ofd.first.file).isEqualTo(ofd.second.file)
+           }
+         }
+    }
+    finally {
+      runWriteAction {
+        file?.delete(this)
+        gradleDir?.delete(this)
+      }
+    }
+  }
+
   @Test
   @RunsInEdt
   fun testTomlErrorParsedAndNavigable() {
@@ -285,6 +356,47 @@ Invalid TOML catalog definition.
     Please refer to https://docs.gradle.org/7.4/userguide/version_catalog_problems.html#toml_syntax_error for more details about this problem.
       """.trimIndent()
   }
+
+  fun getVersionCatalogDuplicationAliasBuildOutput(baseDir: String): String = """
+    FAILURE: Build failed with an exception.
+
+    * What went wrong:
+    org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
+      - Problem: In version catalog libs, parsing failed with 3 errors.
+        
+        Reason: In file '${baseDir}/gradle/libs.versions.toml' at line 14, column 1: androidx-core-ktx previously defined at line 13, column 1
+        In file '${baseDir}/gradle/libs.versions.toml' at line 15, column 1: androidx-core-ktx previously defined at line 13, column 1
+        
+        Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
+        
+        For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
+    > Invalid TOML catalog definition:
+        - Problem: In version catalog libs, parsing failed with 3 errors.
+          
+          Reason: In file '${baseDir}/gradle/libs.versions.toml' at line 14, column 1: androidx-core-ktx previously defined at line 13, column 1
+          In file '${baseDir}/gradle/libs.versions.toml' at line 15, column 1: androidx-core-ktx previously defined at line 13, column 1
+          
+          Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
+          
+          For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
+
+    * Try:
+    > Run with --info or --debug option to get more log output.
+    > Run with --scan to get full insights.
+    > Get more help at https://help.gradle.org.
+  """.trimIndent()
+
+  fun getVersionCatalogDuplicateAliasDescription(baseDir: String):String = """
+    Invalid TOML catalog definition.
+      - Problem: In version catalog libs, parsing failed with 3 errors.
+        
+        Reason: In file '${baseDir}/gradle/libs.versions.toml' at line 14, column 1: androidx-core-ktx previously defined at line 13, column 1
+        In file '${baseDir}/gradle/libs.versions.toml' at line 15, column 1: androidx-core-ktx previously defined at line 13, column 1
+        
+        Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
+        
+        For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
+  """.trimIndent()
 
   fun getVersionCatalogAliasFailureBuildOutput():String  = """
 FAILURE: Build failed with an exception.

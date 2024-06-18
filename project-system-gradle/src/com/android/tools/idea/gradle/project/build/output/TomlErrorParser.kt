@@ -61,10 +61,10 @@ class TomlErrorParser : BuildOutputParser {
       val problemLine = reader.readLine() ?: return false
       val catalogName = PROBLEM_LINE_PATTERN.matchEntire(problemLine)?.groupValues?.get(1) ?: return false
       description.appendLine(problemLine)
-      val event = extractIssueInformation(catalogName, description, reader) ?: return false
-      messageConsumer.accept(event)
+      val events = extractIssueInformation(catalogName, description, reader)
+      events.forEach { messageConsumer.accept(it) }
       BuildOutputParserUtils.consumeRestOfOutput(reader)
-      return true
+      return events.isNotEmpty()
     } else if (firstDescriptionLine.endsWith("Invalid catalog definition:")) {
       val description = StringBuilder().appendLine("Invalid catalog definition.")
       val problemLine = reader.readLine() ?: return false
@@ -120,41 +120,56 @@ class TomlErrorParser : BuildOutputParser {
     }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
-  private fun extractIssueInformation(catalog: String, description: StringBuilder, reader: BuildOutputInstantReader):BuildIssueEventImpl?{
-    var reasonPosition: Pair<Int?, Int?>? = null
-    var absolutePath: String? = null
+
+  private data class ErrorDescription(
+    val absolutePath: String?,
+    val line: Int?,
+    val column: Int?
+  )
+
+  private fun extractIssueInformation(catalog: String,
+                                      description: StringBuilder,
+                                      reader: BuildOutputInstantReader): List<BuildIssueEventImpl> {
+    val errorDescriptions = mutableListOf<ErrorDescription>()
     while (true) {
-      val descriptionLine = reader.readLine() ?: return null
+      val descriptionLine = reader.readLine() ?: return listOf()
       if (descriptionLine.startsWith("> Invalid TOML catalog definition")) break
-      if (reasonPosition == null) {
+      if (errorDescriptions.isEmpty()) {
         REASON_POSITION_PATTERN.matchEntire(descriptionLine)?.run {
           val (line, column) = destructured
-          reasonPosition = line.toIntOrNull() to column.toIntOrNull()
+          errorDescriptions.add(ErrorDescription(null, line.toIntOrNull(), column.toIntOrNull()))
         }
         REASON_FILE_AND_POSITION_PATTERN.matchEntire(descriptionLine)?.let {
           val (file, line, column) = it.destructured
-          reasonPosition = line.toIntOrNull() to column.toIntOrNull()
-          absolutePath = file
+          errorDescriptions.add(ErrorDescription(file, line.toIntOrNull(), column.toIntOrNull()))
+        }
+      }
+      else {
+        REASON_FILE_AND_POSITION_PATTERN_CONTINUATION.matchEntire(descriptionLine)?.let {
+          val (file, line, column) = it.destructured
+          errorDescriptions.add(ErrorDescription(file, line.toIntOrNull(), column.toIntOrNull()))
         }
       }
       description.appendLine(descriptionLine)
     }
 
-    val buildIssue = object : BuildIssue {
-      override val description: String = description.toString().trimEnd()
-      override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = BUILD_ISSUE_TITLE
+    return errorDescriptions.map { error ->
+      val buildIssue = object : BuildIssue {
+        override val description: String = description.toString().trimEnd()
+        override val quickFixes: List<BuildIssueQuickFix> = emptyList()
+        override val title: String = BUILD_ISSUE_TITLE
 
-      override fun getNavigatable(project: Project): Navigatable? {
-        val tomlFile = when {
-                         absolutePath != null -> VfsUtil.findFile(Paths.get(absolutePath), false)
-                         catalog != null -> project.findCatalogFile(catalog)
-                         else -> null
-                       } ?: return null
-        return OpenFileDescriptor(project, tomlFile, reasonPosition?.first?.minus(1) ?: 0, reasonPosition?.second?.minus(1) ?: 0)
+        override fun getNavigatable(project: Project): Navigatable? {
+          val tomlFile = when {
+                           error.absolutePath != null -> VfsUtil.findFile(Paths.get(error.absolutePath), false)
+                           catalog != null -> project.findCatalogFile(catalog)
+                           else -> null
+                         } ?: return null
+          return OpenFileDescriptor(project, tomlFile, error.line?.minus(1) ?: 0, error.column?.minus(1) ?: 0)
+        }
       }
+      BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
     }
-    return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
 
   fun Project.findCatalogFile(catalog: String): VirtualFile? =
@@ -165,7 +180,9 @@ class TomlErrorParser : BuildOutputParser {
     val PROBLEM_LINE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), parsing failed with [0-9]+ error(?:s)?.".toRegex()
     val PROBLEM_ALIAS_PATTERN: Regex =  "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
     val REASON_POSITION_PATTERN: Regex = "\\s+Reason: At line ([0-9]+), column ([0-9]+):.*".toRegex()
+
     val REASON_FILE_AND_POSITION_PATTERN: Regex = "\\s+Reason: In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
+    val REASON_FILE_AND_POSITION_PATTERN_CONTINUATION: Regex = "\\s+In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
 
     private val TYPE_NAMING_PARSING = mapOf("bundle" to "bundles",
                               "version" to "versions",
