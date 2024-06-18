@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation.actions
+package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.idea.compose.preview.message
 import com.intellij.ide.ui.laf.darcula.ui.ComboBoxButtonUI
