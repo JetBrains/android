@@ -31,7 +31,7 @@ private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)")
 
 internal class AskStudioBotAction : DumbAwareAction(StudioIcons.StudioBot.ASK) {
 
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   private fun getLabel(selection: String?, message: String?): String? =
     when {
