@@ -194,15 +194,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
-    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
-    // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device Client Monitor");
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device List Monitor");
-    // AdbService is application-level and so executor threads are reported as leaked
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "AdbService Executor");
-    // MonitorThread from ddmlib is often created during unrelated tests
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Monitor");
+    registerLongRunningThreads();
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
@@ -283,6 +275,21 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     //noinspection ResultOfMethodCallIgnored
     new File(moduleRoot + "/gen/").mkdir();
     moduleFixtureBuilder.addSourceRoot("gen");
+  }
+
+  public static void registerLongRunningThreads() {
+    ThreadLeakTracker.longRunningThreadCreated(
+      ApplicationManager.getApplication(),
+      // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
+      "Layoutlib",
+      // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
+      "Device Client Monitor",
+      "Device List Monitor",
+      "fake-adb-server-connection-pool",
+      // AdbService is application-level and so executor threads are reported as leaked
+      "AdbService Executor",
+      // MonitorThread from ddmlib is often created during unrelated tests
+      "Monitor");
   }
 
   /**
