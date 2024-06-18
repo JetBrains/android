@@ -90,93 +90,27 @@ class TomlErrorParserTest {
   @Test
   @RunsInEdt
   fun testTomlAliasErrorParsedAndNavigable() {
-    var file: VirtualFile? = null
-    var gradleDir: VirtualFile? = null
-    runWriteAction {
-      gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
-      file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
-      file?.setBinaryContent("""
-        [libraries]
-        a = "group:name:1.0"
-      """.trimIndent().toByteArray(Charsets.UTF_8))
-    }
-    try {
-      val buildOutput = getVersionCatalogAliasFailureBuildOutput()
-
-      val parser = TomlErrorParser()
-      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-      val consumer = TestMessageEventConsumer()
-
-      val line = reader.readLine()!!
-      val parsed = parser.parse(line, reader, consumer)
-
-      Truth.assertThat(parsed).isTrue()
-      consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
-        Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
-        Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
-        Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-        Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildAliasIssueDescription())
-        Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
-        (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
-          Truth.assertThat(ofd.line).isEqualTo(1)
-          Truth.assertThat(ofd.column).isEqualTo(0)
-          Truth.assertThat(ofd.file).isEqualTo(file)
-        }
-      }
-    }
-    finally {
-      runWriteAction {
-        file?.delete(this)
-        gradleDir?.delete(this)
-      }
-    }
-
+    doTest("libs", 1, 0,
+           """
+           [libraries]
+           a = "group:name:1.0"
+           """.trimIndent(),
+           { getVersionCatalogAliasFailureBuildOutput() },
+           { getVersionCatalogLibsBuildAliasIssueDescription() }
+    )
   }
 
   @Test
   @RunsInEdt
   fun testTomlTopLevelCatalogIssue() {
-    var file: VirtualFile? = null
-    var gradleDir: VirtualFile? = null
-    runWriteAction {
-      gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
-      file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
-      file?.setBinaryContent("""
+    doTest("libs", 0, 0,
+           """
         [librariesa]
         junit = { group = "junit", name = "junit", version = "4.0" }
-      """.trimIndent().toByteArray(Charsets.UTF_8))
-    }
-    try {
-      val buildOutput = getVersionCatalogTableMisspelOutput()
-
-      val parser = TomlErrorParser()
-      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-      val consumer = TestMessageEventConsumer()
-
-      val line = reader.readLine()!!
-      val parsed = parser.parse(line, reader, consumer)
-
-      Truth.assertThat(parsed).isTrue()
-      consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
-        Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
-        Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
-        Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-        Truth.assertThat(it.description).isEqualTo(getVersionCatalogTableMisspelDescription())
-        Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
-        (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
-          Truth.assertThat(ofd.line).isEqualTo(0)
-          Truth.assertThat(ofd.column).isEqualTo(0)
-          Truth.assertThat(ofd.file).isEqualTo(file)
-        }
-      }
-    }
-    finally {
-      runWriteAction {
-        file?.delete(this)
-        gradleDir?.delete(this)
-      }
-    }
-
+      """.trimIndent(),
+           { getVersionCatalogTableMisspelOutput() },
+           { getVersionCatalogTableMisspelDescription() }
+    )
   }
 
   @Test
@@ -207,7 +141,7 @@ class TomlErrorParserTest {
       val parsed = parser.parse(line, reader, consumer)
       Truth.assertThat(parsed).isTrue()
 
-      class BuildIssueTest(val logicalLine:Int, val logicalColumn:Int):BuildIssue {
+      class BuildIssueTest(val logicalLine: Int, val logicalColumn: Int) : BuildIssue {
         override val description: String = getVersionCatalogDuplicateAliasDescription(project.basePath!!)
         override val quickFixes: List<BuildIssueQuickFix> = listOf()
         override val title: String = "Invalid TOML catalog definition."
@@ -217,24 +151,24 @@ class TomlErrorParserTest {
       }
 
       val expected = arrayOf(
-        BuildIssueEventImpl(reader.parentEventId, BuildIssueTest(13,0), MessageEvent.Kind.ERROR),
-        BuildIssueEventImpl(reader.parentEventId, BuildIssueTest(14,0), MessageEvent.Kind.ERROR)
+        BuildIssueEventImpl(reader.parentEventId, BuildIssueTest(13, 0), MessageEvent.Kind.ERROR),
+        BuildIssueEventImpl(reader.parentEventId, BuildIssueTest(14, 0), MessageEvent.Kind.ERROR)
       )
-     val output = consumer.messageEvents.filterIsInstance<MessageEvent>()
-       Truth.assertThat(output).hasSize(2)
-         expected.zip(output).forEach {
-           Truth.assertThat(it.first.parentId).isEqualTo(it.second.parentId)
-           Truth.assertThat(it.first.message).isEqualTo(it.second.message)
-           Truth.assertThat(it.first.kind).isEqualTo(it.second.kind)
-           Truth.assertThat(it.first.description).isEqualTo(it.second.description)
+      val output = consumer.messageEvents.filterIsInstance<MessageEvent>()
+      Truth.assertThat(output).hasSize(2)
+      expected.zip(output).forEach {
+        Truth.assertThat(it.first.parentId).isEqualTo(it.second.parentId)
+        Truth.assertThat(it.first.message).isEqualTo(it.second.message)
+        Truth.assertThat(it.first.kind).isEqualTo(it.second.kind)
+        Truth.assertThat(it.first.description).isEqualTo(it.second.description)
 
-           (it.first.getNavigatable(project) as OpenFileDescriptor to
-             it.second.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
-             Truth.assertThat(ofd.first.line).isEqualTo(ofd.second.line)
-             Truth.assertThat(ofd.first.column).isEqualTo(ofd.second.column)
-             Truth.assertThat(ofd.first.file).isEqualTo(ofd.second.file)
-           }
-         }
+        (it.first.getNavigatable(project) as OpenFileDescriptor to
+          it.second.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
+          Truth.assertThat(ofd.first.line).isEqualTo(ofd.second.line)
+          Truth.assertThat(ofd.first.column).isEqualTo(ofd.second.column)
+          Truth.assertThat(ofd.first.file).isEqualTo(ofd.second.file)
+        }
+      }
     }
     finally {
       runWriteAction {
@@ -247,59 +181,39 @@ class TomlErrorParserTest {
   @Test
   @RunsInEdt
   fun testTomlErrorParsedAndNavigable() {
-    var file: VirtualFile? = null
-    var gradleDir: VirtualFile? = null
-    runWriteAction {
-      gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
-      file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
-    }
-    try {
-      val buildOutput = getVersionCatalogLibsBuildOutput()
-
-      val parser = TomlErrorParser()
-      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-      val consumer = TestMessageEventConsumer()
-
-      val line = reader.readLine()!!
-      val parsed = parser.parse(line, reader, consumer)
-
-      Truth.assertThat(parsed).isTrue()
-      consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
-        Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
-        Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
-        Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-        Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription())
-        Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
-        (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
-          Truth.assertThat(ofd.line).isEqualTo(10)
-          Truth.assertThat(ofd.column).isEqualTo(18)
-          Truth.assertThat(ofd.file).isEqualTo(file)
-        }
-      }
-    }
-    finally {
-      runWriteAction {
-        file?.delete(this)
-        gradleDir?.delete(this)
-      }
-    }
+    doTest("libs", 10, 18, "",
+           { getVersionCatalogLibsBuildOutput() },
+           { getVersionCatalogLibsBuildIssueDescription() }
+    )
   }
 
   @Test
   @RunsInEdt
   fun testTomlErrorWithFileParsedAndNavigable() {
+    doTest("arbitraty", 10, 18, "",
+           { path -> getVersionCatalogLibsBuildOutput(path) },
+           { path -> getVersionCatalogLibsBuildIssueDescription(path) }
+    )
+  }
+
+  private fun doTest(tomlPrefix: String,
+                     lineOutput: Int,
+                     columnOutput: Int,
+                     tomlContent: String = "",
+                     buildOutput: (String) -> String,
+                     description: (String) -> String) {
     var file: VirtualFile? = null
     var gradleDir: VirtualFile? = null
     runWriteAction {
       gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
-      file = gradleDir?.findOrCreateChildData(this, "arbitrary.versions.toml")
+      file = gradleDir?.findOrCreateChildData(this, tomlPrefix + ".versions.toml")
+      file?.setBinaryContent(tomlContent.toByteArray(Charsets.UTF_8))
     }
     try {
       val absolutePath = file!!.toNioPath().toAbsolutePath().toString()
-      val buildOutput = getVersionCatalogLibsBuildOutput(absolutePath)
 
       val parser = TomlErrorParser()
-      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput(absolutePath)).toList())
       val consumer = TestMessageEventConsumer()
 
       val line = reader.readLine()!!
@@ -310,11 +224,11 @@ class TomlErrorParserTest {
         Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
         Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
         Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-        Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription(absolutePath))
+        Truth.assertThat(it.description).isEqualTo(description(absolutePath))
         Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
         (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
-          Truth.assertThat(ofd.line).isEqualTo(10)
-          Truth.assertThat(ofd.column).isEqualTo(18)
+          Truth.assertThat(ofd.line).isEqualTo(lineOutput)
+          Truth.assertThat(ofd.column).isEqualTo(columnOutput)
           Truth.assertThat(ofd.file).isEqualTo(file)
         }
       }
@@ -373,7 +287,7 @@ FAILURE: Build failed with an exception.
 org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
   - Problem: In version catalog libs, parsing failed with 1 error.
     
-    Reason: ${absolutePath?.let { "In file '$it' at" } ?: "At" } line 11, column 19: Unexpected '/', expected a newline or end-of-input.
+    Reason: ${absolutePath?.let { "In file '$it' at" } ?: "At"} line 11, column 19: Unexpected '/', expected a newline or end-of-input.
     
     Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
     
@@ -381,7 +295,7 @@ org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
 > Invalid TOML catalog definition:
     - Problem: In version catalog libs, parsing failed with 1 error.
       
-      Reason: ${absolutePath?.let { "Int file '$it' at" } ?: "At" } line 11, column 19: Unexpected '/', expected a newline or end-of-input.
+      Reason: ${absolutePath?.let { "Int file '$it' at" } ?: "At"} line 11, column 19: Unexpected '/', expected a newline or end-of-input.
       
       Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
       
@@ -399,7 +313,7 @@ org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
 Invalid TOML catalog definition.
   - Problem: In version catalog libs, parsing failed with 1 error.
     
-    Reason: ${absolutePath?.let { "In file '$it' at" } ?: "At" } line 11, column 19: Unexpected '/', expected a newline or end-of-input.
+    Reason: ${absolutePath?.let { "In file '$it' at" } ?: "At"} line 11, column 19: Unexpected '/', expected a newline or end-of-input.
     
     Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
     
@@ -463,7 +377,7 @@ Invalid TOML catalog definition.
     > Get more help at https://help.gradle.org.
   """.trimIndent()
 
-  fun getVersionCatalogDuplicateAliasDescription(baseDir: String):String = """
+  fun getVersionCatalogDuplicateAliasDescription(baseDir: String): String = """
     Invalid TOML catalog definition.
       - Problem: In version catalog libs, parsing failed with 3 errors.
         
@@ -475,7 +389,7 @@ Invalid TOML catalog definition.
         For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
   """.trimIndent()
 
-  fun getVersionCatalogAliasFailureBuildOutput():String  = """
+  fun getVersionCatalogAliasFailureBuildOutput(): String = """
 FAILURE: Build failed with an exception.
 
 * What went wrong:
