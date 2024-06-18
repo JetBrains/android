@@ -26,8 +26,8 @@ import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.compose.StudioTestTheme
-import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.jewel.ui.component.Text
 import org.junit.Rule
@@ -43,14 +43,14 @@ class AddDeviceWizardTest {
     val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
     composeTestRule.setContent { StudioTestTheme { wizard.Content() } }
 
-    composeTestRule.onNodeWithText("Newest on device").performClick()
+    composeTestRule.onNodeWithText("Latest").performClick()
     composeTestRule
       .onNode(hasText("API 28", substring = true) and hasAnyAncestor(isPopup()))
       .performClick()
     composeTestRule.onNodeWithText("Medium Phone").performClick()
     composeTestRule.waitForIdle()
 
-    assertThat(source.selectedProfile.value?.apiRange).isEqualTo(Range.singleton(28))
+    assertThat(source.selectedProfile.value?.apiLevels).containsExactly(AndroidVersion(28))
   }
 
   @Test

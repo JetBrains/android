@@ -17,6 +17,7 @@ package com.android.tools.idea.avd
 
 import com.android.repository.api.RepoPackage
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -45,7 +46,10 @@ class VirtualDevicesTest {
     whenever(avdManagerConnection.avdExists(any())).thenReturn(false)
 
     VirtualDevices(allDevices, avdManagerConnection, mockSystemImageManager())
-      .add(autoDevice.toVirtualDeviceProfile().toVirtualDevice(), mockSystemImage())
+      .add(
+        autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(34))).toVirtualDevice(),
+        mockSystemImage(),
+      )
 
     val hardwarePropertiesCaptor = argumentCaptor<Map<String, String>>()
     verify(avdManagerConnection)

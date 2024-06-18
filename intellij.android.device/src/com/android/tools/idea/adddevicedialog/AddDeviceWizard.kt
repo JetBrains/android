@@ -18,7 +18,6 @@ package com.android.tools.idea.adddevicedialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import com.google.common.collect.Range
 import com.intellij.openapi.project.Project
 
 internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Project?) {
@@ -51,14 +50,9 @@ internal fun WizardPageScope.DeviceGridPage(sources: List<DeviceSource>) {
     nextAction = WizardAction.Disabled
     finishAction = WizardAction.Disabled
   } else {
-    source.apply {
-      selectionUpdated(selection.applyApiLevelSelection(filterState.apiLevelFilter.apiLevel))
-    }
+    val apiLevelForSelectedProfile = filterState.apiLevelFilter.apiLevelSelection.apply(selection)
+    val profileWithSelectedApi =
+      selection.update { apiLevels = sortedSetOf(apiLevelForSelectedProfile) }
+    source.apply { selectionUpdated(profileWithSelectedApi) }
   }
 }
-
-private fun DeviceProfile.applyApiLevelSelection(
-  apiLevelSelection: ApiLevelSelection
-): DeviceProfile =
-  if (apiLevelSelection.apiLevel == null) this
-  else update { apiRange = Range.singleton(apiLevelSelection.apiLevel) }
