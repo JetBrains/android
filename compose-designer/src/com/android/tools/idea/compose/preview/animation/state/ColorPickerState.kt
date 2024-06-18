@@ -22,11 +22,11 @@ import com.android.tools.idea.preview.animation.state.ToolbarLabel
 import com.intellij.openapi.actionSystem.AnAction
 
 /**
- * [AnimationState] for animations where initial and target states should be selected with a color
- * picker.
+ * [ComposeAnimationState] for animations where initial and target states should be selected with a
+ * color picker.
  */
 class ColorPickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  AnimationState(callback) {
+  ComposeAnimationState(callback) {
 
   private val initialState =
     ColorStateAction(tracker = tracker, onPropertiesUpdated = stateCallback)

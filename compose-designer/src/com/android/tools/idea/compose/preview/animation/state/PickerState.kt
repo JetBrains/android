@@ -20,10 +20,11 @@ import com.android.tools.idea.preview.animation.state.SwapAction
 import com.intellij.openapi.actionSystem.AnAction
 
 /**
- * [AnimationState] for animations where initial and target states should be selected with a picker.
+ * [ComposeAnimationState] for animations where initial and target states should be selected with a
+ * picker.
  */
 class PickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  AnimationState(callback) {
+  ComposeAnimationState(callback) {
 
   private val buttonAction = PickerButtonAction(tracker, stateCallback)
 
