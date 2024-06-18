@@ -213,7 +213,7 @@ class ComposableCompileTest {
     output = compile(editNonComposable, cache)
     // Editing a normal Kotlin function should not result any group IDs. Instead, it should manually trigger a full state reset every edit.
     Assert.assertTrue(output.groupIds.isEmpty())
-    Assert.assertEquals(InvalidateMode.RESTART_ACTIVITY, output.invalidateMode)
+    Assert.assertEquals(InvalidateMode.SAVE_AND_LOAD, output.invalidateMode)
   }
 
   @Test
