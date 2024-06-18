@@ -17,8 +17,6 @@ package com.android.tools.idea.compose.preview
  */
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
-import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
-import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.AndroidPsiUtils.getPsiFileSafely
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
@@ -37,7 +35,15 @@ import org.jetbrains.uast.UMethod
 /** [ComposeFilePreviewElementFinder] that uses `@Preview` annotations. */
 object AnnotationFilePreviewElementFinder : ComposeFilePreviewElementFinder {
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) =
-    hasAnnotation(project, vFile, COMPOSE_PREVIEW_ANNOTATION_FQN, COMPOSE_PREVIEW_ANNOTATION_NAME)
+    findAnnotatedMethodsValues(
+        project,
+        vFile,
+        COMPOSABLE_ANNOTATION_FQ_NAME,
+        COMPOSABLE_ANNOTATION_NAME,
+      ) { methods ->
+        getPreviewNodes(methods, false)
+      }
+      .any()
 
   override suspend fun hasComposableMethods(project: Project, vFile: VirtualFile) =
     hasAnnotation(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME)
@@ -60,7 +66,7 @@ object AnnotationFilePreviewElementFinder : ComposeFilePreviewElementFinder {
       val previewNodes = getPreviewNodes(methods, includeAllNodes = true)
       val previewElements = previewNodes.filterIsInstance<PsiComposePreviewElement>().distinct()
 
-      if (previewElements.isNotEmpty()) {
+      if (previewElements.any()) {
         getPsiFileSafely(project, vFile)?.let { psiFile ->
           MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
             .logEvent(
@@ -72,13 +78,13 @@ object AnnotationFilePreviewElementFinder : ComposeFilePreviewElementFinder {
         }
       }
 
-      previewElements.asSequence()
+      previewElements
     }
   }
 
   @VisibleForTesting
   internal fun getPreviewNodes(methods: List<UMethod>, includeAllNodes: Boolean) =
-    methods.flatMap {
+    methods.asSequence().flatMap {
       ProgressManager.checkCanceled()
       getPreviewNodes(it, includeAllNodes = includeAllNodes)
     }
