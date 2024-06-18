@@ -132,6 +132,16 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region Transport
+  private static final FlagGroup TRANSPORT = new FlagGroup(FLAGS, "transport", "Transport");
+
+  public static final Flag<Boolean> TRANSPORT_CONSERVATIVE_COPY = new BooleanFlag(
+    TRANSPORT, "conservative.copy", "Conservative copy",
+    "Copy transport and agent files only if they have changed since the latest push to the device",
+    true
+  );
+  //endregion
+
   //region Profiler
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
