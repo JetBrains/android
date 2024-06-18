@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.successfulFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
-import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaTypeParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtCapturedType
 import org.jetbrains.kotlin.analysis.api.types.KtDefinitelyNotNullType
@@ -35,7 +35,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
     override fun KtCallExpression.classifyFindViewCall(
         cast: KtBinaryExpressionWithTypeRHS
     ): FindViewCallInfo? = analyze(this) {
-        val calleeSymbol = resolveCallOld()?.successfulFunctionCallOrNull()?.symbol as? KaFunctionSymbol ?: return null
+        val calleeSymbol = resolveCallOld()?.successfulFunctionCallOrNull()?.symbol as? KaNamedFunctionSymbol ?: return null
         if (calleeSymbol.name.asString() !in APPLICABLE_FUNCTION_NAMES) return null
 
         // The function must take a single type parameter (T)...
