@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.buildPrompt
@@ -32,7 +33,6 @@ import javax.swing.JPanel
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.kotlin.idea.KotlinLanguage
 
 internal const val PROMPT_PREFIX =
   "An analysis of my project has detected an error. How do I modify my code to fix it?"
@@ -88,7 +88,7 @@ class ComposeVisualLintAiFix(
           filesUsed = issue.affectedFiles,
         )
         issue.affectedFiles.forEach {
-          code(String(it.contentsToByteArray()), KotlinLanguage.INSTANCE, issue.affectedFiles)
+          code(String(it.contentsToByteArray()), MimeType.KOTLIN, issue.affectedFiles)
         }
       }
     }

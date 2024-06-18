@@ -17,7 +17,6 @@ package com.android.tools.idea.studiobot.prompts
 
 import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.MimeType
-import com.intellij.lang.Language
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -41,7 +40,7 @@ interface Prompt {
 
     data class CodeChunk(
       val text: String,
-      val language: Language?,
+      val language: MimeType?,
       override val filesUsed: Collection<VirtualFile>,
     ) : Chunk(filesUsed)
 

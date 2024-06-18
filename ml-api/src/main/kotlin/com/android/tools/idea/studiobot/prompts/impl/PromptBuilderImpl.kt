@@ -22,7 +22,6 @@ import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.MalformedPromptException
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.PromptBuilder
-import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
@@ -50,7 +49,7 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     }
 
     /** Adds [code] as a formatted code block in the message, with optional [language] specified. */
-    override fun code(code: String, language: Language?, filesUsed: Collection<VirtualFile>) {
+    override fun code(code: String, language: MimeType?, filesUsed: Collection<VirtualFile>) {
       myChunks.add(Prompt.Message.CodeChunk(code, language, filesUsed))
     }
 
