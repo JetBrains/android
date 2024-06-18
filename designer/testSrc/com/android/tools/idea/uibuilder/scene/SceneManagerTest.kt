@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.scene.TemporarySceneComponent
@@ -119,7 +120,7 @@ class SceneManagerTest {
       TestSceneManager(
         model,
         surface,
-        object : SceneManager.SceneComponentHierarchyProvider {
+        object : SceneComponentHierarchyProvider {
           override fun createHierarchy(
             manager: SceneManager,
             component: NlComponent,
@@ -188,7 +189,7 @@ class SceneManagerTest {
       }
     var createHierarchyWasInvoked = false
     val componentProvider =
-      object : SceneManager.SceneComponentHierarchyProvider {
+      object : SceneComponentHierarchyProvider {
         override fun createHierarchy(
           manager: SceneManager,
           component: NlComponent,

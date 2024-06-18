@@ -48,25 +48,6 @@ import org.jetbrains.annotations.Nullable;
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
 abstract public class SceneManager implements Disposable, ResourceNotificationManager.ResourceChangeListener {
-  /**
-   * Provider mapping {@link NlComponent}s to {@link SceneComponent}/
-   */
-  public interface SceneComponentHierarchyProvider {
-    /**
-     * Called by the {@link SceneManager} to create the initially {@link SceneComponent} hierarchy from the given
-     * {@link NlComponent}.
-     */
-    @NotNull
-    List<SceneComponent> createHierarchy(@NotNull SceneManager manager, @NotNull NlComponent component);
-
-    /**
-     * Call by the {@link SceneManager} to trigger a sync of the {@link NlComponent} to the given {@link SceneComponent}.
-     * This allows for the SceneComponent to sync the latest data from the {@link NlModel} and update the UI
-     * representation. The method will be called when the {@link SceneManager} detects that there is the need to sync.
-     * This could be after a render or after a model change, for example.
-     */
-    void syncFromNlComponent(@NotNull SceneComponent sceneComponent);
-  }
 
   @NotNull private final NlModel myModel;
   @NotNull private final DesignSurface<?> myDesignSurface;
