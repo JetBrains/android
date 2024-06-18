@@ -16,6 +16,7 @@
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.FocusInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -81,7 +82,8 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
   }
 
   Tooltip(
-    { Text(TaskBasedUxStrings.getTaskTooltip(task), modifier = Modifier.width(TASK_TOOLTIP_WIDTH_DP)) }
+    { Text(TaskBasedUxStrings.getTaskTooltip(task), modifier = Modifier.width(TASK_TOOLTIP_WIDTH_DP)) },
+    tooltipPlacement = TooltipPlacement.ComponentRect()
   ) {
     Box(
       contentAlignment = Alignment.Center,
