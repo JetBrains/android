@@ -47,7 +47,7 @@ internal constructor(
   private val size: Storage,
 ) {
   internal fun matches(device: VirtualDevice): Boolean {
-    if (androidVersion.apiLevel != device.apiRange.upperEndpoint()) {
+    if (androidVersion.apiLevel != device.androidVersion.apiLevel) {
       return false
     }
 

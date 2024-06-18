@@ -45,7 +45,7 @@ class VirtualDevicesTest {
     whenever(avdManagerConnection.avdExists(any())).thenReturn(false)
 
     VirtualDevices(allDevices, avdManagerConnection, mockSystemImageManager())
-      .add(autoDevice.toVirtualDevice(), mockSystemImage())
+      .add(autoDevice.toVirtualDeviceProfile().toVirtualDevice(), mockSystemImage())
 
     val hardwarePropertiesCaptor = argumentCaptor<Map<String, String>>()
     verify(avdManagerConnection)
