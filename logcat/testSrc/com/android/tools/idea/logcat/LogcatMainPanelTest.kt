@@ -774,9 +774,7 @@ class LogcatMainPanelTest {
     waitForCondition { logcatMainPanel.logcatServiceJob == null }
 
     logcatMainPanel.resumeLogcat()
-    waitForCondition {
-      !logcatMainPanel.isLogcatPaused() && logcatMainPanel.logcatServiceJob != null
-    }
+    waitForCondition { fakeLogcatService.invocations.get() == 2 }
     fakeLogcatService.logMessages(message1)
 
     waitForCondition { logcatMainPanel.editor.document.lineCount == 2 }

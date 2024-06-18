@@ -335,7 +335,7 @@ constructor(
   private val projectAppMonitor =
     ProjectAppMonitor(project.getService(ProcessNameMonitor::class.java), packageNamesProvider)
 
-  @VisibleForTesting internal var logcatServiceJob: Job? = null
+  @Volatile @VisibleForTesting internal var logcatServiceJob: Job? = null
   private var editorWidth = 0
 
   init {
