@@ -76,6 +76,8 @@ object TaskBasedUxStrings {
   // Export and import strings
   const val IMPORT_RECORDING_DESC = "Import recording"
   const val EXPORT_RECORDING_DESC = "Export recording"
+  const val NO_RECORDINGS_TITLE = "No recordings"
+  const val NO_RECORDINGS_INSTRUCTIONS_TEXT = "To add a new recording, start a new task or import a previously captured one."
 
   // Delete recording strings
   const val DELETE_RECORDING_DESC = "Delete recording"
