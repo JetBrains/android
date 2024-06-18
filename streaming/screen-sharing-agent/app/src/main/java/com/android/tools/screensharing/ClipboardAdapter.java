@@ -94,6 +94,7 @@ public class ClipboardAdapter {
                         numberOfParameters == 4 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT) :
                         numberOfParameters == 5 ?
+                        // This non-standard method signature is used on Honor Magic4 Pro API 34 (b/342961840).
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, null) :
                         null;
     if (clipData == null || clipData.getItemCount() == 0) {
@@ -114,34 +115,23 @@ public class ClipboardAdapter {
     }
 
     int numberOfParameters = setPrimaryClipMethod.getParameterCount();
-    Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: Calling IClipboard.setPrimaryClip has " + numberOfParameters + " parameters");
     if (numberOfParameters == 1) {
-      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: Calling IClipboard.setPrimaryClip(" + clipboard + ", " + clipData + ")");
       setPrimaryClipMethod.invoke(clipboard, clipData);
     }
     else if (numberOfParameters == 2) {
-      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: Calling IClipboard.setPrimaryClip(" + clipboard + ", " + clipData + ", " +
-                             PACKAGE_NAME + ")");
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME);
     }
     else if (numberOfParameters == 3) {
-      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: Calling IClipboard.setPrimaryClip(" + clipboard + ", " + clipData + ", " +
-                             PACKAGE_NAME + ", " + USER_ID + ")");
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, USER_ID);
     }
     else if (numberOfParameters == 4) {
-      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: Calling IClipboard.setPrimaryClip(" + clipboard + ", " + clipData + ", " +
-                             PACKAGE_NAME + ", " + ATTRIBUTION_TAG + ", " + USER_ID + ")");
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
     }
     else if (numberOfParameters == 5) {
-      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: Calling IClipboard.setPrimaryClip(" + clipboard + ", " + clipData + ", " +
-                             PACKAGE_NAME + ", " + ATTRIBUTION_TAG + ", " + USER_ID + ", " + DEVICE_ID_DEFAULT + ")");
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
     }
     else if (numberOfParameters == 6) {
-      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: Calling IClipboard.setPrimaryClip(" + clipboard + ", " + clipData + ", " +
-                             PACKAGE_NAME + ", " + ATTRIBUTION_TAG + ", " + USER_ID + ", " + DEVICE_ID_DEFAULT + ", true)");
+      // This non-standard method signature is used on Honor Magic4 Pro API 34 (b/342961840).
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, true);
     }
   }
