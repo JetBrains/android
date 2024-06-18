@@ -109,22 +109,22 @@ class UiSettingsPanelTest {
   @Test
   fun testGestureOverlayNotInstalled() {
     model.gestureOverlayInstalled.setFromController(false)
-    val checkBox = panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }
-    assertThat(checkBox.accessibleContext.accessibleName).isEqualTo(GESTURE_NAVIGATION_TITLE)
-    assertThat(checkBox.isShowing).isFalse()
+    val comboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
+    assertThat(comboBox.accessibleContext.accessibleName).isEqualTo(GESTURE_NAVIGATION_TITLE)
+    assertThat(comboBox.isShowing).isFalse()
   }
 
   @Test
   fun testSetGestureNavigationFromUi() {
     model.gestureOverlayInstalled.setFromController(true)
-    val checkBox = panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }
-    assertThat(checkBox.isShowing).isTrue()
-    assertThat(checkBox.isSelected).isFalse()
+    val comboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
+    assertThat(comboBox.isShowing).isTrue()
+    assertThat(comboBox.selectedItem).isEqualTo(false)
 
-    checkBox.doClick()
+    comboBox.selectedItem = true
     waitForCondition(1.seconds) { lastCommand == "gestures=true" }
 
-    checkBox.doClick()
+    comboBox.selectedItem = false
     waitForCondition(1.seconds) { lastCommand == "gestures=false" }
   }
 
@@ -229,7 +229,7 @@ class UiSettingsPanelTest {
     assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JSlider> { it.name == FONT_SCALE_TITLE }).isNotNull()
 
-    assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
     assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
   }
@@ -241,7 +241,7 @@ class UiSettingsPanelTest {
     assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JSlider> { it.name == FONT_SCALE_TITLE }).isNotNull()
 
-    assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
     assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
   }
@@ -253,7 +253,7 @@ class UiSettingsPanelTest {
     assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JSlider> { it.name == FONT_SCALE_TITLE }).isNotNull()
 
-    assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
     assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
   }
@@ -266,7 +266,7 @@ class UiSettingsPanelTest {
     // Simulate Permission Monitoring enabled:
     model.fontScaleSettable.setFromController(false)
     assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.isShowing).isTrue()
-    assertThat(panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isFalse()
+    assertThat(panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isFalse()
     assertThat(panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.isShowing).isFalse()
     assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.isShowing).isFalse()
@@ -278,7 +278,7 @@ class UiSettingsPanelTest {
     // Simulate Permission Monitoring disabled:
     model.fontScaleSettable.setFromController(true)
     assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.isShowing).isTrue()
-    assertThat(panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.isShowing).isTrue()
@@ -300,8 +300,10 @@ class UiSettingsPanelTest {
     ui.keyboard.pressAndRelease(VK_TAB)
     model.differentFromDefault.setFromController(true)
 
-    assertThat(panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }.hasFocus()).isTrue()
-    ui.keyboard.pressAndRelease(VK_SPACE)
+    val navigationComboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
+    assertThat(navigationComboBox.hasFocus()).isTrue()
+    // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
+    navigationComboBox.selectedItem = true
     waitForCondition(1.seconds) { lastCommand == "gestures=true" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
