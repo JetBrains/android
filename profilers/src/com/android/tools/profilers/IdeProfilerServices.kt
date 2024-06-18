@@ -21,6 +21,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import java.io.File
 import java.io.FileOutputStream
@@ -225,5 +226,5 @@ interface IdeProfilerServices {
   /**
    * If profileableMode is true, performs the ProfileProfileableAction, otherwise performs the ProfileDebuggableAction.
    */
-  fun buildAndLaunchAction(profileableMode: Boolean, featureLevel: Int)
+  fun buildAndLaunchAction(profileableMode: Boolean, device: ProcessListModel.ProfilerDeviceSelection)
 }

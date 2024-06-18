@@ -34,6 +34,7 @@ import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
@@ -448,7 +449,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void buildAndLaunchAction(boolean profileableMode, int featureLevel) { }
+  public void buildAndLaunchAction(boolean profileableMode, ProcessListModel.@NotNull ProfilerDeviceSelection device) { }
 
   @Nullable
   public Notification getNotification() {

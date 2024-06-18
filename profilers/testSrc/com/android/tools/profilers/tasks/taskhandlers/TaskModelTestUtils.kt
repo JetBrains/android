@@ -65,7 +65,7 @@ object TaskModelTestUtils {
       exposureLevel).build()
 
   fun createProfilerDeviceSelection(featureLevel: Int, isRunning: Boolean) =
-    ProfilerDeviceSelection("FakeDevice", featureLevel, isRunning,
+    ProfilerDeviceSelection("FakeDevice", featureLevel, isRunning, false,
                             if (isRunning) Common.Device.newBuilder().setModel("FakeDevice").setFeatureLevel(featureLevel).build()
                             else Common.Device.getDefaultInstance())
 

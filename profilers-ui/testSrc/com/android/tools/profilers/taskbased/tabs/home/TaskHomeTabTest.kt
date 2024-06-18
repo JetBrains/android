@@ -176,7 +176,7 @@ class TaskHomeTabTest {
     }
 
     // Select the offline device
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, ""))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, false, ""))
     assertThat(taskHomeTabModel.selectedDevice).isNotNull()
     // Make sure device selection is also registered in data model
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -225,7 +225,7 @@ class TaskHomeTabTest {
                                             TaskModelTestUtils.createProcess(20, "not.preferred.process", Common.Process.State.ALIVE, 456,
                                                                              Common.Process.ExposureLevel.PROFILEABLE), myTransportService,
                                             myTimer)
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, "123"))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, false, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 
@@ -260,7 +260,7 @@ class TaskHomeTabTest {
     }
 
     // Select the offline device
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, ""))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, false, ""))
     assertThat(taskHomeTabModel.selectedDevice).isNotNull()
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -304,7 +304,7 @@ class TaskHomeTabTest {
       TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
       TaskModelTestUtils.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
       myTransportService, myTimer)
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, "123"))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, false, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 
@@ -439,7 +439,7 @@ class TaskHomeTabTest {
     }
 
     // Select the offline device
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, ""))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, false, false, ""))
     assertThat(taskHomeTabModel.selectedDevice).isNotNull()
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
@@ -486,7 +486,7 @@ class TaskHomeTabTest {
       TaskModelTestUtils.createDevice("FakeDevice", "123", 456, Common.Device.State.ONLINE, "12", 30),
       TaskModelTestUtils.createProcess(20, "com.foo.bar", Common.Process.State.ALIVE, 456, Common.Process.ExposureLevel.PROFILEABLE),
       myTransportService, myTimer)
-    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, "123"))
+    taskHomeTabModel.processListModel.onDeviceSelection(ProcessListModel.ToolbarDeviceSelection("FakeDevice", 30, true, false, "123"))
     // Make sure device selection is also registered in data model.
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 

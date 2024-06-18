@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.profilers.ProfilerProgramRunner.Companion.isApiLevelSupported
+import com.android.tools.idea.profilers.ProfilerProgramRunner.Companion.isProjectSupported
+import com.android.tools.idea.profilers.ProfilerProgramRunner.Companion.isSystemSupported
 import com.android.tools.idea.profilers.actions.ProfileAction
 import com.android.tools.idea.profilers.actions.ProfileDebuggableAction
 import com.android.tools.idea.profilers.actions.ProfileProfileableAction
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -39,13 +42,18 @@ object ProfilerBuildAndLaunch {
    * @param project The project for which the profiling action is to be built and launched.
    * @param profileableMode If the project supports profiling mode (is a gradle-based project), this boolean flag indicates whether to use
    *                        a profileable or a debuggable profiling action. Otherwise, this parameter is ignored.
+   * @param device The device used for the build and launch.
    */
   @JvmStatic
-  fun buildAndLaunchAction(project: Project, profileableMode: Boolean, featureLevel: Int) {
+  fun buildAndLaunchAction(project: Project, profileableMode: Boolean, device: ProcessListModel.ProfilerDeviceSelection) {
     val action = if (project.getProjectSystem().supportsProfilingMode()) {
-      // Only devices with API > 28 can support profileable builds.
-      if (featureLevel > AndroidVersion.VersionCodes.P) if (profileableMode) ProfileProfileableAction() else ProfileDebuggableAction()
-      else ProfileDebuggableAction()
+      // Only non-debuggable devices with API > 28 can support profileable builds.
+      if (isApiLevelSupported(device.featureLevel) && isSystemSupported(device.isDebuggable) && isProjectSupported(project)) {
+        if (profileableMode) ProfileProfileableAction() else ProfileDebuggableAction()
+      }
+      else {
+        ProfileDebuggableAction()
+      }
     }
     else {
       ProfileAction()
