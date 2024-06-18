@@ -61,13 +61,16 @@ object TaskBasedUxStrings {
 
   // Task starting point dropdown strings
   const val STARTING_POINT_DROPDOWN_TITLE = "Start profiler task from"
-  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION = "Process start (restarts process)"
-  const val NOW_STARTING_POINT_DROPDOWN_OPTION = "Now (attaches to selected process)"
+  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT = "Process start"
+  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT = "restarts process"
+  const val NOW_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT = "Now"
+  const val NOW_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT = "attaches to selected process"
 
   // Task recording type dropdown strings (only available for the ART-based task)
   const val RECORDING_TYPE_DROPDOWN_TITLE = "Recording type"
   const val ART_INSTRUMENTED_RECORDING_TYPE_OPTION = "Tracing"
-  const val ART_SAMPLED_RECORDING_TYPE_OPTION = "Sampling (legacy)"
+  const val ART_SAMPLED_RECORDING_TYPE_OPTION_PRIMARY_TEXT = "Sampling"
+  const val ART_SAMPLED_RECORDING_TYPE_OPTION_SECONDARY_TEXT = "legacy"
 
   // Export and import strings
   const val IMPORT_RECORDING_DESC = "Import recording"
