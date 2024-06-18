@@ -19,10 +19,13 @@ import com.android.tools.idea.common.surface.SceneView
 import javax.swing.JComponent
 
 /** Create a [SceneViewHeader] for each group with size > 1. */
-fun Collection<SceneView>.createOrganizationHeaders(parent: JComponent) =
+fun Collection<SceneView>.createOrganizationHeaders(
+  parent: JComponent,
+  createHeader: (OrganizationGroup) -> JComponent = ::createOrganizationHeader,
+) =
   this.mapNotNull { it.sceneManager.model.organizationGroup }
     .groupingBy { it }
     .eachCount()
     .filterValues { count -> count > 1 }
-    .mapValues { SceneViewHeader(parent, it.key, ::createOrganizationHeader) }
+    .mapValues { SceneViewHeader(parent, it.key, createHeader) }
     .toMutableMap()

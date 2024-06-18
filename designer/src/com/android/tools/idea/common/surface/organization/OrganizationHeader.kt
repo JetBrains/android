@@ -33,6 +33,7 @@ import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.compose.StudioTheme
 import com.intellij.icons.ExpUiIcons
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.toComposeColor
@@ -84,4 +85,8 @@ fun OrganizationHeader(group: OrganizationGroup) {
 fun createOrganizationHeader(group: OrganizationGroup): JComponent {
   enableNewSwingCompositing()
   return ComposePanel().apply { setContent { StudioTheme { OrganizationHeader(group) } } }
+}
+
+fun createTestOrganizationHeader(group: OrganizationGroup): JComponent {
+  return JBLabel(group.displayName.value)
 }
