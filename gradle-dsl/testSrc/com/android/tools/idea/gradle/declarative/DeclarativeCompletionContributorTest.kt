@@ -93,6 +93,106 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
     }
   }
 
+  @Test
+  fun testCompletionStringProperty() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doCompletionTest("""
+      androidApplication {
+        applica$caret
+      }
+      """, """
+      androidApplication {
+        applicationId = "$caret"
+      }
+      """)
+    }
+
+  @Test
+  fun testCompletionBlock() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doCompletionTest(
+      "androidApp$caret",
+      """
+        androidApplication {
+          $caret
+        }
+        """.trimIndent())
+  }
+
+  @Test
+  fun testCompletionBlock2() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doCompletionTest(
+      """
+        androidLibrary {
+          dependenci$caret
+        }""".trimIndent(),
+      """
+        androidLibrary {
+          dependencies {
+            $caret
+          }
+        }""".trimIndent())
+  }
+
+
+
+  @Test
+  fun testCompletionInt() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+
+    doCompletionTest("""
+      androidApplication {
+           minS$caret
+      }
+    """, """
+      androidApplication {
+           minSdk = $caret
+      }
+    """)
+  }
+
+  @Test
+  fun testCompletionBoolean() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doCompletionTest("""
+      androidLibrary{
+        testing {
+          testOptions {
+              returnDefaultV$caret
+          }
+        }
+      }
+    """, """
+      androidLibrary{
+        testing {
+          testOptions {
+              returnDefaultValues = $caret
+          }
+        }
+      }
+    """)
+  }
+
+  @Test
+  fun testCompletionFunction() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+
+    doCompletionTest("""
+      androidLibrary {
+        dependencies {
+          implemen$caret
+        }
+      }
+    """, """
+      androidLibrary {
+        dependencies {
+          implementation($caret)
+        }
+      }
+    """)
+  }
+
   private fun doTest(declarativeFile: String, check: (List<String>) -> Unit) {
     doTest(declarativeFile, "build.gradle.dcl", check)
   }
@@ -107,7 +207,19 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
       it.renderElement(presentation)
       it.lookupString
     }
-
     check.invoke(list)
+  }
+
+  private fun doCompletionTest(declarativeFile: String, fileAfter: String) {
+    val buildFile = fixture.addFileToProject(
+      "build.gradle.dcl", declarativeFile)
+    fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    fixture.completeBasic()
+
+    val caretOffset = fileAfter.indexOf(caret)
+    val cleanFileAfter = fileAfter.replace(caret, "")
+
+    assertThat(buildFile.text).isEqualTo(cleanFileAfter)
+    assertThat(fixture.editor.caretModel.offset).isEqualTo(caretOffset)
   }
 }
