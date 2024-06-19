@@ -30,9 +30,11 @@ import androidx.compose.ui.text.font.FontWeight
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_MAX_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_VERTICAL_SPACING_DP
+import main.utils.tooltips.TooltipStyleFactory.createTooltipStyle
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
+import kotlin.time.Duration
 
 /**
  * The following component controls the UI of a notification in two states, determined by the "isCollapsible" boolean:
@@ -64,7 +66,8 @@ fun CollapsibleNotification(mainText: String,
           tooltip?.let { it() }
         }
       },
-      content = { NotificationIconAndText(mainText, iconPainter, iconDescription, isCollapsed) }
+      content = { NotificationIconAndText(mainText, iconPainter, iconDescription, isCollapsed) },
+      style = createTooltipStyle(Duration.ZERO)
     )
   }
   else {
