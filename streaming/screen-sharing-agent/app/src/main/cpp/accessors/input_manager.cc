@@ -44,15 +44,9 @@ void InputManager::InitializeStatics(Jni jni) {
   }
 }
 
-void InputManager::InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode) {
+bool InputManager::InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode) {
   InitializeStatics(jni);
-  if (!input_manager_.CallBooleanMethod(jni, inject_input_event_method_, input_event.ref(), static_cast<jint>(mode))) {
-    string event_text = input_event.ToString();
-    if (event_text.empty()) {
-      event_text = input_event.GetClass(jni).GetName(jni);
-    }
-    Log::E("Unable to inject an input event %s", event_text.c_str());
-  }
+  return input_manager_.CallBooleanMethod(jni, inject_input_event_method_, input_event.ref(), static_cast<jint>(mode));
 }
 
 void InputManager::AddPortAssociation(Jni jni, const string& input_port, int32_t display_id) {

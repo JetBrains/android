@@ -26,6 +26,8 @@
 #include "accessors/device_state_manager.h"
 #include "accessors/display_manager.h"
 #include "accessors/key_character_map.h"
+#include "accessors/key_event.h"
+#include "accessors/motion_event.h"
 #include "accessors/pointer_helper.h"
 #include "base128_input_stream.h"
 #include "common.h"
@@ -94,6 +96,10 @@ private:
   }
   void ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message);
   void ProcessTextInput(const TextInputMessage& message);
+  void InjectMotionEvent(const MotionEvent& input_event);
+  void InjectKeyEvent(const KeyEvent& input_event);
+  void InjectInputEvent(const JObject& input_event);
+
   static void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
   void StartVideoStream(const StartVideoStreamMessage& message);
@@ -134,6 +140,7 @@ private:
   PointerHelper* pointer_helper_ = nullptr;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
+  bool input_event_injection_disabled_ = false;
   VirtualKeyboard* virtual_keyboard_ = nullptr;
   VirtualMouse* virtual_mouse_ = nullptr;
   int32_t virtual_mouse_display_id_ = -1;
