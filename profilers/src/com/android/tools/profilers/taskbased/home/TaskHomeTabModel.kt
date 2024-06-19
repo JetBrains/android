@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.home
 
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.LogUtils
 import com.android.tools.profilers.ProcessUtils.isProfileable
@@ -32,6 +33,10 @@ import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * The TaskHomeTabModel serves as the data model for the task home tab. It owns the process list model to manage the available processes
@@ -45,6 +50,8 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   val isProfilingFromNowOptionEnabled = _isProfilingFromNowOptionEnabled.asStateFlow()
   private val _isProfilingFromProcessStartOptionEnabled = MutableStateFlow(false)
   val isProfilingFromProcessStartOptionEnabled = _isProfilingFromProcessStartOptionEnabled.asStateFlow()
+  private val _isPrevTaskStartDone = MutableStateFlow(true)
+  val isPrevTaskStartDone = _isPrevTaskStartDone.asStateFlow()
 
   /**
    *  This field is only used/matters when TaskHomeTabModel#doesTaskHaveRecordingTypes returns true.
@@ -129,6 +136,42 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     profilers.ideServices.clearStartupTaskConfigs()
   }
 
+  /**
+   * Disables the start task button, and then re-enables it once whichever of the following conditions is met first:
+   * (1) there is confirmation the previous task has started successfully or (2) a timeout value is met.
+   */
+  fun disableStartButtonUntilPrevTaskStarts() {
+    _isPrevTaskStartDone.value = false
+    CompletableFuture.runAsync({ waitForTaskStart(profilers) }, AndroidExecutors.getInstance().workerThreadExecutor)
+      .exceptionally {
+        // If any exception occurs, default to enabling the button.
+        _isPrevTaskStartDone.value = true
+        null
+      }
+  }
+
+  private fun waitForTaskStart(profilers: StudioProfilers) {
+    val latch = CountDownLatch(1)
+    val executor = Executors.newSingleThreadExecutor()
+
+    executor.submit {
+      val initialSessionId = profilers.session.sessionId
+      while (initialSessionId == profilers.session.sessionId) {
+        // Avoid tight loop
+        Thread.sleep(100L)
+      }
+      latch.countDown()
+    }
+
+    try {
+      // Wait for session change (indicating previous task started successfully), or timeout--whichever comes first.
+      latch.await(WAIT_FOR_TASK_START_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+      _isPrevTaskStartDone.value = true
+    } finally {
+      executor.shutdownNow()
+    }
+  }
+
   private fun setSelectionState() {
     selectionStateOnTaskEnter = SelectionStateOnTaskEnter(_profilingProcessStartingPoint.value, selectedTaskType)
     // If the selected task has recording types, then the recording type selection is registered.
@@ -206,6 +249,8 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   }
 
   companion object {
+    private const val WAIT_FOR_TASK_START_TIMEOUT_MS = 10000L
+
     fun doesTaskHaveRecordingTypes(taskType: ProfilerTaskType) =
       when (taskType) {
         ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> true
