@@ -91,27 +91,6 @@ bool CheckVideoSize(Size video_resolution) {
   return false;
 }
 
-void InjectMotionEvent(Jni jni, const MotionEvent& event, InputEventInjectionSync mode) {
-  JObject motion_event = event.ToJava();
-  if (motion_event.IsNull()) {
-    return;  // The error has already been logged.
-  }
-  if (event.action == AMOTION_EVENT_ACTION_HOVER_MOVE || Log::IsEnabled(Log::Level::VERBOSE)) {
-    Log::V("motion_event: %s", motion_event.ToString().c_str());
-  } else if (Log::IsEnabled(Log::Level::DEBUG)) {
-    Log::D("motion_event: %s", motion_event.ToString().c_str());
-  }
-  InputManager::InjectInputEvent(jni, motion_event, mode);
-}
-
-void InjectKeyEvent(Jni jni, const KeyEvent& event, InputEventInjectionSync mode) {
-  JObject key_event = event.ToJava();
-  if (Log::IsEnabled(Log::Level::DEBUG)) {
-    Log::D("key_event: %s", key_event.ToString().c_str());
-  }
-  InputManager::InjectInputEvent(jni, key_event, mode);
-}
-
 }  // namespace
 
 Controller::Controller(int socket_fd)
@@ -354,7 +333,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     return;
   }
 
-  if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 30 &&
+  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 30 &&
       // TODO: Handle hover and scroll motion events using uinput.
       action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL &&
       message.action_button() == 0 && message.button_state() == 0) {
@@ -442,12 +421,12 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     // They have to be converted to a sequence of pointer-specific events.
     if (action == AMOTION_EVENT_ACTION_DOWN) {
       if (message.action_button()) {
-        InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
+        InjectMotionEvent(event);
         event.action = AMOTION_EVENT_ACTION_BUTTON_PRESS;
         event.action_button = message.action_button();
       } else {
         for (int i = 1; event.pointer_count = i, i < message.pointers().size(); i++) {
-          InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
+          InjectMotionEvent(event);
           event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
         }
       }
@@ -455,20 +434,20 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
       if (message.action_button()) {
         event.action = AMOTION_EVENT_ACTION_BUTTON_RELEASE;
         event.action_button = message.action_button();
-        InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
+        InjectMotionEvent(event);
         event.action = AMOTION_EVENT_ACTION_UP;
         event.action_button = 0;
       } else {
         for (int i = event.pointer_count; --i > 1;) {
           event.action = AMOTION_EVENT_ACTION_POINTER_UP | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
           pointer_helper_->SetPointerPressure(pointer_coordinates_.GetElement(jni_, i), 0);
-          InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
+          InjectMotionEvent(event);
           event.pointer_count = i;
         }
         event.action = AMOTION_EVENT_ACTION_UP;
       }
     }
-    InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
+    InjectMotionEvent(event);
   }
 
   if (action == AMOTION_EVENT_ACTION_UP) {
@@ -484,7 +463,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 
 void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
   nanoseconds event_time = UptimeNanos();
-  if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 29) {
+  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 29) {
     InitializeVirtualKeyboard();
     int32_t action = message.action();
     virtual_keyboard_->WriteKeyEvent(
@@ -501,17 +480,17 @@ void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
     event.code = message.keycode();
     event.meta_state = message.meta_state();
     event.source = KeyCharacterMap::VIRTUAL_KEYBOARD;
-    InjectKeyEvent(jni, event, InputEventInjectionSync::NONE);
+    InjectKeyEvent(event);
     if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
       event.action = AKEY_EVENT_ACTION_UP;
-      InjectKeyEvent(jni, event, InputEventInjectionSync::NONE);
+      InjectKeyEvent(event);
     }
   }
 }
 
 void Controller::ProcessTextInput(const TextInputMessage& message) {
   nanoseconds event_time;
-  if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 29) {
+  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 29) {
     event_time = UptimeNanos();
     InitializeVirtualKeyboard();
   }
@@ -525,14 +504,53 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
     auto len = event_array.GetLength();
     for (int i = 0; i < len; i++) {
       JObject key_event = event_array.GetElement(i);
-      if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 29) {
+      if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 29) {
         virtual_keyboard_->WriteKeyEvent(KeyEvent::GetKeyCode(key_event), KeyEvent::GetAction(key_event), event_time);
       } else {
         if (Log::IsEnabled(Log::Level::DEBUG)) {
           Log::D("key_event: %s", key_event.ToString().c_str());
         }
-        InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
+        InjectInputEvent(key_event);
       }
+    }
+  }
+}
+
+void Controller::InjectMotionEvent(const MotionEvent& event) {
+  JObject motion_event = event.ToJava();
+  if (motion_event.IsNull()) {
+    return;  // The error has already been logged.
+  }
+  if (event.action == AMOTION_EVENT_ACTION_HOVER_MOVE || Log::IsEnabled(Log::Level::VERBOSE)) {
+    Log::V("motion_event: %s", motion_event.ToString().c_str());
+  } else if (Log::IsEnabled(Log::Level::DEBUG)) {
+    Log::D("motion_event: %s", motion_event.ToString().c_str());
+  }
+  InjectInputEvent(motion_event);
+}
+
+void Controller::InjectKeyEvent(const KeyEvent& event) {
+  JObject key_event = event.ToJava();
+  if (Log::IsEnabled(Log::Level::DEBUG)) {
+    Log::D("key_event: %s", key_event.ToString().c_str());
+  }
+  InjectInputEvent(key_event);
+}
+
+void Controller::InjectInputEvent(const JObject& input_event) {
+  if (input_event_injection_disabled_) {
+    return;
+  }
+  if (!InputManager::InjectInputEvent(jni_, input_event, InputEventInjectionSync::NONE)) {
+    JThrowable exception = jni_.GetAndClearException();
+    if (exception.IsNotNull()) {
+      Log::E("Unable to inject an input event - %s", JString::ValueOf(exception).c_str());
+      // Some phones, e.g. Xiaomi Redmi Note 13 Pro, don't allow shell process to inject events.
+      if (exception.GetClass().GetName(jni_) == "java.lang.SecurityException") {
+        input_event_injection_disabled_ = true;
+      }
+    } else {
+      Log::E("Unable to inject an input event %s", JString::ValueOf(exception).c_str());
     }
   }
 }
