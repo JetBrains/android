@@ -23,6 +23,7 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.rendering.RenderAsyncActionExecutor
@@ -56,8 +57,8 @@ internal class WearTilePreviewRepresentation(
     },
   )
 
-private fun NlDesignSurface.Builder.configureDesignSurface() {
-  setActionManagerProvider(::CommonPreviewActionManager)
+private fun NlDesignSurface.Builder.configureDesignSurface(navigationHandler: NavigationHandler) {
+  setActionManagerProvider { CommonPreviewActionManager(it, navigationHandler) }
   setSupportedActions(WEAR_TILE_SUPPORTED_ACTIONS)
   setScreenViewProvider(WEAR_TILE_SCREEN_VIEW_PROVIDER, false)
 }
