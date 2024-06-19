@@ -24,6 +24,7 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.preview.PreviewElement
@@ -60,10 +61,11 @@ internal class GlancePreviewRepresentation(
     },
   )
 
-private fun NlDesignSurface.Builder.configureDesignSurface() {
+private fun NlDesignSurface.Builder.configureDesignSurface(navigationHandler: NavigationHandler) {
   setActionManagerProvider { surface ->
     CommonPreviewActionManager(
       surface,
+      navigationHandler,
       supportAnimationPreview = false,
       supportInteractivePreview = false,
     )
