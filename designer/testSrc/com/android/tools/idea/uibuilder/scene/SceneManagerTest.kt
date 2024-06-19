@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.scene
 
 import com.android.SdkConstants
-import com.android.ide.common.rendering.api.ResourceReference
-import com.android.ide.common.rendering.api.ResourceValue
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
@@ -72,11 +70,6 @@ class TestSceneManager(
     object : SceneDecoratorFactory() {
       override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR
     }
-
-  override fun getDefaultProperties():
-    MutableMap<Any, MutableMap<ResourceReference, ResourceValue>> = mutableMapOf()
-
-  override fun getDefaultStyles(): MutableMap<Any, ResourceReference> = mutableMapOf()
 }
 
 class SceneManagerTest {

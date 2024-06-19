@@ -16,8 +16,6 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.ChangeType;
@@ -37,7 +35,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -247,10 +244,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
 
   @NotNull
   public abstract SceneDecoratorFactory getSceneDecoratorFactory();
-
-  public abstract Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties();
-
-  public abstract Map<Object, ResourceReference> getDefaultStyles();
 
   @NotNull
   protected HitProvider getHitProvider(@NotNull NlComponent component) {
