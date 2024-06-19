@@ -21,17 +21,19 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.gradle.CaptureType
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
+import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.EDivisiveAnalyzer
+import com.android.tools.perflogger.UTestAnalyzer
 import com.google.common.truth.Truth
 import org.junit.rules.ExternalResource
 import java.io.File
 import java.nio.file.Files
 
-private val ANALYZER = listOf(EDivisiveAnalyzer)
-
 // If `capture_heap` system property is set to `true` the test will also capture the heap alongside
-class CaptureSyncMemoryFromHistogramRule(private val projectName: String, private val disableAnalyzers: Boolean = false) : ExternalResource() {
+class CaptureSyncMemoryFromHistogramRule(private val projectName: String,
+                                         private val disableAnalyzers: Boolean = false,
+                                         private val projectToCompareAgainst: String? = null) : ExternalResource() {
   override fun before() {
     StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.override(OUTPUT_DIRECTORY)
     StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.override(true)
@@ -66,10 +68,12 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String, privat
       val metricName = metricFilePath.toMetricName()
       val timestamp = metricFilePath.toTimestamp()
       println("Recording ${projectName}_$metricName -> $totalBytes bytes ($totalMegabytes MBs)")
+      val metricToCompareAgainst = projectToCompareAgainst?.let { "${it}_$metricName" }
+
       recordMemoryMeasurement(capturedMetricNames, "${projectName}_$metricName", TimestampedMeasurement(
         timestamp,
         totalBytes
-        ))
+        ), metricToCompareAgainst)
       Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
     }
     for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.extension == "hprof" }.asIterable()) {
@@ -86,14 +90,27 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String, privat
   private fun recordMemoryMeasurement(
     capturedMetricNames: MutableList<String>,
     metricName: String,
-    measurement: TimestampedMeasurement) {
+    measurement: TimestampedMeasurement,
+    metricToCompareAgainst: String?) {
     Metric(metricName).apply {
       addSamples(MEMORY_BENCHMARK, Metric.MetricSample(
         measurement.first.toEpochMilliseconds(),
         measurement.second
       ))
       if (!disableAnalyzers) {
-        setAnalyzers(MEMORY_BENCHMARK, ANALYZER)
+        val analyzers = mutableListOf<Analyzer>(EDivisiveAnalyzer)
+        if (metricToCompareAgainst != null) {
+          // U-Test analyzers expect at least 3 points in the data to be available to make a meaningful comparison.
+          // For memory benchmarks, we only have one very stable data point, so we can use the same data point 3 times
+          // Using a different timestamp, just in case the perfgate somehow groups the data with the same timestamp together.
+          // Note: Perfgate also has threshold analyzers that we can use for this purpose, but U-Test is already implemented
+          // and I chose not to complicate this further with more different types of analyzers.
+          for (i in 1..2) {
+            addSamples(MEMORY_BENCHMARK, Metric.MetricSample(measurement.first.toEpochMilliseconds() + i, measurement.second))
+          }
+          analyzers.add(UTestAnalyzer.forMetricComparison(metricToCompareAgainst))
+        }
+        setAnalyzers(MEMORY_BENCHMARK, analyzers)
       }
       commit() // There is only one measurement per type, so we can commit immediately.
     }

@@ -49,6 +49,12 @@ iml_module(
                 "perfgate",
             ],
         },
+        "Benchmark1000MemoryLatestGradleTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryLatestGradleTest",
+            "tags": [
+                "perfgate",
+            ],
+        },
         # Presubmit tests
         "SyncBenchmarkVersionTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.SyncBenchmarkVersionTest",
