@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.project.build.output.BuildOutputErrorsListener
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
@@ -71,7 +72,7 @@ class SyncFailureUsageReporterTest {
       SyncViewManager::class.java,
       object : DummySyncViewManager(projectRule.project) {
         override fun addListener(listener: BuildProgressListener, disposable: Disposable) {
-          if (listener::class.java.enclosingClass == SyncFailureUsageReporter::class.java) {
+          if (listener::class.java == BuildOutputErrorsListener::class.java) {
             syncViewListeners.add(listener, disposable)
           }
         }

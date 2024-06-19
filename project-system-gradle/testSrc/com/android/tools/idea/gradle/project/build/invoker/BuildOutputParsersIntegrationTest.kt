@@ -20,16 +20,28 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
+import com.intellij.build.BuildProgressListener
+import com.intellij.build.BuildViewManager
+import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.impl.FinishBuildEventImpl
+import com.intellij.build.internal.DummyBuildViewManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.testFramework.replaceService
+import com.intellij.util.containers.DisposableWrapperList
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
   private lateinit var myTaskId: ExternalSystemTaskId
@@ -37,6 +49,8 @@ class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
   private lateinit var scheduler: VirtualTimeScheduler
   private lateinit var myTracker: TestUsageTracker
   private lateinit var myRequest: GradleBuildInvoker.Request
+
+  val allBuildEventsProcessedLatch = CountDownLatch(1)
 
   @Mock
   private lateinit var myFileDocumentManager: FileDocumentManager
@@ -51,6 +65,23 @@ class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
     myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject)
 
     myRequest = GradleBuildInvoker.Request.builder(myProject, File(myProject.basePath)).setTaskId(myTaskId).build()
+    val viewListeners = DisposableWrapperList<BuildProgressListener>()
+
+    project.replaceService(BuildViewManager::class.java, object : DummyBuildViewManager(project) {
+
+      override fun addListener(listener: BuildProgressListener, disposable: Disposable) {
+        viewListeners.add(listener, disposable)
+      }
+
+      override fun onEvent(buildId: Any, event: BuildEvent) {
+        viewListeners.forEach {
+          it.onEvent(buildId, event)
+        }
+        if (event is FinishBuildEventImpl) {
+          allBuildEventsProcessedLatch.countDown()
+        }
+      }
+    }, testRootDisposable)
   }
 
   override fun tearDown() {
@@ -135,9 +166,12 @@ class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
                     BUILD FAILED in 5s
                     16 actionable tasks: 15 executed, 1 up-to-date""".trimIndent()
 
+    buildListener.onStart(myTaskId, project.basePath)
     buildListener.onTaskOutput(myTaskId, output, true)
     buildListener.onFailure(myTaskId, RuntimeException("test"))
     buildListener.onEnd(myTaskId)
+
+    allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
 
     val buildOutputWindowEvents = myTracker.usages.filter {
       it.studioEvent.hasBuildOutputWindowStats()
@@ -189,9 +223,12 @@ class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
                     BUILD FAILED in 0s
                     5 actionable tasks: 4 executed, 1 up-to-date""".trimIndent()
 
+    buildListener.onStart(myTaskId, project.basePath)
     buildListener.onTaskOutput(myTaskId, output, true)
     buildListener.onFailure(myTaskId, RuntimeException("test"))
     buildListener.onEnd(myTaskId)
+
+    allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
 
     val buildOutputWindowEvents = myTracker.usages.filter {
       it.studioEvent.hasBuildOutputWindowStats()
