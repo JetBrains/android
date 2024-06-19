@@ -18,6 +18,7 @@ package com.android.tools.idea.lint.inspections;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix;
 import com.android.tools.idea.lint.quickFixes.AddUsesFeatureQuickFix;
 import com.android.tools.lint.checks.AndroidTvDetector;
 import com.android.tools.lint.detector.api.LintFix;
@@ -39,7 +40,7 @@ public class AndroidLintPermissionImpliesUnsupportedHardwareInspection extends A
                                          @Nullable LintFix fixData) {
     String hardwareFeatureName = LintFix.getString(fixData, AndroidTvDetector.KEY_FEATURE_NAME, null);
     if (hardwareFeatureName != null) {
-      return new LintIdeQuickFix[]{new AddUsesFeatureQuickFix(hardwareFeatureName)};
+      return new LintIdeQuickFix[]{new ModCommandLintQuickFix(new AddUsesFeatureQuickFix(hardwareFeatureName, startElement))};
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);

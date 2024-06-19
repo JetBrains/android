@@ -13,75 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint.quickFixes;
+package com.android.tools.idea.lint.quickFixes
 
-import com.android.SdkConstants;
-import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.DefaultLintQuickFix;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.xml.XmlNamespaceHelper;
-import java.util.Collections;
-import org.jetbrains.annotations.NotNull;
+import com.android.SdkConstants.ANDROID_URI
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.Presentation
+import com.intellij.modcommand.PsiBasedModCommandAction
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlFile
+import com.intellij.xml.XmlNamespaceHelper
 
-public class AddMissingPrefixQuickFix extends DefaultLintQuickFix {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.AddMissingPrefixQuickFix");
+class AddMissingPrefixQuickFix(element: PsiElement) :
+  PsiBasedModCommandAction<PsiElement>(element) {
+  override fun getFamilyName() = "AddMissingPrefixQuickFix"
 
-  public AddMissingPrefixQuickFix() {
-    super(AndroidLintBundle.message("android.lint.fix.add.android.prefix"));
-  }
-
-  @Override
-  public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-    final XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class, false);
-    if (attribute == null) {
-      return;
+  override fun getPresentation(context: ActionContext, element: PsiElement) =
+    PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false)?.let {
+      Presentation.of(message("android.lint.fix.add.android.prefix"))
     }
 
-    final XmlTag tag = attribute.getParent();
-    if (tag == null) {
-      LOG.debug("tag is null");
-      return;
-    }
+  override fun perform(context: ActionContext, element: PsiElement): ModCommand {
+    val attribute =
+      PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false)
+        ?: return ModCommand.nop()
+    val tag = attribute.parent ?: return ModCommand.nop()
 
-    String androidNsPrefix = tag.getPrefixByNamespace(SdkConstants.ANDROID_URI);
+    @Suppress("UnstableApiUsage")
+    return ModCommand.psiUpdate(attribute) { attr, updater ->
+      var androidNsPrefix = tag.getPrefixByNamespace(ANDROID_URI)
+      if (androidNsPrefix == null) {
+        val file = updater.getWritable(attr.containingFile as? XmlFile) ?: return@psiUpdate
+        val extension = XmlNamespaceHelper.getHelper(file) ?: return@psiUpdate
 
-    if (androidNsPrefix == null) {
-      final PsiFile file = tag.getContainingFile();
-      final XmlNamespaceHelper extension = XmlNamespaceHelper.getHelper(file);
-
-      if (extension == null) {
-        LOG.debug("Cannot get XmlNamespaceHelper for file + " + file);
-        return;
+        androidNsPrefix = "android"
+        extension.insertNamespaceDeclaration(file, null, setOf(ANDROID_URI), androidNsPrefix, null)
       }
 
-      if (!(file instanceof XmlFile)) {
-        LOG.debug(file + " is not XmlFile");
-        return;
-      }
-
-      final XmlFile xmlFile = (XmlFile)file;
-      final String defaultPrefix = "android";
-      extension.insertNamespaceDeclaration(xmlFile, null, Collections.singleton(SdkConstants.ANDROID_URI), defaultPrefix, null);
-      androidNsPrefix = defaultPrefix;
+      attr.setName(androidNsPrefix + ':' + attr.localName)
     }
-    String finalAndroidNsPrefix = androidNsPrefix;
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      attribute.setName(finalAndroidNsPrefix + ':' + attribute.getLocalName());
-    });
-  }
-
-  @Override
-  public boolean isApplicable(@NotNull PsiElement startElement,
-                              @NotNull PsiElement endElement,
-                              @NotNull AndroidQuickfixContexts.ContextType contextType) {
-    return PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class, false) != null;
   }
 }

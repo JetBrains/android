@@ -18,8 +18,10 @@ package com.android.tools.idea.lint.inspections;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix;
 import com.android.tools.lint.checks.InefficientWeightDetector;
 import com.android.tools.idea.lint.quickFixes.InefficientWeightQuickFix;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintInefficientWeightInspection extends AndroidLintInspectionBase {
@@ -29,9 +31,9 @@ public class AndroidLintInefficientWeightInspection extends AndroidLintInspectio
 
   @NotNull
   @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
     return new LintIdeQuickFix[]{
-      new InefficientWeightQuickFix()
+      new ModCommandLintQuickFix(new InefficientWeightQuickFix(startElement))
     };
   }
 }

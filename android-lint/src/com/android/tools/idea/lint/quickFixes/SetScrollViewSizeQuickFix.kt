@@ -13,49 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint.quickFixes;
+package com.android.tools.idea.lint.quickFixes
 
-import com.android.SdkConstants;
-import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.DefaultLintQuickFix;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
+import com.android.SdkConstants
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.Presentation
+import com.intellij.modcommand.PsiBasedModCommandAction
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.xml.XmlTag
 
-public class SetScrollViewSizeQuickFix extends DefaultLintQuickFix {
-  public SetScrollViewSizeQuickFix() {
-    super(AndroidLintBundle.message("android.lint.fix.set.to.wrap.content"));
-  }
+class SetScrollViewSizeQuickFix(element: PsiElement) :
+  PsiBasedModCommandAction<PsiElement>(element) {
+  override fun getFamilyName() = "SetScrollViewSizeQuickFix"
 
-  @Override
-  public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-    final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class);
-    if (tag == null) {
-      return;
+  override fun getPresentation(context: ActionContext, element: PsiElement) =
+    PsiTreeUtil.getParentOfType(element, XmlTag::class.java)?.parentTag?.let {
+      Presentation.of(message("android.lint.fix.set.to.wrap.content"))
     }
 
-    final XmlTag parentTag = tag.getParentTag();
-    if (parentTag == null) {
-      return;
-    }
+  override fun perform(context: ActionContext, element: PsiElement): ModCommand {
+    val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java) ?: return ModCommand.nop()
+    val parentTag = tag.parentTag ?: return ModCommand.nop()
 
-    final boolean isHorizontal = SdkConstants.HORIZONTAL_SCROLL_VIEW.equals(parentTag.getName());
-    final String attributeName = isHorizontal
-                                 ? SdkConstants.ATTR_LAYOUT_WIDTH
-                                 : SdkConstants.ATTR_LAYOUT_HEIGHT;
-    tag.setAttribute(attributeName, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT);
-  }
-
-  @Override
-  public boolean isApplicable(@NotNull PsiElement startElement,
-                              @NotNull PsiElement endElement,
-                              @NotNull AndroidQuickfixContexts.ContextType contextType) {
-    final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class);
-    if (tag == null) {
-      return false;
+    @Suppress("UnstableApiUsage")
+    return ModCommand.psiUpdate(tag) { tagCopy, _ ->
+      val isHorizontal = SdkConstants.HORIZONTAL_SCROLL_VIEW == parentTag.name
+      val attributeName =
+        if (isHorizontal) SdkConstants.ATTR_LAYOUT_WIDTH else SdkConstants.ATTR_LAYOUT_HEIGHT
+      tagCopy.setAttribute(attributeName, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
     }
-    return tag.getParentTag() != null;
   }
 }

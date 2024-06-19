@@ -18,8 +18,10 @@ package com.android.tools.idea.lint.inspections;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix;
 import com.android.tools.lint.checks.ScrollViewChildDetector;
 import com.android.tools.idea.lint.quickFixes.SetScrollViewSizeQuickFix;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintScrollViewSizeInspection extends AndroidLintInspectionBase {
@@ -29,7 +31,7 @@ public class AndroidLintScrollViewSizeInspection extends AndroidLintInspectionBa
 
   @NotNull
   @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
-    return new LintIdeQuickFix[]{new SetScrollViewSizeQuickFix()};
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+    return new LintIdeQuickFix[]{new ModCommandLintQuickFix(new SetScrollViewSizeQuickFix(startElement))};
   }
 }
