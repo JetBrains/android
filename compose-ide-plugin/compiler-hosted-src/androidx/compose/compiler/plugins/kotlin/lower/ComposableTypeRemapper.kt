@@ -43,7 +43,6 @@ import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
@@ -146,22 +145,6 @@ internal class DeepCopyIrTreeWithRemappedComposableTypes(
         includeFileNameInExceptionTrace(declaration) {
             return super.visitFile(declaration)
         }
-    }
-
-    override fun visitWhen(expression: IrWhen): IrWhen {
-        if (expression is IrIfThenElseImpl) {
-            return IrIfThenElseImpl(
-                expression.startOffset,
-                expression.endOffset,
-                expression.type.remapType(),
-                mapStatementOrigin(expression.origin),
-            ).also {
-                expression.branches.mapTo(it.branches) { branch ->
-                    branch.transform()
-                }
-            }.copyAttributes(expression)
-        }
-        return super.visitWhen(expression)
     }
 
     override fun visitConstructorCall(expression: IrConstructorCall): IrConstructorCall {
