@@ -296,7 +296,7 @@ class WellKnownGradlePluginDependencyUsageInfo(
 class WellKnownGradlePluginDslUsageInfo(
   element: WrappedPsiElement,
   val plugin: PluginModel,
-  val resultModel: GradlePropertyModel,
+  private val resultModel: GradlePropertyModel,
   val version: String
 ): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
