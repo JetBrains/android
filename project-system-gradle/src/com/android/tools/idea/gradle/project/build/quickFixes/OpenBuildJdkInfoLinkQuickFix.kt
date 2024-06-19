@@ -20,6 +20,5 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.OpenLinkDescribedQ
 class OpenBuildJdkInfoLinkQuickFix : OpenLinkDescribedQuickFix() {
   override val description = "More information..."
   override val id = "OpenBuildJdkInfoLinkQuickFix"
-  //TODO (b/327626363): create redirection for this
-  override val link = "https:/developers.android.com/build/jdks#toolchain"
+  override val link = "https:/developers.android.com/r/tools/upgrade-assistant/specify-compiler-jdk"
 }
