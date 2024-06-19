@@ -31,11 +31,15 @@ import com.intellij.ui.dsl.builder.actionListener
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
+import java.awt.Component
+import java.awt.Container
+import java.awt.KeyboardFocusManager
 import javax.swing.AbstractButton
 import javax.swing.JComponent
 import javax.swing.JSlider
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ListCellRenderer
+import javax.swing.SwingUtilities
 import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
@@ -168,7 +172,14 @@ internal class UiSettingsPanel(
 
     isFocusCycleRoot = true
     isFocusTraversalPolicyProvider = true
-    focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
+      override fun getFirstComponent(container: Container): Component? {
+        val first = super.getFirstComponent(container) ?: return null
+        val from = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
+        val fromOutside = from == null || !SwingUtilities.isDescendingFrom(from, container)
+        return if (first.name == RESET_TITLE && fromOutside) super.getComponentAfter(container, first) else first
+      }
+    }
   }
 
   /**
