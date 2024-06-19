@@ -403,6 +403,15 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     verifyFileContents(buildFile, TestFileName("GradlePlugins/BaselineProfilePluginVersionExpected"))
   }
 
+  @Test
+  fun testBaselineProfilePluginInClasspath() {
+    writeToBuildFile(TestFileName("GradlePlugins/BaselineProfilePluginVersionInClasspath"))
+    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("8.3.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/BaselineProfilePluginVersionInClasspathExpected"))
+  }
+
   private fun writeToVersionCatalogFile(fileName: TestFileName) {
     val testFile = fileName.toFile(testDataPath, ".toml")
     Assert.assertTrue(testFile.exists())

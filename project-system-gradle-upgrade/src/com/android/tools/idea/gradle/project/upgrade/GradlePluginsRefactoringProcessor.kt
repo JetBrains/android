@@ -272,6 +272,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       "com.google.protobuf:protobuf-gradle-plugin" to ::`com-google-protobuf-protobuf-gradle-plugin-compatibility-info`,
       "com.google.protobuf" to  ::`com-google-protobuf-protobuf-gradle-plugin-compatibility-info`,
 
+      "androidx.benchmark:benchmark-baseline-profile-gradle-plugin" to ::`androidx-baselineprofile-gradle-plugin-compatibility-info`,
       "androidx.baselineprofile" to ::`androidx-baselineprofile-gradle-plugin-compatibility-info`,
     )
   }
