@@ -113,6 +113,8 @@ class PastRecordingsTabModelTest {
 
   @Test
   fun `test task is auto-selected if it is the only supported task for a selected recording`() {
+    // Reset task selection for testing purposes.
+    pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.UNSPECIFIED)
     Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
     val session = Common.Session.getDefaultInstance()
     val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()

@@ -154,13 +154,7 @@ class TaskHomeTabTest {
     // Make sure process selection was registered in data model.
     assertThat(taskHomeTabModel.selectedProcess.name).isEqualTo("FakeProcess1")
 
-    // Make sure at this point, the start profiler task button is still disabled.
-    composeTestRule.onNodeWithTag("EnterTaskButton").assertIsNotEnabled()
-
-    // Make task selection.
-    verifyTaskExistsAndSelect(ProfilerTaskType.SYSTEM_TRACE)
-
-    // Make sure task selection was registered in data model.
+    // The profiler pre-selects the first task in the task grid already, so no explicit selection is needed.
     assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
 
     // Make sure at this point, the start profiler task button is now enabled as device, process, and task selections were all valid.
@@ -191,9 +185,6 @@ class TaskHomeTabTest {
 
     // Make sure preferred process selection was registered in data model (preferred process should have been auto-selected)
     assertThat(taskHomeTabModel.selectedProcess.name).isEqualTo("com.foo.bar")
-
-    // Selection of a preferred process is not sufficient to enable the task starting point dropdown. A task must be selected as well.
-    composeTestRule.onNodeWithTag("TaskStartingPointDropdown").assertIsNotEnabled()
 
     // Select a startup-capable task (e.g. System Trace)
     verifyTaskExistsAndSelect(ProfilerTaskType.SYSTEM_TRACE)
@@ -497,6 +488,9 @@ class TaskHomeTabTest {
 
     // Make sure preferred process selection was registered in data model (preferred process should have been auto-selected)
     assertThat(taskHomeTabModel.selectedProcess.name).isEqualTo("com.foo.bar")
+
+    // Have a non-startup capable task selected, such as Heap Dump.
+    verifyTaskExistsAndSelect(ProfilerTaskType.HEAP_DUMP)
 
     // An alive process is selected, meeting the criteria of enabling the NOW option from the task starting point dropdown. Make sure this
     // option is enabled
