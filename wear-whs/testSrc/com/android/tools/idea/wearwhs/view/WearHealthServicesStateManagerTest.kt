@@ -39,30 +39,32 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private val capabilities =
-  listOf(
-    WhsCapability(
-      WhsDataType.HEART_RATE_BPM,
-      "wear.whs.capability.heart.rate.label",
-      "wear.whs.capability.heart.rate.unit",
-      isOverrideable = true,
-      isStandardCapability = true,
-    ),
-    WhsCapability(
-      WhsDataType.LOCATION,
-      "wear.whs.capability.location.label",
-      "wear.whs.capability.unit.none",
-      isOverrideable = false,
-      isStandardCapability = true,
-    ),
-    WhsCapability(
-      WhsDataType.STEPS,
-      "wear.whs.capability.steps.label",
-      "wear.whs.capability.steps.unit",
-      isOverrideable = true,
-      isStandardCapability = false,
-    ),
+private val heartRateBpmCapability =
+  WhsCapability(
+    WhsDataType.HEART_RATE_BPM,
+    "wear.whs.capability.heart.rate.label",
+    "wear.whs.capability.heart.rate.unit",
+    isOverrideable = true,
+    isStandardCapability = true,
   )
+private val locationCapability =
+  WhsCapability(
+    WhsDataType.LOCATION,
+    "wear.whs.capability.location.label",
+    "wear.whs.capability.unit.none",
+    isOverrideable = false,
+    isStandardCapability = true,
+  )
+private val stepsCapability =
+  WhsCapability(
+    WhsDataType.STEPS,
+    "wear.whs.capability.steps.label",
+    "wear.whs.capability.steps.unit",
+    isOverrideable = true,
+    isStandardCapability = false,
+  )
+
+private val capabilities = listOf(heartRateBpmCapability, locationCapability, stepsCapability)
 
 class WearHealthServicesStateManagerTest {
   companion object {
@@ -110,15 +112,15 @@ class WearHealthServicesStateManagerTest {
       stateManager.preset.value = Preset.STANDARD
 
       stateManager
-        .getState(capabilities[0])
+        .getState(heartRateBpmCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[1])
+        .getState(locationCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[2])
+        .getState(stepsCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(false)
     }
@@ -129,30 +131,30 @@ class WearHealthServicesStateManagerTest {
       stateManager.preset.value = Preset.STANDARD
 
       stateManager
-        .getState(capabilities[0])
+        .getState(heartRateBpmCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[1])
+        .getState(locationCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[2])
+        .getState(stepsCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(false)
 
       stateManager.preset.value = Preset.ALL
 
       stateManager
-        .getState(capabilities[0])
+        .getState(heartRateBpmCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[1])
+        .getState(locationCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[2])
+        .getState(stepsCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
     }
@@ -160,84 +162,84 @@ class WearHealthServicesStateManagerTest {
   @Test
   fun `test state manager initialises all capabilities to synced, enabled and no override`() =
     runBlocking {
-      stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(true)
-      stateManager.getState(capabilities[1]).mapState { it.synced }.waitForValue(true)
-      stateManager.getState(capabilities[2]).mapState { it.synced }.waitForValue(true)
+      stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
+      stateManager.getState(locationCapability).mapState { it.synced }.waitForValue(true)
+      stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(true)
       stateManager
-        .getState(capabilities[0])
+        .getState(heartRateBpmCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[1])
+        .getState(locationCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[2])
+        .getState(stepsCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[0])
+        .getState(heartRateBpmCapability)
         .mapState { it.capabilityState.overrideValue }
-        .waitForValue(null)
+        .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
       stateManager
-        .getState(capabilities[1])
+        .getState(locationCapability)
         .mapState { it.capabilityState.overrideValue }
-        .waitForValue(null)
+        .waitForValue(WhsDataType.LOCATION.noValue())
       stateManager
-        .getState(capabilities[2])
+        .getState(stepsCapability)
         .mapState { it.capabilityState.overrideValue }
-        .waitForValue(null)
+        .waitForValue(WhsDataType.STEPS.noValue())
     }
 
   @Test
   fun `test state manager sets capabilities that are not returned by device manager to default state`() =
     runBlocking {
-      stateManager.setCapabilityEnabled(capabilities[0], false)
-      stateManager.setOverrideValue(capabilities[0], 3f)
+      stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
+      stateManager.setOverrideValue(heartRateBpmCapability, 3f)
 
       stateManager.applyChanges()
 
-      stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(true)
+      stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
       stateManager
-        .getState(capabilities[0])
+        .getState(heartRateBpmCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(false)
       stateManager
-        .getState(capabilities[0])
+        .getState(heartRateBpmCapability)
         .mapState { it.capabilityState.overrideValue }
-        .waitForValue(3f)
+        .waitForValue(WhsDataType.HEART_RATE_BPM.value(3f))
 
       deviceManager.clearContentProvider()
 
-      stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(true)
+      stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
       stateManager
-        .getState(capabilities[0])
+        .getState(heartRateBpmCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[0])
+        .getState(heartRateBpmCapability)
         .mapState { it.capabilityState.overrideValue }
-        .waitForValue(null)
+        .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
     }
 
   @Test
   fun `test getCapabilityEnabled has the correct value`() = runBlocking {
-    stateManager.setCapabilityEnabled(capabilities[0], false)
+    stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
     stateManager
-      .getState(capabilities[0])
+      .getState(heartRateBpmCapability)
       .mapState { it.capabilityState.enabled }
       .waitForValue(false)
   }
 
   @Test
   fun `test getOverrideValue has the correct value`() = runBlocking {
-    stateManager.setOverrideValue(capabilities[1], 3f)
+    stateManager.setOverrideValue(stepsCapability, 3)
 
     stateManager
-      .getState(capabilities[1])
+      .getState(stepsCapability)
       .mapState { it.capabilityState.overrideValue }
-      .waitForValue(3f)
-    stateManager.getState(capabilities[1]).mapState { it.synced }.waitForValue(false)
+      .waitForValue(WhsDataType.STEPS.value(3))
+    stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(false)
   }
 
   @Test
@@ -245,7 +247,7 @@ class WearHealthServicesStateManagerTest {
     runBlocking {
       stateManager.preset.value = Preset.STANDARD
 
-      stateManager.setOverrideValue(capabilities[1], 3f)
+      stateManager.setOverrideValue(locationCapability, 3f)
 
       assertEquals(0, deviceManager.clearContentProviderInvocations)
 
@@ -253,14 +255,14 @@ class WearHealthServicesStateManagerTest {
 
       stateManager.preset.waitForValue(Preset.ALL)
       stateManager
-        .getState(capabilities[2])
+        .getState(stepsCapability)
         .mapState { it.capabilityState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(capabilities[1])
+        .getState(locationCapability)
         .mapState { it.capabilityState.overrideValue }
-        .waitForValue(null)
-      stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(true)
+        .waitForValue(WhsDataType.LOCATION.noValue())
+      stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
 
       assertEquals(1, deviceManager.clearContentProviderInvocations)
     }
@@ -269,7 +271,7 @@ class WearHealthServicesStateManagerTest {
   fun `when an exercise is ongoing reset only clears the overridden values`(): Unit = runBlocking {
     stateManager.preset.value = Preset.STANDARD
 
-    stateManager.setOverrideValue(capabilities[1], 3f)
+    stateManager.setOverrideValue(locationCapability, 3f)
     deviceManager.activeExercise = true
 
     stateManager.ongoingExercise.waitForValue(true)
@@ -280,15 +282,15 @@ class WearHealthServicesStateManagerTest {
 
     stateManager.preset.waitForValue(Preset.STANDARD)
     stateManager
-      .getState(capabilities[0])
+      .getState(heartRateBpmCapability)
       .mapState { it.capabilityState.enabled }
       .waitForValue(true)
     stateManager
-      .getState(capabilities[1])
+      .getState(locationCapability)
       .mapState { it.capabilityState.overrideValue }
-      .waitForValue(null)
+      .waitForValue(WhsDataType.LOCATION.noValue())
     stateManager
-      .getState(capabilities[2])
+      .getState(stepsCapability)
       .mapState { it.capabilityState.enabled }
       .waitForValue(false)
     assertEquals(1, deviceManager.overrideValuesInvocations)
@@ -297,42 +299,50 @@ class WearHealthServicesStateManagerTest {
   @Test
   fun `test applyChanges sends synced and status updates`(): Unit = runBlocking {
     stateManager
-      .getState(capabilities[0])
+      .getState(heartRateBpmCapability)
       .mapState { it.capabilityState.enabled }
       .waitForValue(true)
     stateManager
-      .getState(capabilities[1])
+      .getState(locationCapability)
       .mapState { it.capabilityState.enabled }
       .waitForValue(true)
     stateManager
-      .getState(capabilities[2])
+      .getState(stepsCapability)
       .mapState { it.capabilityState.enabled }
       .waitForValue(true)
-    stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(true)
-    stateManager.getState(capabilities[1]).mapState { it.synced }.waitForValue(true)
-    stateManager.getState(capabilities[2]).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(true)
 
-    stateManager.setCapabilityEnabled(capabilities[0], false)
-    stateManager.setCapabilityEnabled(capabilities[1], true)
-    stateManager.setOverrideValue(capabilities[1], 3f)
-    stateManager.setCapabilityEnabled(capabilities[2], true)
+    stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
+    stateManager.setCapabilityEnabled(locationCapability, true)
+    stateManager.setOverrideValue(locationCapability, 3f)
+    stateManager.setCapabilityEnabled(stepsCapability, true)
+    stateManager.setOverrideValue(stepsCapability, 30)
 
-    stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(false)
-    stateManager.getState(capabilities[1]).mapState { it.synced }.waitForValue(false)
-    stateManager.getState(capabilities[2]).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(false)
+    // Location capability can not be overridden (has no value) so it will remain synced
+    stateManager.getState(locationCapability).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(false)
 
     stateManager.applyChanges()
 
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
 
-    stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(true)
-    stateManager.getState(capabilities[1]).mapState { it.synced }.waitForValue(true)
-    stateManager.getState(capabilities[2]).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(true)
 
     assertThat(deviceManager.loadCurrentCapabilityStates().getOrThrow())
-      .containsEntry(capabilities[0].dataType, CapabilityState(false, null))
+      .containsEntry(
+        heartRateBpmCapability.dataType,
+        CapabilityState.disabled(WhsDataType.HEART_RATE_BPM),
+      )
     assertThat(deviceManager.loadCurrentCapabilityStates().getOrThrow())
-      .containsEntry(capabilities[1].dataType, CapabilityState(true, 3f))
+      .containsEntry(
+        locationCapability.dataType,
+        CapabilityState(true, WhsDataType.LOCATION.value(3f)),
+      )
 
     assertThat(loggedEvents).hasSize(2)
     assertThat(loggedEvents[0].kind)
@@ -348,7 +358,7 @@ class WearHealthServicesStateManagerTest {
   @Test
   fun `test applyChanges sends error status update`(): Unit = runBlocking {
     deviceManager.failState = true
-    stateManager.setCapabilityEnabled(capabilities[0], false)
+    stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
     stateManager.applyChanges()
 
@@ -367,7 +377,7 @@ class WearHealthServicesStateManagerTest {
 
   @Test
   fun `test applyChanges sends idle status update when retry succeeds`(): Unit = runBlocking {
-    stateManager.setCapabilityEnabled(capabilities[0], false)
+    stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
     deviceManager.failState = true
 
@@ -385,11 +395,11 @@ class WearHealthServicesStateManagerTest {
     stateManager.applyChanges()
 
     // Disable value on-device
-    deviceManager.setCapabilities(mapOf(capabilities[0].dataType to false))
+    deviceManager.setCapabilities(mapOf(WhsDataType.HEART_RATE_BPM to false))
 
     // Verify that the value is updated
     stateManager
-      .getState(capabilities[0])
+      .getState(heartRateBpmCapability)
       .mapState { it.capabilityState.enabled }
       .waitForValue(false)
   }
@@ -401,18 +411,18 @@ class WearHealthServicesStateManagerTest {
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
 
     // Enable sensor and override value on device
-    deviceManager.setCapabilities(mapOf(capabilities[0].dataType to true))
-    deviceManager.overrideValues(mapOf(capabilities[0].dataType to 10f))
+    deviceManager.setCapabilities(mapOf(WhsDataType.HEART_RATE_BPM to true))
+    deviceManager.overrideValues(listOf(WhsDataType.HEART_RATE_BPM.value(10f)))
 
     // Verify that the value is updated
     stateManager
-      .getState(capabilities[0])
+      .getState(heartRateBpmCapability)
       .mapState { it.capabilityState.enabled }
       .waitForValue(true)
     stateManager
-      .getState(capabilities[0])
+      .getState(heartRateBpmCapability)
       .mapState { it.capabilityState.overrideValue }
-      .waitForValue(10f)
+      .waitForValue(WhsDataType.HEART_RATE_BPM.value(10f))
   }
 
   @Test
@@ -453,24 +463,24 @@ class WearHealthServicesStateManagerTest {
 
   @Test
   fun `reset clears the state successfully`(): Unit = runBlocking {
-    stateManager.setCapabilityEnabled(capabilities[0], false)
+    stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
-    stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(false)
+    stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(false)
     stateManager.reset()
 
-    stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
   }
 
   @Test
   fun `when there is no connection reset does not clear the state`(): Unit = runBlocking {
-    stateManager.setCapabilityEnabled(capabilities[0], false)
+    stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
-    stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(false)
+    stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(false)
     deviceManager.failState = true
     stateManager.reset()
 
     try {
-      stateManager.getState(capabilities[0]).mapState { it.synced }.waitForValue(true)
+      stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
       fail("Value should not reset if the communication with the device is lost")
     } catch (_: AssertionError) {}
   }

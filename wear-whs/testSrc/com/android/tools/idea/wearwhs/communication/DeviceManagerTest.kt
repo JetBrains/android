@@ -22,6 +22,7 @@ import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsDataType
+import com.android.tools.idea.wearwhs.WhsDataValue
 import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.launch
@@ -82,7 +83,7 @@ class DeviceManagerTest {
 
       adbSession.close()
 
-      assertFailure(deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 50)))
+      assertFailure(deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(50))))
     }
 
   @Test
@@ -344,17 +345,16 @@ class DeviceManagerTest {
     runTest {
       val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
-      val job = launch { deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 55)) }
+      val job = launch { deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(55))) }
       job.join()
     }
 
   private fun assertOverrideSendsAdbCommand(
-    dataType: WhsDataType,
-    overrideValue: Number?,
+    overrideValue: WhsDataValue,
     expectedAdbCommand: String,
   ) = runTest {
     assertDeviceManagerFunctionSendsAdbCommand(
-      { deviceManager -> deviceManager.overrideValues(mapOf(dataType to overrideValue)) },
+      { deviceManager -> deviceManager.overrideValues(listOf(overrideValue)) },
       expectedAdbCommand,
     )
   }
@@ -362,13 +362,11 @@ class DeviceManagerTest {
   @Test
   fun `override steps`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.STEPS,
-      55,
+      WhsDataType.STEPS.value(55),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:i:55",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.STEPS,
-      null,
+      WhsDataType.STEPS.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:s:\"\"",
     )
   }
@@ -376,13 +374,11 @@ class DeviceManagerTest {
   @Test
   fun `override distance`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.DISTANCE,
-      10,
+      WhsDataType.DISTANCE.value(10f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:f:10.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.DISTANCE,
-      null,
+      WhsDataType.DISTANCE.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:s:\"\"",
     )
   }
@@ -390,13 +386,11 @@ class DeviceManagerTest {
   @Test
   fun `override calories`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.CALORIES,
-      100,
+      WhsDataType.CALORIES.value(100f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:f:100.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.CALORIES,
-      null,
+      WhsDataType.CALORIES.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:s:\"\"",
     )
   }
@@ -404,13 +398,11 @@ class DeviceManagerTest {
   @Test
   fun `override floors`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.FLOORS,
-      5,
+      WhsDataType.FLOORS.value(5f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:f:5.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.FLOORS,
-      null,
+      WhsDataType.FLOORS.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:s:\"\"",
     )
   }
@@ -418,13 +410,11 @@ class DeviceManagerTest {
   @Test
   fun `override elevation gain`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.ELEVATION_GAIN,
-      50,
+      WhsDataType.ELEVATION_GAIN.value(50f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:f:50.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.ELEVATION_GAIN,
-      null,
+      WhsDataType.ELEVATION_GAIN.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:s:\"\"",
     )
   }
@@ -432,13 +422,11 @@ class DeviceManagerTest {
   @Test
   fun `override elevation loss`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.ELEVATION_LOSS,
-      20,
+      WhsDataType.ELEVATION_LOSS.value(20f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:20.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.ELEVATION_LOSS,
-      null,
+      WhsDataType.ELEVATION_LOSS.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:s:\"\"",
     )
   }
@@ -446,13 +434,11 @@ class DeviceManagerTest {
   @Test
   fun `override absolute elevation`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.ABSOLUTE_ELEVATION,
-      120,
+      WhsDataType.ABSOLUTE_ELEVATION.value(120f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:f:120.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.ABSOLUTE_ELEVATION,
-      null,
+      WhsDataType.ABSOLUTE_ELEVATION.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ABSOLUTE_ELEVATION:s:\"\"",
     )
   }
@@ -460,13 +446,11 @@ class DeviceManagerTest {
   @Test
   fun `override heart rate bpm`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.HEART_RATE_BPM,
-      65,
+      WhsDataType.HEART_RATE_BPM.value(65f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:f:65.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.HEART_RATE_BPM,
-      null,
+      WhsDataType.HEART_RATE_BPM.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:s:\"\"",
     )
   }
@@ -474,13 +458,11 @@ class DeviceManagerTest {
   @Test
   fun `override speed`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.SPEED,
-      30,
+      WhsDataType.SPEED.value(30f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:f:30.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.SPEED,
-      null,
+      WhsDataType.SPEED.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:s:\"\"",
     )
   }
@@ -488,13 +470,11 @@ class DeviceManagerTest {
   @Test
   fun `override pace`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.PACE,
-      20,
+      WhsDataType.PACE.value(20f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:f:20.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.PACE,
-      null,
+      WhsDataType.PACE.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:s:\"\"",
     )
   }
@@ -502,13 +482,11 @@ class DeviceManagerTest {
   @Test
   fun `override steps per minute`() {
     assertOverrideSendsAdbCommand(
-      WhsDataType.STEPS_PER_MINUTE,
-      25,
+      WhsDataType.STEPS_PER_MINUTE.value(25f),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:f:25.0",
     )
     assertOverrideSendsAdbCommand(
-      WhsDataType.STEPS_PER_MINUTE,
-      null,
+      WhsDataType.STEPS_PER_MINUTE.noValue(),
       "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:s:\"\"",
     )
   }
@@ -598,7 +576,7 @@ class DeviceManagerTest {
     runTest {
       val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
-      val job = launch { deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 55)) }
+      val job = launch { deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(55f))) }
       job.join()
     }
 
@@ -607,10 +585,10 @@ class DeviceManagerTest {
     assertDeviceManagerFunctionSendsAdbCommand(
       { deviceManager ->
         deviceManager.overrideValues(
-          mapOf(
-            WhsDataType.DISTANCE to 12.0,
-            WhsDataType.CALORIES to 123.0,
-            WhsDataType.FLOORS to 5.0,
+          listOf(
+            WhsDataType.DISTANCE.value(12.0f),
+            WhsDataType.CALORIES.value(123.0f),
+            WhsDataType.FLOORS.value(5.0f),
           )
         )
       },
@@ -623,7 +601,7 @@ class DeviceManagerTest {
     assertDeviceManagerFunctionSendsAdbCommand(
       { deviceManager ->
         deviceManager.overrideValues(
-          mapOf(WhsDataType.STEPS to 55, WhsDataType.ELEVATION_LOSS to 5.0)
+          listOf(WhsDataType.STEPS.value(55), WhsDataType.ELEVATION_LOSS.value(5.0f))
         )
       },
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:5.0 --bind STEPS:i:55",
@@ -635,10 +613,10 @@ class DeviceManagerTest {
     assertDeviceManagerFunctionSendsAdbCommand(
       { deviceManager ->
         deviceManager.overrideValues(
-          mapOf(
-            WhsDataType.STEPS to 55,
-            WhsDataType.ELEVATION_LOSS to 5.0,
-            WhsDataType.PACE to null,
+          listOf(
+            WhsDataType.STEPS.value(55),
+            WhsDataType.ELEVATION_LOSS.value(5.0f),
+            WhsDataType.PACE.noValue(),
           )
         )
       },
@@ -651,11 +629,11 @@ class DeviceManagerTest {
     assertDeviceManagerFunctionSendsAdbCommand(
       { deviceManager ->
         deviceManager.overrideValues(
-          mapOf(
-            WhsDataType.STEPS to 55,
-            WhsDataType.ELEVATION_LOSS to 5.0,
-            WhsDataType.PACE to null,
-            WhsDataType.LOCATION to null,
+          listOf(
+            WhsDataType.STEPS.value(55),
+            WhsDataType.ELEVATION_LOSS.value(5.0f),
+            WhsDataType.PACE.noValue(),
+            WhsDataType.LOCATION.noValue(),
           )
         )
       },
@@ -809,8 +787,8 @@ class DeviceManagerTest {
 
     val previousCount = adbSession.deviceServices.shellV2Requests.size
 
-    var parsedCapabilities =
-      WHS_CAPABILITIES.associate { it.dataType to CapabilityState(false, null) }
+    var parsedCapabilities: Map<WhsDataType, CapabilityState> =
+      WHS_CAPABILITIES.associate { it.dataType to CapabilityState.disabled(it.dataType) }
     val job = launch {
       parsedCapabilities = deviceManager.loadCurrentCapabilityStates().getOrThrow()
     }
@@ -857,17 +835,33 @@ class DeviceManagerTest {
                                                        """
         .trimIndent(),
       mapOf(
-        WhsDataType.STEPS_PER_MINUTE to CapabilityState(false, null),
-        WhsDataType.SPEED to CapabilityState(true, 0f),
-        WhsDataType.FLOORS to CapabilityState(false, 5f),
-        WhsDataType.ABSOLUTE_ELEVATION to CapabilityState(false, null),
-        WhsDataType.ELEVATION_LOSS to CapabilityState(false, null),
-        WhsDataType.DISTANCE to CapabilityState(true, 0f),
-        WhsDataType.ELEVATION_GAIN to CapabilityState(false, null),
-        WhsDataType.CALORIES to CapabilityState(false, null),
-        WhsDataType.PACE to CapabilityState(false, null),
-        WhsDataType.HEART_RATE_BPM to CapabilityState(true, 55f),
-        WhsDataType.STEPS to CapabilityState(true, 42f),
+        WhsDataType.STEPS_PER_MINUTE to CapabilityState.disabled(WhsDataType.STEPS_PER_MINUTE),
+        WhsDataType.SPEED to CapabilityState(true, WhsDataType.SPEED.value(0f)),
+        WhsDataType.FLOORS to CapabilityState(false, WhsDataType.FLOORS.value(5f)),
+        WhsDataType.ABSOLUTE_ELEVATION to CapabilityState.disabled(WhsDataType.ABSOLUTE_ELEVATION),
+        WhsDataType.ELEVATION_LOSS to CapabilityState.disabled(WhsDataType.ELEVATION_LOSS),
+        WhsDataType.DISTANCE to CapabilityState(true, WhsDataType.DISTANCE.value(0f)),
+        WhsDataType.ELEVATION_GAIN to CapabilityState.disabled(WhsDataType.ELEVATION_GAIN),
+        WhsDataType.CALORIES to CapabilityState.disabled(WhsDataType.CALORIES),
+        WhsDataType.PACE to CapabilityState.disabled(WhsDataType.PACE),
+        WhsDataType.HEART_RATE_BPM to CapabilityState(true, WhsDataType.HEART_RATE_BPM.value(55f)),
+        WhsDataType.STEPS to CapabilityState(true, WhsDataType.STEPS.value(42)),
+      ),
+    )
+  }
+
+  @Test
+  fun `float capabilities are parsed correctly`() {
+    assertLoadCapabilitiesAdbResponseIsParsedCorrectly(
+      """
+         Row: 0 data_type=HEART_RATE_BPM, is_enabled=true, override_value=554E2
+         Row: 1 data_type=STEPS, is_enabled=true, override_value=42
+       """
+        .trimIndent(),
+      mapOf(
+        WhsDataType.HEART_RATE_BPM to
+          CapabilityState(true, WhsDataType.HEART_RATE_BPM.value(55400.0f)),
+        WhsDataType.STEPS to CapabilityState(true, WhsDataType.STEPS.value(42)),
       ),
     )
   }
@@ -881,7 +875,7 @@ class DeviceManagerTest {
                                                        Row: 2 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0
                                                        """
         .trimIndent(),
-      mapOf(WhsDataType.STEPS to CapabilityState(true, 0f)),
+      mapOf(WhsDataType.STEPS to CapabilityState(true, WhsDataType.STEPS.value(0))),
     )
   }
 

@@ -157,7 +157,6 @@ class WearHealthServicesContentPanelTest {
 
     delay(2 * TEST_POLLING_INTERVAL_MILLISECONDS)
 
-    assertThat(textField.text).isNotEqualTo("50.0")
     assertThat(textField.text).isEqualTo("50")
   }
 
@@ -294,7 +293,7 @@ class WearHealthServicesContentPanelTest {
       deviceManager.activeExercise = true
 
       fakeUi.waitForCheckbox("Heart rate", true)
-      fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && it.isEnabled }
+      fakeUi.waitForDescendant<JTextField> { it.text == "50" && it.isVisible && it.isEnabled }
       fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && it.isEnabled }
     }
 
