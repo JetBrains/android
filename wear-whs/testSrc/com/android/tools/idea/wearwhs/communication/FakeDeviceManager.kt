@@ -19,6 +19,7 @@ import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
+import com.android.tools.idea.wearwhs.WhsDataValue
 
 /** Fake implementation of [WearHealthServicesDeviceManager] for testing. */
 internal class FakeDeviceManager(
@@ -28,8 +29,8 @@ internal class FakeDeviceManager(
   internal val triggeredEvents = mutableListOf<EventTrigger>()
   internal var clearContentProviderInvocations = 0
   internal var overrideValuesInvocations = 0
-  private val onDeviceStates =
-    capabilities.associate { it.dataType to CapabilityState(true, null) }.toMutableMap()
+  private val onDeviceStates: MutableMap<WhsDataType, CapabilityState> =
+    capabilities.associate { it.dataType to CapabilityState.enabled(it.dataType) }.toMutableMap()
   internal var activeExercise = false
 
   override fun getCapabilities() = capabilities
@@ -40,16 +41,15 @@ internal class FakeDeviceManager(
     failOrWrapResult(Unit).also {
       capabilityUpdates.forEach { (dataType, enabled) ->
         onDeviceStates[dataType] =
-          CapabilityState(enabled, onDeviceStates[dataType]!!.overrideValue)
+          if (enabled) onDeviceStates[dataType]!!.enable() else onDeviceStates[dataType]!!.disable()
       }
     }
 
-  override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) =
+  override suspend fun overrideValues(overrideUpdates: List<WhsDataValue>) =
     failOrWrapResult(Unit).also {
       overrideValuesInvocations++
-      overrideUpdates.forEach { (dataType, value) ->
-        onDeviceStates[dataType] =
-          CapabilityState(onDeviceStates[dataType]!!.enabled, value?.toFloat())
+      overrideUpdates.forEach {
+        onDeviceStates[it.type] = CapabilityState(onDeviceStates[it.type]!!.enabled, it)
       }
     }
 

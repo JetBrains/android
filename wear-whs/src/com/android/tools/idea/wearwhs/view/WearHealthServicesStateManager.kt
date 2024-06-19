@@ -42,7 +42,10 @@ internal interface WearHealthServicesStateManager {
    * Sets the overridden sensor value for the given capability. Null value here means there's no
    * overridden value and WHS should use the default value.
    */
-  suspend fun setOverrideValue(capability: WhsCapability, value: Float?)
+  suspend fun setOverrideValue(capability: WhsCapability, value: Number)
+
+  /** Clears the override value for the given capability. */
+  suspend fun clearOverrideValue(capability: WhsCapability)
 
   fun getState(capability: WhsCapability): StateFlow<CapabilityUIState>
 
@@ -123,7 +126,4 @@ internal sealed class WhsStateManagerStatus(val idle: Boolean) {
 }
 
 /** Data class representing current state of a WHS capability. */
-internal data class CapabilityUIState(
-  val synced: Boolean = true,
-  val capabilityState: CapabilityState = CapabilityState(true, null),
-)
+internal data class CapabilityUIState(val synced: Boolean, val capabilityState: CapabilityState)

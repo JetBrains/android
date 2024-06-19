@@ -20,6 +20,7 @@ import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.WearWhsBundle
 import com.android.tools.idea.wearwhs.WhsCapability
+import com.android.tools.idea.wearwhs.WhsDataValue
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -164,7 +165,18 @@ private fun createCenterPanel(
                           return false
                         }
                         workerScope.launch {
-                          stateManager.setOverrideValue(capability, string.toFloatOrNull())
+                          when (capability.dataType.overrideDataType) {
+                            WhsDataValue.IntValue::class.java -> {
+                              string.toIntOrNull()?.let {
+                                stateManager.setOverrideValue(capability, it)
+                              } ?: stateManager.clearOverrideValue(capability)
+                            }
+                            else -> {
+                              string.toFloatOrNull()?.let {
+                                stateManager.setOverrideValue(capability, it)
+                              } ?: stateManager.clearOverrideValue(capability)
+                            }
+                          }
                         }
                         return true
                       }
@@ -212,9 +224,10 @@ private fun createCenterPanel(
                   stateManager
                     .getState(capability)
                     .map { it.capabilityState.overrideValue }
-                    .onEach {
-                      if (!textField.isFocusOwner && textField.text.toFloatOrNull() != it) {
-                        textField.text = it?.toString() ?: ""
+                    .onEach { overrideValue ->
+                      val overrideValueAsText = overrideValue.asText().trim()
+                      if (!textField.isFocusOwner && textField.text.trim() != overrideValueAsText) {
+                        textField.text = overrideValueAsText
                       }
                     }
                     .launchIn(uiScope)

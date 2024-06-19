@@ -24,7 +24,9 @@ import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
+import com.android.tools.idea.wearwhs.WhsDataValue
 import com.intellij.openapi.diagnostic.Logger
+import kotlin.reflect.full.isSuperclassOf
 import kotlinx.coroutines.flow.take
 
 const val whsPackage: String = "com.google.android.wearable.healthservices"
@@ -32,10 +34,10 @@ const val whsConfigUri: String = "content://$whsPackage.dev.synthetic/synthetic_
 const val whsActiveExerciseUri: String = "content://$whsPackage.dev.exerciseinfo"
 const val whsDevVersionCode = 1
 const val whsMinimumVersionCode = 1447606
-val capabilityStatePattern =
-  Regex("Row: \\d+ data_type=(\\w+), is_enabled=(true|false), override_value=(\\d+\\.?\\d*)")
-val versionCodePattern = Regex("versionCode=(\\d+)")
-val activeExerciseRegex = Regex("active_exercise=(true|false)")
+private val capabilityStatePattern =
+  Regex("Row: \\d+ data_type=(\\w+), is_enabled=(true|false), override_value=(\\d+\\.?\\d*E?\\d*)")
+private val versionCodePattern = Regex("versionCode=(\\d+)")
+private val activeExerciseRegex = Regex("active_exercise=(true|false)")
 
 /**
  * Content provider implementation of [WearHealthServicesDeviceManager].
@@ -70,18 +72,21 @@ internal class ContentProviderDeviceManager(
 
       for (match in contentProviderEntryMatches) {
         val dataType = match.groupValues[1].toDataType()
-        if (dataType == WhsDataType.DATA_TYPE_UNKNOWN) {
+        if (dataType.overrideDataType == WhsDataValue.NoValue::class) {
           continue
         }
         val isEnabled = match.groupValues[2].toBoolean()
-        var overrideValue: Float? = match.groupValues[3].toFloat()
-        if (!isEnabled && overrideValue == 0f) {
+        val dataValue = dataType.valueFromString(match.groupValues[3])
+        val isZero =
+          (dataValue is WhsDataValue.IntValue && dataValue.value == 0) ||
+            (dataValue is WhsDataValue.FloatValue && dataValue.value == 0.0f)
+        val newState: CapabilityState =
+          if (!isEnabled && isZero)
           // If data type is disabled and override has not been set content provider returns
           // override as 0, so ignore this value
-          overrideValue = null
-        }
-
-        capabilities[dataType] = CapabilityState(isEnabled, overrideValue)
+          CapabilityState.disabled(dataType)
+          else CapabilityState(isEnabled, dataValue)
+        capabilities[dataType] = newState
       }
 
       capabilities
@@ -108,20 +113,34 @@ internal class ContentProviderDeviceManager(
       activeExerciseRegex.find(output)?.groupValues?.get(1)?.toBoolean() ?: false
     }
 
-  private fun contentUpdateMultipleCapabilities(capabilityUpdates: Map<WhsDataType, Any?>): String {
+  private fun contentUpdateMultipleCapabilitiesBoolean(
+    capabilityUpdates: Map<WhsDataType, Boolean>
+  ): String {
     val sb = StringBuilder("content update --uri $whsConfigUri")
     for ((dataType, value) in capabilityUpdates.toSortedMap(compareBy { it.name })) {
-      if (dataType == WhsDataType.LOCATION && value !is Boolean) {
-        continue // Location does not have an override value
+      sb.append(bindString(dataType.name, value))
+    }
+    return sb.toString()
+  }
+
+  private fun contentUpdateMultipleCapabilitiesNumber(
+    capabilityUpdates: Map<WhsDataType, Number?>
+  ): String {
+    val sb = StringBuilder("content update --uri $whsConfigUri")
+    for ((dataType, value) in capabilityUpdates.toSortedMap(compareBy { it.name })) {
+      if (!WhsDataValue.Value::class.isSuperclassOf(dataType.overrideDataType)) {
+        continue // This dataType has no data
       }
 
       val bindValue =
         when (value) {
-          is Boolean -> value // enable or disable capability
           null -> "\"\"" // clear override by setting it to empty string
           else -> { // set override
-            val override = value as Number
-            if (dataType == WhsDataType.STEPS) override.toInt() else override.toFloat()
+            when (dataType.overrideDataType) {
+              WhsDataValue.IntValue::class -> value.toInt()
+              WhsDataValue.FloatValue::class -> value.toFloat()
+              else -> IllegalArgumentException("Unsupported data type")
+            }
           }
         }
 
@@ -135,14 +154,16 @@ internal class ContentProviderDeviceManager(
       when (value) {
         is Boolean -> 'b'
         is Int -> 'i'
-        is Float -> 'f'
+        is Float,
+        is Double -> 'f'
         else -> 's'
       }
     return " --bind $key:$type:$value"
   }
 
   override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) =
-    runAdbShellCommandIfConnected(contentUpdateMultipleCapabilities(capabilityUpdates)).map {}
+    runAdbShellCommandIfConnected(contentUpdateMultipleCapabilitiesBoolean(capabilityUpdates))
+      .map {}
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) =
     runAdbShellCommandIfConnected(triggerEventCommand(eventTrigger)).map {}
@@ -156,8 +177,19 @@ internal class ContentProviderDeviceManager(
     return commandStringBuilder.toString()
   }
 
-  override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) =
-    runAdbShellCommandIfConnected(contentUpdateMultipleCapabilities(overrideUpdates)).map {}
+  override suspend fun overrideValues(overrideUpdates: List<WhsDataValue>) =
+    runAdbShellCommandIfConnected(
+        contentUpdateMultipleCapabilitiesNumber(
+          overrideUpdates.associate { dataValue ->
+            when (dataValue) {
+              is WhsDataValue.IntValue -> dataValue.type to dataValue.value
+              is WhsDataValue.FloatValue -> dataValue.type to dataValue.value
+              is WhsDataValue.NoValue -> dataValue.type to null
+            }
+          }
+        )
+      )
+      .map {}
 
   private suspend fun runAdbShellCommandIfConnected(command: String): Result<String> {
     if (serialNumber == null) {
