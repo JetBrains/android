@@ -16,6 +16,7 @@
 package com.android.tools.profilers.taskbased.home
 
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -24,8 +25,9 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
+import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.TaskEntranceTabModel.Companion.HIDE_NEW_TASK_PROMPT
+import com.android.tools.profilers.sessions.SessionsManagerTest.SessionsAspectObserver
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromNow
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromProcessStart
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
@@ -38,30 +40,39 @@ import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createP
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.CallstackSampleTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.HeapDumpTaskHandler
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ProjectRule
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 class TaskHomeTabModelTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
   @get:Rule
+  val projectRule = ProjectRule()
+
+  @get:Rule
   var myGrpcChannel = FakeGrpcChannel("TaskHomeTabModelTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
+  private lateinit var myObserver: SessionsAspectObserver
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var taskHomeTabModel: TaskHomeTabModel
 
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
+    myObserver = SessionsAspectObserver()
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
+    myManager.addDependency(myObserver)
+      .onChange(SessionAspect.SELECTED_SESSION) { myObserver.selectedSessionChanged() }
     taskHomeTabModel = TaskHomeTabModel(myProfilers)
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myProfilers.sessionsManager)
     taskHandlers.forEach { (type, handler) -> myProfilers.addTaskHandler(type, handler) }
@@ -313,5 +324,34 @@ class TaskHomeTabModelTest {
     // Make sure that it attempted to stop the current/ongoing task (Callstack Sample)
     assertThat(e.message).isEqualTo(
       "There was an error with the Callstack Sample task. Error message: Cannot stop the task as the InterimStage was null.")
+  }
+
+  @Test
+  fun `start task button disables on press and re-enables when task starts successfully`() {
+    assertTrue(taskHomeTabModel.isPrevTaskStartDone.value)
+    setCurrentTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE)
+
+    // Create and select the device, process, and task
+    val selectedDevice = createDevice("FakeDevice", Common.Device.State.ONLINE, "12", AndroidVersion.VersionCodes.S)
+    taskHomeTabModel.processListModel.onDeviceSelection(selectedDevice)
+    val selectedProcess = createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, selectedDevice.deviceId)
+    addDeviceWithProcess(selectedDevice, selectedProcess, myTransportService, myTimer)
+    taskHomeTabModel.processListModel.onProcessSelection(selectedProcess)
+    taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.CALLSTACK_SAMPLE)
+
+    // Task start can be indicated by the selected session changing, which can be verified to occur by checking the SELECTED_SESSION aspect
+    // change count.
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(0)
+    // Entering/starting the task should first disable the start button. Then, once the selected session change is detected, the start
+    // button should be re-enabled.
+    taskHomeTabModel.onEnterTaskButtonClick()
+    assertFalse(taskHomeTabModel.isPrevTaskStartDone.value)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(1)
+    waitForCondition(15.seconds) { taskHomeTabModel.isPrevTaskStartDone.value == true }
+  }
+
+  private fun setCurrentTaskHandler(taskType: ProfilerTaskType) {
+    myProfilers.setCurrentTaskHandlerFetcher { myProfilers.taskHandlers.toList().first { it.first == taskType }.second }
   }
 }
