@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
@@ -40,7 +39,7 @@ import org.jetbrains.jewel.ui.component.Tooltip
  *
  * Non-collapsed:
  *    UI -> [ICON] [MAIN TEXT]
- *    where [ICON] has an optional tooltip for more details.
+ *    where [ICON] [MAIN TEXT] has an optional tooltip for more details.
  * Collapsed:
  *    UI -> [ICON]
  *    where the icon that has a tooltip that combines the main text and the optional supplied tooltip.
@@ -52,38 +51,37 @@ fun CollapsibleNotification(mainText: String,
                             iconPainter: Painter,
                             iconDescription: String,
                             isCollapsed: Boolean) {
-  Row(verticalAlignment = Alignment.CenterVertically) {
-    if (isCollapsed || tooltip != null) {
-      Tooltip(
-        tooltip = {
-          Column(modifier = Modifier.widthIn(max = TOOLTIP_MAX_WIDTH_DP)) {
-            if (isCollapsed) {
-              Text(mainText, fontWeight = if (tooltip != null) FontWeight.SemiBold else null)
-            }
-            if (isCollapsed && tooltip != null) {
-              Spacer(modifier = Modifier.height(TOOLTIP_VERTICAL_SPACING_DP))
-            }
-            tooltip?.let { it() }
+  if (isCollapsed || tooltip != null) {
+    Tooltip(
+      tooltip = {
+        Column(modifier = Modifier.widthIn(max = TOOLTIP_MAX_WIDTH_DP)) {
+          if (isCollapsed) {
+            Text(mainText, fontWeight = if (tooltip != null) FontWeight.SemiBold else null)
           }
-        },
-        content = { IconContent(iconPainter, iconDescription) }
-      )
-    }
-    else {
-      IconContent(iconPainter, iconDescription)
-    }
+          if (isCollapsed && tooltip != null) {
+            Spacer(modifier = Modifier.height(TOOLTIP_VERTICAL_SPACING_DP))
+          }
+          tooltip?.let { it() }
+        }
+      },
+      content = { NotificationIconAndText(mainText, iconPainter, iconDescription, isCollapsed) }
+    )
+  }
+  else {
+    NotificationIconAndText(mainText, iconPainter, iconDescription, isCollapsed)
+  }
+}
 
+@Composable
+private fun NotificationIconAndText(mainText: String, iconPainter: Painter, iconDescription: String, isCollapsed: Boolean) {
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Icon(
+      painter = iconPainter,
+      contentDescription = iconDescription,
+    )
     if (!isCollapsed) {
       Spacer(modifier = Modifier.width(TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP))
       Text(mainText)
     }
   }
-}
-
-@Composable
-private fun IconContent(painter: Painter, description: String) {
-  Icon(
-    painter = painter,
-    contentDescription = description,
-  )
 }
