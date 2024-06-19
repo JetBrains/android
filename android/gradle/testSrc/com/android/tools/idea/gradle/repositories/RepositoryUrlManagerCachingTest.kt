@@ -47,7 +47,7 @@ class RepositoryUrlManagerCachingTest {
     var requestCount: Int = 0
       private set
 
-    override fun findData(relative: String): InputStream? {
+    override fun findData(relative: String, treatAsDirectory: Boolean): InputStream? {
       requestCount++
       val result: String =
         when (relative) {
