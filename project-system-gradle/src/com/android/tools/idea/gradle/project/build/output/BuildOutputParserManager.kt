@@ -19,16 +19,20 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputWindowStats
+import com.intellij.build.BuildViewManager
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.build.output.JavacOutputParser
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.plugins.gradle.execution.build.output.GradleBuildScriptErrorParser
 
 class BuildOutputParserManager @TestOnly constructor(
   private val project: Project,
-  val buildOutputParsers: List<BuildOutputParser>) {
+  val buildOutputParsers: List<BuildOutputParser>
+) {
   // TODO(b/143478291): with linked projects, there will be multiple build tasks with the same project. buildOutputParsers should be updated to a map from task id to list of BuildOutputParser.
   @Suppress("unused")
   private constructor(project: Project) : this(project,
@@ -45,34 +49,24 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       TomlErrorParser(),
                                                       GradleBuildScriptErrorParser()).map { BuildOutputParserWrapper(it) })
 
-  fun sendBuildFailureMetrics() {
-    try {
-      // It is possible that buildErrorMessages is empty when build failed, which means the error message is not handled
-      // by any of the parsers. Log failure event with empty error message in this case.
-      UsageTracker.log(
-        AndroidStudioEvent.newBuilder().withProjectId(project)
-          .setKind(AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS)
-          .setBuildOutputWindowStats(createBuildOutputWindowStats())
-      )
+  fun onBuildStart(externalSystemTaskId: ExternalSystemTaskId) {
+    val disposable = Disposer.newDisposable("syncViewListenerDisposable")
+    Disposer.register(project, disposable)
+    val errorsListener = BuildOutputErrorsListener(externalSystemTaskId, disposable) { buildErrorMessages ->
+      try {
+        // It is possible that buildErrorMessages is empty when build failed, which means the error message is not handled
+        // by any of the parsers. Log failure event with empty error message in this case.
+        val buildOutputWindowStats = BuildOutputWindowStats.newBuilder().addAllBuildErrorMessages(buildErrorMessages).build()
+        UsageTracker.log(
+          AndroidStudioEvent.newBuilder().withProjectId(project)
+            .setKind(AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS)
+            .setBuildOutputWindowStats(buildOutputWindowStats)
+        )
+      }
+      catch (e: Exception) {
+        Logger.getInstance("BuildFailureMetricsReporting").error("Failed to send metrics", e)
+      }
     }
-    catch (e: Exception) {
-      Logger.getInstance("BuildFailureMetricsReporting").error("Failed to send metrics", e)
-    }
-    finally {
-      clearParsersState()
-    }
-  }
-
-  fun createBuildOutputWindowStats(): BuildOutputWindowStats {
-    val buildErrorMessages =  buildOutputParsers.flatMap {
-      (it as BuildOutputParserWrapper).buildErrorMessages
-    }
-    return BuildOutputWindowStats.newBuilder().addAllBuildErrorMessages(buildErrorMessages).build()
-  }
-
-  fun clearParsersState() {
-    buildOutputParsers.forEach {
-      (it as BuildOutputParserWrapper).reset()
-    }
+    project.getService(BuildViewManager::class.java).addListener(errorsListener, disposable)
   }
 }
