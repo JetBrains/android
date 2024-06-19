@@ -23,6 +23,7 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.collect.HashBasedTable
 
 /**
@@ -80,7 +81,11 @@ class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager) :
   }
 
   private fun lookup(component: NlComponent, reference: ResourceReference): ResourceValue? {
-    val valueMap = sceneManager.defaultProperties[component.snapshot] ?: return null
+    val valueMap =
+      (sceneManager as? LayoutlibSceneManager)
+        ?.renderResult
+        ?.defaultProperties
+        ?.get(component.snapshot) ?: return null
     val value = valueMap[reference] ?: return null
     synchronized(lookupPerformed) { lookupPerformed.put(component, reference, value) }
     return value
@@ -89,7 +94,11 @@ class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager) :
   private fun hasDefaultPropertyValuesChanged(): Boolean {
     synchronized(lookupPerformed) {
       for (cell in lookupPerformed.cellSet()) {
-        val valueMap = sceneManager.defaultProperties[cell.rowKey?.snapshot] ?: return true
+        val valueMap =
+          (sceneManager as? LayoutlibSceneManager)
+            ?.renderResult
+            ?.defaultProperties
+            ?.get(cell.rowKey?.snapshot) ?: return true
         val value = valueMap[cell.columnKey] ?: return true
         if (cell.value?.equals(value) != true) {
           return true
@@ -108,7 +117,11 @@ class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager) :
   private fun hasDefaultStyleValuesChanged(): Boolean {
     synchronized(styleLookupPerformed) {
       for (entry in styleLookupPerformed) {
-        val value = sceneManager.defaultStyles[entry.key.snapshot] ?: return true
+        val value =
+          (sceneManager as? LayoutlibSceneManager)
+            ?.renderResult
+            ?.defaultStyles
+            ?.get(entry.key.snapshot) ?: return true
         if (entry.value != value) {
           return true
         }
@@ -118,7 +131,9 @@ class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager) :
   }
 
   private fun styleLookup(component: NlComponent): ResourceReference? {
-    val value = sceneManager.defaultStyles[component.snapshot] ?: return null
+    val value =
+      (sceneManager as? LayoutlibSceneManager)?.renderResult?.defaultStyles?.get(component.snapshot)
+        ?: return null
     synchronized(styleLookupPerformed) { styleLookupPerformed[component] = value }
     return value
   }

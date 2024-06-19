@@ -60,8 +60,6 @@ open class SyncLayoutlibSceneManager(
     DISABLED,
     ::RealTimeSessionClock,
   ) {
-  private val myDefaultProperties: MutableMap<Any, MutableMap<ResourceReference, ResourceValue>> =
-    HashMap()
   var ignoreRenderRequests: Boolean = false
   var ignoreModelUpdateRequests: Boolean = false
 
@@ -131,18 +129,17 @@ open class SyncLayoutlibSceneManager(
     return super.setupRenderTaskBuilder(taskBuilder).disableSecurityManager()
   }
 
-  override fun getDefaultProperties(): Map<Any, Map<ResourceReference, ResourceValue>> {
-    return myDefaultProperties
-  }
-
   fun putDefaultPropertyValue(
     component: NlComponent,
     namespace: ResourceNamespace,
     attributeName: String,
     value: String,
   ) {
+    if (renderResult == null) {
+      updateModelAsync().join()
+    }
     var map: MutableMap<ResourceReference, ResourceValue> =
-      myDefaultProperties.getOrPut(component.snapshot!!) { HashMap() }
+      renderResult!!.defaultProperties.getOrPut(component.snapshot!!) { HashMap() }
     val reference = ResourceReference.attr(namespace, attributeName)
     val resourceValue: ResourceValue =
       StyleItemResourceValueImpl(namespace, attributeName, value, null)

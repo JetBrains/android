@@ -29,8 +29,6 @@ import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.RenderSession;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.configurations.Configuration;
@@ -108,7 +106,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -899,36 +896,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myRenderResultLock.readLock().lock();
     try {
       return myRenderResult;
-    }
-    finally {
-      myRenderResultLock.readLock().unlock();
-    }
-  }
-
-  @Override
-  @NotNull
-  public Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties() {
-    myRenderResultLock.readLock().lock();
-    try {
-      if (myRenderResult == null) {
-        return Collections.emptyMap();
-      }
-      return myRenderResult.getDefaultProperties();
-    }
-    finally {
-      myRenderResultLock.readLock().unlock();
-    }
-  }
-
-  @Override
-  @NotNull
-  public Map<Object, ResourceReference> getDefaultStyles() {
-    myRenderResultLock.readLock().lock();
-    try {
-      if (myRenderResult == null) {
-        return Collections.emptyMap();
-      }
-      return myRenderResult.getDefaultStyles();
     }
     finally {
       myRenderResultLock.readLock().unlock();
