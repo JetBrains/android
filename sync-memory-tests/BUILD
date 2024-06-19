@@ -13,7 +13,6 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "tags": [
                 "perfgate",
-                "perfgate-release",
             ],
         },
         "Benchmark1000Cpu": {
@@ -22,6 +21,8 @@ iml_module(
                 "perfgate",
             ],
         },
+        # This test is run in release branch, too but not analyzed due to small number of runs per test
+        # A larger number of runs per test allows to detect regressions amongst the noise
         "Benchmark2000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
             "exec_properties": LARGE_MACHINE,
@@ -32,11 +33,16 @@ iml_module(
             ],
         },
         # Release branch tests with comparison to main branch
-        # 2000 subset is not included here because it doesn't have enough runs per test to make a meaningful analysis
-        # TODO: We should add the 1000 memory test as well but U-test requires at least 3 samples to be useful,
-        # so it won't work out of the box since memory tests don't have multiple runs.
         "Benchmark1000CpuReleaseBranch": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
+            "tags": [
+                "perfgate-release",
+            ],
+            "additional_jvm_args": ["-Drunning.from.release.branch=true"],
+        },
+        "Benchmark2000MemoryReleaseBranch": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
+            "exec_properties": LARGE_MACHINE,
             "tags": [
                 "perfgate-release",
             ],
