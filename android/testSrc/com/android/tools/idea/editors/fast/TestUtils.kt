@@ -45,7 +45,7 @@ fun ProjectBuildStatusManagerForTests.simulateProjectSystemBuild(buildMode: Proj
                                                                          buildStatus: ProjectSystemBuildManager.BuildStatus) {
   getBuildListenerForTest().buildStarted(buildMode)
   getBuildListenerForTest().buildCompleted(
-    ProjectSystemBuildManager.BuildResult(buildMode, buildStatus, 1L))
+    ProjectSystemBuildManager.BuildResult(buildMode, buildStatus))
 }
 
 

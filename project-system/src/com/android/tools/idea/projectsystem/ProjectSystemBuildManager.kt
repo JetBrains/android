@@ -17,7 +17,6 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
@@ -70,11 +69,11 @@ interface ProjectSystemBuildManager {
     CLEAN
   }
 
-  data class BuildResult(val mode: BuildMode, val status: BuildStatus, val timestampMillis: Long) {
+  data class BuildResult(val mode: BuildMode, val status: BuildStatus) {
     companion object {
       @JvmStatic
       fun createUnknownBuildResult(): BuildResult =
-        BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN, System.currentTimeMillis())
+        BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN)
     }
   }
 
