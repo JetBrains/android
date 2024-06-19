@@ -41,10 +41,10 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test
   fun swapStatesFromStringEnter() {
-    var lastState: Any? = null
+    var lastState: Any = TestClock.AnimatedVisibilityState.Enter
     val clock =
       object : TestClock() {
-        override fun `getAnimatedVisibilityState-xga21d`(animation: Any) = "Enter"
+        override fun `getAnimatedVisibilityState-xga21d`(animation: Any) = lastState
 
         override fun updateAnimatedVisibilityState(animation: Any, state: Any) {
           lastState = state
@@ -64,7 +64,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test
   fun swapStatesFromEnter() {
-    var lastState: Any? = null
+    var lastState: Any = TestClock.AnimatedVisibilityState.Enter
     val clock =
       object : TestClock() {
         override fun `getAnimatedVisibilityState-xga21d`(animation: Any) =
@@ -88,7 +88,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test
   fun swapStateFromStringExit() {
-    var lastState: Any? = null
+    var lastState: Any = TestClock.AnimatedVisibilityState.Enter
     val clock =
       object : TestClock() {
         override fun `getAnimatedVisibilityState-xga21d`(animation: Any) = "Exit"
@@ -111,7 +111,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test
   fun swapStateFromExit() {
-    var lastState: Any? = null
+    var lastState: Any = TestClock.AnimatedVisibilityState.Exit
     val clock =
       object : TestClock() {
         override fun `getAnimatedVisibilityState-xga21d`(animation: Any) =

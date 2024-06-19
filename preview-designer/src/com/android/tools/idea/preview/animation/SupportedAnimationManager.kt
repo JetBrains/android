@@ -193,8 +193,6 @@ abstract class SupportedAnimationManager(
 
   abstract suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean)
 
-  abstract suspend fun resetCallback(longTimeout: Boolean)
-
   override suspend fun destroy() {
     scope.cancel("AnimationManager is destroyed")
   }
@@ -202,9 +200,6 @@ abstract class SupportedAnimationManager(
   /** Initializes the state of the Compose animation before it starts */
   final override suspend fun setup() {
     setupStateManager()
-
-    loadTransition(longTimeout = true)
-    loadAnimatedPropertiesAtCurrentTime(longTimeout = true)
 
     withContext(uiThread) {
       card =

@@ -114,7 +114,6 @@ abstract class AnimationPreview<T : AnimationManager>(
       addResetListener {
         scope.launch {
           animations.filterIsInstance<SupportedAnimationManager>().forEach { it.offset.value = 0 }
-          resetTimelineAndUpdateWindowSize(false)
         }
       }
     }
@@ -272,22 +271,10 @@ abstract class AnimationPreview<T : AnimationManager>(
   protected inner class Timeline(owner: JComponent, pane: TooltipLayeredPane) :
     TimelinePanel(Tooltip(owner, pane), tracker) {
 
-    var cachedVal = 0
+    var cachedVal = MutableStateFlow(0)
 
     init {
-      addChangeListener {
-        val newValue = value
-        if (cachedVal != newValue) {
-          cachedVal = newValue
-          scope.launch {
-            setClockTime(newValue)
-            animations.filterIsInstance<SupportedAnimationManager>().forEach {
-              it.loadAnimatedPropertiesAtCurrentTime(false)
-            }
-            renderAnimation()
-          }
-        }
-      }
+      addChangeListener { cachedVal.value = value }
       addComponentListener(
         object : ComponentAdapter() {
           override fun componentResized(e: ComponentEvent?) {
@@ -302,27 +289,20 @@ abstract class AnimationPreview<T : AnimationManager>(
     showNoAnimationsPanel()
     tabbedPane.addListener(TabChangeListener())
     scope.launch { maxDurationPerIteration.collect { updateTimelineMaximum() } }
+    scope.launch {
+      timeline.cachedVal.collect {
+        setClockTime(it)
+        animations.filterIsInstance<SupportedAnimationManager>().forEach { animation ->
+          animation.loadAnimatedPropertiesAtCurrentTime(false)
+        }
+        renderAnimation()
+      }
+    }
   }
 
   /** Triggers a render/update of the displayed preview. */
   private suspend fun renderAnimation() {
     sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
-  }
-
-  protected suspend fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
-    // Set the timeline to 0
-    setClockTime(0, longTimeout)
-    animations.filterIsInstance<SupportedAnimationManager>().forEach {
-      it.loadAnimatedPropertiesAtCurrentTime(false)
-    }
-    updateMaxDuration(longTimeout)
-    // Update the cached value manually to prevent the timeline to set the clock time to 0 using the
-    // short timeout.
-    timeline.cachedVal = 0
-    // Move the timeline slider to 0.
-    withContext(uiThread) { clockControl.jumpToStart() }
-    updateTimelineElements()
-    renderAnimation()
   }
 
   private fun updateTimelineMaximum() {

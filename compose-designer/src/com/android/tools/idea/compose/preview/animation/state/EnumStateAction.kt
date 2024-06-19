@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,23 +26,21 @@ import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import javax.swing.JComponent
 import javax.swing.plaf.ComponentUI
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /** A comboBox action to select one state from the list of predefined states. */
-class EnumStateAction(private val callback: () -> Unit = {}) :
-  ComboBoxAction(), CustomComponentAction {
+class EnumStateAction : ComboBoxAction(), CustomComponentAction {
 
   /** Available states to select from. */
   var states: Set<Any> = emptySet()
 
-  val stateHashCode: Int
-    get() = currentState.hashCode()
-
-  var currentState: Any? = null
+  val currentState: MutableStateFlow<Any?> = MutableStateFlow(null)
 
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.text =
-      currentState?.toString() ?: message("animation.inspector.states.combobox.placeholder.message")
+      currentState.value?.toString()
+        ?: message("animation.inspector.states.combobox.placeholder.message")
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
@@ -71,8 +69,7 @@ class EnumStateAction(private val callback: () -> Unit = {}) :
 
   private inner class StateAction(val state: Any) : AnAction(state.toString()) {
     override fun actionPerformed(e: AnActionEvent) {
-      currentState = state
-      callback()
+      currentState.value = state
     }
   }
 }

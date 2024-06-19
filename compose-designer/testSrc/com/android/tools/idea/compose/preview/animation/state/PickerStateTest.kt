@@ -13,51 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.state.PickerButtonAction
 import com.android.tools.idea.compose.preview.animation.state.PickerState
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.preview.animation.AnimationUnit
+import com.android.tools.idea.testing.disposable
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 
 class PickerStateTest {
   @get:Rule val projectRule = ProjectRule()
 
   private val tracker = NoopComposeAnimationTracker
-  private val mockCallback = mock<() -> Unit>()
-  private val pickerState = PickerState(tracker, mockCallback).apply { callbackEnabled = true }
 
   @Test
-  fun testStateHashCode() {
+  fun testStateHashCode() = runBlocking {
     // Setup
-    val initialState = AnimationUnit.IntUnit(1)
-    val targetState = AnimationUnit.IntUnit(2)
-    pickerState.updateStates(setOf(initialState, targetState))
+    val pickerState = PickerState(tracker, AndroidCoroutineScope(projectRule.disposable))
+    pickerState.updateStates(setOf(1, 2))
 
     // Verify
+    val initialState = AnimationUnit.IntUnit(1)
+    val targetState = AnimationUnit.IntUnit(2)
     val expectedHashCode = Pair(initialState.hashCode(), targetState.hashCode()).hashCode()
-    assert(pickerState.stateHashCode() == expectedHashCode)
+    delayUntilCondition(200) { pickerState.stateHashCode.value == expectedHashCode }
+    assertThat(pickerState.stateHashCode.value).isEqualTo(expectedHashCode)
   }
 
   @Test
   fun testGetState() {
     // Setup
+    val pickerState = PickerState(tracker, AndroidCoroutineScope(projectRule.disposable))
     val initialState = "0ne"
     val targetState = "Two"
     pickerState.updateStates(setOf(initialState, targetState))
 
     // Verify
-    assert(pickerState.getState(0)[0] == initialState)
-    assert(pickerState.getState(1)[0] == targetState)
+    assertThat(pickerState.getState(0)[0]).isEqualTo(initialState)
+    assertThat(pickerState.getState(1)[0]).isEqualTo(targetState)
   }
 
   @Test
   fun testSetStartState() {
     // Setup
+    val pickerState = PickerState(tracker, AndroidCoroutineScope(projectRule.disposable))
     val state = 1
 
     pickerState.updateStates(setOf(2, 3))
@@ -66,14 +71,14 @@ class PickerStateTest {
     pickerState.setStartState(state)
 
     // Verify
-    verify(mockCallback).invoke() // Ensure the callback is invoked
-    assert(pickerState.getState(0)[0] == 1)
-    assert(pickerState.getState(1)[0] == 3)
+    assertThat(pickerState.getState(0)[0]).isEqualTo(1)
+    assertThat(pickerState.getState(1)[0]).isEqualTo(3)
   }
 
   @Test
   fun testUpdateStates() {
     // Setup
+    val pickerState = PickerState(tracker, AndroidCoroutineScope(projectRule.disposable))
     val initial = 1
     val target = 2
 
@@ -81,13 +86,14 @@ class PickerStateTest {
     pickerState.updateStates(setOf(initial, target))
 
     // Verify
-    assert(pickerState.getState(0)[0] == initial)
-    assert(pickerState.getState(1)[0] == target)
+    assertThat(pickerState.getState(0)[0]).isEqualTo(initial)
+    assertThat(pickerState.getState(1)[0]).isEqualTo(target)
   }
 
   @Test
   fun testChangeStateActions_SwapAction() {
     // Setup
+    val pickerState = PickerState(tracker, AndroidCoroutineScope(projectRule.disposable))
     val initial = "one"
     val target = "two"
     pickerState.updateStates(setOf(initial, target))
@@ -98,13 +104,13 @@ class PickerStateTest {
     swapAction.actionPerformed(TestActionEvent.createTestEvent())
 
     // Verify
-    verify(mockCallback).invoke()
-    assert(pickerState.getState(0)[0] == target)
-    assert(pickerState.getState(1)[0] == initial)
+    assertThat(pickerState.getState(0)[0]).isEqualTo(target)
+    assertThat(pickerState.getState(1)[0]).isEqualTo(initial)
   }
 
   @Test
   fun testChangeStateActions_PickerButtonAction() {
-    assert(pickerState.changeStateActions[1] is PickerButtonAction)
+    val pickerState = PickerState(tracker, AndroidCoroutineScope(projectRule.disposable))
+    assertThat(pickerState.changeStateActions[1] is PickerButtonAction)
   }
 }
