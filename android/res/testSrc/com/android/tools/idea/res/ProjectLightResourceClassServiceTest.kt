@@ -53,7 +53,6 @@ class ProjectLightResourceClassServiceTest {
         ProjectSystemBuildManager.BuildResult(
           ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE,
           ProjectSystemBuildManager.BuildStatus.SUCCESS,
-          0,
         )
       )
 
