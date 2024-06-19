@@ -29,6 +29,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
+import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
@@ -279,7 +280,10 @@ private constructor(
     @JvmStatic
     fun create(): RenderExecutor {
       val scheduledExecutorService =
-        ScheduledThreadPoolExecutor(1).also { it.removeOnCancelPolicy = true }
+        ScheduledThreadPoolExecutor(1).also {
+          it.removeOnCancelPolicy = true
+          it.rejectedExecutionHandler = DiscardPolicy()
+        }
       return RenderExecutor(
         DEFAULT_MAX_QUEUED_TASKS,
         renderingExecutorService =
