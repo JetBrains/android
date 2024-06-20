@@ -521,7 +521,9 @@ class ComposePreviewRepresentationTest {
 
     val contentManager =
       runBlocking(uiThread) { ProblemsView.getToolWindow(project)!!.contentManager }
-    ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
+    runInEdtAndWait {
+      ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
+    }
     assertEquals(1, contentManager.contents.size)
 
     // Start UI Check mode

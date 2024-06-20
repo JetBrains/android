@@ -151,7 +151,9 @@ protected constructor(
   var organizationGroup: OrganizationGroup? = null
 
   init {
-    Disposer.register(parent, this)
+    if (!Disposer.tryRegister(parent, this)) {
+      Disposer.dispose(this)
+    }
   }
 
   /** Returns if this model is currently active. */

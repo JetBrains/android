@@ -400,6 +400,8 @@ class TestProjectSystemBuildManager(
     maybeEnsureClockAdvanced()
     _isBuilding = true
     lastBuildMode = mode
+    // use a copy to avoid concurrent modification
+    val listeners = listeners.toList()
     listeners.forEach {
       it.buildStarted(mode)
     }
@@ -409,6 +411,8 @@ class TestProjectSystemBuildManager(
   fun buildCompleted(status: ProjectSystemBuildManager.BuildStatus) {
     lastBuildResult = ProjectSystemBuildManager.BuildResult(lastBuildMode, status, System.currentTimeMillis())
     maybeEnsureClockAdvanced()
+    // use a copy to avoid concurrent modification
+    val listeners = listeners.toList()
     listeners.forEach {
       it.beforeBuildCompleted(lastBuildResult)
     }
