@@ -161,7 +161,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val cpuTaskArgs = CpuTaskArgs(false, systemTraceSessionArtifact)
     mySystemTraceTaskHandler.enter(cpuTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
-    assertThat(mySystemTraceTaskHandler.stage!!.recordingModel.isRecording)
+    assertThat(mySystemTraceTaskHandler.stage!!.recordingModel.isRecording).isTrue()
   }
 
   @Test

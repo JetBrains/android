@@ -730,7 +730,7 @@ class NlComponentTreeDefinitionTest {
     content.setToolContext(surface)
     val panel = content.component
     val table = content.focusedComponent as TreeTableImpl
-    assertThat(SwingUtilities.isDescendingFrom(table, panel))
+    assertThat(SwingUtilities.isDescendingFrom(table, panel)).isTrue()
     table.setUI(HeadlessTableUI())
     table.tree.setUI(HeadlessTreeUI())
     table.bounds = Rectangle(0, 0, 400, 800)

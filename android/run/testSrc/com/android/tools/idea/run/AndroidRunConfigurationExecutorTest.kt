@@ -216,7 +216,7 @@ class AndroidRunConfigurationExecutorTest {
     assertTaskPresentedInStats(usageTrackerRule.usages, "SPECIFIC_ACTIVITY")
     assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
 
-    assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated)
+    assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated).isTrue()
     deviceState.stopClient(1234)
     if (!processHandler.waitFor(5000)) {
       fail("Process handler didn't stop when debug process terminated")

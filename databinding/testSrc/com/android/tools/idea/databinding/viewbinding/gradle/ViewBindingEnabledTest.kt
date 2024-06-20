@@ -55,7 +55,7 @@ class ViewBindingEnabledTest {
     get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   private fun enableViewBinding(buildFile: File, enabled: Boolean) {
-    assertThat(buildFile.exists())
+    assertThat(buildFile.exists()).isTrue()
 
     // Kind of hacky, but this assumes the only instance of `enabled = ...` is from:
     // `viewBinding\n{ enabled = [true|false] }`
