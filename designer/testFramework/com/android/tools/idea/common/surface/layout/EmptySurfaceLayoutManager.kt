@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.surface.layout
 
+import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
 import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import java.awt.Dimension
 import java.awt.Point
 
