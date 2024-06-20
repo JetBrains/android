@@ -16,12 +16,12 @@
 package com.android.tools.idea.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
-import com.android.tools.idea.uibuilder.surface.layout.GalleryLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewCanvasEvent
 import com.intellij.openapi.Disposable

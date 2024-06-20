@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.preview.analytics
 
+import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewCanvasEvent
