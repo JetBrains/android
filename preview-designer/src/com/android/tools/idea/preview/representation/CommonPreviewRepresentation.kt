@@ -843,7 +843,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private suspend fun stopAnimationInspector() {
     LOG.debug("Stopping animation inspector mode")
-    currentInspector?.dispose()
+    currentInspector?.let { Disposer.dispose(it) }
     withContext(uiThread) { previewView.bottomPanel = null }
     invalidateAndRefresh()
   }
