@@ -26,7 +26,7 @@ import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlug
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.idea.logcat.devices.Device
 import icons.StudioIcons
 import java.nio.file.Path
@@ -113,11 +113,11 @@ private fun makeAvdInfo(
     basePath.resolve("${avdName}.avd"),
     null,
     mapOf(
-      AvdManager.AVD_INI_DEVICE_MANUFACTURER to manufacturer,
-      AvdManager.AVD_INI_DEVICE_NAME to model,
-      AvdManager.AVD_INI_ANDROID_API to androidVersion.apiStringWithoutExtension,
-      AvdManager.AVD_INI_ABI_TYPE to Abi.ARM64_V8A.toString(),
-      AvdManager.AVD_INI_DISPLAY_NAME to avdName,
+      ConfigKey.DEVICE_MANUFACTURER to manufacturer,
+      ConfigKey.DEVICE_NAME to model,
+      ConfigKey.ANDROID_API to androidVersion.apiStringWithoutExtension,
+      ConfigKey.ABI_TYPE to Abi.ARM64_V8A.toString(),
+      ConfigKey.DISPLAY_NAME to avdName,
     ),
     null,
     AvdInfo.AvdStatus.OK,

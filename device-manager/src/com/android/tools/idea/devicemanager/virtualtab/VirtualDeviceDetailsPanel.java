@@ -17,14 +17,13 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
-import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
 import com.android.tools.adtui.device.ScreenDiagram;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
@@ -123,7 +122,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     }
     else {
       // TODO Ensure this actually displays the snapshot to boot with
-      Object snapshot = device.getProperty(AvdManager.AVD_INI_SNAPSHOT_PRESENT);
+      Object snapshot = device.getProperty(ConfigKey.SNAPSHOT_PRESENT);
 
       if (snapshot != null) {
         summarySection.mySnapshotLabel = summarySection.addNameAndValueLabels("Snapshot");
@@ -158,13 +157,13 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     Map<String, String> properties = new TreeMap<>(Collator.getInstance());
     properties.putAll(device.getProperties());
 
-    properties.remove(AvdManager.AVD_INI_ABI_TYPE);
-    properties.remove(AvdManager.AVD_INI_CPU_ARCH);
-    properties.remove(AvdManager.AVD_INI_SKIN_NAME);
-    properties.remove(AvdManager.AVD_INI_SKIN_PATH);
-    properties.remove(AvdManager.AVD_INI_SDCARD_SIZE);
-    properties.remove(AvdManager.AVD_INI_SDCARD_PATH);
-    properties.remove(AvdManager.AVD_INI_IMAGES_2);
+    properties.remove(ConfigKey.ABI_TYPE);
+    properties.remove(ConfigKey.CPU_ARCH);
+    properties.remove(ConfigKey.SKIN_NAME);
+    properties.remove(ConfigKey.SKIN_PATH);
+    properties.remove(ConfigKey.SDCARD_SIZE);
+    properties.remove(ConfigKey.SDCARD_PATH);
+    properties.remove(ConfigKey.IMAGES_2);
 
     if (properties.isEmpty()) {
       return;

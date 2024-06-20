@@ -16,7 +16,8 @@
 package com.android.tools.idea.avdmanager.emulatorcommand;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
+import com.android.sdklib.internal.avd.ConfigKey;
+import com.android.sdklib.internal.avd.UserSettingsKey;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.text.Strings;
@@ -48,7 +49,7 @@ public class EmulatorCommandBuilder {
   private final @NotNull List<String> myStudioEmuParams;
 
   public EmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
-    String emulatorBinary = avd.getUserSettings().get(AvdWizardUtils.EMULATOR_BINARY_KEY);
+    String emulatorBinary = avd.getUserSettings().get(UserSettingsKey.EMULATOR_BINARY);
     myEmulator = emulatorBinary == null ? emulator : emulator.resolveSibling(emulatorBinary).normalize();
     myAvd = avd;
 
@@ -88,8 +89,8 @@ public class EmulatorCommandBuilder {
       command.getEnvironment().put("ANDROID_AVD_HOME", myAvdHome.toString());
     }
 
-    addParametersIfParameter2IsntNull(command, "-netdelay", myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_LATENCY));
-    addParametersIfParameter2IsntNull(command, "-netspeed", myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_SPEED));
+    addParametersIfParameter2IsntNull(command, "-netdelay", myAvd.getProperty(ConfigKey.NETWORK_LATENCY));
+    addParametersIfParameter2IsntNull(command, "-netspeed", myAvd.getProperty(ConfigKey.NETWORK_SPEED));
 
     if (myEmulatorSupportsSnapshots) {
       addSnapshotParameters(command);
@@ -105,11 +106,11 @@ public class EmulatorCommandBuilder {
     }
 
     command.addParameters(myStudioEmuParams);
-    String avdCommandLineOptions = myAvd.getUserSettings().get(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY);
+    String avdCommandLineOptions = myAvd.getUserSettings().get(UserSettingsKey.COMMAND_LINE_OPTIONS);
     command.addParameters(parseCommandLineOptions(avdCommandLineOptions));
 
     if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
-      avdCommandLineOptions = myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY);
+      avdCommandLineOptions = myAvd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS);
       command.addParameters(parseCommandLineOptions(avdCommandLineOptions));
     }
     return command;

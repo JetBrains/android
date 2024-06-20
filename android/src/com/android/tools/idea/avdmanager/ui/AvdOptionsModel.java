@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager.ui;
 
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.internal.avd.ConfigKey.DISPLAY_NAME;
 import static com.google.common.base.Strings.nullToEmpty;
 
 import com.android.repository.Revision;
@@ -29,9 +29,9 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.devices.Storage.Unit;
 import com.android.sdklib.internal.avd.AvdCamera;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.AvdNetworkLatency;
 import com.android.sdklib.internal.avd.AvdNetworkSpeed;
+import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
 import com.android.sdklib.internal.avd.EmulatorPackage;
 import com.android.sdklib.internal.avd.EmulatorPackages;
@@ -43,6 +43,7 @@ import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.internal.avd.InternalSdCard;
 import com.android.sdklib.internal.avd.SdCard;
+import com.android.sdklib.internal.avd.UserSettingsKey;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.avdmanager.EmulatorFeatures;
@@ -199,14 +200,14 @@ public final class AvdOptionsModel extends WizardModel {
       // Set values to their defaults based on the emulator's hardware-properties.ini.
       var hardwareProperties = myEmulatorPackage.getHardwareProperties(new LogWrapper(AvdOptionsModel.class));
       if (hardwareProperties != null) {
-        HardwareProperty sdCardStorage = hardwareProperties.get(AvdManager.AVD_INI_SDCARD_SIZE);
+        HardwareProperty sdCardStorage = hardwareProperties.get(ConfigKey.SDCARD_SIZE);
         if (sdCardStorage != null) {
           Storage storage = getStorageFromIni(sdCardStorage.getDefault(), false);
           if (storage != null) {
             mySdCardStorage.setValue(storage);
           }
         }
-        HardwareProperty internalStorage = hardwareProperties.get(AvdManager.AVD_INI_DATA_PARTITION_SIZE);
+        HardwareProperty internalStorage = hardwareProperties.get(ConfigKey.DATA_PARTITION_SIZE);
         if (internalStorage != null) {
           Storage storage = getStorageFromIni(internalStorage.getDefault(), true);
           // TODO (b/65811265) Currently, internal storage size in hardware-properties.ini is
@@ -355,7 +356,7 @@ public final class AvdOptionsModel extends WizardModel {
     if (avdInfo != null) {
       return avdInfo.getName();
     }
-    String candidateBase = hardwareProperties.get(AVD_INI_DISPLAY_NAME);
+    String candidateBase = hardwareProperties.get(DISPLAY_NAME);
     if (candidateBase == null || candidateBase.isEmpty()) {
       String deviceName = device.getDisplayName().replace(' ', '_');
       String manufacturer = device.getManufacturer().replace(' ', '_');
@@ -547,21 +548,21 @@ public final class AvdOptionsModel extends WizardModel {
 
     Map<String, String> properties = avdInfo.getProperties();
 
-    myPreferredAbi.set(Optional.ofNullable(avdInfo.getUserSettings().getOrDefault(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI, null)));
+    myPreferredAbi.set(Optional.ofNullable(avdInfo.getUserSettings().getOrDefault(UserSettingsKey.PREFERRED_ABI, null)));
 
-    myUseQemu2.set(properties.containsKey(AvdWizardUtils.CPU_CORES_KEY));
-    String cpuCoreCount = properties.get(AvdWizardUtils.CPU_CORES_KEY);
+    myUseQemu2.set(properties.containsKey(ConfigKey.CPU_CORES));
+    String cpuCoreCount = properties.get(ConfigKey.CPU_CORES);
     myCpuCoreCount.setValue(cpuCoreCount==null ? 1 : Integer.parseInt(cpuCoreCount));
 
-    Storage storage = getStorageFromIni(properties.get(AvdWizardUtils.RAM_STORAGE_KEY), false);
+    Storage storage = getStorageFromIni(properties.get(ConfigKey.RAM_SIZE), false);
     if (storage != null) {
       myAvdDeviceData.ramStorage().set(storage);
     }
-    storage = getStorageFromIni(properties.get(AvdWizardUtils.VM_HEAP_STORAGE_KEY), false);
+    storage = getStorageFromIni(properties.get(ConfigKey.VM_HEAP_SIZE), false);
     if (storage != null) {
       myVmHeapStorage.set(storage);
     }
-    storage = getStorageFromIni(properties.get(AvdWizardUtils.INTERNAL_STORAGE_KEY), true);
+    storage = getStorageFromIni(properties.get(ConfigKey.DATA_PARTITION_SIZE), true);
     if (storage != null) {
       myInternalStorage.set(storage);
     }
@@ -569,10 +570,10 @@ public final class AvdOptionsModel extends WizardModel {
     // check if avd has sdcard first, then decided the kind of sdcard
     if (properties.getOrDefault(HardwareProperties.HW_SDCARD, toIniString(true)).equals(toIniString(true))) {
       String sdCardLocation = null;
-      if (properties.get(AvdWizardUtils.EXISTING_SD_LOCATION) != null) {
-        sdCardLocation = properties.get(AvdWizardUtils.EXISTING_SD_LOCATION);
+      if (properties.get(ConfigKey.SDCARD_PATH) != null) {
+        sdCardLocation = properties.get(ConfigKey.SDCARD_PATH);
       }
-      else if (properties.get(AvdWizardUtils.SD_CARD_STORAGE_KEY) != null) {
+      else if (properties.get(ConfigKey.SDCARD_SIZE) != null) {
         sdCardLocation = avdInfo.getDataFolderPath().resolve("sdcard.img").toString();
       }
       existingSdLocation = new StringValueProperty(nullToEmpty(sdCardLocation));
@@ -603,18 +604,18 @@ public final class AvdOptionsModel extends WizardModel {
       myUseBuiltInSdCard.set(false);
     }
 
-    myUseHostGpu.set(fromIniString(properties.get(AvdWizardUtils.USE_HOST_GPU_KEY)));
-    mySelectedAvdFrontCamera.set(AvdCamera.fromName(properties.get(AvdWizardUtils.FRONT_CAMERA_KEY)));
-    mySelectedAvdBackCamera.set(AvdCamera.fromName(properties.get(AvdWizardUtils.BACK_CAMERA_KEY)));
-    mySelectedNetworkLatency.set(AvdNetworkLatency.fromName(properties.get(AvdWizardUtils.NETWORK_LATENCY_KEY)));
-    mySelectedNetworkSpeed.set(AvdNetworkSpeed.fromName(properties.get(AvdWizardUtils.NETWORK_SPEED_KEY)));
-    myEnableHardwareKeyboard.set(fromIniString(properties.get(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY)));
+    myUseHostGpu.set(fromIniString(properties.get(ConfigKey.GPU_EMULATION)));
+    mySelectedAvdFrontCamera.set(AvdCamera.fromName(properties.get(ConfigKey.CAMERA_FRONT)));
+    mySelectedAvdBackCamera.set(AvdCamera.fromName(properties.get(ConfigKey.CAMERA_BACK)));
+    mySelectedNetworkLatency.set(AvdNetworkLatency.fromName(properties.get(ConfigKey.NETWORK_LATENCY)));
+    mySelectedNetworkSpeed.set(AvdNetworkSpeed.fromName(properties.get(ConfigKey.NETWORK_SPEED)));
+    myEnableHardwareKeyboard.set(fromIniString(properties.get(HardwareProperties.HW_KEYBOARD)));
     myAvdDisplayName.set(avdInfo.getDisplayName());
-    myHasDeviceFrame.set(fromIniString(properties.get(AvdWizardUtils.DEVICE_FRAME_KEY)));
-    myColdBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_COLD_BOOT)));
-    myFastBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_FAST_BOOT)));
-    myChosenSnapshotBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT)));
-    final String chosenFile = properties.get(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE);
+    myHasDeviceFrame.set(fromIniString(properties.get(ConfigKey.SHOW_DEVICE_FRAME)));
+    myColdBoot.set(fromIniString(properties.get(ConfigKey.FORCE_COLD_BOOT_MODE)));
+    myFastBoot.set(fromIniString(properties.get(ConfigKey.FORCE_FAST_BOOT_MODE)));
+    myChosenSnapshotBoot.set(fromIniString(properties.get(ConfigKey.FORCE_CHOSEN_SNAPSHOT_BOOT_MODE)));
+    final String chosenFile = properties.get(ConfigKey.CHOSEN_SNAPSHOT_FILE);
     myChosenSnapshotFile.set(StringUtil.notNullize(chosenFile));
 
     ScreenOrientation screenOrientation = null;
@@ -624,7 +625,7 @@ public final class AvdOptionsModel extends WizardModel {
     }
     mySelectedAvdOrientation.set((screenOrientation == null) ? ScreenOrientation.PORTRAIT : screenOrientation);
 
-    String skinPath = properties.get(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY);
+    String skinPath = properties.get(ConfigKey.SKIN_PATH);
     if (skinPath != null) {
       var skinFile = Path.of(skinPath);
 
@@ -632,18 +633,18 @@ public final class AvdOptionsModel extends WizardModel {
         myAvdDeviceData.customSkinFile().setValue(skinFile);
       }
     }
-    String backupSkinPath = properties.get(AvdWizardUtils.BACKUP_SKIN_FILE_KEY);
+    String backupSkinPath = properties.get(ConfigKey.BACKUP_SKIN_PATH);
     if (backupSkinPath != null) {
       File skinFile = new File(backupSkinPath);
       if (skinFile.isDirectory() || FileUtil.filesEqual(skinFile, AvdWizardUtils.NO_SKIN)) {
         backupSkinFile().setValue(skinFile);
       }
     }
-    String modeString = properties.get(AvdWizardUtils.HOST_GPU_MODE_KEY);
+    String modeString = properties.get(ConfigKey.GPU_MODE);
     myHostGpuMode.setValue(GpuMode.fromGpuSetting(modeString));
 
-    if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get() && properties.containsKey(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)) {
-      myCommandLineOptions.set(properties.get(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY));
+    if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get() && properties.containsKey(UserSettingsKey.COMMAND_LINE_OPTIONS)) {
+      myCommandLineOptions.set(properties.get(UserSettingsKey.COMMAND_LINE_OPTIONS));
     }
 
     myIsInEditMode.set(true);
@@ -656,54 +657,54 @@ public final class AvdOptionsModel extends WizardModel {
     HashMap<String, Object> map = new HashMap<>();
     map.put(AvdWizardUtils.DEVICE_DEFINITION_KEY, myDevice);
     map.put(AvdWizardUtils.SYSTEM_IMAGE_KEY, mySystemImage);
-    map.put(AvdWizardUtils.AVD_ID_KEY, myAvdId.get());
-    map.put(AvdWizardUtils.VM_HEAP_STORAGE_KEY, myVmHeapStorage.get());
-    map.put(AvdWizardUtils.DISPLAY_NAME_KEY, myAvdDisplayName.get());
+    map.put(ConfigKey.AVD_ID, myAvdId.get());
+    map.put(ConfigKey.VM_HEAP_SIZE, myVmHeapStorage.get());
+    map.put(DISPLAY_NAME, myAvdDisplayName.get());
     map.put(AvdWizardUtils.DEFAULT_ORIENTATION_KEY, mySelectedAvdOrientation.get());
-    map.put(AvdWizardUtils.RAM_STORAGE_KEY, myAvdDeviceData.ramStorage().get());
+    map.put(ConfigKey.RAM_SIZE, myAvdDeviceData.ramStorage().get());
     map.put(AvdWizardUtils.IS_IN_EDIT_MODE_KEY, myIsInEditMode.get());
-    map.put(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY, myEnableHardwareKeyboard.get());
+    map.put(HardwareProperties.HW_KEYBOARD, myEnableHardwareKeyboard.get());
     map.put(HardwareProperties.HW_INITIAL_ORIENTATION, mySelectedAvdOrientation.get().getShortDisplayValue().toLowerCase(Locale.ROOT));
-    map.put(AvdWizardUtils.USE_HOST_GPU_KEY, myUseHostGpu.get());
-    map.put(AvdWizardUtils.DEVICE_FRAME_KEY, myHasDeviceFrame.get());
-    map.put(AvdWizardUtils.HOST_GPU_MODE_KEY, myHostGpuMode.getValue());
-    map.put(AvdWizardUtils.USE_COLD_BOOT, myColdBoot.get());
-    map.put(AvdWizardUtils.USE_FAST_BOOT, myFastBoot.get());
-    map.put(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT, myChosenSnapshotBoot.get());
-    map.put(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE, myChosenSnapshotFile.get());
+    map.put(ConfigKey.GPU_EMULATION, myUseHostGpu.get());
+    map.put(ConfigKey.SHOW_DEVICE_FRAME, myHasDeviceFrame.get());
+    map.put(ConfigKey.GPU_MODE, myHostGpuMode.getValue());
+    map.put(ConfigKey.FORCE_COLD_BOOT_MODE, myColdBoot.get());
+    map.put(ConfigKey.FORCE_FAST_BOOT_MODE, myFastBoot.get());
+    map.put(ConfigKey.FORCE_CHOSEN_SNAPSHOT_BOOT_MODE, myChosenSnapshotBoot.get());
+    map.put(ConfigKey.CHOSEN_SNAPSHOT_FILE, myChosenSnapshotFile.get());
 
     if (myUseQemu2.get()) {
       if (myCpuCoreCount.get().isPresent()) {
-        map.put(AvdWizardUtils.CPU_CORES_KEY, myCpuCoreCount.getValue());
+        map.put(ConfigKey.CPU_CORES, myCpuCoreCount.getValue());
       }
       else {
         // Force the use the new emulator (qemu2)
-        map.put(AvdWizardUtils.CPU_CORES_KEY, 1);
+        map.put(ConfigKey.CPU_CORES, 1);
       }
     }
     else {
       // Do NOT use the new emulator (qemu2)
-      map.remove(AvdWizardUtils.CPU_CORES_KEY);
+      map.remove(ConfigKey.CPU_CORES);
     }
 
-    map.put(AvdWizardUtils.INTERNAL_STORAGE_KEY, myInternalStorage.get());
-    map.put(AvdWizardUtils.NETWORK_SPEED_KEY, mySelectedNetworkSpeed.get().getAsParameter());
-    map.put(AvdWizardUtils.NETWORK_LATENCY_KEY, mySelectedNetworkLatency.get().getAsParameter());
-    map.put(AvdWizardUtils.FRONT_CAMERA_KEY, myAvdDeviceData.hasFrontCamera().get() ? mySelectedAvdFrontCamera.get().getAsParameter()
-                                                                                    : AvdCamera.NONE);
-    map.put(AvdWizardUtils.BACK_CAMERA_KEY, myAvdDeviceData.hasBackCamera().get() ? mySelectedAvdBackCamera.get().getAsParameter()
+    map.put(ConfigKey.DATA_PARTITION_SIZE, myInternalStorage.get());
+    map.put(ConfigKey.NETWORK_SPEED, mySelectedNetworkSpeed.get().getAsParameter());
+    map.put(ConfigKey.NETWORK_LATENCY, mySelectedNetworkLatency.get().getAsParameter());
+    map.put(ConfigKey.CAMERA_FRONT, myAvdDeviceData.hasFrontCamera().get() ? mySelectedAvdFrontCamera.get().getAsParameter()
                                                                                    : AvdCamera.NONE);
+    map.put(ConfigKey.CAMERA_BACK, myAvdDeviceData.hasBackCamera().get() ? mySelectedAvdBackCamera.get().getAsParameter()
+                                                                                 : AvdCamera.NONE);
 
     if(myAvdDeviceData.customSkinFile().get().isPresent()){
-      map.put(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY, myAvdDeviceData.customSkinFile().getValue());
+      map.put(ConfigKey.SKIN_PATH, myAvdDeviceData.customSkinFile().getValue());
     }
 
     if (myBackupSkinFile.get().isPresent()) {
-      map.put(AvdWizardUtils.BACKUP_SKIN_FILE_KEY, myBackupSkinFile.getValue());
+      map.put(ConfigKey.BACKUP_SKIN_PATH, myBackupSkinFile.getValue());
     }
 
     if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
-      map.put(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY, myCommandLineOptions.get());
+      map.put(UserSettingsKey.COMMAND_LINE_OPTIONS, myCommandLineOptions.get());
     }
     return map;
   }
@@ -711,7 +712,7 @@ public final class AvdOptionsModel extends WizardModel {
   private Map<String, String> generateUserSettingsMap() {
     HashMap<String, String> map = new HashMap<>();
     if (StudioFlags.RISC_V.get()) {
-      map.put(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI, myPreferredAbi.getValueOrNull());
+      map.put(UserSettingsKey.PREFERRED_ABI, myPreferredAbi.getValueOrNull());
     }
     return map;
   }
@@ -744,7 +745,7 @@ public final class AvdOptionsModel extends WizardModel {
     // Call toIniString() on all remaining values
     hardwareProperties.putAll(Maps.transformEntries(userEditedProperties, (key, value) -> {
       if (value instanceof Storage) {
-        if (key.equals(AvdWizardUtils.RAM_STORAGE_KEY) || key.equals(AvdWizardUtils.VM_HEAP_STORAGE_KEY)) {
+        if (key.equals(ConfigKey.RAM_SIZE) || key.equals(ConfigKey.VM_HEAP_SIZE)) {
           return toIniString((Storage)value, true);
         }
         else {
@@ -778,12 +779,12 @@ public final class AvdOptionsModel extends WizardModel {
       .orElseGet(() -> AvdWizardUtils.pathToUpdatedSkins(device.getDefaultHardware().getSkinFile().toPath(), systemImage).toPath());
 
     if (myBackupSkinFile.get().isPresent()) {
-      hardwareProperties.put(AvdManager.AVD_INI_BACKUP_SKIN_PATH, myBackupSkinFile.getValue().getPath());
+      hardwareProperties.put(ConfigKey.BACKUP_SKIN_PATH, myBackupSkinFile.getValue().getPath());
     }
 
     // Add defaults if they aren't already set differently
-    if (!hardwareProperties.containsKey(AvdManager.AVD_INI_SKIN_DYNAMIC)) {
-      hardwareProperties.put(AvdManager.AVD_INI_SKIN_DYNAMIC, toIniString(true));
+    if (!hardwareProperties.containsKey(ConfigKey.SKIN_DYNAMIC)) {
+      hardwareProperties.put(ConfigKey.SKIN_DYNAMIC, toIniString(true));
     }
     if (!hardwareProperties.containsKey(HardwareProperties.HW_KEYBOARD)) {
       hardwareProperties.put(HardwareProperties.HW_KEYBOARD, toIniString(false));

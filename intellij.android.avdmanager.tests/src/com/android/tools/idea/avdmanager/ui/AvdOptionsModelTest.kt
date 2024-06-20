@@ -28,6 +28,8 @@ import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.devices.Storage.Unit
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.ConfigKey
+import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImageManager
@@ -271,8 +273,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     whenever(avd.displayName).thenReturn("Pixel 3 API 30")
     whenever(avd.dataFolderPath).thenReturn(Path.of("/"))
 
-    whenever(avd.properties)
-      .thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to noSkin.toString()))
+    whenever(avd.properties).thenReturn(hashMapOf(ConfigKey.SKIN_PATH to noSkin.toString()))
 
     // Act
     val model = AvdOptionsModel(avd)
@@ -285,7 +286,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true)
     val avdInfo =
       anAvdInfo(
-        properties = mapOf(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY to "some command line option")
+        properties = mapOf(UserSettingsKey.COMMAND_LINE_OPTIONS to "some command line option")
       )
 
     val model = AvdOptionsModel(avdInfo)
@@ -297,7 +298,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false)
     val avdInfo =
       anAvdInfo(
-        properties = mapOf(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY to "some command line option")
+        properties = mapOf(UserSettingsKey.COMMAND_LINE_OPTIONS to "some command line option")
       )
 
     val model = AvdOptionsModel(avdInfo)

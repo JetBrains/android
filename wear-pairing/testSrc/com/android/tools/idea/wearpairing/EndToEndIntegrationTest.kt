@@ -21,7 +21,7 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
@@ -95,8 +95,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
         }
       }
 
-    val wearPropertiesMap =
-      mapOf(AvdManager.AVD_INI_TAG_ID to "android-wear", AvdManager.AVD_INI_ANDROID_API to "28")
+    val wearPropertiesMap = mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.ANDROID_API to "28")
     val avdWearInfo =
       AvdInfo(
         Paths.get("ini"),

@@ -18,7 +18,7 @@ package com.android.tools.idea.avdmanager.emulatorcommand;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
+import com.android.sdklib.internal.avd.ConfigKey;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -54,7 +54,7 @@ public final class DefaultEmulatorCommandBuilderFactoryTest {
   @Test
   public void newEmulatorCommandBuilderUseColdBootEqualsYes() {
     // Arrange
-    Mockito.when(myAvd.getProperty(AvdWizardUtils.USE_COLD_BOOT)).thenReturn("yes");
+    Mockito.when(myAvd.getProperty(ConfigKey.FORCE_COLD_BOOT_MODE)).thenReturn("yes");
 
     // Act
     EmulatorCommandBuilder builder = myFactory.newEmulatorCommandBuilder(myEmulator, myAvd);
@@ -70,8 +70,8 @@ public final class DefaultEmulatorCommandBuilderFactoryTest {
   @Test
   public void newEmulatorCommandBuilderUseChosenSnapshotBootEqualsYes() {
     // Arrange
-    Mockito.when(myAvd.getProperty(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT)).thenReturn("yes");
-    Mockito.when(myAvd.getProperty(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE)).thenReturn("snap_2020-11-10_13-18-17");
+    Mockito.when(myAvd.getProperty(ConfigKey.FORCE_CHOSEN_SNAPSHOT_BOOT_MODE)).thenReturn("yes");
+    Mockito.when(myAvd.getProperty(ConfigKey.CHOSEN_SNAPSHOT_FILE)).thenReturn("snap_2020-11-10_13-18-17");
 
     // Act
     EmulatorCommandBuilder builder = myFactory.newEmulatorCommandBuilder(myEmulator, myAvd);

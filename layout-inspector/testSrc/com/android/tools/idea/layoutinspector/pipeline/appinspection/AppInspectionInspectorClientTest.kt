@@ -26,7 +26,7 @@ import com.android.repository.testframework.FakeRepoManager
 import com.android.resources.Density
 import com.android.sdklib.SystemImageTags.PLAY_STORE_TAG
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage
@@ -1248,8 +1248,8 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       )
     val properties = mutableMapOf<String, String>()
     if (tag != null) {
-      properties[AvdManager.AVD_INI_TAG_ID] = tag.id
-      properties[AvdManager.AVD_INI_TAG_DISPLAY] = tag.display
+      properties[ConfigKey.TAG_ID] = tag.id
+      properties[ConfigKey.TAG_DISPLAY] = tag.display
     }
     return AvdInfo(
       Paths.get("/android/avds/myAvd-${apiLevel}.ini"),
