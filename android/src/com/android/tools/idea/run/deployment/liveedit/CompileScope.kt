@@ -21,7 +21,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import org.jetbrains.kotlin.analyzer.AnalysisResult
@@ -46,6 +45,7 @@ import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.load.kotlin.toSourceElement
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
@@ -137,7 +137,7 @@ private object CompileScopeImpl : CompileScope {
 
   override fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
-    return kotlinCacheService.getResolutionFacade(input)
+    return kotlinCacheService.getResolutionFacadeWithForcedPlatform(input, JvmPlatforms.defaultJvmPlatform)
   }
 
   override fun performInlineSourceDependencyAnalysis(resolution: ResolutionFacade, file: KtFile, bindingContext: BindingContext) : List<KtFile> {
