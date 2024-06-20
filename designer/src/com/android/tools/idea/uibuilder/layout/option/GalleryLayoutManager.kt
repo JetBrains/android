@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface.layout
+package com.android.tools.idea.uibuilder.layout.option
 
 import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
+import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 
 /** [SurfaceLayoutManager] for Gallery mode. */
 class GalleryLayoutManager(

@@ -20,13 +20,13 @@ import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
-import com.android.tools.idea.uibuilder.surface.layout.GalleryLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GridLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.ListLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.OrganizationPadding
 import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import org.jetbrains.annotations.VisibleForTesting
