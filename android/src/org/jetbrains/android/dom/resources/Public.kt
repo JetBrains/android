@@ -30,7 +30,6 @@ import com.intellij.util.xml.Convert
 import com.intellij.util.xml.ConvertContext
 import com.intellij.util.xml.GenericAttributeValue
 import com.intellij.util.xml.GenericDomValue
-import com.intellij.util.xml.Required
 import com.intellij.util.xml.ResolvingConverter
 import com.intellij.util.xml.ResolvingConverter.StringConverter
 import java.util.stream.Collectors
@@ -39,13 +38,9 @@ import org.jetbrains.android.facet.AndroidFacet
 
 /** Public tag DOM for values resource files in library modules. */
 interface PublicResource : GenericDomValue<String>, AndroidDomElement {
-  @Required
-  @Convert(PublicResourceNameConverter::class)
-  fun getName(): GenericAttributeValue<String?>?
+  @Convert(PublicResourceNameConverter::class) fun getName(): GenericAttributeValue<String?>?
 
-  @Required
-  @Convert(PublicResourceTypeConverter::class)
-  fun getType(): GenericAttributeValue<ResourceType>?
+  @Convert(PublicResourceTypeConverter::class) fun getType(): GenericAttributeValue<ResourceType>?
 }
 
 /** Converter for <public\> tag name attributes. */
