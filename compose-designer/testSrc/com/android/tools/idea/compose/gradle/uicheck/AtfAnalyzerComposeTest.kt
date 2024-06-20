@@ -242,7 +242,7 @@ class AtfAnalyzerComposeTest {
 
       val file = renderResult.lightVirtualFile
       val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
-      nlModel.displaySettings.setDisplayName(it.displaySettings.name)
+      nlModel.setDisplayName(it.displaySettings.name)
 
       // We need to update the hierarchy with the render result so that ATF can link the result with
       // the NlModel

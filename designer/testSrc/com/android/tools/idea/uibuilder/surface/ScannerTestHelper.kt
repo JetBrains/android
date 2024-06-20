@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.Result
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlTreeReader
@@ -33,6 +32,7 @@ import com.android.tools.rendering.RenderResultStats
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.mockito.Mockito
 
 /**
@@ -62,11 +62,12 @@ class ScannerTestHelper {
     val mixin = NlComponentMixin(nlComponent)
     whenever(nlComponent.mixin).thenReturn(mixin)
 
+    val displayName = MutableStateFlow("displayName")
+
     val nlModel =
       model
         ?: Mockito.mock(NlModel::class.java).apply {
-          whenever(displaySettings)
-            .thenReturn(DisplaySettings().apply { setDisplayName("displayName") })
+          whenever(modelDisplayName).thenReturn(displayName)
           val mockFile = Mockito.mock(VirtualFile::class.java)
           whenever(virtualFile).thenReturn(mockFile)
         }
@@ -154,7 +155,8 @@ class ScannerTestHelper {
     whenever(module.isDisposed).thenReturn(false)
     whenever(model.module).thenReturn(module)
 
-    whenever(model.displaySettings).thenReturn(DisplaySettings().apply { setDisplayName("") })
+    val modelName = MutableStateFlow("")
+    whenever(model.modelDisplayName).thenReturn(modelName)
 
     val configuration = Mockito.mock(Configuration::class.java)
     whenever(model.configuration).thenReturn(configuration)

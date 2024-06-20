@@ -497,7 +497,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       NlModel model = new NlModel.Builder(disposable, facet, file, configuration)
         .withComponentRegistrar(componentRegistrar)
         .build();
-      model.getDisplaySettings().setDisplayName(""); // For the Layout Editor, set an empty name to enable SceneView toolbars.
+      model.setDisplayName(""); // For the Layout Editor, set an empty name to enable SceneView toolbars.
       return model;
     };
 

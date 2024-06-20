@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.model.DisplaySettings;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -67,9 +66,7 @@ public class IssueModelTest {
     assertFalse(hasRenderError());
     assertEquals(0, myIssueModel.getIssueCount());
     NlModel sourceNlModel = Mockito.mock(NlModel.class);
-    DisplaySettings displaySettings = new DisplaySettings();
-    displaySettings.setDisplayName("");
-    Mockito.when(sourceNlModel.getDisplaySettings()).thenReturn(displaySettings);
+    Mockito.when(sourceNlModel.getModelDisplayName()).thenReturn(MutableStateFlow(""));
     Mockito.when(sourceNlModel.getVirtualFile()).thenReturn(file);
     myIssueModel.addIssueProvider(new RenderIssueProvider(sourceNlModel, renderErrorModel));
     assertTrue(myIssueModel.hasIssues());

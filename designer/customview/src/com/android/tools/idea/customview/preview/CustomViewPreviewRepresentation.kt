@@ -414,7 +414,7 @@ class CustomViewPreviewRepresentation(
             )
             .withComponentRegistrar(NlComponentRegistrar)
             .build()
-            .apply { displaySettings.setDisplayName(className) }
+            .apply { setDisplayName(className) }
         } else {
           // We want to deactivate the surface so that configuration changes do not trigger scene
           // repaint.
