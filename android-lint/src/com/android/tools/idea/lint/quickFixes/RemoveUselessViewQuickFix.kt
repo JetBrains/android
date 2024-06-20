@@ -13,56 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint.quickFixes;
+package com.android.tools.idea.lint.quickFixes
 
-import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.DefaultLintQuickFix;
-import com.android.tools.lint.checks.UselessViewDetector;
-import com.android.tools.lint.detector.api.Issue;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.Presentation
+import com.intellij.modcommand.PsiBasedModCommandAction
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.xml.XmlTag
 
-public class RemoveUselessViewQuickFix extends DefaultLintQuickFix {
-  private final Issue myIssue;
+class RemoveUselessViewQuickFix(element: PsiElement) :
+  PsiBasedModCommandAction<PsiElement>(element) {
+  override fun getFamilyName() = "RemoveUselessViewQuickFix"
 
-  public RemoveUselessViewQuickFix(@NotNull Issue issue) {
-    super(AndroidLintBundle.message("android.lint.fix.remove.unnecessary.view"));
-    myIssue = issue;
-  }
-
-  @Override
-  public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-    final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class);
-    if (tag == null) {
-      return;
+  override fun getPresentation(context: ActionContext, element: PsiElement) =
+    PsiTreeUtil.getParentOfType(element, XmlTag::class.java)?.parentTag?.let {
+      Presentation.of(message("android.lint.fix.remove.unnecessary.view"))
     }
 
-    final XmlTag parentTag = tag.getParentTag();
-    if (parentTag == null) {
-      return;
-    }
+  override fun perform(context: ActionContext, element: PsiElement): ModCommand {
+    val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java) ?: return ModCommand.nop()
 
-    if (myIssue.getId().equals(UselessViewDetector.USELESS_LEAF.getId())) {
-      WriteCommandAction.runWriteCommandAction(tag.getProject(), tag::delete);
-    }
-    else {
-      assert false;
-      // todo: implement
-    }
-  }
-
-  @Override
-  public boolean isApplicable(@NotNull PsiElement startElement,
-                              @NotNull PsiElement endElement,
-                              @NotNull AndroidQuickfixContexts.ContextType contextType) {
-    final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class);
-    if (tag == null) {
-      return false;
-    }
-    return tag.getParentTag() != null;
+    @Suppress("UnstableApiUsage")
+    return ModCommand.psiUpdate(tag) { tagCopy, _ -> tagCopy.delete() }
   }
 }

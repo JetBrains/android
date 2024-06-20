@@ -18,8 +18,10 @@ package com.android.tools.idea.lint.inspections;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix;
 import com.android.tools.lint.checks.ManifestPermissionAttributeDetector;
 import com.android.tools.idea.lint.quickFixes.RemoveAttributeQuickFix;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintInvalidPermissionInspection extends AndroidLintInspectionBase {
@@ -29,7 +31,7 @@ public class AndroidLintInvalidPermissionInspection extends AndroidLintInspectio
 
   @NotNull
   @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
-    return new LintIdeQuickFix[]{new RemoveAttributeQuickFix()};
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+    return new LintIdeQuickFix[]{new ModCommandLintQuickFix(new RemoveAttributeQuickFix(startElement))};
   }
 }
