@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.surface.layout
+package com.android.tools.idea.common.layout.manager
 
 import java.awt.Component
 import java.awt.Container
