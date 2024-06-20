@@ -124,21 +124,6 @@ class AppInsightsTrackerImpl(
     )
   }
 
-  override fun logMatchers(event: AppQualityInsightsUsageEvent.AppQualityInsightsMatcherDetails) {
-    UsageTracker.log(
-      generateAndroidStudioEventBuilder()
-        .setAppQualityInsightsUsageEvent(
-          AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(project.name)
-            type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.MATCHERS_INITIATED
-            matcherDetails = event
-            productType = insightsProductType.toProtoProductType()
-          }
-        )
-        .withProjectId(project)
-    )
-  }
-
   override fun logError(
     mode: ConnectionMode,
     event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails,
