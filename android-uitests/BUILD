@@ -340,7 +340,6 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.22",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-test-junit",
-        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.0-RC2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.7.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication

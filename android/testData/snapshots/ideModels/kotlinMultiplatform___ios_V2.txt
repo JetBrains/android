@@ -637,13 +637,11 @@ MODULE                        : kotlinMultiPlatform
                         androidTestDebugApiDependenciesMetadata : <empty>
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
-                        androidTestDebugDependencySources       : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugImplementationDependenciesMetadata          : <empty>
                         androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
                         androidTestDebugWearApp       : <empty>
-                        androidTestDependencySources  : <empty>
                         androidTestImplementation     : <empty>
                         androidTestImplementationDependenciesMetadata     : <empty>
                         androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -678,7 +676,6 @@ MODULE                        : kotlinMultiPlatform
                         debugAndroidTestCompileClasspath        : <empty>
                         debugAndroidTestCompileOnly   : <empty>
                         debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
-                        debugAndroidTestDependencySources       : <empty>
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
@@ -697,7 +694,6 @@ MODULE                        : kotlinMultiPlatform
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
-                        debugDependencySources        : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
@@ -715,7 +711,6 @@ MODULE                        : kotlinMultiPlatform
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestCompileOnly      : <empty>
                         debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
-                        debugUnitTestDependencySources          : <empty>
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
@@ -753,7 +748,6 @@ MODULE                        : kotlinMultiPlatform
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
-                        releaseDependencySources      : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
@@ -771,7 +765,6 @@ MODULE                        : kotlinMultiPlatform
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestCompileOnly    : <empty>
                         releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestDependencySources        : <empty>
                         releaseUnitTestImplementation : <empty>
                         releaseUnitTestImplementationDependenciesMetadata : <empty>
                         releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
@@ -790,7 +783,6 @@ MODULE                        : kotlinMultiPlatform
                         testDebugApiDependenciesMetadata        : <empty>
                         testDebugCompileOnly          : <empty>
                         testDebugCompileOnlyDependenciesMetadata          : <empty>
-                        testDebugDependencySources    : <empty>
                         testDebugImplementation       : <empty>
                         testDebugImplementationDependenciesMetadata       : <empty>
                         testDebugIntransitiveDependenciesMetadata         : <empty>
@@ -837,7 +829,6 @@ MODULE                        : kotlinMultiPlatform
                         testReleaseApiDependenciesMetadata      : <empty>
                         testReleaseCompileOnly        : <empty>
                         testReleaseCompileOnlyDependenciesMetadata        : <empty>
-                        testReleaseDependencySources  : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseImplementationDependenciesMetadata     : <empty>
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
@@ -905,7 +896,6 @@ MODULE                        : kotlinMultiPlatform
                         androidDebugCompileClasspath  : <empty>
                         androidDebugCompileOnly       : <empty>
                         androidDebugCompileOnlyDependenciesMetadata       : <empty>
-                        androidDebugDependencySources : <empty>
                         androidDebugImplementation    : <empty>
                         androidDebugImplementationDependenciesMetadata    : <empty>
                         androidDebugIntransitiveDependenciesMetadata      : <empty>
@@ -926,13 +916,11 @@ MODULE                        : kotlinMultiPlatform
                         androidInstrumentedTestDebugApiDependenciesMetadata         : <empty>
                         androidInstrumentedTestDebugCompileOnly : <empty>
                         androidInstrumentedTestDebugCompileOnlyDependenciesMetadata : <empty>
-                        androidInstrumentedTestDebugDependencySources     : <empty>
                         androidInstrumentedTestDebugImplementation        : <empty>
                         androidInstrumentedTestDebugImplementationDependenciesMetadata        : <empty>
                         androidInstrumentedTestDebugIntransitiveDependenciesMetadata          : <empty>
                         androidInstrumentedTestDebugResolvableDependenciesMetadata  : <empty>
                         androidInstrumentedTestDebugRuntimeOnly : <empty>
-                        androidInstrumentedTestDependencySources          : <empty>
                         androidInstrumentedTestImplementation   : <empty>
                         androidInstrumentedTestImplementationDependenciesMetadata   : <empty>
                         androidInstrumentedTestIntransitiveDependenciesMetadata     : <empty>
@@ -943,7 +931,6 @@ MODULE                        : kotlinMultiPlatform
                         androidMainApiDependenciesMetadata      : <empty>
                         androidMainCompileOnly        : <empty>
                         androidMainCompileOnlyDependenciesMetadata        : <empty>
-                        androidMainDependencySources  : <empty>
                         androidMainImplementation     : <empty>
                         androidMainImplementationDependenciesMetadata     : <empty>
                         androidMainIntransitiveDependenciesMetadata       : <empty>
@@ -959,7 +946,6 @@ MODULE                        : kotlinMultiPlatform
                         androidReleaseCompileClasspath          : <empty>
                         androidReleaseCompileOnly     : <empty>
                         androidReleaseCompileOnlyDependenciesMetadata     : <empty>
-                        androidReleaseDependencySources         : <empty>
                         androidReleaseImplementation  : <empty>
                         androidReleaseImplementationDependenciesMetadata  : <empty>
                         androidReleaseIntransitiveDependenciesMetadata    : <empty>
@@ -996,13 +982,11 @@ MODULE                        : kotlinMultiPlatform
                         androidUnitTestDebugApiDependenciesMetadata       : <empty>
                         androidUnitTestDebugCompileOnly         : <empty>
                         androidUnitTestDebugCompileOnlyDependenciesMetadata         : <empty>
-                        androidUnitTestDebugDependencySources   : <empty>
                         androidUnitTestDebugImplementation      : <empty>
                         androidUnitTestDebugImplementationDependenciesMetadata      : <empty>
                         androidUnitTestDebugIntransitiveDependenciesMetadata        : <empty>
                         androidUnitTestDebugResolvableDependenciesMetadata          : <empty>
                         androidUnitTestDebugRuntimeOnly         : <empty>
-                        androidUnitTestDependencySources        : <empty>
                         androidUnitTestImplementation : <empty>
                         androidUnitTestImplementationDependenciesMetadata : <empty>
                         androidUnitTestIntransitiveDependenciesMetadata   : <empty>
@@ -1010,7 +994,6 @@ MODULE                        : kotlinMultiPlatform
                         androidUnitTestReleaseApiDependenciesMetadata     : <empty>
                         androidUnitTestReleaseCompileOnly       : <empty>
                         androidUnitTestReleaseCompileOnlyDependenciesMetadata       : <empty>
-                        androidUnitTestReleaseDependencySources : <empty>
                         androidUnitTestReleaseImplementation    : <empty>
                         androidUnitTestReleaseImplementationDependenciesMetadata    : <empty>
                         androidUnitTestReleaseIntransitiveDependenciesMetadata      : <empty>
@@ -1024,7 +1007,6 @@ MODULE                        : kotlinMultiPlatform
                         appleMainApiDependenciesMetadata        : <empty>
                         appleMainCompileOnly          : <empty>
                         appleMainCompileOnlyDependenciesMetadata          : <empty>
-                        appleMainDependencySources    : <empty>
                         appleMainImplementation       : <empty>
                         appleMainImplementationDependenciesMetadata       : <empty>
                         appleMainIntransitiveDependenciesMetadata         : <empty>
@@ -1034,12 +1016,14 @@ MODULE                        : kotlinMultiPlatform
                         appleTestApiDependenciesMetadata        : <empty>
                         appleTestCompileOnly          : <empty>
                         appleTestCompileOnlyDependenciesMetadata          : <empty>
-                        appleTestDependencySources    : <empty>
                         appleTestImplementation       : <empty>
                         appleTestImplementationDependenciesMetadata       : <empty>
                         appleTestIntransitiveDependenciesMetadata         : <empty>
                         appleTestResolvableDependenciesMetadata : <empty>
                         appleTestRuntimeOnly          : <empty>
+                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2.klib [-]
+                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2.klib [-]
+                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2.klib [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iosarm64-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iossimulatorarm64-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iosx64-metadata.jar [-]
@@ -1048,7 +1032,6 @@ MODULE                        : kotlinMultiPlatform
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
-                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -1058,7 +1041,6 @@ MODULE                        : kotlinMultiPlatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
-                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -1088,7 +1070,7 @@ MODULE                        : kotlinMultiPlatform
                         debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
-                        iosArm64ApiElements           : <empty>
+                        - iosArm64ApiElements         : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2.klib [-]
                         iosArm64CInterop              : <empty>
                         iosArm64CInteropApiElements   : <empty>
                         iosArm64CompilationApi        : <empty>
@@ -1101,7 +1083,6 @@ MODULE                        : kotlinMultiPlatform
                         iosArm64MainApiDependenciesMetadata     : <empty>
                         iosArm64MainCompileOnly       : <empty>
                         iosArm64MainCompileOnlyDependenciesMetadata       : <empty>
-                        iosArm64MainDependencySources : <empty>
                         iosArm64MainImplementation    : <empty>
                         iosArm64MainImplementationDependenciesMetadata    : <empty>
                         iosArm64MainIntransitiveDependenciesMetadata      : <empty>
@@ -1120,7 +1101,6 @@ MODULE                        : kotlinMultiPlatform
                         iosArm64TestCompileKlibraries : <empty>
                         iosArm64TestCompileOnly       : <empty>
                         iosArm64TestCompileOnlyDependenciesMetadata       : <empty>
-                        iosArm64TestDependencySources : <empty>
                         iosArm64TestImplementation    : <empty>
                         iosArm64TestImplementationDependenciesMetadata    : <empty>
                         iosArm64TestIntransitiveDependenciesMetadata      : <empty>
@@ -1130,13 +1110,12 @@ MODULE                        : kotlinMultiPlatform
                         iosMainApiDependenciesMetadata          : <empty>
                         iosMainCompileOnly            : <empty>
                         iosMainCompileOnlyDependenciesMetadata  : <empty>
-                        iosMainDependencySources      : <empty>
                         iosMainImplementation         : <empty>
                         iosMainImplementationDependenciesMetadata         : <empty>
                         iosMainIntransitiveDependenciesMetadata : <empty>
                         iosMainResolvableDependenciesMetadata   : <empty>
                         iosMainRuntimeOnly            : <empty>
-                        iosSimulatorArm64ApiElements  : <empty>
+                        - iosSimulatorArm64ApiElements          : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2.klib [-]
                         iosSimulatorArm64CInterop     : <empty>
                         iosSimulatorArm64CInteropApiElements    : <empty>
                         iosSimulatorArm64CompilationApi         : <empty>
@@ -1149,7 +1128,6 @@ MODULE                        : kotlinMultiPlatform
                         iosSimulatorArm64MainApiDependenciesMetadata      : <empty>
                         iosSimulatorArm64MainCompileOnly        : <empty>
                         iosSimulatorArm64MainCompileOnlyDependenciesMetadata        : <empty>
-                        iosSimulatorArm64MainDependencySources  : <empty>
                         iosSimulatorArm64MainImplementation     : <empty>
                         iosSimulatorArm64MainImplementationDependenciesMetadata     : <empty>
                         iosSimulatorArm64MainIntransitiveDependenciesMetadata       : <empty>
@@ -1168,7 +1146,6 @@ MODULE                        : kotlinMultiPlatform
                         iosSimulatorArm64TestCompileKlibraries  : <empty>
                         iosSimulatorArm64TestCompileOnly        : <empty>
                         iosSimulatorArm64TestCompileOnlyDependenciesMetadata        : <empty>
-                        iosSimulatorArm64TestDependencySources  : <empty>
                         iosSimulatorArm64TestImplementation     : <empty>
                         iosSimulatorArm64TestImplementationDependenciesMetadata     : <empty>
                         iosSimulatorArm64TestIntransitiveDependenciesMetadata       : <empty>
@@ -1178,13 +1155,12 @@ MODULE                        : kotlinMultiPlatform
                         iosTestApiDependenciesMetadata          : <empty>
                         iosTestCompileOnly            : <empty>
                         iosTestCompileOnlyDependenciesMetadata  : <empty>
-                        iosTestDependencySources      : <empty>
                         iosTestImplementation         : <empty>
                         iosTestImplementationDependenciesMetadata         : <empty>
                         iosTestIntransitiveDependenciesMetadata : <empty>
                         iosTestResolvableDependenciesMetadata   : <empty>
                         iosTestRuntimeOnly            : <empty>
-                        iosX64ApiElements             : <empty>
+                        - iosX64ApiElements           : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2.klib [-]
                         iosX64CInterop                : <empty>
                         iosX64CInteropApiElements     : <empty>
                         iosX64CompilationApi          : <empty>
@@ -1197,7 +1173,6 @@ MODULE                        : kotlinMultiPlatform
                         iosX64MainApiDependenciesMetadata       : <empty>
                         iosX64MainCompileOnly         : <empty>
                         iosX64MainCompileOnlyDependenciesMetadata         : <empty>
-                        iosX64MainDependencySources   : <empty>
                         iosX64MainImplementation      : <empty>
                         iosX64MainImplementationDependenciesMetadata      : <empty>
                         iosX64MainIntransitiveDependenciesMetadata        : <empty>
@@ -1216,7 +1191,6 @@ MODULE                        : kotlinMultiPlatform
                         iosX64TestCompileKlibraries   : <empty>
                         iosX64TestCompileOnly         : <empty>
                         iosX64TestCompileOnlyDependenciesMetadata         : <empty>
-                        iosX64TestDependencySources   : <empty>
                         iosX64TestImplementation      : <empty>
                         iosX64TestImplementationDependenciesMetadata      : <empty>
                         iosX64TestIntransitiveDependenciesMetadata        : <empty>
@@ -1277,7 +1251,6 @@ MODULE                        : kotlinMultiPlatform
                         nativeMainApiDependenciesMetadata       : <empty>
                         nativeMainCompileOnly         : <empty>
                         nativeMainCompileOnlyDependenciesMetadata         : <empty>
-                        nativeMainDependencySources   : <empty>
                         nativeMainImplementation      : <empty>
                         nativeMainImplementationDependenciesMetadata      : <empty>
                         nativeMainIntransitiveDependenciesMetadata        : <empty>
@@ -1287,7 +1260,6 @@ MODULE                        : kotlinMultiPlatform
                         nativeTestApiDependenciesMetadata       : <empty>
                         nativeTestCompileOnly         : <empty>
                         nativeTestCompileOnlyDependenciesMetadata         : <empty>
-                        nativeTestDependencySources   : <empty>
                         nativeTestImplementation      : <empty>
                         nativeTestImplementationDependenciesMetadata      : <empty>
                         nativeTestIntransitiveDependenciesMetadata        : <empty>
@@ -2971,7 +2943,7 @@ MODULE                        : kotlinMultiPlatform.module2
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KGP_VERSION>
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)

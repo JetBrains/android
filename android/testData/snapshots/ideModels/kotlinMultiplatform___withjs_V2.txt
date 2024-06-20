@@ -631,13 +631,11 @@
                             androidTestDebugApiDependenciesMetadata : <empty>
                             androidTestDebugCompileOnly   : <empty>
                             androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
-                            androidTestDebugDependencySources       : <empty>
                             androidTestDebugImplementation          : <empty>
                             androidTestDebugImplementationDependenciesMetadata          : <empty>
                             androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                             androidTestDebugRuntimeOnly   : <empty>
                             androidTestDebugWearApp       : <empty>
-                            androidTestDependencySources  : <empty>
                             androidTestImplementation     : <empty>
                             androidTestImplementationDependenciesMetadata     : <empty>
                             androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -672,7 +670,6 @@
                             debugAndroidTestCompileClasspath        : <empty>
                             debugAndroidTestCompileOnly   : <empty>
                             debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
-                            debugAndroidTestDependencySources       : <empty>
                             debugAndroidTestImplementation          : <empty>
                             debugAndroidTestImplementationDependenciesMetadata          : <empty>
                             debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
@@ -691,7 +688,6 @@
                             debugCompileOnly              : <empty>
                             debugCompileOnlyApi           : <empty>
                             debugCompileOnlyDependenciesMetadata    : <empty>
-                            debugDependencySources        : <empty>
                             debugImplementation           : <empty>
                             debugImplementationDependenciesMetadata : <empty>
                             debugIntransitiveDependenciesMetadata   : <empty>
@@ -709,7 +705,6 @@
                             debugUnitTestCompileClasspath : <empty>
                             debugUnitTestCompileOnly      : <empty>
                             debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
-                            debugUnitTestDependencySources          : <empty>
                             debugUnitTestImplementation   : <empty>
                             debugUnitTestImplementationDependenciesMetadata   : <empty>
                             debugUnitTestIntransitiveDependenciesMetadata     : <empty>
@@ -747,7 +742,6 @@
                             releaseCompileOnly            : <empty>
                             releaseCompileOnlyApi         : <empty>
                             releaseCompileOnlyDependenciesMetadata  : <empty>
-                            releaseDependencySources      : <empty>
                             releaseImplementation         : <empty>
                             releaseImplementationDependenciesMetadata         : <empty>
                             releaseIntransitiveDependenciesMetadata : <empty>
@@ -765,7 +759,6 @@
                             releaseUnitTestCompileClasspath         : <empty>
                             releaseUnitTestCompileOnly    : <empty>
                             releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                            releaseUnitTestDependencySources        : <empty>
                             releaseUnitTestImplementation : <empty>
                             releaseUnitTestImplementationDependenciesMetadata : <empty>
                             releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
@@ -784,7 +777,6 @@
                             testDebugApiDependenciesMetadata        : <empty>
                             testDebugCompileOnly          : <empty>
                             testDebugCompileOnlyDependenciesMetadata          : <empty>
-                            testDebugDependencySources    : <empty>
                             testDebugImplementation       : <empty>
                             testDebugImplementationDependenciesMetadata       : <empty>
                             testDebugIntransitiveDependenciesMetadata         : <empty>
@@ -831,7 +823,6 @@
                             testReleaseApiDependenciesMetadata      : <empty>
                             testReleaseCompileOnly        : <empty>
                             testReleaseCompileOnlyDependenciesMetadata        : <empty>
-                            testReleaseDependencySources  : <empty>
                             testReleaseImplementation     : <empty>
                             testReleaseImplementationDependenciesMetadata     : <empty>
                             testReleaseIntransitiveDependenciesMetadata       : <empty>
@@ -872,7 +863,6 @@
                             compileOnly                   : <empty>
                             compileOnlyDependenciesMetadata         : <empty>
                             default                       : <empty>
-                            dependencySources             : <empty>
                             implementation                : <empty>
                             implementationDependenciesMetadata      : <empty>
                             intransitiveDependenciesMetadata        : <empty>
@@ -903,7 +893,6 @@
                             testCompileClasspath          : <empty>
                             testCompileOnly               : <empty>
                             testCompileOnlyDependenciesMetadata     : <empty>
-                            testDependencySources         : <empty>
                             testImplementation            : <empty>
                             testImplementationDependenciesMetadata  : <empty>
                             testIntransitiveDependenciesMetadata    : <empty>
@@ -966,7 +955,6 @@
                             androidDebugCompileClasspath  : <empty>
                             androidDebugCompileOnly       : <empty>
                             androidDebugCompileOnlyDependenciesMetadata       : <empty>
-                            androidDebugDependencySources : <empty>
                             androidDebugImplementation    : <empty>
                             androidDebugImplementationDependenciesMetadata    : <empty>
                             androidDebugIntransitiveDependenciesMetadata      : <empty>
@@ -987,13 +975,11 @@
                             androidInstrumentedTestDebugApiDependenciesMetadata         : <empty>
                             androidInstrumentedTestDebugCompileOnly : <empty>
                             androidInstrumentedTestDebugCompileOnlyDependenciesMetadata : <empty>
-                            androidInstrumentedTestDebugDependencySources     : <empty>
                             androidInstrumentedTestDebugImplementation        : <empty>
                             androidInstrumentedTestDebugImplementationDependenciesMetadata        : <empty>
                             androidInstrumentedTestDebugIntransitiveDependenciesMetadata          : <empty>
                             androidInstrumentedTestDebugResolvableDependenciesMetadata  : <empty>
                             androidInstrumentedTestDebugRuntimeOnly : <empty>
-                            androidInstrumentedTestDependencySources          : <empty>
                             androidInstrumentedTestImplementation   : <empty>
                             androidInstrumentedTestImplementationDependenciesMetadata   : <empty>
                             androidInstrumentedTestIntransitiveDependenciesMetadata     : <empty>
@@ -1004,7 +990,6 @@
                             androidMainApiDependenciesMetadata      : <empty>
                             androidMainCompileOnly        : <empty>
                             androidMainCompileOnlyDependenciesMetadata        : <empty>
-                            androidMainDependencySources  : <empty>
                             androidMainImplementation     : <empty>
                             androidMainImplementationDependenciesMetadata     : <empty>
                             androidMainIntransitiveDependenciesMetadata       : <empty>
@@ -1020,7 +1005,6 @@
                             androidReleaseCompileClasspath          : <empty>
                             androidReleaseCompileOnly     : <empty>
                             androidReleaseCompileOnlyDependenciesMetadata     : <empty>
-                            androidReleaseDependencySources         : <empty>
                             androidReleaseImplementation  : <empty>
                             androidReleaseImplementationDependenciesMetadata  : <empty>
                             androidReleaseIntransitiveDependenciesMetadata    : <empty>
@@ -1057,13 +1041,11 @@
                             androidUnitTestDebugApiDependenciesMetadata       : <empty>
                             androidUnitTestDebugCompileOnly         : <empty>
                             androidUnitTestDebugCompileOnlyDependenciesMetadata         : <empty>
-                            androidUnitTestDebugDependencySources   : <empty>
                             androidUnitTestDebugImplementation      : <empty>
                             androidUnitTestDebugImplementationDependenciesMetadata      : <empty>
                             androidUnitTestDebugIntransitiveDependenciesMetadata        : <empty>
                             androidUnitTestDebugResolvableDependenciesMetadata          : <empty>
                             androidUnitTestDebugRuntimeOnly         : <empty>
-                            androidUnitTestDependencySources        : <empty>
                             androidUnitTestImplementation : <empty>
                             androidUnitTestImplementationDependenciesMetadata : <empty>
                             androidUnitTestIntransitiveDependenciesMetadata   : <empty>
@@ -1071,7 +1053,6 @@
                             androidUnitTestReleaseApiDependenciesMetadata     : <empty>
                             androidUnitTestReleaseCompileOnly       : <empty>
                             androidUnitTestReleaseCompileOnlyDependenciesMetadata       : <empty>
-                            androidUnitTestReleaseDependencySources : <empty>
                             androidUnitTestReleaseImplementation    : <empty>
                             androidUnitTestReleaseImplementationDependenciesMetadata    : <empty>
                             androidUnitTestReleaseIntransitiveDependenciesMetadata      : <empty>
@@ -1086,7 +1067,6 @@
                             commonMainApiDependenciesMetadata       : <empty>
                             commonMainCompileOnly         : <empty>
                             commonMainCompileOnlyDependenciesMetadata         : <empty>
-                            commonMainDependencySources   : <empty>
                             commonMainImplementation      : <empty>
                             commonMainImplementationDependenciesMetadata      : <empty>
                             commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -1096,7 +1076,6 @@
                             commonTestApiDependenciesMetadata       : <empty>
                             commonTestCompileOnly         : <empty>
                             commonTestCompileOnlyDependenciesMetadata         : <empty>
-                            commonTestDependencySources   : <empty>
                             commonTestImplementation      : <empty>
                             commonTestImplementationDependenciesMetadata      : <empty>
                             commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -2365,7 +2344,7 @@ Required by:
             extraFeatures                 : ExtraFeaturesImpl
                 isHMPPEnabled                 : true
             kotlinGradlePluginVersion
-                versionString                 : <KGP_VERSION>
+                versionString                 : <KOTLIN_VERSION_FOR_TESTS>
             - targets                     : js (KotlinTargetImpl)
                 - compilations                : main (KotlinCompilationImpl)
                     - allSourceSets               : main (KotlinSourceSetImpl)
@@ -2930,7 +2909,7 @@ Required by:
             extraFeatures                 : ExtraFeaturesImpl
                 isHMPPEnabled                 : true
             kotlinGradlePluginVersion
-                versionString                 : <KGP_VERSION>
+                versionString                 : <KOTLIN_VERSION_FOR_TESTS>
             - targets                     : android (KotlinTargetImpl)
                 - compilations                : debug (KotlinCompilationImpl)
                     - allSourceSets               : androidMain (KotlinSourceSetImpl)
