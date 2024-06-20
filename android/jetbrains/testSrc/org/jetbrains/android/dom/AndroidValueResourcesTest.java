@@ -412,6 +412,14 @@ public class AndroidValueResourcesTest {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
     myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + "public_after.xml");
+
+    // The "name" and "type" attributes are not required and so won't be filled in automatically
+    // when the <public> tag is inserted above,  but they should be suggested as the only valid
+    // attributes as the user keeps typing.
+    myFixture.type(' ');
+    myFixture.completeBasic();
+    List<String> strs = myFixture.getLookupElementStrings();
+    assertThat(strs).containsExactly("name", "type");
   }
 
   @Test
