@@ -51,9 +51,7 @@ class ColorBlindModeModelsProviderTest : LayoutTestCase() {
 
     assertNotEmpty(nlModels)
     val displayNames = ColorBlindMode.values().map { it.displayName }
-    nlModels.forEach {
-      assertTrue(displayNames.contains(it.displaySettings.modelDisplayName.value))
-    }
+    nlModels.forEach { assertTrue(displayNames.contains(it.modelDisplayName.value)) }
   }
 
   fun testReflectConfigurationFromSource() {

@@ -73,8 +73,8 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
         NlModel.Builder(parentDisposable, buildTarget, virtualFile, fontConfig)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      fontModel.displaySettings.setTooltip(fontConfig.toHtmlTooltip())
-      fontModel.displaySettings.setDisplayName(displayName)
+      fontModel.setTooltip(fontConfig.toHtmlTooltip())
+      fontModel.setDisplayName(displayName)
       models.add(fontModel)
 
       registerModelsProviderConfigurationListener(
