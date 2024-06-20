@@ -50,7 +50,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics
-import org.jetbrains.kotlin.idea.util.toKtModulesForModificationEvents
+import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -146,7 +146,7 @@ class MergedManifestModificationListener(
   private fun flushCaches(facet: AndroidFacet) {
     val ktModules = facet.module.getTransitiveResourceDependents().flatMap {
       MergedManifestModificationTracker.getInstance(it).manifestChanged()
-      it.toKtModulesForModificationEvents()
+      it.toKaModulesForModificationEvents()
     }.toList()
 
     runInEdt {

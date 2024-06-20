@@ -29,6 +29,7 @@ import com.android.tools.idea.run.deployment.liveedit.setOptions
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KaCompilationResult
 import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
@@ -46,6 +47,7 @@ internal class LiveEditCompilerForK2(
   private val outputBuilder: LiveEditOutputBuilder,
   private val module: Module? = null,
 ) {
+  @OptIn(KaExperimentalApi::class)
   fun compile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
     runWithCompileLock {
       ReadActionPrebuildChecks(file)
@@ -62,6 +64,7 @@ internal class LiveEditCompilerForK2(
   }
 }
 
+@KaExperimentalApi
 fun backendCodeGenForK2(file: KtFile, module: Module?): KaCompilationResult.Success {
   module?.let {
     if (file.module != it) {

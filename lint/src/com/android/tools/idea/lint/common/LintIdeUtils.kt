@@ -92,7 +92,7 @@ fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
       allowAnalysisFromWriteAction {
         analyze(this) {
           val annotatedSymbol =
-            (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KaAnnotatedSymbol
+            (this@findAnnotation as? KtDeclaration)?.symbol as? KaAnnotatedSymbol
           val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
           annotations?.singleOrNull()?.psi as? KtAnnotationEntry
         }

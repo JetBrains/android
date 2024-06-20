@@ -68,7 +68,7 @@ abstract class SafeArgsResolveExtensionFile(val classId: ClassId) : KtResolveExt
 
   private fun KtAnalysisSession.getNavigationElement(element: KtElement): PsiElement? =
     element.parentsWithSelf.filterIsInstance<KtDeclaration>().firstNotNullOfOrNull {
-      getNavigationElementForDeclaration(it.getSymbol())
+      getNavigationElementForDeclaration(it.symbol)
     } ?: fallbackPsi
 
   private val navigationTargetsProvider by lazy {

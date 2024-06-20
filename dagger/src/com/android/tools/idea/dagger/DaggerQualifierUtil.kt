@@ -236,7 +236,7 @@ private fun KtAnnotated.getQualifierInfoFromKtAnnotatedK2(): QualifierInfo? {
   allowAnalysisOnEdt {
     analyze(this) {
       val ktDeclarationSymbol =
-        (this@getQualifierInfoFromKtAnnotatedK2 as? KtDeclaration)?.getSymbol() ?: return null
+        (this@getQualifierInfoFromKtAnnotatedK2 as? KtDeclaration)?.symbol ?: return null
       val qualifier =
         ktDeclarationSymbol.annotations.singleOrNull { isQualifier(it.classId) } ?: return null
 

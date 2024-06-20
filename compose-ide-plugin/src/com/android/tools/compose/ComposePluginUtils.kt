@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.calls
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaLocalVariableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
@@ -145,7 +145,7 @@ internal fun KaSession.isComposableInvocation(callableSymbol: KaCallableSymbol):
 
   val type = callableSymbol.returnType
   if (hasComposableAnnotation(type)) return true
-  val functionSymbol = callableSymbol as? KaFunctionSymbol
+  val functionSymbol = callableSymbol as? KaNamedFunctionSymbol
   if (
     functionSymbol != null &&
       functionSymbol.isOperator &&

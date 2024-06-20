@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAct
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionLikeSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.name.ClassId
@@ -35,7 +35,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
             @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
             allowAnalysisFromWriteAction {
                 analyze(this) {
-                    val functionSymbol = getSymbol() as? KaFunctionLikeSymbol ?: return false
+                    val functionSymbol = symbol as? KaFunctionSymbol ?: return false
                     val receiverType = functionSymbol.receiverParameter?.type ?: return false
                     return baseClassIds.any { isSubclassOf(receiverType, it, strict = false) }
                 }

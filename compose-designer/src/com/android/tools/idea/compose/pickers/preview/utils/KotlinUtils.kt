@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.pickers.preview.utils
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.resolution.KaFunctionCall
 import org.jetbrains.kotlin.analysis.api.symbols.KaConstructorSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionLikeSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -43,7 +43,7 @@ internal fun KtCallElement.addNewValueArgument(
   return valueArgumentList!!.addArgument(newValueArgument)
 }
 
-internal fun KaSession.containingPackage(functionSymbol: KaFunctionLikeSymbol) =
+internal fun KaSession.containingPackage(functionSymbol: KaFunctionSymbol) =
   when (functionSymbol) {
     is KaConstructorSymbol -> functionSymbol.containingClassId?.packageFqName
     else -> functionSymbol.callableId?.packageName
