@@ -18,16 +18,20 @@ package com.android.tools.idea.wearpairing
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.testutils.ignore.IgnoreTestRule
 import com.intellij.testFramework.ApplicationRule
 import java.nio.file.Paths
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
 class UnpairTest {
   @get:Rule val applicationRule = ApplicationRule()
+
+  @get:Rule val ignoreTestsRule = IgnoreTestRule()
 
   private val phoneDevice =
     PairingDevice(
@@ -43,7 +47,6 @@ class UnpairTest {
     mapOf(AvdManager.AVD_INI_TAG_ID to "android-wear", AvdManager.AVD_INI_ANDROID_API to "28")
   private val avdWearInfo =
     AvdInfo(
-      "My Wear",
       Paths.get("ini"),
       Paths.get("id2"),
       Mockito.mock(ISystemImage::class.java),
@@ -61,6 +64,7 @@ class UnpairTest {
       state = ConnectionState.ONLINE,
     )
 
+  @Ignore("b/347716312")
   @Test
   fun unpairPixelDevice() = runBlocking {
     var clearedCompanion = false

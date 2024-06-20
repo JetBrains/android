@@ -201,7 +201,7 @@ class TaskHomeTabTest {
     // Make sure that after selecting the dead preferred process entry and a startup-capable task, there is now an option available in the
     // task starting point dropdown: starting the task from process restart. The now option should remain disabled as the select process
     // is dead.
-    verifyTaskStartingPointDropdown(isNowOptionEnabled = false, isProcessStartOptionEnabled = true)
+    verifyTaskStartingPointDropdown(isNowOptionEnabled = false, isProcessStartOptionEnabled = true, isSelectedProcessAlive = false)
 
     // Make sure at this point, the start profiler task button is enabled as the PROCESS_START task starting point option should be
     // auto-selected  and all other device, process, and task criteria is met for starting a task from process start
@@ -244,7 +244,7 @@ class TaskHomeTabTest {
     // Selection of an alive process that is not the preferred process and a startup-capable task is not sufficient to enable the startup
     // option in the task starting point dropdown, as the selected process must be the preferred one. Make sure the startup option is
     // disabled after selecting the startup-capable task, and that the only enabled option is to attach to an existing process.
-    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false)
+    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false, isSelectedProcessAlive = true)
 
     // Make sure at this point, the start profiler task button is enabled as the NOW task starting point option should be auto-selected
     // and all other device, process, and task criteria is met for starting a task from now
@@ -321,7 +321,7 @@ class TaskHomeTabTest {
 
     // Make sure that after selecting the alive, profileable preferred process entry and a non startup-capable task, the process start
     // option is disabled, and only the now option is enabled as the selected process is alive.
-    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false)
+    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false, isSelectedProcessAlive = true)
 
     // Make sure at this point, the start profiler task button is disabled as the task selected is debuggable-only and the selected process
     // is profileable.
@@ -369,7 +369,7 @@ class TaskHomeTabTest {
 
     // Make sure that after selecting the alive, debuggable preferred process entry and a non startup-capable task, the process start
     // option is disabled, and only the now option is enabled as the selected process is alive.
-    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false)
+    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false, isSelectedProcessAlive = true)
 
     // At this point, the selected tarting point should be NOW, as it is the only option enabled and thus is auto-selected
     assertThat(taskHomeTabModel.profilingProcessStartingPoint.value).isEqualTo(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW)
@@ -420,7 +420,7 @@ class TaskHomeTabTest {
 
     // Make sure that after selecting the alive, profileable preferred process entry and a non startup-capable task, the process start
     // option is disabled, and only the now option is enabled as the selected process is alive.
-    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false)
+    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false, isSelectedProcessAlive = true)
 
     // At this point, the selected tarting point should be NOW, as it is the only option enabled and thus is auto-selected
     assertThat(taskHomeTabModel.profilingProcessStartingPoint.value).isEqualTo(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW)
@@ -460,7 +460,7 @@ class TaskHomeTabTest {
 
     // Make sure that after selecting the dead preferred process entry and a startup-capable task, the process start option is enabled.
     // Because a dead process was selected, the now starting point option should be disabled.
-    verifyTaskStartingPointDropdown(isNowOptionEnabled = false, isProcessStartOptionEnabled = true)
+    verifyTaskStartingPointDropdown(isNowOptionEnabled = false, isProcessStartOptionEnabled = true, isSelectedProcessAlive = false)
 
     // At this point, the selected tarting point should be PROCESS_START, as it is the only option enabled and thus is auto-selected
     assertThat(taskHomeTabModel.profilingProcessStartingPoint.value).isEqualTo(TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START)
@@ -500,14 +500,14 @@ class TaskHomeTabTest {
 
     // An alive process is selected, meeting the criteria of enabling the NOW option from the task starting point dropdown. Make sure this
     // option is enabled
-    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false)
+    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = false, isSelectedProcessAlive = true)
 
     // Select a startup-capable task (e.g. System Trace)
     verifyTaskExistsAndSelect(ProfilerTaskType.SYSTEM_TRACE)
 
     // Make sure that after selecting a startup-capable task, there is now another option available in the task starting point dropdown:
     // starting the task from process restart.
-    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = true)
+    verifyTaskStartingPointDropdown(isNowOptionEnabled = true, isProcessStartOptionEnabled = true, isSelectedProcessAlive = true)
 
     // At this point, the starting point should be NOW
     assertThat(taskHomeTabModel.profilingProcessStartingPoint.value).isEqualTo(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW)
@@ -517,7 +517,7 @@ class TaskHomeTabTest {
 
     // Select startup from task starting point dropdown
     composeTestRule.onNodeWithTag("TaskStartingPointDropdown").performClick()
-    composeTestRule.onNodeWithText("Process start (restarts process)").performClick()
+    composeTestRule.onNodeWithText("Process start").onParent().performClick()
 
     // Under startup, the start profiler task button should still be enabled
     composeTestRule.onNodeWithTag("EnterTaskButton").assertExists().assertIsEnabled()
@@ -528,19 +528,20 @@ class TaskHomeTabTest {
     composeTestRule.onNodeWithText(taskType.description).performClick()
   }
 
-  private fun verifyTaskStartingPointDropdown(isNowOptionEnabled: Boolean, isProcessStartOptionEnabled: Boolean) {
+  private fun verifyTaskStartingPointDropdown(isNowOptionEnabled: Boolean, isProcessStartOptionEnabled: Boolean, isSelectedProcessAlive: Boolean) {
     composeTestRule.onNodeWithTag("TaskStartingPointDropdown").assertHasClickAction()
     composeTestRule.onNodeWithTag("TaskStartingPointDropdown").performClick()
     composeTestRule.onAllNodesWithTag("TaskStartingPointOption", useUnmergedTree = true).assertCountEquals(2)
-    val nowDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption",
-                                                              useUnmergedTree = true).onFirst().assertTextContains(
-      "Now (attaches to selected process)").onParent()
-    if (isNowOptionEnabled) nowDropdownOption.assertIsEnabled() else nowDropdownOption.assertIsNotEnabled()
 
-    val processStartDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption",
-                                                                       useUnmergedTree = true).onLast().assertTextContains(
-      "Process start (restarts process)").onParent()
-    if (isProcessStartOptionEnabled) processStartDropdownOption.assertIsEnabled() else processStartDropdownOption.assertIsNotEnabled()
+    val nowDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption", useUnmergedTree = true).onFirst()
+    nowDropdownOption.onChildAt(0).assertTextContains("Now").onParent()
+    nowDropdownOption.onChildAt(1).assertTextContains("(attaches to selected process)").onParent()
+    nowDropdownOption.onParent().let { if (isNowOptionEnabled) it.assertIsEnabled() else it.assertIsNotEnabled()  }
+
+    val processStartDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption", useUnmergedTree = true).onLast()
+    processStartDropdownOption.onChildAt(0).assertTextContains("Process start").onParent()
+    processStartDropdownOption.onChildAt(1).assertTextContains("(${if (isSelectedProcessAlive) "restarts" else "starts"} process)").onParent()
+    processStartDropdownOption.onParent().let { if (isProcessStartOptionEnabled) it.assertIsEnabled() else it.assertIsNotEnabled() }
 
     // Re-click dropdown to collapse it again
     composeTestRule.onNodeWithTag("TaskStartingPointDropdown").performClick()

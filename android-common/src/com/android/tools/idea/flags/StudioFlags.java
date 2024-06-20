@@ -121,6 +121,11 @@ public final class StudioFlags {
     "Enable GenAI template",
     "Allows the GenAI template to be used.",
     true);
+
+  public static final Flag<Boolean> NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE = new BooleanFlag(
+    NPW, "new.kotlin.multiplatform.module", "New Kotlin Multiplatform Module",
+    "Show template to create a new Kotlin Multiplatform module in the new module wizard.",
+    false);
   //endregion
 
   //region Memory Usage Reporting
@@ -284,11 +289,16 @@ public final class StudioFlags {
   public static final Flag<Boolean> SCROLLABLE_ZOOM_ON_GRID = new BooleanFlag(
     NELE, "scrollable.zoom.grid.layout", "Enable scrollable zoom on grid layout",
     "If enabled, zooming on a grid layout will not re-layout the items and will make the preview scrollable.",
-    false);
+    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> DETACHABLE_ATTACHED_TOOLWINDOWS = new BooleanFlag(
     NELE, "detached.attached.toolwindows", "Allow floating attached tool windows",
     "Allows floating attached tool windows (partly broken).",
+    false);
+
+  public static final Flag<Boolean> NELE_SYSTEM_UI_OPTIONS = new BooleanFlag(
+    NELE, "system.ui.options", "Enable system UI options",
+    "Enable an action to customize the system UI for previews.",
     false);
   //endregion
 
@@ -298,12 +308,6 @@ public final class StudioFlags {
     RESOURCE_REPOSITORY, "trace.size", "Maximum Size of Resource Repository Update Trace",
     "Size of the in-memory cyclic buffer used for tracing of resource repository updates",
     10000);
-
-  public static final Flag<Boolean> RESOURCE_REPOSITORY_NOTIFY_PARENT_ON_DISPOSE = new BooleanFlag(
-    RESOURCE_REPOSITORY, "notify.parent.on.dispose", "Notify parent resource repositories on disposal.",
-    "Allows a LocalResourceRepository that implements Disposable to notify its parents when it is being disposed, so that they can "
-    + "release any stale references.",
-    true);
   //endregion
 
   //region Run/Debug
@@ -1605,6 +1609,21 @@ public final class StudioFlags {
     "Enable unified device manager alongside existing device manager",
     "Continue showing original Device Manager even with unified device manager enabled",
     false);
+
+  public static final Flag<Boolean> RESIZABLE_EXPERIMENTAL_TWEAKS_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "resizable.experimental.tweaks.enabled",
+    "Enable the UI tweaks for the Resizable (Experimental) device definition",
+    "Enable the UI tweaks for the Resizable (Experimental) device definition",
+    ChannelDefault.enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> DEVICE_CATALOG_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "device.catalog.enabled",
+    "Enable the Device Catalog for device creation",
+    "Enable new unified UI for creating AVDs and selecting Firebase devices",
+    false
+  );
   // endregion
 
   //region DDMLIB

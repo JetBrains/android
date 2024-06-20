@@ -17,7 +17,7 @@ package com.android.tools.idea.preview.animation
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.actions.FreezeAction
-import com.android.tools.idea.preview.animation.state.AnimationStateManager
+import com.android.tools.idea.preview.animation.state.AnimationState
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineLine
@@ -26,9 +26,7 @@ import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
-import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineName
@@ -87,7 +85,7 @@ abstract class SupportedAnimationManager(
   private val freezeAction = FreezeAction(timelinePanel, frozenState, tracker)
 
   /** Abstract property representing the state manager for this animation type. */
-  abstract val animationStateManager: AnimationStateManager
+  abstract val animationState: AnimationState
 
   /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
   private var currentTransition = Transition()
@@ -123,16 +121,8 @@ abstract class SupportedAnimationManager(
   private val tabScrollPane =
     JBScrollPane().apply { border = MatteBorder(1, 1, 0, 0, JBColor.border()) }
 
-  /** [Timeline] parent when animation in new tab is selected. */
-  private val tabTimelineParent = JPanel(BorderLayout())
-
   val tab by lazy {
-    AnimationTab(
-      rootComponent,
-      playbackControls,
-      animationStateManager.changeStateActions,
-      freezeAction,
-    )
+    AnimationTab(rootComponent, playbackControls, animationState.changeStateActions, freezeAction)
   }
   override val timelineMaximumMs: Int
     get() = currentTransition.endMillis?.let { max(it + offset.value, it) } ?: 0
@@ -185,25 +175,23 @@ abstract class SupportedAnimationManager(
       positionProxy.valueForXPosition(minX + offsetPx) - positionProxy.valueForXPosition(minX)
     else positionProxy.valueForXPosition(maxX + offsetPx) - positionProxy.valueForXPosition(maxX)
 
-  protected abstract fun loadTransitionFromLibrary(): Transition?
+  protected abstract fun loadTransitionFromLibrary(): Transition
 
   /**
    * Load transition for current animation state. If transition was loaded before, the cached result
    * is used.
    */
   suspend fun loadTransition(longTimeout: Boolean = false) {
-    val stateHash = animationStateManager.stateHashCode()
+    val stateHash = animationState.stateHashCode.value
     if (!cachedTransitions.containsKey(stateHash)) {
       executeInRenderSession(longTimeout) {
-        loadTransitionFromLibrary()?.let { transition -> cachedTransitions[stateHash] = transition }
+        cachedTransitions[stateHash] = loadTransitionFromLibrary()
       }
     }
     currentTransition = cachedTransitions.getOrDefault(stateHash, Transition())
   }
 
   abstract suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean)
-
-  abstract suspend fun resetCallback(longTimeout: Boolean)
 
   override suspend fun destroy() {
     scope.cancel("AnimationManager is destroyed")
@@ -213,15 +201,12 @@ abstract class SupportedAnimationManager(
   final override suspend fun setup() {
     setupStateManager()
 
-    loadTransition(longTimeout = true)
-    loadAnimatedPropertiesAtCurrentTime(longTimeout = true)
-
     withContext(uiThread) {
       card =
         AnimationCard(
             rootComponent,
             tabTitle,
-            listOf(freezeAction) + animationStateManager.changeStateActions,
+            listOf(freezeAction) + animationState.changeStateActions,
             tracker,
           )
           .apply {
@@ -259,4 +244,8 @@ abstract class SupportedAnimationManager(
 }
 
 private fun CoroutineScope.createChildScope(name: String) =
-  CoroutineScope(SupervisorJob(coroutineContext[Job]) + CoroutineName("AnimationManager.$name"))
+  CoroutineScope(
+    this.coroutineContext +
+      SupervisorJob(coroutineContext[Job]) +
+      CoroutineName("AnimationManager.$name")
+  )

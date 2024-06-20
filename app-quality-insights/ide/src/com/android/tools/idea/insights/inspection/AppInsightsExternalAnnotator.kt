@@ -107,6 +107,8 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     annotationResult ?: return
 
     val project = file.project
+    // This must be run in a read action.
+    if (project.isDisposed) return
     val doc = PsiDocumentManager.getInstance(project).getDocument(file) ?: return
     val validLineNumberRange = 0 until file.getLineCount()
     val insights = annotationResult.insights

@@ -28,7 +28,7 @@
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
 
-  <xi:include href="/org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/org/jetbrains/android/dom/android-xml.xml"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
   <actions>
@@ -722,14 +722,13 @@
     <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystem"/>
   </extensions>
 
-  <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="new-deployment-target-selection.xml"/>
 
   <extensions defaultExtensionNs="com.android.run">
     <androidDebugger implementation="com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea">
-    <deviceProvisioner implementation="com.android.tools.idea.avdmanager.LocalEmulatorProvisionerFactory"/>
     <projectsystem.ApplicationProjectContextProvider implementation="com.android.tools.idea.project.DefaultApplicationProjectContextProvider"/>
   </extensions>
 
@@ -752,7 +751,7 @@
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
   </projectListeners>
 
-  <xi:include href="/META-INF/android-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-common.xml"/>
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
-  <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml"/>
 </idea-plugin>

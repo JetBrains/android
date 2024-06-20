@@ -20,8 +20,8 @@ import com.android.tools.idea.preview.animation.AnimationUnit
 import java.awt.Color
 import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -31,36 +31,30 @@ class ComposeUnitTest {
   fun parseInt() {
     val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", 1))
     assertNotNull(composeUnit)
-    composeUnit as AnimationUnit.Unit1D<*>
-    assertEquals(1, composeUnit.component1)
+    assertEquals(1, composeUnit.components[0])
     assertEquals(listOf(1), composeUnit.components)
-    assertEquals("1", composeUnit.toString(0))
+    assertEquals("( 1 )", composeUnit.toString(0))
     assertEquals("1", composeUnit.toString())
-    assertFalse(composeUnit is AnimationUnit.Unit2D<*>)
   }
 
   @Test
   fun parseDouble() {
     val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", 1.2345))
     assertNotNull(composeUnit)
-    composeUnit as AnimationUnit.Unit1D<*>
-    assertEquals(1.2345, composeUnit.component1)
+    assertEquals(1.2345, composeUnit.components[0])
     assertEquals(listOf(1.2345), composeUnit.components)
-    assertEquals("1.2345", composeUnit.toString(0))
+    assertEquals("( 1.2345 )", composeUnit.toString(0))
     assertEquals("1.2345", composeUnit.toString())
-    assertFalse(composeUnit is AnimationUnit.Unit2D<*>)
   }
 
   @Test
   fun parseFloat() {
     val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", 1.2345f))
     assertNotNull(composeUnit)
-    composeUnit as AnimationUnit.Unit1D<*>
-    assertEquals(1.2345f, composeUnit.component1)
+    assertEquals(1.2345f, composeUnit.components[0])
     assertEquals(listOf(1.2345f), composeUnit.components)
-    assertEquals("1.2345", composeUnit.toString(0))
+    assertEquals("( 1.2345 )", composeUnit.toString(0))
     assertEquals("1.2345", composeUnit.toString())
-    assertFalse(composeUnit is AnimationUnit.Unit2D<*>)
   }
 
   @Test
@@ -72,8 +66,8 @@ class ComposeUnitTest {
 
     val composeUnit = ComposeUnit.Dp.create(Dp())
     assertNotNull(composeUnit)
-    assertEquals(1.2345f, composeUnit.component1)
-    assertEquals("1.2345dp", composeUnit.toString(0))
+    assertEquals(1.2345f, composeUnit.components[0])
+    assertEquals("dp ( 1.2345 )", composeUnit.toString(0))
     assertEquals("1.2345dp", composeUnit.toString())
     assertEquals(listOf(1.2345f), composeUnit.components)
   }
@@ -106,8 +100,8 @@ class ComposeUnitTest {
   fun parseIntOffset() {
     val composeUnit = ComposeUnit.IntOffset.create(ValidIntOffset())
     assertNotNull(composeUnit)
-    assertEquals(1, composeUnit.component1)
-    assertEquals(2, composeUnit.component2)
+    assertEquals(1, composeUnit.components[0])
+    assertEquals(2, composeUnit.components[1])
     assertEquals("x ( 1 , _ )", composeUnit.toString(0))
     assertEquals("y ( _ , 2 )", composeUnit.toString(1))
     assertEquals("( 1 , 2 )", composeUnit.toString())
@@ -151,8 +145,8 @@ class ComposeUnitTest {
   fun parseIntSize() {
     val composeUnit = ComposeUnit.IntSize.create(ValidIntSize())
     assertNotNull(composeUnit)
-    assertEquals(1, composeUnit.component1)
-    assertEquals(2, composeUnit.component2)
+    assertEquals(1, composeUnit.components[0])
+    assertEquals(2, composeUnit.components[1])
     assertEquals("width ( 1 , _ )", composeUnit.toString(0))
     assertEquals("height ( _ , 2 )", composeUnit.toString(1))
     assertEquals("( 1 , 2 )", composeUnit.toString())
@@ -196,8 +190,8 @@ class ComposeUnitTest {
   fun parseSize() {
     val composeUnit = ComposeUnit.Size.create(ValidSize())
     assertNotNull(composeUnit)
-    assertEquals(1.1f, composeUnit.component1)
-    assertEquals(2.2f, composeUnit.component2)
+    assertEquals(1.1f, composeUnit.components[0])
+    assertEquals(2.2f, composeUnit.components[1])
     assertEquals("width ( 1.1 , _ )", composeUnit.toString(0))
     assertEquals("height ( _ , 2.2 )", composeUnit.toString(1))
     assertEquals("( 1.1 , 2.2 )", composeUnit.toString())
@@ -239,8 +233,8 @@ class ComposeUnitTest {
   fun parseOffset() {
     val composeUnit = ComposeUnit.Offset.create(ValidOffset())
     assertNotNull(composeUnit)
-    assertEquals(1.1f, composeUnit.component1)
-    assertEquals(2.2f, composeUnit.component2)
+    assertEquals(1.1f, composeUnit.components[0])
+    assertEquals(2.2f, composeUnit.components[1])
     assertEquals("x ( 1.1 , _ )", composeUnit.toString(0))
     assertEquals("y ( _ , 2.2 )", composeUnit.toString(1))
     assertEquals("( 1.1 , 2.2 )", composeUnit.toString())
@@ -286,10 +280,10 @@ class ComposeUnitTest {
   fun parseColor() {
     val composeUnit = ComposeUnit.Color.create(ValidColor())
     assertNotNull(composeUnit)
-    assertEquals(0.1f, composeUnit.component1)
-    assertEquals(0.2f, composeUnit.component2)
-    assertEquals(0.3f, composeUnit.component3)
-    assertEquals(0.4f, composeUnit.component4)
+    assertEquals(0.1f, composeUnit.components[0])
+    assertEquals(0.2f, composeUnit.components[1])
+    assertEquals(0.3f, composeUnit.components[2])
+    assertEquals(0.4f, composeUnit.components[3])
     assertEquals("red ( 0.1 , _ , _ , _ )", composeUnit.toString(0))
     assertEquals("green ( _ , 0.2 , _ , _ )", composeUnit.toString(1))
     assertEquals("blue ( _ , _ , 0.3 , _ )", composeUnit.toString(2))
@@ -332,16 +326,14 @@ class ComposeUnitTest {
       fun getValue() = 1 // Not a float.
     }
 
-    val composeUnit = ComposeUnit.Dp.create(Dp())
-    assertNull(composeUnit)
+    assertThrows(IllegalArgumentException::class.java) { ComposeUnit.Dp.create(Dp()) }
   }
 
   @Test
   fun parseInvalidDpWithoutMethod() {
     class Dp
 
-    val composeUnit = ComposeUnit.Dp.create(Dp())
-    assertNull(composeUnit)
+    assertThrows(IllegalArgumentException::class.java) { ComposeUnit.Dp.create(Dp()) }
   }
 
   @Test
@@ -359,10 +351,10 @@ class ComposeUnitTest {
 
     val composeUnit = ComposeUnit.Rect.create(Rect())
     assertNotNull(composeUnit)
-    assertEquals(1.222f, composeUnit.component1)
-    assertEquals(2.222f, composeUnit.component2)
-    assertEquals(3.222f, composeUnit.component3)
-    assertEquals(4.222f, composeUnit.component4)
+    assertEquals(1.222f, composeUnit.components[0])
+    assertEquals(2.222f, composeUnit.components[1])
+    assertEquals(3.222f, composeUnit.components[2])
+    assertEquals(4.222f, composeUnit.components[3])
     assertEquals("left ( 1.222 , _ , _ , _ )", composeUnit.toString(0))
     assertEquals("top ( _ , 2.222 , _ , _ )", composeUnit.toString(1))
     assertEquals("right ( _ , _ , 3.222 , _ )", composeUnit.toString(2))
@@ -407,8 +399,7 @@ class ComposeUnitTest {
       fun getBottom() = 4
     }
 
-    val composeUnit = ComposeUnit.Rect.create(Rect())
-    assertNull(composeUnit)
+    assertThrows(IllegalArgumentException::class.java) { ComposeUnit.Rect.create(Rect()) }
   }
 
   @Test
@@ -421,48 +412,42 @@ class ComposeUnitTest {
       // No getRight() and getBottom() methods.
     }
 
-    val composeUnit = ComposeUnit.Rect.create(Rect())
-    assertNull(composeUnit)
+    assertThrows(IllegalArgumentException::class.java) { ComposeUnit.Rect.create(Rect()) }
   }
 
   @Test
   fun parseInvalidIntSize() {
     class IntSize
 
-    val composeUnit = ComposeUnit.IntSize.create(IntSize())
-    assertNull(composeUnit)
+    assertThrows(IllegalArgumentException::class.java) { ComposeUnit.IntSize.create(IntSize()) }
   }
 
   @Test
   fun parseInvalidIntOffset() {
     class IntOffset
 
-    val composeUnit = ComposeUnit.IntSize.create(IntOffset())
-    assertNull(composeUnit)
+    assertThrows(IllegalArgumentException::class.java) { ComposeUnit.IntSize.create(IntOffset()) }
   }
 
   @Test
   fun parseInvalidSize() {
     class Size
 
-    val composeUnit = ComposeUnit.Size.create(Size())
-    assertNull(composeUnit)
+    assertThrows(IllegalArgumentException::class.java) { ComposeUnit.Size.create(Size()) }
   }
 
   @Test
   fun parseInvalidOffset() {
     class Offset
 
-    val composeUnit = ComposeUnit.Offset.create(Offset())
-    assertNull(composeUnit)
+    assertThrows(IllegalArgumentException::class.java) { ComposeUnit.Offset.create(Offset()) }
   }
 
   @Test
   fun parseInvalidColor() {
     class Color
 
-    val composeUnit = ComposeUnit.Color.create(Color())
-    assertNull(composeUnit)
+    assertThrows(IllegalArgumentException::class.java) { ComposeUnit.Color.create(Color()) }
   }
 
   @Test
@@ -478,7 +463,7 @@ class ComposeUnitTest {
   fun parseString() {
     val unit = AnimationUnit.StringUnit("hello").parseUnit { "summer" }
     assertNotNull(unit)
-    assertEquals("summer", unit.component1)
+    assertEquals("summer", unit.components[0])
   }
 
   @Test
@@ -499,12 +484,6 @@ class ComposeUnitTest {
   fun parseUnknown() {
     val unit = ComposeUnit.parseStateUnit(Any())
     assertTrue(unit is AnimationUnit.UnitUnknown)
-  }
-
-  @Test
-  fun parseUnknownNumber() {
-    val unit = ComposeUnit.parseNumberUnit(Any())
-    assertTrue(unit is AnimationUnit.UnknownNumberUnit)
   }
 
   @Test
@@ -536,7 +515,7 @@ class ComposeUnitTest {
 
   @Test
   fun parseNull() {
-    val result = ComposeUnit.parseNumberUnit(null)
-    assertNull(result)
+    val unit = ComposeUnit.parseStateUnit(null)
+    assertTrue(unit is AnimationUnit.UnitUnknown)
   }
 }

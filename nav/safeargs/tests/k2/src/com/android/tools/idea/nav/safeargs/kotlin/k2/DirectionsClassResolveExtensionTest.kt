@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.psi
 import org.jetbrains.kotlin.analysis.api.types.KtErrorType
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
-import org.jetbrains.kotlin.idea.base.plugin.checkKotlinPluginMode
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtElement
 import org.junit.Before
 import org.junit.Ignore
@@ -61,7 +61,7 @@ class DirectionsClassResolveExtensionTest(
 
   @Before
   fun setUp() {
-    checkKotlinPluginMode(KotlinPluginMode.K2)
+    check(KotlinPluginModeProvider.isK2Mode())
     if (navVersion > SafeArgsFeatureVersions.MINIMUM_VERSION) {
       safeArgsRule.addFakeNavigationDependency(navVersion)
     }

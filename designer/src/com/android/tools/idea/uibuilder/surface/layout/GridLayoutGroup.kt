@@ -19,7 +19,7 @@ package com.android.tools.idea.uibuilder.surface.layout
 class GridLayoutGroup(val header: PositionableContent?, val rows: List<List<PositionableContent>>)
 
 /**
- * @return the number of available slots for the content in the [GridLayoutGroup] without
- *   considering the rows, 0 if there is no space or [GridLayoutGroup] is null.
+ * @return A list with all the content in the [GridLayoutGroup] without considering the rows,
+ *   returns an empty list otherwise.
  */
-fun GridLayoutGroup?.contentCount(): Int = this?.rows?.flatten()?.size ?: 0
+fun GridLayoutGroup?.content(): List<PositionableContent> = this?.rows?.flatten() ?: emptyList()

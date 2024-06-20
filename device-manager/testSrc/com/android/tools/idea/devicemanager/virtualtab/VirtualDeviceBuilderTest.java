@@ -36,8 +36,7 @@ import org.mockito.Mockito;
 public final class VirtualDeviceBuilderTest {
   @Test
   public void noProperties() {
-    AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  Paths.get("ini", "file"),
+    AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   null,
@@ -57,8 +56,7 @@ public final class VirtualDeviceBuilderTest {
     properties.put("hw.lcd.width", "1080");
     properties.put("hw.lcd.density", "440");
 
-    AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  Paths.get("ini", "file"),
+    AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
@@ -78,8 +76,7 @@ public final class VirtualDeviceBuilderTest {
     properties.put("hw.lcd.height", "2160");
     properties.put("hw.lcd.density", "not a number");
 
-    AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  Paths.get("ini", "file"),
+    AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
@@ -98,8 +95,7 @@ public final class VirtualDeviceBuilderTest {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "android-wear");
 
-    AvdInfo avdInfo = new AvdInfo("Wear_OS_Round_API_30",
-                                  Paths.get("ini", "file"),
+    AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
@@ -116,8 +112,7 @@ public final class VirtualDeviceBuilderTest {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "android-tv");
 
-    AvdInfo avdInfo = new AvdInfo("Android_TV_1080p_API_30",
-                                  Paths.get("ini", "file"),
+    AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
@@ -134,8 +129,7 @@ public final class VirtualDeviceBuilderTest {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "google-tv");
 
-    AvdInfo avdInfo = new AvdInfo("Google_TV_1080p_API_30",
-                                  Paths.get("ini", "file"),
+    AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
@@ -152,8 +146,7 @@ public final class VirtualDeviceBuilderTest {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "android-automotive");
 
-    AvdInfo avdInfo = new AvdInfo("Automotive_1024p_landscape_API_30",
-                                  Paths.get("ini", "file"),
+    AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
@@ -170,8 +163,7 @@ public final class VirtualDeviceBuilderTest {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "android-automotive-playstore");
 
-    AvdInfo avdInfo = new AvdInfo("Automotive_1024p_landscape_API_30",
-                                  Paths.get("ini", "file"),
+    AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,

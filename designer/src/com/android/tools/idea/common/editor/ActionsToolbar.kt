@@ -139,6 +139,9 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
 
     if (northToolbarComponent.isVisible || northEastToolbarComponent.isVisible) {
       AdtPrimaryPanel(BorderLayout()).apply {
+        // set background to null to use the parent's background
+        northToolbarComponent.background = null
+        northEastToolbarComponent.background = null
         this.add(northToolbarComponent, BorderLayout.CENTER)
         this.add(northEastToolbarComponent, BorderLayout.EAST)
         this.border =

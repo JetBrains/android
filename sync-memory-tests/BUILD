@@ -20,7 +20,6 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
             "tags": [
                 "perfgate",
-                "perfgate-release",
             ],
         },
         "Benchmark2000Cpu": {
@@ -30,6 +29,24 @@ iml_module(
             "tags": [
                 "perfgate",
                 "perfgate-release",
+            ],
+        },
+        # Release branch tests with comparison to main branch
+        # 2000 subset is not included here because it doesn't have enough runs per test to make a meaningful analysis
+        # TODO: We should add the 1000 memory test as well but U-test requires at least 3 samples to be useful,
+        # so it won't work out of the box since memory tests don't have multiple runs.
+        "Benchmark1000CpuReleaseBranch": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
+            "tags": [
+                "perfgate-release",
+            ],
+            "additional_jvm_args": ["-Drunning.from.release.branch=true"],
+        },
+        # Comparison tests
+        "Benchmark1000CpuLatestGradleTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestGradleTest",
+            "tags": [
+                "perfgate",
             ],
         },
         # Presubmit tests
@@ -122,6 +139,7 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:gradle-distrib-latest-snapshot",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/data-binding:data_binding_runtime.zip",
     ],

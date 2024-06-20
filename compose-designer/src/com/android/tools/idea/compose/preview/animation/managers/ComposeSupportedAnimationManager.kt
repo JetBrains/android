@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.animation.AnimationClock
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.getAnimatedProperties
-import com.android.tools.idea.compose.preview.animation.setClockTime
 import com.android.tools.idea.compose.preview.animation.state.ComposeAnimationState
 import com.android.tools.idea.compose.preview.animation.state.ComposeAnimationState.Companion.createState
 import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
@@ -58,7 +57,6 @@ open class ComposeSupportedAnimationManager(
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
-  private val reset: suspend (Boolean) -> Unit,
   val updateTimelineElementsCallback: suspend () -> Unit,
   parentScope: CoroutineScope,
 ) :
@@ -74,12 +72,7 @@ open class ComposeSupportedAnimationManager(
     updateTimelineElementsCallback,
   ) {
 
-  override val animationStateManager: ComposeAnimationState =
-    animation.createState(tracker, animation.findCallback())
-
-  override suspend fun resetCallback(longTimeout: Boolean) {
-    reset(longTimeout)
-  }
+  override val animationState: ComposeAnimationState = animation.createState(tracker, scope)
 
   /**
    * Due to a limitation in the Compose Animation framework, we might not know all the available
@@ -95,45 +88,44 @@ open class ComposeSupportedAnimationManager(
 
   /** Initializes the state of the Compose animation before it starts */
   final override suspend fun setupStateManager() {
-    animationStateManager.updateStates(handleKnownStateTypes(animation.states))
-    syncStateComboBoxWithAnimationStateInLibrary()
-    animationStateManager.callbackEnabled = true
-  }
-
-  protected open suspend fun syncStateComboBoxWithAnimationStateInLibrary() {
-    val finalState = animation.getCurrentState()
-    animationStateManager.setStartState(finalState)
-    updateAnimationStartAndEndStates()
-  }
-
-  private fun ComposeAnimation.findCallback(): () -> Unit {
-    return when (type) {
-      ComposeAnimationType.TRANSITION_ANIMATION,
-      ComposeAnimationType.ANIMATE_X_AS_STATE,
-      ComposeAnimationType.ANIMATED_CONTENT -> { ->
-          scope.launch {
+    val initialValue = animationState.stateHashCode.value
+    scope.launch {
+      animationState.stateHashCode.collect {
+        if (it == initialValue) {
+          return@collect
+        }
+        when (animation.type) {
+          ComposeAnimationType.TRANSITION_ANIMATION,
+          ComposeAnimationType.ANIMATE_X_AS_STATE,
+          ComposeAnimationType.ANIMATED_CONTENT -> {
             updateAnimationStartAndEndStates()
             loadTransition()
             loadAnimatedPropertiesAtCurrentTime(false)
             updateTimelineElementsCallback()
           }
-        }
-      ComposeAnimationType.ANIMATED_VISIBILITY -> { ->
-          scope.launch {
+          ComposeAnimationType.ANIMATED_VISIBILITY -> {
             updateAnimatedVisibility()
             loadTransition()
             loadAnimatedPropertiesAtCurrentTime(false)
             updateTimelineElementsCallback()
           }
+          ComposeAnimationType.ANIMATED_VALUE,
+          ComposeAnimationType.ANIMATABLE,
+          ComposeAnimationType.ANIMATE_CONTENT_SIZE,
+          ComposeAnimationType.DECAY_ANIMATION,
+          ComposeAnimationType.INFINITE_TRANSITION,
+          ComposeAnimationType.TARGET_BASED_ANIMATION,
+          ComposeAnimationType.UNSUPPORTED -> {}
         }
-      ComposeAnimationType.ANIMATED_VALUE,
-      ComposeAnimationType.ANIMATABLE,
-      ComposeAnimationType.ANIMATE_CONTENT_SIZE,
-      ComposeAnimationType.DECAY_ANIMATION,
-      ComposeAnimationType.INFINITE_TRANSITION,
-      ComposeAnimationType.TARGET_BASED_ANIMATION,
-      ComposeAnimationType.UNSUPPORTED -> { -> }
+      }
     }
+    animationState.updateStates(handleKnownStateTypes(animation.states))
+    syncStateComboBoxWithAnimationStateInLibrary()
+  }
+
+  protected open suspend fun syncStateComboBoxWithAnimationStateInLibrary() {
+    val finalState = animation.getCurrentState()
+    animationState.setStartState(finalState)
   }
 
   /**
@@ -142,33 +134,31 @@ open class ComposeSupportedAnimationManager(
    */
   private suspend fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
     animationClock.apply {
-      val startState = animationStateManager.getState(0) ?: return
-      val toState = animationStateManager.getState(1) ?: return
+      val startState = animationState.getState(0) ?: return
+      val toState = animationState.getState(1) ?: return
 
       executeInRenderSession(longTimeout) { updateFromAndToStates(animation, startState, toState) }
-      resetCallback(longTimeout)
     }
   }
 
   /**
    * Updates the actual animation in Compose to set its state based on the selected value of
-   * [animationStateManager].
+   * [animationState].
    */
   suspend fun updateAnimatedVisibility(longTimeout: Boolean = false) {
     animationClock.apply {
-      val state = animationStateManager.getState(0) ?: return
+      val state = animationState.getState(0) ?: return
       executeInRenderSession(longTimeout) { updateAnimatedVisibilityState(animation, state) }
-      resetCallback(longTimeout)
     }
   }
 
-  override fun loadTransitionFromLibrary(): Transition {
+  final override fun loadTransitionFromLibrary(): Transition {
     val builders: MutableMap<Int, AnimatedProperty.Builder> = mutableMapOf()
     val clockTimeMsStep = max(1, maxDurationPerIteration.value / DEFAULT_CURVE_POINTS_NUMBER)
 
-    fun getTransitions() {
+    try {
       val composeTransitions =
-        animationClock.getTransitionsFunction?.invoke(
+        animationClock.getTransitionsFunction.invoke(
           animationClock.clock,
           animation,
           clockTimeMsStep,
@@ -179,27 +169,14 @@ open class ComposeSupportedAnimationManager(
             .setStartTimeMs(composeTransition.startTimeMillis.toInt())
             .setEndTimeMs(composeTransition.endTimeMillis.toInt())
         composeTransition.values
-          .mapValues { ComposeUnit.parseNumberUnit(it.value) }
-          .forEach { (ms, unit) -> unit?.let { builder.add(ms.toInt(), unit) } }
+          .mapValues { ComposeUnit.parseStateUnit(it.value) }
+          .forEach { (ms, unit) ->
+            if (unit is AnimationUnit.NumberUnit) {
+              builder.add(ms.toInt(), unit)
+            }
+          }
         builders[index] = builder
       }
-    }
-
-    fun getAnimatedProperties() {
-      for (clockTimeMs in 0..maxDurationPerIteration.value step clockTimeMsStep) {
-        animationClock.setClockTime(clockTimeMs)
-        val properties = animationClock.getAnimatedProperties(animation)
-        for ((index, property) in properties.withIndex()) {
-          ComposeUnit.parse(property)?.let { unit ->
-            builders.getOrPut(index) { AnimatedProperty.Builder() }.add(clockTimeMs.toInt(), unit)
-          }
-        }
-      }
-    }
-
-    try {
-      if (animationClock.getTransitionsFunction != null) getTransitions()
-      else getAnimatedProperties()
     } catch (e: Exception) {
       LOG.warn("Failed to load the Compose Animation properties", e)
     }
@@ -211,14 +188,14 @@ open class ComposeSupportedAnimationManager(
       }
   }
 
-  override suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean) {
+  final override suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean) {
     var properties = emptyList<AnimationUnit.TimelineUnit>()
     executeInRenderSession(longTimeout) {
       animationClock.apply {
         try {
           properties =
             getAnimatedProperties(animation).map {
-              AnimationUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
+              AnimationUnit.TimelineUnit(it.label, ComposeUnit.parseStateUnit(it))
             }
         } catch (e: Exception) {
           LOG.warn("Failed to get the Compose Animation properties", e)

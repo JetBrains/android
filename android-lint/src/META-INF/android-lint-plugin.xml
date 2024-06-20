@@ -15,7 +15,7 @@
   -->
 
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="/META-INF/android-lint.k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
+  <xi:include href="/META-INF/android-lint.k1.xml" includeUnless="idea.kotlin.plugin.use.k2"/>
 
   <extensions defaultExtensionNs="com.intellij">
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAaptCrash" groupName="Android Lint: Correctness" displayName="Potential AAPT crash" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintAaptCrashInspection"/>

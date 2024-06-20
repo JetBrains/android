@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.uisettings.ui
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.uisettings.binding.DefaultTwoWayProperty
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
@@ -58,13 +59,14 @@ internal enum class WearFontScale(val percent: Int) {
 /**
  * A model for the [UiSettingsPanel] with bindable properties for getting and setting various Android settings.
  */
-internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api: Int, private val isWear: Boolean = false) {
+internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api: Int, private val deviceType: DeviceType) {
   private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
 
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val gestureOverlayInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
-  val gestureNavigation: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
-  val appLanguage = UiComboBoxModel<AppLanguage>()
+  val navigationModel = UiComboBoxModel(false).apply { addAll(listOf(true, false)) }
+  val gestureNavigation: TwoWayProperty<Boolean> = navigationModel.selection
+  val appLanguage = UiComboBoxModel<AppLanguage?>(null)
   val talkBackInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
   val talkBackOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val selectToSpeakOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
@@ -80,12 +82,19 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
   val differentFromDefault: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
   var resetAction: () -> Unit = {}
 
+  /***
+   * If font scale or density is not settable, we are likely connected to an OEM device that has
+   * "Permission Monitoring" turned on. In order to change system & secure settings the user will need to disable
+   * this in the developer options.
+   */
+  val permissionMonitoringDisabled: ReadOnlyProperty<Boolean> = fontScaleSettable.and(screenDensitySettable)
+
   /**
    * The font scale settings for wear has 6 values, API 33 has 4 values, and for API 34+ there are 7 possible values.
    * See [FontScale]
    */
   private fun numberOfFontScales(api: Int): Int = when {
-    isWear -> WearFontScale.entries.size
+    deviceType == DeviceType.WEAR -> WearFontScale.entries.size
     api == 33 -> 4
     else -> FontScale.entries.size
   }
@@ -94,7 +103,7 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
    * The scaleMap for the current device type.
    */
   private val scaleMap: List<Int>
-    get() = if (isWear) WearFontScale.scaleMap else FontScale.scaleMap
+    get() = if (deviceType == DeviceType.WEAR) WearFontScale.scaleMap else FontScale.scaleMap
 
   private fun toFontScaleInPercent(fontIndex: Int): Int =
     scaleMap[fontIndex.coerceIn(0, fontScaleMaxIndex.value)]

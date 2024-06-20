@@ -43,28 +43,87 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
   private var syncSetupStartedTimeStamp = -1L
   private var syncEndedTimeStamp = -1L
 
+  private val gradleSyncPhasesProfile: ArrayList<GradleSyncStats.GradleSyncPhaseData> = arrayListOf()
+  private val phasesStack = ArrayDeque<GradleSyncPhaseStartEvent>()
+
   private var syncType: GradleSyncStats.GradleSyncType? = null
   private var trigger: GradleSyncStats.Trigger? = null
 
+  @Synchronized
   fun syncStarted(syncType: GradleSyncStats.GradleSyncType, trigger: GradleSyncStats.Trigger) {
     syncStartedTimeStamp = now()
     syncSetupStartedTimeStamp = -1L
     syncEndedTimeStamp = -1L
+    phasesStack.clear()
+    gradleSyncPhasesProfile.clear()
 
     this.syncType = syncType
     this.trigger = trigger
+
+    syncPhaseStarted(GradleSyncStats.GradleSyncPhaseData.SyncPhase.SYNC_TOTAL)
   }
 
+  @Synchronized
   fun setupStarted(): Long {
     syncSetupStartedTimeStamp = now()
+    syncPhaseStarted(GradleSyncStats.GradleSyncPhaseData.SyncPhase.PROJECT_SETUP)
     return syncSetupStartedTimeStamp - syncStartedTimeStamp
   }
 
-  fun syncEnded(): Long {
+  @Synchronized
+  fun syncEnded(success: Boolean): Long {
     syncEndedTimeStamp = now()
+    if (success) {
+      stopAllPhases(GradleSyncStats.GradleSyncPhaseData.PhaseResult.SUCCESS)
+    }
+    else {
+      stopAllPhases(GradleSyncStats.GradleSyncPhaseData.PhaseResult.FAILURE)
+    }
     return syncEndedTimeStamp - syncStartedTimeStamp
   }
 
+  @Synchronized
+  fun syncCancelled() {
+    stopAllPhases(GradleSyncStats.GradleSyncPhaseData.PhaseResult.CANCELLED)
+  }
+
+  @Synchronized
+  fun syncPhaseStarted(phase: GradleSyncStats.GradleSyncPhaseData.SyncPhase) {
+    phasesStack.addLast(GradleSyncPhaseStartEvent(phase, now()))
+  }
+
+  @Synchronized
+  fun gradlePhaseFinished(
+    phase: GradleSyncStats.GradleSyncPhaseData.SyncPhase,
+    startTimestamp: Long,
+    endTimestamp: Long,
+    status: GradleSyncStats.GradleSyncPhaseData.PhaseResult
+  ) {
+    // It should always be this value on top of the stack normally, but check just in case to not blindly remove a different value.
+    if (phasesStack.lastOrNull()?.phase == phase) {
+      phasesStack.removeLastOrNull()
+    }
+    val finishedPhaseData = GradleSyncStats.GradleSyncPhaseData.newBuilder()
+      .addAllPhaseStack(phasesStack.map { it.phase } + phase)
+      .setPhaseStartTimestampMs(startTimestamp)
+      .setPhaseEndTimestampMs(endTimestamp)
+      .setPhaseResult(status)
+    gradleSyncPhasesProfile.add(finishedPhaseData.build())
+  }
+
+  private fun stopAllPhases(status: GradleSyncStats.GradleSyncPhaseData.PhaseResult) {
+    while (phasesStack.isNotEmpty()) {
+      val finishedPhaseData = GradleSyncStats.GradleSyncPhaseData.newBuilder()
+        .addAllPhaseStack(phasesStack.map { it.phase })
+        .setPhaseStartTimestampMs(phasesStack.last().startTimestamp)
+        .setPhaseEndTimestampMs(syncEndedTimeStamp)
+        .setPhaseResult(status)
+      gradleSyncPhasesProfile.add(finishedPhaseData.build())
+      phasesStack.removeLast()
+    }
+  }
+
+  @Synchronized
   fun generateSyncEvent(
     project: Project,
     rootProjectPath: @SystemIndependent String?,
@@ -115,6 +174,12 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       syncStats.updateUserRequestedParallelSyncMode(project, rootProjectPath)
     }
     syncStats.updateAdditionalData()
+    if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED
+        || kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED
+        || kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE
+        || kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS) {
+      syncStats.addAllGradleSyncPhasesData(gradleSyncPhasesProfile)
+    }
 
     val gradleVersion = when(kind) {
       AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED -> GradleVersions.getInstance().getGradleVersion(project)?.version ?: ""
@@ -143,6 +208,11 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     return event
   }
 }
+
+data class GradleSyncPhaseStartEvent(
+  val phase: GradleSyncStats.GradleSyncPhaseData.SyncPhase,
+  val startTimestamp: Long
+)
 
 private fun Collection<IdeLibrary>.findVersion(group: String, name: String): Version? =
   filterIsInstance<IdeArtifactLibrary>()

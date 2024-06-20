@@ -48,30 +48,32 @@ class SdkInsightsPanelTest {
     assertThat(fakeUi.findComponent<JBLabel> { it.text == "Native lock contention" }).isNotNull()
     assertThat(fakeUi.findComponent<JBLabel> { it.icon == AllIcons.Actions.IntentionBulb })
       .isNotNull()
-    assertThat(
-        fakeUi.findComponent<JBLabel> {
-          it.text ==
-            """
+    val truncatedLabel =
+      fakeUi.findComponent<JBLabel> {
+        it.text ==
+          """
             The main thread is blocked, waiting on a native synchronization routine, such as a mutex.
 
             Native synchronization routines don't provide details on the exact lock, or where it is being held. Find the locked mutex in your source, and then locate other code locations where it is being acquired. You can use Android Studio's profiler to detect potential lock contentions if multiple threads frequently compete for the same lock. (https://support.google.com/googleplay/android-developer/answer/9859174)
             """
-              .trimIndent()
-        }
-      )
-      .isNotNull()
+            .trimIndent()
+      }
+    assertThat(truncatedLabel?.isVisible).isTrue()
 
     val seeMoreLink = fakeUi.findComponent<HyperlinkLabel>()!!
     seeMoreLink.doClick()
 
     assertThat(
-        fakeUi.findComponent<HtmlLabel> {
-          it.text.contains(
-            "<a href=\"https://support.google.com/googleplay/android-developer/answer/9859174\">" +
-              "https://support.google.com/googleplay/android-developer/answer/9859174</a>"
-          )
-        }
+        fakeUi
+          .findComponent<HtmlLabel> {
+            it.text.contains(
+              "<a href=\"https://support.google.com/googleplay/android-developer/answer/9859174\">" +
+                "https://support.google.com/googleplay/android-developer/answer/9859174</a>"
+            )
+          }
+          ?.isVisible
       )
-      .isNotNull()
+      .isTrue()
+    assertThat(truncatedLabel?.parent?.isVisible).isFalse()
   }
 }

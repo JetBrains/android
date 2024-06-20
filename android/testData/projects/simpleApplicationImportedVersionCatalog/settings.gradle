@@ -1,0 +1,19 @@
+pluginManagement {
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+  }
+}
+dependencyResolutionManagement {
+  versionCatalogs {
+    libExample {
+      from "com.example:app:1.0"
+    }
+  }
+  repositories {
+    maven{
+      url "./repo"
+    }
+    // This will be populated by AndroidGradleTestCase
+  }
+}
+include ':app'

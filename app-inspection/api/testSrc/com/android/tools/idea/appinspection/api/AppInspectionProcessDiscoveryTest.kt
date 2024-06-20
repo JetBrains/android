@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.api
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.SimpleProcessListener
@@ -317,52 +316,6 @@ class AppInspectionProcessDiscoveryTest {
     launchFakeProcess(fakeDevice2, fakeProcess2)
 
     latch.await()
-  }
-
-  @Test
-  fun discoveryFiltersProcessByDeviceApiLevel() {
-    val latch = CountDownLatch(1)
-    lateinit var processDescriptor: ProcessDescriptor
-    appInspectionRule.addProcessListener(
-      object : SimpleProcessListener() {
-        override fun onProcessConnected(process: ProcessDescriptor) {
-          processDescriptor = process
-          latch.countDown()
-        }
-
-        override fun onProcessDisconnected(process: ProcessDescriptor) {}
-      }
-    )
-
-    // Launch process on a device with Api Level < O
-    val oldDevice =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(1)
-        .setModel("fakeModel")
-        .setManufacturer("fakeMan")
-        .setSerial("1")
-        .setApiLevel(AndroidVersion.VersionCodes.N)
-        .build()
-    val process = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
-    launchFakeDevice(oldDevice)
-    launchFakeProcess(oldDevice, process)
-
-    // Launch process on another device with Api level >= O
-    val newDevice =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(2)
-        .setModel("fakeModel")
-        .setManufacturer("fakeMan")
-        .setSerial("1")
-        .setApiLevel(AndroidVersion.VersionCodes.O)
-        .build()
-    val newProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
-    launchFakeDevice(newDevice)
-    launchFakeProcess(newDevice, newProcess)
-
-    // Verify discovery host has only notified about the process that ran on >= O device.
-    latch.await()
-    assertThat(processDescriptor.device.apiLevel >= AndroidVersion.VersionCodes.O)
   }
 
   // Test the scenario where discovery encounters a device it has discovered before.

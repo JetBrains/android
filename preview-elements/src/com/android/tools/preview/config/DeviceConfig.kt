@@ -123,7 +123,7 @@ open class DeviceConfig(
     get() = convertToDeviceSpecDimension(chinSize).toString()
 
   open val isRound: Boolean
-    get() = shape == Shape.Round || shape == Shape.Chin
+    get() = shape == Shape.Round
 
   /** Returns a string that defines the Device in the current state of [DeviceConfig] */
   fun deviceSpec(): String {
@@ -514,9 +514,7 @@ private fun StringBuilder.appendSeparator(): StringBuilder = append(SEPARATOR)
 /** The visual shape of the Device, usually applied as cutout. */
 enum class Shape {
   Normal,
-  @Deprecated("Redundant for DeviceConfig, set 'shape=Normal'") Square,
   Round,
-  @Deprecated("Redundant for DeviceConfig, set 'shape=Round' and a value for 'chinSize'") Chin,
 }
 
 /** Unit for the Device's width and height. */

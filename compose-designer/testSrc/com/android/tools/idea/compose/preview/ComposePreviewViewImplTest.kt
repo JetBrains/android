@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.SdkConstants
+import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.instructions.HyperlinkInstruction
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
@@ -34,6 +35,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
@@ -116,6 +118,8 @@ private fun InstructionsPanel.toDisplayText(): String =
 
 class ComposePreviewViewImplTest {
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
+
+  @get:Rule val flagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE)
 
   private val project: Project
     get() = projectRule.project
@@ -275,7 +279,8 @@ class ComposePreviewViewImplTest {
   }
 
   @Test
-  fun `empty preview state`() {
+  fun `empty preview state when generate all previews is disabled`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(false)
     ApplicationManager.getApplication().invokeAndWait {
       previewView.hasRendered = true
       previewView.hasContent = false
@@ -288,6 +293,28 @@ class ComposePreviewViewImplTest {
       No preview found.
       Add preview by annotating Composables with @Preview
       [Using the Compose preview]
+    """
+        .trimIndent(),
+      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
+    )
+  }
+
+  @Test
+  fun `empty preview state when generate all previews is enabled`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(true)
+    ApplicationManager.getApplication().invokeAndWait {
+      previewView.hasRendered = true
+      previewView.hasContent = false
+      previewView.updateVisibilityAndNotifications()
+      fakeUi.root.validate()
+    }
+
+    assertEquals(
+      """
+      No preview found.
+      Add preview by annotating Composables with @Preview
+      [Using the Compose preview]
+      [Generate Compose Previews for this file]
     """
         .trimIndent(),
       (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),

@@ -53,7 +53,7 @@ class ComposePositionManager(
 ) : MultiRequestPositionManager by kotlinPositionManager, PositionManagerWithMultipleStackFrames {
   override fun getAcceptedFileTypes(): Set<FileType> = KOTLIN_FILE_TYPES
 
-  override fun createStackFrames(descriptor: StackFrameDescriptorImpl): List<XStackFrame> =
+  override fun createStackFrames(descriptor: StackFrameDescriptorImpl): List<XStackFrame>? =
     kotlinPositionManager.createStackFrames(descriptor)
 
   override fun evaluateCondition(

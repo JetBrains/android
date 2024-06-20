@@ -102,17 +102,17 @@ def _read_plugin_id(path: Path):
   xml = load_plugin_xml(jars, [])
 
   # The id of a plugin is defined as the id tag and if missing, the name tag.
-  ids = xml.findall("id")
-  if len(ids) > 1:
-    sys.exit("Too many plugin ids found in plugin: " + path)
-  if len(ids) == 1:
-    return ids[0].text
+  ids = [id.text for id in xml.findall("id")]
+  if len(set(ids)) > 1:
+    sys.exit(f"Too many plugin ids found in plugin: {path}")
+  if len(ids) >= 1:
+    return ids[0]
   names = xml.findall("name")
   if len(names) > 1:
-    sys.exit("Too many plugin names found (for plugin without id): " + path)
+    sys.exit(f"Too many plugin names found (for plugin without id): {path}")
   if len(names) == 1:
     return names[0].text
-  sys.exit("Cannot find plugin id or name tag for plugin: " + path)
+  sys.exit(f"Cannot find plugin id or name tag for plugin: {path}")
 
 
 def _read_plugin_jars(idea_home: Path):
@@ -128,20 +128,12 @@ def _read_plugin_jars(idea_home: Path):
   return plugins
 
 
-def _load_include(include, external_xmls, cwd, index):
+def _load_include(include, xpath, external_xmls, cwd, index):
   href = include.get("href")
   parse = include.get("parse", "xml")
   if parse != "xml":
     print("only xml parse is supported")
     sys.exit(1)
-  xpointer = include.get("xpointer")
-  xpath = None
-  if xpointer:
-    m = re.match(r"xpointer\((.*)\)", xpointer)
-    if not m:
-      print("only xpointers of the form xpointer(xpath) are supported")
-      sys.exit(1)
-    xpath = m.group(1)
   is_optional = any(
       child.tag == "{http://www.w3.org/2001/XInclude}fallback"
       for child in include
@@ -170,14 +162,9 @@ def _load_include(include, external_xmls, cwd, index):
     res = jar.read(rel)
 
   e = ET.fromstring(res)
-  if not xpath:
-    return [e], new_cwd
-
-  if not xpath.startswith("/"):
-    print("Unexpected xpath %s. Only absolute paths are supported" % xpath)
-    sys.exit(1)
 
   ret = []
+  assert xpath.startswith("/")
   root, path = xpath[1:].split("/", 1)
   if root == e.tag:
     ret = e.findall("./" + path)
@@ -189,14 +176,30 @@ def _load_include(include, external_xmls, cwd, index):
   return ret, new_cwd
 
 
+def _xpath_for_include(include, parent):
+  # The IntelliJ plugin XML reader has custom handling for <xi:include> elements, which we emulate
+  # here. For example, it has hard-coded defaults and constraints for the xpointer attribute. See:
+  # https://github.com/JetBrains/intellij-community/blob/f57df70730/platform/core-impl/src/com/intellij/ide/plugins/XmlReader.kt#L39
+  if parent.tag == "idea-plugin":
+    xpath = "/idea-plugin/*"
+  elif parent.tag == "extensionPoints":
+    xpath = "/idea-plugin/extensionPoints/*"
+  else:
+    sys.exit(f"<xi:include> is unsupported beneath <{parent.tag}>")
+  # Check that the xpointer attribute (if any) is consistent with our inferred xpath.
+  xpointer = include.get("xpointer")
+  if xpointer != None and xpointer != f"xpointer({xpath})":
+    sys.exit(f"<xi:include> has invalid xpointer attribute: {xpointer}")
+  return xpath
+
+
 def _resolve_includes(elem, external_xmls, cwd, index):
   """Resolves xincludes in the given xml element.
 
   By replacing xinclude tags like
 
   <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-    <xi:include href="/META-INF/android-plugin.xml"
-    xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/android-plugin.xml"/>
     ...
 
   with the xml pointed by href and the xpath given in xpointer.
@@ -206,8 +209,9 @@ def _resolve_includes(elem, external_xmls, cwd, index):
   while i < len(elem):
     e = elem[i]
     if e.tag == "{http://www.w3.org/2001/XInclude}include":
-      nodes, new_cwd = _load_include(e, external_xmls, cwd, index)
-      subtree = ET.Element("nodes")
+      xpath = _xpath_for_include(e, elem)
+      nodes, new_cwd = _load_include(e, xpath, external_xmls, cwd, index)
+      subtree = ET.Element(elem.tag)
       subtree.extend(nodes)
       _resolve_includes(subtree, external_xmls, new_cwd, index)
       nodes = list(subtree)

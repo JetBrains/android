@@ -24,10 +24,7 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemBuildManager
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.collect.EnumMultiset
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.HeavyPlatformTestCase
-import com.intellij.testFramework.PlatformTestUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -123,8 +120,8 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
       ProjectSystemBuildManager.BuildStatus.SUCCESS,
       buildManager.getLastBuildResult().status
     )
-    assertEquals(1, listener.startedBuildMode.count(ProjectSystemBuildManager.BuildMode.ASSEMBLE))
-    assertEquals("[ASSEMBLE] SUCCESS", listener.completedBuildsDebugString())
+    assertEquals(1, listener.startedBuildMode.count(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE))
+    assertEquals("[COMPILE_OR_ASSEMBLE] SUCCESS", listener.completedBuildsDebugString())
   }
 
   fun testBuildResultListener_failed() {
@@ -140,8 +137,8 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
       ProjectSystemBuildManager.BuildStatus.FAILED,
       buildManager.getLastBuildResult().status
     )
-    assertEquals(1, listener.startedBuildMode.count(ProjectSystemBuildManager.BuildMode.ASSEMBLE))
-    assertEquals("[ASSEMBLE] FAILED", listener.completedBuildsDebugString())
+    assertEquals(1, listener.startedBuildMode.count(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE))
+    assertEquals("[COMPILE_OR_ASSEMBLE] FAILED", listener.completedBuildsDebugString())
   }
 
   fun testBuildResultListener_clean() {

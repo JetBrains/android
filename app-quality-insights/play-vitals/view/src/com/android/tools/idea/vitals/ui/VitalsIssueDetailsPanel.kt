@@ -74,7 +74,6 @@ import java.awt.event.MouseEvent
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.BoxLayout.Y_AXIS
-import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -303,26 +302,20 @@ class VitalsIssueDetailsPanel(
     add(mainPanel, BorderLayout.CENTER)
   }
 
-  private fun createContentPanel(): JComponent {
-    val panel =
-      transparentPanel().apply {
-        border = JBUI.Borders.empty(0, 8)
-        layout = BoxLayout(this, Y_AXIS)
-        add(Box.createVerticalStrut(5))
-        add(createBodySection())
-        add(Box.createVerticalStrut(5))
-        add(
-          DetailsTabbedPane(
-              "VitalsDetails",
-              listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.consoleView.component)),
-              stackTraceConsole,
-            )
-            .component
-        )
-        components.forEach { (it as JComponent).alignmentX = LEFT_ALIGNMENT }
-      }
-    return transparentPanel(BorderLayout()).apply { add(panel, BorderLayout.NORTH) }
-  }
+  private fun createContentPanel() =
+    transparentPanel(BorderLayout()).apply {
+      border = JBUI.Borders.empty(0, 8)
+      add(createBodySection(), BorderLayout.NORTH)
+      add(
+        DetailsTabbedPane(
+            "VitalsDetails",
+            listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.stackPanel)),
+            stackTraceConsole,
+          )
+          .component,
+        BorderLayout.CENTER,
+      )
+    }
 
   private fun createBodySection() =
     transparentPanel().apply {

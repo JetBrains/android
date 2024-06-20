@@ -16,27 +16,24 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
-import com.android.tools.idea.compose.annotator.check.common.BadType
-import com.android.tools.idea.compose.annotator.check.common.CheckResult
-import com.android.tools.idea.compose.annotator.check.common.Failure
-import com.android.tools.idea.compose.annotator.check.common.Missing
-import com.android.tools.idea.compose.annotator.check.common.Repeated
-import com.android.tools.idea.compose.annotator.check.common.Unknown
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.moveCaret
+import com.intellij.codeInspection.InspectionManager
+import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.runInEdtAndGet
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -56,7 +53,7 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testGoodAnnotations() {
-    var result =
+    var issue =
       addKotlinFileAndCheckPreviewAnnotation(
         """
         package example
@@ -69,9 +66,9 @@ internal class PreviewAnnotationCheckTest {
       """
           .trimIndent()
       )
-    assert(result.issues.isEmpty())
+    assertNull(issue)
 
-    result =
+    issue =
       addKotlinFileAndCheckPreviewAnnotation(
         """
         package example
@@ -84,12 +81,12 @@ internal class PreviewAnnotationCheckTest {
       """
           .trimIndent()
       )
-    assert(result.issues.isEmpty())
+    assertNull(issue)
   }
 
   @Test
   fun testAnnotationWithIssues() {
-    var result =
+    var issue =
       addKotlinFileAndCheckPreviewAnnotation(
         """
         package example
@@ -102,21 +99,29 @@ internal class PreviewAnnotationCheckTest {
 """
           .trimIndent()
       )
-    assertEquals(6, result.issues.size)
+    assertNotNull(issue)
     assertEquals(
-      listOf(
-        BadType::class,
-        BadType::class,
-        BadType::class,
-        Unknown::class,
-        Repeated::class,
-        Missing::class,
-      ),
-      result.issues.map { it::class },
-    )
-    assertEquals("spec:shape=Normal,width=411,unit=dp,dpi=320,height=891", result.proposedFix)
+      """
+      Bad value type for: shape, width, unit.
 
-    result =
+      Parameter: shape should be one of: Normal, Round.
+      Parameter: width should have Integer value.
+      Parameter: unit should be one of: px, dp.
+
+      Unknown parameter: madeUpParam.
+
+
+      Parameters should not be repeated: shape.
+
+
+      Missing parameter: height.
+    """
+        .trimIndent(),
+      issue.descriptionTemplate,
+    )
+    assertEquals(1, issue.fixes?.size)
+
+    issue =
       addKotlinFileAndCheckPreviewAnnotation(
         """
         package example
@@ -129,90 +134,17 @@ internal class PreviewAnnotationCheckTest {
 """
           .trimIndent()
       )
-    assertEquals(1, result.issues.size)
-    assertEquals(Unknown::class, result.issues[0]::class)
+    assertNotNull(issue)
     assertEquals(
-      "Must be a Device ID or a Device specification: \"id:...\", \"spec:...\".",
-      result.issues[0].parameterName,
+      "Unknown parameter: Must be a Device ID or a Device specification: \"id:...\", \"spec:...\"..",
+      issue.descriptionTemplate,
     )
-    assertEquals("id:pixel_5", result.proposedFix)
-  }
-
-  @Test
-  fun testAnnotationWithDeviceSpecLanguageIssues() {
-    // Missing height, no common unit defined
-    var result: CheckResult =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "spec:width=100,isRound=no")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(
-      listOf(BadType::class, BadType::class, Missing::class),
-      result.issues.map { it::class },
-    )
-    assertEquals("spec:width=100dp,isRound=false,height=891dp", result.proposedFix)
-
-    // First valid unit is `dp`, other dimension parameters should have the same unit
-    result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "spec:width=100dp,height=400.56px,chinSize=30")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(listOf(BadType::class, BadType::class), result.issues.map { it::class })
-    assertEquals("spec:width=100dp,height=400.6dp,chinSize=30dp", result.proposedFix)
-  }
-
-  @Test
-  fun testFailure() {
-    val vFile =
-      rule.fixture
-        .addFileToProject(
-          "test.kt",
-          // language=kotlin
-          """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
-        @Composable
-        fun myFun() {}
-"""
-            .trimIndent(),
-        )
-        .virtualFile
-
-    val annotationEntry = runWriteActionAndWait {
-      rule.fixture.openFileInEditor(vFile)
-      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
-    }
-    assertNotNull(annotationEntry)
-
-    val result = PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry)
-    assertEquals(1, result.issues.size)
-    assertEquals(Failure::class, result.issues[0]::class)
-    assertEquals("No read access", (result.issues[0] as Failure).failureMessage)
+    assertEquals(1, issue.fixes?.size)
   }
 
   @Test
   fun testBadTarget() {
-    val result =
+    val issue =
       addKotlinFileAndCheckPreviewAnnotation(
         """
         package example
@@ -223,17 +155,17 @@ internal class PreviewAnnotationCheckTest {
       """
           .trimIndent()
       )
-    assertEquals(1, result.issues.size)
-    assertEquals(Failure::class, result.issues[0]::class)
+    assertNotNull(issue)
     assertEquals(
       "Preview target must be a composable function or an annotation class",
-      (result.issues[0] as Failure).failureMessage,
+      issue.descriptionTemplate,
     )
+    assertTrue(issue.fixes.isNullOrEmpty())
   }
 
   @Test
   fun testMultipreviewAnnotation() {
-    val result =
+    val issue =
       addKotlinFileAndCheckPreviewAnnotation(
         """
         package example
@@ -244,35 +176,14 @@ internal class PreviewAnnotationCheckTest {
       """
           .trimIndent()
       )
-    assert(result.issues.isEmpty())
-  }
-
-  @Test
-  fun testDeviceIdFailure() {
-    val result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "id:device_1")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(1, result.issues.size)
-    assertEquals(Failure::class, result.issues[0]::class)
-    // Memory test by default do not include an instance of the Sdk
-    assertEquals("Default Device: pixel_5 not found", (result.issues[0] as Failure).failureMessage)
+    assertNull(issue)
   }
 
   @Test
   fun testDeviceIdCheck() {
     runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
 
-    var result =
+    var issue =
       addKotlinFileAndCheckPreviewAnnotation(
         """
         package example
@@ -285,11 +196,11 @@ internal class PreviewAnnotationCheckTest {
 """
           .trimIndent()
       )
-    assertEquals(1, result.issues.size)
-    assertEquals(Unknown::class, result.issues[0]::class)
-    assertEquals("id:pixel_5", result.proposedFix)
+    assertNotNull(issue)
+    assertEquals("Unknown parameter: device_1.", issue.descriptionTemplate)
+    assertEquals(1, issue.fixes?.size)
 
-    result =
+    issue =
       addKotlinFileAndCheckPreviewAnnotation(
         """
         package example
@@ -302,189 +213,18 @@ internal class PreviewAnnotationCheckTest {
 """
           .trimIndent()
       )
-    assertFalse(result.hasIssues)
-  }
-
-  @Test
-  fun deprecatedDevicesShouldBeValid() {
-    runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
-
-    val result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "id:Nexus 5")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertFalse(result.hasIssues)
-  }
-
-  @Test
-  fun testDeviceNameCheck() {
-    runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
-
-    var result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "name:Nexus 11")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(1, result.issues.size)
-    assertEquals(Unknown::class, result.issues[0]::class)
-    assertEquals("id:pixel_5", result.proposedFix)
-
-    result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "name:Pixel Tablet")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertFalse(result.hasIssues)
-  }
-
-  @Test
-  fun testDeviceNameCheckWithNoDevicesFails() {
-    val result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "name:Nexus 11")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(1, result.issues.size)
-    assertEquals("Default Device: pixel_5 not found", (result.issues[0] as Failure).failureMessage)
-  }
-
-  @Test
-  fun testParentIdCheck() {
-    runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
-
-    // Provide an incorrect ID
-    var result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "spec:parent=device_1")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(1, result.issues.size)
-    assertEquals(BadType::class, result.issues[0]::class)
-    assertEquals("spec:parent=pixel_5", result.proposedFix)
-
-    // Correct parent ID and orientation
-    result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "spec:parent=pixel_4,orientation=portrait")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(0, result.issues.size)
-
-    // Correct parent ID, orientation and unknown
-    result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "spec:parent=pixel_6,orientation=portrait,foo=bar")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(1, result.issues.size)
-    assertEquals(Unknown::class, result.issues[0]::class)
-    assertEquals("spec:parent=pixel_6,orientation=portrait", result.proposedFix)
-
-    // Correct parent ID, with all other parameters, parent takes priority
-    result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "spec:parent=pixel_4_xl,width=1080px,height=1920px,isRound=true,dpi=320,chinSize=20px,orientation=portrait")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(5, result.issues.size)
-    assertEquals(Unknown::class, result.issues[0]::class)
-    assertEquals(Unknown::class, result.issues[1]::class)
-    assertEquals(Unknown::class, result.issues[2]::class)
-    assertEquals(Unknown::class, result.issues[3]::class)
-    assertEquals(Unknown::class, result.issues[4]::class)
-    assertEquals("spec:parent=pixel_4_xl,orientation=portrait", result.proposedFix)
-
-    // Width and parent ID, missing height, parent takes priority
-    result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-        import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-        @Preview(device = "spec:width=1080px,parent=pixel_4_xl")
-        @Composable
-        fun myFun() {}
-"""
-          .trimIndent()
-      )
-    assertEquals(1, result.issues.size)
-    assertEquals(Unknown::class, result.issues[0]::class)
-    assertEquals("spec:parent=pixel_4_xl", result.proposedFix)
+    assertNull(issue)
   }
 
   /**
-   * Adds file with the given [fileContents] and runs
-   * [PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded] on the first Preview annotation found.
+   * Adds file with the given [fileContents] and runs [PreviewAnnotationCheck.checkAnnotation] on
+   * the first Preview annotation found.
+   *
+   * This method returns a list of [ProblemDescriptor]s for the issues found.
    */
   private fun addKotlinFileAndCheckPreviewAnnotation(
     @Language("kotlin") fileContents: String
-  ): CheckResult {
+  ): ProblemDescriptor? {
     rule.fixture.configureByText(KotlinFileType.INSTANCE, fileContents)
 
     val annotationEntry = runInEdtAndGet {
@@ -492,6 +232,7 @@ internal class PreviewAnnotationCheckTest {
     }
     assertNotNull(annotationEntry)
 
-    return runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+    val manager = InspectionManager.getInstance(fixture.project)
+    return runReadAction { PreviewAnnotationCheck.checkAnnotation(annotationEntry, manager, true) }
   }
 }

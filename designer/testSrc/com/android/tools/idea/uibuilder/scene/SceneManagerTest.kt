@@ -16,16 +16,15 @@
 package com.android.tools.idea.uibuilder.scene
 
 import com.android.SdkConstants
-import com.android.ide.common.rendering.api.ResourceReference
-import com.android.ide.common.rendering.api.ResourceValue
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.common.scene.TemporarySceneComponent
+import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
 import com.android.tools.idea.common.surface.DesignSurface
@@ -59,10 +58,6 @@ class TestSceneManager(
 
   override fun getSceneScalingFactor(): Float = 1f
 
-  override fun createTemporaryComponent(component: NlComponent): TemporarySceneComponent {
-    throw UnsupportedOperationException()
-  }
-
   override fun requestRenderAsync(): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
 
@@ -75,11 +70,6 @@ class TestSceneManager(
     object : SceneDecoratorFactory() {
       override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR
     }
-
-  override fun getDefaultProperties():
-    MutableMap<Any, MutableMap<ResourceReference, ResourceValue>> = mutableMapOf()
-
-  override fun getDefaultStyles(): MutableMap<Any, ResourceReference> = mutableMapOf()
 }
 
 class SceneManagerTest {
@@ -118,7 +108,7 @@ class SceneManagerTest {
       TestSceneManager(
         model,
         surface,
-        object : SceneManager.SceneComponentHierarchyProvider {
+        object : SceneComponentHierarchyProvider {
           override fun createHierarchy(
             manager: SceneManager,
             component: NlComponent,
@@ -179,13 +169,15 @@ class SceneManagerTest {
   fun testSceneManagerListenerExceptionDoesNotBreakUpdate() {
     var sceneListenerWasInvoked = false
     val brokenListener =
-      SceneManager.SceneUpdateListener { _, _ ->
-        sceneListenerWasInvoked = true
-        throw NullPointerException()
+      object : SceneUpdateListener {
+        override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
+          sceneListenerWasInvoked = true
+          throw NullPointerException()
+        }
       }
     var createHierarchyWasInvoked = false
     val componentProvider =
-      object : SceneManager.SceneComponentHierarchyProvider {
+      object : SceneComponentHierarchyProvider {
         override fun createHierarchy(
           manager: SceneManager,
           component: NlComponent,

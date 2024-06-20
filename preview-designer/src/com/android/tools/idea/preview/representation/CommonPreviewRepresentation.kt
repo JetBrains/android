@@ -18,7 +18,7 @@ package com.android.tools.idea.preview.representation
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
-import com.android.tools.idea.common.scene.SceneManager.SceneUpdateListener
+import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -83,6 +83,7 @@ import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewDisplaySettings
@@ -165,7 +166,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       psiFilePointer: SmartPsiElementPointer<PsiFile>,
       hasRenderErrors: () -> Boolean,
     ) -> CommonPreviewViewModel,
-  configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
+  configureDesignSurface: NlDesignSurface.Builder.(NavigationHandler) -> Unit,
   renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
   sceneUpdateListener: SceneUpdateListener? = null,
@@ -249,7 +250,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             setMaxZoomToFitLevel(ZoomConstants.MAX_ZOOM_TO_FIT_LEVEL)
             setMinScale(ZoomConstants.MIN_SCALE)
             setMaxScale(ZoomConstants.MAX_SCALE)
-            configureDesignSurface()
+            configureDesignSurface(navigationHandler)
           },
         this,
       )

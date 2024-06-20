@@ -26,6 +26,8 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLoadingPanel
@@ -36,9 +38,13 @@ import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 import kotlin.math.max
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -67,7 +73,27 @@ abstract class AnimationPreview<T : AnimationManager>(
   private val tracker: AnimationTracker,
 ) : Disposable {
 
-  protected val scope = AndroidCoroutineScope(this)
+  private val logger: Logger = Logger.getInstance(AnimationPreview::class.java)
+  private val errorPanel =
+    JPanel(BorderLayout()).apply {
+      name = "Error Panel"
+      add(
+        JLabel().apply {
+          text = message("animation.inspector.error.panel.message")
+          horizontalAlignment = SwingConstants.CENTER
+          verticalAlignment = SwingConstants.CENTER
+        }
+      )
+    }
+
+  protected val scope =
+    AndroidCoroutineScope(
+      this,
+      CoroutineExceptionHandler { _, throwable ->
+        invokeLater { showErrorPanel(throwable) }
+        logger.error("Error in Animation Inspector", throwable)
+      },
+    )
 
   // ******************
   // Properties: UI Components
@@ -88,7 +114,6 @@ abstract class AnimationPreview<T : AnimationManager>(
       addResetListener {
         scope.launch {
           animations.filterIsInstance<SupportedAnimationManager>().forEach { it.offset.value = 0 }
-          resetTimelineAndUpdateWindowSize(false)
         }
       }
     }
@@ -179,10 +204,11 @@ abstract class AnimationPreview<T : AnimationManager>(
     withContext(uiThread) {
       timeline.sliderUI.elements.forEach { it.dispose() }
       timeline.sliderUI.elements = getTimelineElements()
+      timeline.revalidate()
+      timeline.repaint()
+      coordinationTab.revalidate()
+      coordinationTab.repaint()
     }
-    timeline.repaint()
-    timeline.revalidate()
-    coordinationTab.revalidate()
   }
 
   @UiThread
@@ -245,22 +271,10 @@ abstract class AnimationPreview<T : AnimationManager>(
   protected inner class Timeline(owner: JComponent, pane: TooltipLayeredPane) :
     TimelinePanel(Tooltip(owner, pane), tracker) {
 
-    var cachedVal = 0
+    var cachedVal = MutableStateFlow(0)
 
     init {
-      addChangeListener {
-        val newValue = value
-        if (cachedVal != newValue) {
-          cachedVal = newValue
-          scope.launch {
-            setClockTime(newValue)
-            animations.filterIsInstance<SupportedAnimationManager>().forEach {
-              it.loadAnimatedPropertiesAtCurrentTime(false)
-            }
-            renderAnimation()
-          }
-        }
-      }
+      addChangeListener { cachedVal.value = value }
       addComponentListener(
         object : ComponentAdapter() {
           override fun componentResized(e: ComponentEvent?) {
@@ -275,27 +289,20 @@ abstract class AnimationPreview<T : AnimationManager>(
     showNoAnimationsPanel()
     tabbedPane.addListener(TabChangeListener())
     scope.launch { maxDurationPerIteration.collect { updateTimelineMaximum() } }
+    scope.launch {
+      timeline.cachedVal.collect {
+        setClockTime(it)
+        animations.filterIsInstance<SupportedAnimationManager>().forEach { animation ->
+          animation.loadAnimatedPropertiesAtCurrentTime(false)
+        }
+        renderAnimation()
+      }
+    }
   }
 
   /** Triggers a render/update of the displayed preview. */
   private suspend fun renderAnimation() {
     sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
-  }
-
-  protected suspend fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
-    // Set the timeline to 0
-    setClockTime(0, longTimeout)
-    animations.filterIsInstance<SupportedAnimationManager>().forEach {
-      it.loadAnimatedPropertiesAtCurrentTime(false)
-    }
-    updateMaxDuration(longTimeout)
-    // Update the cached value manually to prevent the timeline to set the clock time to 0 using the
-    // short timeout.
-    timeline.cachedVal = 0
-    // Move the timeline slider to 0.
-    withContext(uiThread) { clockControl.jumpToStart() }
-    updateTimelineElements()
-    renderAnimation()
   }
 
   private fun updateTimelineMaximum() {
@@ -403,6 +410,14 @@ abstract class AnimationPreview<T : AnimationManager>(
 
   protected suspend fun executeInRenderSession(longTimeout: Boolean = false, function: () -> Unit) {
     sceneManagerProvider()?.executeInRenderSession(longTimeout) { function() }
+  }
+
+  private fun showErrorPanel(e: Throwable) {
+    animationPreviewPanel.removeAll()
+    animationPreviewPanel.add(errorPanel, TabularLayout.Constraint(0, 0))
+    animationPreviewPanel.revalidate()
+    animationPreviewPanel.repaint()
+    scope.cancel("Error in Animation Inspector", e)
   }
 
   override fun dispose() {

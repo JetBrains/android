@@ -238,18 +238,14 @@ open class GroupedGridSurfaceLayoutManager(
 
     val content = group.content
     if (content.isEmpty()) {
-      return GridLayoutGroup(group.header, emptyList()).apply { currentLayoutGroup = this }
+      return GridLayoutGroup(group.header, emptyList())
     }
 
-    // If the window size hasn't changed and there is no additional content to add in the
-    // layoutGroup we want to keep the layout as it is.
-    if (
-      SCROLLABLE_ZOOM_ON_GRID.get() &&
-        isSameWidth &&
-        content.size <= currentLayoutGroup.contentCount()
-    ) {
-      currentLayoutGroup?.let {
-        return it
+    // If the content in the windows hasn't changed and there is no additional content to add in the
+    // layout group, we want to keep the layout as it is
+    currentLayoutGroup?.let { layoutGroup ->
+      if (SCROLLABLE_ZOOM_ON_GRID.get() && isSameWidth && content == layoutGroup.content()) {
+        return layoutGroup
       }
     }
 

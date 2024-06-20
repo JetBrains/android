@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTestResultAdapter
@@ -127,7 +128,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
 
-      project.coroutineScope.launch {
+      project.coroutineScope().launch {
         testAdapter.forwardResults(testSuiteView)
       }
       toolWindow.activate(null)

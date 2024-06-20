@@ -27,11 +27,11 @@ object DefaultBuildManager : ProjectSystemBuildManager {
   private var lastResult = BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN, System.currentTimeMillis())
 
   override fun compileProject() {
-    lastResult = BuildResult(BuildMode.COMPILE, BuildStatus.SUCCESS, System.currentTimeMillis())
+    lastResult = BuildResult(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS, System.currentTimeMillis())
   }
 
   override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-    lastResult = BuildResult(BuildMode.COMPILE, BuildStatus.SUCCESS, System.currentTimeMillis())
+    lastResult = BuildResult(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS, System.currentTimeMillis())
   }
 
   override fun getLastBuildResult(): BuildResult = lastResult

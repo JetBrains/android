@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.PxBounds
@@ -29,10 +30,10 @@ import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * [SceneManager.SceneComponentHierarchyProvider] for Compose Preview. It provides the ability to
- * sync Compose bounding boxes into SceneComponents.
+ * [SceneComponentHierarchyProvider] for Compose Preview. It provides the ability to sync Compose
+ * bounding boxes into SceneComponents.
  */
-class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvider {
+class ComposeSceneComponentProvider : SceneComponentHierarchyProvider {
   private val LOG = Logger.getInstance(ComposeSceneComponentProvider::class.java)
 
   /**

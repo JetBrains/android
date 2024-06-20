@@ -43,10 +43,10 @@ const val DEVICE_BY_SPEC_PREFIX = "spec:"
 /** id for the default device when no device is specified by the user. */
 const val DEFAULT_DEVICE_ID = "pixel_5"
 
-/** Full declaration for the default device. */
-const val DEFAULT_DEVICE_ID_WITH_PREFIX = DEVICE_BY_ID_PREFIX + DEFAULT_DEVICE_ID
+/** id for the default wear os device when no device is specified by the user. */
+const val DEFAULT_WEAROS_DEVICE_ID = "wearos_small_round"
 
-/** Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin */
+/** Used for `Round Chin` devices. */
 const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 
 fun Device.toDeviceConfig(): DeviceConfig {
@@ -125,16 +125,12 @@ fun DeviceConfig.createDeviceInstance(): Device {
               sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) /
                 pixelDensity.dpiValue
             screenRound = if (deviceConfig.isRound) ScreenRound.ROUND else ScreenRound.NOTROUND
-            chin =
-              when {
-                deviceConfig.shape == Shape.Chin -> CHIN_SIZE_PX_FOR_ROUND_CHIN
-                deviceConfig.isRound -> deviceConfig.chinSize.roundToInt()
-                else -> 0
-              }
+            chin = if (deviceConfig.isRound) deviceConfig.chinSize.roundToInt() else 0
             size = ScreenSize.getScreenSize(diagonalLength)
             ratio = ScreenRatio.create(xDimension, yDimension)
           }
-        buttonType = ButtonType.SOFT  // needed for displaying nav bar when showing device decorations
+        buttonType =
+          ButtonType.SOFT // needed for displaying nav bar when showing device decorations
       }
   }
   return customDevice
@@ -155,7 +151,7 @@ fun ConfigurationSettings.getDefaultPreviewDevice(): Device? =
  */
 fun Collection<Device>.findOrParseFromDefinition(
   deviceDefinition: String,
-  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java)
+  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java),
 ): Device? {
   return when {
     deviceDefinition.isBlank() -> null
@@ -173,7 +169,7 @@ fun Collection<Device>.findOrParseFromDefinition(
 
 fun Collection<Device>.findByIdOrName(
   deviceDefinition: String,
-  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java)
+  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java),
 ): Device? {
   val availableDevices = this
   return when {

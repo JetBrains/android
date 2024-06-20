@@ -28,7 +28,8 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
   protected fun runSyncAndCheckBuildIssueFailure(
     preparedProject: PreparedTestProject,
     verifyBuildIssue: (BuildIssue) -> Unit,
-    expectedFailureReported: AndroidStudioEvent.GradleSyncFailure
+    expectedFailureReported: AndroidStudioEvent.GradleSyncFailure,
+    expectedPhasesReported: String?
   ) {
     runSyncAndCheckGeneralFailure(
       preparedProject = preparedProject,
@@ -49,6 +50,7 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
       verifyFailureReported = {
         expect.that(it.gradleSyncFailure).isEqualTo(expectedFailureReported)
         expect.that(it.buildOutputWindowStats.buildErrorMessagesList).isEmpty()
+        if (expectedPhasesReported != null) expect.that(it.gradleSyncStats.printPhases()).isEqualTo(expectedPhasesReported)
       }
     )
   }

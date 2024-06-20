@@ -39,6 +39,7 @@ import com.intellij.mock.MockModule;
 import com.intellij.mock.MockProject;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 
@@ -109,6 +110,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     MockModule module = new MockModule(new MockProject(null, getTestRootDisposable()), getTestRootDisposable());
     when(result.getModule()).thenReturn(module);
     when(result.getStats()).thenReturn(new RenderResultStats(-1, 230L, -1, -1, -1));
+    when(result.getSourceFile()).thenReturn(mock(PsiFile.class));
 
     tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, CommonUsageTracker.RenderResultType.RENDER);
     AndroidStudioEvent studioEvent = getLastLogUsage();

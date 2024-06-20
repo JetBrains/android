@@ -16,21 +16,19 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.FILES;
+import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.IMPORTED;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
-import com.android.tools.idea.gradle.dsl.api.PluginsModel;
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
@@ -507,8 +505,10 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertSize(3, versionCatalogs);
     assertEquals("libs", versionCatalogs.get(0).getName());
     assertEquals("gradle/libs.versions.toml", versionCatalogs.get(0).from().toString());
+    assertEquals(FILES, versionCatalogs.get(0).from().getType());
     assertEquals("foo", versionCatalogs.get(1).getName());
     assertEquals("gradle/foo.versions.toml", versionCatalogs.get(1).from().toString());
+    assertEquals(FILES, versionCatalogs.get(1).from().getType());
     assertEquals("bar", versionCatalogs.get(2).getName());
     assertMissingProperty(versionCatalogs.get(2).from());
   }
@@ -523,7 +523,9 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertSize(3, versionCatalogs);
     assertEquals("libs", versionCatalogs.get(0).getName());
     assertEquals("gradle/libs.versions.toml", versionCatalogs.get(0).from().toString());
+    assertEquals(FILES, versionCatalogs.get(0).from().getType());
     assertEquals("foo", versionCatalogs.get(1).getName());
+    assertEquals(IMPORTED, versionCatalogs.get(1).from().getType());
     assertEquals("com.mycompany:catalog:1.0", versionCatalogs.get(1).from().toString());
     assertEquals("bar", versionCatalogs.get(2).getName());
     assertMissingProperty(versionCatalogs.get(2).from());
@@ -541,6 +543,20 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     applyChanges(settingsModel);
     verifyFileContents(mySettingsFile, TestFile.ADD_VERSION_CATALOGS_EXPECTED);
+  }
+
+  @Test
+  public void testAddImportedVersionCatalogs() throws IOException {
+    writeToSettingsFile(TestFile.ADD_IMPORTED_VERSION_CATALOGS);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+
+    VersionCatalogModel foo = dependencyResolutionManagementModel.addVersionCatalog("foo");
+    foo.from().setAsImportedType().setValue("com.mycompany:catalog:1.0");
+    VersionCatalogModel bar = dependencyResolutionManagementModel.addVersionCatalog("bar");
+
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.ADD_IMPORTED_VERSION_CATALOGS_EXPECTED);
   }
 
   @Test
@@ -563,14 +579,59 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
 
     VersionCatalogModel libs = dependencyResolutionManagementModel.versionCatalogs().get(0);
+    assertEquals(libs.from().getType(), FILES);
     libs.from().setValue("gradle/new-libs.versions.toml");
+    assertEquals(libs.from().getType(), FILES);
+
     VersionCatalogModel foo = dependencyResolutionManagementModel.versionCatalogs().get(1);
+    assertEquals(libs.from().getType(), FILES);
     foo.from().delete();
     VersionCatalogModel bar = dependencyResolutionManagementModel.versionCatalogs().get(2);
+    assertEquals(libs.from().getType(), FILES);
     bar.from().setValue("gradle/bar.versions.toml");
+    assertEquals(bar.from().getType(), FILES);
 
     applyChanges(settingsModel);
     verifyFileContents(mySettingsFile, TestFile.EDIT_VERSION_CATALOGS_EXPECTED);
+  }
+
+  @Test
+  public void testEditImportedVersionCatalogs() throws IOException {
+    writeToSettingsFile(TestFile.EDIT_IMPORTED_VERSION_CATALOGS);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+
+    VersionCatalogModel libs = dependencyResolutionManagementModel.versionCatalogs().get(0);
+    assertEquals(libs.from().getType(), FILES);
+    libs.from().setAsImportedType().setValue("com.mycompany:new-catalog:1.0");
+    assertEquals(libs.from().getType(), IMPORTED);
+    VersionCatalogModel foo = dependencyResolutionManagementModel.versionCatalogs().get(1);
+    foo.from().delete();
+    VersionCatalogModel bar = dependencyResolutionManagementModel.versionCatalogs().get(2);
+    bar.from().setAsImportedType().setValue("org.example:foo:1.0");
+    assertEquals(bar.from().getType(), IMPORTED);
+
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.EDIT_IMPORTED_VERSION_CATALOGS_EXPECTED);
+  }
+
+  @Test
+  public void testVersionCatalogsMix() throws IOException {
+    writeToSettingsFile(TestFile.EDIT_VERSION_CATALOGS_MIX);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+
+    VersionCatalogModel foo = dependencyResolutionManagementModel.versionCatalogs().get(1);
+    assertEquals(foo.from().getType(), IMPORTED);
+    foo.from().setAsFilesType().setValue("gradle/foo.versions.toml");
+    assertEquals(foo.from().getType(), FILES);
+    VersionCatalogModel bar = dependencyResolutionManagementModel.versionCatalogs().get(2);
+    assertEquals(bar.from().getType(), FILES);
+    bar.from().setAsImportedType().setValue("org.example:bar:1.0");
+    assertEquals(bar.from().getType(), IMPORTED);
+
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.EDIT_VERSION_CATALOGS_MIX_EXPECTED);
   }
 
   enum TestFile implements TestFileName {
@@ -623,8 +684,14 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     PARSE_IMPORTED_VERSION_CATALOGS("parseImportedVersionCatalog"),
     ADD_VERSION_CATALOGS("addVersionCatalogs"),
     ADD_VERSION_CATALOGS_EXPECTED("addVersionCatalogsExpected"),
+    ADD_IMPORTED_VERSION_CATALOGS("addImportedVersionCatalogs"),
+    ADD_IMPORTED_VERSION_CATALOGS_EXPECTED("addImportedVersionCatalogsExpected"),
     EDIT_VERSION_CATALOGS("editVersionCatalogs"),
+    EDIT_IMPORTED_VERSION_CATALOGS("editImportedVersionCatalogs"),
     EDIT_VERSION_CATALOGS_EXPECTED("editVersionCatalogsExpected"),
+    EDIT_IMPORTED_VERSION_CATALOGS_EXPECTED("editImportedVersionCatalogsExpected"),
+    EDIT_VERSION_CATALOGS_MIX("editVersionCatalogsMix"),
+    EDIT_VERSION_CATALOGS_MIX_EXPECTED("editVersionCatalogsMixExpected"),
     REMOVE_VERSION_CATALOGS("removeVersionCatalogs"),
     VERSION_CATALOG("versionCatalog.toml"),
 

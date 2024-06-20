@@ -43,6 +43,7 @@ import java.awt.event.WindowEvent
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 private val WHS_STATE_KEY =
   Key<WearHealthServicesStateManager>(WearHealthServicesStateManager::class.java.name)
@@ -82,14 +83,19 @@ class OpenWearHealthServicesPanelAction :
     val panel = createWearHealthServicesPanel(stateManager, uiScope, workerScope)
     val balloon =
       JBPopupFactory.getInstance()
-        .createBalloonBuilder(panel)
+        .createBalloonBuilder(panel.component)
         .setShadow(true)
         .setHideOnAction(false)
         .setBlockClicksThroughBalloon(true)
         .setRequestFocus(true)
         .setAnimationCycle(200)
         .setFillColor(secondaryPanelBackground)
+        .setBorderColor(secondaryPanelBackground)
         .createBalloon()
+
+    AndroidCoroutineScope(balloon).launch {
+      panel.onUserApplyChangesFlow.collect { balloon.hide() }
+    }
 
     // Show the UI settings popup relative to the ActionButton.
     // If such a component is not found use the displayView. The action was likely activated from

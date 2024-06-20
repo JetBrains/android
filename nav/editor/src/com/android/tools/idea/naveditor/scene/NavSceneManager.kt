@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene
 
-import com.android.ide.common.rendering.api.ResourceReference
-import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.AndroidPsiUtils
@@ -32,7 +30,6 @@ import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider
 import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.actionDestination
@@ -219,8 +216,6 @@ open class NavSceneManager(
     }
   }
 
-  override fun createTemporaryComponent(component: NlComponent) = TemporarySceneComponent(scene, component)
-
   override fun requestRenderAsync(): CompletableFuture<Void> {
     val wasEmpty = scene.root == null || scene.root?.childCount == 0
     update()
@@ -305,10 +300,6 @@ open class NavSceneManager(
   }
 
   override fun getSceneDecoratorFactory() = NavSceneDecoratorFactory
-
-  override fun getDefaultProperties() = mapOf<Any, Map<ResourceReference, ResourceValue>>()
-
-  override fun getDefaultStyles() = mapOf<Any, ResourceReference>()
 
   private inner class ModelChangeListener : ModelListener {
     override fun modelDerivedDataChanged(model: NlModel) {

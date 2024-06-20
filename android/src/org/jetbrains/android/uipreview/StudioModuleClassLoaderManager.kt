@@ -78,8 +78,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
   override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {
     if (
       result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS &&
-        (result.mode == ProjectSystemBuildManager.BuildMode.COMPILE ||
-          result.mode == ProjectSystemBuildManager.BuildMode.ASSEMBLE)
+        result.mode == ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
     ) {
       ModuleManager.getInstance(project).modules.forEach {
         ModuleClassLoaderManager.get().clearCache(it)

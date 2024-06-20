@@ -47,14 +47,12 @@ internal constructor(
   private val size: Storage,
 ) {
   internal fun matches(device: VirtualDevice): Boolean {
-    if (androidVersion.apiLevel != device.androidVersion.apiLevel) {
+    // TODO: http://b/347053479
+    if (androidVersion.isPreview) {
       return false
     }
 
-    if (
-      androidVersion.featureLevel < AndroidVersion.MIN_EMULATOR_FOLDABLE_DEVICE_API &&
-        device.isFoldable
-    ) {
+    if (androidVersion.apiLevel != device.androidVersion.apiLevel) {
       return false
     }
 

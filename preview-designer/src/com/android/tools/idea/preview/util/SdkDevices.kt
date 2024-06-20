@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.util
 
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.StudioAndroidSdkData
@@ -34,3 +35,6 @@ fun getSdkDevices(module: Module): List<Device> {
       ?.toList()
   } ?: emptyList()
 }
+
+/** Key to obtain the list of all available devices from the device manager. */
+val AvailableDevicesKey = DataKey.create<Collection<Device>>("preview.available.devices")

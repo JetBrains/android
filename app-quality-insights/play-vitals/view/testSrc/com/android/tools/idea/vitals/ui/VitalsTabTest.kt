@@ -224,10 +224,11 @@ class VitalsTabTest {
       val tabbedPane = fakeUi.findComponent<JBTabbedPane>()!!
       assertThat(tabbedPane.tabCount).isEqualTo(1)
       assertThat(tabbedPane.getTitleAt(0)).isEqualTo("Stack trace")
-      assertThat(tabbedPane.getComponentAtIdx(0)).isInstanceOf(ConsoleViewImpl::class.java)
+      val panel = tabbedPane.getComponentAtIdx(0) as JPanel
+      assertThat(panel.components.first()).isInstanceOf(ConsoleViewImpl::class.java)
 
       // Stack trace
-      val consoleView = tabbedPane.getComponentAtIdx(0) as ConsoleViewImpl
+      val consoleView = panel.components.first() as ConsoleViewImpl
       assertThat(consoleView.text.trim())
         .isEqualTo(
           """

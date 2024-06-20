@@ -545,6 +545,10 @@ internal constructor(
         }
       return Pair(EditingErrorCategory.ERROR, message)
     }
+    if (model.resolver == null) {
+      // If the resolver is not ready: Do not report unresolved symbols.
+      return null
+    }
     val value = asResourceValue(text)
     return if (value == null)
       Pair(EditingErrorCategory.ERROR, "Cannot resolve symbol: '${parsed.resourceName}'")

@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
 /** A base class for actions that perform app termination */
 internal sealed class TerminateAppActions(text: String, icon: Icon) :
   DumbAwareAction(text, null, icon) {
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = false

@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.idea.compose.annotator.PreviewAnnotationCheck.hasIssues
 import com.android.tools.idea.compose.pickers.PsiPickerManager
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
 import com.android.tools.idea.compose.pickers.preview.tracking.PreviewPickerTracker
@@ -71,8 +72,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
         ?: return null
 
     // Do not show the picker if there are any syntax issues with the annotation
-    if (PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry).hasIssues)
-      return null
+    if (annotationEntry.hasIssues()) return null
 
     val previewElementDefinitionPsi = uElement.toSmartPsiPointer()
     val module =

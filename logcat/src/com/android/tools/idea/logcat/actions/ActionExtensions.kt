@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.actions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
@@ -43,6 +44,7 @@ internal fun AnActionEvent.getLogcatMessages(): List<LogcatMessage> {
   return getLogcatMessages(selectionModel.selectionStart, end)
 }
 
+@UiThread
 private fun AnActionEvent.getLogcatMessages(start: Int, end: Int): List<LogcatMessage> {
   val editor = getEditor() ?: return emptyList()
   return buildList {

@@ -16,9 +16,12 @@
 package com.android.tools.idea.avdmanager.ui;
 
 import com.android.sdklib.devices.Device;
+import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.annotations.VisibleForTesting;
 import com.ibm.icu.text.Collator;
 import com.ibm.icu.util.ULocale;
 import java.util.Comparator;
+import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -31,16 +34,23 @@ import org.jetbrains.annotations.NotNull;
  *   <li>The other devices (in reversed natural order)
  *   <li>Pixel XL
  *   <li>Pixel
- *   <li>7.6" Fold-in with outer display
  *   <li>Resizable (Experimental)
  * </ol>
  */
 @SuppressWarnings("GrazieInspection")
 final class NameComparator implements Comparator<Device> {
-  @NotNull
-  private static final Comparator<Device> COMPARATOR = Comparator.comparing(SortKey::valueOfDevice)
-    .thenComparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT).reversed())
-    .thenComparing(Device::getId);
+  private final @NotNull Comparator<@NotNull Device> myComparator;
+
+  NameComparator() {
+    this(StudioFlags.RESIZABLE_EXPERIMENTAL_TWEAKS_ENABLED::get);
+  }
+
+  @VisibleForTesting
+  NameComparator(@NotNull BooleanSupplier resizableExperimentalTweaksEnabledGet) {
+    myComparator = Comparator.<Device, SortKey>comparing(device -> SortKey.valueOfDevice(device, resizableExperimentalTweaksEnabledGet))
+      .thenComparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT).reversed())
+      .thenComparing(Device::getId);
+  }
 
   private enum SortKey {
     SMALL_PHONE,
@@ -49,19 +59,16 @@ final class NameComparator implements Comparator<Device> {
     DEVICE,
     PIXEL_XL,
     PIXEL,
-    SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY,
     RESIZABLE_EXPERIMENTAL;
 
-    @NotNull
-    private static SortKey valueOfDevice(@NotNull Device device) {
+    private static @NotNull SortKey valueOfDevice(@NotNull Device device, @NotNull BooleanSupplier resizableExperimentalTweaksEnabledGet) {
       return switch (device.getDisplayName()) {
         case "Small Phone" -> SMALL_PHONE;
         case "Medium Phone" -> MEDIUM_PHONE;
         case "Medium Tablet" -> MEDIUM_TABLET;
         case "Pixel XL" -> PIXEL_XL;
         case "Pixel" -> PIXEL;
-        case "7.6\" Fold-in with outer display" -> SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY;
-        case "Resizable (Experimental)" -> RESIZABLE_EXPERIMENTAL;
+        case "Resizable (Experimental)" -> resizableExperimentalTweaksEnabledGet.getAsBoolean() ? DEVICE : RESIZABLE_EXPERIMENTAL;
         default -> DEVICE;
       };
     }
@@ -69,6 +76,6 @@ final class NameComparator implements Comparator<Device> {
 
   @Override
   public int compare(@NotNull Device device1, @NotNull Device device2) {
-    return COMPARATOR.compare(device1, device2);
+    return myComparator.compare(device1, device2);
   }
 }

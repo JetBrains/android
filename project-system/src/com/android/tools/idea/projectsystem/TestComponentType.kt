@@ -17,21 +17,27 @@ package com.android.tools.idea.projectsystem
 
 sealed interface TestComponentType {
   val type: String
+
+  sealed interface HostTest : TestComponentType
+  sealed interface DeviceTest : TestComponentType
 }
 
-enum class CommonTestType(override val type: String) : TestComponentType {
-  UNIT_TEST("_unit_test_"),
-  ANDROID_TEST("_android_test_"),
-  SCREENSHOT_TEST("_screenshot_test_"),
-}
-
-data class CustomTestType(override val type: String) : TestComponentType {
-  init {
-    require(CommonTestType.values().none { it.type == type }) {
-      "CustomTestType cannot be one of the CommonTestType"
-    }
+sealed interface CommonTestType : TestComponentType {
+  /** Do not use this class directly: use the [TestComponentType.HostTest] interface or the [Companion] fields. */
+  enum class HostTest(override val type: String) : CommonTestType, TestComponentType.HostTest {
+    UNIT_TEST("_unit_test_"),
+    SCREENSHOT_TEST("_screenshot_test_")
   }
-  override fun toString(): String = "$type Test Artifact"
+  /** Do not use this class directly: use the [TestComponentType.DeviceTest] interface or the [Companion] fields. */
+  enum class DeviceTest(override val type: String) : CommonTestType, TestComponentType.DeviceTest {
+    ANDROID_TEST("_android_test_")
+  }
+
+  companion object {
+    @JvmField val UNIT_TEST = HostTest.UNIT_TEST
+    @JvmField val SCREENSHOT_TEST = HostTest.SCREENSHOT_TEST
+    @JvmField val ANDROID_TEST = DeviceTest.ANDROID_TEST
+  }
 }
 
 fun TestComponentType.scopeTypeByName(): ScopeType {

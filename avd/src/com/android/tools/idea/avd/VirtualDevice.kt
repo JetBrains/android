@@ -46,10 +46,7 @@ internal constructor(
   internal val graphicAcceleration: GpuMode,
   internal val simulatedRam: StorageCapacity,
   internal val vmHeapSize: StorageCapacity,
-) {
-  internal val isFoldable
-    get() = device.defaultHardware.screen.isFoldable
-}
+)
 
 internal data class Custom internal constructor(internal val value: StorageCapacity) :
   ExpandedStorage() {

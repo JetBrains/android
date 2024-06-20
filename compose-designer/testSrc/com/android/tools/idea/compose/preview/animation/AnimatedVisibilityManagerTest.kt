@@ -41,10 +41,10 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test
   fun swapStatesFromStringEnter() {
-    var lastState: Any? = null
+    var lastState: Any = TestClock.AnimatedVisibilityState.Enter
     val clock =
-      object : TestClockWithCoordination() {
-        override fun `getAnimatedVisibilityState-xga21d`(animation: Any) = "Enter"
+      object : TestClock() {
+        override fun `getAnimatedVisibilityState-xga21d`(animation: Any) = lastState
 
         override fun updateAnimatedVisibilityState(animation: Any, state: Any) {
           lastState = state
@@ -64,9 +64,9 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test
   fun swapStatesFromEnter() {
-    var lastState: Any? = null
+    var lastState: Any = TestClock.AnimatedVisibilityState.Enter
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun `getAnimatedVisibilityState-xga21d`(animation: Any) =
           AnimatedVisibilityState.Enter
 
@@ -88,9 +88,9 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test
   fun swapStateFromStringExit() {
-    var lastState: Any? = null
+    var lastState: Any = TestClock.AnimatedVisibilityState.Enter
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun `getAnimatedVisibilityState-xga21d`(animation: Any) = "Exit"
 
         override fun updateAnimatedVisibilityState(animation: Any, state: Any) {
@@ -111,9 +111,9 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test
   fun swapStateFromExit() {
-    var lastState: Any? = null
+    var lastState: Any = TestClock.AnimatedVisibilityState.Exit
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun `getAnimatedVisibilityState-xga21d`(animation: Any) =
           AnimatedVisibilityState.Exit
 
@@ -138,7 +138,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
     var transitionCalls = 0
     var stateCalls = 0
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun getTransitions(animation: Any, clockTimeMsStep: Long) =
           super.getTransitions(animation, clockTimeMsStep).also { transitionCalls++ }
 
@@ -168,7 +168,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
   fun changeTime() {
     var numberOfCalls = 0
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun getAnimatedProperties(animation: Any): List<ComposeAnimatedProperty> =
           super.getAnimatedProperties(animation).also { numberOfCalls++ }
       }

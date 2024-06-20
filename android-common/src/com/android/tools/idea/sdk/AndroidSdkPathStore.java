@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.tools.sdk.AndroidSdkPath;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.NonNls;
@@ -46,5 +48,17 @@ public final class AndroidSdkPathStore {
     PropertiesComponent component = PropertiesComponent.getInstance();
     String sdkPath = component.getValue(ANDROID_SDK_PATH_KEY);
     return sdkPath == null ? null : Paths.get(sdkPath);
+  }
+
+  @Nullable
+  public File getAndroidSdkPathIfValid() {
+    Path sdkPath = getAndroidSdkPath();
+    if (sdkPath != null) {
+      File candidate = sdkPath.toFile();
+      if (AndroidSdkPath.isValid(candidate)) {
+        return candidate;
+      }
+    }
+    return null;
   }
 }

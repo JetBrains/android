@@ -24,14 +24,14 @@ private fun BuildStatus.toProjectSystemBuildStatus(): ProjectSystemBuildManager.
 
 private fun BuildMode.toProjectSystemBuildMode(): ProjectSystemBuildManager.BuildMode = when(this) {
   BuildMode.CLEAN -> ProjectSystemBuildManager.BuildMode.CLEAN
-  BuildMode.COMPILE_JAVA -> ProjectSystemBuildManager.BuildMode.COMPILE
-  BuildMode.ASSEMBLE -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
-  BuildMode.REBUILD -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
+  BuildMode.COMPILE_JAVA -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
+  BuildMode.ASSEMBLE -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
+  BuildMode.REBUILD -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
   BuildMode.SOURCE_GEN -> ProjectSystemBuildManager.BuildMode.UNKNOWN
-  BuildMode.BUNDLE -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
-  BuildMode.APK_FROM_BUNDLE -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
-  BuildMode.BASELINE_PROFILE_GEN -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
-  BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
+  BuildMode.BUNDLE -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
+  BuildMode.APK_FROM_BUNDLE -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
+  BuildMode.BASELINE_PROFILE_GEN -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
+  BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
 }
 
 @Service

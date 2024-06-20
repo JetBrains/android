@@ -41,13 +41,8 @@ internal fun AnimationClock.getMaxDurationMsPerIteration(): Long {
 }
 
 /** Seeks each animation being tracked to the given [clockTimeMillis]. */
-internal fun AnimationClock.setClockTime(clockTimeMillis: Long) {
-  setClockTimeFunction.invoke(clock, clockTimeMillis)
-}
-
-/** Seeks each animation being tracked to the given [clockTimeMillis]. */
 internal fun AnimationClock.setClockTimes(clockTimeMillis: Map<ComposeAnimation, Long>) {
-  setClockTimesFunction?.invoke(clock, clockTimeMillis)
+  setClockTimesFunction.invoke(clock, clockTimeMillis)
 }
 
 /**
@@ -87,12 +82,8 @@ class AnimationClock(val clock: Any) {
   /** Function `getAnimatedProperties` of [clock]. */
   val getAnimatedPropertiesFunction by lazy { findClockFunction("getAnimatedProperties") }
 
-  /**
-   * Function `getTransitions` of [clock]. This API was added in Compose UI Tooling 1.1.0-alpha05.
-   * For early versions `getAnimatedProperties` should be called instead. The caller should first
-   * check if this method exists.
-   */
-  val getTransitionsFunction: Method? by lazy { findClockFunctionIfExists("getTransitions") }
+  /** Function `getTransitions` of [clock]. */
+  val getTransitionsFunction: Method by lazy { findClockFunction("getTransitions") }
 
   /** Function `getMaxDuration` of [clock]. */
   val getMaxDurationFunction by lazy { findClockFunction("getMaxDuration") }
@@ -100,41 +91,22 @@ class AnimationClock(val clock: Any) {
   /** Function `getMaxDurationPerIteration` of [clock]. */
   val getMaxDurationPerIteration by lazy { findClockFunction("getMaxDurationPerIteration") }
 
-  /** Function `setClockTime` of [clock]. */
-  val setClockTimeFunction by lazy { findClockFunction("setClockTime") }
-
   /** Function `setClockTimes` of [clock]. */
-  val setClockTimesFunction by lazy { findClockFunctionIfExists("setClockTimes") }
+  val setClockTimesFunction by lazy { findClockFunction("setClockTimes") }
 
   /** Function `updateFromAndToStates` of [clock]. */
   val updateFromAndToStatesFunction by lazy { findClockFunction("updateFromAndToStates") }
 
-  /**
-   * Function `updateAnimatedVisibilityState` of [clock]. This API was added in Compose
-   * 1.1.0-alpha04, and trying to call it when using early Compose versions will cause a crash and
-   * the corresponding preview will not render properly. In order to make sure this method exists,
-   * the caller should first check if the animation type is
-   * ComposeAnimationType.ANIMATED_VISIBILITY, which was also introduced in the same Compose version
-   * and represents the animation type for which this method makes sense to be called.
-   */
+  /** Function `updateAnimatedVisibilityState` of [clock]. */
   val updateAnimatedVisibilityStateFunction by lazy {
     findClockFunction("updateAnimatedVisibilityState")
   }
 
-  /**
-   * Function `getAnimatedVisibilityState` of [clock]. This API was added in Compose 1.1.0-alpha04,
-   * and trying to call it when using early Compose versions will cause a crash and the
-   * corresponding preview will not render properly. In order to make sure this method exists, the
-   * caller should first check if the animation type is ComposeAnimationType.ANIMATED_VISIBILITY,
-   * which was also introduced in the same Compose version and represents the animation type for
-   * which this method makes sense to be called.
-   */
+  /** Function `getAnimatedVisibilityState` of [clock]. */
   val getAnimatedVisibilityStateFunction by lazy { findClockFunction("getAnimatedVisibilityState") }
 
   @VisibleForTesting
-  fun findClockFunction(functionName: String): Method = findClockFunctionIfExists(functionName)!!
-
-  private fun findClockFunctionIfExists(functionName: String): Method? =
+  fun findClockFunction(functionName: String): Method =
     clock::class
       .java
       .methods
@@ -145,5 +117,5 @@ class AnimationClock(val clock: Any) {
         val normalizedName = it.name.substringBefore('-')
         normalizedName == functionName
       }
-      ?.apply { isAccessible = true }
+      ?.apply { isAccessible = true }!!
 }

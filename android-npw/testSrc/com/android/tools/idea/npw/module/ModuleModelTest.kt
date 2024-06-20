@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.multiplatform.NewKotlinMultiplatformLibraryModuleModel
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.findModule
 import com.intellij.openapi.progress.ProgressIndicator
@@ -51,6 +52,19 @@ class ModuleModelTest : AndroidGradleTestCase() {
 
     val invocationResult = invokeGradle(project) {
       it.compileJava(modulesToCompile)
+    }
+    TestCase.assertTrue(invocationResult.isBuildSuccessful)
+  }
+
+  fun testKmpModuleCreationAndCompilation() {
+    loadSimpleApplication()
+
+    val kmpModuleModel = NewKotlinMultiplatformLibraryModuleModel(project, ":", projectSyncInvoker)
+    multiTemplateRenderer.requestRender(kmpModuleModel.renderer)
+
+    val module = myFixture.project.findModule("kmplibrary")
+    val invocationResult = invokeGradle(project) {
+      it.compileJava(arrayOf(module))
     }
     TestCase.assertTrue(invocationResult.isBuildSuccessful)
   }

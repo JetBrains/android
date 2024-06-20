@@ -61,20 +61,33 @@ object TaskBasedUxStrings {
 
   // Task starting point dropdown strings
   const val STARTING_POINT_DROPDOWN_TITLE = "Start profiler task from"
-  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION = "Process start (restarts process)"
-  const val NOW_STARTING_POINT_DROPDOWN_OPTION = "Now (attaches to selected process)"
+  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT = "Process start"
+  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT_START = "starts process"
+  const val STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT_RESTART = "restarts process"
+  const val NOW_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT = "Now"
+  const val NOW_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT = "attaches to selected process"
 
   // Task recording type dropdown strings (only available for the ART-based task)
   const val RECORDING_TYPE_DROPDOWN_TITLE = "Recording type"
   const val ART_INSTRUMENTED_RECORDING_TYPE_OPTION = "Tracing"
-  const val ART_SAMPLED_RECORDING_TYPE_OPTION = "Sampling (legacy)"
+  const val ART_SAMPLED_RECORDING_TYPE_OPTION_PRIMARY_TEXT = "Sampling"
+  const val ART_SAMPLED_RECORDING_TYPE_OPTION_SECONDARY_TEXT = "legacy"
 
   // Export and import strings
   const val IMPORT_RECORDING_DESC = "Import recording"
   const val EXPORT_RECORDING_DESC = "Export recording"
+  const val NO_RECORDINGS_TITLE = "No recordings"
+  const val NO_RECORDINGS_INSTRUCTIONS_TEXT = "To add a new recording, start a new task or import a previously captured one."
 
   // Delete recording strings
   const val DELETE_RECORDING_DESC = "Delete recording"
+
+  // Recording banner message
+  const val RECORDING_BANNER_MESSAGE = "Profiler recordings are not preserved across Android Studio restarts. If the task supports " +
+                                       "exporting you can export the recording to preserve it."
+
+  // Do not show again option text
+  const val DONT_SHOW_AGAIN_TITLE = "Don't show again"
 
   fun getTaskTooltip(taskType: ProfilerTaskType) = when(taskType) {
     ProfilerTaskType.SYSTEM_TRACE -> "Captures a trace that can help you understand how your app interacts with system resources"

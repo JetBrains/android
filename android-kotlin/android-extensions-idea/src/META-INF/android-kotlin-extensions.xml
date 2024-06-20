@@ -1,5 +1,5 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="/META-INF/android-kotlin-extensions-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-kotlin-extensions-common.xml"/>
 
   <extensions defaultExtensionNs="com.intellij">
     <moduleService serviceInterface="org.jetbrains.kotlin.android.synthetic.res.AndroidLayoutXmlFileManager"

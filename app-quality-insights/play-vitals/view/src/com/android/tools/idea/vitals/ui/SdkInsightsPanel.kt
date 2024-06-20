@@ -46,7 +46,7 @@ class SdkInsightsPanel(category: String, title: String, private val body: String
     }
 
   private val topPanel = transparentPanel(FlowLayout(FlowLayout.LEFT))
-  private val bottomPanel = transparentPanel(BorderLayout())
+  private val seeMorePanel = JPanel(TabularLayout("*,Fit"))
 
   // The url wrapped with () parentheses and is located at the end of the body.
   private val urlRegex = Regex("\\(([^)]+)\\)\\s*$", RegexOption.MULTILINE)
@@ -60,22 +60,20 @@ class SdkInsightsPanel(category: String, title: String, private val body: String
     topPanel.add(categoryLabel)
     topPanel.add(titleLabel)
 
-    val panel = JPanel(TabularLayout("*,Fit"))
-    panel.add(truncatedLabel, TabularLayout.Constraint(0, 0))
-    panel.add(seeMoreLinkLabel, TabularLayout.Constraint(0, 1))
-    bottomPanel.add(panel, BorderLayout.CENTER)
+    seeMorePanel.add(truncatedLabel, TabularLayout.Constraint(0, 0))
+    seeMorePanel.add(seeMoreLinkLabel, TabularLayout.Constraint(0, 1))
 
     add(topPanel, BorderLayout.NORTH)
-    add(bottomPanel, BorderLayout.CENTER)
+    add(seeMorePanel, BorderLayout.CENTER)
+    add(expandedLabel, BorderLayout.SOUTH)
+    expandedLabel.isVisible = false
   }
 
   private fun expand() {
-    bottomPanel.removeAll()
     HtmlLabel.setUpAsHtmlLabel(expandedLabel)
     expandedLabel.text = replaceUrlsWithHtmlLinks(body)
-    bottomPanel.add(expandedLabel, BorderLayout.CENTER)
-    bottomPanel.revalidate()
-    bottomPanel.repaint()
+    seeMorePanel.isVisible = false
+    expandedLabel.isVisible = true
   }
 
   private fun replaceUrlsWithHtmlLinks(body: String) =

@@ -25,6 +25,7 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
@@ -41,7 +42,7 @@ data class ClassEnumValue(override val value: String,
 
   override fun withIndentation() = this
 
-  override fun select(property: PropertyItem): Boolean {
+  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
     if (property !is NlPropertyItem) {
       return false
     }
@@ -50,6 +51,7 @@ data class ClassEnumValue(override val value: String,
     val layout = findLayoutForClass(component, value)
 
     ApplicationManager.getApplication().invokeLater(Runnable {
+      newEnumValue.newValue(value)
       NlWriteCommandActionUtil.run(property.components,
                                    "Set $component.tagName.${property.name} to $value") {
         property.value = value

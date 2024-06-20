@@ -21,6 +21,7 @@ import com.android.tools.rendering.HtmlLinkManager
 import com.android.tools.rendering.RenderLogger
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.psi.PsiFile
 import javax.swing.event.HyperlinkListener
 
 object WearTileRenderErrorContributor {
@@ -41,6 +42,7 @@ object WearTileRenderErrorContributor {
     logger: RenderLogger,
     linkManager: HtmlLinkManager,
     linkHandler: HyperlinkListener,
+    sourceFile: PsiFile,
   ): List<RenderErrorModel.Issue> =
     logger.brokenClasses
       .mapNotNull {
@@ -60,6 +62,27 @@ object WearTileRenderErrorContributor {
                   .add(
                     "Any Context used within a preview must come from the preview method's parameter, otherwise it will not be properly initialised."
                   )
+                  .newline()
+                  .newline()
+                  .add("Possible related stack trace elements are:")
+                  .apply {
+                    beginList()
+                    it.value.stackTrace
+                      .filter { stackTraceElement -> stackTraceElement.fileName == sourceFile.name }
+                      .forEach { stackTraceElement ->
+                        listItem()
+                        addLink(
+                          stackTraceElement.toString(),
+                          linkManager.createOpenStackUrl(
+                            className = stackTraceElement.className,
+                            methodName = stackTraceElement.methodName,
+                            fileName = sourceFile.name,
+                            lineNumber = stackTraceElement.lineNumber,
+                          ),
+                        )
+                      }
+                    endList()
+                  }
                   .newlineIfNecessary()
                   .addExceptionMessage(linkManager, it.value)
               )

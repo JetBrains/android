@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
+import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.BrowserUtil
@@ -66,6 +67,14 @@ class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle S
       override fun getNavigatable(project: Project) = null
     }
   }
+
+  fun composeErrorMessageAwareBuildIssue(buildErrorMessage: BuildErrorMessage) = object : ErrorMessageAwareBuildIssue {
+    override val title: String = issueTitle
+    override val description = descriptionBuilder.toString()
+    override val quickFixes = issueQuickFixes
+    override val buildErrorMessage = buildErrorMessage
+    override fun getNavigatable(project: Project) = null
+  }
 }
 
 /**
@@ -101,4 +110,8 @@ abstract class OpenLinkDescribedQuickFix : DescribedBuildIssueQuickFix {
     }
     return future
   }
+}
+
+interface ErrorMessageAwareBuildIssue : BuildIssue {
+  val buildErrorMessage: BuildErrorMessage
 }

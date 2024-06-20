@@ -49,10 +49,7 @@ cc_binary(
     linkopts = ["-Wl,--strip-all"],
     linkshared = True,
     stamp = 0,
-    tags = [
-        "no_mac",
-        "no_windows",
-    ],
+    target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
     deps = [
         ":image_converter",
@@ -63,10 +60,7 @@ cc_binary(
     name = "libimage_converter.dylib",
     linkshared = True,
     stamp = 0,
-    tags = [
-        "no_linux",
-        "no_windows",
-    ],
+    target_compatible_with = ["@platforms//os:macos"],
     visibility = ["//visibility:public"],
     deps = [
         ":image_converter",
@@ -77,10 +71,7 @@ cc_binary(
     name = "image_converter.dll",
     linkshared = True,
     stamp = 0,
-    tags = [
-        "no_linux",
-        "no_mac",
-    ],
+    target_compatible_with = ["@platforms//os:windows"],
     visibility = ["//visibility:public"],
     deps = [
         ":image_converter",

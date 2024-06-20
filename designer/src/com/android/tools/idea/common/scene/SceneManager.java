@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.ChangeType;
@@ -38,7 +35,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -49,41 +45,6 @@ import org.jetbrains.annotations.Nullable;
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
 abstract public class SceneManager implements Disposable, ResourceNotificationManager.ResourceChangeListener {
-  /**
-   * Provider mapping {@link NlComponent}s to {@link SceneComponent}/
-   */
-  public interface SceneComponentHierarchyProvider {
-    /**
-     * Called by the {@link SceneManager} to create the initially {@link SceneComponent} hierarchy from the given
-     * {@link NlComponent}.
-     */
-    @NotNull
-    List<SceneComponent> createHierarchy(@NotNull SceneManager manager, @NotNull NlComponent component);
-
-    /**
-     * Call by the {@link SceneManager} to trigger a sync of the {@link NlComponent} to the given {@link SceneComponent}.
-     * This allows for the SceneComponent to sync the latest data from the {@link NlModel} and update the UI
-     * representation. The method will be called when the {@link SceneManager} detects that there is the need to sync.
-     * This could be after a render or after a model change, for example.
-     */
-    void syncFromNlComponent(@NotNull SceneComponent sceneComponent);
-  }
-
-  /**
-   * Listener that allows performing additional operations affected by the scene root component when updating the scene.
-   */
-  public interface SceneUpdateListener {
-    void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface<?> designSurface);
-  }
-
-  public static class DefaultSceneUpdateListener implements SceneUpdateListener {
-    @Override
-    public void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface<?> designSurface) {
-      // By default, don't do anything extra when updating the scene.
-    }
-  }
-
-  public static final boolean SUPPORTS_LOCKING = false;
 
   @NotNull private final NlModel myModel;
   @NotNull private final DesignSurface<?> myDesignSurface;
@@ -92,7 +53,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   @Nullable private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
   @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
-  @NotNull private final SceneManager.SceneUpdateListener mySceneUpdateListener;
+  @NotNull private final SceneUpdateListener mySceneUpdateListener;
 
   @NotNull private final Object myActivationLock = new Object();
   @GuardedBy("myActivationLock")
@@ -111,7 +72,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     @NotNull NlModel model,
     @NotNull DesignSurface<?> surface,
     @Nullable SceneComponentHierarchyProvider sceneComponentProvider,
-    @Nullable SceneManager.SceneUpdateListener sceneUpdateListener) {
+    @Nullable SceneUpdateListener sceneUpdateListener) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
@@ -238,24 +199,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   }
 
   /**
-   * Returns false if the value of the tools:visible attribute is false, true otherwise.
-   * When a component is not tool visible, it will not be rendered by the Scene mechanism (though it might be by others, e.g. layoutlib),
-   * and no interaction will be possible with it from the design surface.
-   *
-   * @param component component to look at
-   * @return tool visibility status
-   */
-  public static boolean isComponentLocked(@NotNull NlComponent component) {
-    if (SUPPORTS_LOCKING) {
-      String attribute = component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED);
-      if (attribute != null) {
-        return attribute.equals(SdkConstants.VALUE_TRUE);
-      }
-    }
-    return false;
-  }
-
-  /**
    * Update the SceneComponent paired to the given NlComponent and its children.
    *
    * @param component      the root SceneComponent to update
@@ -264,24 +207,11 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   protected final void updateFromComponent(@NotNull SceneComponent component, @NotNull Set<SceneComponent> seenComponents) {
     seenComponents.add(component);
 
-    syncFromNlComponent(component);
+    mySceneComponentProvider.syncFromNlComponent(component);
 
     for (SceneComponent child : component.getChildren()) {
       updateFromComponent(child, seenComponents);
     }
-  }
-
-  /**
-   * Creates a {@link TemporarySceneComponent} in our Scene.
-   */
-  @NotNull
-  abstract public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component);
-
-  /**
-   * Updates a single SceneComponent from its corresponding NlComponent.
-   */
-  protected final void syncFromNlComponent(SceneComponent sceneComponent) {
-    mySceneComponentProvider.syncFromNlComponent(sceneComponent);
   }
 
   @NotNull
@@ -314,10 +244,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
 
   @NotNull
   public abstract SceneDecoratorFactory getSceneDecoratorFactory();
-
-  public abstract Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties();
-
-  public abstract Map<Object, ResourceReference> getDefaultStyles();
 
   @NotNull
   protected HitProvider getHitProvider(@NotNull NlComponent component) {

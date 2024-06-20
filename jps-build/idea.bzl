@@ -1,3 +1,5 @@
+"""This module implements JPS rules."""
+
 def idea_source(
         name,
         include,
@@ -5,6 +7,18 @@ def idea_source(
         target_dir,
         base_dir = None,
         **kwargs):
+    """Bundles IDEA sources.
+
+    Args:
+        name: the name of the target
+        include: included paths
+        exclude: excluded paths
+        target_dir: target dir
+        base_dir: base dir
+        **kwargs: arguments to pass through to genrule
+
+    """
+
     cmd = "tar -chf $@"
     if base_dir:
         cmd += " -C " + base_dir
@@ -160,12 +174,20 @@ def _jps_test_impl(ctx):
         "--env TEST_MODULE '" + ctx.attr.module + "'",
     ]
 
-    ctx.actions.write(output = ctx.outputs.executable, content = " ".join(cmd), is_executable = True)
-    runfiles = ctx.runfiles(files = [
+    files = [
         ctx.file._test_runner,
         ctx.file._bazel_runner,
         jvmargs_file,
-    ] + files)
+    ] + files
+
+    for name, value in ctx.attr.env.items():
+        cmd.append("--env %s %s" % (name, value))
+
+    for d in ctx.attr.data:
+        files.extend(d[DefaultInfo].files.to_list())
+
+    ctx.actions.write(output = ctx.outputs.executable, content = " ".join(cmd), is_executable = True)
+    runfiles = ctx.runfiles(files = files)
     runfiles = runfiles.merge(ctx.attr._jps_build.default_runfiles)
     runfiles = runfiles.merge(ctx.attr._java_runtime.default_runfiles)
     return DefaultInfo(executable = ctx.outputs.executable, runfiles = runfiles)
@@ -175,6 +197,8 @@ jps_test = rule(
         "download_cache": attr.string(),
         "test_suite": attr.string(),
         "module": attr.string(),
+        "data": attr.label_list(allow_files = True),
+        "env": attr.string_dict(),
         "deps": attr.label_list(allow_files = True),
         "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build"),
         "_test_runner": attr.label(allow_single_file = True, default = "//tools/adt/idea/jps-build:test_runner"),
@@ -187,7 +211,7 @@ jps_test = rule(
     implementation = _jps_test_impl,
 )
 
-JpsSourceInfo = provider(fields = ["files", "strip_prefix", "zips"])
+JpsSourceInfo = provider("Source info", fields = ["files", "strip_prefix", "zips"])
 
 def _jps_cache_impl(ctx):
     return JpsSourceInfo(files = ctx.files.srcs, strip_prefix = ctx.attr.strip_prefix, zips = [])

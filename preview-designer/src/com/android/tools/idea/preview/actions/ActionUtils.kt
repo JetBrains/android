@@ -23,6 +23,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
+import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
@@ -116,20 +117,26 @@ fun List<AnAction>.hideIfRenderErrors(): List<AnAction> = map {
 }
 
 /**
- * The given disables the actions if any surface is refreshing or if the [sceneView] contains errors
- * or preview has errors that will need a refresh.
+ * The given disables the actions if any of the following conditions are met:
+ * * the surface is refreshing
+ * * the [SceneView] contains errors
+ * * the preview has errors that will need a refresh
+ * * the project needs a build
  */
-fun List<AnAction>.disabledIfRefreshingOrHasErrors(): List<AnAction> =
+fun List<AnAction>.disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild(): List<AnAction> =
   disabledIf(
-    { context -> context.isRefreshing() || context.hasErrors() },
+    { context -> context.isRefreshing() || context.hasErrors() || context.projectNeedsBuild() },
     { context ->
       when {
         context.isRefreshing() -> message("action.disabled.refreshing")
         context.hasErrors() -> message("action.disabled.error")
+        context.projectNeedsBuild() -> message("action.disabled.project.needs.build")
         else -> null
       }
     },
   )
+
+private fun DataContext.projectNeedsBuild() = getData(CommonDataKeys.PROJECT)?.needsBuild == true
 
 private fun DataContext.isRefreshing() = isPreviewRefreshing(this)
 
@@ -193,10 +200,12 @@ fun hasSceneViewErrors(dataContext: DataContext) =
   dataContext.getData(SCENE_VIEW)?.hasRenderErrors() == true
 
 /**
- * Wraps an `AnAction` to conditionally control its enabled state.
+ * Wraps an [AnAction] to conditionally control its enabled state as well as control whether the
+ * action can be performed.
  *
- * Enables the wrapped action only if `isEnabled(DataContext)` is true. When disabled, optionally
- * displays a reason using `reasonForDisabling(DataContext)`.
+ * Enables the wrapped action only if [isEnabled] is `true`. When disabled, optionally displays a
+ * reason using [reasonForDisabling]. The wrapped [AnAction] will only be able to be performed
+ * through the [actionPerformed] method if [isEnabled] returns `true`.
  *
  * @param delegate The original action.
  * @param isEnabled Determines if the action should be enabled.
@@ -215,6 +224,16 @@ private class EnableUnderConditionWrapper(
     if (!e.presentation.isEnabled) {
       reasonForDisabling(e.dataContext)?.let { e.presentation.description = it }
     }
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    // It sometimes takes a second or so for the action to update its presentation enabled
+    // state, meaning the action can still be enabled when isEnabled returns false.
+    // In those cases, we want to  prevent the user from performing the action.
+    if (!isEnabled(e.dataContext)) {
+      return
+    }
+    super.actionPerformed(e)
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =

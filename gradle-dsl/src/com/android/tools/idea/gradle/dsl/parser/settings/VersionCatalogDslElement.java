@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogsD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
@@ -66,5 +67,14 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
   @Override
   public void setMethodName(@Nullable String value) {
     this.methodName = value;
+  }
+
+  public boolean isFile() {
+    GradleDslElement element = getPropertyElement(FROM);
+    if(element == null) return true; // default catalog
+    if (element instanceof GradleDslMethodCall call) {
+      return "files".equals(call.getMethodName());
+    }
+    return false;
   }
 }

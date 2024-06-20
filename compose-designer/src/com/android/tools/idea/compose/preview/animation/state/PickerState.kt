@@ -18,38 +18,33 @@ package com.android.tools.idea.compose.preview.animation.state
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.preview.animation.state.SwapAction
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.platform.util.coroutines.flow.mapStateIn
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * [ComposeAnimationState] for animations where initial and target states should be selected with a
  * picker.
  */
-class PickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  ComposeAnimationState(callback) {
+class PickerState(tracker: ComposeAnimationTracker, scope: CoroutineScope) : ComposeAnimationState {
 
-  private val buttonAction = PickerButtonAction(tracker, stateCallback)
+  private val buttonAction = PickerButtonAction(tracker)
 
-  override fun stateHashCode(): Int = buttonAction.stateHashCode()
+  override val stateHashCode =
+    buttonAction.state.mapStateIn(scope) { (initial, target) -> Pair(initial, target).hashCode() }
 
-  override fun getState(index: Int): Any {
+  override fun getState(index: Int): List<*> {
     return buttonAction.getState(index)
   }
 
   override fun setStartState(state: Any?) {
-    state?.let { buttonAction.updateStates(it, it) }
+    buttonAction.updateInitialState(state)
   }
 
   override fun updateStates(states: Set<Any>) {
-    val initial = states.firstOrNull() ?: return
-    val target = states.lastOrNull() ?: return
-    buttonAction.updateStates(initial, target)
+    buttonAction.updateInitialState(states.firstOrNull())
+    buttonAction.updateTargetState(states.lastOrNull())
   }
 
   override val changeStateActions: List<AnAction> =
-    listOf(
-      SwapAction(tracker) {
-        buttonAction.swapStates()
-        stateCallback()
-      },
-      buttonAction,
-    )
+    listOf(SwapAction(tracker) { buttonAction.swapStates() }, buttonAction)
 }

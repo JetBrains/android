@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
@@ -98,4 +99,8 @@ abstract class AbstractSyncFailureIntegrationTest {
   }
 
   fun List<BuildEvent>.finishEventFailures() = (filterIsInstance<FinishBuildEvent>().single().result as FailureResult).failures
+
+  fun GradleSyncStats.printPhases() = gradleSyncPhasesDataList.joinToString(separator = "\n") {
+    it.phaseResult.name + " : " + it.phaseStackList.joinToString(separator = "/") { it.name }
+  }
 }
