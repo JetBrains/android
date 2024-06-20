@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CoroutineScope
@@ -67,8 +66,6 @@ interface AppInsightsProjectLevelController {
   fun enterOfflineMode()
 
   fun insightsInFile(file: PsiFile): List<AppInsight>
-
-  fun insightsInFile(file: PsiFile, analyzer: StackTraceAnalyzer)
 
   fun revertToSnapshot(state: AppInsightsState)
 

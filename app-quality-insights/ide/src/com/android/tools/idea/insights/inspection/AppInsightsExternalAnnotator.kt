@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppVcsInfo
-import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
 import com.android.tools.idea.insights.analytics.AppInsightsPerformanceTracker
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.AnnotationResult
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.InitialInfo
@@ -50,7 +49,6 @@ private val logger = Logger.getInstance(AppInsightsExternalAnnotator::class.java
 
 class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationResult>() {
   private val lineMarkerProvider = LineMarkerProvider()
-  private val analyzer = StackTraceAnalyzer()
 
   data class InitialInfo(
     val insights: List<AppInsight>,
@@ -69,7 +67,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): InitialInfo? {
     if (!LineMarkerSettings.getSettings().isEnabled(lineMarkerProvider)) return null
     val vFile = file.virtualFile ?: return null
-    val insights = collectInsights(file, analyzer).takeUnless { it.isEmpty() } ?: return null
+    val insights = collectInsights(file).takeUnless { it.isEmpty() } ?: return null
 
     return InitialInfo(insights, vFile, editor, file.project)
   }
@@ -143,7 +141,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
    *
    * Here each [AppInsightsTabProvider] points to a single kind of source.
    */
-  private fun collectInsights(file: PsiFile, analyzer: StackTraceAnalyzer): List<AppInsight> {
+  private fun collectInsights(file: PsiFile): List<AppInsight> {
     val project = file.project
 
     return AppInsightsTabProvider.EP_NAME.extensionList
@@ -153,13 +151,8 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
 
         when (val model = configurationManager.configuration.value) {
           is AppInsightsModel.Authenticated -> {
-            val controller = model.controller
-
-            // Here we do the work just for collecting "matching accuracy" metrics.
-            controller.insightsInFile(file, analyzer)
-
-            controller.insightsInFile(file).also {
-              logger.debug("Found ${it.size} ${controller.key} insights for ${file.name}")
+            model.controller.insightsInFile(file).also {
+              logger.debug("Found ${it.size} ${model.controller.key} insights for ${file.name}")
             }
           }
           AppInsightsModel.Unauthenticated -> {

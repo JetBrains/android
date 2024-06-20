@@ -16,9 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analysis.Cause
-import com.android.tools.idea.insights.analysis.Confidence
 import com.android.tools.idea.insights.analysis.CrashFrame
-import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -52,14 +50,10 @@ import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.collect.SetMultimap
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiMethod
 import java.time.Clock
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.event.HyperlinkListener
@@ -293,7 +287,9 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   override fun insightsInFile(file: PsiFile): List<AppInsight> {
-    val issues = issuesForFile(file).also { logIssues(it, file) }
+    val issues = issuesForFile(file)
+    logIssues(issues, file)
+
     val selectIssueCallback = { issue: AppInsightsIssue ->
       selectIssue(issue, IssueSelectionSource.INSPECTION)
     }
@@ -308,36 +304,6 @@ class AppInsightsProjectLevelControllerImpl(
         markAsSelectedCallback = selectIssueCallback,
       )
     }
-  }
-
-  override fun insightsInFile(file: PsiFile, analyzer: StackTraceAnalyzer) {
-    issuesForFile(file)
-      .also { issues ->
-        if (issues.isEmpty()) return@also
-        val formattedIssues =
-          issues
-            .map { it.issue.issueDetails.subtitle.ifEmpty { "<missingSubtitle>" } }
-            .reduce { acc, value -> acc + "\n" + value }
-        LOG.debug(
-          "Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing..."
-        )
-      }
-      .onEach {
-        analyzer.match(file, it.crashFrame)?.let { match ->
-          tracker.logMatchers(
-            AppQualityInsightsUsageEvent.AppQualityInsightsMatcherDetails.newBuilder()
-              .apply {
-                confidence = match.confidence.toProto()
-                resolution = convertResolution(match.element)
-                source =
-                  AppQualityInsightsUsageEvent.AppQualityInsightsMatcherDetails.MatcherSource
-                    .UNKNOWN_SOURCE
-                crashType = AppQualityInsightsUsageEvent.CrashType.FATAL
-              }
-              .build()
-          )
-        }
-      }
   }
 
   private fun issuesForFile(file: PsiFile): List<IssueInFrame> =
@@ -390,19 +356,4 @@ private fun computeIssuesPerFilename(
       fileCache
     }
     else -> ImmutableSetMultimap.of()
-  }
-
-private fun Confidence.toProto(): AppQualityInsightsUsageEvent.Confidence {
-  return when (this) {
-    Confidence.LOW -> AppQualityInsightsUsageEvent.Confidence.LOW
-    Confidence.MEDIUM -> AppQualityInsightsUsageEvent.Confidence.MEDIUM
-    Confidence.HIGH -> AppQualityInsightsUsageEvent.Confidence.HIGH
-  }
-}
-
-private fun convertResolution(element: PsiElement): AppQualityInsightsUsageEvent.Resolution =
-  when (element) {
-    is PsiMethod -> AppQualityInsightsUsageEvent.Resolution.METHOD
-    is PsiClass -> AppQualityInsightsUsageEvent.Resolution.CLASS
-    else -> AppQualityInsightsUsageEvent.Resolution.LINE
   }
