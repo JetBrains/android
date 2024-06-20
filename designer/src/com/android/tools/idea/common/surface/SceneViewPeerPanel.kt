@@ -17,17 +17,17 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.SCENE_VIEW
+import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.PositionablePanel
+import com.android.tools.idea.common.layout.positionable.getScaledContentSize
+import com.android.tools.idea.common.layout.positionable.margin
+import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.PositionablePanel
-import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
-import com.android.tools.idea.uibuilder.surface.layout.margin
-import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent

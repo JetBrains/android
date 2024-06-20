@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface.layout
 
+import com.android.tools.idea.common.layout.positionable.PositionableContent
+
 /** Layout of components. */
 class GridLayoutGroup(val header: PositionableContent?, val rows: List<List<PositionableContent>>)
 

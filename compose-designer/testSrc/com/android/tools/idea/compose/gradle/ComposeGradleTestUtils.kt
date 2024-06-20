@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.gradle
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.SyncNlModel.*
+import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
@@ -27,7 +28,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction

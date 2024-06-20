@@ -20,6 +20,8 @@ import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.tools.adtui.ZoomController
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
+import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
@@ -27,8 +29,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable

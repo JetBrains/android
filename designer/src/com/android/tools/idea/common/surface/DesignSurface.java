@@ -54,7 +54,7 @@ import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewp
 import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
+import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableCollection;

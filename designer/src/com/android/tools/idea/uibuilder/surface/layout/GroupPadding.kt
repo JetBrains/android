@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 
 /**
  * Paddings for grouped layout.

@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.layout
 import com.intellij.util.ui.JBInsets

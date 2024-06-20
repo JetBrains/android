@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface.layout
 
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.LayoutTestCase

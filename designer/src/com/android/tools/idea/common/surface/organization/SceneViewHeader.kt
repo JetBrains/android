@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.surface.organization
 
+import com.android.tools.idea.common.layout.positionable.PositionablePanel
 import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.PositionablePanel
 import com.intellij.ui.scale.JBUIScale.scale
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
