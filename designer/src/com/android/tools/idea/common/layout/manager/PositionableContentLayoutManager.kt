@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface.layout
+package com.android.tools.idea.common.layout.manager
 
+import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.PositionablePanel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneViewPanel
+import com.android.tools.idea.uibuilder.surface.layout.horizontal
+import com.android.tools.idea.uibuilder.surface.layout.vertical
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension

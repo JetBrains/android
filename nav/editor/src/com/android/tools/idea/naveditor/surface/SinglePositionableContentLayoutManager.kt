@@ -16,9 +16,9 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
+import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
+import com.android.tools.idea.common.layout.positionable.getScaledContentSize
 import java.awt.Dimension
 import java.awt.Point
 

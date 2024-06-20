@@ -18,6 +18,9 @@ package com.android.tools.idea.common.surface
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.editor.ActionManager
+import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
+import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.getScaledContentSize
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
@@ -34,9 +37,6 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.intellij.openapi.Disposable
 import java.awt.Component
 import java.awt.Dimension

@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.modes
 
 import com.android.tools.idea.common.layout.SceneViewAlignment
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.uibuilder.surface.layout.GalleryLayoutManager
@@ -27,7 +28,6 @@ import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutM
 import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.ListLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.OrganizationPadding
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import org.jetbrains.annotations.VisibleForTesting
 
