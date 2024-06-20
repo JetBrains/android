@@ -132,5 +132,6 @@
     <orderEntry type="module" module-name="intellij.android.safemode" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
     <orderEntry type="module" module-name="intellij.android.completion" />
+    <orderEntry type="module" module-name="android.sdktools.backup" />
   </component>
 </module>
