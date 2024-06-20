@@ -202,7 +202,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   protected suspend fun updateTimelineElements() {
     // Call once to update all sizes as all curves / lines required it.
     withContext(uiThread) {
-      timeline.sliderUI.elements.forEach { it.dispose() }
+      timeline.sliderUI.elements.forEach { Disposer.dispose(it) }
       timeline.sliderUI.elements = getTimelineElements()
       timeline.revalidate()
       timeline.repaint()
@@ -421,6 +421,6 @@ abstract class AnimationPreview<T : AnimationManager>(
   }
 
   override fun dispose() {
-    timeline.sliderUI.elements.forEach { it.dispose() }
+    timeline.sliderUI.elements.forEach { Disposer.dispose(it) }
   }
 }
