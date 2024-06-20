@@ -17,17 +17,18 @@ package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /** This label displays the [SceneView] model label. */
 open class LabelPanel(
-  private val displaySettings: DisplaySettings,
+  private val displayName: StateFlow<String?>,
+  private val tooltip: StateFlow<String?>,
   protected val scope: CoroutineScope,
 ) : JBLabel() {
 
@@ -35,17 +36,17 @@ open class LabelPanel(
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     foreground = AdtUiUtils.HEADER_COLOR
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    text = displaySettings.modelDisplayName.value
-    toolTipText = displaySettings.tooltip.value ?: displaySettings.modelDisplayName.value ?: ""
+    text = displayName.value
+    toolTipText = tooltip.value ?: displayName.value ?: ""
     scope.launch(uiThread) {
-      displaySettings.modelDisplayName.collect {
+      displayName.collect {
         text = it ?: ""
         isVisible = text.isNotBlank()
         invalidate()
       }
     }
     scope.launch(uiThread) {
-      displaySettings.tooltip.collect {
+      tooltip.collect {
         toolTipText = it ?: text ?: ""
         invalidate()
       }
