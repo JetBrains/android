@@ -228,7 +228,7 @@ class ProjectDumper(
 
         // Handle kotlin-native-prebuilt (e.g., "file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-2.0.0-RC1/klib/common/stdlib")
         line.contains("kotlin-native-prebuilt-") -> {
-          line.replace(KOTLIN_VERSION_FOR_TESTS, "<KOTLIN_VERSION_FOR_TESTS>")
+          line.replaceKotlinVersionForTests()
         }
 
         else -> line

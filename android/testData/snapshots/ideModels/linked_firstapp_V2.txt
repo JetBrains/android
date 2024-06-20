@@ -621,13 +621,11 @@ MODULE                        : My_First_App
                                 androidTestDebugApiDependenciesMetadata : <empty>
                                 androidTestDebugCompileOnly   : <empty>
                                 androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
-                                androidTestDebugDependencySources       : <empty>
                                 androidTestDebugImplementation          : <empty>
                                 androidTestDebugImplementationDependenciesMetadata          : <empty>
                                 androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                                 androidTestDebugRuntimeOnly   : <empty>
                                 androidTestDebugWearApp       : <empty>
-                                androidTestDependencySources  : <empty>
                                 androidTestImplementation     : <empty>
                                 androidTestImplementationDependenciesMetadata     : <empty>
                                 androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -662,7 +660,6 @@ MODULE                        : My_First_App
                                 debugAndroidTestCompileClasspath        : <empty>
                                 debugAndroidTestCompileOnly   : <empty>
                                 debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
-                                debugAndroidTestDependencySources       : <empty>
                                 debugAndroidTestImplementation          : <empty>
                                 debugAndroidTestImplementationDependenciesMetadata          : <empty>
                                 debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
@@ -683,7 +680,6 @@ MODULE                        : My_First_App
                                 debugCompileOnly              : <empty>
                                 debugCompileOnlyApi           : <empty>
                                 debugCompileOnlyDependenciesMetadata    : <empty>
-                                debugDependencySources        : <empty>
                                 debugImplementation           : <empty>
                                 debugImplementationDependenciesMetadata : <empty>
                                 debugIntransitiveDependenciesMetadata   : <empty>
@@ -703,7 +699,6 @@ MODULE                        : My_First_App
                                 debugUnitTestCompileClasspath : <empty>
                                 debugUnitTestCompileOnly      : <empty>
                                 debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
-                                debugUnitTestDependencySources          : <empty>
                                 debugUnitTestImplementation   : <empty>
                                 debugUnitTestImplementationDependenciesMetadata   : <empty>
                                 debugUnitTestIntransitiveDependenciesMetadata     : <empty>
@@ -742,7 +737,6 @@ MODULE                        : My_First_App
                                 releaseCompileOnly            : <empty>
                                 releaseCompileOnlyApi         : <empty>
                                 releaseCompileOnlyDependenciesMetadata  : <empty>
-                                releaseDependencySources      : <empty>
                                 releaseImplementation         : <empty>
                                 releaseImplementationDependenciesMetadata         : <empty>
                                 releaseIntransitiveDependenciesMetadata : <empty>
@@ -762,7 +756,6 @@ MODULE                        : My_First_App
                                 releaseUnitTestCompileClasspath         : <empty>
                                 releaseUnitTestCompileOnly    : <empty>
                                 releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                                releaseUnitTestDependencySources        : <empty>
                                 releaseUnitTestImplementation : <empty>
                                 releaseUnitTestImplementationDependenciesMetadata : <empty>
                                 releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
@@ -780,7 +773,6 @@ MODULE                        : My_First_App
                                 testDebugApiDependenciesMetadata        : <empty>
                                 testDebugCompileOnly          : <empty>
                                 testDebugCompileOnlyDependenciesMetadata          : <empty>
-                                testDebugDependencySources    : <empty>
                                 testDebugImplementation       : <empty>
                                 testDebugImplementationDependenciesMetadata       : <empty>
                                 testDebugIntransitiveDependenciesMetadata         : <empty>
@@ -827,7 +819,6 @@ MODULE                        : My_First_App
                                 testReleaseApiDependenciesMetadata      : <empty>
                                 testReleaseCompileOnly        : <empty>
                                 testReleaseCompileOnlyDependenciesMetadata        : <empty>
-                                testReleaseDependencySources  : <empty>
                                 testReleaseImplementation     : <empty>
                                 testReleaseImplementationDependenciesMetadata     : <empty>
                                 testReleaseIntransitiveDependenciesMetadata       : <empty>
@@ -875,13 +866,11 @@ MODULE                        : My_First_App
                         androidTestDebugApiDependenciesMetadata : <empty>
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
-                        androidTestDebugDependencySources       : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugImplementationDependenciesMetadata          : <empty>
                         androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
                         androidTestDebugWearApp       : <empty>
-                        androidTestDependencySources  : <empty>
                         androidTestImplementation     : <empty>
                         androidTestImplementationDependenciesMetadata     : <empty>
                         androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -916,7 +905,6 @@ MODULE                        : My_First_App
                         debugAndroidTestCompileClasspath        : <empty>
                         debugAndroidTestCompileOnly   : <empty>
                         debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
-                        debugAndroidTestDependencySources       : <empty>
                         debugAndroidTestImplementation          : <empty>
                         debugAndroidTestImplementationDependenciesMetadata          : <empty>
                         debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
@@ -935,7 +923,6 @@ MODULE                        : My_First_App
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
-                        debugDependencySources        : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
@@ -953,7 +940,6 @@ MODULE                        : My_First_App
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestCompileOnly      : <empty>
                         debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
-                        debugUnitTestDependencySources          : <empty>
                         debugUnitTestImplementation   : <empty>
                         debugUnitTestImplementationDependenciesMetadata   : <empty>
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
@@ -991,7 +977,6 @@ MODULE                        : My_First_App
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
-                        releaseDependencySources      : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
@@ -1009,7 +994,6 @@ MODULE                        : My_First_App
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestCompileOnly    : <empty>
                         releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestDependencySources        : <empty>
                         releaseUnitTestImplementation : <empty>
                         releaseUnitTestImplementationDependenciesMetadata : <empty>
                         releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
@@ -1028,7 +1012,6 @@ MODULE                        : My_First_App
                         testDebugApiDependenciesMetadata        : <empty>
                         testDebugCompileOnly          : <empty>
                         testDebugCompileOnlyDependenciesMetadata          : <empty>
-                        testDebugDependencySources    : <empty>
                         testDebugImplementation       : <empty>
                         testDebugImplementationDependenciesMetadata       : <empty>
                         testDebugIntransitiveDependenciesMetadata         : <empty>
@@ -1075,7 +1058,6 @@ MODULE                        : My_First_App
                         testReleaseApiDependenciesMetadata      : <empty>
                         testReleaseCompileOnly        : <empty>
                         testReleaseCompileOnlyDependenciesMetadata        : <empty>
-                        testReleaseDependencySources  : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseImplementationDependenciesMetadata     : <empty>
                         testReleaseIntransitiveDependenciesMetadata       : <empty>

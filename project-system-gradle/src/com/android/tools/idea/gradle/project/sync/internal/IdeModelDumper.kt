@@ -226,13 +226,14 @@ private val jbModelDumpers = listOf(
   SpecializedDumper(property = KotlinMPPGradleModel::kotlinGradlePluginVersion) { _, kgpVersion ->
     head(propertyName)
     nest {
-      prop("versionString", kgpVersion.versionString.replaceKgpForTestVersion())
+      prop("versionString", kgpVersion.versionString.replaceKotlinVersionForTests())
     }
   },
 )
 
-const val KOTLIN_VERSION_FOR_TESTS = "2.0.0-RC2"
-fun String.replaceKgpForTestVersion(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KGP_VERSION>")
+const val KOTLIN_VERSION_FOR_TESTS = "2.0.20-Beta1"
+
+fun String.replaceKotlinVersionForTests(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KOTLIN_VERSION_FOR_TESTS>")
 
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
   val modelDumper = ModelDumper(jbModelDumpers)
