@@ -267,12 +267,9 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
   }
 
   private class EmulatorLauncher : GeneralCommandLine() {
-    @Throws(IOException::class)
-    override fun startProcess(escapedCommands: List<String>): Process {
-      val builder = ProcessBuilder(escapedCommands)
-      setupEnvironment(builder.environment())
-      builder.inheritIO()
-      return buildProcess(builder).start()
+    override fun createProcess(processBuilder: ProcessBuilder): Process {
+      processBuilder.inheritIO()
+      return processBuilder.start()
     }
   }
 }
