@@ -44,6 +44,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -255,7 +256,7 @@ public class ResolutionUtils {
       ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet.getModule());
       IAndroidTarget target = configurationManager.getDefaultTarget(); // same as getHighestApiTarget();
       assert target != null;
-      ResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
+      ResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target, Collections.emptyList());
       assert resourceRepository != null;
       configurables =
           resourceRepository.getResources(ResourceNamespace.ANDROID, resolvedValue.getResourceType(), resolvedValue.getName());
