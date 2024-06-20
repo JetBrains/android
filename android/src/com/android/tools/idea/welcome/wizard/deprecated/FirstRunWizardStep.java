@@ -29,6 +29,7 @@ import java.awt.*;
  * feel for the pages.
  * @deprecated use {@link com.android.tools.idea.wizard.model.ModelWizardStep}
  */
+@Deprecated
 public abstract class FirstRunWizardStep extends DynamicWizardStep {
   public static final String SETUP_WIZARD = "Setup Wizard";
   @NotNull private final String myName;
