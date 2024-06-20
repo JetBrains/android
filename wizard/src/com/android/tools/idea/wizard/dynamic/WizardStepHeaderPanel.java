@@ -39,6 +39,7 @@ import java.beans.PropertyChangeListener;
  *
  * @deprecated Replaced by {@link StudioWizardLayout}.
  */
+@Deprecated
 public class WizardStepHeaderPanel extends JPanel {
   @NotNull String myTitle = "Title Label";
   @Nullable String myDescription;

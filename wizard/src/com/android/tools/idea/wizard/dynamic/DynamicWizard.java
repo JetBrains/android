@@ -56,6 +56,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
  *
  * @deprecated Replaced by {@link ModelWizard}
  */
+@Deprecated
 public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListener {
   // 42 is an arbitrary number. This constant is for the number of update cycles before
   // we decide there's circular dependency and we cannot settle down the model state.
