@@ -70,7 +70,7 @@ class ModelsProviderConfigurationListener(
       val fontScale = sourceConfig.fontScale
       responseConfig.fontScale = fontScale
     }
-    model.setTooltip(responseConfig.toHtmlTooltip())
+    model.displaySettings.setTooltip(responseConfig.toHtmlTooltip())
     return true
   }
 }

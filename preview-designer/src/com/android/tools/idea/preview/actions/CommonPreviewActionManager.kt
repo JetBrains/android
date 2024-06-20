@@ -51,8 +51,8 @@ class CommonPreviewActionManager(
 
   override fun createSceneViewLabel(sceneView: SceneView, scope: CoroutineScope): LabelPanel {
     return InteractiveLabelPanel(
-      sceneView.sceneManager.model.modelDisplayName,
-      sceneView.sceneManager.model.tooltip,
+      sceneView.sceneManager.model.displaySettings.modelDisplayName,
+      sceneView.sceneManager.model.displaySettings.tooltip,
       scope,
       suspend { navigationHandler.handleNavigate(sceneView, false) },
     )
