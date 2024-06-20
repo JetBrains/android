@@ -18,12 +18,12 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
-import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.validator.ValidatorData
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -44,8 +44,7 @@ class AccessibilityLintIntegratorTest {
   fun setUp() {
     MockitoAnnotations.openMocks(this)
     Mockito.`when`(mockModel.virtualFile).thenReturn(mockFile)
-    Mockito.`when`(mockModel.displaySettings)
-      .thenReturn(DisplaySettings().apply { setDisplayName("") })
+    Mockito.`when`(mockModel.modelDisplayName).thenReturn(MutableStateFlow(""))
   }
 
   @Test

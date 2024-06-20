@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.actions
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentBackendXml
 import com.android.tools.idea.common.model.NlModel
@@ -31,6 +30,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import javax.swing.JButton
 import javax.swing.JList
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -62,7 +62,7 @@ class MorphComponentActionTest {
     val model = Mockito.mock(NlModel::class.java)
     Mockito.`when`(model.project).thenReturn(androidProjectRule.project)
     Mockito.`when`(model.facet).thenReturn(androidProjectRule.module.androidFacet!!)
-    Mockito.`when`(model.displaySettings).thenReturn(DisplaySettings().apply { setDisplayName("") })
+    Mockito.`when`(model.modelDisplayName).thenReturn(MutableStateFlow(""))
 
     val component = Mockito.mock(NlComponent::class.java)
     Mockito.`when`(component.model).thenReturn(model)

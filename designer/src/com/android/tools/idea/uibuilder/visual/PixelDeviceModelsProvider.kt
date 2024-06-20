@@ -98,8 +98,8 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
         NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      model.displaySettings.setTooltip(config.toHtmlTooltip())
-      model.displaySettings.setDisplayName(device.displayName)
+      model.setTooltip(config.toHtmlTooltip())
+      model.setDisplayName(device.displayName)
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)
