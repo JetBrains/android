@@ -7,7 +7,7 @@ iml_module(
     generate_k2_tests = True,
     iml_files = ["intellij.android.common.iml"],
     lint_baseline = "lint_baseline.xml",
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.AndroidCommonTestSuite",
     # keep sorted
     test_data = [

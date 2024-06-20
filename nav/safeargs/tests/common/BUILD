@@ -23,7 +23,7 @@ iml_module(
         "non-gradle": {},
     },
     tags = [
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.nav.safeargs.SafeArgsTestSuite",
     # keep sorted

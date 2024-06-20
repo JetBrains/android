@@ -30,7 +30,7 @@ iml_module(
 iml_module(
     name = "intellij.android.wear-designer.tests",
     iml_files = ["intellij.android.wear-designer.tests.iml"],
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.wear.preview.WearDesignerTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",

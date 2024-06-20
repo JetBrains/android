@@ -31,7 +31,7 @@ iml_module(
 iml_module(
     name = "intellij.android.designer.customview.tests",
     iml_files = ["intellij.android.designer.customview.tests.iml"],
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.customview.preview.CustomViewTestSuite",
     test_data = [
         ":test_deps",

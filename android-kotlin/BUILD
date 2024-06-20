@@ -166,7 +166,7 @@ iml_module(
     },
     tags = [
         "no_test_mac",  # b/156004634
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
     test_data = glob([

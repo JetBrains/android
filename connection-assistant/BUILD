@@ -29,7 +29,7 @@ iml_module(
 iml_module(
     name = "connection-assistant-test",
     iml_files = ["connection-assistant-test.iml"],
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.connection.assistant.ConnectionAssistantTestSuite",
     test_data = [
         "//prebuilts/studio/jdk/jdk11",

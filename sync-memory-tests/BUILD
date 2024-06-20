@@ -152,7 +152,7 @@ iml_module(
         "block-network",
         "cpu:3",
         "no_test_mac",
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],

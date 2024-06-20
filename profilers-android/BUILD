@@ -12,7 +12,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.profilers.perfetto.traceprocessor.WindowsNameDemanglerTest",
         },
         "other": {
-            "tags": ["no_test_windows"],
+            "tags": ["noci:studio-win"],
         },
     },
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",

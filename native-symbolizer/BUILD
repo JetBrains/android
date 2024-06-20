@@ -20,7 +20,7 @@ iml_module(
 iml_module(
     name = "native-symbolizer.tests",
     iml_files = ["native-symbolizer.tests.iml"],
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
     test_data = glob(["testData/**"]) + [
         "//prebuilts/tools:lldb",

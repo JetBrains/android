@@ -102,7 +102,7 @@ iml_module(
         },
         "other": {},
     },
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
     test_data = [
         ":test_deps",
