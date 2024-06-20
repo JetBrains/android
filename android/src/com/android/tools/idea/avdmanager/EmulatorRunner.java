@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.tools.idea.avdmanager.AvdManagerConnection.isFoldable;
 
 import com.android.sdklib.SystemImageTags;

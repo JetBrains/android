@@ -17,7 +17,7 @@ package com.android.tools.idea.wearpairing
 
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.testutils.ignore.IgnoreTestRule
 import com.intellij.testFramework.ApplicationRule
 import java.nio.file.Paths
@@ -44,7 +44,7 @@ class UnpairTest {
       state = ConnectionState.ONLINE,
     )
   private val wearPropertiesMap =
-    mapOf(AvdManager.AVD_INI_TAG_ID to "android-wear", AvdManager.AVD_INI_ANDROID_API to "28")
+    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.ANDROID_API to "28")
   private val avdWearInfo =
     AvdInfo(
       Paths.get("ini"),

@@ -18,7 +18,8 @@ package com.android.tools.idea.avdmanager.emulatorcommand;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
+import com.android.sdklib.internal.avd.ConfigKey;
+import com.android.sdklib.internal.avd.UserSettingsKey;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.jimfs.Configuration;
@@ -95,7 +96,7 @@ public final class EmulatorCommandBuilderTest {
   @Test
   public void buildNetworkLatencyIsNotNull() {
     // Arrange
-    Mockito.when(myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_LATENCY)).thenReturn("none");
+    Mockito.when(myAvd.getProperty(ConfigKey.NETWORK_LATENCY)).thenReturn("none");
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
@@ -108,7 +109,7 @@ public final class EmulatorCommandBuilderTest {
   @Test
   public void buildNetworkSpeedIsNotNull() {
     // Arrange
-    Mockito.when(myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_SPEED)).thenReturn("full");
+    Mockito.when(myAvd.getProperty(ConfigKey.NETWORK_SPEED)).thenReturn("full");
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
@@ -176,7 +177,7 @@ public final class EmulatorCommandBuilderTest {
   public void buildAvdCommandLineEmulatorBinary() {
     // Arrange
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false);
-    Mockito.when(myAvd.getUserSettings()).thenReturn(ImmutableMap.of(AvdWizardUtils.EMULATOR_BINARY_KEY, "../my-package/my-emulator"));
+    Mockito.when(myAvd.getUserSettings()).thenReturn(ImmutableMap.of(UserSettingsKey.EMULATOR_BINARY, "../my-package/my-emulator"));
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
@@ -190,7 +191,7 @@ public final class EmulatorCommandBuilderTest {
   public void buildAvdCommandLineOptionsInUserSettings() {
     // Arrange
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false);
-    Mockito.when(myAvd.getUserSettings()).thenReturn(ImmutableMap.of(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY, "   -custom options"));
+    Mockito.when(myAvd.getUserSettings()).thenReturn(ImmutableMap.of(UserSettingsKey.COMMAND_LINE_OPTIONS, "   -custom options"));
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
@@ -204,7 +205,7 @@ public final class EmulatorCommandBuilderTest {
   public void buildAvdCommandLineOptionsInCongig_Disabled() {
     // Arrange
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false);
-    Mockito.when(myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)).thenReturn("-some random -options");
+    Mockito.when(myAvd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)).thenReturn("-some random -options");
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
@@ -218,7 +219,7 @@ public final class EmulatorCommandBuilderTest {
   public void buildAvdCommandLineOptions_Enabled() {
     // Arrange
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true);
-    Mockito.when(myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)).thenReturn("-some random -options");
+    Mockito.when(myAvd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)).thenReturn("-some random -options");
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
@@ -232,7 +233,7 @@ public final class EmulatorCommandBuilderTest {
   public void buildAvdCommandLineOptionsHandlesNullInput() {
     // Arrange
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true);
-    Mockito.when(myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)).thenReturn(null);
+    Mockito.when(myAvd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)).thenReturn(null);
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
@@ -246,7 +247,7 @@ public final class EmulatorCommandBuilderTest {
   public void buildAvdCommandLineOptionsIsSanitized() {
     // Arrange
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true);
-    Mockito.when(myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)).thenReturn("  -some\nrandom  \n unsanitized  -options \n ");
+    Mockito.when(myAvd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)).thenReturn("  -some\nrandom  \n unsanitized  -options \n ");
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act

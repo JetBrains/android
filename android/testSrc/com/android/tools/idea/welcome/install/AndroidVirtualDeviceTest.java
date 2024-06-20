@@ -30,7 +30,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.meta.RepoFactory;
@@ -196,7 +196,7 @@ public final class AndroidVirtualDeviceTest {
     }
     // AVD manager will set some extra properties that we don't care about and that may be system dependant.
     // We do not care about those, so we only ensure we have the ones we need.
-    File skin = new File(properties.get(AvdManager.AVD_INI_SKIN_PATH));
+    File skin = new File(properties.get(ConfigKey.SKIN_PATH));
     assertEquals(DEVICE_ID, skin.getName());
   }
 
