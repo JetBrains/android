@@ -951,6 +951,16 @@
     <option name="native" hit="native" />
     <option name="openscreen" hit="openscreen" />
   </configurable>
+  <configurable id="debugger.stepping" configurable_name="Stepping">
+    <option name="android" hit="Android" />
+    <option name="android" hit="Do not step into Android internal classes" />
+    <option name="classes" hit="Do not step into Android internal classes" />
+    <option name="do" hit="Do not step into Android internal classes" />
+    <option name="internal" hit="Do not step into Android internal classes" />
+    <option name="into" hit="Do not step into Android internal classes" />
+    <option name="not" hit="Do not step into Android internal classes" />
+    <option name="step" hit="Do not step into Android internal classes" />
+  </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
     <option name="automatically" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />

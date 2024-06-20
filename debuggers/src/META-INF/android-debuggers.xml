@@ -29,12 +29,14 @@
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidxSupportArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.MeasureSpecRenderer" />
 
+    <debuggerClassFilterProvider implementation="com.android.tools.idea.debug.AndroidDebuggerClassesFilterProvider"/>
+    <xdebugger.settings implementation="com.android.tools.idea.debug.AndroidDebuggerSettings"/>
+
     <projectService
         serviceInterface="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTracker"
         serviceImplementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTrackerImpl" />
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
-    <postStartupActivity implementation="com.android.tools.idea.debug.AndroidDebuggerAddFilterStartupActivity"/>
   </extensions>
 
   <projectListeners>
