@@ -302,6 +302,12 @@ interface IdeSyncIssue {
     // applied
     const val TYPE_INCONSISTENT_BUILD_FEATURE_SETTING = 55
 
+    /**
+     * Missing Compose Compiler Gradle plugin when compose is enabled and Kotlin version is 2.0 or
+     * higher. Data is the Kotlin version used.
+     */
+    const val TYPE_MISSING_COMPOSE_COMPILER_GRADLE_PLUGIN = 56
+
     // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
     // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
     // an indexing issue in the past (see http://issuetracker.google.com/138278313).
