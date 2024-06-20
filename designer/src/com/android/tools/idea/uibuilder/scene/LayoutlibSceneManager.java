@@ -93,7 +93,6 @@ import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
@@ -139,7 +138,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
   private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
   private final boolean myAreListenersRegistered;
-  private final DesignSurfaceProgressIndicator myProgressIndicator;
   private final RenderingQueue myRenderingQueue;
   @NotNull
   private RenderAsyncActionExecutor.RenderingTopic myRenderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED;
@@ -298,18 +296,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig,
                                   @NotNull Supplier<SessionClock> sessionClockFactory) {
     super(model, designSurface, sceneComponentProvider, sceneUpdateListener);
-    myProgressIndicator = new DesignSurfaceProgressIndicator(new ProgressRegistration() {
-
-      @Override
-      public void unregisterIndicator(@NotNull ProgressIndicatorBase indicator) {
-        designSurface.unregisterIndicator(indicator);
-      }
-
-      @Override
-      public void registerIndicator(@NotNull ProgressIndicatorBase indicator) {
-        designSurface.registerIndicator(indicator);
-      }
-    });
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);
     mySessionClockFactory = sessionClockFactory;
@@ -463,8 +449,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         model.removeListener(myModelChangeListener);
       }
       myRenderListeners.clear();
-
-      myProgressIndicator.stop();
     }
     finally {
       super.dispose();
