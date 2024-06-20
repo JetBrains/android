@@ -66,8 +66,8 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
         NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      model.setTooltip(config.toHtmlTooltip())
-      model.setDisplayName(device.displayName)
+      model.displaySettings.setTooltip(config.toHtmlTooltip())
+      model.displaySettings.setDisplayName(device.displayName)
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)

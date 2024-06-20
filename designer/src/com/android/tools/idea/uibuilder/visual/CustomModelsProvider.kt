@@ -139,7 +139,7 @@ class CustomModelsProvider(
       NlModel.Builder(parentDisposable, buildTarget, currentFile, currentFileConfig)
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
-        .apply { setDisplayName("Default (Current File)") }
+        .apply { displaySettings.setDisplayName("Default (Current File)") }
     )
 
     // Custom Configurations
@@ -161,8 +161,8 @@ class CustomModelsProvider(
           .withComponentRegistrar(NlComponentRegistrar)
           .withDataContext(CustomModelDataContext)
           .build()
-      model.setTooltip(config.toHtmlTooltip())
-      model.setDisplayName(customConfig.name)
+      model.displaySettings.setTooltip(config.toHtmlTooltip())
+      model.displaySettings.setDisplayName(customConfig.name)
       models.add(model)
       configurationToConfigurationAttributesMap[config] = attributes
     }

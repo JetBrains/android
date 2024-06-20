@@ -87,8 +87,8 @@ object LocaleModelsProvider : VisualizationModelsProvider {
         NlModel.Builder(parentDisposable, buildTarget, defaultFile, defaultLocaleConfig)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      firstModel.setTooltip(defaultLocaleConfig.toHtmlTooltip())
-      firstModel.setDisplayName("Default (no locale)")
+      firstModel.displaySettings.setTooltip(defaultLocaleConfig.toHtmlTooltip())
+      firstModel.displaySettings.setDisplayName("Default (no locale)")
       models.add(firstModel)
 
       registerModelsProviderConfigurationListener(
@@ -115,8 +115,8 @@ object LocaleModelsProvider : VisualizationModelsProvider {
         NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      model.setTooltip(config.toHtmlTooltip())
-      model.setDisplayName(label)
+      model.displaySettings.setTooltip(config.toHtmlTooltip())
+      model.displaySettings.setDisplayName(label)
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, currentFileConfig, config, EFFECTIVE_FLAGS)

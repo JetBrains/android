@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface.organization
 
+import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.SceneView
@@ -24,7 +25,6 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import javax.swing.JPanel
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -95,11 +95,12 @@ class OrganizationTest {
 
   private fun createSceneView(organizationGroup: OrganizationGroup?, modelName: String): SceneView {
 
-    val displayName = MutableStateFlow(modelName)
     val model =
       Mockito.mock(NlModel::class.java).apply {
         Mockito.`when`(this.organizationGroup).then { organizationGroup }
-        Mockito.`when`(this.modelDisplayName).then { displayName }
+        Mockito.`when`(this.displaySettings).then {
+          DisplaySettings().apply { setDisplayName(modelName) }
+        }
       }
     val sceneManager =
       Mockito.mock(SceneManager::class.java).apply { Mockito.`when`(this.model).then { model } }
