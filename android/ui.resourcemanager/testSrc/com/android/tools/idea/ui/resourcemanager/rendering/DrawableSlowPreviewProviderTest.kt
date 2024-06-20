@@ -89,6 +89,6 @@ class DrawableSlowPreviewProviderTest {
     val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet.module)
     val manifest = MergedManifestManager.getMergedManifestSupplier(androidFacet.module).get().get()
     val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
-    return configurationManager.resolverCache.getResourceResolver(null, theme, FolderConfiguration.createDefault())
+    return configurationManager.resolverCache.getResourceResolver(null, theme, FolderConfiguration.createDefault(), emptyList())
   }
 }

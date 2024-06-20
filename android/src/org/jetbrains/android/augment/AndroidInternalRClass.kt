@@ -43,7 +43,7 @@ class AndroidInternalRClass(psiManager: PsiManager, private val platform: Androi
   private inner class MyInnerClass(resourceType: ResourceType) : InnerRClassBase(this@AndroidInternalRClass, resourceType) {
     @Slow
     override fun doGetFields(): Array<PsiField> {
-      val repository = AndroidTargetData.get(platform.sdkData, platform.target).getFrameworkResources(ImmutableSet.of())
+      val repository = AndroidTargetData.get(platform.sdkData, platform.target).getFrameworkResources(emptySet(), emptyList())
                        ?: return PsiField.EMPTY_ARRAY
       return buildResourceFields(
         repository,

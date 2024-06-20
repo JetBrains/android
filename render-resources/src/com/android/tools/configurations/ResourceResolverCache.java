@@ -35,6 +35,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.res.CacheableResourceRepository;
+import com.android.tools.res.FrameworkOverlay;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
@@ -43,8 +44,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.util.text.Strings;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.android.tools.sdk.AndroidTargetData;
@@ -93,6 +96,8 @@ public class ResourceResolverCache {
   @GuardedBy("myLock")
   private String myCustomConfigurationKey;
   @GuardedBy("myLock")
+  private String myCustomOverlaysKey;
+  @GuardedBy("myLock")
   private String myCustomResolverKey;
 
   public ResourceResolverCache(ConfigurationSettings settings) {
@@ -102,7 +107,8 @@ public class ResourceResolverCache {
   @Slow
   public @NonNull ResourceResolver getResourceResolver(@Nullable IAndroidTarget target,
                                                        @NonNull String themeStyle,
-                                                       @NonNull FolderConfiguration fullConfiguration) {
+                                                       @NonNull FolderConfiguration fullConfiguration,
+                                                       @NonNull List<FrameworkOverlay> overlays) {
     // Are caches up to date?
     ResourceRepositoryManager repositoryManager = mySettings.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null) {
@@ -129,7 +135,7 @@ public class ResourceResolverCache {
     // for the configured resource maps, by prepending the theme name:
     // @style/MyTheme-ldltr-sw384dp-w384dp-h640dp-normal-notlong-port-notnight-xhdpi-finger-keyssoft-nokeys-navhidden-nonav-1280x768-v17
     String qualifierString = fullConfiguration.getQualifierString();
-    String resolverKey = getResolverKey(themeStyle, qualifierString);
+    String resolverKey = getResolverKey(themeStyle, qualifierString, overlays);
     ResourceResolver resolver = getCachedResolver(resolverKey);
     if (resolver == null) {
       if (target == null) {
@@ -138,7 +144,7 @@ public class ResourceResolverCache {
 
       // Framework resources.
       Map<ResourceType, ResourceValueMap> frameworkResources =
-          target == null ? Collections.emptyMap() : getConfiguredFrameworkResources(target, fullConfiguration);
+          target == null ? Collections.emptyMap() : getConfiguredFrameworkResources(target, fullConfiguration, overlays);
 
       // App resources
       Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppRes = getCachedAppResources(qualifierString);
@@ -184,25 +190,33 @@ public class ResourceResolverCache {
   @Slow
   @NonNull
   public Map<ResourceType, ResourceValueMap> getConfiguredFrameworkResources(@NonNull IAndroidTarget target,
-                                                                             @NonNull FolderConfiguration fullConfiguration) {
-    ResourceRepository resourceRepository = getFrameworkResources(fullConfiguration, target);
+                                                                             @NonNull FolderConfiguration fullConfiguration,
+                                                                             @NonNull List<FrameworkOverlay> overlays) {
+    ResourceRepository resourceRepository = getFrameworkResources(fullConfiguration, target, overlays);
     if (resourceRepository == null) {
       return Collections.emptyMap();
     }
 
-    String qualifierString = fullConfiguration.getQualifierString();
+    String keyString = fullConfiguration.getQualifierString() + getOverlaysString(overlays);
     // Get the framework resource values based on the current config.
-    Map<ResourceType, ResourceValueMap> frameworkResources = getCachedFrameworkResources(qualifierString);
+    Map<ResourceType, ResourceValueMap> frameworkResources = getCachedFrameworkResources(keyString);
     if (frameworkResources == null) {
       frameworkResources = ResourceRepositoryUtil.getConfiguredResources(resourceRepository, fullConfiguration).row(ResourceNamespace.ANDROID);
-      cacheFrameworkResources(qualifierString, frameworkResources);
+      cacheFrameworkResources(keyString, frameworkResources);
     }
     return frameworkResources;
   }
 
   @NonNull
-  private static String getResolverKey(@NonNull String themeStyle, @NonNull String qualifierString) {
-    return qualifierString.isEmpty() ? themeStyle : themeStyle + SdkConstants.RES_QUALIFIER_SEP + qualifierString;
+  private static String getResolverKey(@NonNull String themeStyle, @NonNull String qualifierString,
+                                       @NonNull List<FrameworkOverlay> overlays) {
+    return (qualifierString.isEmpty() ? themeStyle : themeStyle + SdkConstants.RES_QUALIFIER_SEP + qualifierString)
+           + getOverlaysString(overlays);
+  }
+
+  @NonNull
+  private static String getOverlaysString(@NonNull List<FrameworkOverlay> overlays) {
+    return SdkConstants.RES_QUALIFIER_SEP + "Overlays:" + Strings.join(overlays, SdkConstants.RES_QUALIFIER_SEP);
   }
 
   /**
@@ -212,7 +226,8 @@ public class ResourceResolverCache {
    */
   @Slow
   @Nullable
-  public ResourceRepository getFrameworkResources(@NonNull FolderConfiguration configuration, @NonNull IAndroidTarget target) {
+  public ResourceRepository getFrameworkResources(@NonNull FolderConfiguration configuration, @NonNull IAndroidTarget target,
+                                                  @NonNull List<FrameworkOverlay> overlays) {
     int apiLevel = target.getVersion().getFeatureLevel();
 
     AndroidTargetData targetData = getCachedTargetData(apiLevel);
@@ -231,7 +246,7 @@ public class ResourceResolverCache {
     }
     String language = locale.getLanguage();
     Set<String> languages = language == null ? ImmutableSet.of() : ImmutableSet.of(language);
-    return targetData.getFrameworkResources(languages);
+    return targetData.getFrameworkResources(languages, overlays);
   }
 
   public void reset() {
@@ -249,9 +264,11 @@ public class ResourceResolverCache {
    * @param themeStyle new theme
    * @param fullConfiguration new full configuration
    */
-  public void replaceCustomConfig(@NonNull String themeStyle, @NonNull FolderConfiguration fullConfiguration) {
+  public void replaceCustomConfig(@NonNull String themeStyle, @NonNull FolderConfiguration fullConfiguration,
+                                  @NonNull List<FrameworkOverlay> overlays) {
+    String overlayString = getOverlaysString(overlays);
     String qualifierString = fullConfiguration.getQualifierString();
-    String newCustomResolverKey = getResolverKey(themeStyle, qualifierString);
+    String newCustomResolverKey = getResolverKey(themeStyle, qualifierString, overlays);
 
     synchronized (myLock) {
       if (newCustomResolverKey.equals(myCustomResolverKey)) {
@@ -260,13 +277,14 @@ public class ResourceResolverCache {
       }
 
       if (myCustomConfigurationKey != null) {
-        myFrameworkResourceMap.remove(myCustomConfigurationKey);
+        myFrameworkResourceMap.remove(myCustomConfigurationKey + myCustomOverlaysKey);
         myAppResourceMap.remove(myCustomConfigurationKey);
       }
       if (myCustomResolverKey != null) {
         myResolverMap.remove(myCustomResolverKey);
       }
       myCustomConfigurationKey = qualifierString;
+      myCustomOverlaysKey = overlayString;
       myCustomResolverKey = newCustomResolverKey;
     }
   }

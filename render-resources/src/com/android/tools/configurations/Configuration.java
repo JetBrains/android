@@ -35,7 +35,6 @@ import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.Locale;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
@@ -59,6 +58,7 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.layoutlib.LayoutlibContext;
+import com.android.tools.res.FrameworkOverlay;
 import com.android.tools.res.ResourceUtils;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
@@ -1193,28 +1193,18 @@ public class Configuration {
   public @NonNull ResourceResolver getResourceResolver() {
     String theme = getTheme();
     Device device = getDevice();
+    List<FrameworkOverlay> overlays = getOverlays();
     ResourceResolverCache resolverCache = mySettings.getResolverCache();
     if (device != null && CUSTOM_DEVICE_ID.equals(device.getId())) {
       // Remove the old custom device configuration only if it's different from the new one
-      resolverCache.replaceCustomConfig(theme, getFullConfig());
+      resolverCache.replaceCustomConfig(theme, getFullConfig(), overlays);
     }
-    return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig());
+    return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig(), overlays);
   }
 
-  /**
-   * Returns an {@link ResourceRepository} for the framework resources based on the current
-   * configuration selection.
-   *
-   * @return the framework resources or null if not found.
-   */
-  @Nullable
-  public ResourceRepository getFrameworkResources() {
-    IAndroidTarget target = getTarget();
-    if (target != null) {
-      return mySettings.getResolverCache().getFrameworkResources(getFullConfig(), target);
-    }
-
-    return null;
+  @NonNull
+  public List<FrameworkOverlay> getOverlays() {
+    return myGestureNav ? List.of(FrameworkOverlay.NAV_GESTURE) : List.of(FrameworkOverlay.NAV_3_BUTTONS);
   }
 
   // For debugging only
