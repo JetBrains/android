@@ -16,6 +16,9 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.margin
+import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.flags.StudioFlags

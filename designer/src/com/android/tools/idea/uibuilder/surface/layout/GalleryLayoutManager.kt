@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface.layout
 
+import com.android.tools.idea.common.layout.positionable.PositionableContent
+
 /** [SurfaceLayoutManager] for Gallery mode. */
 class GalleryLayoutManager(
   padding: GroupPadding,
