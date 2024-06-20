@@ -139,7 +139,9 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   @NotNull
   public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView, CoroutineScope scope) {
     DisplaySettings displaySettings = sceneView.getSceneManager().getModel().getDisplaySettings();
-    return new LabelPanel(displaySettings, scope);
+    return new LabelPanel(displaySettings.getModelDisplayName(),
+                          displaySettings.getTooltip(),
+                          scope);
   }
 
   /**
