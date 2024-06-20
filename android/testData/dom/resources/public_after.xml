@@ -15,5 +15,5 @@
   ~ limitations under the License.
   -->
 <resources>
-  <public name="" type=""<caret>
+  <public<caret>
 </resources>
