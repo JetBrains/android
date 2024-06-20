@@ -1884,18 +1884,28 @@ class ColumnReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
         @Dao
         public interface UserDao {
-          @Query("SELECT rowId, myId, oid FROM User") List<String> getNames();
+          @Query("SELECT rowId, myId, oid, _rowid_ FROM User") List<String> getNames();
         }
     """.trimIndent())
 
 
-    myFixture.moveCaret("|rowId")
-    val element = myFixture.elementAtCaret
-    myFixture.moveCaret("|myId")
+    myFixture.moveCaret("|rowId, myId, oid, _rowid_")
+    val rowIdElement = myFixture.elementAtCaret
+    myFixture.moveCaret("rowId, |myId, oid, _rowid_")
+    val myIdElement = myFixture.elementAtCaret
+    myFixture.moveCaret("rowId, myId, |oid, _rowid_")
+    val oidElement = myFixture.elementAtCaret
+    myFixture.moveCaret("rowId, myId, oid, |_rowid_")
+    val _rowid_Element = myFixture.elementAtCaret
+
     // use areElementsEquivalent instead of simple equalsTo cause we wrap realPsiElement into [NotRenamableElement]
-    assertThat(PsiManager.getInstance(element.project).areElementsEquivalent(element, myFixture.elementAtCaret))
-    myFixture.moveCaret("|oid")
-    assertThat(PsiManager.getInstance(element.project).areElementsEquivalent(element, myFixture.elementAtCaret))
+    // "rowId", "oid", and "_rowid_" are all equivalent references to the same column. The "myId", which is marked as
+    // the primary key, is user defined and refers to a different column. See https://www.sqlite.org/rowidtable.html
+    // for reference.
+    assertThat(PsiManager.getInstance(rowIdElement.project).areElementsEquivalent(rowIdElement, myIdElement)).isFalse()
+
+    assertThat(PsiManager.getInstance(rowIdElement.project).areElementsEquivalent(rowIdElement, oidElement)).isTrue()
+    assertThat(PsiManager.getInstance(rowIdElement.project).areElementsEquivalent(rowIdElement, _rowid_Element)).isTrue()
   }
 
   fun testCannotRenameColumnThatUserDoesNotDefine() {
