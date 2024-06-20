@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.model.DisplaySettings
 import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
@@ -23,7 +24,6 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -57,13 +57,14 @@ class InteractiveLabelPanelTest {
         return false
       }
 
-      val displayName = MutableStateFlow("Name")
-      val tooltip = MutableStateFlow("Tooltip")
+      val settings =
+        DisplaySettings().apply {
+          setDisplayName("Name")
+          setTooltip("Tooltip")
+        }
 
       val label =
-        InteractiveLabelPanel(displayName, tooltip, scope, ::labelClicked).apply {
-          size = Dimension(250, 50)
-        }
+        InteractiveLabelPanel(settings, scope, ::labelClicked).apply { size = Dimension(250, 50) }
       FakeUi(label).also { it.clickOn(label) }
       withTimeout(TimeUnit.SECONDS.toMillis(5)) { assertEquals(1, clickCount) }
     }
