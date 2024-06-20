@@ -59,7 +59,7 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
-import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpressionOrEmptyBlock
+import org.jetbrains.kotlin.idea.base.psi.isNullExpression
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtBinaryExpression
@@ -693,7 +693,8 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
         }
       }
       is KtFunctionLiteral -> {
-        if ((psiElement.bodyExpression == null || psiElement.bodyExpression.isNullExpressionOrEmptyBlock())) {
+        val bodyExpression = psiElement.bodyExpression
+        if (bodyExpression == null || bodyExpression.isNullExpressionOrEmptyBlock()) {
           psiElement.delete()
           // If the parent is a KtLambdaExpression, delete it because KtLambdaExpression.getFunctionLiteral() cannot be null.
           if (psiParent is KtLambdaExpression) {
@@ -1064,3 +1065,7 @@ internal fun hasNewLineBetween(start : PsiElement, end : PsiElement) : Boolean {
 }
 
 internal fun isWhiteSpaceOrNls(element: PsiElement?) = element?.node?.let { WHITESPACES.contains(it.elementType) } ?: false
+
+private fun KtExpression.isNullExpressionOrEmptyBlock(): Boolean {
+  return this.isNullExpression() || this is KtBlockExpression && this.statements.isEmpty()
+}
