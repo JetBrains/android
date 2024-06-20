@@ -15,13 +15,9 @@
  */
 
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.build.output.BuildOutputErrorsListener
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.FilePosition
 import com.intellij.build.events.MessageEvent
@@ -30,7 +26,6 @@ import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.events.impl.SuccessResultImpl
-import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
@@ -38,7 +33,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,6 +43,7 @@ import org.mockito.MockitoAnnotations
 class BuildOutputErrorsListenerTest {
   @get:Rule
   val temporaryFolder = TemporaryFolder()
+
   @Mock
   private lateinit var myProject: Project
   private lateinit var buildId: ExternalSystemTaskId
@@ -56,6 +51,7 @@ class BuildOutputErrorsListenerTest {
   private var collectedFailures: List<BuildErrorMessage>? = null
   private lateinit var buildOutputErrorsListener: BuildOutputErrorsListener
   private lateinit var messageEvent: MessageEvent
+
   @Before
   fun setUp() {
     MockitoAnnotations.initMocks(this)
@@ -66,6 +62,7 @@ class BuildOutputErrorsListenerTest {
     buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject)
     buildOutputErrorsListener = BuildOutputErrorsListener(buildId, listenerDisposable) { collectedFailures = it }
   }
+
   private fun checkSentMetricsData(sentMetricsData: BuildErrorMessage,
                                    errorType: BuildErrorMessage.ErrorType,
                                    fileType: BuildErrorMessage.FileType,
@@ -77,6 +74,7 @@ class BuildOutputErrorsListenerTest {
     assertThat(sentMetricsData.fileLocationIncluded).isEqualTo(fileIncluded)
     assertThat(sentMetricsData.lineLocationIncluded).isEqualTo(lineIncluded)
   }
+
   @Test
   fun testMetricsReporting() {
     val folder = temporaryFolder.newFolder("test")
@@ -121,6 +119,7 @@ class BuildOutputErrorsListenerTest {
     assertThat(listenerDisposable.isDisposed).isTrue()
     assertThat(collectedFailures).isEmpty()
   }
+
   @Test
   fun testNothingReportedOnSuccessfulBuild() {
     assertThat(listenerDisposable.isDisposed).isFalse()
