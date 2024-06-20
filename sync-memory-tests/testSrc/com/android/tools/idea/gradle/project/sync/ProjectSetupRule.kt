@@ -84,6 +84,7 @@ interface ProjectSetupRule {
   val projectName: String
   val project: BenchmarkProject
   val useLatestGradle: Boolean
+  val useLatestKotlin: Boolean
   fun openProject(body: (Project) -> Any = {})
   fun addListener(listener: GradleSyncListenerWithRoot)
 }
@@ -92,6 +93,7 @@ class ProjectSetupRuleImpl(
   override val projectName: String,
   override val project: BenchmarkProject,
   override val useLatestGradle: Boolean,
+  override val useLatestKotlin: Boolean,
   testEnvironmentRuleProvider: () -> IntegrationTestEnvironmentRule) : ProjectSetupRule, ExternalResource() {
   private val listeners = mutableListOf<GradleSyncListenerWithRoot>()
   val testEnvironmentRule: IntegrationTestEnvironmentRule by lazy(testEnvironmentRuleProvider)
@@ -114,6 +116,8 @@ class ProjectSetupRuleImpl(
         agpVersion =
         if (useLatestGradle)
           AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
+        else if (useLatestKotlin)
+          AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT
         else
           AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
     ).open(
@@ -147,6 +151,7 @@ class ProjectSetupRuleImpl(
         unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip")
         linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
         linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
+        linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks.manifest")
       }
     }
 
