@@ -159,6 +159,7 @@ class DetailsPanelHeader(
   fun clear() {
     titleLabel.icon = null
     titleLabel.text = null
+    titleVariantSeparatorPanel.isVisible = false
     countsPanel.isVisible = false
     variantPanel.isVisible = false
   }
@@ -169,6 +170,7 @@ class DetailsPanelHeader(
     eventsCountLabel.text = model.eventCount.formatNumberToPrettyString()
     usersCountLabel.text = model.userCount.formatNumberToPrettyString()
     if (variantComboBox != null) {
+      titleVariantSeparatorPanel.isVisible = true
       variantPanel.isVisible = true
     }
     titleLabel.putUserData(KEY, Pair(model.className, model.methodName))
