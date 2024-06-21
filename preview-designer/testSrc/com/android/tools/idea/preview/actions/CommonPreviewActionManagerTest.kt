@@ -144,7 +144,6 @@ class CommonPreviewActionManagerTest {
           ProjectSystemBuildManager.BuildResult(
             mode = ProjectSystemBuildManager.BuildMode.CLEAN,
             status = ProjectSystemBuildManager.BuildStatus.FAILED,
-            timestampMillis = 0L,
           )
         )
 
@@ -162,7 +161,6 @@ class CommonPreviewActionManagerTest {
           ProjectSystemBuildManager.BuildResult(
             mode = ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE,
             status = ProjectSystemBuildManager.BuildStatus.SUCCESS,
-            timestampMillis = 0L,
           )
         )
 

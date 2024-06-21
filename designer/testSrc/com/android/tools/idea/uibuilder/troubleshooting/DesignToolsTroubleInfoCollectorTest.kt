@@ -32,7 +32,7 @@ class DesignToolsTroubleInfoCollectorTest {
     val output = DesignToolsTroubleInfoCollector().collectInfo(projectRule.project)
     assertEquals(
       """
-        LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN, timestampMillis=123)
+        LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN)
 
         FastPreviewStatus: available=true disableReason=null
 
@@ -50,7 +50,7 @@ class DesignToolsTroubleInfoCollectorTest {
 
       """
         .trimIndent(),
-      output.replace(Regex("timestampMillis=\\d+"), "timestampMillis=123"),
+      output,
     )
   }
 
@@ -59,7 +59,7 @@ class DesignToolsTroubleInfoCollectorTest {
     val output = DesignToolsTroubleInfoCollector().collectInfo(projectRule.project)
     assertEquals(
       """
-        LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN, timestampMillis=123)
+        LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN)
 
         FastPreviewStatus: available=true disableReason=null
 
@@ -77,7 +77,7 @@ class DesignToolsTroubleInfoCollectorTest {
 
       """
         .trimIndent(),
-      output.replace(Regex("timestampMillis=\\d+"), "timestampMillis=123"),
+      output,
     )
   }
 }

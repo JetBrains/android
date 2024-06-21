@@ -54,8 +54,8 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
   override fun buildFinished(status: BuildStatus, context: BuildContext) {
     val result = ProjectSystemBuildManager.BuildResult(
       context.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN,
-      status.toProjectSystemBuildStatus(),
-      System.currentTimeMillis())
+      status.toProjectSystemBuildStatus()
+    )
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).beforeBuildCompleted(result)
     buildCount.updateAndGet {
       maxOf(it - 1, 0)
@@ -93,8 +93,8 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
     GradleBuildState.getInstance(project).lastFinishedBuildSummary?.let {
       ProjectSystemBuildManager.BuildResult(
         it.context?.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN,
-        it.status.toProjectSystemBuildStatus(),
-        System.currentTimeMillis())
+        it.status.toProjectSystemBuildStatus()
+      )
     } ?: ProjectSystemBuildManager.BuildResult.createUnknownBuildResult()
 
   override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) =

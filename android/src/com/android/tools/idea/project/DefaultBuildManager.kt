@@ -24,14 +24,14 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 
 object DefaultBuildManager : ProjectSystemBuildManager {
-  private var lastResult = BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN, System.currentTimeMillis())
+  private var lastResult = BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN)
 
   override fun compileProject() {
-    lastResult = BuildResult(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS, System.currentTimeMillis())
+    lastResult = BuildResult(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS)
   }
 
   override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-    lastResult = BuildResult(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS, System.currentTimeMillis())
+    lastResult = BuildResult(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS)
   }
 
   override fun getLastBuildResult(): BuildResult = lastResult
