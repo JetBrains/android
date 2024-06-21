@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
+import com.android.testutils.truth.PathSubject.assertThat
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
@@ -725,6 +726,10 @@ internal class DeviceViewTest {
     val crashReportPattern1 =
         Regex("\\{exitCode=\"139\", runDurationMillis=\"\\d+\", agentMessages=\"Crash is near\nKaput\", device=\"Pixel 5 API 32\"}")
     assertThat(crashReportPattern1.matches(crashReports[0].toPartMap().toString())).isTrue()
+    assertThat(AgentLogSaver.logFile).hasContents(
+        "--------- beginning of crash",
+        "06-20 17:54:11.642 14782 14782 F libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR)",
+        "")
 
     fakeUi.layoutAndDispatchEvents()
     val button = fakeUi.getComponent<JButton>()
