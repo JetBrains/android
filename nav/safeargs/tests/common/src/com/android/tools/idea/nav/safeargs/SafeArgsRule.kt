@@ -57,8 +57,8 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
   val project
     get() = module.project
 
-  fun waitForResourceRepositoryUpdates() {
-    projectRule.waitForResourceRepositoryUpdates()
+  fun waitForPendingUpdates() {
+    waitForPendingUpdates(projectRule.module)
   }
 
   override fun before() {

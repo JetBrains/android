@@ -26,9 +26,12 @@ import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -45,6 +48,17 @@ import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.messages.Topic
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.resume
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
@@ -57,11 +71,23 @@ import org.jetbrains.annotations.TestOnly
  * [NavigationResourcesModificationListener] registers itself to start actively listening for VFS
  * changes and Document changes after the project opening.
  */
-class NavigationResourcesModificationListener(project: Project) :
-  PoliteAndroidVirtualFileListener(project), DocumentListener, FileDocumentManagerListener {
+class NavigationResourcesModificationListener(
+  project: Project,
+  private val coroutineScope: CoroutineScope,
+) : PoliteAndroidVirtualFileListener(project), DocumentListener, FileDocumentManagerListener {
 
   private val psiDocumentManager = PsiDocumentManager.getInstance(project)
   private val fileDocumentManager = FileDocumentManager.getInstance()
+
+  private fun newSupervisorJob(): CompletableJob =
+    SupervisorJob(parent = coroutineScope.coroutineContext[Job])
+
+  private val supervisorJob = AtomicReference(newSupervisorJob())
+
+  /** Returns a [Job] that will complete when all scheduled updates have completed. */
+  @TestOnly
+  fun completePendingUpdates(): Job =
+    supervisorJob.getAndSet(newSupervisorJob()).also { it.complete() }
 
   // If a directory was deleted, we won't get a separate event for each descendant, so we
   // must let directories pass through this fail-fast filter in case they contain relevant files.
@@ -97,7 +123,32 @@ class NavigationResourcesModificationListener(project: Project) :
   }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
-    dispatchResourcesChanged(facet.module)
+    coroutineScope.launch(supervisorJob.get()) {
+      val resourceManager = StudioResourceRepositoryManager.getInstance(facet)
+      val moduleResources =
+        resourceManager.cachedModuleResources
+          ?: withContext(Dispatchers.IO) { resourceManager.moduleResources }
+
+      withContext(Dispatchers.EDT) {
+        // Ensure that any resource rescan that may have been triggered by this file change event
+        // has already been scheduled, by yielding the EDT to allow other handlers of the event
+        // to finish processing.
+        yield()
+
+        // Defer dispatching the change event until ResourceFolderRepository is completely done
+        // processing the change. (This happens sequentially on a single background thread, so
+        // because we made sure the rescan was already scheduled above, we won't resume this
+        // coroutine until after the rescan completes.)
+        suspendCancellableCoroutine { continuation ->
+          moduleResources.invokeAfterPendingUpdatesFinish(directExecutor()) {
+            continuation.resume(Unit)
+          }
+        }
+
+        // Dispatch the resource-change event to listeners. (This will happen on the EDT.)
+        dispatchResourcesChanged(facet.module)
+      }
+    }
   }
 
   override fun contentsChanged(event: VirtualFileEvent) {
@@ -132,11 +183,12 @@ class NavigationResourcesModificationListener(project: Project) :
   }
 
   @Service(Service.Level.PROJECT)
-  private class Subscriber(private val project: Project) : Disposable.Default {
+  private class Subscriber(private val project: Project, coroutineScope: CoroutineScope) :
+    Disposable.Default {
     private val subscriber =
       object :
         LazyFileListenerSubscriber<NavigationResourcesModificationListener>(
-          NavigationResourcesModificationListener(project),
+          NavigationResourcesModificationListener(project, coroutineScope),
           this,
         ) {
         override fun subscribe() {
@@ -161,9 +213,11 @@ class NavigationResourcesModificationListener(project: Project) :
       }
     }
 
-    fun ensureSubscribed(project: Project) {
+    fun ensureSubscribed() {
       subscriber.ensureSubscribed()
     }
+
+    @TestOnly fun completePendingUpdates(): Job = subscriber.listener.completePendingUpdates()
   }
 
   private fun dispatchResourcesChanged(module: Module?) {
@@ -179,8 +233,12 @@ class NavigationResourcesModificationListener(project: Project) :
      */
     @TestOnly
     fun ensureSubscribed(project: Project) {
-      project.getService(Subscriber::class.java).ensureSubscribed(project)
+      project.service<Subscriber>().ensureSubscribed()
     }
+
+    @TestOnly
+    fun completePendingUpdates(project: Project): Job =
+      project.service<Subscriber>().completePendingUpdates()
   }
 }
 
