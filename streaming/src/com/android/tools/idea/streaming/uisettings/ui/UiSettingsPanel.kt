@@ -44,7 +44,7 @@ import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
 internal const val DARK_THEME_TITLE = "Dark Theme:"
-internal const val GESTURE_NAVIGATION_TITLE = "Gesture Navigation:"
+internal const val GESTURE_NAVIGATION_TITLE = "Navigation Mode:"
 internal const val APP_LANGUAGE_TITLE = "App Language:"
 internal const val TALKBACK_TITLE = "TalkBack:"
 internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
@@ -101,7 +101,7 @@ internal class UiSettingsPanel(
               .apply {
                 component.name = GESTURE_NAVIGATION_TITLE
                 component.renderer = ListCellRenderer { _, value, _, _, _ ->
-                  JBLabel(if (value == true) "Gesture navigation" else "3 Button navigation")
+                  JBLabel(if (value == true) "Gestures" else "Buttons")
                 }
               }
           }.visibleIf(model.permissionMonitoringDisabled.and(model.gestureOverlayInstalled))
