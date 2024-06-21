@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import androidx.compose.compiler.plugins.kotlin.k2.ComposeFirExtensionRegistrar
 import com.android.testutils.TestUtils
 import com.android.tools.compose.ComposePluginIrGenerationExtension
 import com.android.tools.idea.projectsystem.TestProjectSystem
@@ -27,6 +28,8 @@ import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 
 /**
@@ -48,8 +51,15 @@ val composeRuntimePath = TestUtils.resolveWorkspacePath(
  */
 fun registerComposeCompilerPlugin(projectRule: AndroidProjectRule.Typed<*, Nothing>) {
   // Register the compose compiler plugin much like what Intellij would normally do.
-  if (IrGenerationExtension.getInstances(projectRule.project).find { it is ComposePluginIrGenerationExtension } == null) {
-    IrGenerationExtension.registerExtension(projectRule.project, ComposePluginIrGenerationExtension())
+  val project = projectRule.project
+  if (KotlinPluginModeProvider.isK2Mode()) {
+    if (!project.extensionArea.hasExtensionPoint(FirExtensionRegistrarAdapter.extensionPointName)) {
+      FirExtensionRegistrarAdapter.registerExtensionPoint(project)
+    }
+    FirExtensionRegistrarAdapter.registerExtension(project, ComposeFirExtensionRegistrar())
+  }
+  if (IrGenerationExtension.getInstances(project).find { it is ComposePluginIrGenerationExtension } == null) {
+    IrGenerationExtension.registerExtension(project, ComposePluginIrGenerationExtension())
   }
 }
 
