@@ -118,9 +118,9 @@ internal class AndroidExtraModelProviderWorker(
             )
             safeActionRunner.runAction { controller ->
               // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
-              GradleSourceSetModelProvider().populateBuildModels(controller, buildInfo.rootBuild, consumer)
-              GradleSourceSetDependencyModelProvider().populateBuildModels(controller, buildInfo.rootBuild, consumer)
-              GradleExternalProjectModelProvider().populateBuildModels(controller, buildInfo.rootBuild, consumer)
+              GradleSourceSetModelProvider().runModelProvider(controller, buildInfo, consumer)
+              GradleSourceSetDependencyModelProvider().runModelProvider(controller, buildInfo, consumer)
+              GradleExternalProjectModelProvider().runModelProvider(controller, buildInfo, consumer)
             }
             NativeVariantsSyncActionWorker(buildInfo, syncOptions, safeActionRunner).fetchNativeVariantsAndroidModels()
           }
@@ -142,6 +142,18 @@ internal class AndroidExtraModelProviderWorker(
         IdeAndroidSyncError::class.java
       )
     }
+  }
+
+  private fun ProjectImportModelProvider.runModelProvider(
+    controller: BuildController,
+    buildInfo: BuildInfo,
+    modelConsumer: ProjectImportModelProvider.GradleModelConsumer,
+  ) {
+    for (gradleProject in buildInfo.projects) {
+      populateProjectModels(controller, gradleProject, modelConsumer)
+    }
+    populateBuildModels(controller, buildInfo.rootBuild, modelConsumer)
+    populateModels(controller, listOf(buildInfo.rootBuild), modelConsumer)
   }
 
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {
