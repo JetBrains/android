@@ -46,6 +46,7 @@ class DeclarativeService(val project: Project) {
   }
 
   fun getSchema(): DeclarativeSchema? {
+    return null /* TODO(b/349894866): this code fails to compile against IntelliJ 2024.2 due to Gradle library version conflicts.
     if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return null
     if (schema == null) {
       val parentPath = project.basePath
@@ -69,6 +70,7 @@ class DeclarativeService(val project: Project) {
       else null
     }
     return schema
+    */
   }
 }
 
