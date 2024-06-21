@@ -201,7 +201,7 @@ class StackTraceConsole(
         stackPanel.preferredSize = emptyStatePane.preferredSize
       } else {
         cardLayout.show(stackPanel, CONSOLE_VIEW)
-        stackPanel.preferredSize = consoleView.preferredSize
+        stackPanel.preferredSize = null
       }
 
       fun Blames.getConsoleViewContentType() =
