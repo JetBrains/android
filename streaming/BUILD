@@ -151,7 +151,6 @@ iml_test(
     ],
     module = ":intellij.android.streaming.integration",
     tags = [
-        "no_mac",
         "no_windows",
         "very_flaky",  # b/271008444
     ],
