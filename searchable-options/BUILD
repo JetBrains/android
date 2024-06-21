@@ -35,7 +35,6 @@ py_binary(
     ],
     tags = [
         "block_network",
-        "no_mac",
         "no_windows",
     ],
 )

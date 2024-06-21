@@ -49,7 +49,6 @@ iml_module(
         },
     },
     tags = [
-        "no_mac",
         "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.rendering.PerfgateRenderTestSuite",
