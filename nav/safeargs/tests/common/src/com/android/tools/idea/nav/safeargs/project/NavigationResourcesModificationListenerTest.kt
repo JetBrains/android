@@ -50,7 +50,7 @@ class NavigationResourcesModificationListenerTest {
     // used an already-cached version of the repository and won't trigger creation if it doesn't
     // already exist.
     safeArgsRule.fixture.addFileToProject("res/values/strings.xml", "")
-    safeArgsRule.waitForResourceRepositoryUpdates()
+    safeArgsRule.waitForPendingUpdates()
 
     project.messageBus.connect().subscribe(NAVIGATION_RESOURCES_CHANGED, listener)
     NavigationResourcesModificationListener.ensureSubscribed(project)
@@ -85,7 +85,7 @@ class NavigationResourcesModificationListenerTest {
         .trimIndent(),
     )
 
-    safeArgsRule.waitForResourceRepositoryUpdates()
+    safeArgsRule.waitForPendingUpdates()
     // picked up 1 document change and 1 vfs change
     verifyModuleChangeEventsFired(2)
 
@@ -111,7 +111,7 @@ class NavigationResourcesModificationListenerTest {
         .trimIndent(),
     )
 
-    safeArgsRule.waitForResourceRepositoryUpdates()
+    safeArgsRule.waitForPendingUpdates()
     // picked up 1 document change and 1 vfs change
     verifyModuleChangeEventsFired(2)
   }
@@ -141,12 +141,12 @@ class NavigationResourcesModificationListenerTest {
           .trimIndent(),
       )
 
-    safeArgsRule.waitForResourceRepositoryUpdates()
+    safeArgsRule.waitForPendingUpdates()
     // picked up 1 document change and 1 vfs change
     verifyModuleChangeEventsFired(2)
 
     WriteCommandAction.runWriteCommandAction(project) { navFile.virtualFile.parent.delete(this) }
-    safeArgsRule.waitForResourceRepositoryUpdates()
+    safeArgsRule.waitForPendingUpdates()
     // picked up 1 vfs change
     verifyModuleChangeEventsFired(1)
   }
@@ -175,7 +175,7 @@ class NavigationResourcesModificationListenerTest {
       """
           .trimIndent(),
       )
-    safeArgsRule.waitForResourceRepositoryUpdates()
+    safeArgsRule.waitForPendingUpdates()
     // picked up 1 document change and 1 vfs change
     verifyModuleChangeEventsFired(2)
 
@@ -183,7 +183,7 @@ class NavigationResourcesModificationListenerTest {
     WriteCommandAction.runWriteCommandAction(project) {
       navFile.virtualFile.replaceWithoutSaving("fragment1", "fragment2", project)
     }
-    safeArgsRule.waitForResourceRepositoryUpdates()
+    safeArgsRule.waitForPendingUpdates()
     // picked up 1 document change
     verifyModuleChangeEventsFired(1)
 
@@ -191,7 +191,7 @@ class NavigationResourcesModificationListenerTest {
     WriteCommandAction.runWriteCommandAction(project) {
       navFile.virtualFile.replaceWithSaving("fragment2", "fragment3", project)
     }
-    safeArgsRule.waitForResourceRepositoryUpdates()
+    safeArgsRule.waitForPendingUpdates()
     // picked up 1 vfs change
     verifyModuleChangeEventsFired(1)
   }
