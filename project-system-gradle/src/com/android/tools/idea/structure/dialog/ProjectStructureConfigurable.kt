@@ -371,7 +371,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       }
     }
 
-    UiNotifyConnector.Once(dialog.contentPane, object : Activatable {
+    UiNotifyConnector.Once.installOn(dialog.contentPane, object : Activatable {
       override fun showNotify() {
         advanceInit.run()
       }

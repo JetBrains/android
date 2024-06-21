@@ -153,7 +153,7 @@ public class SessionProfilersView implements StudioProfilersView {
     // splitter itself. Instead, we mirror the logic that the divider uses to capture mouse event and check whether the width of the
     // sessions UI has changed between mouse press and release. Using Once here to mimic ThreeComponentsSplitter's implementation, as
     // we only need to add the MousePreprocessor to the glassPane once when the UI shows up.
-    new UiNotifyConnector.Once(mySplitter, new Activatable() {
+    UiNotifyConnector.Once.installOn(mySplitter, new Activatable() {
       @Override
       public void showNotify() {
         IdeGlassPane glassPane = IdeGlassPaneUtil.find(mySplitter);
