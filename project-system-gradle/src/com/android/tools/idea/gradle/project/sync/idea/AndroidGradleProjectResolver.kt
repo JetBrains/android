@@ -80,6 +80,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.externalSystem.JavaModuleData
+import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGradleSourceSetModel
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationType
@@ -120,9 +121,9 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
-import org.jetbrains.plugins.gradle.model.DefaultExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
+import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
@@ -606,24 +607,24 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
    * @param gradleProject the module to process
    */
   private fun removeExternalSourceSetsAndReportWarnings(project: Project, gradleProject: IdeaModule) {
-    resolverCtx.getExtraProject(gradleProject, IdeAndroidModels::class.java)
+    resolverCtx.getProjectModel(gradleProject, IdeAndroidModels::class.java)
       ?: // Not an android module
       return
-    val externalProject = resolverCtx.getExtraProject(gradleProject, ExternalProject::class.java)
-    if (externalProject == null || externalProject.sourceSets.isEmpty()) {
+    val sourceSetModel = resolverCtx.getProjectModel(gradleProject, GradleSourceSetModel::class.java)
+    if (sourceSetModel == null || sourceSetModel.sourceSets.isEmpty()) {
       // No create source sets exist
       return
     }
 
     // Obtain the existing source set names to add the error message
-    val sourceSetNames = java.lang.String.join(", ", externalProject.sourceSets.keys)
+    val sourceSetNames = java.lang.String.join(", ", sourceSetModel.sourceSets.keys)
 
     // Remove the source sets so the platform doesn't create extra modules
-    val defaultExternalProject = externalProject as DefaultExternalProject
-    defaultExternalProject.sourceSets = emptyMap()
+    (sourceSetModel as DefaultGradleSourceSetModel).sourceSets = emptyMap()
+
     val notification = Notification(
       "Detected Gradle source sets",
-      "Non-Android source sets detected in '" + externalProject.getQName() + "'",
+      "Non-Android source sets detected in '" + gradleProject.gradleProject.name + "'",
       "Gradle source sets ignored: $sourceSetNames.",
       NotificationType.WARNING
     )
