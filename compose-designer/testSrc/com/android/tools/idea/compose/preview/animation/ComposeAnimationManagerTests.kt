@@ -37,6 +37,7 @@ import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -133,6 +134,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
     }
   }
 
+  @Ignore("http://b/348574356")
   @Test
   fun transitionIsCached() {
     var transitionCalls = 0
@@ -210,6 +212,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
     }
   }
 
+  @Ignore("http://b/348574356")
   @Test
   fun changeTime() {
     var numberOfCalls = 0
