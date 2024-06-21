@@ -36,6 +36,7 @@ namespace {
 #define DIVIDER_PREFIX "-- "
 #define DARK_MODE_DIVIDER "-- Dark Mode --"
 #define GESTURES_DIVIDER "-- Gestures --"
+#define OEM_GESTURES_DIVIDER "-- OEM Gestures --"
 #define LIST_PACKAGES_DIVIDER "-- List Packages --"
 #define ACCESSIBILITY_SERVICES_DIVIDER "-- Accessibility Services --"
 #define ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "-- Accessibility Button Targets --"
@@ -57,9 +58,10 @@ namespace {
 #define PHYSICAL_DENSITY_PATTERN "Physical density: %d"
 #define OVERRIDE_DENSITY_PATTERN "Override density: %d"
 
-#define GOOGLE "Google"
+#define ONE_PLUS "OnePlus"
+#define OPPO "OPPO"
 #define SAMSUNG "samsung"
-#define MOTOROLA "motorola"
+#define XIAOMI "Xiaomi"
 
 #define SYSPROPS_TRANSACTION 1599295570 // from frameworks/base/core/java/android/os/IBinder.java
 
@@ -96,6 +98,24 @@ void ProcessGestureNavigation(TokenIterator* it, UiSettingsState* state) {
     } else {
       gesture_overlay_installed = true;
       gesture_navigation = line == "[x] " GESTURES_OVERLAY;
+    }
+  }
+  state->set_gesture_overlay_installed(gesture_overlay_installed);
+  state->set_gesture_navigation(gesture_navigation);
+}
+
+void ProcessOemGestureNavigation(TokenIterator* it, UiSettingsState* state) {
+  bool gesture_overlay_installed = false;
+  bool gesture_navigation = false;
+  if (it->has_next()) {
+    string line = it->next();
+    if (StartsWithDividerPrefix(line)) {
+      it->prev(); // Go back to start of line
+    } else {
+      int value = 0;
+      sscanf(line.c_str(), "%d", &value);
+      gesture_overlay_installed = true;
+      gesture_navigation = value > 0;
     }
   }
   state->set_gesture_overlay_installed(gesture_overlay_installed);
@@ -263,6 +283,7 @@ void ProcessAdbOutput(const string& output, UiSettingsState* state, CommandConte
     string line = it.next();
     if (line == DARK_MODE_DIVIDER) ProcessDarkMode(&it, state);
     if (line == GESTURES_DIVIDER) ProcessGestureNavigation(&it, state);
+    if (line == OEM_GESTURES_DIVIDER) ProcessOemGestureNavigation(&it, state);
     if (line == LIST_PACKAGES_DIVIDER) ProcessListPackages(&it, state);
     if (line == ACCESSIBILITY_SERVICES_DIVIDER) ProcessAccessibilityServices(&it, &context->enabled);
     if (line == ACCESSIBILITY_BUTTON_TARGETS_DIVIDER) ProcessAccessibilityServices(&it, &context->buttons);
@@ -358,27 +379,55 @@ string CreateSetSelectToSpeakCommand(bool on, CommandContext* context) {
       +  CreateSecureSettingChangeCommand(on, ACCESSIBILITY_BUTTON_TARGETS, SELECT_TO_SPEAK_SERVICE_NAME, &context->buttons);
 }
 
-string CreateSetGestureNavigationCommand(bool gesture_navigation) {
+string CreateDefaultSetGestureNavigationCommand(bool gesture_navigation) {
   auto operation = gesture_navigation ? "enable" : "disable";
   auto opposite = !gesture_navigation ? "enable" : "disable";
-  auto commands = StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY ";\n", operation, opposite);
-  if (Agent::device_manufacturer() != GOOGLE && Agent::device_manufacturer() != SAMSUNG && Agent::device_manufacturer() != MOTOROLA) {
-    // Changing the overlays did not properly change from gesture navigation to 3 button navigation on these devices:
-    // - OnePlus 12 with API 14
-    // - OnePlus 8T with API 14
-    // - Oppo Reno2 (PCKM00) with API 11
+  return StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY ";\n", operation, opposite);
+}
+
+string CreateSetGestureNavigationCommand(bool gesture_navigation) {
+  string command;
+  if (Agent::device_manufacturer() == SAMSUNG) {
+    // Samsung devices are sensitive to the global setting: navigation_bar_gesture_while_hidden.
+    // Some Samsung devices also need the overlay commands from CreateDefaultSetGestureNavigationCommand.
+    // Tested on:
+    // - Galaxy Z Fold5 - Android 14 / API 34 [overlay commands optional]
+    // - Galaxy A14 - Android 14 / API 34 [overlay commands required]
+    // - Galaxy S23 Ultra - Android 14 / API 34 [overlay commands required]
+    // - Galaxy Tab S8 Ultra - Android 13 / API 33 [overlay commands required]
+
+    // On these devices changing the value of the global setting: "navigation_bar_gesture_while_hidden" between 0 and 1
+    // together with enabling/disabling the overlays would cause the device to change the overlays and update the display
+    // properly. If the user is on the device settings "Navigation bar", the settings page would also update correctly.
+    command = StringPrintf("settings put global navigation_bar_gesture_while_hidden %d;\n", gesture_navigation ? 1 : 0) +
+      CreateDefaultSetGestureNavigationCommand(gesture_navigation);
+  }
+  else if (Agent::device_manufacturer() == XIAOMI) {
+    // Xiaomi devices are sensitive to the global setting: force_fsg_nav_bar. Tested on:
+    // - Xiaomi Redmi Note 13 Pro+ - Android 15 / API 34
+
+    // On these devices changing the value of the global setting: "force_fsg_nav_bar" between 0 and 1 would cause the
+    // device to change the overlays and update the display properly. If the user is on the device settings "System navigation",
+    // the settings page would also update correctly.
+    // The overlays settings did not seem to matter.
+    command = StringPrintf("settings put global force_fsg_nav_bar %d;\n", gesture_navigation ? 1 : 0);
+  }
+  else if (Agent::device_manufacturer() == ONE_PLUS || Agent::device_manufacturer() == OPPO) {
+    // These devices are sensitive to the secure setting: hide_navigationbar_enable. Tested on:
+    // - OnePlus 12 with Android 14 / API 34
+    // - OnePlus 8T with Android 14 / API 34
+    // - Oppo Reno2 (PCKM00) with Android 11 / API 30
 
     // On these devices changing the value of the secure setting: "hide_navigationbar_enable" between 0 and 3 would
-    // cause the device to change the overlays and update the display properly. If the user is on the device settings
-    // for gesture navigation, the settings page would also update correctly.
-
-    // If we change this setting on a phone that is not using the "hide_navigationbar_enable" it would not cause any harm
-    // since it would simply be ignored: this is the case on Google, Samsung, and Motorola.
-    // The only risk is that some manufacturers may require a different value than 0 and 3, or use this setting for something
-    // else.
-    commands += StringPrintf("settings put secure hide_navigationbar_enable %d;\n", gesture_navigation ? 3 : 0);
+    // cause the device to change the overlays and update the display properly. For the OnPlus devices: if the user is
+    // on the device settings for gesture navigation, the settings page would also update correctly.
+    // The overlays settings did not seem to matter.
+    command = StringPrintf("settings put secure hide_navigationbar_enable %d;\n", gesture_navigation ? 3 : 0);
   }
-  return commands;
+  else {
+    command = CreateDefaultSetGestureNavigationCommand(gesture_navigation);
+  }
+  return command;
 }
 
 string CreateSetDebugLayoutCommand(bool debug_layout) {
@@ -394,8 +443,6 @@ void GetSettings(UiSettingsState* state, CommandContext* context) {
   string command =
     "echo " DARK_MODE_DIVIDER "; "
     "cmd uimode night; "
-    "echo " GESTURES_DIVIDER "; "
-    "cmd overlay list android | grep " GESTURES_OVERLAY "$; "
     "echo " LIST_PACKAGES_DIVIDER "; "
     "pm list packages | grep package:" TALKBACK_PACKAGE_NAME "$; "
     "echo " ACCESSIBILITY_SERVICES_DIVIDER "; "
@@ -410,6 +457,19 @@ void GetSettings(UiSettingsState* state, CommandContext* context) {
     "getprop debug.layout; "
     "echo " FOREGROUND_APPLICATION_DIVIDER "; "
     "dumpsys activity activities | grep mFocusedApp=ActivityRecord; ";
+
+  if (Agent::device_manufacturer() == SAMSUNG) {
+    command += "echo " OEM_GESTURES_DIVIDER "; settings get global navigation_bar_gesture_while_hidden; ";
+  }
+  else if (Agent::device_manufacturer() == XIAOMI) {
+    command += "echo " OEM_GESTURES_DIVIDER "; settings get global force_fsg_nav_bar; ";
+  }
+  else if (Agent::device_manufacturer() == ONE_PLUS || Agent::device_manufacturer() == OPPO) {
+    command += "echo " OEM_GESTURES_DIVIDER "; settings get secure hide_navigationbar_enable; ";
+  }
+  else {
+    command += "echo " GESTURES_DIVIDER "; cmd overlay list android | grep " GESTURES_OVERLAY "$; ";
+  }
 
   string output = ExecuteShellCommand(command.c_str());
   ProcessAdbOutput(TrimEnd(output), state, context);
