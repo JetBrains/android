@@ -1,0 +1,9 @@
+kotlin {
+  sourceSets {
+    set {
+      dependencies {
+        implementation 'com.example:bar:2.0'
+      }
+    }
+  }
+}
