@@ -76,6 +76,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.IntFunction
 import kotlin.math.min
 
+
 // Predefined agent's exit codes. Other exit codes are possible.
 internal const val AGENT_GENERIC_FAILURE = 1
 internal const val AGENT_INVALID_COMMAND_LINE = 2
@@ -440,6 +441,7 @@ internal class DeviceClient(
               } else {
                 log.warn("terminated with code ${it.exitCode}")
                 recordAbnormalAgentTermination(it.exitCode, System.currentTimeMillis() - agentStartTime, errors)
+                AgentLogSaver.saveLog(adbSession, deviceSelector)
               }
               for (listener in agentTerminationListeners) {
                 listener.agentTerminated(it.exitCode)
