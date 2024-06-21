@@ -148,6 +148,7 @@ import com.intellij.build.events.MessageEvent
 import com.intellij.build.internal.DummySyncViewManager
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGradleSourceSetModel
+import com.intellij.gradle.toolingExtension.impl.model.taskModel.DefaultGradleTaskModel
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.Disposable
@@ -218,6 +219,7 @@ import org.jetbrains.plugins.gradle.model.ExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.model.GradleExtensions
 import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
+import org.jetbrains.plugins.gradle.model.GradleTaskModel
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
@@ -1479,6 +1481,7 @@ private fun setupTestProjectFromAndroidModelCore(
         override fun getArtifacts(): List<File> = listOf()
         override fun getArtifactsByConfiguration(): Map<String, MutableSet<File>> = mapOf()
         override fun getSourceSetModel(): GradleSourceSetModel = DefaultGradleSourceSetModel()
+        override fun getTaskModel(): GradleTaskModel = DefaultGradleTaskModel()
       },
       null
     )
