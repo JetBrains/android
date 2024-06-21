@@ -195,6 +195,16 @@ public class ClipboardAdapter {
 
   private static boolean checkNumberOfParameters(Method method, int minParam, int maxParam) {
     int parameterCount = method.getParameterCount();
+    if (minParam <= parameterCount && parameterCount <= maxParam) {
+      return true;
+    }
+
+    Log.e(ATTRIBUTION_TAG, "Unexpected number of IClipboard." + method.getName() + " parameters: " + parameterCount +
+                           " types: " + getParameterTypesString(method));
+    return false;
+  }
+
+  private static String getParameterTypesString(Method method) {
     Class<?>[] parameterTypes = method.getParameterTypes();
     StringBuilder types = new StringBuilder();
     for (Class<?> parameterType : parameterTypes) {
@@ -203,13 +213,6 @@ public class ClipboardAdapter {
       }
       types.append(parameterType.getName());
     }
-    if (minParam <= parameterCount && parameterCount <= maxParam) {
-      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: IClipboard." + method.getName() + '(' + types + ')');
-      return true;
-    }
-
-    Log.e(ATTRIBUTION_TAG, "Unexpected number of IClipboard." + method.getName() + " parameters: " + parameterCount +
-                           " types: " + types);
-    return false;
+    return types.toString();
   }
 }
