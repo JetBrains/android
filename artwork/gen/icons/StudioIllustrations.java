@@ -19,8 +19,9 @@ public final class StudioIllustrations {
     /** 171x97 */ public static final @NotNull Icon DISCONNECT = load("studio/illustrations/common/disconnect.svg", -37251307, 2);
     /** 16x16 */ public static final @NotNull Icon FIREBASE_ICON = load("studio/illustrations/common/firebase-icon.svg", -977760757, 2);
     /** 117x32 */ public static final @NotNull Icon FIREBASE_LOGO = load("studio/illustrations/common/firebase-logo.svg", 1650099607, 2);
+    /** 16x16 */ public static final @NotNull Icon PLAY_CONSOLE_ICON = load("studio/illustrations/common/play-console-icon.svg", -608717612, 2);
     /** 300x97 */ public static final @NotNull Icon PLAY_CONSOLE = load("studio/illustrations/common/play-console.svg", -1059245254, 2);
-    /** 16x16 */ public static final @NotNull Icon PLAY_STORE = load("studio/illustrations/common/play-store.svg", 691011627, 2);
+    /** 16x16 */ public static final @NotNull Icon PLAY_STORE = load("studio/illustrations/common/play-store.svg", -128604296, 2);
     /** 64x64 */ public static final @NotNull Icon PRODUCT_ICON = load("studio/illustrations/common/product-icon.svg", 2071856450, 0);
   }
 
