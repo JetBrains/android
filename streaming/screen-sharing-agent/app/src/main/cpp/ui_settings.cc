@@ -58,6 +58,8 @@ namespace {
 #define PHYSICAL_DENSITY_PATTERN "Physical density: %d"
 #define OVERRIDE_DENSITY_PATTERN "Override density: %d"
 
+#define GOOGLE "Google"
+#define MOTOROLA "motorola"
 #define ONE_PLUS "OnePlus"
 #define OPPO "OPPO"
 #define SAMSUNG "samsung"
@@ -467,8 +469,13 @@ void GetSettings(UiSettingsState* state, CommandContext* context) {
   else if (Agent::device_manufacturer() == ONE_PLUS || Agent::device_manufacturer() == OPPO) {
     command += "echo " OEM_GESTURES_DIVIDER "; settings get secure hide_navigationbar_enable; ";
   }
-  else {
+  else if (Agent::device_manufacturer() == GOOGLE || Agent::device_manufacturer() == MOTOROLA) {
     command += "echo " GESTURES_DIVIDER "; cmd overlay list android | grep " GESTURES_OVERLAY "$; ";
+  }
+  else {
+    // This will disable gesture navigation setting on untested devices.
+    // Since ProcessOemGestureNavigation will call: state->set_gesture_overlay_installed(false);
+    command += "echo " OEM_GESTURES_DIVIDER "; ";
   }
 
   string output = ExecuteShellCommand(command.c_str());
