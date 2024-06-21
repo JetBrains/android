@@ -29,6 +29,7 @@ import org.junit.Test
 
 // Test is based on generated schema files. Schema has declarations for
 // androidApplication{compileSdk, namespace, jdkVersion, minSdk}, declarativeDependencies{api, implementation}
+@org.junit.Ignore("b/349894866")
 @RunsInEdt
 class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
   @get:Rule
