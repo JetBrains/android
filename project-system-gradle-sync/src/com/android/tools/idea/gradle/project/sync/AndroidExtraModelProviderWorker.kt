@@ -118,9 +118,9 @@ internal class AndroidExtraModelProviderWorker(
             )
             safeActionRunner.runAction { controller ->
               // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
+              GradleExternalProjectModelProvider().runModelProvider(controller, buildInfo, consumer)
               GradleSourceSetModelProvider().runModelProvider(controller, buildInfo, consumer)
               GradleSourceSetDependencyModelProvider().runModelProvider(controller, buildInfo, consumer)
-              GradleExternalProjectModelProvider().runModelProvider(controller, buildInfo, consumer)
             }
             NativeVariantsSyncActionWorker(buildInfo, syncOptions, safeActionRunner).fetchNativeVariantsAndroidModels()
           }
