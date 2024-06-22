@@ -24,7 +24,6 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue.KaErrorConstantValue
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
@@ -285,7 +284,7 @@ fun KtAnnotated.findAnnotation(classId: ClassId): KtAnnotationEntry? =
   }
 
 private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? = mapOnDeclarationSymbol {
-  it.annotationsByClassId(classId).singleOrNull()?.psi as? KtAnnotationEntry
+  it.annotations[classId].singleOrNull()?.psi as? KtAnnotationEntry
 } ?: findAnnotationEntryByClassId(classId)
 
 @OptIn(KaAllowAnalysisOnEdt::class)

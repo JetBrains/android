@@ -34,7 +34,6 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotation
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
@@ -156,7 +155,7 @@ private fun KtParameter.providerClassNameK2(): String? {
     return analyze(this) {
       val annotatedSymbol = this@providerClassNameK2.symbol
       val annotationClassId = ClassId.topLevel(FqName(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN))
-      val annotation = annotatedSymbol.annotationsByClassId(annotationClassId).singleOrNull()
+      val annotation = annotatedSymbol.annotations[annotationClassId].singleOrNull()
       annotation?.let(::findProviderClassId)?.asFqNameString()
     }
   }

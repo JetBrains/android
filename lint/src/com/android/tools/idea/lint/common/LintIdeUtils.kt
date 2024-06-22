@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
@@ -93,7 +92,7 @@ fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
         analyze(this) {
           val annotatedSymbol =
             (this@findAnnotation as? KtDeclaration)?.symbol as? KaAnnotatedSymbol
-          val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
+          val annotations = annotatedSymbol?.let { it.annotations[ClassId.topLevel(fqName)] }
           annotations?.singleOrNull()?.psi as? KtAnnotationEntry
         }
       }

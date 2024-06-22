@@ -17,7 +17,6 @@ package com.android.tools.idea.actions.annotations
 
 import com.android.tools.idea.lint.common.findAnnotation
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KaAnnotatedSymbol
@@ -108,7 +107,7 @@ fun KtAnnotated.findAnnotationWithUsageSite(annotationFqName: FqName, useSiteTar
     allowAnalysisOnEdt {
       analyze(this) {
         val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.symbol as? KaAnnotatedSymbol
-        val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(annotationFqName))
+        val annotations = annotatedSymbol?.let { it.annotations[ClassId.topLevel(annotationFqName)] }
         return annotations?.firstOrNull { annoApp ->
           annoApp.useSiteTarget == useSiteTarget
         }?.psi as? KtAnnotationEntry
