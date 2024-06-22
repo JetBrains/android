@@ -32,7 +32,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationApplicationWithArgumentsInfo
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotation
 import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
@@ -164,7 +164,7 @@ private fun KtParameter.providerClassNameK2(): String? {
 
 private val PROVIDER_ARGUMENT_NAME = Name.identifier("provider")
 
-private fun findProviderClassId(annotation: KtAnnotationApplicationWithArgumentsInfo): ClassId? {
+private fun findProviderClassId(annotation: KaAnnotation): ClassId? {
   for (argument in annotation.arguments) {
     if (argument.name != PROVIDER_ARGUMENT_NAME) continue
     val value = argument.expression as? KtKClassAnnotationValue ?: continue
