@@ -153,10 +153,10 @@ private fun serializeKtAnnotationValue(value: KtAnnotationValue): String? {
       childValues.joinToString()
     }
     is KaAnnotationValue.ConstantValue -> {
-      when (value.constantValue) {
+      when (value.value) {
         is KaConstantValue.KaStringConstantValue ->
-          (value.constantValue as KaConstantValue.KaStringConstantValue).value
-        else -> value.constantValue.renderAsKotlinConstant()
+          (value.value as KaConstantValue.KaStringConstantValue).value
+        else -> value.value.renderAsKotlinConstant()
       }
     }
     is KaAnnotationValue.EnumEntryValue -> value.callableId?.asSingleFqName()?.asString()
