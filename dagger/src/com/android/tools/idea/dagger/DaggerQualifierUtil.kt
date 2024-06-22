@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.KtConstantAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.annotations
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
@@ -153,7 +152,7 @@ private fun serializeKtAnnotationValue(value: KtAnnotationValue): String? {
       val childValues = value.values.map { serializeKtAnnotationValue(it) ?: return null }
       childValues.joinToString()
     }
-    is KtConstantAnnotationValue -> {
+    is KaAnnotationValue.ConstantValue -> {
       when (value.constantValue) {
         is KaConstantValue.KaStringConstantValue ->
           (value.constantValue as KaConstantValue.KaStringConstantValue).value
