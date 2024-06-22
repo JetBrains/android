@@ -25,7 +25,7 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
-import org.jetbrains.kotlin.analysis.api.base.KaConstantValue.KaErrorConstantValue
+import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
@@ -208,7 +208,7 @@ inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KaSession?
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       evaluate()
-        ?.takeUnless { it is KaErrorConstantValue }
+        ?.takeUnless { it is KaConstantValue.ErrorValue }
         ?.value as? T
     }
   } else {
