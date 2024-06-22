@@ -27,7 +27,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.analysis.api.calls.KtCallableMemberCall
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
@@ -135,7 +135,7 @@ internal fun KtFunction.hasComposableAnnotation() =
   }
 
 internal fun KaSession.isComposableInvocation(callableSymbol: KaCallableSymbol): Boolean {
-  fun hasComposableAnnotation(annotated: KtAnnotated?) =
+  fun hasComposableAnnotation(annotated: KaAnnotated?) =
     annotated != null && ComposeClassIds.Composable in annotated.annotations
 
   val type = callableSymbol.returnType

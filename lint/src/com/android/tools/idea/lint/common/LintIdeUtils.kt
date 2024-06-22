@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
@@ -36,7 +37,6 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KaAnnotatedSymbol
 import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 
 /** Returns the [PsiFile] associated with a given lint [Context]. */
@@ -91,7 +91,7 @@ fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
       allowAnalysisFromWriteAction {
         analyze(this) {
           val annotatedSymbol =
-            (this@findAnnotation as? KtDeclaration)?.symbol as? KaAnnotatedSymbol
+            (this@findAnnotation as? KtDeclaration)?.symbol as? KaAnnotated
           val annotations = annotatedSymbol?.let { it.annotations[ClassId.topLevel(fqName)] }
           annotations?.singleOrNull()?.psi as? KtAnnotationEntry
         }
