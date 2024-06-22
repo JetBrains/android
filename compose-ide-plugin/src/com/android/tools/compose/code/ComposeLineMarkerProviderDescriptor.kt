@@ -84,7 +84,7 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
         analyze(parentFunction) {
           // `KtCallExpression.resolveCallOld()` expects the call to be successful always, or throws.
           // Instead, we should use `KtElement.resolveCallOld()` that allows an unresolved call.
-          val callInfo = (parentFunction as KtElement).resolveCallOld() ?: return false
+          val callInfo = (parentFunction as KtElement).resolveToCall() ?: return false
           val symbol = callInfo.singleFunctionCallOrNull()?.symbol ?: return false
           return isComposableInvocation(symbol)
         }

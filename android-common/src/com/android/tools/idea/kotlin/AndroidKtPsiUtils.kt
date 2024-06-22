@@ -107,7 +107,7 @@ fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
 fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      resolveCallOld()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
+      resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
     }
   } else {
     analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
@@ -311,7 +311,7 @@ private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): K
     allowAnalysisFromWriteAction {
       analyze(this) {
         annotationEntries.find { annotationEntry ->
-          val annotationConstructorCall = annotationEntry.resolveCallOld()?.singleConstructorCallOrNull() ?: return null
+          val annotationConstructorCall = annotationEntry.resolveToCall()?.singleConstructorCallOrNull() ?: return null
           annotationConstructorCall.symbol.containingClassId == classId
         }
       }

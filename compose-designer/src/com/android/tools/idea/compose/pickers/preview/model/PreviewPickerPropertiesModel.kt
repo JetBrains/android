@@ -370,7 +370,7 @@ private class PreviewPropertiesProvider(
     properties: MutableCollection<PsiPropertyItem>,
   ) = allowAnalysisOnEdt {
     analyze(annotationEntry) {
-      val resolvedFunctionCall = annotationEntry.resolveCallOld()?.singleFunctionCallOrNull() ?: return
+      val resolvedFunctionCall = annotationEntry.resolveToCall()?.singleFunctionCallOrNull() ?: return
       val callableSymbol = resolvedFunctionCall.symbol
       callableSymbol.valueParameters.forEach { parameter ->
         val argument = getArgumentForParameter(resolvedFunctionCall, parameter)
