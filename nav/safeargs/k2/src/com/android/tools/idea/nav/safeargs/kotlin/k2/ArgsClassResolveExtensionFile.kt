@@ -26,7 +26,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtVariableLikeSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaVariableSymbol
 import org.jetbrains.kotlin.name.ClassId
 
 /*
@@ -68,12 +68,12 @@ internal class ArgsClassResolveExtensionFile(
     symbol: KaDeclarationSymbol
   ): PsiElement? =
     when (symbol) {
-      is KtVariableLikeSymbol -> getNavigationElementForVariableLikeSymbol(symbol)
+      is KaVariableSymbol -> getNavigationElementForVariableLikeSymbol(symbol)
       else -> destinationXmlTag
     }
 
   private fun KaSession.getNavigationElementForVariableLikeSymbol(
-    symbol: KtVariableLikeSymbol
+    symbol: KaVariableSymbol
   ): PsiElement? {
     val matchingArgument =
       resolvedArguments.firstOrNull {
