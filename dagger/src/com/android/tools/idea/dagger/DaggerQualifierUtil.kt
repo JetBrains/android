@@ -27,8 +27,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.KtArrayAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtConstantAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtEnumEntryAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
@@ -150,7 +150,7 @@ private fun serializeAttrValueToString(value: JvmAnnotationAttributeValue?): Str
  */
 private fun serializeKtAnnotationValue(value: KtAnnotationValue): String? {
   return when (value) {
-    is KtArrayAnnotationValue -> {
+    is KaAnnotationValue.ArrayValue -> {
       val childValues = value.values.map { serializeKtAnnotationValue(it) ?: return null }
       childValues.joinToString()
     }
