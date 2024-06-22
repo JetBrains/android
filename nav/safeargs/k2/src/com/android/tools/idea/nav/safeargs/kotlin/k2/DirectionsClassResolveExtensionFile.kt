@@ -101,12 +101,12 @@ internal class DirectionsClassResolveExtensionFile(
       // Function on companion object -> matching action tag.
       is KaNamedFunctionSymbol -> findMatchingAction(symbol)?.actionTag ?: destinationXmlTag
       // Argument of companion object function -> argument under action (preferred) or destination.
-      is KtValueParameterSymbol -> getTagForValueParameterSymbol(symbol) ?: destinationXmlTag
+      is KaValueParameterSymbol -> getTagForValueParameterSymbol(symbol) ?: destinationXmlTag
       else -> null
     }
 
   private fun KaSession.getTagForValueParameterSymbol(
-    symbol: KtValueParameterSymbol
+    symbol: KaValueParameterSymbol
   ): XmlTag? {
     val declaringFunctionSymbol = symbol.containingSymbol as? KaNamedFunctionSymbol ?: return null
     val matchingAction = findMatchingAction(declaringFunctionSymbol) ?: return null
