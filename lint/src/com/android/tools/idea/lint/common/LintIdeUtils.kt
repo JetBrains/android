@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAct
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -59,7 +59,7 @@ internal fun KtProperty.hasBackingField(): Boolean {
     allowAnalysisFromWriteAction {
       analyze(this) {
         val propertySymbol =
-          this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
+          this@hasBackingField.getVariableSymbol() as? KaPropertySymbol ?: return false
         return propertySymbol.hasBackingField
       }
     }

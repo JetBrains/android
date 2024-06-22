@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteActio
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.asJava.getAccessorLightMethods
@@ -92,7 +92,7 @@ inline fun <T> KaSession?.applyOrAnalyze(element: KtElement, block: KaSession.()
 fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      val symbol = getVariableSymbol() as? KtPropertySymbol ?: return false
+      val symbol = getVariableSymbol() as? KaPropertySymbol ?: return false
       return symbol.hasBackingField
     }
   } else {
