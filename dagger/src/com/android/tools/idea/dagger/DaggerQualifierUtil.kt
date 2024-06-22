@@ -152,8 +152,8 @@ private fun serializeKtAnnotationValue(value: KaAnnotationValue): String? {
     }
     is KaAnnotationValue.ConstantValue -> {
       when (value.value) {
-        is KaConstantValue.KaStringConstantValue ->
-          (value.value as KaConstantValue.KaStringConstantValue).value
+        is KaConstantValue.StringValue ->
+          (value.value as KaConstantValue.StringValue).value
         else -> value.value.render()
       }
     }
