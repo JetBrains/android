@@ -22,7 +22,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.xdebugger.breakpoints.XBreakpoint
 import org.jetbrains.java.debugger.breakpoints.properties.JavaMethodBreakpointProperties
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.symbols.KaClassOrObjectSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaTypeAliasSymbol
 import org.jetbrains.kotlin.idea.debugger.core.breakpoints.ApplicabilityResult
 import org.jetbrains.kotlin.idea.debugger.core.breakpoints.KotlinFunctionBreakpoint
@@ -75,7 +75,7 @@ private fun KtFunction.isComposable(): Boolean {
     for (annotationEntry in annotationEntries) {
       val classSymbol = when (val symbol = annotationEntry.typeReference?.mainReference?.resolveToSymbol()) {
         is KaTypeAliasSymbol -> symbol.expandedType.expandedSymbol
-        is KaClassOrObjectSymbol -> symbol
+        is KaClassSymbol -> symbol
         else -> null
       }
 
