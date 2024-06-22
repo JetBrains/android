@@ -97,7 +97,7 @@ internal class DirectionsClassResolveExtensionFile(
   ): PsiElement? =
     when (symbol) {
       // Containing class or its companion object -> overall destination.
-      is KtClassOrObjectSymbol -> destinationXmlTag
+      is KaClassSymbol -> destinationXmlTag
       // Function on companion object -> matching action tag.
       is KaNamedFunctionSymbol -> findMatchingAction(symbol)?.actionTag ?: destinationXmlTag
       // Argument of companion object function -> argument under action (preferred) or destination.
