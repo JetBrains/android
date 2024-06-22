@@ -1310,6 +1310,9 @@ internal fun modelCacheV2Impl(
           getApplicationIdFromArtifact(modelVersions, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyAndroidGradlePluginProperties, variant.name)
         },
         buildType = basicVariant.buildType,
+        modelVersions[ModelFeature.HAS_EXPERIMENTAL_PROPERTIES] &&
+        variant.experimentalProperties.contains("androidx.baselineProfile.synthetic") &&
+        variant.experimentalProperties["androidx.baselineProfile.synthetic"].equals("true", true),
       )
     }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()

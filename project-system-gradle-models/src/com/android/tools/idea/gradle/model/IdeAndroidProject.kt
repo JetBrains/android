@@ -180,4 +180,4 @@ interface IdeAndroidProject : Serializable {
   val lintJar: File?
 }
 
-val IdeAndroidProject.variantNames: Collection<String> get() = basicVariants.map { it.name }
+val IdeAndroidProject.filteredVariantNames: Collection<String> get() = basicVariants.mapNotNull { if (it.hideInStudio) null else it.name }

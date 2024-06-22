@@ -36,6 +36,11 @@ interface IdeBasicVariant {
    * Null if there are no build types, such as for the single-variant KMP, or if there's something broken about the project structure.
    */
   val buildType: String?
+
+  /**
+   * The Studio UI hide all references to those variants for the users, keeping them for internal usage purposes
+   */
+  val hideInStudio: Boolean
 }
 
 interface IdeVariantHeader {

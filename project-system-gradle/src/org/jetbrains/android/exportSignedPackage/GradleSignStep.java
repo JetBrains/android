@@ -83,7 +83,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     myBuildVariantsListModel.clear();
     List<String> buildVariants = new ArrayList<>();
     if (myAndroidModel != null) {
-      buildVariants.addAll(myAndroidModel.getVariantNames());
+      buildVariants.addAll(myAndroidModel.getFilteredVariantNames());
       Collections.sort(buildVariants);
     }
 
