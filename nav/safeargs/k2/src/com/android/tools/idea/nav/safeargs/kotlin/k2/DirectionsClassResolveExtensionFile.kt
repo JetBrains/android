@@ -30,7 +30,7 @@ import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTra
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.name.ClassId
 
@@ -92,7 +92,7 @@ internal class DirectionsClassResolveExtensionFile(
   override val fallbackPsi
     get() = destinationXmlTag
 
-  override fun KtAnalysisSession.getNavigationElementForDeclaration(
+  override fun KaSession.getNavigationElementForDeclaration(
     symbol: KaDeclarationSymbol
   ): PsiElement? =
     when (symbol) {
@@ -105,7 +105,7 @@ internal class DirectionsClassResolveExtensionFile(
       else -> null
     }
 
-  private fun KtAnalysisSession.getTagForValueParameterSymbol(
+  private fun KaSession.getTagForValueParameterSymbol(
     symbol: KtValueParameterSymbol
   ): XmlTag? {
     val declaringFunctionSymbol = symbol.containingSymbol as? KtFunctionSymbol ?: return null
@@ -132,7 +132,7 @@ internal class DirectionsClassResolveExtensionFile(
     return actionTag
   }
 
-  private fun KtAnalysisSession.findMatchingAction(symbol: KtFunctionSymbol): NavActionData? =
+  private fun KaSession.findMatchingAction(symbol: KtFunctionSymbol): NavActionData? =
     actionsWithResolvedArguments.firstOrNull {
       it.id.toCamelCase() == symbol.name.identifierOrNullIfSpecial
     }

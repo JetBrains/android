@@ -25,7 +25,6 @@ import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtVariableLikeSymbol
 import org.jetbrains.kotlin.name.ClassId
@@ -73,7 +72,7 @@ internal class ArgsClassResolveExtensionFile(
       else -> destinationXmlTag
     }
 
-  private fun KtAnalysisSession.getNavigationElementForVariableLikeSymbol(
+  private fun KaSession.getNavigationElementForVariableLikeSymbol(
     symbol: KtVariableLikeSymbol
   ): PsiElement? {
     val matchingArgument =

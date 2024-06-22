@@ -21,7 +21,7 @@ import com.android.tools.compose.isComposeEnabled
 import com.android.tools.compose.isInLibrarySource
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.calls.KtCall
 import org.jetbrains.kotlin.analysis.api.resolution.KaCallableMemberCall
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.idea.highlighting.KotlinCallHighlighterExtension
 
 @Suppress("ContextReceiver")
 class ComposableCallHighlighterExtension : KotlinCallHighlighterExtension {
-  context(KtAnalysisSession)
+  context(KaSession)
   override fun highlightCall(elementToHighlight: PsiElement, call: KtCall): HighlightInfoType? {
     val memberCall = call as? KaCallableMemberCall<*, *> ?: return null
     val callableSymbol = memberCall.symbol
