@@ -109,13 +109,13 @@ private fun buildVariantTableModelRows(project: Project) =
   project
     .getAndroidFacets()
     .sortedWith(compareBy(ModuleTypeComparator.INSTANCE) { it.module })
-    .map { androidFacet ->
+    .mapNotNull { androidFacet ->
       val defaultVariantName = GradleAndroidModel.get(androidFacet)?.androidProject?.defaultVariantName
       val variantAndAbi = androidFacet.getVariantAndAbi()
       val buildVariantItems =
-        GradleAndroidModel.get(androidFacet)?.variantNames.orEmpty().map { BuildVariantItem(it, it == defaultVariantName) }.sorted()
+        GradleAndroidModel.get(androidFacet)?.filteredVariantNames.orEmpty().map { BuildVariantItem(it, it == defaultVariantName) }.sorted()
       val abiItems = getAbiItems(androidFacet, variantAndAbi.variant)
-      BuildVariantTableRow(androidFacet.holderModule, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)
+      if (buildVariantItems.isNotEmpty()) BuildVariantTableRow(androidFacet.holderModule, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems) else null
     }
 
 private fun getAbiItems(facet: AndroidFacet, foVariant: String): List<AbiItem> {

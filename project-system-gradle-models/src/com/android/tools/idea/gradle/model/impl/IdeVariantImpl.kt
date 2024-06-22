@@ -29,6 +29,7 @@ data class IdeBasicVariantImpl(
   override val applicationId: String?,
   override val testApplicationId: String?,
   override val buildType: String?,
+  override val hideInStudio: Boolean,
 ) : IdeBasicVariant, Serializable
 
 data class IdeVariantCoreImpl(

@@ -36,8 +36,8 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
+import com.android.tools.idea.gradle.model.filteredVariantNames
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
-import com.android.tools.idea.gradle.model.variantNames
 import com.android.tools.idea.gradle.util.BaselineProfileUtil.getGenerateBaselineProfileTaskName
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
@@ -98,7 +98,7 @@ class GradleAndroidModel(
       .mapNotNull { it.value.productFlavor.dimension?.let { dimension -> dimension to it.key } }
       .sortedBy { androidProject.flavorDimensions.indexOf(it.first) }
       .groupBy({ it.first }, { it.second })
-  val variantNames: Collection<String> get() = androidProject.variantNames
+  val filteredVariantNames: Collection<String> get() = androidProject.filteredVariantNames
   val variants: List<IdeVariant> get() = myCachedResolvedVariantsByName.values.toList()
 
   fun findBasicVariantByName(variantName: String): IdeBasicVariant? = myCachedBasicVariantsByName[variantName]
