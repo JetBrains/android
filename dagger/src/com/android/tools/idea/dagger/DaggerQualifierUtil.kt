@@ -30,7 +30,6 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtConstantAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.KtEnumEntryAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.annotations
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
@@ -161,7 +160,7 @@ private fun serializeKtAnnotationValue(value: KtAnnotationValue): String? {
         else -> value.constantValue.renderAsKotlinConstant()
       }
     }
-    is KtEnumEntryAnnotationValue -> value.callableId?.asSingleFqName()?.asString()
+    is KaAnnotationValue.EnumEntryValue -> value.callableId?.asSingleFqName()?.asString()
     is KtKClassAnnotationValue -> (value.type as? KtNonErrorClassType)?.classId?.normalizeToJVM()?.asSingleFqName()?.asString()
     else -> null
   }
