@@ -31,10 +31,7 @@ import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.symbols.KtClassOrObjectSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.name.ClassId
 
 /*
@@ -96,7 +93,7 @@ internal class DirectionsClassResolveExtensionFile(
     get() = destinationXmlTag
 
   override fun KtAnalysisSession.getNavigationElementForDeclaration(
-    symbol: KtDeclarationSymbol
+    symbol: KaDeclarationSymbol
   ): PsiElement? =
     when (symbol) {
       // Containing class or its companion object -> overall destination.

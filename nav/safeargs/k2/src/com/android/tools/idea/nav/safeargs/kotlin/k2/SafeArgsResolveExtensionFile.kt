@@ -19,7 +19,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionFile
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionNavigationTargetsProvider
-import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -61,7 +61,7 @@ abstract class SafeArgsResolveExtensionFile(val classId: ClassId) : KtResolveExt
   override fun buildFileText(): String = fileText
 
   protected abstract fun KtAnalysisSession.getNavigationElementForDeclaration(
-    symbol: KtDeclarationSymbol
+    symbol: KaDeclarationSymbol
   ): PsiElement?
 
   protected abstract val fallbackPsi: PsiElement?
