@@ -123,7 +123,7 @@ internal fun KtElement.callReturnTypeFqName() =
   }
 
 // TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType`
-// and `KtTypeRenderer`.
+// and `KaTypeRenderer`.
 internal fun KaSession.asFqName(type: KaType) =
   type.expandedSymbol?.classId?.asSingleFqName()
 
