@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
@@ -129,9 +129,9 @@ private fun KotlinType.isStateType(stateTypeFqName: String) =
     supertypes().any { it.fqName?.asString() == stateTypeFqName })
 
 private fun KaSession.isStateType(type: KtType, stateClassId: ClassId): Boolean =
-  type is KtNonErrorClassType &&
+  type is KaClassType &&
     (type.classId == stateClassId ||
-      type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == stateClassId })
+      type.getAllSuperTypes().any { it is KaClassType && it.classId == stateClassId })
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =

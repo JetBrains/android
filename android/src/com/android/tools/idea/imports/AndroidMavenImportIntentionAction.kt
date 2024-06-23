@@ -53,7 +53,7 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
@@ -491,7 +491,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     if (KotlinPluginModeProvider.isK2Mode()) {
       allowAnalysisOnEdt {
         analyze(receiverExpr) {
-          (receiverExpr.getKtType() as? KtNonErrorClassType)?.classId?.asFqNameString()?.let {
+          (receiverExpr.getKtType() as? KaClassType)?.classId?.asFqNameString()?.let {
             return left.text to it
           }
         }

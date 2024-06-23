@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.successfulFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
@@ -295,7 +295,7 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
                 return
 
               // First, check we're visiting an extension method of Transition<T>
-              val receiverType = callableSymbol.receiverType as? KtNonErrorClassType ?: return
+              val receiverType = callableSymbol.receiverType as? KaClassType ?: return
               val fqExtensionName = receiverType.classId.asFqNameString()
               if (!fqNameCheck(fqExtensionName)) return
 

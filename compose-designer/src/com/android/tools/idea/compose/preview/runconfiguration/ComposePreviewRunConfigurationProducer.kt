@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotation
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.ClassId
@@ -167,7 +167,7 @@ private fun findProviderClassId(annotation: KaAnnotation): ClassId? {
   for (argument in annotation.arguments) {
     if (argument.name != PROVIDER_ARGUMENT_NAME) continue
     val value = argument.expression as? KaAnnotationValue.ClassLiteralValue ?: continue
-    val classType = value.type as? KtNonErrorClassType ?: continue
+    val classType = value.type as? KaClassType ?: continue
     return classType.classId.takeUnless { it.isLocal }
   }
 

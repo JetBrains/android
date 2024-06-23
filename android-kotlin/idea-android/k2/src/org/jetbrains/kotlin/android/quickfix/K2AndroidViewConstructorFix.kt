@@ -20,7 +20,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic.SupertypeNotInitialized
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.codeinsight.api.applicable.fixes.AbstractKotlinApplicableQuickFix
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
@@ -53,7 +53,7 @@ class K2AndroidViewConstructorFix(
             val ktClass = superTypeEntry.containingClass() ?: return null
             if (ktClass.primaryConstructor != null) return null
 
-            val superType = superTypeReference.getKtType() as? KtNonErrorClassType ?: return null
+            val superType = superTypeReference.getKtType() as? KaClassType ?: return null
 
             if (!isAndroidView(superType) && superType.getAllSuperTypes().none { isAndroidView(it) }) {
                 return null
