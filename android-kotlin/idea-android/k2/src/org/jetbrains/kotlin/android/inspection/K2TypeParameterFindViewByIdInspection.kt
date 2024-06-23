@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.analysis.api.resolution.successfulFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaTypeParameterSymbol
-import org.jetbrains.kotlin.analysis.api.types.KtCapturedType
+import org.jetbrains.kotlin.analysis.api.types.KaCapturedType
 import org.jetbrains.kotlin.analysis.api.types.KtDefinitelyNotNullType
 import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.analysis.api.types.KtFlexibleType
@@ -68,7 +68,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
                 is KaTypeParameterType -> expanded.symbol
                 is KtFlexibleType -> unwrapToTypeParameterSymbol(expanded.upperBound)
                 is KtDefinitelyNotNullType -> unwrapToTypeParameterSymbol(expanded.original)
-                is KtCapturedType -> {
+                is KaCapturedType -> {
                     val projectedType = expanded.projection.type
                     if (projectedType != null) {
                         unwrapToTypeParameterSymbol(projectedType)
