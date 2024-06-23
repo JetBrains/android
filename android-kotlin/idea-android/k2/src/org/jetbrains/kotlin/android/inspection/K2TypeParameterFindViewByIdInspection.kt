@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaTypeParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtCapturedType
 import org.jetbrains.kotlin.analysis.api.types.KtDefinitelyNotNullType
-import org.jetbrains.kotlin.analysis.api.types.KtErrorType
+import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.analysis.api.types.KtFlexibleType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.analysis.api.types.KaTypeNullability
@@ -48,7 +48,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
         // We discard the ? on the cast target type when we execute the quickfix, so we need to check
         // against the non-nullable type here.
         val castTargetType = cast.right?.getKtType() ?: return null
-        if (castTargetType is KtErrorType) return null
+        if (castTargetType is KaErrorType) return null
 
         val castTargetTypeNonNull = castTargetType.withNullability(KaTypeNullability.NON_NULLABLE)
         if (!typeParameterSymbol.upperBounds.all { castTargetTypeNonNull.isSubTypeOf(it) }) return null

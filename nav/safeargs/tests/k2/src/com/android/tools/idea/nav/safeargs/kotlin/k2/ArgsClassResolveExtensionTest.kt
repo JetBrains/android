@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.psi
-import org.jetbrains.kotlin.analysis.api.types.KtErrorType
+import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtElement
@@ -212,7 +212,7 @@ class ArgsClassResolveExtensionTest(
       """
         .trimIndent()
     ) { symbol: KtPropertySymbol ->
-      assertThat(symbol.returnType).isNotInstanceOf(KtErrorType::class.java)
+      assertThat(symbol.returnType).isNotInstanceOf(KaErrorType::class.java)
     }
 
     safeArgsRule.androidFacet.safeArgsMode = SafeArgsMode.NONE
@@ -225,7 +225,7 @@ class ArgsClassResolveExtensionTest(
       """
         .trimIndent()
     ) { symbol: KtPropertySymbol ->
-      assertThat(symbol.returnType).isInstanceOf(KtErrorType::class.java)
+      assertThat(symbol.returnType).isInstanceOf(KaErrorType::class.java)
     }
 
     // This change should be picked up when the mode changes back.
