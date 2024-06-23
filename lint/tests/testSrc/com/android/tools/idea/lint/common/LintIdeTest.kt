@@ -179,6 +179,16 @@ class LintIdeTest : UsefulTestCase() {
     )
   }
 
+  fun testAddSuperCallInterface() {
+    addCallSuper()
+    doTestWithFix(
+      AndroidLintMissingSuperCallInspection(),
+      "Add super call",
+      "/src/p1/p2/SuperTestInterface.kt",
+      "kt",
+    )
+  }
+
   fun testAddSuperCallSuppress() {
     addCallSuper()
     doTestWithFix(
