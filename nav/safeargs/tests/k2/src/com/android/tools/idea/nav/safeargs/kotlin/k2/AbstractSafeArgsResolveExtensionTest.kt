@@ -44,7 +44,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtConstructorSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtSymbolOrigin
+import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.references.KtReference
 import org.jetbrains.kotlin.psi.KtElement
@@ -121,7 +121,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
       .getDeclaredMemberScope()
       .getCallableSymbols()
       .filterIsInstance<KtFunctionSymbol>()
-      .filter { it.origin != KtSymbolOrigin.SOURCE_MEMBER_GENERATED }
+      .filter { it.origin != KaSymbolOrigin.SOURCE_MEMBER_GENERATED }
       .map { it.render(renderer) }
       .toList()
 
