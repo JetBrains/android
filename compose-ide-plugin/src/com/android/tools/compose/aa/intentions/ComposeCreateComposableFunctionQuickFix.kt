@@ -25,7 +25,7 @@ import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSib
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
-import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
+import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KaTypeRendererForSource
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
@@ -138,7 +138,7 @@ class ComposeCreateComposableFunctionQuickFix(
                 param(
                   paramName,
                   "${if (isLastLambdaArgument) "@$COMPOSABLE_ANNOTATION_NAME " else ""}${
-                  type.render(KtTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT)
+                  type.render(KaTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT)
                 }",
                 )
               }
