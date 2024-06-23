@@ -43,6 +43,7 @@
     <orderEntry type="module" module-name="intellij.android.debuggers" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.device" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.logcat" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.backup" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.templates" scope="RUNTIME" />
