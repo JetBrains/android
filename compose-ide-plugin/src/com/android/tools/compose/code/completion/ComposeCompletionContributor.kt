@@ -95,7 +95,7 @@ private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
 /** true iff [valueParameterSymbol]'s type arguments contains only the return type (can be Unit). */
 private fun KaSession.isLambdaWithNoParameters(
   valueParameterSymbol: KaValueParameterSymbol
-) = with(valueParameterSymbol) { (returnType as? KaFunctionType)?.ownTypeArguments?.size == 1 }
+) = with(valueParameterSymbol) { (returnType as? KaFunctionType)?.typeArguments?.size == 1 }
 
 /** true iff the last parameter is required, and a lambda type with no parameters. */
 private fun ValueParameterDescriptor.isRequiredLambdaWithNoParameters() =
