@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.analysis.api.types.KtFlexibleType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.analysis.api.types.KaTypeNullability
-import org.jetbrains.kotlin.analysis.api.types.KtTypeParameterType
+import org.jetbrains.kotlin.analysis.api.types.KaTypeParameterType
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtCallExpression
 
@@ -65,7 +65,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
     companion object {
         private tailrec fun KaSession.unwrapToTypeParameterSymbol(type: KtType): KaTypeParameterSymbol? =
             when (val expanded = type.fullyExpandedType) {
-                is KtTypeParameterType -> expanded.symbol
+                is KaTypeParameterType -> expanded.symbol
                 is KtFlexibleType -> unwrapToTypeParameterSymbol(expanded.upperBound)
                 is KtDefinitelyNotNullType -> unwrapToTypeParameterSymbol(expanded.original)
                 is KtCapturedType -> {
