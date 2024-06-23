@@ -39,6 +39,7 @@ data class RenderingContext(
   val plugins = mutableListOf<String>()
   val classpathEntries = mutableListOf<String>()
   val dependencies: SetMultimap<String, String> = LinkedHashMultimap.create()
+  val dependenciesPerSourceSet: SetMultimap<String, Pair<String, String>> = LinkedHashMultimap.create()
   val targetFiles = mutableListOf<File>()
   val filesToOpen = mutableListOf<File>()
   val warnings = mutableListOf<String>()

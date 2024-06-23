@@ -42,9 +42,6 @@ fun buildKmpGradle(
       }
       getByName("androidInstrumentedTest") {
         dependencies {
-          implementation("androidx.test:runner:1.4.0-alpha06")
-          implementation("androidx.test:core:1.4.0-alpha06")
-          implementation("androidx.test.ext:junit:1.1.5")
         }   
       }
       commonMain {
@@ -54,7 +51,6 @@ fun buildKmpGradle(
       }
       commonTest {
         dependencies {
-          implementation("junit:junit:4.13.2")
         }
       }
     }

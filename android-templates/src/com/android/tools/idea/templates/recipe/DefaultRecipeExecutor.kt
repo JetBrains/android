@@ -46,6 +46,7 @@ import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.resolveDependency
+import com.android.tools.idea.wizard.template.BaseFeature
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -230,46 +231,44 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   /**
    * Add a library dependency into the project.
    */
-  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
-    referencesExecutor.addDependency(configuration, mavenCoordinate, minRev, moduleDir, toBase)
+  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean, sourceSetName: String?) {
+    referencesExecutor.addDependency(configuration, mavenCoordinate, minRev, moduleDir, toBase, sourceSetName)
 
     val baseFeature = context.moduleTemplateData?.baseFeature
-
-    val buildModel = when {
-                       moduleDir != null -> {
-                         projectBuildModel?.getModuleBuildModel(moduleDir)
-                       }
-
-                       baseFeature == null || !toBase -> {
-                         moduleGradleBuildModel
-                       }
-
-                       else -> {
-                         projectBuildModel?.getModuleBuildModel(baseFeature.dir)
-                       }
-                     } ?: return
-
-    val resolvedMavenCoordinate =
-      when {
-        // For coordinates that don't specify a version, we expect that version to be supplied by a platform dependency (i.e. a BOM).
-        // These coordinates can't be parsed by GradleCoordinate, and don't need to be resolved, so leave them as-is.
-        ArtifactDependencySpecImpl.create(mavenCoordinate)?.version == null -> mavenCoordinate
-        else -> resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
-      }
+    val buildModel = getBuildModel(moduleDir, toBase, baseFeature) ?: return
+    val resolvedMavenCoordinate = getResolvedMavenCoordinates(mavenCoordinate, minRev)
 
     // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
     val resolvedConfiguration = if (baseFeature != null && toBase && configuration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
       GRADLE_API_CONFIGURATION
-    }
-    else configuration
+    } else configuration
 
     projectBuildModel?.let {
-      DependenciesHelper.withModel(it).addDependency(resolvedConfiguration,
-                                                     resolvedMavenCoordinate,
-                                                     listOf(),
-                                                     buildModel,
-                                                     GroupNameDependencyMatcher(resolvedConfiguration, resolvedMavenCoordinate))
+      DependenciesHelper.withModel(it).addDependency(
+        resolvedConfiguration,
+        resolvedMavenCoordinate,
+        listOf(),
+        buildModel,
+        GroupNameDependencyMatcher(resolvedConfiguration, resolvedMavenCoordinate),
+        sourceSetName
+      )
+    }
+  }
+
+  // For coordinates that don't specify a version, we expect that version to be supplied by a platform dependency (i.e. a BOM).
+  // These coordinates can't be parsed by GradleCoordinate, and don't need to be resolved, so leave them as-is.
+  private fun getResolvedMavenCoordinates(mavenCoordinate: String, minRev: String?): String =
+    when(ArtifactDependencySpecImpl.create(mavenCoordinate)?.version) {
+      null -> mavenCoordinate
+      else -> resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
+    }
+
+  private fun getBuildModel(moduleDir: File?, toBase: Boolean, baseFeature: BaseFeature?): GradleBuildModel? {
+    return when {
+      moduleDir != null -> projectBuildModel?.getModuleBuildModel(moduleDir)
+      baseFeature == null || !toBase -> moduleGradleBuildModel
+      else -> projectBuildModel?.getModuleBuildModel(baseFeature.dir)
     }
   }
 
@@ -772,4 +771,3 @@ fun getBuildModel(buildFile: File, project: Project, projectBuildModel: ProjectB
 
   return buildModel?.getModuleBuildModel(virtualFile)
 }
-

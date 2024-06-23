@@ -297,15 +297,24 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
                          dependency: String,
                          excludes: List<ArtifactDependencySpec>,
                          parsedModel: GradleBuildModel,
-                         matcher: DependencyMatcher): Set<PsiFile> {
+                         matcher: DependencyMatcher,
+                         sourceSetName: String? = null): Set<PsiFile> {
     val updateFiles = mutableSetOf<PsiFile>()
-    val dependenciesModel = parsedModel.dependencies()
-    if (!dependenciesModel.hasArtifact(matcher)) {
+    val dependenciesModel = getDependenciesModel(sourceSetName, parsedModel)
+    if (dependenciesModel != null && !dependenciesModel.hasArtifact(matcher)) {
       dependenciesModel.addArtifact(configuration, dependency, excludes).also {
         updateFiles.addIfNotNull(dependenciesModel.psiElement?.containingFile)
       }
     }
     return updateFiles
+  }
+
+  private fun getDependenciesModel(sourceSetName: String?, parsedModel: GradleBuildModel): DependenciesModel? {
+    return if (sourceSetName != null) {
+      parsedModel.kotlin().sourceSets().find { it.name() == sourceSetName }?.dependencies()
+    } else {
+      parsedModel.dependencies()
+    }
   }
 
   @JvmOverloads
