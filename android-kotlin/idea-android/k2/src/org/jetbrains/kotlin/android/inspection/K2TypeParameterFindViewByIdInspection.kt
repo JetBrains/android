@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaTypeParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KaCapturedType
 import org.jetbrains.kotlin.analysis.api.types.KaDefinitelyNotNullType
 import org.jetbrains.kotlin.analysis.api.types.KaErrorType
-import org.jetbrains.kotlin.analysis.api.types.KtFlexibleType
+import org.jetbrains.kotlin.analysis.api.types.KaFlexibleType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.analysis.api.types.KaTypeNullability
 import org.jetbrains.kotlin.analysis.api.types.KaTypeParameterType
@@ -66,7 +66,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
         private tailrec fun KaSession.unwrapToTypeParameterSymbol(type: KtType): KaTypeParameterSymbol? =
             when (val expanded = type.fullyExpandedType) {
                 is KaTypeParameterType -> expanded.symbol
-                is KtFlexibleType -> unwrapToTypeParameterSymbol(expanded.upperBound)
+                is KaFlexibleType -> unwrapToTypeParameterSymbol(expanded.upperBound)
                 is KaDefinitelyNotNullType -> unwrapToTypeParameterSymbol(expanded.original)
                 is KaCapturedType -> {
                     val projectedType = expanded.projection.type
