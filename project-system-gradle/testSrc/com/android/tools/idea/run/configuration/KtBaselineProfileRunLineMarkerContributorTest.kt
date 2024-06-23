@@ -24,7 +24,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase.assertNull
-import org.jetbrains.kotlin.analysis.api.KtAnalysisApiInternals
+import org.jetbrains.kotlin.analysis.api.KaAnalysisApiInternals
 import org.jetbrains.kotlin.analysis.api.permissions.KaAnalysisPermissionRegistry
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
@@ -35,7 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertNotNull
 
-@OptIn(KtAnalysisApiInternals::class)
+@OptIn(KaAnalysisApiInternals::class)
 class KtBaselineProfileRunLineMarkerContributorTest {
 
   @get:Rule
