@@ -17,14 +17,14 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.module.NavInfoFetcher
+import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaSourceModule
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtension
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionProvider
-import org.jetbrains.kotlin.analysis.project.structure.KtModule
 import org.jetbrains.kotlin.idea.base.projectStructure.ideaModule
 
 class SafeArgsResolveExtensionProvider : KtResolveExtensionProvider() {
-  override fun provideExtensionsFor(module: KtModule): List<KtResolveExtension> =
+  override fun provideExtensionsFor(module: KaModule): List<KtResolveExtension> =
     when (module) {
       is KaSourceModule -> {
         val ideaModule = module.ideaModule
