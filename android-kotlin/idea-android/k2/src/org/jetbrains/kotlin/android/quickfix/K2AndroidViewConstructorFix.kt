@@ -53,7 +53,7 @@ class K2AndroidViewConstructorFix(
             val ktClass = superTypeEntry.containingClass() ?: return null
             if (ktClass.primaryConstructor != null) return null
 
-            val superType = superTypeReference.getKtType() as? KaClassType ?: return null
+            val superType = superTypeReference.type as? KaClassType ?: return null
 
             if (!isAndroidView(superType) && superType.getAllSuperTypes().none { isAndroidView(it) }) {
                 return null
@@ -76,7 +76,7 @@ class K2AndroidViewConstructorFix(
             // [ALLOWED_THREE_PARAMETER_CONSTRUCTOR_DIRECT_SUPERTYPES] for why we do this.)
             val useThreeParameterConstructor =
                 ktClass.superTypeListEntries
-                    .mapNotNull { it.typeReference?.getKtType() }
+                    .mapNotNull { it.typeReference?.type }
                     .any { classId(it) in KotlinAndroidViewConstructorUtils.ALLOWED_THREE_PARAMETER_CONSTRUCTOR_DIRECT_SUPERTYPES }
 
             return K2AndroidViewConstructorFix(superTypeEntry, useThreeParameterConstructor)

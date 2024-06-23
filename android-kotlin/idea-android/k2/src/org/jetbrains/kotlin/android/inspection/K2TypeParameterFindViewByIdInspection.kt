@@ -47,7 +47,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
         // The target type of the cast must satisfy all of T's bounds.
         // We discard the ? on the cast target type when we execute the quickfix, so we need to check
         // against the non-nullable type here.
-        val castTargetType = cast.right?.getKtType() ?: return null
+        val castTargetType = cast.right?.type ?: return null
         if (castTargetType is KaErrorType) return null
 
         val castTargetTypeNonNull = castTargetType.withNullability(KaTypeNullability.NON_NULLABLE)
