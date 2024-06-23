@@ -77,10 +77,22 @@ private fun RecipeExecutor.generateModule(
   addAndroidMain(packageName, data.srcDir, language)
   data.commonSrcDir?.let { dir ->
     addCommonMain(packageName, dir, language)
+    addCommonTestDependencies()
   }
 
   addLocalTests(packageName, data.unitTestDir, language)
   addInstrumentedTests(packageName, useAndroidX, false, data.testDir, language)
+  addInstrumentedTestDependencies()
+}
+
+fun RecipeExecutor.addCommonTestDependencies() {
+  addDependency("junit:junit:4.+", "implementation", minRev = "4.13.2", sourceSetName = "commonTest")
+}
+
+fun RecipeExecutor.addInstrumentedTestDependencies() {
+  addDependency("androidx.test:runner:+", "implementation", sourceSetName = "androidInstrumentedTest")
+  addDependency("androidx.test:core:+", "implementation", sourceSetName = "androidInstrumentedTest")
+  addDependency("androidx.test.ext:junit:+", "implementation", sourceSetName = "androidInstrumentedTest")
 }
 
 fun RecipeExecutor.addAndroidMain(

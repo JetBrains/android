@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -166,16 +167,25 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
                              dependency: String,
                              excludes: List<ArtifactDependencySpec>,
                              parsedModel: GradleBuildModel,
-                             matcher: DependencyMatcher): Set<PsiFile> =
+                             matcher: DependencyMatcher,
+                             sourceSetName: String?): Set<PsiFile> =
     getOrAddDependencyToCatalog(dependency, matcher) { alias, changedFiles ->
-      val dependenciesModel = parsedModel.dependencies()
-      val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), dependenciesModel)
-      if (!dependenciesModel.hasArtifact(matcher)) {
+      val dependenciesModel = getDependenciesModel(sourceSetName, parsedModel)
+      if (dependenciesModel != null && !dependenciesModel.hasArtifact(matcher)) {
+        val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), dependenciesModel)
         dependenciesModel.addArtifact(configuration, reference, excludes).also {
           changedFiles.addIfNotNull(parsedModel.psiFile)
         }
       }
     }
+
+  private fun getDependenciesModel(sourceSetName: String?, parsedModel: GradleBuildModel): DependenciesModel? {
+    return if (sourceSetName != null) {
+      parsedModel.kotlin().sourceSets().find { it.name() == sourceSetName }?.dependencies()
+    } else {
+      parsedModel.dependencies()
+    }
+  }
 
   private fun getOrAddPluginToCatalog(plugin: String, version: String, matcher: PluginMatcher): Pair<Alias?, PsiFile?> {
     val catalogModel = getCatalogModel()
