@@ -33,7 +33,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScopesCore
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics
-import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtension
+import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtension
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionFile
 import org.jetbrains.kotlin.idea.base.util.parentsWithSelf
 import org.jetbrains.kotlin.idea.util.sourceRoots
@@ -41,7 +41,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
 class SafeArgsResolveExtensionModuleService(private val module: Module) :
-  KtResolveExtension(), Disposable.Default {
+  KaResolveExtension(), Disposable.Default {
   private data class Status(
     val args: List<ArgsClassResolveExtensionFile>,
     val directions: List<DirectionsClassResolveExtensionFile>,
@@ -101,7 +101,7 @@ class SafeArgsResolveExtensionModuleService(private val module: Module) :
       // This prevents excessive churn if we were enabled at one point, but became
       // disabled later due to a change in module SafeArgs mode - since we're a
       // module service, we'll stick around and continue to receive callbacks from
-      // NavStatusCache even if we're not currently acting as a KtResolveExtension.
+      // NavStatusCache even if we're not currently acting as a KaResolveExtension.
       && NavInfoFetcher.isSafeArgsModule(module, SafeArgsMode.KOTLIN)
     ) {
       module.fireEvent(KotlinModificationTopics.MODULE_OUT_OF_BLOCK_MODIFICATION) { onModification(it) }
