@@ -102,7 +102,7 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): F
 internal fun KtDeclaration.returnTypeFqName(): FqName? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     if (this !is KtCallableDeclaration) null
-    else analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
+    else analyze(this) { asFqName(this@returnTypeFqName.returnType) }
   } else {
     this.type()?.fqName
   }
