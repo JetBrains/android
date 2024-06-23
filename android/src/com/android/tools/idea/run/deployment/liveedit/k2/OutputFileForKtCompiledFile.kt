@@ -17,7 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit.k2
 
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.components.KtCompiledFile
+import org.jetbrains.kotlin.analysis.api.components.KaCompiledFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import java.io.File
 
@@ -26,7 +26,7 @@ import java.io.File
  */
 @KaExperimentalApi
 @ApiStatus.Internal
-class OutputFileForKtCompiledFile(private val compiledFile: KtCompiledFile): OutputFile {
+class OutputFileForKtCompiledFile(private val compiledFile: KaCompiledFile): OutputFile {
   override val relativePath: String
     get() = compiledFile.path
 
