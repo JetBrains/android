@@ -18,7 +18,7 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtensionFile
-import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionNavigationTargetsProvider
+import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtensionNavigationTargetsProvider
 import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -72,7 +72,7 @@ abstract class SafeArgsResolveExtensionFile(val classId: ClassId) : KaResolveExt
     } ?: fallbackPsi
 
   private val navigationTargetsProvider by lazy {
-    object : KtResolveExtensionNavigationTargetsProvider() {
+    object : KaResolveExtensionNavigationTargetsProvider() {
       override fun KaSession.getNavigationTargets(
         element: KtElement
       ): Collection<PsiElement> = listOfNotNull(getNavigationElement(element))
