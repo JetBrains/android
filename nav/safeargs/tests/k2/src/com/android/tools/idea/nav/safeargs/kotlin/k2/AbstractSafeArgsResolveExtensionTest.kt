@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.KtDeclarationRenderer
+import org.jetbrains.kotlin.analysis.api.renderer.declarations.KaDeclarationRenderer
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.bodies.KaParameterDefaultValueRenderer
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.bodies.KtParameterDefaultValueRenderer
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
@@ -115,7 +115,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
 
   protected fun KtAnalysisSession.getRenderedMemberFunctions(
     symbol: KtNamedClassOrObjectSymbol,
-    renderer: KtDeclarationRenderer = RENDERER,
+    renderer: KaDeclarationRenderer = RENDERER,
   ): List<String> =
     symbol
       .getDeclaredMemberScope()
