@@ -20,10 +20,10 @@ import com.android.tools.idea.nav.safeargs.module.NavInfoFetcher
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaSourceModule
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtension
-import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionProvider
+import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtensionProvider
 import org.jetbrains.kotlin.idea.base.projectStructure.ideaModule
 
-class SafeArgsResolveExtensionProvider : KtResolveExtensionProvider() {
+class SafeArgsResolveExtensionProvider : KaResolveExtensionProvider() {
   override fun provideExtensionsFor(module: KaModule): List<KtResolveExtension> =
     when (module) {
       is KaSourceModule -> {
