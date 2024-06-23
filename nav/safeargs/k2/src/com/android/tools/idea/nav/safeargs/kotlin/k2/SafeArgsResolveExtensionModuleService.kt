@@ -34,7 +34,7 @@ import com.intellij.psi.search.GlobalSearchScopesCore
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtension
-import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionFile
+import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtensionFile
 import org.jetbrains.kotlin.idea.base.util.parentsWithSelf
 import org.jetbrains.kotlin.idea.util.sourceRoots
 import org.jetbrains.kotlin.name.ClassId
@@ -64,10 +64,10 @@ class SafeArgsResolveExtensionModuleService(private val module: Module) :
   private val directions: List<DirectionsClassResolveExtensionFile>
     get() = currentStatus?.directions ?: emptyList()
 
-  private val allClasses: List<KtResolveExtensionFile>
+  private val allClasses: List<KaResolveExtensionFile>
     get() = args + directions
 
-  override fun getKtFiles(): List<KtResolveExtensionFile> = allClasses
+  override fun getKtFiles(): List<KaResolveExtensionFile> = allClasses
 
   override fun getContainedPackages(): Set<FqName> =
     allClasses.map { it.getFilePackageName() }.toSet()

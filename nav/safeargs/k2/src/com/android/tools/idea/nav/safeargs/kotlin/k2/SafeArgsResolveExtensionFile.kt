@@ -17,7 +17,7 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionFile
+import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtensionFile
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionNavigationTargetsProvider
 import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.name.ClassId
@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 
-abstract class SafeArgsResolveExtensionFile(val classId: ClassId) : KtResolveExtensionFile() {
+abstract class SafeArgsResolveExtensionFile(val classId: ClassId) : KaResolveExtensionFile() {
   init {
     check(!classId.isLocal && classId.outermostClassId == classId) {
       "classId ${classId} must be top-level"
