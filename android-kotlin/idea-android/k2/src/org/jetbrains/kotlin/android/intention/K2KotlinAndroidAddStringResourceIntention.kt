@@ -49,7 +49,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
             @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
             allowAnalysisFromWriteAction {
                 analyze(this) {
-                    val type = getKtType() as? KaFunctionType ?: return false
+                  val type = expressionType as? KaFunctionType ?: return false
                     val extendedType = type.receiverType ?: return false
                     return baseClassIds.any { isSubclassOf(extendedType, it, strict = false) }
                 }

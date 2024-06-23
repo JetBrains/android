@@ -407,7 +407,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       nameExpression.parent as? KtDotQualifiedExpression ?: return emptyList()
     val receiverExpression =
       modifierCallExpression.receiverExpression as? KtExpression ?: return emptyList()
-    val receiverType = receiverExpression.getKtType() ?: return emptyList()
+    val receiverType = receiverExpression.expressionType ?: return emptyList()
 
     val file = nameExpression.containingFile as KtFile
     val fileSymbol = file.getFileSymbol()

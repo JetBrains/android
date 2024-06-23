@@ -491,7 +491,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     if (KotlinPluginModeProvider.isK2Mode()) {
       allowAnalysisOnEdt {
         analyze(receiverExpr) {
-          (receiverExpr.getKtType() as? KaClassType)?.classId?.asFqNameString()?.let {
+          (receiverExpr.expressionType as? KaClassType)?.classId?.asFqNameString()?.let {
             return left.text to it
           }
         }

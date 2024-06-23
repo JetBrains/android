@@ -137,7 +137,7 @@ private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean 
 private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
   if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
-      analyze(this) { getKtType()?.let { isStateType(it, stateClassId) } ?: false }
+      analyze(this) { expressionType?.let { isStateType(it, stateClassId) } ?: false }
     }
   } else {
     resolveExprType()?.isStateType(stateClassId.asFqNameString()) ?: false
