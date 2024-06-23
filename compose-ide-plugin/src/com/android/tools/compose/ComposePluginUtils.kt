@@ -28,9 +28,9 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
-import org.jetbrains.kotlin.analysis.api.calls.KtCallableMemberCall
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.resolution.KaCallableMemberCall
 import org.jetbrains.kotlin.analysis.api.resolution.calls
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.*
@@ -114,7 +114,7 @@ internal fun KtElement.callReturnTypeFqName() =
       analyze(this) {
         val call =
           this@callReturnTypeFqName.resolveToCall()?.calls?.firstOrNull()
-            as? KtCallableMemberCall<*, *>
+            as? KaCallableMemberCall<*, *>
         call?.let { asFqName(it.symbol.returnType) }
       }
     }
