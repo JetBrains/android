@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
-import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.QuickFixActionBase
@@ -152,7 +152,7 @@ class ComposeCreateComposableFunctionQuickFix(
      * For the purpose of creating Composable functions, optimistically guesses that [expression] is
      * of type `Unit`.
      */
-    private fun KaSession.guessReturnType(expression: KtExpression): KtType {
+    private fun KaSession.guessReturnType(expression: KtExpression): KaType {
       return (expression.getKtType() as? KaFunctionType)?.returnType ?: builtinTypes.UNIT
     }
   }

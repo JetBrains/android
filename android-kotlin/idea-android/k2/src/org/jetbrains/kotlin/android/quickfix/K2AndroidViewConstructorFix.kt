@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic.SupertypeNotInitialized
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
-import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.idea.codeinsight.api.applicable.fixes.AbstractKotlinApplicableQuickFix
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
@@ -87,8 +87,8 @@ class K2AndroidViewConstructorFix(
 
         }
 
-        private fun KaSession.classId(type: KtType): ClassId? = type.expandedClassSymbol?.classId
-        private fun KaSession.isAndroidView(type: KtType): Boolean =
+        private fun KaSession.classId(type: KaType): ClassId? = type.expandedClassSymbol?.classId
+        private fun KaSession.isAndroidView(type: KaType): Boolean =
             classId(type) == KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE
     }
 }

@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.analysis.api.resolution.KaCallableMemberCall
 import org.jetbrains.kotlin.analysis.api.resolution.calls
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.*
-import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
@@ -124,7 +124,7 @@ internal fun KtElement.callReturnTypeFqName() =
 
 // TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType`
 // and `KtTypeRenderer`.
-internal fun KaSession.asFqName(type: KtType) =
+internal fun KaSession.asFqName(type: KaType) =
   type.expandedSymbol?.classId?.asSingleFqName()
 
 internal fun KtFunction.hasComposableAnnotation() =
