@@ -18,7 +18,7 @@ package com.android.tools.compose.aa.code
 import com.android.tools.compose.code.ComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
+import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KaDeclarationRendererForSource
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
@@ -60,7 +60,7 @@ private fun KaSession.renderValueParameters(
 ) = buildString {
   append("(")
   valueParamsInParen.joinTo(buffer = this) {
-    it.render(KtDeclarationRendererForSource.WITH_SHORT_NAMES)
+    it.render(KaDeclarationRendererForSource.WITH_SHORT_NAMES)
   }
   append(closingString)
   append(")")

@@ -36,7 +36,7 @@ import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.KaDeclarationRenderer
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.bodies.KaParameterDefaultValueRenderer
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.bodies.KtParameterDefaultValueRenderer
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
+import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KaDeclarationRendererForSource
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.renderers.callables.KaValueParameterSymbolRenderer
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.renderers.callables.KtValueParameterSymbolRenderer
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassOrObjectSymbol
@@ -150,7 +150,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
     }
 
     val RENDERER =
-      KtDeclarationRendererForSource.WITH_QUALIFIED_NAMES.with {
+      KaDeclarationRendererForSource.WITH_QUALIFIED_NAMES.with {
         valueParameterRenderer = KaValueParameterSymbolRenderer.AS_SOURCE
         parameterDefaultValueRenderer = KaParameterDefaultValueRenderer.THREE_DOTS
       }
