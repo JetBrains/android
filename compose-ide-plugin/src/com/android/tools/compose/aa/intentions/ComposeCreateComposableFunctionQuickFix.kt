@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
-import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
+import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
@@ -153,7 +153,7 @@ class ComposeCreateComposableFunctionQuickFix(
      * of type `Unit`.
      */
     private fun KaSession.guessReturnType(expression: KtExpression): KtType {
-      return (expression.getKtType() as? KtFunctionalType)?.returnType ?: builtinTypes.UNIT
+      return (expression.getKtType() as? KaFunctionType)?.returnType ?: builtinTypes.UNIT
     }
   }
 }

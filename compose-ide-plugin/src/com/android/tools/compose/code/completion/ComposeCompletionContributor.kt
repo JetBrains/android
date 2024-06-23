@@ -50,7 +50,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
-import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
+import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -95,7 +95,7 @@ private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
 /** true iff [valueParameterSymbol]'s type arguments contains only the return type (can be Unit). */
 private fun KaSession.isLambdaWithNoParameters(
   valueParameterSymbol: KaValueParameterSymbol
-) = with(valueParameterSymbol) { (returnType as? KtFunctionalType)?.ownTypeArguments?.size == 1 }
+) = with(valueParameterSymbol) { (returnType as? KaFunctionType)?.ownTypeArguments?.size == 1 }
 
 /** true iff the last parameter is required, and a lambda type with no parameters. */
 private fun ValueParameterDescriptor.isRequiredLambdaWithNoParameters() =
@@ -508,7 +508,7 @@ private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo {
     val requiredParameters = allParameters.filter { !it.hasDefaultValue && !it.isVararg }
     val insertLambda =
       allParameters.lastOrNull()?.let {
-        !it.isVararg && it.returnType is KtFunctionalType && !it.hasDefaultValue
+        !it.isVararg && it.returnType is KaFunctionType && !it.hasDefaultValue
       } ?: false
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
     return FunctionInfo(
