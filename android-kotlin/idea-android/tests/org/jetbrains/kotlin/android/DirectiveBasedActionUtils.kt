@@ -106,7 +106,7 @@ object DirectiveBasedActionUtils {
     ) { ktFile ->
       allowAnalysisOnEdt {
         analyze(ktFile) {
-          ktFile.collectDiagnosticsForFile(KaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
+          ktFile.collectDiagnostics(KaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
             .filter { it.severity == KaSeverity.ERROR }
             .map { it.defaultMessage.replace("\n", "<br>") }
             .sorted()
