@@ -23,16 +23,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface RenderListener {
   /**
-   * Called when the @link SceneManager} starts a new inflate.
-   */
-  default void onInflateStarted() {}
-
-  /**
-   * Called when the @link SceneManager} has finished inflating the layout.
-   */
-  default void onInflateCompleted() {}
-
-  /**
    * Called when the {@link SceneManager} starts a new render request.
    */
   default void onRenderStarted() {}
