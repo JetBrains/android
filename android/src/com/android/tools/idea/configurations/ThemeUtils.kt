@@ -24,12 +24,12 @@ import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.DefaultThemeProvider.computeDefaultThemeForConfiguration
 import com.android.tools.configurations.ThemeInfoProvider
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
 import com.android.tools.dom.ActivityAttributesSnapshot
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
 import com.android.tools.idea.model.AndroidManifestIndex
-import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestModificationTracker
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryActivitiesFromManifestIndex
 import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
@@ -174,6 +174,7 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
     get() = module.getAppThemeName()
   override val allActivityThemeNames: Set<String>
     get() = module.getAllActivityThemeNames()
+  private var threadReported = false
 
   @Slow
   override fun getThemeNameForActivity(activityFqcn: String): String? = module.getThemeNameForActivity(activityFqcn)
@@ -183,7 +184,8 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
 
   @Slow
   override fun getDefaultTheme(configuration: Configuration): String {
-    if (ApplicationManager.getApplication().isDispatchThread) {
+    if (ApplicationManager.getApplication().isDispatchThread && !threadReported) {
+      threadReported = true
       Logger.getInstance(StudioThemeInfoProvider::class.java).warn("getDefaultTheme should not be called in the dispatch thread")
     }
     val module = ConfigurationManager.getFromConfiguration(configuration).module
