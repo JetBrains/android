@@ -827,7 +827,6 @@ py_test(
         "update_sdk_files": "$(locations :update_sdk_files)",
     },
     tags = [
-        "no_mac",
         "no_windows",
     ],
     visibility = ["//visibility:public"],
@@ -854,7 +853,6 @@ py_test(
         "mkspec_files": "$(locations :mkspec_files)",
     },
     tags = [
-        "no_mac",
         "no_windows",
     ],
     visibility = ["//visibility:public"],
@@ -893,7 +891,6 @@ py_test(
     name = "tools_test",
     srcs = ["tools_test.py"],
     tags = [
-        "no_mac",
         "no_windows",
     ],
     visibility = ["//visibility:public"],
@@ -937,7 +934,6 @@ java_binary(
     main_class = "com.intellij.updater.Runner",
     tags = [
         "block_network",
-        "no_mac",
         "no_windows",
     ],
     visibility = ["//visibility:public"],
@@ -1008,7 +1004,6 @@ iml_module(
     ],
     iml_files = ["tests/intellij.android.studio.tests.iml"],
     tags = [
-        "no_mac",
         "no_windows",
     ],
     test_class = "com.android.testutils.JarTestSuite",

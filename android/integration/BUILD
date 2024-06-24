@@ -380,7 +380,6 @@ iml_studio_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "no_mac",
         "no_windows",
         "very_flaky",  # b/283129200
     ],
@@ -423,9 +422,6 @@ iml_studio_test(
     tags_linux = [
         "block-network",
         "very_flaky",  # b/260867011
-    ],
-    tags_mac = [
-        "no_mac",  # No need to consume Mac resources. Testing on Linux is sufficient.
     ],
     tags_windows = [
         # TODO(b/287284693): Add Windows support for this test.

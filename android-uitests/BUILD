@@ -362,7 +362,6 @@ java_test(
     ] + glob(["testData/LayoutTest/**"]) + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.LayoutEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -376,7 +375,6 @@ java_test(
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.InspectionsMemoryUseTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -390,7 +388,6 @@ java_test(
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.GradleSyncMemoryUseTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -404,7 +401,6 @@ java_test(
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.FindInPathMemoryLeakTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -418,7 +414,6 @@ java_test(
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.EditorTabsMemoryUseTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -432,7 +427,6 @@ java_test(
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddResourceMemoryUseTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -446,7 +440,6 @@ java_test(
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddAssetMemoryUseTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -467,7 +460,6 @@ java_test(
     ] + glob(["testData/Navigation/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.NavEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -488,7 +480,6 @@ java_test(
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualizationTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -529,7 +520,6 @@ java_test(
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.SharedIssuePanelTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -550,7 +540,6 @@ java_test(
     ] + glob(["testData/VisualLintApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualLintTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -571,7 +560,6 @@ java_test(
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.DownloadableFontTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_fast",
     ],
@@ -592,7 +580,6 @@ java_test(
     ] + glob(["testData/SimpleComposeApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.ComposePreviewTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -613,7 +600,6 @@ java_test(
     ] + glob(["testData/SimpleComposeApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.customview.CustomViewPreviewTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",
     ],
@@ -778,7 +764,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.AltEnterSuggestionsTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -945,7 +930,6 @@ java_test(
     flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "ui_test",
         "very_flaky",  # b/203243180
@@ -1255,7 +1239,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.SideConstraintHandlingTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1277,7 +1260,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BaselineConstraintHandlingTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1343,7 +1325,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenCloseVisualizationToolTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1419,7 +1400,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.GradleVersionCatalogTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1434,7 +1414,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.GradleVersionCatalogTest2"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1646,7 +1625,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.LocalApkProjTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1663,7 +1641,6 @@ java_test(
     tags = [
         "cpu:100",
         "no-remote",
-        "no_mac",
         "no_windows",
         "qa_smoke",
         "qa_smoke_emu",  # Run together with emulators because the test needs to run alone
@@ -1680,7 +1657,6 @@ java_test(
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.androidtest.ImportTestHistoryTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "very_flaky",  # b/269167918
     ],
@@ -1716,7 +1692,6 @@ java_test(
     # do not sort: the beginning of this list is copied from COMMON_TAGS
     tags = [
         "block-network",
-        "no_mac",
         "no_windows",
         "qa_smoke",
         "qa_smoke_emu",
@@ -1898,7 +1873,6 @@ java_test(
     ]) + glob(["testData/LayoutTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavNIGraphTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1979,7 +1953,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_smoke",  # b/128932526
         "qa_smoke_emu",  # b/128932526
@@ -2008,7 +1981,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_smoke",
         "qa_smoke_emu",
@@ -2037,7 +2009,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_smoke",
         "qa_smoke_emu",
@@ -2171,7 +2142,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.QuickFixForJniTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2187,7 +2157,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.WarningsCheckInNewCPPProjectTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_fast",
     ],
@@ -2231,7 +2200,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.GotoDeclarationTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2515,7 +2483,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.resourceexplorer.ResourceExplorerTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2917,7 +2884,6 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.AddCppToModuleActionTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2932,7 +2898,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.ShowFilesUnknownToCMakeActionTest"],
     tags = COMMON_TAGS + [
         "no_crostini",
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -3065,7 +3030,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3093,7 +3057,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3123,7 +3086,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_unreliable_emu",
@@ -3153,7 +3115,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3185,7 +3146,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3217,7 +3177,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3249,7 +3208,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3281,7 +3239,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3313,7 +3270,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3344,7 +3300,6 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -3419,7 +3374,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3448,7 +3402,6 @@ java_test(
     # do not sort: the beginning of this list is copied from COMMON_TAGS
     tags = [
         "block-network",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
@@ -3478,7 +3431,6 @@ java_test(
     # do not sort: the beginning of this list is copied from COMMON_TAGS
     tags = [
         "block-network",
-        "no_mac",
         "no_windows",
         "slow",
         "qa_fast",
@@ -3507,7 +3459,6 @@ java_test(
     tags = [
         "block-network",
         "cpu:100",
-        "no_mac",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
