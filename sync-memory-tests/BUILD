@@ -61,6 +61,18 @@ iml_module(
                 "perfgate",
             ],
         },
+        "Benchmark1000CpuLatestKotlinTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestKotlinTest",
+            "tags": [
+                "perfgate",
+            ],
+        },
+        "Benchmark1000MemoryLatestKotlinTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryLatestKotlinTest",
+            "tags": [
+                "perfgate",
+            ],
+        },
         # Presubmit tests
         "SyncBenchmarkVersionTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.SyncBenchmarkVersionTest",
@@ -153,6 +165,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:gradle-distrib-latest-snapshot",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks",
         "//tools/data-binding:data_binding_runtime.zip",
     ],
     test_jvm_flags = [
