@@ -19,13 +19,15 @@ import android.annotation.SuppressLint;
 import android.util.Log;
 
 public class Main {
+  public static final String ATTRIBUTION_TAG = "studio.screen.sharing";
+
   @SuppressLint("UnsafeDynamicallyLoadedCode")
   public static void main(String[] args) {
     try {
       System.load("/data/local/tmp/.studio/libscreen-sharing-agent.so");
     }
     catch (Throwable e) {
-      Log.e("studio.screen.sharing", "Unable to load libscreen-sharing-agent.so - " + e.getMessage());
+      Log.e(ATTRIBUTION_TAG, "Unable to load libscreen-sharing-agent.so - " + e.getMessage());
     }
     nativeMain(args);
   }
