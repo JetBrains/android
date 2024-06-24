@@ -12,6 +12,10 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/base/backup:studio.android.sdktools.backup[module]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
