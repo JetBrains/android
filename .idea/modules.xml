@@ -36,6 +36,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/annotations/android.sdktools.android-annotations.iml" filepath="$PROJECT_DIR$/../../base/annotations/android.sdktools.android-annotations.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/bazel/avd/android.sdktools.base.bazel.avd.iml" filepath="$PROJECT_DIR$/../../base/bazel/avd/android.sdktools.base.bazel.avd.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/apkparser/binary-resources/android.sdktools.binary-resources.iml" filepath="$PROJECT_DIR$/../../base/apkparser/binary-resources/android.sdktools.binary-resources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/backup/android.sdktools.backup.iml" filepath="$PROJECT_DIR$/../../base/backup/android.sdktools.backup.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/build-system/builder-model/android.sdktools.builder-model.iml" filepath="$PROJECT_DIR$/../../base/build-system/builder-model/android.sdktools.builder-model.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/build-system/builder-model/android.sdktools.builder-model.tests.iml" filepath="$PROJECT_DIR$/../../base/build-system/builder-model/android.sdktools.builder-model.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/build-system/builder-test-api/android.sdktools.builder-test-api.iml" filepath="$PROJECT_DIR$/../../base/build-system/builder-test-api/android.sdktools.builder-test-api.iml" />
