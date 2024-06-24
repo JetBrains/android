@@ -2097,9 +2097,6 @@ public final class StudioFlags {
   // region Google Login
   private static final FlagGroup GOOGLE_LOGIN =
     new FlagGroup(FLAGS, "google.login", "Google Login");
-  public static final Flag<Boolean> ENABLE_SETTINGS_ACCOUNT_UI =
-    new BooleanFlag(GOOGLE_LOGIN, "enabled", "Enable new login settings UI",
-                "When enabled, a login settings page will replace the popup from the login action in the top right.", true);
   public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_UI =
     new BooleanFlag(GOOGLE_LOGIN, "combined.login.enabled", "Enable combined login",
                     "When enabled, a combined login page will show when logging in for a new user.", true);
