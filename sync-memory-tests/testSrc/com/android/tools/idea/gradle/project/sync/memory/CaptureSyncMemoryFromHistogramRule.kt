@@ -99,7 +99,9 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String,
       ))
       if (!disableAnalyzers) {
         val analyzers = mutableListOf<Analyzer>(EDivisiveAnalyzer)
-        if (metricToCompareAgainst != null) {
+        val runningFromReleaseBranch = System.getProperty("running.from.release.branch").toBoolean()
+        val usingUTestAnalyzers = runningFromReleaseBranch || metricToCompareAgainst != null
+        if (usingUTestAnalyzers) {
           // U-Test analyzers expect at least 3 points in the data to be available to make a meaningful comparison.
           // For memory benchmarks, we only have one very stable data point, so we can use the same data point 3 times
           // Using a different timestamp, just in case the perfgate somehow groups the data with the same timestamp together.
@@ -108,7 +110,12 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String,
           for (i in 1..2) {
             addSamples(MEMORY_BENCHMARK, Metric.MetricSample(measurement.first.toEpochMilliseconds() + i, measurement.second))
           }
-          analyzers.add(UTestAnalyzer.forMetricComparison(metricToCompareAgainst))
+        }
+        metricToCompareAgainst?.let { analyzers.add(UTestAnalyzer.forMetricComparison(it))}
+        // When running from a release branch, an additional analyzer to make a comparison
+        // between the release branch and the main branch is added.
+        if (runningFromReleaseBranch) {
+          analyzers.add(UTestAnalyzer.forComparingWithMainBranch())
         }
         setAnalyzers(MEMORY_BENCHMARK, analyzers)
       }
