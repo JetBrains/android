@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
+import com.android.tools.idea.wearwhs.WhsDataValue
 import com.android.tools.idea.wearwhs.communication.CapabilityState
 import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
@@ -56,7 +57,9 @@ internal class WearHealthServicesStateManagerImpl(
   override val capabilitiesList = deviceManager.getCapabilities()
 
   private val capabilityToState =
-    capabilitiesList.associateWith { MutableStateFlow(CapabilityUIState()) }
+    capabilitiesList.associateWith {
+      MutableStateFlow(CapabilityUIState(true, CapabilityState(true, it.dataType.noValue())))
+    }
 
   private val _status = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Initializing)
   override val status = _status
@@ -125,7 +128,8 @@ internal class WearHealthServicesStateManagerImpl(
                     // If content provider doesn't return a capability, that means the capability is
                     // enabled with no overrides
                     capabilityState =
-                      deviceStates[capability.dataType] ?: CapabilityState(true, null)
+                      deviceStates[capability.dataType]
+                        ?: CapabilityState.enabled(capability.dataType)
                   )
               }
             }
@@ -175,21 +179,38 @@ internal class WearHealthServicesStateManagerImpl(
       }
       val newState =
         stateFlow.value.copy(
-          capabilityState = CapabilityState(enabled, stateFlow.value.capabilityState.overrideValue),
+          capabilityState =
+            if (enabled) stateFlow.value.capabilityState.enable()
+            else stateFlow.value.capabilityState.disable(),
           synced = false,
         )
       stateFlow.value = newState
     }
 
-  override suspend fun setOverrideValue(capability: WhsCapability, value: Float?) =
+  override suspend fun setOverrideValue(capability: WhsCapability, value: Number) =
     capabilityUpdatesLock.withLock {
       val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
-      if (value == stateFlow.value.capabilityState.overrideValue) {
+      val dataValue = capability.dataType.value(value)
+      if (dataValue == stateFlow.value.capabilityState.overrideValue) {
         return
       }
       val newState =
         stateFlow.value.copy(
-          capabilityState = CapabilityState(stateFlow.value.capabilityState.enabled, value),
+          capabilityState = stateFlow.value.capabilityState.override(dataValue),
+          synced = false,
+        )
+      stateFlow.value = newState
+    }
+
+  override suspend fun clearOverrideValue(capability: WhsCapability) =
+    capabilityUpdatesLock.withLock {
+      val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
+      if (stateFlow.value.capabilityState.overrideValue is WhsDataValue.NoValue) {
+        return
+      }
+      val newState =
+        stateFlow.value.copy(
+          capabilityState = stateFlow.value.capabilityState.clearOverride(),
           synced = false,
         )
       stateFlow.value = newState
@@ -198,7 +219,7 @@ internal class WearHealthServicesStateManagerImpl(
   override suspend fun applyChanges() =
     runWithStatus(WhsStateManagerStatus.Syncing) {
       val capabilityUpdates: Map<WhsDataType, Boolean>
-      val overrideUpdates: Map<WhsDataType, Float?>
+      val overrideUpdates: List<WhsDataValue>
 
       capabilityUpdatesLock.withLock {
         capabilityUpdates =
@@ -206,9 +227,7 @@ internal class WearHealthServicesStateManagerImpl(
             it.key.dataType to it.value.value.capabilityState.enabled
           }
         overrideUpdates =
-          capabilityToState.entries.associate {
-            it.key.dataType to it.value.value.capabilityState.overrideValue
-          }
+          capabilityToState.entries.map { it.value.value.capabilityState.overrideValue }
       }
 
       // Return early if any of the updates fail
@@ -233,21 +252,19 @@ internal class WearHealthServicesStateManagerImpl(
 
   private fun resetUiState() =
     capabilityToState.forEach { (_, state) ->
+      val previousCapabilityState = state.value.capabilityState
       state.value =
         CapabilityUIState(
+          synced = true,
           capabilityState =
-            CapabilityState(
-              enabled = if (ongoingExercise.value) state.value.capabilityState.enabled else true,
-              overrideValue = null,
-            )
+            if (ongoingExercise.value) previousCapabilityState.clearOverride()
+            else previousCapabilityState.enable(),
         )
     }
 
   private suspend fun resetOverrides(): Result<Unit> {
     val capabilities =
-      capabilityUpdatesLock
-        .withLock { capabilityToState.entries }
-        .associate { it.key.dataType to null }
+      capabilityUpdatesLock.withLock { capabilityToState.entries }.map { it.key.dataType.noValue() }
     return deviceManager.overrideValues(capabilities)
   }
 
