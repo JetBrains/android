@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface.layout
+package com.android.tools.idea.uibuilder.layout.padding
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.layout.positionable.PositionableContent
