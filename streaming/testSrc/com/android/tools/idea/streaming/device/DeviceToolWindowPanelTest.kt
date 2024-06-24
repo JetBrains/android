@@ -250,6 +250,7 @@ class DeviceToolWindowPanelTest {
   }
 
   @Test
+  @Suppress("OverrideOnly")
   fun testFolding() {
     device = agentRule.connectDevice("Pixel Fold", 33, Dimension(2208, 1840), foldedSize = Dimension(1080, 2092))
 
