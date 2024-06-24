@@ -23,7 +23,7 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 
-const val GRADLE_SNAPSHOT_VERSION="8.10-20240613003017+0000"
+const val GRADLE_SNAPSHOT_VERSION="8.10-20240623001552+0000"
 // For available versions: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
 const val KOTLIN_SNAPSHOT_VERSION="2.0.20-dev-6897"
 
