@@ -21,7 +21,6 @@ import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.getTriggerFromChangeType;
-import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.shouldRefreshInPowerSaveMode;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.updateTargetProviders;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
@@ -569,11 +568,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
   }
 
-  /**
-   * Records whether this {@link LayoutlibSceneManager} is out of date and needs to be refreshed.
-   */
-  private final AtomicBoolean isOutOfDate = new AtomicBoolean(false);
-
   private class ModelChangeListener implements ModelListener {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
@@ -593,12 +587,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
-      if (EssentialsMode.isEnabled() &&
-          !shouldRefreshInPowerSaveMode(model.getLastChangeType())) {
-        isOutOfDate.set(true);
-        return;
-      }
-
       NlDesignSurface surface = getDesignSurface();
       // The structure might have changed, force a re-inflate
       forceReinflate();
@@ -1265,7 +1253,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       myRenderFutures.clear();
       myIsCurrentlyRendering = false;
     }
-    isOutOfDate.set(false);
     callbacks.forEach(callback -> callback.complete(null));
     // If there are pending futures, we should trigger the render update
     if (hasPendingRenders()) {
@@ -1575,11 +1562,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @Override
   public int getInteractiveEventsCount() {
     return myInteractiveEventsCounter.get();
-  }
-
-  @Override
-  public boolean isOutOfDate() {
-    return isOutOfDate.get();
   }
 
   @TestOnly

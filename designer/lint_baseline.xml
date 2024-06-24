@@ -454,28 +454,6 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope"
-        errorLine1="      if (surface.isRefreshing || !surface.sceneManagers.any { it.isOutOfDate })"
-        errorLine2="                                           ~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
-            line="39"
-            column="44"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope"
-        errorLine1="      if (surface.isRefreshing || !surface.sceneManagers.any { it.isOutOfDate })"
-        errorLine2="                                           ~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
-            line="39"
-            column="44"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
         errorLine1="        screenViewProvider == NlScreenViewProvider.DEFAULT_SCREEN_MODE"
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
