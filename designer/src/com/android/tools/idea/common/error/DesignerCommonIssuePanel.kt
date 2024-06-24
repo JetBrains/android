@@ -32,8 +32,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
@@ -56,11 +55,11 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActions"
 
@@ -241,16 +240,14 @@ class DesignerCommonIssuePanel(
       else -> null
     }
 
-  override fun getData(dataId: String): Any? {
-    if (DESIGNER_COMMON_ISSUE_PANEL.`is`(dataId)) {
-      return this
-    }
-    val node = getSelectedNode() ?: return super.getData(dataId)
-    return when (dataId) {
-      PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { getDataInBackground(it, node) }
-      PlatformDataKeys.SELECTED_ITEM.name -> node
-      PlatformDataKeys.VIRTUAL_FILE.name -> node.getVirtualFile()
-      else -> super.getData(dataId)
+  override fun uiDataSnapshot(sink: DataSink) {
+    super.uiDataSnapshot(sink)
+    sink[DESIGNER_COMMON_ISSUE_PANEL] = this
+    val node = getSelectedNode() ?: return
+    sink[PlatformDataKeys.SELECTED_ITEM] = node
+    sink[PlatformDataKeys.VIRTUAL_FILE] = node.getVirtualFile()
+    sink.lazy(CommonDataKeys.NAVIGATABLE) {
+      node.getNavigatable()
     }
   }
 
