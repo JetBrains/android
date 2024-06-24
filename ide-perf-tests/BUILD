@@ -10,14 +10,20 @@ iml_module(
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerBenchmark",
             "tags": [
                 "cpu:3",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "SantaTrackerKotlinBenchmark": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinBenchmark",
             "tags": [
                 "cpu:3",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "tests": {
@@ -27,7 +33,10 @@ iml_module(
         "other": {
             "tags": [
                 "cpu:3",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
     },

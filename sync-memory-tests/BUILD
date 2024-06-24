@@ -12,13 +12,20 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+                "perfgate-release",
             ],
         },
         "Benchmark1000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         # This test is run in release branch, too but not analyzed due to small number of runs per test
@@ -28,7 +35,10 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
                 "perfgate-release",
             ],
         },
@@ -52,25 +62,37 @@ iml_module(
         "Benchmark1000CpuLatestGradleTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestGradleTest",
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "Benchmark1000MemoryLatestGradleTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryLatestGradleTest",
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "Benchmark1000CpuLatestKotlinTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestKotlinTest",
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "Benchmark1000MemoryLatestKotlinTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryLatestKotlinTest",
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         # Presubmit tests
@@ -81,27 +103,57 @@ iml_module(
         # Tests without regression analyzers, to reduce noise
         "Benchmark200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+            ],
         },
         "Benchmark500Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark500CpuTest",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+            ],
         },
         "Benchmark200Repeated20TimesMemory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+            ],
         },
         "Benchmark1000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+            ],
         },
         "Benchmark1000MemoryRuntimeClasspath": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+            ],
         },
         "Benchmark1000CpuRuntimeClasspath": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuRuntimeClasspath",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+            ],
         },
         # Disabled tests
         "Benchmark4200Cpu": {
@@ -109,14 +161,20 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "BenchmarkMultiApp100Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp100CpuTest",
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "BenchmarkMultiApp190Cpu": {
@@ -125,7 +183,10 @@ iml_module(
             "additional_jvm_args": ["-Xmx6g"],
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "Benchmark4200Memory": {
@@ -133,21 +194,30 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "BenchmarkMultiApp100Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
         "BenchmarkMultiApp190Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
             ],
         },
     },
