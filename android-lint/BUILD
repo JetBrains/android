@@ -53,7 +53,7 @@ iml_module(
                 "//prebuilts/studio/sdk:cmake",
                 "//prebuilts/studio/sdk:ndk",
             ],
-            "tags": ["no_windows"],
+            "tags": ["noci:studio-win"],
             "test_filter": "com.android.tools.idea.lint.model.LintModelSnapshotComparisonTest",
         },
         "AndroidLintGradleTest": {

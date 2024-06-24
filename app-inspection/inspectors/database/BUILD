@@ -38,7 +38,7 @@ iml_module(
     iml_files = ["app-inspection.inspectors.database.tests.iml"],
     split_test_targets = {
         "ExportToFileDialogTest": {
-            "tags": ["no_windows"],
+            "tags": ["noci:studio-win"],
             "test_filter": "com.android.tools.idea.sqlite.ui.ExportToFileDialogTest",
         },
         "other": {},

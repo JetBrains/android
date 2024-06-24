@@ -50,23 +50,23 @@ iml_module(
         },
         "gradle.structure.configurables.variables.VariablesTableTest": {
             # Takes too long (b/152650494)
-            "tags": ["no_windows"],
+            "tags": ["noci:studio-win"],
             "test_filter": "com.android.tools.idea.gradle.structure.configurables.variables.VariablesTableTest",
         },
         "gradle.structure.model.DependencyManagementTest": {
             # Path separators in map keys (b/151462469)
-            "tags": ["no_windows"],
+            "tags": ["noci:studio-win"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.DependencyManagementTest",
         },
         "gradle.structure.configurables.dependencies.treeview": {
             # Path separators e.g. (..\lib) (b/152560457)
-            "tags": ["no_windows"],
+            "tags": ["noci:studio-win"],
             "test_filter": "com.android.tools.idea.gradle.structure.configurables.dependencies.treeview",
         },
         "gradle.structure.model.android": {
             "shard_count": 6,
             # Timeout waiting to lock Artifact transforms cache (b/152652501)
-            "tags": ["no_windows"],
+            "tags": ["noci:studio-win"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
         },
     },

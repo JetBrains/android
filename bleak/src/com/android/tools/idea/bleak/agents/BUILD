@@ -16,7 +16,10 @@ cc_library(
             "-Iprebuilts/studio/jdk/linux/include/linux",
         ],
     }),
-    tags = ["no_windows"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
     deps = [
         "//prebuilts/studio/jdk:jni_headers",
