@@ -17,7 +17,6 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
@@ -40,13 +39,10 @@ import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
-import com.google.gct.login.LoginState
-import com.google.gct.login.LoginStatus
 import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -82,10 +78,7 @@ class VitalsConfigurationService(project: Project) : Disposable {
 class VitalsConfigurationManager(
   override val project: Project,
   @VisibleForTesting val cache: AppInsightsCache,
-  loginState: Flow<Boolean> =
-    if (StudioFlags.ENABLE_SETTINGS_ACCOUNT_UI.get())
-      GoogleLoginService.instance.activeUserFlow.map { it != null }
-    else service<LoginState>().loginStatus.map { it is LoginStatus.LoggedIn },
+  loginState: Flow<Boolean> = GoogleLoginService.instance.activeUserFlow.map { it != null },
   parentDisposable: Disposable,
   @TestOnly private val testClient: AppInsightsClient? = null,
 ) : AppInsightsConfigurationManager, Disposable {
@@ -101,13 +94,9 @@ class VitalsConfigurationManager(
         // Wait for the client and controller to finish initializing before emitting from this flow.
         loader.getController()
         refreshConfigurationFlow
-          .combine(loginState) { _, loginStatus -> loginStatus }
+          .combine(loginState) { _, _ -> LoginFeature.feature<VitalsLoginFeature>().isLoggedIn() }
           .collect { isLoggedIn ->
-            if (
-              (StudioFlags.ENABLE_SETTINGS_ACCOUNT_UI.get() &&
-                !LoginFeature.feature<VitalsLoginFeature>().isLoggedIn()) ||
-                (!StudioFlags.ENABLE_SETTINGS_ACCOUNT_UI.get() && !isLoggedIn)
-            ) {
+            if (!isLoggedIn) {
               emit(
                 LoadingState.Unauthorized(
                   "Android Vitals is not an allowed feature for current user"
