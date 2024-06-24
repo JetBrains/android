@@ -5,7 +5,8 @@ SYNC_PERFGATE_TAGS = [
     "block-network",
     "no_test_mac",
     "noci:studio-win",
-    "perfgate",
+    "noci:studio-linux",
+    "ci:perfgate-linux",
 ]
 
 SYNC_SMOKE_TAGS = [
