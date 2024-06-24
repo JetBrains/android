@@ -135,13 +135,18 @@ object AgpVersions {
       latestKnown = latestKnown,
       gmavenVersions = IdeGoogleMavenRepository.getAgpVersions(),
       localAndSnapshotVersions = getLocalAndSnapshotVersions(),
+      includeHistoricalAgpVersions = StudioFlags.NPW_INCLUDE_ALL_COMPATIBLE_ANDROID_GRADLE_PLUGIN_VERSIONS.get(),
       )
   }
 
   @VisibleForTesting
   @Slow
   fun getNewProjectWizardVersions(
-    latestKnown: AgpVersion, gmavenVersions: Set<AgpVersion>, localAndSnapshotVersions: List<NewProjectWizardAgpVersion>): List<NewProjectWizardAgpVersion> {
+    latestKnown: AgpVersion,
+    gmavenVersions: Set<AgpVersion>,
+    localAndSnapshotVersions: List<NewProjectWizardAgpVersion>,
+    includeHistoricalAgpVersions: Boolean
+  ): List<NewProjectWizardAgpVersion> {
     val newProjectDefaultVersion = newProject
     val include = setOf(AndroidGradlePluginCompatibility.COMPATIBLE, AndroidGradlePluginCompatibility.DEPRECATED)
     val recommended = mutableListOf<NewProjectWizardAgpVersion>()
@@ -152,20 +157,29 @@ object AgpVersions {
       }
     }
     var minOfCurrentSeries = AgpVersion(Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE)
-    gmavenVersions.sortedDescending().forEach { version ->
+    var mostRecentMajorMinor = AgpVersion(Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE)
+    var majorMinorCount = 0
+    for (version in gmavenVersions.sortedDescending()) {
       // Go from latest first, and include latest from each series that is compatible
-      if (version < minOfCurrentSeries &&
-          include.contains(computeAndroidGradlePluginCompatibility(version, latestKnown))) {
-        minOfCurrentSeries = if (version.isSnapshot) {
-          // Treat -dev as special case, so also include the latest release version from the current series, if present.
-          version
-        }
-        else {
-          // Exclude all older versions from the current series
-          AgpVersion.parse(version.toString().substringBefore("-") + "-alpha01")
-        }
-        recommended.add(NewProjectWizardAgpVersion(version, info = if (version == newProjectDefaultVersion) "New project default" else ""))
+      if (version >= minOfCurrentSeries) continue
+      if (!include.contains(computeAndroidGradlePluginCompatibility(version, latestKnown))) continue
+      minOfCurrentSeries = if (version.isSnapshot) {
+        // Treat -dev as special case, so also include the latest release version from the current series, if present.
+        version
       }
+      else {
+        // Exclude all older versions from the current series
+        AgpVersion.parse(version.toString().substringBefore("-") + "-alpha01")
+      }
+      // Also count how many stable major-minor versions of AGP we've seen, to truncate the list
+      if (!version.isPreview && version < mostRecentMajorMinor) {
+        mostRecentMajorMinor = AgpVersion(version.major, version.minor)
+        majorMinorCount += 1
+        if (!includeHistoricalAgpVersions && majorMinorCount > 2) {
+          return recommended
+        }
+      }
+      recommended.add(NewProjectWizardAgpVersion(version, info = if (version == newProjectDefaultVersion) "New project default" else ""))
     }
     return recommended
   }

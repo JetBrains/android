@@ -97,6 +97,12 @@ public final class StudioFlags {
     "Show a combobox to select the version of Android Gradle plugin used for the new project",
     IdeaIsInternalDefault.INSTANCE);
 
+  public static final Flag<Boolean> NPW_INCLUDE_ALL_COMPATIBLE_ANDROID_GRADLE_PLUGIN_VERSIONS = new BooleanFlag(
+    NPW, "show.agp.version.combobox.all.versions", "List all previous versions of AGP",
+    "List all versions of AGP in the new project wizard combo box. " +
+    "When disabled the combo box will only the two newest stable major-minor series of AGP versions.",
+    ChannelDefault.enabledUpTo(DEV));
+
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = new BooleanFlag(
     NPW, "new.native.module", "New Android Native Module",
     "Show template to create a new Android Native module in the new module wizard.",
