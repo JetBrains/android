@@ -249,3 +249,33 @@ kotlin_library(
     srcs = ["src/com/android/tools/idea/gradle/project/sync/memory/BenchmarkSummaryTool.kt"],
     deps = ["@maven//:com.google.code.gson.gson"],
 )
+
+# See for latest versions: https://services.gradle.org/distributions-snapshots/
+
+# usage (meant to be used with a clean repo):
+# for Gradle update
+# bazel run //tools/adt/idea/sync-memory-tests:update_benchmark_versions -- gradle 8.10-20240621020500+0000
+# available versions: https://services.gradle.org/distributions-snapshots
+# This will generate commits at
+# tools/adt/idea
+# tools/external/gradle
+
+# for Kotlin update
+# bazel run //tools/adt/idea/sync-memory-tests:update_benchmark_versions -- kotlin 2.0.0-dev-6897
+# available versions: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
+# This one might take a while since maven_fetch.sh takes some time
+# This will generate commits at
+# tools/adt/idea
+# tools/base
+# prebuilts/tools
+java_binary(
+    name = "update_benchmark_versions",
+    testonly = True,
+    main_class = "com.android.tools.idea.gradle.project.sync.UpdateBenchmarkVersionsKt",
+    runtime_deps = [":update_benchmark_versions_lib"],
+)
+
+kotlin_library(
+    name = "update_benchmark_versions_lib",
+    srcs = ["src/com/android/tools/idea/gradle/project/sync/UpdateBenchmarkVersions.kt"],
+)
