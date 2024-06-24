@@ -17,6 +17,7 @@ add_library(
         accessors/audio_manager.cc
         accessors/clipboard_manager.cc
         accessors/device_state_manager.cc
+        accessors/display_control.cc
         accessors/display_info.cc
         accessors/display_listener_dispatcher.cc
         accessors/display_manager.cc

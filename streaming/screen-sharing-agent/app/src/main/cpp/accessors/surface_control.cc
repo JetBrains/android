@@ -33,20 +33,23 @@ void SurfaceControl::InitializeStatics(Jni jni) {
 
   if (surface_control_class_.IsNull()) {
     surface_control_class_ = jni.GetClass("android/view/SurfaceControl");
-    close_transaction_method_ = surface_control_class_.GetStaticMethod("closeTransaction", "()V");
-    open_transaction_method_ = surface_control_class_.GetStaticMethod("openTransaction", "()V");
-    create_display_method_ = surface_control_class_.GetStaticMethod("createDisplay", "(Ljava/lang/String;Z)Landroid/os/IBinder;");
-    destroy_display_method_ = surface_control_class_.GetStaticMethod("destroyDisplay", "(Landroid/os/IBinder;)V");
-    set_display_surface_method_ = surface_control_class_.GetStaticMethod(
-        "setDisplaySurface", "(Landroid/os/IBinder;Landroid/view/Surface;)V");
-    set_display_layer_stack_method_ = surface_control_class_.GetStaticMethod("setDisplayLayerStack", "(Landroid/os/IBinder;I)V");
-    set_display_projection_method_ = surface_control_class_.GetStaticMethod(
-        "setDisplayProjection", "(Landroid/os/IBinder;ILandroid/graphics/Rect;Landroid/graphics/Rect;)V");
-    rect_class_ = jni.GetClass("android/graphics/Rect");
-    rect_constructor_ = rect_class_.GetConstructor("(IIII)V");
+    if (Agent::feature_level() < 34) {
+      close_transaction_method_ = surface_control_class_.GetStaticMethod("closeTransaction", "()V");
+      open_transaction_method_ = surface_control_class_.GetStaticMethod("openTransaction", "()V");
+      create_display_method_ = surface_control_class_.GetStaticMethod("createDisplay", "(Ljava/lang/String;Z)Landroid/os/IBinder;");
+      destroy_display_method_ = surface_control_class_.GetStaticMethod("destroyDisplay", "(Landroid/os/IBinder;)V");
+      set_display_surface_method_ = surface_control_class_.GetStaticMethod(
+          "setDisplaySurface", "(Landroid/os/IBinder;Landroid/view/Surface;)V");
+      set_display_layer_stack_method_ = surface_control_class_.GetStaticMethod("setDisplayLayerStack", "(Landroid/os/IBinder;I)V");
+      set_display_projection_method_ = surface_control_class_.GetStaticMethod(
+          "setDisplayProjection", "(Landroid/os/IBinder;ILandroid/graphics/Rect;Landroid/graphics/Rect;)V");
+
+      rect_class_ = jni.GetClass("android/graphics/Rect");
+      rect_constructor_ = rect_class_.GetConstructor("(IIII)V");
+      rect_class_.MakeGlobal();
+    }
 
     surface_control_class_.MakeGlobal();
-    rect_class_.MakeGlobal();
   }
 }
 
