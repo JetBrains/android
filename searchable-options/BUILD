@@ -21,7 +21,7 @@ py_test(
     imports = ["."],
     tags = [
         "block_network",
-        "no_windows",
+        "noci:studio-win",
     ],
 )
 
@@ -35,6 +35,6 @@ py_binary(
     ],
     tags = [
         "block_network",
-        "no_windows",
+        "noci:studio-win",
     ],
 )
