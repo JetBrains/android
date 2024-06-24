@@ -112,7 +112,7 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Tests for [EmulatorToolWindowPanel] and some of its toolbar actions.
  */
-@Suppress("OPT_IN_USAGE")
+@Suppress("OPT_IN_USAGE", "OverrideOnly")
 @RunsInEdt
 class EmulatorToolWindowPanelTest {
 
