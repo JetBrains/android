@@ -19,11 +19,9 @@ import com.android.SdkConstants.FD_RES_XML
 import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ModelBuilder
-import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
@@ -69,21 +67,6 @@ class LayoutlibSceneManagerTest : SceneTest() {
     myLayoutlibSceneManager.updateSceneView()
     assertNotNull(myLayoutlibSceneManager.sceneView)
     assertNotNull(myLayoutlibSceneManager.secondarySceneView)
-  }
-
-  fun testPowerSaveModeDoesNotRefreshOnResourcesChange() {
-    EssentialsMode.setEnabled(true, project)
-    try {
-      myLayoutlibSceneManager.model.notifyModified(ChangeType.DND_COMMIT)
-      assertFalse(myLayoutlibSceneManager.isOutOfDate)
-      myLayoutlibSceneManager.model.notifyModified(ChangeType.RESOURCE_CHANGED)
-      assertTrue(myLayoutlibSceneManager.isOutOfDate)
-      // Requesting a render which will clear the flag.
-      myLayoutlibSceneManager.requestRenderAsync()
-      assertFalse(myLayoutlibSceneManager.isOutOfDate)
-    } finally {
-      EssentialsMode.setEnabled(false, project)
-    }
   }
 
   fun testChangingShowDecorationsForcesReinflate() {

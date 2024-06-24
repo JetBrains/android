@@ -59,10 +59,6 @@
                     serviceImplementation="com.android.tools.idea.common.error.AsyncDesignerCommonIssuePanelModelProvider"/>
     <postStartupActivity implementation="com.android.tools.idea.common.error.IssuePanelProjectActivity"/>
   </extensions>
-
-  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder">
-    <editorNotificationProvider implementation="com.android.tools.idea.common.surface.notifications.DesignSurfaceNotificationProvider" />
-  </extensions>
   <!-- Collects all the providers for source code preview representations -->
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"

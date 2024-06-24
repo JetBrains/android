@@ -294,15 +294,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     return getModel().deactivate(source);
   }
 
-  /**
-   * Returns true if this {@link SceneManager} is not fully up to date with the {@link NlModel}.
-   * This can happen when PowerMode is enabled and the {@link SceneManager} stops listening for automatic updates
-   * from the model.
-   */
-  public boolean isOutOfDate() {
-    return false;
-  }
-
   // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
 
   @Override
