@@ -16,6 +16,7 @@
 package com.android.tools.screensharing;
 
 import static android.os.Build.VERSION.SDK_INT;
+import static com.android.tools.screensharing.Main.ATTRIBUTION_TAG;
 
 import android.content.ClipData;
 import android.os.PersistableBundle;
@@ -30,7 +31,6 @@ import java.lang.reflect.Method;
 @SuppressWarnings("unused") // Called through JNI.
 public class ClipboardAdapter {
   private static final String PACKAGE_NAME = "com.android.shell";
-  private static final String ATTRIBUTION_TAG = "studio.screen.sharing";
   private static final int USER_ID = 0;
   private static final int DEVICE_ID_DEFAULT = 0; // From android.companion.virtual.VirtualDeviceManager
 
