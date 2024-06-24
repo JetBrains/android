@@ -24,11 +24,11 @@ import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
+import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
+import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
+import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
+import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.OrganizationPadding
-import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import org.jetbrains.annotations.VisibleForTesting
 
 private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->

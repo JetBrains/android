@@ -24,6 +24,10 @@ import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.SCROLLABLE_ZOOM_ON_GRID
 import com.android.tools.idea.uibuilder.layout.option.GroupedSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
+import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
+import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
+import com.android.tools.idea.uibuilder.layout.positionable.content
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
