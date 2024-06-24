@@ -20,7 +20,7 @@ import static org.junit.Assert.assertNull;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
-import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
@@ -93,7 +93,7 @@ public final class VirtualDeviceBuilderTest {
   @Test
   public void wearOsTag() {
     Map<String, String> properties = new HashMap<>();
-    properties.put(AvdManager.AVD_INI_TAG_ID, "android-wear");
+    properties.put(ConfigKey.TAG_ID, "android-wear");
 
     AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
@@ -110,7 +110,7 @@ public final class VirtualDeviceBuilderTest {
   @Test
   public void androidTvTag() {
     Map<String, String> properties = new HashMap<>();
-    properties.put(AvdManager.AVD_INI_TAG_ID, "android-tv");
+    properties.put(ConfigKey.TAG_ID, "android-tv");
 
     AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
@@ -127,7 +127,7 @@ public final class VirtualDeviceBuilderTest {
   @Test
   public void googleTvTag() {
     Map<String, String> properties = new HashMap<>();
-    properties.put(AvdManager.AVD_INI_TAG_ID, "google-tv");
+    properties.put(ConfigKey.TAG_ID, "google-tv");
 
     AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
@@ -144,7 +144,7 @@ public final class VirtualDeviceBuilderTest {
   @Test
   public void automotiveTag() {
     Map<String, String> properties = new HashMap<>();
-    properties.put(AvdManager.AVD_INI_TAG_ID, "android-automotive");
+    properties.put(ConfigKey.TAG_ID, "android-automotive");
 
     AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
@@ -161,7 +161,7 @@ public final class VirtualDeviceBuilderTest {
   @Test
   public void automotivePlayTag() {
     Map<String, String> properties = new HashMap<>();
-    properties.put(AvdManager.AVD_INI_TAG_ID, "android-automotive-playstore");
+    properties.put(ConfigKey.TAG_ID, "android-automotive-playstore");
 
     AvdInfo avdInfo = new AvdInfo(Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
