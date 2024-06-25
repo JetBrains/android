@@ -22,11 +22,13 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.DANISH_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.RUSSIAN_LANGUAGE
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -54,8 +56,8 @@ class UiSettingsPanelTest {
   @get:Rule
   val ruleChain = RuleChain(projectRule, popupRule, nameRule)
 
+  private var _panel: UiSettingsPanel? = null
   private lateinit var model: UiSettingsModel
-  private lateinit var panel: UiSettingsPanel
   private lateinit var ui: FakeUi
   private var lastCommand: String = ""
   private val deviceTypeFromTestName: DeviceType
@@ -65,6 +67,15 @@ class UiSettingsPanelTest {
       nameRule.methodName.endsWith("Automotive") -> DeviceType.AUTOMOTIVE
       nameRule.methodName.endsWith("Desktop") -> DeviceType.DESKTOP
       else -> DeviceType.HANDHELD
+    }
+  private val panel: UiSettingsPanel
+    get() {
+      if (_panel == null) {
+        val deviceType = deviceTypeFromTestName
+        _panel = UiSettingsPanel(model, deviceType)
+        ui = FakeUi(_panel!!, createFakeWindow = true, parentDisposable = projectRule.disposable)
+      }
+      return _panel!!
     }
 
   @Before
@@ -80,8 +91,6 @@ class UiSettingsPanelTest {
     model.gestureOverlayInstalled.setFromController(true)
     model.talkBackInstalled.setFromController(true)
 
-    panel = UiSettingsPanel(model, deviceType)
-    ui = FakeUi(panel, createFakeWindow = true, parentDisposable = projectRule.disposable)
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
     model.gestureNavigation.uiChangeListener = ChangeListener { lastCommand = "gestures=$it" }
     model.appLanguage.selection.uiChangeListener = ChangeListener { lastCommand = "locale=${it?.tag}" }
@@ -108,6 +117,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testGestureOverlayNotInstalled() {
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, projectRule.disposable)
     model.gestureOverlayInstalled.setFromController(false)
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
     assertThat(comboBox.accessibleContext.accessibleName).isEqualTo(GESTURE_NAVIGATION_TITLE)
@@ -116,6 +126,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testSetGestureNavigationFromUi() {
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, projectRule.disposable)
     model.gestureOverlayInstalled.setFromController(true)
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
     assertThat(comboBox.isShowing).isTrue()
@@ -278,7 +289,7 @@ class UiSettingsPanelTest {
     // Simulate Permission Monitoring enabled:
     model.fontScaleSettable.setFromController(false)
     assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.isShowing).isTrue()
-    assertThat(panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isFalse()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.isShowing).isFalse()
     assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.isShowing).isFalse()
@@ -290,7 +301,7 @@ class UiSettingsPanelTest {
     // Simulate Permission Monitoring disabled:
     model.fontScaleSettable.setFromController(true)
     assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.isShowing).isTrue()
-    assertThat(panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isTrue()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.isShowing).isTrue()
@@ -312,12 +323,14 @@ class UiSettingsPanelTest {
     ui.keyboard.pressAndRelease(VK_TAB)
     model.differentFromDefault.setFromController(true)
 
-    assertThat(focusManager.focusOwner?.name).isEqualTo(GESTURE_NAVIGATION_TITLE)
-    val navigationComboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
-    // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
-    navigationComboBox.selectedItem = true
-    waitForCondition(1.seconds) { lastCommand == "gestures=true" }
-    ui.keyboard.pressAndRelease(VK_TAB)
+    if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
+      assertThat(focusManager.focusOwner?.name).isEqualTo(GESTURE_NAVIGATION_TITLE)
+      val navigationComboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
+      // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
+      navigationComboBox.selectedItem = true
+      waitForCondition(1.seconds) { lastCommand == "gestures=true" }
+      ui.keyboard.pressAndRelease(VK_TAB)
+    }
 
     assertThat(focusManager.focusOwner?.name).isEqualTo(APP_LANGUAGE_TITLE)
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }
