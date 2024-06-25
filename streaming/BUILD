@@ -151,7 +151,7 @@ iml_test(
     ],
     module = ":intellij.android.streaming.integration",
     tags = [
-        "no_windows",
+        "noci:studio-win",
         "very_flaky",  # b/271008444
     ],
     tags_linux = ["block-network"],

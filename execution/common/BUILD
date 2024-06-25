@@ -37,7 +37,7 @@ iml_module(
     split_test_targets = {
         "applychanges": {
             "test_filter": "com.android.tools.idea.execution.common.applychanges",
-            "tags": ["no_windows"],
+            "tags": ["noci:studio-win"],
         },
     },
     test_class = "com.android.tools.idea.execution.common.AndroidExecutionCommonTestSuite",

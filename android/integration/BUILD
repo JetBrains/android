@@ -380,7 +380,7 @@ iml_studio_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "no_windows",
+        "noci:studio-win",
         "very_flaky",  # b/283129200
     ],
     test_class = "com.android.tools.idea.BuildProjectBleakTest",
@@ -425,7 +425,7 @@ iml_studio_test(
     ],
     tags_windows = [
         # TODO(b/287284693): Add Windows support for this test.
-        "no_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.DebugNativeApkTest",
 )
