@@ -51,6 +51,9 @@ bool ControlDisplayPower(Jni jni, DisplayPowerMode power_mode) {
     // TODO: Turn off secondary physical displays.
   } else if (Agent::feature_level() >= 29) {
     vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
+    if (display_ids.empty()) {
+      return false;
+    }
     for (int64_t display_id : display_ids) {
       JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
       SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
