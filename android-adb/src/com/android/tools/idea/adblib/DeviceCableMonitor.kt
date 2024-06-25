@@ -31,13 +31,17 @@ import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.ProjectActivity
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Monitor device connection event. If the device is using USB and the
@@ -79,14 +83,17 @@ class DeviceCableMonitor : ProjectActivity {
     val deviceTitle = handle.state.properties.title
     val maxSpeed = deviceInfo.maxSpeed ?: return
     val negotiatedSpeed = deviceInfo.negotiatedSpeed ?: return
+    val connectedDevice = handle.stateFlow.value.connectedDevice ?: return
 
     val isStudioNotificationEnabled = StudioFlags.ALERT_UPON_DEVICE_SUBOPTIMAL_SPEED.get()
 
+    val notification = createNotification("'$deviceTitle' is capable of faster USB connectivity." +
+           " Upgrade the cable/hub from ${ speedToString(negotiatedSpeed) } to ${speedToString(maxSpeed)}.")
+    var notificationShown = false
     if (negotiatedSpeed == 480L && negotiatedSpeed < maxSpeed) {
       if (isStudioNotificationEnabled) {
-        showNotification(project, "'$deviceTitle' is capable of faster USB connectivity. Upgrade the cable/hub from ${
-          speedToString(negotiatedSpeed)
-        } to ${speedToString(maxSpeed)}.")
+        Notifications.Bus.notify(notification, project)
+        notificationShown = true
       }
     }
 
@@ -98,23 +105,29 @@ class DeviceCableMonitor : ProjectActivity {
                               .setMaxSpeedMbps(maxSpeed)
                               .setNegotiatedSpeedMbps(negotiatedSpeed)
                               .setSpeedNotificationsStudioDisabled(!isStudioNotificationEnabled)
-                              .setSpeedNotificationsUserDisabled(!createNotification().canShowFor(project))
+                              .setSpeedNotificationsUserDisabled(!notification.canShowFor(project))
         )
     )
 
-  }
-
-  private fun showNotification(project: Project, text: String) {
-    val notification = createNotification(text)
-    notification.addAction(BrowseNotificationAction("Learn more", "https://d.android.com/r/studio-ui/usb-check"))
-
-    Notifications.Bus.notify(notification, project)
+    // Dismiss the notification once the device is unplugged or when project is closed.
+    if (notificationShown && notification.canShowFor(project)) {
+      withContext(NonCancellable) { // To avoid a race condition we cannot run on the DeviceHandle scope.
+        val waiter = launch {handle.awaitRelease(connectedDevice)}
+        // Notifications are expired when the project is closed
+        notification.whenExpired {
+          waiter.cancel()
+        }
+        waiter.join()
+        notification.expire()
+      }
+    }
   }
 
   private fun createNotification(text: String = ""): Notification {
     return notificationGroup
       .createNotification(text, NotificationType.WARNING)
       .setTitle("Connection speed warning")
+      .addAction(BrowseNotificationAction("Learn more", "https://d.android.com/r/studio-ui/usb-check"))
       .setImportant(true)
   }
 
