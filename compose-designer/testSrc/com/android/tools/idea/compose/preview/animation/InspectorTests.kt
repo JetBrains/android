@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.RenderTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiFile
@@ -57,7 +58,7 @@ open class InspectorTests {
         )
         .build()
     }
-    surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
+    surface = NlSurfaceBuilder.builder(projectRule.project, parentDisposable).build()
     surface.addModelWithoutRender(model)
 
     val psiFile =

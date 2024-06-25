@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
@@ -67,7 +68,7 @@ class SetColorBlindModeActionTest {
         .build()
     }
     val myScreenViewProvider = TestScreenViewProvider()
-    val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
+    val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
     surface.addModelWithoutRender(model).join()
 
     surface.setScreenViewProvider(myScreenViewProvider, false)

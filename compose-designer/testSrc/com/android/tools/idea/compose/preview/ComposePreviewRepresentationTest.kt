@@ -68,6 +68,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.So
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.TestToolWindowManager
 import com.google.common.base.Preconditions.checkState
@@ -1020,7 +1021,7 @@ class ComposePreviewRepresentationTest {
   private fun runComposePreviewRepresentationTest(
     previewPsiFile: PsiFile = createPreviewPsiFile(),
     mainSurface: NlDesignSurface =
-      NlDesignSurface.builder(fixture.project, fixture.testRootDisposable).build(),
+      NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable).build(),
     block: suspend ComposePreviewRepresentationTestContext.() -> Unit,
   ) {
     val context =

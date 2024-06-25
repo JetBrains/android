@@ -49,7 +49,7 @@ import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.ide.DataManager
@@ -204,7 +204,7 @@ fun interface ComposePreviewViewProvider {
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     projectBuildStatusManager: ProjectBuildStatusManager,
     dataProvider: DataProvider,
-    mainDesignSurfaceBuilder: NlDesignSurface.Builder,
+    mainDesignSurfaceBuilder: NlSurfaceBuilder,
     parentDisposable: Disposable,
   ): ComposePreviewView
 }
@@ -245,7 +245,7 @@ internal class ComposePreviewViewImpl(
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
   private val projectBuildStatusManager: ProjectBuildStatusManager,
   dataProvider: DataProvider,
-  mainDesignSurfaceBuilder: NlDesignSurface.Builder,
+  mainDesignSurfaceBuilder: NlSurfaceBuilder,
   parentDisposable: Disposable,
 ) : ComposePreviewView, Pannable, DataProvider {
 

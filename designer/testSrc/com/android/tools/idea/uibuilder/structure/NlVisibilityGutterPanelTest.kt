@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.rendering.RenderResult
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.Disposable
@@ -59,7 +60,8 @@ class NlVisibilityGutterPanelTest : LayoutTestCase() {
         override fun dispose() {}
       }
     mySurface =
-      NlDesignSurface.builder(project, myDisposable!!) { surface: NlDesignSurface, model: NlModel ->
+      NlSurfaceBuilder.builder(project, myDisposable!!) { surface: NlDesignSurface, model: NlModel
+          ->
           object : SyncLayoutlibSceneManager(surface, model as SyncNlModel) {
             override fun renderAsync(
               trigger: LayoutEditorRenderResult.Trigger?,

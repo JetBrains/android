@@ -33,6 +33,7 @@ import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.defaultActionHandlerProvider
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -115,7 +116,7 @@ object DesignSurfaceTestUtil {
     if (surface is NlDesignSurface) {
       whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
       whenever(surface.getActionHandlerProvider())
-        .thenReturn(Function { NlDesignSurface.defaultActionHandlerProvider(it) })
+        .thenReturn(Function { defaultActionHandlerProvider(it) })
     }
 
     val sceneManager = sceneManagerFactory(surface, model)

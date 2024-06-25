@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.actions.SelectAllAction
 import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.testFramework.PlatformTestUtil
@@ -49,7 +49,7 @@ class SelectActionsTest : LayoutTestCase() {
         )
         .build()
 
-    val surface = NlDesignSurface.build(project, project)
+    val surface = NlSurfaceBuilder.build(project, project)
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
@@ -81,7 +81,7 @@ class SelectActionsTest : LayoutTestCase() {
         )
         .build()
 
-    val surface = NlDesignSurface.build(project, project)
+    val surface = NlSurfaceBuilder.build(project, project)
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
@@ -113,7 +113,7 @@ class SelectActionsTest : LayoutTestCase() {
         )
         .build()
 
-    val surface = NlDesignSurface.build(project, project)
+    val surface = NlSurfaceBuilder.build(project, project)
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 

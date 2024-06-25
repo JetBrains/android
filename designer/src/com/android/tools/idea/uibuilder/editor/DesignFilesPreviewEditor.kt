@@ -36,6 +36,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
@@ -80,7 +81,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
   override fun createEditorPanel(): DesignerEditorPanel {
     val workBench = WorkBench<DesignSurface<*>>(myProject, WORKBENCH_NAME, this, this)
     val surface: (panel: DesignerEditorPanel) -> DesignSurface<*> = {
-      NlDesignSurface.builder(myProject, this)
+      NlSurfaceBuilder.builder(myProject, this)
         .setActionManagerProvider { surface ->
           PreviewEditorActionManagerProvider(
             surface as NlDesignSurface,

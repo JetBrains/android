@@ -129,13 +129,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
-  @SurfaceScale private static final double DEFAULT_MIN_SCALE = 0.025;
-  @SurfaceScale private static final double DEFAULT_MAX_SCALE = 10;
-  private static final ImmutableSet<NlSupportedActions> DEFAULT_NL_SUPPORTED_ACTIONS =
-    ImmutableSet.copyOf(NlSupportedActions.values());
-
   /**
-   * See {@link Builder#setDelegateDataProvider(DataProvider)}
+   * See {@link NlSurfaceBuilder#setDelegateDataProvider(DataProvider)}
    */
   @Nullable private final DataProvider myDelegateDataProvider;
 
@@ -143,259 +138,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public ZoomController getZoomController() {
     return myZoomController;
-  }
-
-  public static class Builder {
-    private final Project myProject;
-    private final Disposable myParentDisposable;
-    private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
-    @SuppressWarnings("deprecation") private SurfaceLayoutOption myLayoutOption;
-    @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
-    @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
-    /**
-     * An optional {@link DataProvider} that allows users of the surface to provide additional information associated
-     * with this surface.
-     */
-    @Nullable private DataProvider myDelegateDataProvider = null;
-
-    /**
-     * Factory to create an action manager for the NlDesignSurface
-     */
-    private Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> myActionManagerProvider =
-      NlDesignSurface::defaultActionManagerProvider;
-
-    /**
-     * Factory to create an {@link Interactable} for the NlDesignSurface.
-     * It should only be modified for tests.
-     */
-    private Function<DesignSurface<LayoutlibSceneManager>, Interactable> myInteractableProvider = SurfaceInteractable::new;
-
-    /**
-     * Factory to create an {@link InteractionHandler} for the {@link DesignSurface}.
-     */
-    private Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
-    private Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
-    @Nullable private SelectionModel mySelectionModel = null;
-    private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE;
-    @NotNull private Supplier<ImmutableSet<NlSupportedActions>> mySupportedActionsProvider = () -> DEFAULT_NL_SUPPORTED_ACTIONS;
-
-    private boolean myShouldRenderErrorsPanel = false;
-
-    @Nullable private ScreenViewProvider myScreenViewProvider = null;
-    private boolean mySetDefaultScreenViewProvider = false;
-
-    private double myMaxZoomToFitLevel = Double.MAX_VALUE;
-
-    private Function<DesignSurface<LayoutlibSceneManager>, VisualLintIssueProvider> myVisualLintIssueProviderFactory =
-      NlDesignSurface::viewVisualLintIssueProviderFactory;
-
-    private Builder(@NotNull Project project,
-                    @NotNull Disposable parentDisposable,
-                    @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider
-    ) {
-      myProject = project;
-      myParentDisposable = parentDisposable;
-      mySceneManagerProvider = sceneManagerProvider;
-    }
-
-    /**
-     * Allows customizing the {@link SurfaceLayoutOption}.
-     */
-    @SuppressWarnings("deprecation")
-    @NotNull
-    public Builder setLayoutOption(@NotNull SurfaceLayoutOption layoutOption) {
-      myLayoutOption = layoutOption;
-      return this;
-    }
-
-    /**
-     * Allows customizing the {@link ActionManager}. Use this method if you need to apply additional settings to it or if you
-     * need to completely replace it, for example for tests.
-     *
-     * @see NlDesignSurface#defaultActionManagerProvider(DesignSurface)
-     */
-    @NotNull
-    public Builder setActionManagerProvider(@NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider) {
-      myActionManagerProvider = actionManagerProvider;
-      return this;
-    }
-
-    /**
-     * Allows to define the {@link Interactable} factory that will later be used to generate
-     * the {@link Interactable} over which the {@link InteractionHandler} will be placed.
-     */
-    @TestOnly
-    @NotNull
-    public Builder setInteractableProvider(@NotNull Function<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider) {
-      myInteractableProvider = interactableProvider;
-      return this;
-    }
-
-    /**
-     * Allows customizing the {@link InteractionHandler}. Use this method if you need to apply different interaction behavior to the
-     * {@link DesignSurface}.
-     *
-     * @see NlDesignSurface#defaultInteractionHandlerProvider(DesignSurface)
-     */
-    @NotNull
-    public Builder setInteractionHandlerProvider(@NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider) {
-      myInteractionHandlerProvider = interactionHandlerProvider;
-      return this;
-    }
-
-
-    /**
-     * Restrict the minimum zoom level to the given value. The default value is {@link #DEFAULT_MIN_SCALE}.
-     * For example, if this value is 0.15 then the zoom level of {@link DesignSurface} can never be lower than 15%.
-     * This restriction also effects to zoom-to-fit, if the measured size of zoom-to-fit is 10%, then the zoom level will be cut to 15%.
-     * <br/>
-     * This value should always be larger than 0, otherwise the {@link IllegalStateException} will be thrown.
-     *
-     * @see #setMaxScale(double)
-     */
-    public Builder setMinScale(@SurfaceScale double scale) {
-      if (scale <= 0) {
-        throw new IllegalStateException("The min scale (" + scale + ") is not larger than 0");
-      }
-      myMinScale = scale;
-      return this;
-    }
-
-    /**
-     * Restrict the max zoom level to the given value. The default value is {@link #DEFAULT_MAX_SCALE}.
-     * For example, if this value is 1.0 then the zoom level of {@link DesignSurface} can never be larger than 100%.
-     * This restriction also effects to zoom-to-fit, if the measured size of zoom-to-fit is 120%, then the zoom level will be cut to 100%.
-     * <br/><br/>
-     * This value should always be larger than 0 and larger than min scale which is set by {@link #setMinScale(double)}. otherwise the
-     * {@link IllegalStateException} will be thrown when {@link #build()} is called.
-     *
-     * @see #setMinScale(double)
-     */
-    public Builder setMaxScale(@SurfaceScale double scale) {
-      myMaxScale = scale;
-      return this;
-    }
-
-    /**
-     * Sets the {@link DesignSurfaceActionHandler} provider for this surface.
-     */
-    @NotNull
-    public Builder setActionHandler(@NotNull Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> actionHandlerProvider) {
-      myActionHandlerProvider = actionHandlerProvider;
-      return this;
-    }
-
-    /**
-     * Sets a delegate {@link DataProvider} that allows users of the surface to provide additional information associated
-     * with this surface.
-     */
-    @NotNull
-    public Builder setDelegateDataProvider(@NotNull DataProvider dataProvider) {
-      myDelegateDataProvider = dataProvider;
-      return this;
-    }
-
-    /**
-     * Sets a new {@link SelectionModel} for this surface.
-     */
-    @NotNull
-    public Builder setSelectionModel(@NotNull SelectionModel selectionModel) {
-      mySelectionModel = selectionModel;
-      return this;
-    }
-
-    /**
-     * The surface will autohide the zoom controls when the mouse is not over it.
-     */
-    @NotNull
-    public Builder setZoomControlsPolicy(@NotNull ZoomControlsPolicy policy) {
-      myZoomControlsPolicy = policy;
-      return this;
-    }
-
-    /**
-     * Set the supported {@link NlSupportedActions} for the built NlDesignSurface.
-     * These actions are registered by xml and can be found globally, we need to assign if the built NlDesignSurface supports it or not.
-     * By default, the builder assumes there is no supported {@link NlSupportedActions}.
-     * <br/><br/>
-     * Be aware the {@link com.intellij.openapi.actionSystem.AnAction}s registered by code are not effected.
-     * TODO(b/183243031): These mechanism should be integrated into {@link ActionManager}.
-     */
-    @NotNull
-    public Builder setSupportedActionsProvider(@NotNull Supplier<ImmutableSet<NlSupportedActions>> supportedActionsProvider) {
-      mySupportedActionsProvider = supportedActionsProvider;
-      return this;
-    }
-
-    /**
-     * See {@link #setSupportedActionsProvider(Supplier)}.
-     * This method will create a copy of the given set.
-     */
-    @NotNull
-    public Builder setSupportedActions(@NotNull Set<NlSupportedActions> supportedActions) {
-      final ImmutableSet<NlSupportedActions> supportedActionsCopy = ImmutableSet.copyOf(supportedActions);
-      setSupportedActionsProvider(() -> supportedActionsCopy);
-      return this;
-    }
-
-    @NotNull
-    public Builder setShouldRenderErrorsPanel(Boolean shouldRenderErrorsPanel) {
-      myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
-      return this;
-    }
-
-    @NotNull
-    public Builder setScreenViewProvider(@NotNull ScreenViewProvider screenViewProvider, boolean setAsDefault) {
-      myScreenViewProvider = screenViewProvider;
-      mySetDefaultScreenViewProvider = setAsDefault;
-      return this;
-    }
-
-    @NotNull
-    public Builder setMaxZoomToFitLevel(double maxZoomToFitLevel) {
-      myMaxZoomToFitLevel = maxZoomToFitLevel;
-      return this;
-    }
-
-    @NotNull
-    public Builder setVisualLintIssueProvider(Function<DesignSurface<LayoutlibSceneManager>, VisualLintIssueProvider> issueProviderFactory) {
-      myVisualLintIssueProviderFactory = issueProviderFactory;
-      return this;
-    }
-
-    @NotNull
-    public NlDesignSurface build() {
-      SurfaceLayoutOption layoutOption = myLayoutOption != null
-                                                ? myLayoutOption
-                                                : SurfaceLayoutOption.Companion.getDEFAULT_OPTION();
-      if (myMinScale > myMaxScale) {
-        throw new IllegalStateException("The max scale (" + myMaxScale + ") is lower than min scale (" + myMinScale +")");
-      }
-      NlDesignSurface surface = new NlDesignSurface(
-        myProject,
-        myParentDisposable,
-        mySceneManagerProvider,
-        layoutOption,
-        myActionManagerProvider,
-        myInteractableProvider,
-        myInteractionHandlerProvider,
-        myMinScale,
-        myMaxScale,
-        myActionHandlerProvider,
-        myDelegateDataProvider,
-        mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
-        myZoomControlsPolicy,
-        mySupportedActionsProvider,
-        myShouldRenderErrorsPanel,
-        myMaxZoomToFitLevel,
-        myVisualLintIssueProviderFactory);
-
-      if (myScreenViewProvider != null) {
-        surface.setScreenViewProvider(myScreenViewProvider, mySetDefaultScreenViewProvider);
-      }
-
-      return surface;
-    }
   }
 
   @NotNull private ScreenViewProvider myScreenViewProvider = NlScreenViewProvider.Companion.loadPreferredMode();
@@ -427,7 +169,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   private final NlDesignSurfaceZoomController myZoomController;
 
-  private NlDesignSurface(@NotNull Project project,
+  NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @SuppressWarnings("deprecation") @NotNull SurfaceLayoutOption defaultLayoutOption,
@@ -480,66 +222,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     myZoomController.setScreenScalingFactor(JBUIScale.sysScale(this));
   }
 
-
-  /**
-   * Default {@link LayoutlibSceneManager} provider with update listener {@link SceneUpdateListener }
-   */
-  @NotNull
-  public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model, @Nullable SceneUpdateListener listener) {
-    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, new LayoutScannerEnabled(), listener);
-    RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
-    sceneManager.setShowDecorations(settings.getShowDecorations());
-    sceneManager.setUseImagePool(settings.getUseLiveRendering());
-    sceneManager.setQuality(settings.getQuality());
-    return sceneManager;
-  }
-
   @NotNull
   final NlDesignSurfacePositionableContentLayoutManager getSceneViewLayoutManager() {
     return (NlDesignSurfacePositionableContentLayoutManager)mySceneViewPanel.getLayout();
-  }
-
-  /**
-   * Default {@link NlActionManager} provider.
-   */
-  @NotNull
-  public static ActionManager<? extends NlDesignSurface> defaultActionManagerProvider(@NotNull DesignSurface<LayoutlibSceneManager> surface) {
-    return new NlActionManager((NlDesignSurface)surface);
-  }
-
-  /**
-   * Default {@link NlInteractionHandler} provider.
-   */
-  @NotNull
-  public static NlInteractionHandler defaultInteractionHandlerProvider(@NotNull DesignSurface<LayoutlibSceneManager> surface) {
-    return new NlInteractionHandler(surface);
-  }
-
-  /**
-   * Default {@link NlDesignSurfaceActionHandler} provider.
-   */
-  @NotNull
-  public static NlDesignSurfaceActionHandler defaultActionHandlerProvider(@NotNull DesignSurface<LayoutlibSceneManager> surface) {
-    return new NlDesignSurfaceActionHandler(surface);
-  }
-
-  /**
-   * {@link VisualLintIssueProvider} factory that produces a {@link ViewVisualLintIssueProvider} for view-based layouts.
-   */
-  @NotNull
-  public static VisualLintIssueProvider viewVisualLintIssueProviderFactory(@NotNull DesignSurface<LayoutlibSceneManager> surface) {
-    return new ViewVisualLintIssueProvider(surface);
-  }
-
-  @NotNull
-  public static Builder builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    return builder(project, parentDisposable, (surface, model) -> NlDesignSurface.defaultSceneManagerProvider(surface, model, null));
-  }
-
-  @NotNull
-  public static Builder builder(@NotNull Project project, @NotNull Disposable parentDisposable,
-                                @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> provider) {
-    return new Builder(project, parentDisposable, provider);
   }
 
   @NotNull
@@ -642,15 +327,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   /**
-   * Builds a new {@link NlDesignSurface} with the default settings
-   */
-  @NotNull
-  @TestOnly
-  public static NlDesignSurface build(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    return new Builder(project, parentDisposable, (surface, model) -> NlDesignSurface.defaultSceneManagerProvider(surface, model, null)).build();
-  }
-
-  /**
    * Set the ConstraintsLayer and SceneLayer layers to paint,
    * even if they are set to paint only on mouse hover
    *
@@ -682,9 +358,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @NotNull
   @Override
-  public ActionManager<NlDesignSurface> getActionManager() {
+  public ActionManager<DesignSurface<LayoutlibSceneManager>> getActionManager() {
     //noinspection unchecked
-    return (ActionManager<NlDesignSurface>)super.getActionManager();
+    return super.getActionManager();
   }
 
   @Override

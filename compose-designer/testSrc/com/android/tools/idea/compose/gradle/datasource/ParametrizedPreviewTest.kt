@@ -42,7 +42,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Co
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.withKotlin
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
@@ -293,7 +293,7 @@ class ParametrizedPreviewTest {
     assertEquals(3, elements.count())
 
     val mainSurface =
-      NlDesignSurface.builder(project, projectRule.fixture.testRootDisposable).build()
+      NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
     val preview =

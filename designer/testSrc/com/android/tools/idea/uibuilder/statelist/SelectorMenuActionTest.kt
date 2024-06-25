@@ -23,7 +23,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.editor.AnimatedSelectorToolbar
 import com.android.tools.idea.uibuilder.editor.AnimationToolbar
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -47,7 +47,7 @@ class SelectorMenuActionTest {
     // Not selecting a transition means it is previewing the state as same as a selector. It should
     // show the menu in this case.
     val action = SelectorMenuAction()
-    val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
+    val surface = NlSurfaceBuilder.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimatedSelectorToolbar>()
     DataManager.registerDataProvider(surface) {
       if (it == ANIMATION_TOOLBAR.name) toolbar else null
@@ -68,7 +68,7 @@ class SelectorMenuActionTest {
     // The design surface is used to preview <animated-selector> file which is selecting a
     // transition. It shouldn't show the menu.
     val action = SelectorMenuAction()
-    val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
+    val surface = NlSurfaceBuilder.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimatedSelectorToolbar>()
     DataManager.registerDataProvider(surface) {
       if (it == ANIMATION_TOOLBAR.name) toolbar else null
@@ -89,7 +89,7 @@ class SelectorMenuActionTest {
   fun testHideWhenShowingAnimationToolbar() {
     // The design surface is used to preview <animated-vector> file. It shouldn't show the menu.
     val action = SelectorMenuAction()
-    val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
+    val surface = NlSurfaceBuilder.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimationToolbar>()
     DataManager.registerDataProvider(surface) {
       if (it == ANIMATION_TOOLBAR.name) toolbar else null
@@ -108,7 +108,7 @@ class SelectorMenuActionTest {
   fun testShowWithoutAnimationToolbar() {
     // The design surface is used to preview <selector> file. It should show the menu,
     val action = SelectorMenuAction()
-    val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
+    val surface = NlSurfaceBuilder.builder(rule.project, rule.testRootDisposable).build()
 
     val context = createContext(surface, null)
     val presentation = PresentationFactory().getPresentation(action)
