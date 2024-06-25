@@ -39,12 +39,17 @@ def _stamp_app_info(version_file, build_txt, micro, patch, full, eap, content):
   content = content.replace("__BUILD_DATE__", build_date)
   content = content.replace("__BUILD_NUMBER__", build)
 
-  version_prop = '(<version[^/]* %s=")[^"]*(")'
+  version_prop = '(<version[^/]* %s=")([^"]*)(")'
 
-  content = re.sub(version_prop % "micro", '\\g<1>%s\\2' % micro, content)
-  content = re.sub(version_prop % "patch", '\\g<1>%s\\2' % patch, content)
-  content = re.sub(version_prop % "full", '\\g<1>%s\\2' % full, content)
-  content = re.sub(version_prop % "eap", '\\g<1>%s\\2' % eap, content)
+  content = re.sub(version_prop % "micro", '\\g<1>%s\\g<3>' % micro, content)
+  content = re.sub(version_prop % "patch", '\\g<1>%s\\g<3>' % patch, content)
+  content = re.sub(version_prop % "full", '\\g<1>%s\\g<3>' % full, content)
+
+  # Changing the EAP bit requires rebuilding IntelliJ prebuilts (see b/338090219),
+  # so here we just assert that the existing value is what we expect.
+  platform_is_eap = re.search(version_prop % "eap", content).group(2)
+  if eap != platform_is_eap:
+    sys.exit(f"IntelliJ prebuilts must be updated to set EAP={eap}; see b/338090219 for details")
 
   return content
 
