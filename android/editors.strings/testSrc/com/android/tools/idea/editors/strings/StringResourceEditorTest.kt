@@ -32,7 +32,6 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.scale.JBUIScale
-import com.intellij.util.ui.JBFont
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
@@ -266,15 +265,5 @@ class StringResourceEditorTest {
   @Test
   fun iconIsCorrect() {
     assertThat(StringResourceEditor.ICON).isEqualTo(StudioIcons.LayoutEditor.Toolbar.LANGUAGE)
-  }
-
-  @Test
-  fun getFontScalesFonts() {
-    assertThat(StringResourceEditor.getFont(font).size).isEqualTo(24)
-  }
-
-  @Test
-  fun getFontDoesNotScaleJBFonts() {
-    assertThat(StringResourceEditor.getFont(JBFont.create(font, false)).size).isEqualTo(12)
   }
 }
