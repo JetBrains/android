@@ -190,6 +190,7 @@ studio_plugin(
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
             "//tools/adt/idea/app-inspection/inspectors/database:app-inspection.inspectors.database",
+            "//tools/adt/idea/backup:intellij.android.backup",
             "//tools/adt/idea/debuggers:intellij.android.debuggers",
             "//tools/adt/idea/deploy:intellij.android.deploy",
             "//tools/adt/idea/device-explorer:intellij.android.device-explorer",

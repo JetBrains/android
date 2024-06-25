@@ -32,6 +32,7 @@
   <xi:include href="/META-INF/android-dagger.xml"/>
   <xi:include href="/META-INF/app-insights-api.xml"/>
   <xi:include href="/META-INF/app-insights.xml"/>
+  <xi:include href="/META-INF/backup.xml"/>
   <xi:include href="/META-INF/databinding.xml"/>
   <xi:include href="/META-INF/mlkit.xml"/>
   <xi:include href="/META-INF/sdk-updates.xml"/>
