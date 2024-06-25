@@ -48,7 +48,7 @@ class InteractiveLabelPanelTest {
   }
 
   @Test
-  @Ignore("b/289994157")
+  @Ignore("b/301927653")
   fun `click label`() {
     runBlocking {
       var clickCount = 0
