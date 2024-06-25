@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Rule
@@ -83,6 +84,8 @@ class TreeDropDownActionTest {
   private val scope: CoroutineScope
     get() = AndroidCoroutineScope(projectRule.testRootDisposable)
 
+  private val enabledFlow = MutableStateFlow(true)
+
   @Test
   fun `open popup shows correct selection`(): Unit =
     runBlocking(AndroidDispatchers.uiThread) {
@@ -100,6 +103,7 @@ class TreeDropDownActionTest {
           nameSupplier = SimpleValue::title,
           onSelected = {},
           getLocationOnScreen = { fakeUi.getPosition(this) },
+          enabledFlow = enabledFlow,
         )
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -151,6 +155,7 @@ class TreeDropDownActionTest {
           nameSupplier = SimpleValue::title,
           onSelected = {},
           getLocationOnScreen = { fakeUi.getPosition(this) },
+          enabledFlow = enabledFlow,
         )
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -167,8 +172,7 @@ class TreeDropDownActionTest {
       verify(presentation, times(1)).isEnabled = true
       verify(presentation, times(1)).text = "All values"
 
-      flow.emit(MultiSelection(emptySet(), emptyList()))
-      dropdown.isDisabled.first { it }
+      enabledFlow.update { false }
       dropdown.update(actionEvent)
 
       verify(presentation, times(1)).isEnabled = false
@@ -196,6 +200,7 @@ class TreeDropDownActionTest {
           nameSupplier = SimpleValue::title,
           onSelected = {},
           getLocationOnScreen = { fakeUi.getPosition(this) },
+          enabledFlow = enabledFlow,
         )
 
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 3 }
@@ -273,6 +278,7 @@ class TreeDropDownActionTest {
           nameSupplier = SimpleValue::title,
           onSelected = {},
           getLocationOnScreen = { fakeUi.getPosition(this) },
+          enabledFlow = enabledFlow,
         )
 
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 2 }
@@ -321,6 +327,7 @@ class TreeDropDownActionTest {
           nameSupplier = SimpleValue::title,
           onSelected = {},
           getLocationOnScreen = { fakeUi.getPosition(this) },
+          enabledFlow = enabledFlow,
         )
 
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }
@@ -384,6 +391,7 @@ class TreeDropDownActionTest {
           nameSupplier = SimpleValue::title,
           onSelected = {},
           getLocationOnScreen = { FakeUi(panel).getPosition(this) },
+          enabledFlow = enabledFlow,
         )
 
       dropdown.selectionState.first { it.items.size == MAX_DROPDOWN_ITEMS + 1 }
@@ -434,6 +442,7 @@ class TreeDropDownActionTest {
           },
           onSelected = {},
           getLocationOnScreen = { FakeUi(panel).getPosition(this) },
+          enabledFlow = enabledFlow,
         )
 
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }

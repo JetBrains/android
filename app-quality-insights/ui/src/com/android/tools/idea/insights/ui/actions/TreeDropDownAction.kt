@@ -38,6 +38,7 @@ import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.annotations.TestOnly
@@ -53,6 +54,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
   private val name: String,
   flow: Flow<MultiSelection<WithCount<ValueT>>>,
   private val scope: CoroutineScope,
+  private val enabledFlow: StateFlow<Boolean>,
   private val groupNameSupplier: (ValueT) -> String,
   private val nameSupplier: (ValueT) -> String,
   private val secondaryGroupSupplier: (ValueT) -> Set<ValueGroupT> = { emptySet() },
@@ -62,12 +64,6 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
 ) : DropDownAction(null, null, null) {
   @VisibleForTesting
   val selectionState = flow.stateIn(scope, SharingStarted.Eagerly, MultiSelection.emptySelection())
-
-  @VisibleForTesting
-  val isDisabled =
-    flow
-      .map { selection -> selection.items.isEmpty() }
-      .stateIn(scope, SharingStarted.Eagerly, false)
 
   @VisibleForTesting
   val titleState =
@@ -167,6 +163,6 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
 
   override fun update(e: AnActionEvent) {
     e.presentation.text = titleState.value
-    e.presentation.isEnabled = !isDisabled.value
+    e.presentation.isEnabled = enabledFlow.value
   }
 }
