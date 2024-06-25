@@ -416,7 +416,20 @@ internal class DeviceClient(
     val logLevelArg = if (logLevel.isNotBlank()) " --log=$logLevel" else ""
     val codecName = StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()
     val codecArg = if (codecName.isNotBlank()) " --codec=$codecName" else ""
-    val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
+    val preloadClause = when {
+      DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring && deviceConfig.featureLevel == 34 ->
+          // Turning off display on API 34 requires loading of libandroid_servers.so.
+          // Other preloaded libraries are its dependencies.
+          "LD_PRELOAD=\"/apex/com.android.adbd/lib64/libadb_pairing_server.so " +
+          "/apex/com.android.adbd/lib64/libadb_pairing_connection.so " +
+          "/apex/com.android.os.statsd/lib64/libstatspull.so " +
+          "/apex/com.android.os.statsd/lib64/libstatssocket.so " +
+          "/apex/com.android.runtime/lib64/bionic/libdl_android.so " +
+          "/apex/com.android.i18n/lib64/libandroidicu.so " +
+          "/system/lib64/libandroid_servers.so\" "
+      else -> ""
+    }
+    val command = "${preloadClause}CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main --socket=$socketName" +
                   "$maxSizeArg$orientationArg$flagsArg$maxBitRateArg$logLevelArg$codecArg"
     clientScope.launch {
