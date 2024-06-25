@@ -147,7 +147,7 @@ class ToolsTest(unittest.TestCase):
         "--version_micro", "33",
         "--version_patch", "44",
         "--version_full", "{0} Canary 5",
-        "--eap", "true",
+        "--eap", "false",
         "--stamp", before, after,
         "--stamp_app_info"
     ])
@@ -155,7 +155,7 @@ class ToolsTest(unittest.TestCase):
     self.assertEqual({
         "idea/AndroidStudioApplicationInfo.xml": """
       <build number="AI-1234.3333" date="202008192252">
-      <version major="4" minor="3" micro="33" patch="44" full="{0} Canary 5" eap="true" >"""
+      <version major="4" minor="3" micro="33" patch="44" full="{0} Canary 5" eap="false" >"""
     }, read_zip(after))
 
   def test_inject(self):
