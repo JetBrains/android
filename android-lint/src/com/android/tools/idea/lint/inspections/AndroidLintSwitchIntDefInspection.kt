@@ -13,106 +13,104 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint.inspections;
+package com.android.tools.idea.lint.inspections
 
-import static com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite;
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix
+import com.android.tools.lint.checks.AnnotationDetector
+import com.android.tools.lint.detector.api.LintFix
+import com.android.tools.lint.detector.api.LintFix.Companion.getStringList
+import com.android.tools.lint.detector.api.TextFormat
+import com.intellij.lang.java.JavaLanguage
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.Presentation
+import com.intellij.modcommand.PsiBasedModCommandAction
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiSwitchStatement
+import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtWhenExpression
 
-import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.DefaultLintQuickFix;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.lint.checks.AnnotationDetector;
-import com.android.tools.lint.detector.api.LintFix;
-import com.android.tools.lint.detector.api.TextFormat;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiCodeBlock;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiStatement;
-import com.intellij.psi.PsiSwitchStatement;
-import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.util.PsiTreeUtil;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility;
-import org.jetbrains.kotlin.psi.KtPsiFactory;
-import org.jetbrains.kotlin.psi.KtWhenEntry;
-import org.jetbrains.kotlin.psi.KtWhenExpression;
+class AndroidLintSwitchIntDefInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.switch.int.def"),
+    AnnotationDetector.SWITCH_TYPE_DEF,
+  ) {
+  override fun getQuickFixes(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    message: String,
+    fixData: LintFix?,
+  ): Array<LintIdeQuickFix> {
+    val missingCases = getStringList(fixData, AnnotationDetector.KEY_CASES)
+    if (!missingCases.isNullOrEmpty()) {
+      return arrayOf(
+        ModCommandLintQuickFix(
+          object : PsiBasedModCommandAction<PsiElement>(startElement) {
 
-public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase {
-  public AndroidLintSwitchIntDefInspection() {
-    super(AndroidLintBundle.message("android.lint.inspections.switch.int.def"), AnnotationDetector.SWITCH_TYPE_DEF);
-  }
+            override fun getFamilyName() = "AddMissingIntDefFix"
 
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                         @NotNull PsiElement endElement,
-                                         @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    @SuppressWarnings("unchecked")
-    List<String> missingCases = LintFix.getStringList(fixData, AnnotationDetector.KEY_CASES);
-    if (missingCases != null && !missingCases.isEmpty()) {
-      return new LintIdeQuickFix[]{new DefaultLintQuickFix("Add Missing @IntDef Constants") {
-        @Override
-        public void apply(@NotNull PsiElement startElement,
-                          @NotNull PsiElement endElement,
-                          @NotNull AndroidQuickfixContexts.Context context) {
-          if (!prepareElementForWrite(startElement)) {
-            return;
-          }
-          if (startElement.getParent() instanceof PsiSwitchStatement) {
-            PsiSwitchStatement switchStatement = (PsiSwitchStatement)startElement.getParent();
-            Project project = switchStatement.getProject();
-            PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
+            @Suppress("DialogTitleCapitalization")
+            override fun getPresentation(context: ActionContext, element: PsiElement) =
+              Presentation.of("Add Missing @IntDef Constants")
 
-            PsiCodeBlock body = switchStatement.getBody();
-            if (body == null) {
-              return;
-            }
-            PsiElement anchor = body.getLastChild();
-            for (String constant : missingCases) {
-              // The list we get from lint is using raw formatting, surrounding constants like `this`
-              constant = TextFormat.RAW.convertTo(constant, TextFormat.TEXT);
-              PsiElement parent = anchor.getParent();
-              PsiStatement caseStatement = factory.createStatementFromText("case " + constant + ":", anchor);
-              parent.addBefore(caseStatement, anchor);
-              PsiStatement breakStatement = factory.createStatementFromText("break;", anchor);
-              parent.addBefore(breakStatement, anchor);
-            }
+            override fun perform(context: ActionContext, element: PsiElement): ModCommand {
+              val project = element.project
 
-            CodeStyleManager.getInstance(project).reformat(switchStatement);
-          }
-          else {
-            // Kotlin
-            KtWhenExpression when = PsiTreeUtil.getParentOfType(startElement, KtWhenExpression.class, false);
-            if (when != null) {
-              Project project = when.getProject();
-              KtPsiFactory factory = new KtPsiFactory(project);
-              PsiElement anchor = when.getCloseBrace();
-              for (String constant : missingCases) {
-                // The list we get from lint is using raw formatting, surrounding constants like `this`
-                constant = TextFormat.RAW.convertTo(constant, TextFormat.TEXT);
-                KtWhenEntry caseStatement = factory.createWhenEntry(constant + "-> { TODO() }");
-                ((PsiElement)when).addBefore(caseStatement, anchor);
-                ShortenReferencesFacility.Companion.getInstance().shorten(when);
+              if (element.language == JavaLanguage.INSTANCE) {
+                val switchStatement =
+                  element.parent as? PsiSwitchStatement ?: return ModCommand.nop()
+                val factory = JavaPsiFacade.getElementFactory(project)
+
+                @Suppress("UnstableApiUsage")
+                return ModCommand.psiUpdate(switchStatement) { switch, _ ->
+                  val body = switch.body ?: return@psiUpdate
+                  val anchor = body.lastChild
+                  for (case in missingCases) {
+                    // The list we get from lint is using raw formatting, surrounding constants like
+                    // `this`
+                    val constant = TextFormat.RAW.convertTo(case, TextFormat.TEXT)
+                    val parent = anchor.parent
+                    val caseStatement = factory.createStatementFromText("case $constant:", anchor)
+                    parent.addBefore(caseStatement, anchor)
+                    val breakStatement = factory.createStatementFromText("break;", anchor)
+                    parent.addBefore(breakStatement, anchor)
+                  }
+                }
+              } else if (element.language == KotlinLanguage.INSTANCE) {
+                // Kotlin
+                val whenExpression =
+                  PsiTreeUtil.getParentOfType(startElement, KtWhenExpression::class.java, false)
+                    ?: return ModCommand.nop()
+                val factory = KtPsiFactory(project)
+
+                @Suppress("UnstableApiUsage")
+                return ModCommand.psiUpdate(whenExpression) { whenExpr, _ ->
+                  val anchor = whenExpr.closeBrace
+                  for (case in missingCases) {
+                    // The list we get from lint is using raw formatting, surrounding constants like
+                    // `this`
+                    val constant = TextFormat.RAW.convertTo(case, TextFormat.TEXT)
+                    val caseStatement = factory.createWhenEntry("$constant-> { TODO() }")
+                    (whenExpr as PsiElement).addBefore(caseStatement, anchor)
+
+                    ShortenReferencesFacility.Companion.getInstance().shorten(whenExpr)
+                  }
+                }
               }
+              return ModCommand.nop()
             }
           }
-        }
-
-        @Override
-        public boolean isApplicable(@NotNull PsiElement startElement,
-                                    @NotNull PsiElement endElement,
-                                    @NotNull AndroidQuickfixContexts.ContextType contextType) {
-          return startElement.isValid();
-        }
-      }};
+        )
+      )
     }
 
-    return super.getQuickFixes(startElement, endElement, message, fixData);
+    return super.getQuickFixes(startElement, endElement, message, fixData)
   }
 }
