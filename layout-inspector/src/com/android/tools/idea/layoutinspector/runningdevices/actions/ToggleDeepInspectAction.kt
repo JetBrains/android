@@ -28,6 +28,7 @@ import icons.StudioIcons
 class ToggleDeepInspectAction(
   @UiThread private val isSelected: () -> Boolean,
   @UiThread private val setSelected: (Boolean) -> Unit,
+  @UiThread private val isRendering: () -> Boolean,
   @UiThread private val connectedClientProvider: () -> InspectorClient,
 ) :
   ToggleAction(
@@ -46,6 +47,6 @@ class ToggleDeepInspectAction(
     event.presentation.description = LayoutInspectorBundle.message("deep.inspect.description")
 
     val currentClient = connectedClientProvider()
-    event.presentation.isEnabled = currentClient.isConnected
+    event.presentation.isEnabled = currentClient.isConnected && isRendering()
   }
 }
