@@ -232,9 +232,10 @@ data class SelectedTabState(
   ): JComponent {
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
-        { layoutInspectorRenderer.interceptClicks },
-        { layoutInspectorRenderer.interceptClicks = it },
-        { layoutInspector.currentClient },
+        isSelected = { layoutInspectorRenderer.interceptClicks },
+        setSelected = { layoutInspectorRenderer.interceptClicks = it },
+        isRendering = { layoutInspector.renderModel.isActive },
+        connectedClientProvider = { layoutInspector.currentClient },
       )
     val shortcut =
       KeyboardShortcut(
