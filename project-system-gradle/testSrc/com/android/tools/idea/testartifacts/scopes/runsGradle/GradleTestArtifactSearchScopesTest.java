@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -130,7 +131,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     Module module1holderModule = gradleModule(getProject(), ":module1");
     assert module1holderModule != null;
-    Module unitTestModule = ModuleSystemUtil.getUnitTestModule(module1holderModule);
+    Module unitTestModule = LinkedAndroidModuleGroupUtilsKt.getUnitTestModule(module1holderModule);
     assert unitTestModule != null;
 
     // In the beginning only androidTest includes the GSON dependency

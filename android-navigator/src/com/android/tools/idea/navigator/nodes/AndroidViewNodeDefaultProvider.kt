@@ -26,7 +26,7 @@ import com.android.tools.idea.navigator.nodes.android.AndroidSourceTypeNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviders
-import com.android.tools.idea.projectsystem.getAllLinkedModules
+import com.android.tools.idea.projectsystem.gradle.getAllLinkedModules
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.ViewSettings
@@ -38,7 +38,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
 import org.jetbrains.android.facet.BUILT_IN_TYPES
-import org.jetbrains.kotlin.idea.facet.KotlinFacet
 
 class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
   override fun getModuleNodes(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? {
