@@ -941,7 +941,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       }
     }
 
-    fireOnInflateStart();
     // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
     // external changes
     AndroidFacet facet = getModel().getFacet();
@@ -1024,7 +1023,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         return result;
       })
       .thenApply(result -> {
-        fireOnInflateComplete();
         return logIfSuccessful(result, null, CommonUsageTracker.RenderResultType.INFLATE);
       })
       .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, AppExecutorUtil.getAppExecutorService());
@@ -1331,12 +1329,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myElapsedFrameTimeMs = ms;
   }
 
-  protected void fireOnInflateStart() {
-    myRenderListeners.forEach(RenderListener::onInflateStarted);
-  }
-  protected void fireOnInflateComplete() {
-    myRenderListeners.forEach(RenderListener::onInflateCompleted);
-  }
   protected void fireOnRenderStart() {
     myRenderListeners.forEach(RenderListener::onRenderStarted);
   }
