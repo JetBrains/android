@@ -51,6 +51,12 @@ interface BackupManager {
     progressListener: BackupProgressListener? = null,
   )
 
+  /** Display a file chooser dialog for saving a backup file */
+  suspend fun chooseBackupFile(nameHint: String): Path?
+
+  /** Display a file chooser dialog for loading a backup file */
+  fun chooseRestoreFile(): Path?
+
   companion object {
     fun getInstance(project: Project): BackupManager = project.getService(BackupManager::class.java)
   }
