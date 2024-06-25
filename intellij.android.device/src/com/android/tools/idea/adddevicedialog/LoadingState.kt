@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-import com.android.sdklib.deviceprovisioner.Extension
-import kotlinx.coroutines.flow.Flow
+sealed class LoadingState<out T> {
+  fun valueOrNull(): T? =
+    when (this) {
+      Loading -> null
+      is Ready -> value
+    }
 
-interface DeviceSource : Extension {
-  val profiles: Flow<LoadingState<List<DeviceProfile>>>
+  data object Loading : LoadingState<Nothing>()
 
-  fun WizardPageScope.selectionUpdated(profile: DeviceProfile)
+  data class Ready<out T>(val value: T) : LoadingState<T>()
 }

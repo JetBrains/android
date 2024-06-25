@@ -25,15 +25,20 @@ import java.util.NavigableSet
 import java.util.TreeSet
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import org.jetbrains.jewel.ui.component.Icon
 
 open class TestDeviceSource : DeviceSource {
-  override val profiles = mutableListOf<DeviceProfile>()
+  override val profiles = MutableStateFlow(LoadingState.Ready(emptyList<TestDevice>()))
 
   val selectedProfile = MutableStateFlow<DeviceProfile?>(null)
 
   fun add(device: TestDevice) {
-    profiles.add(device.toBuilder().apply { source = this@TestDeviceSource.javaClass }.build())
+    profiles.update {
+      LoadingState.Ready(
+        it.value + device.toBuilder().apply { source = this@TestDeviceSource.javaClass }.build()
+      )
+    }
   }
 
   override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {

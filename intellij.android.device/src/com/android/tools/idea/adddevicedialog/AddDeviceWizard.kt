@@ -15,9 +15,17 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import com.intellij.openapi.project.Project
+import org.jetbrains.jewel.ui.component.Text
 
 class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
   fun createDialog(): ComposeWizard {
@@ -33,23 +41,34 @@ internal class DeviceGridState(profiles: List<DeviceProfile>) {
 
 @Composable
 internal fun WizardPageScope.DeviceGridPage(source: DeviceSource) {
-  val profiles = source.profiles
+  val profiles by remember { source.profiles }.collectAsState(LoadingState.Loading)
+
   nextActionName = "Configure"
   finishActionName = "Add"
 
-  val pageState = getOrCreateState { DeviceGridState(profiles) }
-  val selectionState = pageState.selectionState
-  val filterState = pageState.filterState
-  DeviceTable(profiles, tableSelectionState = selectionState, filterState = filterState)
+  when (val profiles = profiles) {
+    LoadingState.Loading -> {
+      nextAction = WizardAction.Disabled
+      finishAction = WizardAction.Disabled
+      Box(Modifier.fillMaxSize()) { Text("Loading devices...", Modifier.align(Alignment.Center)) }
+    }
+    is LoadingState.Ready -> {
+      val pageState = getOrCreateState { DeviceGridState(profiles.value) }
+      val selectionState = pageState.selectionState
+      val filterState = pageState.filterState
+      DeviceTable(profiles.value, tableSelectionState = selectionState, filterState = filterState)
 
-  val selection = selectionState.selection
-  if (selection == null || !filterState.apply(selection)) {
-    nextAction = WizardAction.Disabled
-    finishAction = WizardAction.Disabled
-  } else {
-    val apiLevelForSelectedProfile = filterState.apiLevelFilter.apiLevelSelection.apply(selection)
-    val profileWithSelectedApi =
-      selection.update { apiLevels = sortedSetOf(apiLevelForSelectedProfile) }
-    source.apply { selectionUpdated(profileWithSelectedApi) }
+      val selection = selectionState.selection
+      if (selection == null || !filterState.apply(selection)) {
+        nextAction = WizardAction.Disabled
+        finishAction = WizardAction.Disabled
+      } else {
+        val apiLevelForSelectedProfile =
+          filterState.apiLevelFilter.apiLevelSelection.apply(selection)
+        val profileWithSelectedApi =
+          selection.update { apiLevels = sortedSetOf(apiLevelForSelectedProfile) }
+        source.apply { selectionUpdated(profileWithSelectedApi) }
+      }
+    }
   }
 }
