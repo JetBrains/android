@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.action
 
-import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFileSystem
@@ -139,7 +138,6 @@ class TranslationsEditorPasteActionTest {
         pasteAction.handler.execute(textEditor, textEditor.caretModel.currentCaret, dataContext)
       }
     }
-    assertThat(textEditor.component.font).isEqualTo(StringResourceEditor.getFont(originalFont))
   }
 
   @Test

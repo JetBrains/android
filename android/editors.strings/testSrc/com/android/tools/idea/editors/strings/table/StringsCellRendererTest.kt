@@ -18,10 +18,8 @@ package com.android.tools.idea.editors.strings.table
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
@@ -86,13 +84,6 @@ class StringsCellRendererTest {
   }
 
   @Test
-  fun updatesFont() {
-    renderer.getTableCellRendererComponent(frozenSubTable, STRING_VALUE, SOME_COLUMN)
-
-    assertThat(renderer.font).isEqualTo(StringResourceEditor.getFont(tableFont))
-  }
-
-  @Test
   fun updatesToolTipText() {
     whenever(model.getCellProblem(any(), any())).thenReturn(PROBLEM)
 
@@ -105,7 +96,6 @@ class StringsCellRendererTest {
   fun nullProblem_frozenTable() {
     renderer.getTableCellRendererComponent(frozenSubTable, STRING_VALUE, DEFAULT_VALUE_COLUMN)
 
-    assertThat(renderer.font).isEqualTo(StringResourceEditor.getFont(tableFont))
     assertThat(renderer.toolTipText).isNull()
     assertThat(renderer.iterator(1).fragment).isEqualTo(STRING_VALUE)
     assertThat(renderer.iterator(1).textAttributes).isEqualTo(REGULAR_ATTRIBUTES)
@@ -116,7 +106,6 @@ class StringsCellRendererTest {
   fun nullProblem_scrollableTable() {
     renderer.getTableCellRendererComponent(scrollableSubTable, STRING_VALUE, SOME_COLUMN)
 
-    assertThat(renderer.font).isEqualTo(StringResourceEditor.getFont(tableFont))
     assertThat(renderer.toolTipText).isNull()
     assertThat(renderer.iterator(1).fragment).isEqualTo(STRING_VALUE)
     assertThat(renderer.iterator(1).textAttributes).isEqualTo(REGULAR_ATTRIBUTES)
@@ -129,7 +118,6 @@ class StringsCellRendererTest {
 
     renderer.getTableCellRendererComponent(frozenSubTable, STRING_VALUE, KEY_COLUMN)
 
-    assertThat(renderer.font).isEqualTo(StringResourceEditor.getFont(tableFont))
     assertThat(renderer.toolTipText).isEqualTo(PROBLEM)
     assertThat(renderer.iterator(1).fragment).isEqualTo(STRING_VALUE)
     assertThat(renderer.iterator(1).textAttributes).isEqualTo(ERROR_ATTRIBUTES)
@@ -141,7 +129,6 @@ class StringsCellRendererTest {
 
     renderer.getTableCellRendererComponent(frozenSubTable, STRING_VALUE, DEFAULT_VALUE_COLUMN)
 
-    assertThat(renderer.font).isEqualTo(StringResourceEditor.getFont(tableFont))
     assertThat(renderer.toolTipText).isEqualTo(PROBLEM)
     assertThat(renderer.iterator(1).fragment).isEqualTo(STRING_VALUE)
     assertThat(renderer.iterator(1).textAttributes).isEqualTo(CELL_ERROR_ATTRIBUTES)
@@ -153,7 +140,6 @@ class StringsCellRendererTest {
 
     renderer.getTableCellRendererComponent(scrollableSubTable, STRING_VALUE, SOME_COLUMN)
 
-    assertThat(renderer.font).isEqualTo(StringResourceEditor.getFont(tableFont))
     assertThat(renderer.toolTipText).isEqualTo(PROBLEM)
     assertThat(renderer.iterator(1).fragment).isEqualTo(STRING_VALUE)
     assertThat(renderer.iterator(1).textAttributes).isEqualTo(CELL_ERROR_ATTRIBUTES)
