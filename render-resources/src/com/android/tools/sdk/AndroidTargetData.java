@@ -35,8 +35,10 @@ import com.android.tools.environment.Logger;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
+import com.android.tools.res.FrameworkOverlay;
 import com.android.tools.res.FrameworkResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import java.lang.ref.SoftReference;
@@ -105,7 +107,7 @@ public class AndroidTargetData {
   }
 
   public boolean isResourcePublic(@NonNull ResourceType type, @NonNull String name) {
-    ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet());
+    ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet(), Collections.emptyList());
     if (frameworkResources == null) {
       return false;
     }
@@ -144,7 +146,7 @@ public class AndroidTargetData {
   @Slow
   @NonNull
   private Map<String, Map<String, Integer>> getFrameworkEnumValues() {
-    ResourceRepository resources = getFrameworkResources(ImmutableSet.of());
+    ResourceRepository resources = getFrameworkResources(ImmutableSet.of(), ImmutableList.of());
     if (resources == null) {
       return Collections.emptyMap();
     }
@@ -214,12 +216,14 @@ public class AndroidTargetData {
    * for more languages than was requested. The repository loads faster if the set of languages is smaller.
    *
    * @param languages a set of ISO 639 language codes
+   * @param overlays a list of overlays to add to the base framework resources
    * @return the repository of Android framework resources, or null if the resources directory or file
    *     does not exist on disk
    */
   @Slow
   @Nullable
-  public synchronized ResourceRepository getFrameworkResources(@NonNull Set<String> languages) {
+  public synchronized ResourceRepository getFrameworkResources(@NonNull Set<String> languages,
+                                                               @NonNull List<? extends FrameworkOverlay> overlays) {
     Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
     if (!Files.exists(resFolderOrJar)) {
       LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar));
@@ -229,7 +233,8 @@ public class AndroidTargetData {
     return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
       resFolderOrJar,
       myTarget instanceof CompatibilityRenderTarget,
-      languages);
+      languages,
+      overlays);
   }
 
   /**

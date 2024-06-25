@@ -70,6 +70,7 @@ import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
+import com.android.tools.res.FrameworkOverlay;
 import com.android.tools.res.ResourceFiles;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -506,7 +507,8 @@ public class AndroidJavaDocRenderer {
     @Nullable
     public ResourceRepository getFrameworkResources() {
       StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myModule);
-      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of());
+      List<FrameworkOverlay> overlays = myConfiguration != null ? myConfiguration.getOverlays() : ImmutableList.of();
+      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of(), overlays);
     }
 
     @Override

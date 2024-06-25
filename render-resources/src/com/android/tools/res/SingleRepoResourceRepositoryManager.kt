@@ -34,5 +34,5 @@ class SingleRepoResourceRepositoryManager(
   override val namespace: ResourceNamespace = ResourceNamespace.RES_AUTO
   override val localesInProject: ImmutableList<Locale> = ImmutableList.of()
   override val moduleResources: ResourceRepository = resourcesRepo
-  override fun getFrameworkResources(languages: Set<String>): ResourceRepository? = null
+  override fun getFrameworkResources(languages: Set<String>, overlays: List<FrameworkOverlay>): ResourceRepository? = null
 }

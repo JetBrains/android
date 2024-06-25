@@ -27,10 +27,10 @@ import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.concurrency.AndroidIoManager;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.res.CacheableResourceRepository;
+import com.android.tools.res.FrameworkOverlay;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.res.ResourceNamespacing;
@@ -534,18 +534,19 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    * @param languages the set of ISO 639 language codes determining the subset of resources to load.
    *     May be empty to load only the language-neutral resources. The returned repository may contain resources
    *     for more languages than was requested.
+   * @param overlays a list of overlays to add to the base framework resources
    * @return the framework repository, or null if the SDK resources directory cannot be determined for the module
    */
   @Slow
   @Nullable
   @Override
-  public ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
+  public ResourceRepository getFrameworkResources(@NotNull Set<String> languages, @NotNull List<? extends FrameworkOverlay> overlays) {
     AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(myFacet.getModule());
     if (androidPlatform == null) {
       return null;
     }
 
-    return AndroidTargetData.get(androidPlatform.getSdkData(), androidPlatform.getTarget()).getFrameworkResources(languages);
+    return AndroidTargetData.get(androidPlatform.getSdkData(), androidPlatform.getTarget()).getFrameworkResources(languages, overlays);
   }
 
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.

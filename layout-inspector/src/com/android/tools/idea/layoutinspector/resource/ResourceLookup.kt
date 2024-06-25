@@ -138,7 +138,7 @@ class ResourceLookup(private val project: Project) {
     val cache = mgr.resolverCache
     val resourceResolver =
       ReadAction.compute<ResourceResolver, RuntimeException> {
-        cache.getResourceResolver(mgr.target, themeStyle, folderConfig)
+        cache.getResourceResolver(mgr.target, themeStyle, folderConfig, emptyList())
       }
     return ResourceLookupResolver(project, facet, folderConfig, resourceResolver)
   }

@@ -76,6 +76,15 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     configuration2.setTheme("Theme.Light");
     assertSame(resolver1b, configuration2.getResourceResolver());
 
+    configuration1.setGestureNav(true);
+    ResourceResolver resolver1c = configuration1.getResourceResolver();
+    assertNotSame(resolver1c, resolver1b);
+    assertNotSame(resolver1c, resolver2);
+    assertSame(resolver1c, configuration1.getResourceResolver());
+
+    configuration2.setGestureNav(true);
+    assertSame(resolver1c, configuration2.getResourceResolver());
+
     // Test project resource changes, should invalidate
     LocalResourceRepository<?> resources = StudioResourceRepositoryManager.getModuleResources(myFacet);
     assertNotNull(resources);
@@ -91,7 +100,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     waitForUpdates(resources);
     assertThat(resources.getModificationCount()).isGreaterThan(generation);
     assertThat(resources.getFileRescans()).isEqualTo(rescans + 1);
-    assertNotSame(resolver1b, configuration1.getResourceResolver());
+    assertNotSame(resolver1c, configuration1.getResourceResolver());
     assertEquals("FooBar", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
 
     ResourceResolverCache cache = configuration1.getSettings().getResolverCache();
@@ -114,9 +123,13 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertEquals(1, cache.myAppResourceMap.size());
     assertEquals(1, cache.myFrameworkResourceMap.size());
     String originalResolverMapKey = Iterables.getFirst(cache.myResolverMap.keySet(), null);
-    String originalResourceMapKey = Iterables.getFirst(cache.myAppResourceMap.keySet(), null);
-    // Framework and App resource maps use the same key
-    assertEquals(originalResourceMapKey, Iterables.getFirst(cache.myFrameworkResourceMap.keySet(), null));
+    String originalFrameworkResourceMapKey = Iterables.getFirst(cache.myFrameworkResourceMap.keySet(), null);
+    String originalAppResourceMapKey = Iterables.getFirst(cache.myAppResourceMap.keySet(), null);
+    // Framework and App resource maps use the same key up to overlays
+    String frameworkKeyWithoutOverlays = originalFrameworkResourceMapKey != null
+                                         ? originalFrameworkResourceMapKey.substring(0, originalFrameworkResourceMapKey.indexOf("-Overlays"))
+                                         : null;
+    assertEquals(originalAppResourceMapKey, frameworkKeyWithoutOverlays);
 
     Device original = configuration.getDevice();
     Device.Builder builder = new Device.Builder(original);
@@ -136,8 +149,8 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertEquals(2, cache.myAppResourceMap.size());
     assertEquals(2, cache.myFrameworkResourceMap.size());
     assertContainsElements(cache.myResolverMap.keySet(), originalResolverMapKey);
-    assertContainsElements(cache.myAppResourceMap.keySet(), originalResourceMapKey);
-    assertContainsElements(cache.myFrameworkResourceMap.keySet(), originalResourceMapKey);
+    assertContainsElements(cache.myAppResourceMap.keySet(), originalAppResourceMapKey);
+    assertContainsElements(cache.myFrameworkResourceMap.keySet(), originalFrameworkResourceMapKey);
 
     // Get the custom key used for this device
     String customResolverMapKey = cache.myResolverMap.keySet().stream()
@@ -145,7 +158,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
       .findFirst()
       .get();
     String customResourceMapKey = cache.myAppResourceMap.keySet().stream()
-      .filter(k -> !k.equals(originalResourceMapKey))
+      .filter(k -> !k.equals(originalFrameworkResourceMapKey))
       .findFirst()
       .get();
 
@@ -165,8 +178,8 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertEquals(2, cache.myAppResourceMap.size());
     assertEquals(2, cache.myFrameworkResourceMap.size());
     assertContainsElements(cache.myResolverMap.keySet(), originalResolverMapKey);
-    assertContainsElements(cache.myAppResourceMap.keySet(), originalResourceMapKey);
-    assertContainsElements(cache.myFrameworkResourceMap.keySet(), originalResourceMapKey);
+    assertContainsElements(cache.myAppResourceMap.keySet(), originalAppResourceMapKey);
+    assertContainsElements(cache.myFrameworkResourceMap.keySet(), originalFrameworkResourceMapKey);
     // We've only changed the theme so the resource maps won't change. They are indexed per device config.
     assertDoesntContain(cache.myResolverMap.keySet(), customResolverMapKey);
   }

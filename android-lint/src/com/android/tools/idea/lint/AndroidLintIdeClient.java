@@ -425,7 +425,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
             return StudioFrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
               target.getPath(IAndroidTarget.RESOURCES),
               // TBD: Do we need to get the framework resources to provide all languages?
-              false, Collections.emptySet());
+              false, Collections.emptySet(), Collections.emptyList());
           }  else {
             return super.getResources(project, scope); // can't find framework: empty repository
           }

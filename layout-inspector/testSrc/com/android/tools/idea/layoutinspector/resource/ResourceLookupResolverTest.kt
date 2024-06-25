@@ -79,7 +79,8 @@ class ResourceLookupResolverTest {
     val folderConfiguration = FolderConfiguration.getConfigFromQualifiers(listOf(*qualifiers))!!
     val mgr = ConfigurationManager.getOrCreateInstance(facet.module)
     val cache = mgr.resolverCache
-    val resourceResolver = cache.getResourceResolver(mgr.target, theme, folderConfiguration)
+    val resourceResolver =
+      cache.getResourceResolver(mgr.target, theme, folderConfiguration, emptyList())
 
     return ResourceLookupResolver(projectRule.project, facet, folderConfiguration, resourceResolver)
   }

@@ -477,7 +477,7 @@ private fun getResourceResolver(
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val theme = getApplicationTheme(facet)
     val target = configurationManager.highestApiTarget?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) }
-    return@Function configurationManager.resolverCache.getResourceResolver(target, theme, FolderConfiguration.createDefault())
+    return@Function configurationManager.resolverCache.getResourceResolver(target, theme, FolderConfiguration.createDefault(), emptyList())
   }, AppExecutorUtil.getAppExecutorService())
 }
 
