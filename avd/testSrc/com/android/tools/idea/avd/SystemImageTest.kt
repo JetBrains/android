@@ -24,13 +24,17 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Storage
+import com.android.sdklib.devices.VendorDevices
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.generated.addon.v3.AddonDetailsType
 import com.android.sdklib.repository.generated.common.v3.ApiDetailsType
 import com.android.sdklib.repository.generated.common.v3.IdDisplayType
 import com.android.sdklib.repository.generated.sysimg.v4.SysImgDetailsType
 import com.android.testutils.MockitoKt
+import com.android.utils.NullLogger
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableSet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -53,6 +57,7 @@ class SystemImageTest {
         Services.GOOGLE_PLAY_STORE,
         setOf(Abi.ARM64_V8A).toImmutableSet(),
         setOf<Abi>().toImmutableSet(),
+        persistentListOf(),
         Storage(1_549_122_970),
       )
 
@@ -67,6 +72,50 @@ class SystemImageTest {
   }
 
   @Test
+  fun matchesDevice() {
+    val devices = VendorDevices(NullLogger())
+    devices.init()
+
+    fun image(vararg tags: IdDisplay) =
+      SystemImage(
+        true,
+        "system-images;android-34-ext10;google_apis_playstore;arm64-v8a",
+        "Google Play ARM 64 v8a System Image",
+        AndroidVersion(34, null, 10, false),
+        Services.GOOGLE_PLAY_STORE,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        setOf<Abi>().toImmutableSet(),
+        persistentListOf(*tags),
+        Storage(1_549_122_970),
+      )
+
+    val phone = devices.getDevice("pixel_8", "Google")!!
+    val tablet = devices.getDevice("pixel_tablet", "Google")!!
+    val wear = devices.getDevice("wearos_large_round", "Google")!!
+    val tv = devices.getDevice("tv_4k", "Google")!!
+    val auto = devices.getDevice("automotive_1080p_landscape", "Google")!!
+    val autoPlay = devices.getDevice("automotive_1024p_landscape", "Google")!!
+
+    fun SystemImage.assertMatchesOnly(vararg devices: Device) {
+      for (device in listOf(phone, tablet, wear, tv, auto, autoPlay)) {
+        if (device in devices) {
+          assertTrue("Expected image to match ${device.id}", matches(device))
+        } else {
+          assertFalse("Expected image to not match ${device.id}", matches(device))
+        }
+      }
+    }
+
+    image().assertMatchesOnly(phone, tablet)
+    image(SystemImageTags.PLAY_STORE_TAG).assertMatchesOnly(phone, tablet)
+    image(SystemImageTags.WEAR_TAG).assertMatchesOnly(wear)
+    image(SystemImageTags.TABLET_TAG, SystemImageTags.GOOGLE_APIS_TAG).assertMatchesOnly(tablet)
+    image(SystemImageTags.AUTOMOTIVE_TAG).assertMatchesOnly(auto)
+    image(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG).assertMatchesOnly(autoPlay)
+    image(SystemImageTags.GOOGLE_TV_TAG).assertMatchesOnly(tv)
+  }
+
+  @Test
   fun matches() {
     // Arrange
     val image =
@@ -78,6 +127,7 @@ class SystemImageTest {
         Services.GOOGLE_APIS,
         setOf(Abi.ARMEABI).toImmutableSet(),
         setOf<Abi>().toImmutableSet(),
+        persistentListOf(),
         Storage(65_781_578),
       )
 
