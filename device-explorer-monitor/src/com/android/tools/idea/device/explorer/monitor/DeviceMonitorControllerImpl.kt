@@ -65,6 +65,7 @@ class DeviceMonitorControllerImpl(
     view.trackModelChanges(uiThreadScope)
 
     uiThreadScope.launch {
+      model.projectApplicationIdListChanged()
       try {
         deviceService.start()
         setupJob.complete(Unit)
