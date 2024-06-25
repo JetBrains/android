@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.adblib
 
-import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceConnectionType
-import com.android.adblib.DeviceState
-import com.android.adblib.scope
+import com.android.adblib.deviceInfo
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.SetChange
+import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
@@ -33,7 +34,9 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 
 /**
@@ -53,54 +56,52 @@ class DeviceCableMonitor : ProjectActivity {
 
   override suspend fun execute(project: Project) {
     val service = project.service<DeviceProvisionerService>()
-    service.deviceProvisioner.devices.collect { deviceHandle ->
-      deviceHandle.forEach {
-        it.scope.launch {
-          collectDeviceState(project, it.stateFlow)
+    service.deviceProvisioner.devices.map {
+      it.toSet()
+    }.trackSetChanges().collect { change ->
+      when (change) {
+        is SetChange.Add -> {
+          // We don't want to run the coroutine on emulators or datacenter devices
+          val properties = change.value.state.properties
+          // isRemote can be null, we need to revert the test to pass anyway.
+          if (properties.isVirtual != true && properties.isRemote != true) {
+            change.value.scope.launch { monitorDevice(project, change.value) }
+          }
         }
+
+        is SetChange.Remove -> {}
       }
     }
   }
 
-  private suspend fun collectDeviceState(project: Project, stateFlow: StateFlow<com.android.sdklib.deviceprovisioner.DeviceState>) {
-    stateFlow.collect { deviceState ->
-      deviceState.connectedDevice?.let {
-        it.scope.launch {
-          collectDeviceInfo(project, it)
-        }
+  private suspend fun monitorDevice(project: Project, handle: DeviceHandle) {
+    val deviceInfo = handle.stateFlow.mapNotNull { it.connectedDevice?.deviceInfo }.first { it.connectionType == DeviceConnectionType.USB }
+    val deviceTitle = handle.state.properties.title
+    val maxSpeed = deviceInfo.maxSpeed ?: return
+    val negotiatedSpeed = deviceInfo.negotiatedSpeed ?: return
+
+    val isStudioNotificationEnabled = StudioFlags.ALERT_UPON_DEVICE_SUBOPTIMAL_SPEED.get()
+
+    if (negotiatedSpeed == 480L && negotiatedSpeed < maxSpeed) {
+      if (isStudioNotificationEnabled) {
+        showNotification(project, "'$deviceTitle' is capable of faster USB connectivity. Upgrade the cable/hub from ${
+          speedToString(negotiatedSpeed)
+        } to ${speedToString(maxSpeed)}.")
       }
     }
-  }
 
-  private suspend fun collectDeviceInfo(project: Project, connectedDevice: ConnectedDevice) {
-    connectedDevice.deviceInfoFlow.collect {
-      if (it.connectionType != DeviceConnectionType.USB || it.deviceState != DeviceState.ONLINE) {
-        return@collect
-      }
-      val maxSpeed = it.maxSpeed ?: return@collect
-      val negotiatedSpeed = it.negotiatedSpeed ?: return@collect
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ADB_DEVICE_CONNECTED)
+        .setDeviceConnected(DeviceConnectedNotificationEvent.newBuilder()
+                              .setType(com.google.wireless.android.sdk.stats.DeviceConnectedNotificationEvent.DeviceConnectionType.USB)
+                              .setMaxSpeedMbps(maxSpeed)
+                              .setNegotiatedSpeedMbps(negotiatedSpeed)
+                              .setSpeedNotificationsStudioDisabled(!isStudioNotificationEnabled)
+                              .setSpeedNotificationsUserDisabled(!createNotification().canShowFor(project))
+        )
+    )
 
-      val isStudioNotificationEnabled = StudioFlags.ALERT_UPON_DEVICE_SUBOPTIMAL_SPEED.get()
-
-      if (negotiatedSpeed == 480L && negotiatedSpeed < maxSpeed) {
-        if (isStudioNotificationEnabled) {
-          val model = it.model ?: "Device"
-          showNotification(project,  "'$model' is capable of faster USB connectivity. Upgrade the cable from ${speedToString(negotiatedSpeed)} to ${speedToString(maxSpeed)}.")
-        }
-      }
-
-      UsageTracker.log(
-        AndroidStudioEvent.newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.ADB_DEVICE_CONNECTED)
-          .setDeviceConnected(DeviceConnectedNotificationEvent.newBuilder()
-                                .setType(com.google.wireless.android.sdk.stats.DeviceConnectedNotificationEvent.DeviceConnectionType.USB)
-                                .setMaxSpeedMbps(maxSpeed)
-                                .setNegotiatedSpeedMbps(negotiatedSpeed)
-                                .setSpeedNotificationsStudioDisabled(!isStudioNotificationEnabled)
-                                .setSpeedNotificationsUserDisabled(!createNotification().canShowFor(project))
-          )
-      )
-    }
   }
 
   private fun showNotification(project: Project, text: String) {
@@ -117,15 +118,15 @@ class DeviceCableMonitor : ProjectActivity {
       .setImportant(true)
   }
 
-  private fun speedToString(speed: Long) : String {
+  private fun speedToString(speed: Long): String {
     return when (speed) {
-      1L -> "USB-1 (1 Mbps)"
-      12L -> "USB-2 (12 Mbps)"
-      480L -> "USB-2 (480 Mbps)"
-      5000L -> "USB-3.0 (5,000 Mbps)"
-      10000L -> "USB-3.1 (10,000 Mbps)"
-      20000L -> "USB-3.2 (20,000 Mbps)"
-      40000L -> "USB-4.0 (40,000 Mbps)"
+      1L -> "USB 1 (1 Mbps)"
+      12L -> "USB 2 (12 Mbps)"
+      480L -> "USB 2 (480 Mbps)"
+      5000L -> "USB 3.0 (5,000 Mbps)"
+      10000L -> "USB 3.1 (10,000 Mbps)"
+      20000L -> "USB 3.2 (20,000 Mbps)"
+      40000L -> "USB 4.0 (40,000 Mbps)"
       else -> "%,d Mbps".format(speed)
     }
   }
