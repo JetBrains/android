@@ -40,9 +40,10 @@ import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.android.tools.idea.uibuilder.surface.defaultSceneManagerProvider
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -207,10 +208,8 @@ class CustomViewPreviewRepresentation(
 
   private val view = invokeAndWaitIfNeeded {
     CustomViewPreviewView(
-      NlDesignSurface.builder(project, this) { surface, model ->
-          NlDesignSurface.defaultSceneManagerProvider(surface, model, null).apply {
-            setShrinkRendering(true)
-          }
+      NlSurfaceBuilder.builder(project, this) { surface, model ->
+          defaultSceneManagerProvider(surface, model, null).apply { setShrinkRendering(true) }
         }
         .setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
         .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),

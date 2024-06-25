@@ -26,6 +26,7 @@ import com.android.tools.idea.preview.gallery.GalleryModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
@@ -39,7 +40,7 @@ import javax.swing.OverlayLayout
 /** A simple implementation of [PreviewView] based on [NlDesignSurface]. */
 class CommonNlDesignSurfacePreviewView(
   private val project: Project,
-  surfaceBuilder: NlDesignSurface.Builder,
+  surfaceBuilder: NlSurfaceBuilder,
   parentDisposable: Disposable,
 ) : PreviewView, PreviewRepresentationView {
 

@@ -24,7 +24,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
@@ -66,7 +66,7 @@ class BottomPanelTest(private val enableCoordinationDrag: Boolean) {
         .build()
     }
     surface =
-      NlDesignSurface.builder(projectRule.project, projectRule.fixture.testRootDisposable).build()
+      NlSurfaceBuilder.builder(projectRule.project, projectRule.fixture.testRootDisposable).build()
     surface.addModelWithoutRender(model)
     StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.override(enableCoordinationDrag)
   }

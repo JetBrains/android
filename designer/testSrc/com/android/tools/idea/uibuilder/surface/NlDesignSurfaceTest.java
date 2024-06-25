@@ -51,7 +51,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    mySurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
+    mySurface = NlSurfaceBuilder.Companion.build(getProject(), getTestRootDisposable());
     mySurface.setSize(1000, 1000);
   }
 
@@ -550,7 +550,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     final int surfaceHeight = 500;
 
     // First use an empty surface to measure the zoom-to-fit scale.
-    NlDesignSurface surface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).build();
+    NlDesignSurface surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable()).build();
     surface.addAndRenderModel(model);
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();
@@ -559,7 +559,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.removeModel(model);
 
     // Create another surface which the minimum scale is larger than fitScale.
-    surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
+    surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable())
       .setMinScale(fitScale * 2)
       .build();
     surface.addAndRenderModel(model);
@@ -572,7 +572,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.removeModel(model);
 
     // Create another surface which the maximum scale is lower than fitScale.
-    surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
+    surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable())
       .setMaxScale(fitScale / 2)
       .build();
     surface.addAndRenderModel(model);

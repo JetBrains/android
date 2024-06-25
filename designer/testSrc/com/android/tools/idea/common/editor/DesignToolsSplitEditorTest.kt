@@ -17,7 +17,7 @@ package com.android.tools.idea.common.editor
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.analytics.CommonUsageTracker
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.openapi.editor.ex.EditorEx
@@ -44,7 +44,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     val panel = mock(DesignerEditorPanel::class.java)
-    whenever(panel.surface).thenReturn(NlDesignSurface.build(project, testRootDisposable))
+    whenever(panel.surface).thenReturn(NlSurfaceBuilder.build(project, testRootDisposable))
     whenever(panel.state).thenReturn(DesignerEditorPanel.State.FULL)
     designerEditor = mock(DesignerEditor::class.java)
     whenever(designerEditor.component).thenReturn(panel)

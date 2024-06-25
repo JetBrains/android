@@ -45,6 +45,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
@@ -167,7 +168,7 @@ class VisualizationForm(
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
     surface =
-      NlDesignSurface.builder(project, this@VisualizationForm) {
+      NlSurfaceBuilder.builder(project, this@VisualizationForm) {
           surface: NlDesignSurface,
           model: NlModel ->
           val sceneManager = LayoutlibSceneManager(model, surface, config)
