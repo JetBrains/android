@@ -93,7 +93,7 @@ internal class UiSettingsPanel(
           }
         }
 
-        if (deviceType == DeviceType.HANDHELD) {
+        if (deviceType == DeviceType.HANDHELD && StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
           row(JBLabel(GESTURE_NAVIGATION_TITLE)) {
             comboBox(model.navigationModel)
               .accessibleName(GESTURE_NAVIGATION_TITLE)
