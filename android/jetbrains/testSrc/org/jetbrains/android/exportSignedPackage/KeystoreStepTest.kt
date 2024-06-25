@@ -298,7 +298,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
     val passwordSafe = TestPasswordSafeImpl(passwordSafeSettings)
     val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
-    passwordSafe.setPassword(CredentialAttributes(legacyRequestor.name, keyPasswordKey, legacyRequestor), testLegacyKeyPassword)
+    passwordSafe.setPassword(CredentialAttributes(legacyRequestor.name, keyPasswordKey), testLegacyKeyPassword)
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
@@ -320,7 +320,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     keystoreStep.commitForNext()
 
     // Now check that the old-style password is erased
-    assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyRequestor.name, keyPasswordKey, legacyRequestor)))
+    assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyRequestor.name, keyPasswordKey)))
   }
 
   // See b/192344567. We had to replace requestor with service name once again
