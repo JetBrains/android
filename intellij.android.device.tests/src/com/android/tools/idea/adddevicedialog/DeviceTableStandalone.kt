@@ -24,7 +24,7 @@ fun main() {
     IntUiTheme {
       val source = TestDeviceSource()
       source.apply { TestDevices.allTestDevices.forEach { add(it) } }
-      DeviceTable(source.profiles)
+      DeviceTable(source.profiles.value.value)
     }
   }
 }
