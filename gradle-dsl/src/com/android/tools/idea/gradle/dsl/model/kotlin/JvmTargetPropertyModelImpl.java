@@ -39,6 +39,16 @@ public class JvmTargetPropertyModelImpl extends ResolvedPropertyModelImpl implem
     .put(10, "10")
     .put(11, "11")
     .put(12, "12")
+    .put(13, "13")
+    .put(14, "14")
+    .put(15, "15")
+    .put(16, "16")
+    .put(17, "17")
+    .put(18, "18")
+    .put(19, "19")
+    .put(20, "20")
+    .put(21, "21")
+    .put(22, "22")
     .build();
 
   public JvmTargetPropertyModelImpl(@NotNull GradlePropertyModelImpl realModel) {
