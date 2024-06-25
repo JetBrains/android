@@ -16,6 +16,7 @@
 
 #include "session_environment.h"
 
+#include "accessors/display_control.h"
 #include "accessors/surface_control.h"
 #include "agent.h"
 #include "log.h"
@@ -44,6 +45,26 @@ void RemoveAgentFiles() {
   remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
 }
 
+bool ControlDisplayPower(Jni jni, DisplayPowerMode power_mode) {
+  if (Agent::feature_level() >= 35) {
+    DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, power_mode == DisplayPowerMode::POWER_MODE_NORMAL);
+    // TODO: Turn off secondary physical displays.
+  } else if (Agent::feature_level() >= 29) {
+    vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
+    for (int64_t display_id : display_ids) {
+      JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
+      SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+    }
+  } else {
+    JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
+    if (display_token.IsNull()) {
+      return false;
+    }
+    SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+  }
+  return true;
+}
+
 }  // namespace
 
 SessionEnvironment::SessionEnvironment(bool turn_off_display)
@@ -56,17 +77,10 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
   if (turn_off_display) {
     // Turn off display.
     Jni jni = Jvm::GetJni();
-    if (Agent::feature_level() >= 35) {
-      DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, false);
+    if (ControlDisplayPower(jni, DisplayPowerMode::POWER_MODE_OFF)) {
       restore_normal_display_power_mode_ = true;
-    } else if (Agent::feature_level() <= 33) {
-      JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
-      if (display_token.IsNotNull()) {
-        SurfaceControl::SetDisplayPowerMode(jni, display_token, DisplayPowerMode::POWER_MODE_OFF);
-        restore_normal_display_power_mode_ = true;
-      } else {
-        Log::W(jni.GetAndClearException(), "Unable to get display token to turn off display");
-      }
+    } else {
+      Log::W(jni.GetAndClearException(), "Unable to turn off display");
     }
   }
 
@@ -76,13 +90,8 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
 SessionEnvironment::~SessionEnvironment() {
   if (restore_normal_display_power_mode_) {
     Jni jni = Jvm::GetJni();
-    if (Agent::feature_level() >= 35) {
-      DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, true);
-    } else if (Agent::feature_level() <= 33) {
-      JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
-      if (display_token.IsNotNull()) {
-        SurfaceControl::SetDisplayPowerMode(jni, display_token, DisplayPowerMode::POWER_MODE_NORMAL);
-      }
+    if (!ControlDisplayPower(jni, DisplayPowerMode::POWER_MODE_NORMAL)) {
+      Log::W(jni.GetAndClearException(), "Unable to restore display power");
     }
   }
   stay_on_.Restore();
