@@ -274,6 +274,7 @@ class DeviceFileExplorerControllerImpl(
 
   override fun setup() {
     view.setup(isPackageFilterActive)
+    view.enablePackageFilter(packageNamesProvider.getPackageNames().isNotEmpty())
     project.messageBus.connect(this).subscribe(
       PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
       ProjectApplicationIdsProvider.ProjectApplicationIdsListener {
