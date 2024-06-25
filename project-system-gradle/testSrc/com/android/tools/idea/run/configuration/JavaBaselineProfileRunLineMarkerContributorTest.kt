@@ -27,7 +27,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase.assertNull
-import org.jetbrains.kotlin.analysis.api.KaAnalysisApiInternals
+import org.jetbrains.kotlin.analysis.api.KaImplementationDetail
 import org.jetbrains.kotlin.analysis.api.permissions.KaAnalysisPermissionRegistry
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.junit.Before
@@ -35,7 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertNotNull
 
-@OptIn(KaAnalysisApiInternals::class)
+@OptIn(KaImplementationDetail::class)
 class JavaBaselineProfileRunLineMarkerContributorTest {
 
   @get:Rule
