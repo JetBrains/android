@@ -51,6 +51,11 @@ void DisplayControl::InitializeStatics(Jni jni) {
       JObject runtime = runtime_class.CallStaticObjectMethod(get_runtime_method);
       jmethodID load_library0_method = runtime_class.GetMethod("loadLibrary0", "(Ljava/lang/Class;Ljava/lang/String;)V");
       runtime.CallVoidMethod(load_library0_method, display_control_class.ref(), JString(jni, "android_servers").ref());
+      JThrowable exception = jni.GetAndClearException();
+      if (exception.IsNotNull()) {
+        Log::W(std::move(exception), "Unable to load libandroid_servers.so");
+        return;
+      }
       class_ = std::move(display_control_class);
     } else {
       // Before API 34 getPhysicalDisplayIds and getPhysicalDisplayToken used to be part of SurfaceControl.
@@ -64,13 +69,18 @@ void DisplayControl::InitializeStatics(Jni jni) {
 
 vector<int64_t> DisplayControl::GetPhysicalDisplayIds(Jni jni) {
   InitializeStatics(jni);
+  if (class_.IsNull()) {
+    return vector<int64_t>();
+  }
   JObject obj = class_.CallStaticObjectMethod(jni, get_physical_display_ids_method_);
   return jni.GetElements(static_cast<jlongArray>(obj.ref()));
-  return vector<int64_t>();
 }
 
 JObject DisplayControl::GetPhysicalDisplayToken(Jni jni, int64_t physical_display_id) {
   InitializeStatics(jni);
+  if (class_.IsNull()) {
+    return JObject();
+  }
   return class_.CallStaticObjectMethod(jni, get_physical_display_token_method_, physical_display_id);
 }
 
