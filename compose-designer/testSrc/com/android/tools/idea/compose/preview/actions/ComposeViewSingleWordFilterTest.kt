@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
@@ -25,7 +26,6 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.DataContext
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
@@ -126,8 +126,7 @@ class ComposeViewSingleWordFilterTest {
     val sceneManager = mock<SceneManager>()
     val view = mock<SceneView>()
 
-    val displayName = MutableStateFlow(name)
-    whenever(model.modelDisplayName).thenReturn(displayName)
+    whenever(model.displaySettings).thenReturn(DisplaySettings().apply { setDisplayName(name) })
     whenever(sceneManager.sceneViews).thenReturn(listOf(view))
     whenever(sceneManager.model).thenReturn(model)
     whenever(view.sceneManager).thenReturn(sceneManager)

@@ -42,7 +42,7 @@ private fun collectSceneManagerInfo(sceneManagerInfo: SceneManager?): String =
 
 private fun collectModelAndSceneManagerInfo(model: NlModel, sceneManager: SceneManager?): String =
   """
-    NlModel: name=${model.modelDisplayName.value} module=${model.module.name}
+    NlModel: name=${model.displaySettings.modelDisplayName.value} module=${model.module.name}
     ${collectSceneManagerInfo(sceneManager).prependIndent()}
   """
     .trimIndent()

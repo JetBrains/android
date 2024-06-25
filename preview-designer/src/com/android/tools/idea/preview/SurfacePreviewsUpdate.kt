@@ -298,7 +298,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       }
 
       // Common configuration steps for new and reused models
-      newModel.setDisplayName(previewElement.displaySettings.name)
+      newModel.displaySettings.setDisplayName(previewElement.displaySettings.name)
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
       (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->

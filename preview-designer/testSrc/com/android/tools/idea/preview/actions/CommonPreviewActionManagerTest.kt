@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.actions
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.SceneView
@@ -40,7 +41,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -180,8 +180,12 @@ class CommonPreviewActionManagerTest {
     val model = mock<NlModel>()
     whenever(sceneView.sceneManager).thenReturn(sceneManager)
     whenever(sceneManager.model).thenReturn(model)
-    whenever(model.modelDisplayName).thenReturn(MutableStateFlow("some name"))
-    whenever(model.tooltip).thenReturn(MutableStateFlow("some tooltip"))
+    val displaySettings =
+      DisplaySettings().apply {
+        setDisplayName("some name")
+        setTooltip("some tooltip")
+      }
+    whenever(model.displaySettings).thenReturn(displaySettings)
 
     val invoked = CompletableDeferred<Boolean>()
     val scope = AndroidCoroutineScope(projectRule.fixture.testRootDisposable)
