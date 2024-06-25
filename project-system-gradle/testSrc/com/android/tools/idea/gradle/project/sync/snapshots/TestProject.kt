@@ -404,35 +404,17 @@ enum class TestProject(
   DEPENDENT_MODULES_ONLY_APP_RUNTIME(
     TestProjectToSnapshotPaths.DEPENDENT_MODULES,
     testName = "noLibraryRuntime",
-    setup =
-    fun(): () -> Unit {
-      StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
-      val old = GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES
-      GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true
-
-      return fun() {
-        StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.clearOverride()
-        GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = old
-      }
-    },
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { projectRoot: File ->
+      projectRoot.resolve("gradle.properties").appendText("\nandroid.dependency.excludeLibraryComponentsFromConstraints=true")
+    }
     ),
   INDEPENDENT_MODULES_ONLY_RUNTIME(
     TestProjectToSnapshotPaths.DEPENDENT_MODULES,
     testName = "noLibraryRuntimeIndependentModules",
-    setup =
-    fun(): () -> Unit {
-      StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
-      val old = GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES
-      GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true
-
-      return fun() {
-        StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.clearOverride()
-        GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = old
-      }
-    },
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
     patch = { projectRoot: File ->
+      projectRoot.resolve("gradle.properties").appendText("\nandroid.dependency.excludeLibraryComponentsFromConstraints=true")
       projectRoot.resolve("app").resolve("build.gradle").replaceContent {
         it.replace("api project(\":lib\")", "")
       }

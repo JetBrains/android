@@ -97,17 +97,6 @@ class Benchmark200Repeated20TimesMemoryTest  {
   }
 }
 
-class Benchmark1000MemoryRuntimeClasspathTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(FEATURE_RUNTIME_CLASSPATH_1000, STANDARD_1000)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, disableAnalyzers = true)
-
-  @Test fun testMemory() {
-    StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
-    GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true
-    benchmarkTestRule.openProject()
-  }
-}
-
 class Benchmark1000MemoryLatestGradleTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_1000_GRADLE_SNAPSHOT_NAME, STANDARD_1000, useLatestGradle = true)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(
