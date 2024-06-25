@@ -90,6 +90,7 @@ class EmulatorConfiguration private constructor(
         tagId == "google-tv" -> DeviceType.TV
         tagId == "android-tv" -> DeviceType.TV
         tagId == "android-wear" -> DeviceType.WEAR
+        tagId == "android-desktop" -> DeviceType.DESKTOP
         else -> DeviceType.HANDHELD
       }
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
