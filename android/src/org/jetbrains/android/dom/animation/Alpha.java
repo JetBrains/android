@@ -22,7 +22,7 @@ import org.jetbrains.android.dom.Styleable;
  * Framework code: AlphaAnimation(Context, AttributeSet) constructor
  * @see org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription
  */
-@Styleable("AlphaAnimation")
+@Styleable({"AlphaAnimation", "Animation"})
 @DefinesXml
 public interface Alpha extends AnimationElement {
 }

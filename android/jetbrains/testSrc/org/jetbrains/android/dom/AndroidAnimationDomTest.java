@@ -90,4 +90,49 @@ public class AndroidAnimationDomTest extends AndroidDomTestCase {
   public void testChildren() throws Throwable {
     toTestCompletion("tn.xml", "tn_after.xml");
   }
+
+  public void testAlphaAttributes() throws Throwable {
+    // Regression test for b/224990755
+    doTestCompletionVariantsContains(
+      "completion_alpha_attributes.xml",
+      "android:zAdjustment", // Attribute from Animation
+      "android:fromAlpha" // Attribute from AlphaAnimation
+    );
+  }
+
+  public void testRotateAttributes() throws Throwable {
+    // Regression test for b/224990755
+    doTestCompletionVariantsContains(
+      "completion_rotate_attributes.xml",
+      "android:zAdjustment", // Attribute from Animation
+      "android:fromDegrees" // Attribute from RotateAnimation
+    );
+  }
+
+  public void testScaleAttributes() throws Throwable {
+    // Regression test for b/224990755
+    doTestCompletionVariantsContains(
+      "completion_scale_attributes.xml",
+      "android:zAdjustment", // Attribute from Animation
+      "android:fromXScale" // Attribute from ScaleAnimation
+    );
+  }
+
+  public void testSetAttributes() throws Throwable {
+    // Regression test for b/224990755
+    doTestCompletionVariantsContains(
+      "completion_set_attributes.xml",
+      "android:zAdjustment", // Attribute from Animation
+      "android:shareInterpolator" // Attribute from AnimationSet
+    );
+  }
+
+  public void testTranslateAttributes() throws Throwable {
+    // Regression test for b/224990755
+    doTestCompletionVariantsContains(
+      "completion_translate_attributes.xml",
+      "android:zAdjustment", // Attribute from Animation
+      "android:fromXDelta" // Attribute from TranslateAnimation
+    );
+  }
 }

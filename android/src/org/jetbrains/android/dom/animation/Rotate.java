@@ -22,7 +22,7 @@ import org.jetbrains.android.dom.Styleable;
  * Framework code: RotateAnimation(Context, AttributeSet) constructor
  * @see org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription
  */
-@Styleable("RotateAnimation")
+@Styleable({"RotateAnimation", "Animation"})
 @DefinesXml
 public interface Rotate extends AnimationElement {
 }
