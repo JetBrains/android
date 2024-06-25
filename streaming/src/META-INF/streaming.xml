@@ -167,7 +167,7 @@
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
       <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.actions.StreamingUiSettingsAction"
-              icon="StudioIcons.Emulator.Toolbar.DEVICE_SETTINGS" text="Common Android Settings" description="Shortcuts to common Android settings"/>
+              icon="StudioIcons.Emulator.Toolbar.DEVICE_SETTINGS" text="Device UI Shortcuts" description="Shortcuts to common Android settings"/>
     </group>
     <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
             icon="StudioIcons.Shell.Menu.PROFILER" text="Benchmark Streaming Device"

@@ -152,9 +152,6 @@
     <option name="data" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="diagnostic" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="logs" path="ActionManager" hit="Collect logs and diagnostic data" />
-    <option name="android" path="ActionManager" hit="Common Android Settings" />
-    <option name="common" path="ActionManager" hit="Common Android Settings" />
-    <option name="settings" path="ActionManager" hit="Common Android Settings" />
     <option name="configure" path="ActionManager" hit="Configure project structure" />
     <option name="project" path="ActionManager" hit="Configure project structure" />
     <option name="structure" path="ActionManager" hit="Configure project structure" />
@@ -221,6 +218,9 @@
     <option name="runs" path="ActionManager" hit="Deploys and runs the application without building." />
     <option name="the" path="ActionManager" hit="Deploys and runs the application without building." />
     <option name="without" path="ActionManager" hit="Deploys and runs the application without building." />
+    <option name="device" path="ActionManager" hit="Device UI Shortcuts" />
+    <option name="shortcuts" path="ActionManager" hit="Device UI Shortcuts" />
+    <option name="ui" path="ActionManager" hit="Device UI Shortcuts" />
     <option name="banner" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
     <option name="dismisses" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
     <option name="for" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
