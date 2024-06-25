@@ -109,7 +109,6 @@ internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
 
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
-  "cmd overlay enable $GESTURES_OVERLAY; " +
   "cmd locale set-app-locales %s --locales; " +
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
@@ -119,6 +118,10 @@ internal const val FACTORY_RESET_COMMAND =
 internal const val FACTORY_RESET_DEBUG_LAYOUT =
     "setprop debug.layout false; " +
     "service call activity $SYSPROPS_TRANSACTION"
+
+internal const val FACTORY_RESET_GESTURE_NAVIGATION =
+  "cmd overlay enable $GESTURES_OVERLAY; " +
+  "cmd overlay disable $THREE_BUTTON_OVERLAY; "
 
 private fun EmulatorConfiguration.toDeviceInfo(serialNumber: String): DeviceInfo {
   return DeviceInfo.newBuilder()
@@ -375,6 +378,9 @@ internal class EmulatorUiSettingsController(
       if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
         command += FACTORY_RESET_DEBUG_LAYOUT
       }
+      if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
+        command += FACTORY_RESET_GESTURE_NAVIGATION
+      }
       executeShellCommand(command)
       populateModel()
     }
@@ -387,13 +393,15 @@ internal class EmulatorUiSettingsController(
       DeviceType.TV,
       DeviceType.AUTOMOTIVE -> !lastDarkMode
       else -> !lastDarkMode &&
-              lastGestureNavigation &&
               !lastSelectToSpeak &&
               lastDensity == readPhysicalDensity
     }
     isDefault = isDefault && extraChecks
     if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
       isDefault = isDefault && !lastDebugLayout
+    }
+    if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
+      isDefault = isDefault && lastGestureNavigation
     }
     model.differentFromDefault.setFromController(!isDefault)
   }

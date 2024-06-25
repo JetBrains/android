@@ -600,7 +600,7 @@ const string UiSettings::CreateResetCommand() {
     GetSecureSettings(&context);
     command += CreateSetSelectToSpeakCommand(initial_settings_.select_to_speak_on(), &context);
   }
-  if (last_settings_.gesture_navigation() != initial_settings_.gesture_navigation()) {
+  if (last_settings_.gesture_navigation() != initial_settings_.gesture_navigation() && (Agent::flags() & GESTURE_NAVIGATION_UI_SETTINGS) != 0) {
     command += CreateSetGestureNavigationCommand(initial_settings_.gesture_navigation());
   }
   if (last_settings_.debug_layout() != initial_settings_.debug_layout() && (Agent::flags() & DEBUG_LAYOUT_UI_SETTINGS) != 0) {

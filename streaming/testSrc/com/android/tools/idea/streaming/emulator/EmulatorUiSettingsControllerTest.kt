@@ -94,6 +94,7 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
     StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = false, expectedSettable = true)
@@ -103,6 +104,7 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
     StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     controller.initAndWait()
     listeners.checkValues(expectedChanges = 2, expectedCustomValues = false, expectedSettable = true)
@@ -161,6 +163,7 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testGestureNavigationOn() {
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     uiRule.configureUiSettings(gestureNavigation = false)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isTrue()
@@ -174,6 +177,7 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testGestureNavigationOff() {
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.gestureNavigation.setFromUi(false)
@@ -327,6 +331,7 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun testSetDebugLayout() {
     StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.debugLayout.setFromUi(true)
