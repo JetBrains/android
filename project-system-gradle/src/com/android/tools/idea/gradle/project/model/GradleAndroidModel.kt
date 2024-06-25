@@ -264,7 +264,7 @@ class GradleAndroidModel(
   }
 
   override fun getDesugaring(): Set<Desugaring> {
-    return getGradleDesugaring(agpVersion, data.getJavaLanguageLevel(), androidProject.javaCompileOptions.isCoreLibraryDesugaringEnabled)
+    return getGradleDesugaring(agpVersion, data.getJavaSourceLanguageLevel(), androidProject.javaCompileOptions.isCoreLibraryDesugaringEnabled)
   }
 
   override fun getResValues(): Map<String, DynamicResourceValue> {
