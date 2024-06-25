@@ -111,11 +111,12 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String,
             addSamples(MEMORY_BENCHMARK, Metric.MetricSample(measurement.first.toEpochMilliseconds() + i, measurement.second))
           }
         }
-        metricToCompareAgainst?.let { analyzers.add(UTestAnalyzer.forMetricComparison(it))}
+        val toleratedChange = 0.05 // 5%
+        metricToCompareAgainst?.let { analyzers.add(UTestAnalyzer.forMetricComparison(it, relativeShiftValue = toleratedChange))}
         // When running from a release branch, an additional analyzer to make a comparison
         // between the release branch and the main branch is added.
         if (runningFromReleaseBranch) {
-          analyzers.add(UTestAnalyzer.forComparingWithMainBranch())
+          analyzers.add(UTestAnalyzer.forComparingWithMainBranch(relativeShiftValue = toleratedChange))
         }
         setAnalyzers(MEMORY_BENCHMARK, analyzers)
       }
