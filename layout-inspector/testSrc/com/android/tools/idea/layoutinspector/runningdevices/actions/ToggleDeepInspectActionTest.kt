@@ -44,7 +44,12 @@ class ToggleDeepInspectActionTest {
   fun testActionClick() {
     var isSelected = false
     val toggleDeepInspectAction =
-      ToggleDeepInspectAction({ isSelected }, { isSelected = !isSelected }, { DisconnectedClient })
+      ToggleDeepInspectAction(
+        isSelected = { isSelected },
+        setSelected = { isSelected = !isSelected },
+        isRendering = { true },
+        connectedClientProvider = { DisconnectedClient },
+      )
 
     toggleDeepInspectAction.actionPerformed(createTestActionEvent(toggleDeepInspectAction))
     assertThat(isSelected).isTrue()
@@ -55,7 +60,13 @@ class ToggleDeepInspectActionTest {
 
   @Test
   fun testTitleAndDescription() {
-    val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, {}, { DisconnectedClient })
+    val toggleDeepInspectAction =
+      ToggleDeepInspectAction(
+        isSelected = { false },
+        setSelected = {},
+        isRendering = { true },
+        connectedClientProvider = { DisconnectedClient },
+      )
 
     val event = createTestActionEvent(toggleDeepInspectAction)
     toggleDeepInspectAction.update(event)
@@ -72,7 +83,13 @@ class ToggleDeepInspectActionTest {
         MODERN_DEVICE.createProcess(),
         disposableRule.disposable,
       )
-    val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, {}, { inspectorClient })
+    val toggleDeepInspectAction =
+      ToggleDeepInspectAction(
+        isSelected = { false },
+        setSelected = {},
+        isRendering = { true },
+        connectedClientProvider = { inspectorClient },
+      )
 
     val event = createTestActionEvent(toggleDeepInspectAction)
     toggleDeepInspectAction.update(event)
@@ -82,6 +99,41 @@ class ToggleDeepInspectActionTest {
     inspectorClient.state = InspectorClient.State.CONNECTED
     toggleDeepInspectAction.update(event)
 
+    assertThat(event.presentation.isEnabled).isTrue()
+  }
+
+  @Test
+  fun testDeepInspectActionIsDisabledWhenNotRendering() {
+    val inspectorClient =
+      FakeInspectorClient(
+        projectRule.project,
+        MODERN_DEVICE.createProcess(),
+        disposableRule.disposable,
+      )
+    var isRendering = true
+    val toggleDeepInspectAction =
+      ToggleDeepInspectAction(
+        isSelected = { false },
+        setSelected = {},
+        isRendering = { isRendering },
+        connectedClientProvider = { inspectorClient },
+      )
+
+    val event = createTestActionEvent(toggleDeepInspectAction)
+
+    inspectorClient.state = InspectorClient.State.CONNECTED
+
+    toggleDeepInspectAction.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
+
+    isRendering = false
+
+    toggleDeepInspectAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    isRendering = true
+
+    toggleDeepInspectAction.update(event)
     assertThat(event.presentation.isEnabled).isTrue()
   }
 }
