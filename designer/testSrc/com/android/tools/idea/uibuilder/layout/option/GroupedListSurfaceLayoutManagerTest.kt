@@ -20,9 +20,9 @@ import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.flags.StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
+import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
+import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.surface.layout.PREVIEW_LEFT_PADDING
-import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import com.intellij.util.ui.JBInsets
 import java.awt.Dimension
 import org.junit.After

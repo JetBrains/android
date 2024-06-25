@@ -18,11 +18,11 @@ package com.android.tools.idea.uibuilder.layout.option
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.flags.StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT
 import com.android.tools.idea.flags.StudioFlags.SCROLLABLE_ZOOM_ON_GRID
+import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
+import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.surface.layout.EMPTY_PADDING
-import com.android.tools.idea.uibuilder.surface.layout.GroupPadding
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PREVIEW_LEFT_PADDING
-import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before

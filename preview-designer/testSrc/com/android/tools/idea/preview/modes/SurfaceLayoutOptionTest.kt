@@ -17,7 +17,7 @@ package com.android.tools.idea.preview.modes
 
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
-import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
+import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.google.common.truth.Truth.assertThat
 import java.awt.Dimension
 import java.awt.Insets
