@@ -16,6 +16,7 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
         "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
+        "//tools/adt/idea/.idea/libraries:opentest4j",
     ],
     # do not sort: must match IML order
     deps = [
