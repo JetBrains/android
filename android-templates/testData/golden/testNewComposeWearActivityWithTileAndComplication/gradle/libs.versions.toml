@@ -1,5 +1,6 @@
 [versions]
-kotlinGradlePlugin = "1.9.0"
+agp = "8.6.0-dev"
+kotlin = "1.9.0"
 playServicesWearable = "18.0.0"
 composeBom = "2024.04.01"
 composeMaterial = "1.2.1"
@@ -14,7 +15,6 @@ horologistTiles = "0.4.8"
 watchfaceComplicationsDataSourceKtx = "1.1.1"
 
 [libraries]
-kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 ui = { group = "androidx.compose.ui", name = "ui" }
@@ -34,4 +34,6 @@ horologist-tiles = { group = "com.google.android.horologist", name = "horologist
 watchface-complications-data-source-ktx = { group = "androidx.wear.watchface", name = "watchface-complications-data-source-ktx", version.ref = "watchfaceComplicationsDataSourceKtx" }
 
 [plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
