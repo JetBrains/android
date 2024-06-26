@@ -42,6 +42,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.util.SlowOperations
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
@@ -69,6 +70,7 @@ internal fun UMethod?.hasPreviewElements() =
  * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an
  * annotation that is annotated with @Preview or with other MultiPreview.
  */
+@RequiresReadLock
 fun UAnnotation?.isMultiPreviewAnnotation() =
   this?.let {
     !it.isPreviewAnnotation() && it.getPreviewNodes(includeAllNodes = false).firstOrNull() != null
@@ -161,6 +163,7 @@ private fun getPreviewNodes(
  *
  * @see getPreviewNodes
  */
+@RequiresReadLock
 @Slow
 private fun UAnnotation.getPreviewNodes(
   overrideGroupName: String? = null,
@@ -179,6 +182,7 @@ private fun UAnnotation.getPreviewNodes(
  * Returns the Composable [UMethod] annotated by this annotation, or null if it is not annotating a
  * method, or if the method is not also annotated with @Composable
  */
+@RequiresReadLock
 internal fun UAnnotation.getContainingComposableUMethod() =
   this.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
 

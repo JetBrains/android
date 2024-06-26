@@ -22,6 +22,7 @@ import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -38,6 +39,7 @@ interface PreviewAnnotationChecker {
 
   fun isPreview(annotation: KtAnnotationEntry): Boolean
 
+  @RequiresReadLock
   fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry): Boolean
 }
 
