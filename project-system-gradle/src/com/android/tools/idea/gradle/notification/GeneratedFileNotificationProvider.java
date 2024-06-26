@@ -20,7 +20,6 @@ import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIF
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -47,41 +46,23 @@ public class GeneratedFileNotificationProvider implements EditorNotificationProv
       return null;
     }
     File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
-    return (fileEditor) -> createNotificationPanel(file, fileEditor, buildFolderPath, generatedSourceFileChangeTracker);
-  }
-
-  @Nullable
-  @VisibleForTesting
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                         @NotNull FileEditor fileEditor,
-                                                         @NotNull File buildFolderPath,
-                                                         @NotNull GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker) {
-    if (DISABLE_GENERATED_FILE_NOTIFICATION_KEY.get(fileEditor, false)) {
-      return null;
-    }
     VirtualFile buildFolder = findFileByIoFile(buildFolderPath, false /* do not refresh */);
     if (buildFolder == null || !buildFolder.isDirectory()) {
       return null;
     }
-    if (isAncestor(buildFolder, file, false /* not strict */)) {
-      if (myGeneratedSourceFileChangeTracker.isEditedGeneratedFile(file)) {
-        // A warning is already being displayed by GeneratedFileEditingNotificationProvider
+    if (!isAncestor(buildFolder, file, false /* not strict */)) {
+      return null;
+    }
+    if (generatedSourceFileChangeTracker.isEditedGeneratedFile(file)) {
+      // A warning is already being displayed by GeneratedFileEditingNotificationProvider
+      return null;
+    }
+    return fileEditor -> {
+      if (DISABLE_GENERATED_FILE_NOTIFICATION_KEY.get(fileEditor, false)) {
         return null;
       }
-
-      VirtualFile explodedBundled = buildFolder.findChild(SdkConstants.EXPLODED_AAR);
-      boolean inAar = explodedBundled != null && isAncestor(explodedBundled, file, true /* strict */);
-      String text;
-      if (inAar) {
-        text = "Resource files inside Android library archive files (.aar) should not be edited";
-      }
-      else {
-        text = "Files under the \"build\" folder are generated and should not be edited.";
-      }
-
-      return new MyEditorNotificationPanel(fileEditor, text);
-    }
-    return null;
+      return new MyEditorNotificationPanel(fileEditor, "Files under the \"build\" folder are generated and should not be edited.");
+    };
   }
 
   @VisibleForTesting
