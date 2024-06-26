@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Assert
@@ -45,7 +46,7 @@ class GlanceScreenViewProviderTest {
         )
         .build()
     }
-    surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
+    surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
     surface.addModelWithoutRender(model).join()
   }
 

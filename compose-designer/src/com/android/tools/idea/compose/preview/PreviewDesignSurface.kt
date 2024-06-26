@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.common.collect.ImmutableSet
@@ -52,8 +53,8 @@ private val COMPOSE_SUPPORTED_ACTIONS =
   ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /**
- * Creates a [NlDesignSurface.Builder] with a common setup for the design surfaces in Compose
- * preview. [isInteractive] should return when the Preview is in interactive mode. When it is, the
+ * Creates a [NlSurfaceBuilder] with a common setup for the design surfaces in Compose preview.
+ * [isInteractive] should return when the Preview is in interactive mode. When it is, the
  * [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle
  * issue panel ("E").
  */
@@ -66,8 +67,8 @@ private fun createPreviewDesignSurfaceBuilder(
   sceneComponentProvider: ComposeSceneComponentProvider,
   screenViewProvider: ScreenViewProvider,
   isInteractive: () -> Boolean,
-): NlDesignSurface.Builder =
-  NlDesignSurface.builder(project, parentDisposable) { surface, model ->
+): NlSurfaceBuilder =
+  NlSurfaceBuilder.builder(project, parentDisposable) { surface, model ->
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
       LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()) {
@@ -101,10 +102,9 @@ private fun createPreviewDesignSurfaceBuilder(
     .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
 
 /**
- * Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview.
- * [isInteractive] should return when the Preview is in interactive mode. When it is, the
- * [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle
- * issue panel ("E").
+ * Creates a [NlSurfaceBuilder] for the main design surface in the Compose preview. [isInteractive]
+ * should return when the Preview is in interactive mode. When it is, the [NlDesignSurface] will
+ * disable the interception of global shortcuts like refresh ("R") or toggle issue panel ("E").
  */
 internal fun createMainDesignSurfaceBuilder(
   project: Project,

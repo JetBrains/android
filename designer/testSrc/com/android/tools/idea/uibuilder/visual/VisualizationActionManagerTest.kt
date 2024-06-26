@@ -20,7 +20,7 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.BuildTargetReference
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.AndroidTestCase
@@ -37,7 +37,7 @@ class VisualizationActionManagerTest : AndroidTestCase() {
 
   fun testPopupMenuActions() {
     val actionManager =
-      VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable)) {
+      VisualizationActionManager(NlSurfaceBuilder.build(project, testRootDisposable)) {
         EmptyModelsProvider
       }
     val actions = actionManager.getPopupMenuActions(null).getChildren(null)
@@ -48,7 +48,7 @@ class VisualizationActionManagerTest : AndroidTestCase() {
 
   fun testToolbarActions() {
     val actionManager =
-      VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable)) {
+      VisualizationActionManager(NlSurfaceBuilder.build(project, testRootDisposable)) {
         EmptyModelsProvider
       }
     assertEquals(0, actionManager.getToolbarActions(emptyList()).childrenCount)

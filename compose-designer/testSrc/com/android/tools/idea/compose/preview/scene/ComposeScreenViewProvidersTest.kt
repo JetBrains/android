@@ -23,7 +23,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.DeviceConfig
@@ -58,7 +58,7 @@ class ComposeScreenViewProvidersTest {
           )
           .build()
       }
-    val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
+    val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
     surface.addModelWithoutRender(model).await()
 
     // Create a device with round shape

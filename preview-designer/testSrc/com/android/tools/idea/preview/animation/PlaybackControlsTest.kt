@@ -56,7 +56,7 @@ class PlaybackControlsTest {
         .build()
     }
     surface =
-      com.android.tools.idea.uibuilder.surface.NlDesignSurface.builder(
+      com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder.builder(
           projectRule.project,
           parentDisposable,
         )

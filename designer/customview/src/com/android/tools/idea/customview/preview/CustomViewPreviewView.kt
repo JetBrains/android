@@ -20,7 +20,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.editors.notifications.NotificationPanel
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -32,7 +32,7 @@ import javax.swing.OverlayLayout
 
 /** UI of the [CustomViewPreviewRepresentation]. */
 internal class CustomViewPreviewView(
-  surfaceBuilder: NlDesignSurface.Builder,
+  surfaceBuilder: NlSurfaceBuilder,
   parentDisposable: Disposable,
   project: Project,
 ) {

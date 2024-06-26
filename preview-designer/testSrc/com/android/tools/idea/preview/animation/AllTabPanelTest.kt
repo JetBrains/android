@@ -25,7 +25,7 @@ import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
@@ -59,7 +59,7 @@ class AllTabPanelTest {
         )
         .build()
     }
-    surface = NlDesignSurface.builder(projectRule.project, projectRule.testRootDisposable).build()
+    surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.testRootDisposable).build()
     surface.addModelWithoutRender(model)
     panel = AllTabPanel(projectRule.testRootDisposable)
   }

@@ -105,7 +105,7 @@ class NlDesignSurfaceZoomControlsTest {
     val configuration =
       RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
     surface = invokeAndWaitIfNeeded {
-      NlDesignSurface.builder(
+      NlSurfaceBuilder.builder(
           androidProjectRule.project,
           androidProjectRule.fixture.testRootDisposable,
         )
