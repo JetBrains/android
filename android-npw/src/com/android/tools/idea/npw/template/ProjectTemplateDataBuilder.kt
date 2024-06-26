@@ -29,6 +29,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.refactoring.isAndroidx
 import java.io.File
+import java.net.URL
 
 private val log: Logger get() = logger<ProjectTemplateDataBuilder>()
 
@@ -41,6 +42,7 @@ private val log: Logger get() = logger<ProjectTemplateDataBuilder>()
 class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var agpVersion: AgpVersion? = null
+  var additionalMavenRepos: List<URL> = listOf()
   var sdkDir: File? = null
   var language: Language? = null
   var kotlinVersion: String? = null
@@ -86,6 +88,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   fun build() = ProjectTemplateData(
     androidXSupport!!,
     agpVersion!!,
+    additionalMavenRepos,
     sdkDir,
     Language.valueOf(language!!.toString()),
     kotlinVersion!!,

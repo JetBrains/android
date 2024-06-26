@@ -673,6 +673,11 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> INCLUDE_ANDROIDX_DEV_ANDROID_GRADLE_PLUGIN_SNAPSHOTS = new BooleanFlag(
+    GRADLE_IDE, "agp.snapshot.repo", "Enable AGP snapshot repository",
+    "Also consults the androidx.dev snapshot repository for available versions of AGP.",
+    ChannelDefault.enabledUpTo(DEV));
+
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = new BooleanFlag(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Uses the development offline repositories " +

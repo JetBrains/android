@@ -7,6 +7,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
+import java.net.URL
 import kotlin.test.assertFailsWith
 
 class AgpVersionsTest {
@@ -88,7 +89,8 @@ class AgpVersionsTest {
     assertThat(
       AgpVersions.getNewProjectWizardVersions(
       latestKnown = AgpVersion.parse("8.3.0-dev"),
-      availableVersions = availableVersions
+      gmavenVersions = availableVersions,
+      localAndSnapshotVersions = listOf(),
     ).map { it.toString() })
       .containsExactly("8.3.0-alpha02", "8.2.0-beta02", "8.1.2", "8.1.1", "8.1.0", "7.4.2", "7.4.1", "7.4.0", "7.3.3", "3.2.0")
       .inOrder()
@@ -96,7 +98,8 @@ class AgpVersionsTest {
     assertThat(
       AgpVersions.getNewProjectWizardVersions(
       latestKnown = AgpVersion.parse("8.3.0-alpha01"),
-      availableVersions = availableVersions
+      gmavenVersions = availableVersions,
+      localAndSnapshotVersions = listOf(),
     ).map { it.toString() })
       .containsExactly("8.3.0-alpha01", "8.1.2", "8.1.1", "8.1.0", "7.4.2", "7.4.1", "7.4.0", "7.3.3", "3.2.0")
       .inOrder()
@@ -107,23 +110,48 @@ class AgpVersionsTest {
   fun `test get new project wizard versions with dev available`() {
     val availableVersions = listOf(
       "8.1.2",
-      "8.2.0-beta01", "8.2.0-beta02", "8.2.0-dev", // Incompatible dev version is ignored
-      "8.3.0-alpha01", "8.3.0-alpha02", "8.3.0-dev",
+      "8.2.0-beta01", "8.2.0-beta02",
+      "8.3.0-alpha01", "8.3.0-alpha02",
     ).map { AgpVersion.parse(it) }.toSet()
+    val localAndSnapshotVersions = listOf(
+      AgpVersions.NewProjectWizardAgpVersion(
+        AgpVersion.parse("8.2.0-dev"),  // Incompatible dev version is ignored
+        listOf(URL("file:/home/user/studio-main/out/repo/"))
+      ),
+      AgpVersions.NewProjectWizardAgpVersion(
+        AgpVersion.parse("8.3.0-dev"),
+        listOf(URL("file:/home/user/studio-main/out/repo/"))
+      ),
+      AgpVersions.NewProjectWizardAgpVersion(
+        AgpVersion.parse("8.3.0-dev"),
+        listOf(URL("https://androidx.dev/studio/builds/12006839/artifacts/artifacts/repository"))
+      ),
+    )
     assertThat(
       AgpVersions.getNewProjectWizardVersions(
-      latestKnown = AgpVersion.parse("8.3.0-dev"),
-      availableVersions = availableVersions
+        latestKnown = AgpVersion.parse("8.3.0-dev"),
+        gmavenVersions = availableVersions,
+        localAndSnapshotVersions = localAndSnapshotVersions,
     ).map { it.toString() })
-      .containsExactly("8.3.0-dev", "8.3.0-alpha02", "8.2.0-beta02", "8.1.2")
+      .containsExactly(
+        "8.3.0-dev (file:/home/user/studio-main/out/repo/)",
+        "8.3.0-dev (https://androidx.dev/studio/builds/12006839/artifacts/artifacts/repository)",
+        "8.3.0-alpha02",
+        "8.2.0-beta02",
+        "8.1.2")
       .inOrder()
 
     assertThat(
       AgpVersions.getNewProjectWizardVersions(
       latestKnown = AgpVersion.parse("8.3.0-alpha01"),
-      availableVersions = availableVersions
+      gmavenVersions = availableVersions,
+      localAndSnapshotVersions = localAndSnapshotVersions,
     ).map { it.toString() })
-      .containsExactly("8.3.0-dev", "8.3.0-alpha01", "8.1.2")
+      .containsExactly(
+        "8.3.0-dev (file:/home/user/studio-main/out/repo/)",
+        "8.3.0-dev (https://androidx.dev/studio/builds/12006839/artifacts/artifacts/repository)",
+        "8.3.0-alpha01",
+        "8.1.2")
       .inOrder()
   }
 
