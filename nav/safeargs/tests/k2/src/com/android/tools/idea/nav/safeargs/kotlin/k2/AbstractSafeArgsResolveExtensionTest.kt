@@ -19,7 +19,6 @@ import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
-import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.KotlinPluginRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
@@ -62,8 +61,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
     fileName: String = "main",
   ): XmlFile =
     safeArgsRule.fixture.addFileToProject("res/navigation/${fileName}.xml", fileContent).also {
-      // Initialize repository after creating resources, needed for codegen to work
-      StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+      safeArgsRule.waitForPendingUpdates()
     } as XmlFile
 
   protected fun addKotlinSource(
