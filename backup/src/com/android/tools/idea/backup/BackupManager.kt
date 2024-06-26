@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.backup
 
-import com.android.backup.BackupProgressListener
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
@@ -29,27 +28,16 @@ interface BackupManager {
    * @param serialNumber Serial number of a connected device
    * @param applicationId Application ID (package name) of the app
    * @param backupFile A path to write the backup data to
-   * @param progressListener An optional listener to report progress to the UI
    */
-  suspend fun backup(
-    serialNumber: String,
-    applicationId: String,
-    backupFile: Path,
-    progressListener: BackupProgressListener? = null,
-  )
+  suspend fun backup(serialNumber: String, applicationId: String, backupFile: Path)
 
   /**
    * Backup an app to a local file
    *
    * @param serialNumber Serial number of a connected device
    * @param backupFile A path to write the backup data to
-   * @param progressListener An optional listener to report progress to the UI
    */
-  suspend fun restore(
-    serialNumber: String,
-    backupFile: Path,
-    progressListener: BackupProgressListener? = null,
-  )
+  suspend fun restore(serialNumber: String, backupFile: Path)
 
   /** Display a file chooser dialog for saving a backup file */
   suspend fun chooseBackupFile(nameHint: String): Path?
