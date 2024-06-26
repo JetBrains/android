@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.table
 
-import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.JBColor
@@ -23,7 +22,6 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.ERROR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
-import java.awt.Font
 import javax.swing.JTable
 
 private val CELL_ERROR_ATTRIBUTES = SimpleTextAttributes(STYLE_WAVED, JBColor.red)
@@ -67,8 +65,6 @@ internal class StringsCellRenderer : ColoredTableCellRenderer() {
     viewRowIndex: Int,
     viewColumnIndex: Int
   ) {
-    updateFontIfNecessary(table.font)
-
     val modelRowIndex = table.convertRowIndexToModel(viewRowIndex)
     val modelColumnIndex = table.convertColumnIndexToModel(viewColumnIndex)
     val problem = table.model.getCellProblem(modelRowIndex, modelColumnIndex).also { toolTipText = it }
@@ -80,9 +76,5 @@ internal class StringsCellRenderer : ColoredTableCellRenderer() {
     }
 
     append(value.clip('\n'), attributes)
-  }
-
-  private fun updateFontIfNecessary(tableFont: Font) {
-    StringResourceEditor.getFont(tableFont).let { if (tableFont != it) font = it }
   }
 }

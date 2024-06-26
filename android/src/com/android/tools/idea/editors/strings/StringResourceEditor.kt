@@ -26,11 +26,9 @@ import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
-import java.awt.Font
 import java.beans.PropertyChangeListener
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon
@@ -130,9 +128,5 @@ class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolde
     /** An [Icon] representing the editor. */
     @JvmField
     val ICON: Icon = StudioIcons.LayoutEditor.Toolbar.LANGUAGE
-
-    /** Creates a font to use for certain components in the editor. */
-    @JvmStatic
-    fun getFont(defaultFont: Font): Font = JBFont.create(Font(Font.DIALOG, Font.PLAIN, defaultFont.size), defaultFont !is JBFont)
   }
 }
