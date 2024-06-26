@@ -69,6 +69,8 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioDebugMode =  studioProjectSyncDebugModeEnabled(),
     studioFlagSkipRuntimeClasspathForLibraries = StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get()
                                                  && GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES,
+    studioFlagBuildRuntimeClasspathForLibraryUnitTests = StudioFlags.GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_UNIT_TESTS.get(),
+    studioFlagBuildRuntimeClasspathForLibraryScreenshotTests = StudioFlags.GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_SCREENSHOT_TESTS.get(),
     studioFlagSupportFutureAgpVersions = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
     studioFlagUseNewDependencyGraphModel = StudioFlags.USE_NEW_DEPENDENCY_GRAPH_MODEL.get(),
     studioFlagFetchKotlinModelsInParallel = StudioFlags.GRADLE_SYNC_FETCH_KOTLIN_MODELS_IN_PARALLEL.get()
