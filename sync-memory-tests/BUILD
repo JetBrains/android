@@ -137,24 +137,6 @@ iml_module(
                 "ci:perfgate-win",
             ],
         },
-        "Benchmark1000MemoryRuntimeClasspath": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
-            "tags": [
-                "noci:studio-win",
-                "noci:studio-linux",
-                "ci:perfgate-linux",
-                "ci:perfgate-win",
-            ],
-        },
-        "Benchmark1000CpuRuntimeClasspath": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuRuntimeClasspath",
-            "tags": [
-                "noci:studio-win",
-                "noci:studio-linux",
-                "ci:perfgate-linux",
-                "ci:perfgate-win",
-            ],
-        },
         # Disabled tests
         "Benchmark4200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark4200CpuTest",

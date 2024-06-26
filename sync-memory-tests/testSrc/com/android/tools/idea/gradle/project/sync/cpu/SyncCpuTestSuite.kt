@@ -91,18 +91,6 @@ class BenchmarkMultiApp190CpuTest {
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
-class Benchmark1000CpuRuntimeClasspathTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(FEATURE_RUNTIME_CLASSPATH_1000, STANDARD_1000)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15, enableAnalyzers = false)
-  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
-
-  @Test fun testCpu() {
-    StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
-    GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true
-    runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
-  }
-}
-
 private fun runTest(benchmarkTestRule: BenchmarkTestRule,
                     measureSyncExecutionTimeRule: MeasureSyncExecutionTimeRule) {
   benchmarkTestRule.addListener(measureSyncExecutionTimeRule.listener)
