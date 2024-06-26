@@ -26,13 +26,13 @@ import com.android.builder.model.v2.ide.Edge
 import com.android.builder.model.v2.ide.GraphItem
 import com.android.builder.model.v2.ide.Library
 import com.android.builder.model.v2.ide.UnresolvedDependency
-import com.android.builder.model.v2.models.ClasspathParameterConfig
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.project.sync.AndroidProjectResult.Companion.RuntimeClasspathBehaviour
 import com.android.utils.appendCapitalized
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
@@ -87,15 +87,19 @@ internal fun BuildController.findVariantModel(
   }
 }
 
-internal fun getClasspathConfigForProject(
-  skipRuntimeClasspathForLibrariesFlag: Boolean,
+internal fun parameterMutatorForProject(
+  runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
   projectType: IdeAndroidProjectType,
   hasNoInboundDependencies: Boolean
-): ClasspathParameterConfig = when {
-  hasNoInboundDependencies -> ClasspathParameterConfig.ALL
-  skipRuntimeClasspathForLibrariesFlag && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY ->
-    ClasspathParameterConfig.ANDROID_TEST_ONLY
-  else -> ClasspathParameterConfig.ALL
+): (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit = {
+  when {
+    hasNoInboundDependencies -> it.buildAllRuntimeClasspaths()
+    runtimeClasspathBehaviour.skipRuntimeClasspathForLibraries && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY ->
+      it.buildOnlyTestRuntimeClasspaths(
+        buildUnitTestsRuntime = runtimeClasspathBehaviour.buildRuntimeClasspathForLibraryUnitTests,
+        buildScreenshotTestsRuntime = runtimeClasspathBehaviour.buildRuntimeClasspathForLibraryScreenshotTests)
+    else -> it.buildAllRuntimeClasspaths()
+  }
 }
 
 /**
@@ -106,23 +110,23 @@ internal fun BuildController.findVariantDependenciesV2Model(
   modelVersions: ModelVersions,
   variantName: String,
   useNewDependencyGraphModel: Boolean,
-  classpathConfig: ClasspathParameterConfig
+  parameterMutator: (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit
 ): VariantDependenciesCompat? {
-  fun <T> findModel(clazz: Class<T>, classpathConfig: ClasspathParameterConfig) = findModel(
+  fun <T> findModel(clazz: Class<T>, parameterMutator: (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit) = findModel(
     project,
     clazz,
     com.android.builder.model.v2.models.ModelBuilderParameter::class.java
   ) {
     it.variantName = variantName
-    classpathConfig.applyTo(it)
+    parameterMutator(it)
   }
 
   return if (useNewDependencyGraphModel) {
-    findModel(VariantDependenciesAdjacencyList::class.java, classpathConfig)?.let {
+    findModel(VariantDependenciesAdjacencyList::class.java, parameterMutator)?.let {
       VariantDependenciesCompat.AdjacencyList(it, modelVersions)
     }
   } else {
-    findModel(VariantDependencies::class.java, classpathConfig)?.let {
+    findModel(VariantDependencies::class.java, parameterMutator)?.let {
       VariantDependenciesCompat.GraphItemList(it, modelVersions)
     }
   }
@@ -270,4 +274,26 @@ sealed class ArtifactDependenciesCompat(val compileDependencies: DependencyGraph
 sealed class DependencyGraphCompat {
   data class AdjacencyList(val edges: List<Edge>) : DependencyGraphCompat()
   data class GraphItemList(val graphItems: List<GraphItem>) : DependencyGraphCompat()
+}
+
+/** Utility method for setting the parameters */
+fun com.android.builder.model.v2.models.ModelBuilderParameter.buildAllRuntimeClasspaths() {
+  dontBuildRuntimeClasspath = false
+  dontBuildUnitTestRuntimeClasspath = false
+  dontBuildScreenshotTestRuntimeClasspath = false
+  dontBuildAndroidTestRuntimeClasspath = false
+  dontBuildTestFixtureRuntimeClasspath = false
+  dontBuildHostTestRuntimeClasspath = mapOf("UnitTest" to false, "ScreenshotTest" to false)
+}
+
+fun com.android.builder.model.v2.models.ModelBuilderParameter.buildOnlyTestRuntimeClasspaths(
+  buildUnitTestsRuntime: Boolean,
+  buildScreenshotTestsRuntime: Boolean
+) {
+  dontBuildRuntimeClasspath = true
+  dontBuildUnitTestRuntimeClasspath = !buildUnitTestsRuntime
+  dontBuildScreenshotTestRuntimeClasspath = !buildScreenshotTestsRuntime
+  dontBuildAndroidTestRuntimeClasspath = false
+  dontBuildTestFixtureRuntimeClasspath = true
+  dontBuildHostTestRuntimeClasspath = mapOf("UnitTest" to dontBuildUnitTestRuntimeClasspath, "ScreenshotTest" to dontBuildScreenshotTestRuntimeClasspath)
 }
