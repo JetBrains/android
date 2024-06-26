@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
@@ -36,9 +37,9 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
 
 @UiThread
 @Service(Service.Level.PROJECT)
@@ -153,6 +154,23 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
         }
       }
     }
+  }
+
+  suspend fun backupApplication(
+    project: Project,
+    packageName: String,
+    device: IDevice,
+    path: Path,
+  ) {
+    if (device.serialNumber == device.serialNumber) {
+      val backupManager = BackupManager.getInstance(project)
+      backupManager.backup(device.serialNumber, packageName, path)
+    }
+  }
+
+  suspend fun restoreApplication(project: Project, device: IDevice, path: Path) {
+    val backupManager = BackupManager.getInstance(project)
+    backupManager.restore(device.serialNumber, path)
   }
 
   private fun reportError(title: String, messageToReport: String) {

@@ -2115,6 +2115,18 @@ public final class StudioFlags {
 
   // endregion Cloud Integration
 
+  // region Backup
+  private static final FlagGroup BACKUP =
+    new FlagGroup(FLAGS, "backup", "Backup");
+  public static final Flag<Boolean> BACKUP_SHOW_ACTIONS_IN_DEVICE_EXPLORER =
+    new BooleanFlag(
+      BACKUP,
+      "enabled",
+      "Show backup & restore actions in Device Explorer",
+      "Show backup & restore actions in Device Explorer",
+      false);
+  // endregion Backup
+
   public static Boolean isBuildOutputShowsDownloadInfo() {
     // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
     // In IDEA: disables unless the user explicitly overrides BUILD_OUTPUT_DOWNLOADS_INFORMATION.
