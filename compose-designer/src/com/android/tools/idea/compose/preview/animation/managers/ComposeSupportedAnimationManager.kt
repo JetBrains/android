@@ -16,16 +16,11 @@
 package com.android.tools.idea.compose.preview.animation.managers
 
 import androidx.compose.animation.tooling.ComposeAnimation
-import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
 import com.android.tools.idea.compose.preview.animation.AnimationClock
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.getAnimatedProperties
-import com.android.tools.idea.compose.preview.animation.state.ComposeAnimationState
-import com.android.tools.idea.compose.preview.animation.state.ComposeAnimationState.Companion.createState
-import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
-import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
 import com.android.tools.idea.preview.animation.AnimatedProperty
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.AnimationUnit
@@ -38,7 +33,6 @@ import javax.swing.JComponent
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 private val LOG = Logger.getInstance(SupportedAnimationManager::class.java)
 
@@ -46,7 +40,15 @@ private val LOG = Logger.getInstance(SupportedAnimationManager::class.java)
 /** Number of points for one curve. */
 private const val DEFAULT_CURVE_POINTS_NUMBER = 200
 
-open class ComposeSupportedAnimationManager(
+/**
+ * Abstract base class for managing supported Compose animations in the Animation Preview tool.
+ *
+ * This class provides a common framework for handling different types of Compose animations,
+ * including their interaction with the animation preview timeline, playback controls, and state
+ * management. Subclasses specialize this behavior for specific animation types (e.g., from-to
+ * animations, visibility animations).
+ */
+abstract class ComposeSupportedAnimationManager(
   final override val animation: ComposeAnimation,
   final override val tabTitle: String,
   tracker: ComposeAnimationTracker,
@@ -71,86 +73,6 @@ open class ComposeSupportedAnimationManager(
     parentScope,
     updateTimelineElementsCallback,
   ) {
-
-  override val animationState: ComposeAnimationState = animation.createState(tracker, scope)
-
-  /**
-   * Due to a limitation in the Compose Animation framework, we might not know all the available
-   * states for a given animation, only the initial/current one. However, we can infer all the
-   * states based on the initial one depending on its type, e.g. for a boolean we know the available
-   * states are only `true` or `false`.
-   */
-  private fun handleKnownStateTypes(originalStates: Set<Any>) =
-    when (originalStates.iterator().next()) {
-      is Boolean -> setOf(true, false)
-      else -> originalStates
-    }
-
-  /** Initializes the state of the Compose animation before it starts */
-  final override suspend fun setupStateManager() {
-    val initialValue = animationState.stateHashCode.value
-    scope.launch {
-      animationState.stateHashCode.collect {
-        if (it == initialValue) {
-          return@collect
-        }
-        when (animation.type) {
-          ComposeAnimationType.TRANSITION_ANIMATION,
-          ComposeAnimationType.ANIMATE_X_AS_STATE,
-          ComposeAnimationType.ANIMATED_CONTENT -> {
-            updateAnimationStartAndEndStates()
-            loadTransition()
-            loadAnimatedPropertiesAtCurrentTime(false)
-            updateTimelineElementsCallback()
-          }
-          ComposeAnimationType.ANIMATED_VISIBILITY -> {
-            updateAnimatedVisibility()
-            loadTransition()
-            loadAnimatedPropertiesAtCurrentTime(false)
-            updateTimelineElementsCallback()
-          }
-          ComposeAnimationType.ANIMATED_VALUE,
-          ComposeAnimationType.ANIMATABLE,
-          ComposeAnimationType.ANIMATE_CONTENT_SIZE,
-          ComposeAnimationType.DECAY_ANIMATION,
-          ComposeAnimationType.INFINITE_TRANSITION,
-          ComposeAnimationType.TARGET_BASED_ANIMATION,
-          ComposeAnimationType.UNSUPPORTED -> {}
-        }
-      }
-    }
-    animationState.updateStates(handleKnownStateTypes(animation.states))
-    syncStateComboBoxWithAnimationStateInLibrary()
-  }
-
-  protected open suspend fun syncStateComboBoxWithAnimationStateInLibrary() {
-    val finalState = animation.getCurrentState()
-    animationState.setStartState(finalState)
-  }
-
-  /**
-   * Updates the actual animation in Compose to set its start and end states to the ones selected in
-   * the respective combo boxes.
-   */
-  private suspend fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
-    animationClock.apply {
-      val startState = animationState.getState(0) ?: return
-      val toState = animationState.getState(1) ?: return
-
-      executeInRenderSession(longTimeout) { updateFromAndToStates(animation, startState, toState) }
-    }
-  }
-
-  /**
-   * Updates the actual animation in Compose to set its state based on the selected value of
-   * [animationState].
-   */
-  suspend fun updateAnimatedVisibility(longTimeout: Boolean = false) {
-    animationClock.apply {
-      val state = animationState.getState(0) ?: return
-      executeInRenderSession(longTimeout) { updateAnimatedVisibilityState(animation, state) }
-    }
-  }
 
   final override fun loadTransitionFromLibrary(): Transition {
     val builders: MutableMap<Int, AnimatedProperty.Builder> = mutableMapOf()
@@ -203,20 +125,5 @@ open class ComposeSupportedAnimationManager(
       }
     }
     animatedPropertiesAtCurrentTime = properties
-  }
-}
-
-private fun ComposeAnimation.getCurrentState(): Any? {
-  return when (type) {
-    ComposeAnimationType.TRANSITION_ANIMATION ->
-      animationObject::class
-        .java
-        .methods
-        .singleOrNull { it.name == "getCurrentState" }
-        ?.let {
-          it.isAccessible = true
-          it.invoke(animationObject)
-        } ?: states.firstOrNull()
-    else -> states.firstOrNull()
   }
 }

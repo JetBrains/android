@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.animation.validation.IntValidation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.ui.ColorUtil
+import java.awt.Color
 import java.lang.reflect.Method
 
 /** Compose units represented as multi-dimensional properties. */
@@ -327,8 +328,7 @@ object ComposeUnit {
       component4,
       componentNames = arrayOf("red", "green", "blue", "alpha"),
     ),
-    AnimationUnit.NumberUnit<Float>,
-    AnimationUnit.Color {
+    AnimationUnit.Color<Float, Color> {
     companion object {
       internal const val CLASS_NAME = "androidx.compose.ui.graphics.Color"
       internal val COMPONENT_NAMES = arrayOf("red", "green", "blue", "alpha")
@@ -358,6 +358,8 @@ object ComposeUnit {
       }
 
     override fun create(property: Any): Color = Color.create(property)
+
+    override fun create(color: java.awt.Color): Color = Color.create(color)
 
     override fun createProperties(prefix: String): List<AnimatedPropertyItem> {
       return components.mapIndexed { index, component ->
