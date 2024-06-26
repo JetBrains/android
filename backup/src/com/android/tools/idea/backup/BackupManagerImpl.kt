@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.backup
 
+import com.android.annotations.concurrency.UiThread
 import com.android.backup.BackupHandler
 import com.android.backup.BackupProgressListener
 import com.android.backup.BackupProgressListener.Step
@@ -56,7 +57,8 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
   private val adbSession = AdbLibService.getSession(project)
   private val logger: Logger = Logger.getInstance(this::class.java)
 
-  override suspend fun backup(serialNumber: String, applicationId: String, backupFile: Path) {
+  @UiThread
+  override fun backup(serialNumber: String, applicationId: String, backupFile: Path) {
     logger.debug("Backing up '$applicationId' from $backupFile on '${serialNumber}'")
     // TODO(348406593): Find a way to make the modal dialog be switched to background task
     runWithModalProgressBlocking(
@@ -74,7 +76,8 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
     }
   }
 
-  override suspend fun restore(serialNumber: String, backupFile: Path) {
+  @UiThread
+  override fun restore(serialNumber: String, backupFile: Path) {
     logger.debug("Restoring from $backupFile on '${serialNumber}'")
     // TODO(348406593): Find a way to make the modal dialog be switched to background task
     runWithModalProgressBlocking(
@@ -116,6 +119,15 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
       .firstOrNull()
       ?.toNioPath()
       ?.normalize()
+  }
+
+  override suspend fun getApplicationId(backupFile: Path): String? {
+    try {
+      return RestoreHandler.validateBackupFile(backupFile)
+    } catch (e: Exception) {
+      logger.warn("File ${backupFile.pathString} is not a valid backup file")
+      return null
+    }
   }
 
   private fun BackupResult.notify(operation: String) {
