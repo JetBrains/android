@@ -36,9 +36,9 @@ import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -543,7 +543,7 @@ class LintIdeTest : UsefulTestCase() {
       val project = myFixtureBuilder.fixture.project
       Verify.verifyNotNull(project)
       val moduleFilePath = myModuleRoot.toString() + "/app" + ModuleFileType.DOT_DEFAULT_EXTENSION
-      return ModuleManager.getInstance(project).newModule(moduleFilePath, ModuleTypeId.JAVA_MODULE)
+      return ModuleManager.getInstance(project).newModule(moduleFilePath, JavaModuleType.getModuleType().id)
     }
 
     override fun instantiateFixture(): ModuleFixtureImpl {
