@@ -130,11 +130,21 @@ internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassPro
 
       // Changes to non-composable methods require a full state invalidation to ensure we re-run the changes. The ComposableSingletons class
       // is not directly associated with a group but is a special case.
-      if (group == null && !method.clazz.name.contains("ComposableSingletons$")) {
-        logger.info("LiveEdit will fully invalidate the tree due to non-Compose changes in $method")
-        outputs.invalidateMode = InvalidateMode.SAVE_AND_LOAD
-        outputs.hasNonComposeChanges = true
-        break
+      if (group == null) {
+        // Handle switching the setContent lambda. We'd ideally like to restart the activity in all cases of non-Compose code being
+        // modified, but this can cause issues at the moment as large blocks of non-Compose code will execute. This will suffice for now.
+        if (method.name == "onCreate" && method.desc in setOf("(Landroid/os/Bundle;)V",
+                                                              "(Landroid/os/Bundle;Landroid/os/PersistableBundle;)V")) {
+          logger.info("LiveEdit will restart the activity due to changes in the onCreate() method of an activity")
+          outputs.invalidateMode = InvalidateMode.RESTART_ACTIVITY
+          outputs.hasNonComposeChanges = true
+          break
+        } else if (!method.clazz.name.contains("ComposableSingletons$")) {
+          logger.info("LiveEdit will fully invalidate the tree due to non-Compose changes in $method")
+          outputs.invalidateMode = InvalidateMode.SAVE_AND_LOAD
+          outputs.hasNonComposeChanges = true
+          break
+        }
       }
 
       groupsToInvalidate.addIfNotNull(group)
