@@ -405,7 +405,7 @@ class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(
 }
 
 class TestDesignSurface(
-  private val project: Project,
+  project: Project,
   private val disposable: Disposable,
   val createSceneManager: suspend (model: NlModel, surface: DesignSurface<*>) -> SceneManager =
     { model, surface ->
