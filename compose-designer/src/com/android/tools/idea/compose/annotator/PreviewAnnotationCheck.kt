@@ -23,6 +23,7 @@ import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.getContainingUClass
@@ -89,6 +90,7 @@ internal object PreviewAnnotationCheck {
   }
 }
 
+@RequiresReadLock
 private fun hasValidTarget(annotation: UAnnotation) =
   annotation.getContainingComposableUMethod() != null ||
     (annotation.getContainingUClass()?.isAnnotationType == true)
