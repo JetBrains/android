@@ -1332,7 +1332,7 @@ public final class StudioFlags {
     COMPOSE, "deploy.live.edit.deploy.enable.default",
     "Enable live edit by default",
     "If enabled, live edit will be enabled by default",
-    ChannelDefault.enabledUpTo(CANARY)
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = new BooleanFlag(
