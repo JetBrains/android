@@ -23,13 +23,13 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.DesignSurface.ZoomControlsPolicy
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
 import com.android.tools.idea.common.surface.Interactable
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.rendering.RenderSettings.Companion.getProjectSettings
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager

@@ -21,7 +21,6 @@ import com.android.tools.idea.common.layout.LayoutManagerSwitcher
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.common.surface.DesignSurface.ZoomControlsPolicy
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -51,9 +50,7 @@ abstract class PreviewSurface<T : SceneManager>(
     return true
   }
 
-  /**
-   * All the selectable components in the design surface
-   */
+  /** All the selectable components in the design surface */
   abstract val selectableComponents: List<NlComponent>
 
   abstract val layoutManagerSwitcher: LayoutManagerSwitcher?

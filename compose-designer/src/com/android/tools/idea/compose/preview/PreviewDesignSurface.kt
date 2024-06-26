@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.NopSelectionModel
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
+import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
@@ -91,7 +91,7 @@ private fun createPreviewDesignSurfaceBuilder(
       if (StudioFlags.COMPOSE_PREVIEW_SELECTION.get()) DefaultSelectionModel()
       else NopSelectionModel
     )
-    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
+    .setZoomControlsPolicy(ZoomControlsPolicy.AUTO_HIDE)
     .setSupportedActionsProvider {
       if (!isInteractive()) COMPOSE_SUPPORTED_ACTIONS else ImmutableSet.of()
     }
