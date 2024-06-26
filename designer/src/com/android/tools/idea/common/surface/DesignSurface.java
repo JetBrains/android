@@ -211,8 +211,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
 
   protected final IssueModel myIssueModel;
-  private final Object myErrorQueueLock = new Object();
-  private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
   private LintIssueProvider myLintIssueProvider;
 
@@ -1667,17 +1665,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     else {
       myLintIssueProvider = new LintIssueProvider(model);
       getIssueModel().addIssueProvider(myLintIssueProvider);
-    }
-  }
-
-  @NotNull
-  protected MergingUpdateQueue getErrorQueue() {
-    synchronized (myErrorQueueLock) {
-      if (myErrorQueue == null) {
-        myErrorQueue = new MergingUpdateQueue("android.error.computation", 200, true, null, this, null,
-                                              Alarm.ThreadToUse.POOLED_THREAD);
-      }
-      return myErrorQueue;
     }
   }
 

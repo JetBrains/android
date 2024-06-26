@@ -477,17 +477,6 @@
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within protected scope"
-        errorLine1="        Map&lt;LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()"
-        errorLine2="                                                           ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="771"
-            column="60"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope"
         errorLine1="  val sceneManager = surface.sceneManagers.first() as LayoutlibSceneManager"
         errorLine2="                             ~~~~~~~~~~~~~">
         <location
