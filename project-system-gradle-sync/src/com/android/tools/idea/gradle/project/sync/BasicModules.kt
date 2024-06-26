@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.NativeAndroidProject
+import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -270,7 +271,7 @@ internal class BasicV2AndroidModuleGradleProject(
             androidDsl = androidDsl,
             legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
             gradlePropertiesModel = gradlePropertiesModel,
-            skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries,
+            skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries && shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel),
             useNewDependencyGraphModel = syncActionOptions.flags.studioFlagUseNewDependencyGraphModel
                                          && modelVersions[ModelFeature.HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH]
           )
@@ -301,6 +302,10 @@ internal class BasicV2AndroidModuleGradleProject(
       fetchesV2Models = true
     )
   }
+
+  private fun shouldSkipRuntimeClasspathForLibraries(flags: AndroidGradlePluginProjectFlags, gradlePropertiesModel: GradlePropertiesModel) =
+    AndroidGradlePluginProjectFlags.BooleanFlag.EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS.getValue(flags, gradlePropertiesModel.excludeLibraryComponentsFromConstraints)
+
 }
 
 /**
