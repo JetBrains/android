@@ -737,7 +737,6 @@ MODULE                        : Kotlin_Multiplatform
                         androidInstrumentedTestCompileClasspath : <empty>
                         androidInstrumentedTestCompileOnly      : <empty>
                         androidInstrumentedTestCompileOnlyDependenciesMetadata      : <empty>
-                        androidInstrumentedTestDependencySources          : <empty>
                         androidInstrumentedTestImplementation   : <empty>
                         androidInstrumentedTestImplementationDependenciesMetadata   : <empty>
                         androidInstrumentedTestIntransitiveDependenciesMetadata     : <empty>
@@ -748,7 +747,6 @@ MODULE                        : Kotlin_Multiplatform
                         androidMainApiDependenciesMetadata      : <empty>
                         androidMainCompileOnly        : <empty>
                         androidMainCompileOnlyDependenciesMetadata        : <empty>
-                        androidMainDependencySources  : <empty>
                         androidMainImplementation     : <empty>
                         androidMainImplementationDependenciesMetadata     : <empty>
                         androidMainIntransitiveDependenciesMetadata       : <empty>
@@ -770,7 +768,6 @@ MODULE                        : Kotlin_Multiplatform
                         androidUnitTestCompileClasspath         : <empty>
                         androidUnitTestCompileOnly    : <empty>
                         androidUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        androidUnitTestDependencySources        : <empty>
                         androidUnitTestImplementation : <empty>
                         androidUnitTestImplementationDependenciesMetadata : <empty>
                         androidUnitTestIntransitiveDependenciesMetadata   : <empty>
@@ -782,7 +779,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
-                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -792,7 +788,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
-                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -854,7 +849,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
-                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -864,7 +858,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
-                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -881,7 +874,6 @@ MODULE                        : Kotlin_Multiplatform
                         jvmMainApiDependenciesMetadata          : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
-                        jvmMainDependencySources      : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
@@ -899,7 +891,6 @@ MODULE                        : Kotlin_Multiplatform
                         jvmTestCompileClasspath       : <empty>
                         jvmTestCompileOnly            : <empty>
                         jvmTestCompileOnlyDependenciesMetadata  : <empty>
-                        jvmTestDependencySources      : <empty>
                         jvmTestImplementation         : <empty>
                         jvmTestImplementationDependenciesMetadata         : <empty>
                         jvmTestIntransitiveDependenciesMetadata : <empty>
@@ -962,7 +953,6 @@ MODULE                        : Kotlin_Multiplatform
                         androidMainApiDependenciesMetadata      : <empty>
                         androidMainCompileOnly        : <empty>
                         androidMainCompileOnlyDependenciesMetadata        : <empty>
-                        androidMainDependencySources  : <empty>
                         androidMainImplementation     : <empty>
                         androidMainImplementationDependenciesMetadata     : <empty>
                         androidMainIntransitiveDependenciesMetadata       : <empty>
@@ -981,7 +971,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
-                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -991,7 +980,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
-                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -1009,7 +997,6 @@ MODULE                        : Kotlin_Multiplatform
                         jvmMainApiDependenciesMetadata          : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
-                        jvmMainDependencySources      : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
@@ -1027,7 +1014,6 @@ MODULE                        : Kotlin_Multiplatform
                         jvmTestCompileClasspath       : <empty>
                         jvmTestCompileOnly            : <empty>
                         jvmTestCompileOnlyDependenciesMetadata  : <empty>
-                        jvmTestDependencySources      : <empty>
                         jvmTestImplementation         : <empty>
                         jvmTestImplementationDependenciesMetadata         : <empty>
                         jvmTestIntransitiveDependenciesMetadata : <empty>
@@ -2398,7 +2384,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KGP_VERSION>
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : instrumentedTest (KotlinCompilationImpl)
                 - allSourceSets               : androidInstrumentedTest (KotlinSourceSetImpl)
@@ -2656,7 +2642,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KGP_VERSION>
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -2965,7 +2951,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KGP_VERSION>
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
