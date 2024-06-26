@@ -93,8 +93,6 @@ import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ConcurrencyUtil
-import com.intellij.util.io.fileSizeSafe
-import com.intellij.util.io.size
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.runBlocking
 import org.apache.http.entity.mime.MultipartEntityBuilder
@@ -147,6 +145,8 @@ import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JButton
 import javax.swing.JEditorPane
 import javax.swing.JScrollPane
+import kotlin.io.path.exists
+import kotlin.io.path.fileSize
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -728,7 +728,7 @@ internal class DeviceViewTest {
     val crashReportPattern1 =
         Regex("\\{exitCode=\"139\", runDurationMillis=\"\\d+\", agentMessages=\"Crash is near\nKaput\", device=\"Pixel 5 API 32\"}")
     assertThat(crashReportPattern1.matches(crashReports[0].toPartMap().toString())).isTrue()
-    waitForCondition(2.seconds) { AgentLogSaver.logFile.fileSizeSafe(0) > 0 }
+    waitForCondition(2.seconds) { AgentLogSaver.logFile.exists() && AgentLogSaver.logFile.fileSize() > 0 }
     assertThat(AgentLogSaver.logFile).hasContents(
         "--------- beginning of crash",
         "06-20 17:54:11.642 14782 14782 F libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR)",
