@@ -22,12 +22,13 @@ import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
 import com.google.common.base.Stopwatch
 import com.intellij.util.io.outputStream
+import java.io.Closeable
 import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.spi.FileSystemProvider
+import kotlin.io.path.deleteIfExists
 import kotlin.random.Random
 import org.junit.Assert
 import org.junit.Test
@@ -40,7 +41,28 @@ private val benchmark =
     .setDescription("Base line for Jar file access (mean) after $NUMBER_OF_SAMPLES samples.")
     .build()
 
-private fun createJarFile(outputJar: Path, fileCount: Int, fileSizeBytes: Int): String {
+/**
+ * Holder for a jar file with utilities used in the tests. The path will be removed after this
+ * [Closeable] is closed.
+ */
+@JvmInline
+private value class Jar(val path: Path) : Closeable {
+  /** Returns a URI to a file contained in the jar in the given [filePath]. */
+  fun asURIToFile(filePath: String): URI {
+    // Converts a Path to a jar into a portable path usable both in Linux/Mac and Windows. On
+    // Windows,
+    // paths do not start with / but this is
+    // required to treat them as URI.
+    val outputJarPath = "/${PathString(path).portablePath.removePrefix("/")}"
+    return URI.create("jar:file:$outputJarPath!/file$filePath")
+  }
+
+  override fun close() {
+    path.deleteIfExists()
+  }
+}
+
+private fun createJarFile(outputJar: Jar, fileCount: Int, fileSizeBytes: Int) {
   Assert.assertTrue(FileSystemProvider.installedProviders().any { it.scheme == "jar" })
 
   val page = ByteArray(1_000_000.coerceAtMost(fileSizeBytes))
@@ -48,12 +70,7 @@ private fun createJarFile(outputJar: Path, fileCount: Int, fileSizeBytes: Int): 
 
   val random = Random(20230509L)
 
-  // Converts a Path to a jar into a portable path usable both in Linux/Mac and Windows. On Windows,
-  // paths do not start with / but this is
-  // required to treat them as URI.
-  val outputJarPath = "/${PathString(outputJar).portablePath.removePrefix("/")}"
-  FileSystems.newFileSystem(URI.create("jar:file:$outputJarPath"), mapOf("create" to "true")).use {
-    fileSystem ->
+  FileSystems.newFileSystem(outputJar.path, mapOf("create" to "true")).use { fileSystem ->
     repeat(fileCount) {
       val fileName = "file$it"
       val path = fileSystem.getPath(fileName)
@@ -68,23 +85,24 @@ private fun createJarFile(outputJar: Path, fileCount: Int, fileSizeBytes: Int): 
       }
     }
   }
-
-  return outputJarPath
 }
 
 class PerfgateJarManagerTest {
   private val numberOfFiles = 40
-  private fun createSampleJar(): String {
+
+  private fun createSampleJar(): Jar {
     val outDirectory = Files.createTempDirectory("out")
+    val jarPath = Jar(outDirectory.resolve("contents.jar"))
     // Create a {numberOfFiles}MB jar file with {numberOfFiles} files of 5MB each
-    return createJarFile(outDirectory.resolve("contents.jar"), numberOfFiles, 5_000_000)
+    createJarFile(jarPath, numberOfFiles, 5_000_000)
+
+    return jarPath
   }
 
   @Test
   @Throws(Exception::class)
   fun testLargeJarWithNoCache() {
-    val jarFile = createSampleJar()
-    try {
+    createSampleJar().use { jar ->
       val samples: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
       repeat(NUMBER_OF_SAMPLES) {
@@ -92,7 +110,7 @@ class PerfgateJarManagerTest {
         // val jarManager = JarManager.withCache(true)
         val stopWatch = Stopwatch.createStarted()
         (0 until numberOfFiles).shuffled().forEach {
-          jarManager.loadFileFromJar(URI("jar:file:$jarFile!/file$it"))!!
+          jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!!
         }
         samples.add(MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
       }
@@ -101,23 +119,20 @@ class PerfgateJarManagerTest {
         addSamples(benchmark, *samples.toTypedArray())
         commit()
       }
-    } finally {
-      Files.deleteIfExists(Paths.get(jarFile))
     }
   }
 
   @Test
   @Throws(Exception::class)
   fun testLargeJarWithDefaultCache() {
-    val jarFile = createSampleJar()
-    try {
+    createSampleJar().use { jar ->
       val samples: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
       repeat(NUMBER_OF_SAMPLES) {
         val jarManager = JarManager()
         val stopWatch = Stopwatch.createStarted()
         (0 until numberOfFiles).shuffled().forEach {
-          jarManager.loadFileFromJar(URI("jar:file:$jarFile!/file$it"))!!
+          jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!!
         }
         samples.add(MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
       }
@@ -126,8 +141,6 @@ class PerfgateJarManagerTest {
         addSamples(benchmark, *samples.toTypedArray())
         commit()
       }
-    } finally {
-      Files.deleteIfExists(Paths.get(jarFile))
     }
   }
 
@@ -135,24 +148,24 @@ class PerfgateJarManagerTest {
   @Throws(Exception::class)
   fun testCacheableJar() {
     val outDirectory = Files.createTempDirectory("out")
-    // Create a {numberOfFiles}MB jar file with {numberOfFiles} files of 5MB each
-    val jarFile = createJarFile(outDirectory.resolve("contents.jar"), 2500, 250)
-    val samples: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
+    Jar(outDirectory.resolve("contents.jar")).use { jar ->
+      // Create a {numberOfFiles}MB jar file with {numberOfFiles} files of 5MB each
+      createJarFile(jar, 2500, 250)
+      val samples: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
-    repeat(NUMBER_OF_SAMPLES) {
-      val jarManager = JarManager()
-      val stopWatch = Stopwatch.createStarted()
-      (0 until numberOfFiles).shuffled().forEach {
-        jarManager.loadFileFromJar(URI("jar:file:$jarFile!/file$it"))!!
+      repeat(NUMBER_OF_SAMPLES) {
+        val jarManager = JarManager()
+        val stopWatch = Stopwatch.createStarted()
+        (0 until numberOfFiles).shuffled().forEach {
+          jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!!
+        }
+        samples.add(MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
       }
-      samples.add(MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
-    }
 
-    Metric("jar_access_default_cache_time").apply {
-      addSamples(benchmark, *samples.toTypedArray())
-      commit()
+      Metric("jar_access_default_cache_time").apply {
+        addSamples(benchmark, *samples.toTypedArray())
+        commit()
+      }
     }
-
-    Files.deleteIfExists(Paths.get(jarFile))
   }
 }
