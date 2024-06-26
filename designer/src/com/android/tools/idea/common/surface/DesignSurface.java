@@ -300,7 +300,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     };
     mySelectionModel.addListener(selectionListener);
 
-    myProgressPanel = new MyProgressPanel();
+    myProgressPanel = new SurfaceProgressPanel(this, this::useSmallProgressIcon);
     myProgressPanel.setName("Layout Editor Progress Panel");
 
     mySceneViewPanel = new SceneViewPanel(
@@ -1334,7 +1334,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   private final Set<ProgressIndicator> myProgressIndicators = new HashSet<>();
 
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-  private final MyProgressPanel myProgressPanel;
+  private final SurfaceProgressPanel myProgressPanel;
 
   public void registerIndicator(@NotNull ProgressIndicator indicator) {
     if (myProject.isDisposed() || Disposer.isDisposed(this)) {
@@ -1360,123 +1360,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   protected boolean useSmallProgressIcon() {
     return true;
-  }
-
-  /**
-   * Panel which displays the progress icon. The progress icon can either be a large icon in the
-   * center, when there is no rendering showing, or a small icon in the upper right corner when there
-   * is a rendering. This is necessary because even though the progress icon looks good on some
-   * renderings, depending on the layout theme colors it is invisible in other cases.
-   */
-  private class MyProgressPanel extends JPanel {
-    private AsyncProcessIcon mySmallProgressIcon;
-    private AsyncProcessIcon myLargeProgressIcon;
-    private boolean mySmall;
-    private boolean myProgressVisible;
-
-    private MyProgressPanel() {
-      super(new BorderLayout());
-      setOpaque(false);
-      setVisible(false);
-    }
-
-    /**
-     * The "small" icon mode isn't just for the icon size; it's for the layout position too; see {@link #doLayout}
-     */
-    private void setSmallIcon(boolean small) {
-      if (small != mySmall) {
-        if (myProgressVisible && getComponentCount() != 0) {
-          AsyncProcessIcon oldIcon = getProgressIcon();
-          oldIcon.suspend();
-        }
-        mySmall = true;
-        removeAll();
-        AsyncProcessIcon icon = getProgressIcon();
-        add(icon, BorderLayout.CENTER);
-        if (myProgressVisible) {
-          icon.setVisible(true);
-          icon.resume();
-        }
-      }
-    }
-
-    public void showProgressIcon() {
-      if (!myProgressVisible) {
-        setSmallIcon(useSmallProgressIcon());
-        myProgressVisible = true;
-        setVisible(true);
-        AsyncProcessIcon icon = getProgressIcon();
-        if (getComponentCount() == 0) { // First time: haven't added icon yet?
-          add(getProgressIcon(), BorderLayout.CENTER);
-        }
-        else {
-          icon.setVisible(true);
-        }
-        icon.resume();
-      }
-    }
-
-    public void hideProgressIcon() {
-      if (myProgressVisible) {
-        myProgressVisible = false;
-        setVisible(false);
-        AsyncProcessIcon icon = getProgressIcon();
-        icon.setVisible(false);
-        icon.suspend();
-      }
-    }
-
-    @Override
-    public void doLayout() {
-      super.doLayout();
-      setBackground(JBColor.RED); // make this null instead?
-
-      if (!myProgressVisible) {
-        return;
-      }
-
-      // Place the progress icon in the center if there's no rendering, and in the
-      // upper right corner if there's a rendering. The reason for this is that the icon color
-      // will depend on whether we're in a light or dark IDE theme, and depending on the rendering
-      // in the layout it will be invisible. For example, in Darcula the icon is white, and if the
-      // layout is rendering a white screen, the progress is invisible.
-      AsyncProcessIcon icon = getProgressIcon();
-      Dimension size = icon.getPreferredSize();
-      if (mySmall) {
-        icon.setBounds(getWidth() - size.width - 1, 1, size.width, size.height);
-      }
-      else {
-        icon.setBounds(getWidth() / 2 - size.width / 2, getHeight() / 2 - size.height / 2, size.width, size.height);
-      }
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-      return getProgressIcon().getPreferredSize();
-    }
-
-    @NotNull
-    private AsyncProcessIcon getProgressIcon() {
-      return getProgressIcon(mySmall);
-    }
-
-    @NotNull
-    private AsyncProcessIcon getProgressIcon(boolean small) {
-      if (small) {
-        if (mySmallProgressIcon == null) {
-          mySmallProgressIcon = new AsyncProcessIcon("Android layout rendering");
-          Disposer.register(DesignSurface.this, mySmallProgressIcon);
-        }
-        return mySmallProgressIcon;
-      }
-      else {
-        if (myLargeProgressIcon == null) {
-          myLargeProgressIcon = new AsyncProcessIcon.Big("Android layout rendering");
-          Disposer.register(DesignSurface.this, myLargeProgressIcon);
-        }
-        return myLargeProgressIcon;
-      }
-    }
   }
 
   /**
