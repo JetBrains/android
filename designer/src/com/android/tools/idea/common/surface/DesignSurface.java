@@ -182,7 +182,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @GuardedBy("myListenersLock")
   @NotNull private final ArrayList<PanZoomListener> myZoomListeners = new ArrayList<>();
   private final ActionManager<? extends DesignSurface<T>> myActionManager;
-  @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
   @GuardedBy("myModelToSceneManagersLock")
   private final LinkedHashMap<NlModel, T> myModelToSceneManagers = new LinkedHashMap<>();
@@ -1181,20 +1180,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     myGuiInputHandler.cancelInteraction();
   }
 
-  /**
-   * Sets the file editor to which actions like undo/redo will be delegated. This is only needed if this DesignSurface is not a child
-   * of a {@link FileEditor}.
-   * <p>
-   * The surface will only keep a {@link WeakReference} to the editor.
-   */
-  public void setFileEditorDelegate(@Nullable FileEditor fileEditor) {
-    myFileEditorDelegate = new WeakReference<>(fileEditor);
-  }
 
-  @Nullable
-  public FileEditor getFileEditorDelegate() {
-    return myFileEditorDelegate.get();
-  }
 
   @Override
   @Deprecated
@@ -1427,7 +1413,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       return getConfigurations();
     }
     if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
-      return myFileEditorDelegate.get();
+      return getFileEditorDelegate();
     }
     else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
              PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
@@ -1560,15 +1546,5 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
    */
   public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
     mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.getAlignmentX());
-  }
-
-  /**
-   * Updates the notifications panel associated to this {@link DesignSurface}.
-   */
-  protected void updateNotifications() {
-    FileEditor fileEditor = myFileEditorDelegate.get();
-    VirtualFile file = fileEditor != null ? fileEditor.getFile() : null;
-    if (file == null) return;
-    UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(getProject()).updateNotifications(file));
   }
 }
