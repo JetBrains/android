@@ -194,7 +194,9 @@ object AnimationUnit {
     override fun getPickerTitle() = message("animation.inspector.picker.value")
   }
 
-  interface Color {
+  interface Color<A : Number, Self : Color<A, Self>> : NumberUnit<A> {
     val color: java.awt.Color?
+
+    fun create(color: java.awt.Color): Self
   }
 }

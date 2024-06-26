@@ -18,34 +18,20 @@ package com.android.tools.idea.compose.preview.animation.state
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.preview.animation.AnimationTracker
 import com.android.tools.idea.preview.animation.state.ColorAnimationState
-import kotlinx.coroutines.CoroutineScope
 
 /**
- * [ComposeAnimationState] for animations where initial and target states should be selected with a
+ * [AnimationState] for Compose animations where initial and target states should be selected with a
  * color picker.
  */
-class ComposeColorState(tracker: AnimationTracker, scope: CoroutineScope) :
-  ComposeAnimationState, ColorAnimationState(tracker, scope) {
+val DEFAULT_COMPOSE_COLOR = ComposeUnit.Color.create(ColorAnimationState.DEFAULT_COLOR)
 
-  override fun getState(index: Int): Any {
-    return if (index == 0) ComposeUnit.Color.create(fromState.value).components
-    else ComposeUnit.Color.create(toState.value).components
-  }
-
-  override fun setStartState(state: Any?) {
-    (ComposeUnit.parseStateUnit(state) as? ComposeUnit.Color).let { setStates(it, it) }
-  }
-
-  override fun updateStates(states: Set<Any>) {
-    setStates(
-      states.firstOrNull().let { ComposeUnit.parseStateUnit(it) as? ComposeUnit.Color },
-      states.lastOrNull().let { ComposeUnit.parseStateUnit(it) as? ComposeUnit.Color },
-    )
-  }
-
-  fun setStates(initialColor: ComposeUnit.Color?, targetColor: ComposeUnit.Color?) {
-    if (initialColor?.color != null && targetColor?.color != null) {
-      setStates(initialColor.color, targetColor.color)
-    }
-  }
-}
+class ComposeColorState(
+  tracker: AnimationTracker,
+  initialColor: ComposeUnit.Color?,
+  targetColor: ComposeUnit.Color?,
+) :
+  ColorAnimationState<ComposeUnit.Color>(
+    tracker,
+    initialColor ?: DEFAULT_COMPOSE_COLOR,
+    targetColor ?: DEFAULT_COMPOSE_COLOR,
+  )
