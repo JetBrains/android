@@ -57,7 +57,7 @@ interface GradleAndroidModelData : ModuleModel {
   val agpVersion: AgpVersion
   val selectedVariantCore: IdeVariantCore
   val mainArtifactCore: IdeAndroidArtifactCore
-  fun getJavaLanguageLevel(): LanguageLevel?
+  fun getJavaSourceLanguageLevel(): LanguageLevel?
   fun selectedVariant(resolver: IdeLibraryModelResolver): IdeVariant
   fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider>
   fun findVariantCoreByName(variantName: String): IdeVariantCore?
@@ -98,7 +98,7 @@ data class GradleAndroidModelDataImpl(
 
   override val mainArtifactCore: IdeAndroidArtifactCore get() = selectedVariantCore.mainArtifact
 
-  override fun getJavaLanguageLevel(): LanguageLevel? {
+  override fun getJavaSourceLanguageLevel(): LanguageLevel? {
     val compileOptions = androidProject.javaCompileOptions
     val sourceCompatibility = compileOptions.sourceCompatibility
     return LanguageLevel.parse(sourceCompatibility)

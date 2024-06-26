@@ -274,7 +274,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
       val modules = mainIdeModule.getAllLinkedModules()
       modules.forEach { module ->
-        module.setupSdkAndLanguageLevel(modelsProvider, androidModel.getJavaLanguageLevel(), sdkToUse)
+        module.setupSdkAndLanguageLevel(modelsProvider, androidModel.getJavaSourceLanguageLevel(), sdkToUse)
       }
     }
 
