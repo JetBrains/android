@@ -28,6 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 
 public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
@@ -35,7 +36,7 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
   public void test() throws Exception {
     loadProject(MOVE_WITH_RESOURCES);
     generateSources();
-
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
     Project project = getProject();
     PsiElement activity =
       JavaPsiFacade.getInstance(project).findClass("google.MainActivity", GlobalSearchScope.allScope(project));

@@ -49,6 +49,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -277,7 +278,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
       "}");
 
     LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newTestFile);
-
+    IndexingTestUtil.waitUntilIndexesAreReady(myFixture.getProject());
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.SomeTest.InnerClassTest");
     assertEquals("google.simpleapplication.SomeTest$InnerClassTest", runConfig.CLASS_NAME);
   }
