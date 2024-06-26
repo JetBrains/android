@@ -686,6 +686,12 @@
     <option name="logcat" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="monitoring" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="restart" path="ActionManager" hit="Restart Logcat monitoring" />
+    <option name="application" path="ActionManager" hit="Restore Application" />
+    <option name="restore" path="ActionManager" hit="Restore Application" />
+    <option name="application" path="ActionManager" hit="Restore Application from file" />
+    <option name="file" path="ActionManager" hit="Restore Application from file" />
+    <option name="from" path="ActionManager" hit="Restore Application from file" />
+    <option name="restore" path="ActionManager" hit="Restore Application from file" />
     <option name="and" path="ActionManager" hit="Return and Erase Device" />
     <option name="device" path="ActionManager" hit="Return and Erase Device" />
     <option name="erase" path="ActionManager" hit="Return and Erase Device" />

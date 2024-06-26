@@ -2116,14 +2116,21 @@ public final class StudioFlags {
   // endregion Cloud Integration
 
   // region Backup
-  private static final FlagGroup BACKUP =
-    new FlagGroup(FLAGS, "backup", "Backup");
+  private static final FlagGroup BACKUP = new FlagGroup(FLAGS, "backup", "Backup");
   public static final Flag<Boolean> BACKUP_SHOW_ACTIONS_IN_DEVICE_EXPLORER =
     new BooleanFlag(
       BACKUP,
-      "enabled",
+      "show.in.device.explorer",
       "Show backup & restore actions in Device Explorer",
       "Show backup & restore actions in Device Explorer",
+      false);
+
+  public static final Flag<Boolean> BACKUP_SHOW_RESTORE_ACTION_IN_PROJECT_VIEW =
+    new BooleanFlag(
+      BACKUP,
+      "show.in.project.view",
+      "Show restore action in project view",
+      "Show restore action in project view",
       false);
   // endregion Backup
 

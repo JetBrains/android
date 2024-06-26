@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.backup
 
+import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
@@ -29,7 +30,7 @@ interface BackupManager {
    * @param applicationId Application ID (package name) of the app
    * @param backupFile A path to write the backup data to
    */
-  suspend fun backup(serialNumber: String, applicationId: String, backupFile: Path)
+  @UiThread fun backup(serialNumber: String, applicationId: String, backupFile: Path)
 
   /**
    * Backup an app to a local file
@@ -37,13 +38,22 @@ interface BackupManager {
    * @param serialNumber Serial number of a connected device
    * @param backupFile A path to write the backup data to
    */
-  suspend fun restore(serialNumber: String, backupFile: Path)
+  @UiThread fun restore(serialNumber: String, backupFile: Path)
 
   /** Display a file chooser dialog for saving a backup file */
   suspend fun chooseBackupFile(nameHint: String): Path?
 
   /** Display a file chooser dialog for loading a backup file */
   fun chooseRestoreFile(): Path?
+
+  /**
+   * Gets the application id of the associated app
+   *
+   * @param backupFile The path of a backup file to validate
+   * @return The application id of the associated app
+   * @throws Exception `backupFile` is not valid
+   */
+  suspend fun getApplicationId(backupFile: Path): String?
 
   companion object {
     fun getInstance(project: Project): BackupManager = project.getService(BackupManager::class.java)
