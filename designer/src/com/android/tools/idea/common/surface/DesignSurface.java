@@ -128,7 +128,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * A generic design surface for use in a graphical editor.
  */
-public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface
+public abstract class DesignSurface<T extends SceneManager> extends PreviewSurface<T>
   implements Disposable, InteractableScenesSurface, ZoomableViewport, ScaleListener {
 
   /**
@@ -155,8 +155,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10;
   private static final Integer LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10;
-
-  private final Project myProject;
 
   /**
    * The scale level when magnification started. This is used as a standard when the new scale level is evaluated.
@@ -189,7 +187,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @GuardedBy("myModelToSceneManagersLock")
   private final LinkedHashMap<NlModel, T> myModelToSceneManagers = new LinkedHashMap<>();
 
-  private final SelectionModel mySelectionModel;
   private final ModelListener myModelListener = new ModelListener() {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
@@ -233,12 +230,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   private final Function<DesignSurface<T>, DesignSurfaceActionHandler> myActionHandlerProvider;
 
-  /**
-   * See {@link ZoomControlsPolicy}.
-   */
-  @NotNull
-  private final ZoomControlsPolicy myZoomControlsPolicy;
-
   @NotNull
   private final AWTEventListener myOnHoverListener;
 
@@ -270,18 +261,12 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
-    super(new BorderLayout());
+    super(project, selectionModel, zoomControlsPolicy, new BorderLayout());
 
     Disposer.register(parentDisposable, this);
-    myProject = project;
-    mySelectionModel = selectionModel;
-    myZoomControlsPolicy = zoomControlsPolicy;
-    myIssueModel = new IssueModel(this, myProject);
+    myIssueModel = new IssueModel(this, getProject());
 
-    boolean hasZoomControls = myZoomControlsPolicy != ZoomControlsPolicy.HIDDEN;
-
-    setOpaque(true);
-    setFocusable(false);
+    boolean hasZoomControls = getZoomControlsPolicy() != ZoomControlsPolicy.HIDDEN;
 
     myAnalyticsManager = new DesignerAnalyticsManager(this);
 
@@ -298,7 +283,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         notifySelectionListeners(Collections.emptyList());
       }
     };
-    mySelectionModel.addListener(selectionListener);
+    getSelectionModel().addListener(selectionListener);
 
     myProgressPanel = new SurfaceProgressPanel(this, this::useSmallProgressIcon);
     myProgressPanel.setName("Layout Editor Progress Panel");
@@ -400,7 +385,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
       myLayeredPane.add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER);
       zoomControlsLayerPane.add(myActionManager.getDesignSurfaceToolbar(), BorderLayout.EAST);
-      if (myZoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
+      if (getZoomControlsPolicy() == ZoomControlsPolicy.AUTO_HIDE) {
         myOnHoverListener = DesignSurfaceHelper.createZoomControlAutoHiddenListener(this, zoomControlsLayerPane);
         zoomControlsLayerPane.setVisible(false);
         Toolkit.getDefaultToolkit().addAWTEventListener(myOnHoverListener, AWTEvent.MOUSE_EVENT_MASK);
@@ -447,11 +432,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   @NotNull
-  public Project getProject() {
-    return myProject;
-  }
-
-  @NotNull
   public DesignerEditorFileType getLayoutType() {
     NlModel model = getModel();
     return model == null ? DefaultDesignerFileType.INSTANCE : model.getType();
@@ -466,11 +446,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   public Function<DesignSurface<T>, DesignSurfaceActionHandler> getActionHandlerProvider() {
     return myActionHandlerProvider;
-  }
-
-  @NotNull
-  public SelectionModel getSelectionModel() {
-    return mySelectionModel;
   }
 
   @NotNull
@@ -838,7 +813,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       assert manager != null;
       return Iterables.getFirst(manager.getSceneViews(), null);
     }
-    List<NlComponent> selection = mySelectionModel.getSelection();
+    List<NlComponent> selection = getSelectionModel().getSelection();
     if (!selection.isEmpty()) {
       NlComponent primary = selection.get(0);
       SceneManager manager = getSceneManager(primary.getModel());
@@ -1066,7 +1041,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return;
     }
     SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
-    state.saveFileScale(myProject, model.getVirtualFile(), getZoomController());
+    state.saveFileScale(getProject(), model.getVirtualFile(), getZoomController());
   }
 
   /**
@@ -1078,7 +1053,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return false;
     }
     SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
-    Double previousScale = state.loadFileScale(myProject, model.getVirtualFile(), getZoomController());
+    Double previousScale = state.loadFileScale(getProject(), model.getVirtualFile(), getZoomController());
     if (previousScale != null) {
       getZoomController().setScale(previousScale);
       return true;
@@ -1187,7 +1162,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       for (SceneManager manager : getSceneManagers()) {
         manager.activate(this);
       }
-      if (myZoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
+      if (getZoomControlsPolicy() == ZoomControlsPolicy.AUTO_HIDE) {
         Toolkit.getDefaultToolkit().addAWTEventListener(myOnHoverListener, AWTEvent.MOUSE_EVENT_MASK);
       }
     }
@@ -1337,7 +1312,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   private final SurfaceProgressPanel myProgressPanel;
 
   public void registerIndicator(@NotNull ProgressIndicator indicator) {
-    if (myProject.isDisposed() || Disposer.isDisposed(this)) {
+    if (getProject().isDisposed() || Disposer.isDisposed(this)) {
       return;
     }
 
@@ -1615,7 +1590,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     FileEditor fileEditor = myFileEditorDelegate.get();
     VirtualFile file = fileEditor != null ? fileEditor.getFile() : null;
     if (file == null) return;
-    UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(myProject).updateNotifications(file));
+    UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(getProject()).updateNotifications(file));
   }
 
   public void addIssueListener(@NotNull IssueListener listener) {
