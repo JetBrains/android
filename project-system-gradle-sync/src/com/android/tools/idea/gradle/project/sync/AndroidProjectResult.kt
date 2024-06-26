@@ -26,6 +26,7 @@ import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.project.sync.AndroidProjectResult.Companion.RuntimeClasspathBehaviour
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
 import org.gradle.tooling.BuildController
 
@@ -52,7 +53,7 @@ sealed class AndroidProjectResult {
     override val allVariantNames: Set<String>,
     override val defaultVariantName: String?,
     val androidVariantResolver: AndroidVariantResolver,
-    val skipRuntimeClasspathForLibraries: Boolean,
+    val runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
     val useNewDependencyGraphModel: Boolean,
   ) : AndroidProjectResult() {
     override fun createVariantFetcher(): IdeVariantFetcher =
@@ -60,7 +61,7 @@ sealed class AndroidProjectResult {
         modelCache,
         modelVersions,
         v2Variants,
-        skipRuntimeClasspathForLibraries,
+        runtimeClasspathBehaviour,
         useNewDependencyGraphModel
       )
   }
@@ -103,6 +104,10 @@ sealed class AndroidProjectResult {
       }
     }
 
+    data class RuntimeClasspathBehaviour(val skipRuntimeClasspathForLibraries: Boolean,
+                                         val buildRuntimeClasspathForLibraryUnitTests: Boolean,
+                                         val buildRuntimeClasspathForLibraryScreenshotTests: Boolean)
+
     fun V2Project(
       modelCache: ModelCache.V2,
       rootBuildId: BuildId,
@@ -113,7 +118,7 @@ sealed class AndroidProjectResult {
       androidDsl: AndroidDsl,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
-      skipRuntimeClasspathForLibraries: Boolean,
+      runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
       useNewDependencyGraphModel: Boolean,
     ): ModelResult<V2Project> {
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
@@ -163,7 +168,7 @@ sealed class AndroidProjectResult {
           allVariantNames = allVariantNames,
           defaultVariantName = defaultVariantName,
           androidVariantResolver = androidVariantResolver,
-          skipRuntimeClasspathForLibraries = skipRuntimeClasspathForLibraries,
+          runtimeClasspathBehaviour = runtimeClasspathBehaviour,
           useNewDependencyGraphModel = useNewDependencyGraphModel
         )
       }
@@ -210,7 +215,7 @@ private fun v2VariantFetcher(
   modelCache: ModelCache.V2,
   modelVersions: ModelVersions,
   v2Variants: List<IdeVariantCoreImpl>,
-  skipRuntimeClasspathForLibraries: Boolean,
+  runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
   useNewDependencyGraphModel: Boolean
 ): IdeVariantFetcher {
   return fun(
@@ -229,7 +234,7 @@ private fun v2VariantFetcher(
       modelVersions,
       configuration.variant,
       useNewDependencyGraphModel,
-      getClasspathConfigForProject(skipRuntimeClasspathForLibraries, module.projectType, configuration.isRoot)
+      parameterMutatorForProject(runtimeClasspathBehaviour, module.projectType, configuration.isRoot)
     ) ?: return ModelResult.create { null }
     return modelCache.variantFrom(
       BuildId(module.gradleProject.projectIdentifier.buildIdentifier.rootDir),

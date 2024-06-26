@@ -25,6 +25,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginPropertiesModelParameters
+import com.android.tools.idea.gradle.project.sync.AndroidProjectResult.Companion.RuntimeClasspathBehaviour
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
 import com.google.common.collect.ImmutableRangeSet
@@ -271,7 +272,12 @@ internal class BasicV2AndroidModuleGradleProject(
             androidDsl = androidDsl,
             legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
             gradlePropertiesModel = gradlePropertiesModel,
-            skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries && shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel),
+            runtimeClasspathBehaviour = RuntimeClasspathBehaviour(
+              skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries
+                                                 && shouldSkipRuntimeClasspathForLibraries (androidProject.flags, gradlePropertiesModel),
+              buildRuntimeClasspathForLibraryUnitTests = syncActionOptions.flags.studioFlagBuildRuntimeClasspathForLibraryUnitTests,
+              buildRuntimeClasspathForLibraryScreenshotTests = syncActionOptions.flags.studioFlagBuildRuntimeClasspathForLibraryScreenshotTests
+            ),
             useNewDependencyGraphModel = syncActionOptions.flags.studioFlagUseNewDependencyGraphModel
                                          && modelVersions[ModelFeature.HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH]
           )

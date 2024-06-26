@@ -812,6 +812,26 @@ public final class StudioFlags {
     " instead obtain the information from the applications dependency graph.",
     true
   );
+
+  public static final Flag<Boolean> GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_UNIT_TESTS = new BooleanFlag(
+    GRADLE_IDE,
+    "gradle.build.runtime.classpath.for.library.unit.tests",
+    "Controls whether runtime classpath is fetched for library unit tests",
+    "Controls whether runtime classpath is fetched for library unit tests. " +
+    "Requires gradle.ide.gradle.skip.runtime.classpath.for.libraries to be on to take effect",
+    true
+  );
+
+  public static final Flag<Boolean> GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_SCREENSHOT_TESTS = new BooleanFlag(
+    GRADLE_IDE,
+    "gradle.build.runtime.classpath.for.library.screenshot.tests",
+    "Controls whether runtime classpath is fetched for library screenshot tests",
+    "Controls whether runtime classpath is fetched for library screenshot tests. " +
+    "Requires gradle.ide.gradle.skip.runtime.classpath.for.libraries to be on to take effect",
+    true
+  );
+
+
   public static final Flag<String> GRADLE_LOCAL_DISTRIBUTION_URL = new StringFlag(
     GRADLE_IDE, "local.distribution.url", "Local override for distributionUrl",
     "When creating a project, Gradle updates the distributionUrl to point to a server accessible via the internet. When internet egress " +
