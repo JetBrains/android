@@ -1043,10 +1043,10 @@
     <option name="automatically" hit="Push Edits Automatically" />
     <option name="edits" hit="Push Edits Automatically" />
     <option name="push" hit="Push Edits Automatically" />
-    <option name="ctrl+" hit="Push Edits Manually (Ctrl+\)" />
-    <option name="edits" hit="Push Edits Manually (Ctrl+\)" />
-    <option name="manually" hit="Push Edits Manually (Ctrl+\)" />
-    <option name="push" hit="Push Edits Manually (Ctrl+\)" />
+    <option name="ctrl+quote" hit="Push Edits Manually (Ctrl+Quote)" />
+    <option name="edits" hit="Push Edits Manually (Ctrl+Quote)" />
+    <option name="manually" hit="Push Edits Manually (Ctrl+Quote)" />
+    <option name="push" hit="Push Edits Manually (Ctrl+Quote)" />
     <option name="ctrl+s" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="edits" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="manually" hit="Push Edits Manually on Save (Ctrl+S)" />

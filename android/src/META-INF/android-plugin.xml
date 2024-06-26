@@ -172,7 +172,7 @@
     </action>
 
     <action id="Compose.Live.Edit.ManualLiveEdit" class="com.android.tools.idea.editors.liveedit.ui.ManualLiveEditAction">
-      <keyboard-shortcut keymap="$default" first-keystroke="control BACK_SLASH" />
+      <keyboard-shortcut keymap="$default" first-keystroke="control QUOTE" />
     </action>
     <action id="Compose.Live.Edit.Refresh" class="com.android.tools.idea.editors.liveedit.ui.RefreshAction" />
     <action id="Compose.Live.Edit.ShowLogcat" class="com.android.tools.idea.editors.liveedit.ui.ShowLogcatAction"/>
