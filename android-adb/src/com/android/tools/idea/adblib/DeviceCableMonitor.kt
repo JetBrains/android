@@ -80,6 +80,14 @@ class DeviceCableMonitor : ProjectActivity {
 
   private suspend fun monitorDevice(project: Project, handle: DeviceHandle) {
     val deviceInfo = handle.stateFlow.mapNotNull { it.connectedDevice?.deviceInfo }.first { it.connectionType == DeviceConnectionType.USB }
+
+    // Some older devices have USB controller bugs where they report being able to do USB 3 while
+    // only being USB 2 capable. We filter them out via the API level since which they are likely to not
+    // have been updated.
+    if (!handle.state.properties.androidVersion!!.isGreaterOrEqualThan(11)) {
+      return
+    }
+
     val deviceTitle = handle.state.properties.title
     val maxSpeed = deviceInfo.maxSpeed ?: return
     val negotiatedSpeed = deviceInfo.negotiatedSpeed ?: return
