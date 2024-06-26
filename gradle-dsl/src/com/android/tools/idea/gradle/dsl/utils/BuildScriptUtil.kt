@@ -21,7 +21,6 @@
  */
 package com.android.tools.idea.gradle.dsl.utils
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.util.registry.Registry
 import java.io.File
 
