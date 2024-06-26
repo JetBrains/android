@@ -17,34 +17,24 @@ package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
-import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
-import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.scale.JBUIScale
 import javax.swing.JComponent
-
-const val SHOW_EMBEDDED_LI_BANNER_KEY =
-  "com.android.tools.idea.layoutinspector.runningdevices.notification.show"
-const val EMBEDDED_LI_MESSAGE_KEY = "embedded.inspector.notification.message"
 
 const val SPLITTER_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
@@ -166,8 +156,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       // inject Layout Inspector UI
       value.enableLayoutInspector()
-
-      showOptOutBanner(value.layoutInspector)
     }
 
   private val stateListeners = mutableListOf<LayoutInspectorManager.StateListener>()
@@ -333,40 +321,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   ) {
     ApplicationManager.getApplication().assertIsDispatchThread()
     listenersToUpdate.forEach { listener -> listener.onStateUpdate(tabsWithLayoutInspector) }
-  }
-
-  private fun showOptOutBanner(layoutInspector: LayoutInspector) {
-    val notificationModel = layoutInspector.notificationModel
-    val defaultValue = true
-    val shouldShowWarning = {
-      PropertiesComponent.getInstance().getBoolean(SHOW_EMBEDDED_LI_BANNER_KEY, defaultValue)
-    }
-    val setValue: (Boolean) -> Unit = {
-      PropertiesComponent.getInstance().setValue(SHOW_EMBEDDED_LI_BANNER_KEY, it, defaultValue)
-    }
-
-    if (shouldShowWarning()) {
-      notificationModel.addNotification(
-        id = EMBEDDED_LI_MESSAGE_KEY,
-        text = LayoutInspectorBundle.message(EMBEDDED_LI_MESSAGE_KEY),
-        status = Status.Info,
-        sticky = true,
-        actions =
-          listOf(
-            StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) {
-              notification ->
-              setValue(false)
-              notificationModel.removeNotification(notification.id)
-            },
-            StatusNotificationAction(LayoutInspectorBundle.message("opt.out")) {
-              ShowSettingsUtil.getInstance()
-                .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
-            },
-          ),
-      )
-    } else {
-      notificationModel.removeNotification(EMBEDDED_LI_MESSAGE_KEY)
-    }
   }
 }
 
