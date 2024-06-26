@@ -190,8 +190,9 @@ class MergedManifestSnapshotFactory {
       }
 
       // The package comes from the main manifest, NOT from the merged manifest.
-      final String appId = getAttributeValue(root, null, ATTRIBUTE_PACKAGE);
-      final String packageName = ProjectSystemUtil.getModuleSystem(facet).getPackageName();
+      final String manifestPackageName = getAttributeValue(root, null, ATTRIBUTE_PACKAGE);
+      final String moduleSystemPackageName = ProjectSystemUtil.getModuleSystem(facet).getPackageName();
+      final String packageName = moduleSystemPackageName != null ? moduleSystemPackageName : manifestPackageName;
       if (packageName == null) {
         throw new MergedManifestException.MissingAttribute(TAG_MANIFEST, null, ATTRIBUTE_PACKAGE, mergedManifestInfo);
       }
