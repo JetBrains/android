@@ -233,12 +233,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @NotNull
   private final AWTEventListener myOnHoverListener;
 
-  @NotNull
-  private final List<IssueListener> myIssueListeners = new ArrayList<>();
-
-  @NotNull
-  private final IssueListener myIssueListener = issue -> myIssueListeners.forEach(listener -> listener.onIssueSelected(issue));
-
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
@@ -1333,10 +1327,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     }
   }
 
-  protected boolean useSmallProgressIcon() {
-    return true;
-  }
-
   /**
    * Invalidates all models and request a render of the layout. This will re-inflate the {@link NlModel}s and render them sequentially.
    * The result {@link CompletableFuture} will notify when all the renderings have completed.
@@ -1539,14 +1529,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   /**
-   * Returns all the selectable components in the design surface
-   *
-   * @return the list of components
-   */
-  @NotNull
-  abstract public List<NlComponent> getSelectableComponents();
-
-  /**
    * Enables the mouse click display. If enabled, the clicks of the user are displayed in the surface.
    */
   public void enableMouseClickDisplay() {
@@ -1572,9 +1554,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     }
   }
 
-  @Nullable
-  public abstract LayoutManagerSwitcher getLayoutManagerSwitcher();
-
   /**
    * Sets the {@link SceneViewAlignment} for the {@link SceneView}s. This only applies to {@link SceneView}s when the
    * content size is less than the minimum size allowed. See {@link SceneViewPanel}.
@@ -1591,18 +1570,5 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     VirtualFile file = fileEditor != null ? fileEditor.getFile() : null;
     if (file == null) return;
     UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(getProject()).updateNotifications(file));
-  }
-
-  public void addIssueListener(@NotNull IssueListener listener) {
-    myIssueListeners.add(listener);
-  }
-
-  public void removeIssueListener(@NotNull IssueListener listener) {
-    myIssueListeners.remove(listener);
-  }
-
-  @NotNull
-  public IssueListener getIssueListener() {
-    return myIssueListener;
   }
 }

@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.common.error.IssueListener
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface.ZoomControlsPolicy
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.intellij.openapi.project.Project
 import java.awt.LayoutManager
+import java.util.function.Consumer
 
 /**
  * @param actionHandlerProvider Allow a test to override myActionHandlerProvider when the surface is
@@ -36,5 +41,32 @@ abstract class PreviewSurface<T : SceneManager>(
   init {
     isOpaque = true
     isFocusable = false
+  }
+
+  protected open fun useSmallProgressIcon(): Boolean {
+    return true
+  }
+
+  /**
+   * All the selectable components in the design surface
+   */
+  abstract val selectableComponents: List<NlComponent>
+
+  abstract val layoutManagerSwitcher: LayoutManagerSwitcher?
+
+  private val myIssueListeners: MutableList<IssueListener> = ArrayList()
+
+  val issueListener: IssueListener = IssueListener { issue: Issue? ->
+    myIssueListeners.forEach(
+      Consumer { listener: IssueListener -> listener.onIssueSelected(issue) }
+    )
+  }
+
+  fun addIssueListener(listener: IssueListener) {
+    myIssueListeners.add(listener)
+  }
+
+  fun removeIssueListener(listener: IssueListener) {
+    myIssueListeners.remove(listener)
   }
 }
