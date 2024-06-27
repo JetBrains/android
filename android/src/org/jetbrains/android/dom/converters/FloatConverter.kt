@@ -26,21 +26,21 @@ import org.jetbrains.android.util.AndroidBundle
  * @see AttributeFormat.FLOAT
  */
 class FloatConverter : ResolvingConverter<String>() {
-  override fun toString(t: String?, context: ConvertContext?): String? = t
+  override fun toString(t: String?, context: ConvertContext): String? = t
 
-  override fun fromString(s: String?, context: ConvertContext?): String? {
+  override fun fromString(s: String?, context: ConvertContext): String? {
     if (s?.toFloatOrNull() != null) {
       return s
     }
     return null
   }
 
-  override fun getErrorMessage(s: String?, context: ConvertContext?): String? {
+  override fun getErrorMessage(s: String?, context: ConvertContext): String? {
     return s?.let { AndroidBundle.message("cannot.resolve.float.literal.error", s) }
       ?: super.getErrorMessage(s, context)
   }
 
-  override fun getVariants(context: ConvertContext?): Collection<String> = emptyList()
+  override fun getVariants(context: ConvertContext): Collection<String> = emptyList()
 
   companion object {
     @JvmField val INSTANCE = FloatConverter()
