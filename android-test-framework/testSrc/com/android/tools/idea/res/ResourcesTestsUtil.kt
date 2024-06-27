@@ -29,9 +29,9 @@ import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -65,7 +65,7 @@ fun addAndroidModule(moduleName: String, project: Project, packageName: String, 
   val moduleFilePath = File(moduleDir, moduleName + ModuleFileType.DOT_DEFAULT_EXTENSION)
 
   createAndroidManifest(moduleDir, packageName)
-  val module = runWriteAction { ModuleManager.getInstance(project).newModule(moduleFilePath.path, ModuleTypeId.JAVA_MODULE) }
+  val module = runWriteAction { ModuleManager.getInstance(project).newModule(moduleFilePath.path, JavaModuleType.getModuleType().id) }
   Facets.createAndAddAndroidFacet(module)
 
   val moduleResDir = moduleDir.resolve(SdkConstants.FD_RES)
