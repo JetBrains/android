@@ -1279,6 +1279,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       applicationId = legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(name),
       testApplicationId = legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(name + "AndroidTest"),
       buildType = variantToBuildType(name),
+      false,
     )
   }
 

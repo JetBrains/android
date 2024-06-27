@@ -1219,6 +1219,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
         it.mainArtifact.applicationId,
         it.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.applicationId,
         it.buildType,
+        false
       )
     },
     flavorDimensions = this.flavorDimensions.orEmpty(),
