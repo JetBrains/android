@@ -33,6 +33,7 @@ import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotifications
@@ -55,7 +56,7 @@ abstract class PreviewSurface<T : SceneManager>(
   val selectionModel: SelectionModel,
   val zoomControlsPolicy: ZoomControlsPolicy,
   layout: LayoutManager,
-) : EditorDesignSurface(layout) {
+) : EditorDesignSurface(layout), Disposable {
 
   init {
     isOpaque = true
@@ -259,4 +260,59 @@ abstract class PreviewSurface<T : SceneManager>(
   }
 
   abstract fun setModel(model: NlModel?): CompletableFuture<Void>
+
+  // TODO Make private
+  protected val renderFutures = mutableListOf<CompletableFuture<Void>>()
+
+  /** Returns true if this surface is currently refreshing. */
+  fun isRefreshing(): Boolean {
+    synchronized(renderFutures) {
+      return renderFutures.isNotEmpty()
+    }
+  }
+
+  /**
+   * Schedule the render requests sequentially for all [SceneManager]s in this [DesignSurface].
+   *
+   * @param renderRequest The requested rendering to be scheduled. This gives the caller a chance to
+   *   choose the preferred rendering request.
+   * @return A callback which is triggered when the scheduled rendering are completed.
+   */
+  protected fun requestSequentialRender(
+    renderRequest: (T) -> CompletableFuture<Void?>?
+  ): CompletableFuture<Void> {
+    val callback = CompletableFuture<Void>()
+    synchronized(renderFutures) {
+      if (renderFutures.isNotEmpty()) {
+        // TODO: This may make the rendered previews not match the last status of NlModel if the
+        // modifications happen during rendering.
+        // Similar case happens in LayoutlibSceneManager#requestRender function, both need to be
+        // fixed.
+        renderFutures.add(callback)
+        return callback
+      } else {
+        renderFutures.add(callback)
+      }
+    }
+
+    // Cascading the CompletableFuture to make them executing sequentially.
+    var renderFuture = CompletableFuture.completedFuture<Void?>(null)
+    for (manager in sceneManagers) {
+      renderFuture =
+        renderFuture.thenCompose {
+          val future = renderRequest(manager)
+          invalidate()
+          future
+        }
+    }
+    renderFuture.thenRun {
+      synchronized(renderFutures) {
+        renderFutures.forEach { it.complete(null) }
+        renderFutures.clear()
+      }
+      updateNotifications()
+    }
+
+    return callback
+  }
 }
