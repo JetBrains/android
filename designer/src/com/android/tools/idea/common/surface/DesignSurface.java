@@ -1527,12 +1527,4 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       mySceneViewPanel.setBackground(bg);
     }
   }
-
-  /**
-   * Sets the {@link SceneViewAlignment} for the {@link SceneView}s. This only applies to {@link SceneView}s when the
-   * content size is less than the minimum size allowed. See {@link SceneViewPanel}.
-   */
-  public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
-    mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.getAlignmentX());
-  }
 }
