@@ -104,32 +104,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Obtains the module that contains the unit test sources.
-   *
-   * For Gradle, If module per source set is enabled then this will return the module that contains sources and dependencies
-   * from the unit test artifact ONLY.
-   * Or, If module per source set is disabled then this will return the combined module with all sources, tests and dependencies
-   * for the combined main, unit test and android test artifacts.
-   */
-  @Nullable
-  public Module getUnitTestModule() {
-    return getModuleByMethod(LinkedAndroidModuleGroup::getUnitTest);
-  }
-
-  /**
-   * Obtains the module that contains the Android test sources.
-   *
-   * For Gradle, If module per source set is enabled then this will return the module that contains sources and dependencies
-   * from the Android test artifact ONLY.
-   * Or, If module per source set is disabled then this will return the combined module with all sources, tests and dependencies
-   * for the combined main, unit test and android test artifacts.
-   */
-  @Nullable
-  public Module getAndroidTestModule() {
-    return getModuleByMethod(LinkedAndroidModuleGroup::getAndroidTest);
-  }
-
-  /**
    * Obtains the empty module which should be used when sources or dependencies aren't needed, or to get information to display to the user.
    *
    * For Gradle, If module per source set is enabled then this will return the module that has as children all the modules from this

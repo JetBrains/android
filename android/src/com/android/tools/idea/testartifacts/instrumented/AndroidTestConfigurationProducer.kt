@@ -23,6 +23,8 @@ import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.containsFile
+import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.projectsystem.isContainedBy
@@ -223,8 +225,9 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
   fun configure(configuration: AndroidTestRunConfiguration,
                 sourceElementRef: Ref<PsiElement>): Boolean {
     val sourceProviders = SourceProviderManager.getInstance(facet)
+    val module = facet.module
     val (androidTestSources, generatedAndroidTestSources) =
-      if (facet.module.androidProjectType() == AndroidModuleSystem.Type.TYPE_TEST) {
+      if (module.androidProjectType() == AndroidModuleSystem.Type.TYPE_TEST) {
         sourceProviders.sources to sourceProviders.generatedSources
       }
       else {
@@ -238,7 +241,7 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
     }
 
     val androidTestModule =
-      (if (facet.module.androidProjectType() == (AndroidModuleSystem.Type.TYPE_TEST)) facet.mainModule else facet.androidTestModule)
+      (if (module.androidProjectType() == (AndroidModuleSystem.Type.TYPE_TEST)) module.getMainModule() else module.getAndroidTestModule())
       ?: return false
     val targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
       androidTestModule, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
