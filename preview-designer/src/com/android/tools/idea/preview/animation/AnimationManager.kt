@@ -44,7 +44,7 @@ interface AnimationManager {
   suspend fun destroy()
 }
 
-/** Manager for animations we can detect, but can't manipulate,set time/state, etc */
+/** Manager for animations we can detect, but can't manipulate, set time/state, etc. */
 abstract class UnsupportedAnimationManager(final override val tabTitle: String) : AnimationManager {
   override val card = LabelCard(tabTitle)
 
