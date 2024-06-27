@@ -741,18 +741,16 @@ object AttributeProcessingUtil {
       return
     }
 
+    val namespaceUri = if (isSystem) ANDROID_URI else AUTO_URI
+    skippedAttributes.addAll(
+      styleableAnnotation.skippedAttributes.map { XmlName(it, namespaceUri) }
+    )
     for (styleableName in styleableAnnotation.value) {
       val styleable = definitions.getStyleableByName(styleableName)
       if (styleable != null) {
         // TODO(namespaces): if !isSystem and we're namespace-aware we should use the
         // library-specific namespace
-        registerStyleableAttributes(
-          element,
-          styleable,
-          if (isSystem) ANDROID_URI else AUTO_URI,
-          callback,
-          skippedAttributes,
-        )
+        registerStyleableAttributes(element, styleable, namespaceUri, callback, skippedAttributes)
       } else if (isSystem) {
         // DOM element is annotated with @Styleable annotation, but styleable definition with
         // provided name is not there in Android framework. This is a bug, so logging it as a
