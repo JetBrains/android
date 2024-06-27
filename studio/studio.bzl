@@ -1367,7 +1367,11 @@ def intellij_platform(
         srcs = ["//tools/adt/idea/studio:intellij_test.py"],
         main = "intellij_test.py",
         tags = ["noci:studio-win"],
-        data = native.glob([src + "/**/lib/*.jar", "**/product-info.json"]),
+        data = native.glob([
+            src + "/**/lib/*.jar",
+            src + "/**/lib/modules/*.jar",
+            "**/product-info.json"
+        ]),
         env = {
             "spec": json.encode(spec),
             "intellij_paths": ",".join([k + "=" + native.package_name() + "/" + v for k, v in ide_paths.items()]),
