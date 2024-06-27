@@ -17,8 +17,6 @@ package com.android.tools.idea.device.explorer.monitor
 
 import com.android.adblib.serialNumber
 import com.android.annotations.concurrency.UiThread
-import com.android.backup.BackupException
-import com.android.backup.BackupProgressListener
 import com.android.ddmlib.IDevice
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
@@ -33,9 +31,7 @@ import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Compan
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import kotlinx.coroutines.CompletableDeferred
