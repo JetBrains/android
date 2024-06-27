@@ -16,6 +16,8 @@
 package com.android.tools.idea.common.surface
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.annotations.concurrency.Slow
+import com.android.tools.configurations.Configuration
 import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
@@ -26,7 +28,10 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.type.DefaultDesignerFileType
+import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.ui.designer.EditorDesignSurface
+import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -35,6 +40,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.LayoutManager
 import java.awt.event.AdjustmentEvent
 import java.lang.ref.WeakReference
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
 import javax.swing.JPanel
@@ -230,4 +236,27 @@ abstract class PreviewSurface<T : SceneManager>(
   protected open fun isKeepingScaleWhenReopen(): Boolean {
     return true
   }
+
+  @Slow // Some implementations might be slow
+  protected abstract fun createSceneManager(model: NlModel): T
+
+  /**
+   * @return the primary (first) [NlModel] if exist. null otherwise.
+   * @see [models]
+   */
+  @Deprecated("The surface can contain multiple models. Use {@link #getModels()} instead.")
+  val model: NlModel?
+    get() = models.firstOrNull()
+
+  abstract val models: ImmutableList<NlModel>
+  abstract val sceneManagers: ImmutableList<T>
+
+  val layoutType: DesignerEditorFileType
+    get() = model?.type ?: DefaultDesignerFileType
+
+  override fun getConfigurations(): ImmutableCollection<Configuration> {
+    return models.stream().map(NlModel::configuration).collect(ImmutableList.toImmutableList())
+  }
+
+  abstract fun setModel(model: NlModel?): CompletableFuture<Void>
 }
