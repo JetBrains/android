@@ -190,8 +190,8 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     verify(myDetachedToolWindow1a).hide();
     verify(myDetachedToolWindow2a).show(eq(myAttachedToolWindow2a));
 
-    FileEditorManagerEvent event1 = new FileEditorManagerEvent(myEditorManager, null, null, null, myFileEditor1);
-    FileEditorManagerEvent event2 = new FileEditorManagerEvent(myEditorManager, null, null, null, myFileEditor2);
+    FileEditorManagerEvent event1 = new FileEditorManagerEvent(myEditorManager, null, null, null, null, myFileEditor1, null);
+    FileEditorManagerEvent event2 = new FileEditorManagerEvent(myEditorManager, null, null, null, null, myFileEditor2, null);
 
     myListener.selectionChanged(event1);
     UIUtil.dispatchAllInvocationEvents();
