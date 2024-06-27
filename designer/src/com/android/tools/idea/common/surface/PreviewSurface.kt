@@ -41,6 +41,8 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import java.awt.LayoutManager
 import java.awt.event.AdjustmentEvent
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.lang.ref.WeakReference
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.locks.ReentrantLock
@@ -62,6 +64,36 @@ abstract class PreviewSurface<T : SceneManager>(
   init {
     isOpaque = true
     isFocusable = false
+
+    // TODO: Do this as part of the layout/validate operation instead
+    addComponentListener(
+      object : ComponentAdapter() {
+        /**
+         * When surface is opened at first time, it zoom-to-fit the content to make the previews fit
+         * the initial window size. After that it leave user to control the zoom. This flag
+         * indicates if the initial zoom-to-fit is done or not.
+         */
+        private var isInitialZoomLevelDetermined = false
+
+        override fun componentResized(componentEvent: ComponentEvent) {
+          if (componentEvent.id == ComponentEvent.COMPONENT_RESIZED) {
+            if (!isInitialZoomLevelDetermined && isShowing && width > 0 && height > 0) {
+              // Set previous scale when DesignSurface becomes visible at first time.
+              val hasModelAttached = restoreZoomOrZoomToFit()
+              if (!hasModelAttached) {
+                // No model is attached, ignore the setup of initial zoom level.
+                return
+              }
+              // The default size is defined, enable the flag.
+              isInitialZoomLevelDetermined = true
+            }
+            // We rebuilt the scene to make sure all SceneComponents are placed at right positions.
+            sceneManagers.forEach { manager: T -> manager.scene.needsRebuildList() }
+            repaint()
+          }
+        }
+      }
+    )
   }
 
   protected open fun useSmallProgressIcon(): Boolean {

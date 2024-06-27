@@ -149,12 +149,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
 
-  /**
-   * When surface is opened at first time, it zoom-to-fit the content to make the previews fit the initial window size.
-   * After that it leave user to control the zoom. This flag indicates if the initial zoom-to-fit is done or not.
-   */
-  private boolean myIsInitialZoomLevelDetermined = false;
-
   @NotNull
   private final Function<DesignSurface<T>, DesignSurfaceActionHandler> myActionHandlerProvider;
 
@@ -266,30 +260,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
     add(myLayeredPane);
 
-    // TODO: Do this as part of the layout/validate operation instead
-    addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent componentEvent) {
-        if (componentEvent.getID() == ComponentEvent.COMPONENT_RESIZED) {
-          if (!myIsInitialZoomLevelDetermined && isShowing() && getWidth() > 0 && getHeight() > 0) {
-            // Set previous scale when DesignSurface becomes visible at first time.
-            boolean hasModelAttached = restoreZoomOrZoomToFit();
-            if (!hasModelAttached) {
-              // No model is attached, ignore the setup of initial zoom level.
-              return;
-            }
-            // The default size is defined, enable the flag.
-            myIsInitialZoomLevelDetermined = true;
-          }
-          // We rebuilt the scene to make sure all SceneComponents are placed at right positions.
-          getSceneManagers().forEach(manager -> {
-            Scene scene = manager.getScene();
-            scene.needsRebuildList();
-          });
-          repaint();
-        }
-      }
-    });
+
 
     Interactable interactable = interactableProvider.apply(this);
     myGuiInputHandler = new GuiInputHandler(this, interactable, interactionProviderCreator.apply(this));
