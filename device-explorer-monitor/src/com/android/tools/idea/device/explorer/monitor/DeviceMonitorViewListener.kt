@@ -24,4 +24,6 @@ interface DeviceMonitorViewListener {
   fun forceStopNodesInvoked(rows: IntArray)
   fun debugNodes(rows: IntArray)
   fun packageFilterToggled(isActive: Boolean)
+  fun backupApplication(rows: IntArray)
+  fun restoreApplication(rows: IntArray)
 }

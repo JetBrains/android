@@ -19,12 +19,14 @@ import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder.Companion.EMPTY_TREE_TEXT
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.BackupMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.KillMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.PackageFilterMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.RefreshMenuItem
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.RestoreMenuItem
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.RunManager
 import com.intellij.openapi.actionSystem.ActionManager
@@ -116,6 +118,16 @@ class DeviceMonitorViewImpl(
     listeners.forEach { it.packageFilterToggled(isActive) }
   }
 
+  override fun backupApplication() {
+    listeners.forEach { it.backupApplication(table.selectedRows) }
+    table.clearSelection()
+  }
+
+  override fun restoreApplication() {
+    listeners.forEach { it.restoreApplication(table.selectedRows) }
+    table.clearSelection()
+  }
+
   private fun setUpTable() {
     panel.processTablePane.viewport.add(table)
   }
@@ -125,6 +137,10 @@ class DeviceMonitorViewImpl(
       addItem(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup, RunManager.getInstance(project)))
+      if (StudioFlags.BACKUP_SHOW_ACTIONS_IN_DEVICE_EXPLORER.get()) {
+        addItem(BackupMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
+        addItem(RestoreMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
+      }
       install()
     }
   }

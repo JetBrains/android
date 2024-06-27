@@ -25,4 +25,6 @@ interface DeviceMonitorActionsListener {
   fun forceStopNodes()
   fun debugNodes()
   fun packageFilterToggled(isActive: Boolean)
+  fun backupApplication()
+  fun restoreApplication()
 }
