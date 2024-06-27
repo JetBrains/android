@@ -20,6 +20,7 @@ import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
+import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -32,9 +33,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import java.awt.LayoutManager
+import java.awt.event.AdjustmentEvent
 import java.lang.ref.WeakReference
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
+import javax.swing.JPanel
 import javax.swing.Timer
 import kotlin.concurrent.withLock
 
@@ -187,5 +190,44 @@ abstract class PreviewSurface<T : SceneManager>(
     listenersLock.withLock {
       return ImmutableList.copyOf(listeners)
     }
+  }
+
+  protected fun notifyScaleChanged(previousScale: Double, newScale: Double) {
+    for (listener in getZoomListeners()) {
+      listener.zoomChanged(previousScale, newScale)
+    }
+  }
+
+  protected fun notifyPanningChanged(adjustmentEvent: AdjustmentEvent) {
+    for (listener in getZoomListeners()) {
+      listener.panningChanged(adjustmentEvent)
+    }
+  }
+
+  abstract val selectionAsTransferable: ItemTransferable
+
+  /**
+   * Returns whether render error panels should be rendered when [SceneView]s in this surface have
+   * render errors.
+   */
+  open fun shouldRenderErrorsPanel(): Boolean {
+    return false
+  }
+
+  /** When not null, returns a [JPanel] to be rendered next to the primary panel of the editor. */
+  open val accessoryPanel: JPanel? = null
+
+  open fun getLayoutScannerControl(): LayoutScannerControl? {
+    return null
+  }
+
+  /**
+   * Scroll to the center of a list of given components. Usually the center of the area containing
+   * these elements.
+   */
+  abstract fun scrollToCenter(list: List<NlComponent>)
+
+  protected open fun isKeepingScaleWhenReopen(): Boolean {
+    return true
   }
 }

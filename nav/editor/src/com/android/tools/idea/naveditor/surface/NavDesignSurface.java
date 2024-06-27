@@ -600,7 +600,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   }
 
   @Override
-  public void scrollToCenter(@NotNull List<NlComponent> list) {
+  public void scrollToCenter(List<? extends NlComponent> list) {
     Scene scene = getScene();
     SceneView view = getFocusedSceneView();
     if (list.isEmpty() || scene == null || view == null) {
