@@ -132,18 +132,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   implements Disposable, InteractableScenesSurface, ZoomableViewport, ScaleListener {
 
   /**
-   * Determines the visibility of the zoom controls in this surface.
-   */
-  public enum ZoomControlsPolicy {
-    /** The zoom controls will always be visible. */
-    VISIBLE,
-    /** The zoom controls will never be visible. */
-    HIDDEN,
-    /** The zoom controls will only be visible when the mouse is over the surface. */
-    AUTO_HIDE
-  }
-
-  /**
    * Filter got {@link #getModels()} to avoid returning disposed elements
    **/
   private static final Predicate<NlModel> FILTER_DISPOSED_MODELS = input -> input != null && !input.getModule().isDisposed();

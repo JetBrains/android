@@ -51,6 +51,7 @@ import com.android.tools.idea.common.surface.LayoutScannerControl;
 import com.android.tools.idea.common.surface.ScaleChange;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceScale;
+import com.android.tools.idea.common.surface.ZoomControlsPolicy;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller;
 import com.android.tools.idea.common.layout.scroller.ReferencePointScroller;
