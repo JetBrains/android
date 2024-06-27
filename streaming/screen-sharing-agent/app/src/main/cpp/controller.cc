@@ -80,7 +80,10 @@ Point AdjustedDisplayCoordinates(int32_t x, int32_t y, const DisplayInfo& displa
 // from the socket will never time out.
 void SetReceiveTimeoutMillis(int timeout_millis, int socket_fd) {
   struct timeval tv = { .tv_sec = timeout_millis / 1000, .tv_usec = (timeout_millis % 1000) * 1000 };
-  setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+  int ret = setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+  if (ret != 0) {
+    Log::W("Unable to set socket receive timeout of %d ms - %s", timeout_millis, strerror(errno));
+  }
 }
 
 bool CheckVideoSize(Size video_resolution) {
