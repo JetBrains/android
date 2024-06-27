@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
@@ -24,14 +26,17 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.ui.designer.EditorDesignSurface
+import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import java.awt.LayoutManager
 import java.lang.ref.WeakReference
+import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
 import javax.swing.Timer
+import kotlin.concurrent.withLock
 
 /**
  * @param actionHandlerProvider Allow a test to override myActionHandlerProvider when the surface is
@@ -123,4 +128,65 @@ abstract class PreviewSurface<T : SceneManager>(
         repaint()
       }
     }
+
+  private val listenersLock = ReentrantLock()
+
+  // TODO Make it private
+  // TODO listeners are called directly in number of places. Shouldn't getSurfaceListeners be called
+  // instead?
+  @GuardedBy("listenersLock") protected val listeners = mutableListOf<DesignSurfaceListener>()
+
+  @GuardedBy("listenersLock") private val zoomListeners = mutableListOf<PanZoomListener>()
+
+  fun addListener(listener: DesignSurfaceListener) {
+    listenersLock.withLock {
+      // Ensure single registration
+      listeners.remove(listener)
+      listeners.add(listener)
+    }
+  }
+
+  fun removeListener(listener: DesignSurfaceListener) {
+    listenersLock.withLock { listeners.remove(listener) }
+  }
+
+  fun addPanZoomListener(listener: PanZoomListener) {
+    listenersLock.withLock {
+      // Ensure single registration
+      zoomListeners.remove(listener)
+      zoomListeners.add(listener)
+    }
+  }
+
+  fun removePanZoomListener(listener: PanZoomListener) {
+    listenersLock.withLock { zoomListeners.remove(listener) }
+  }
+
+  // TODO Make it private
+  protected fun clearListeners() {
+    listenersLock.withLock {
+      listeners.clear()
+      zoomListeners.clear()
+    }
+  }
+
+  /**
+   * Gets a copy of [zoomListeners] under a lock. Use this method instead of accessing the listeners
+   * directly. TODO Make it private
+   */
+  protected fun getZoomListeners(): ImmutableList<PanZoomListener> {
+    listenersLock.withLock {
+      return ImmutableList.copyOf(zoomListeners)
+    }
+  }
+
+  /**
+   * Gets a copy of [listeners] under a lock. Use this method instead of accessing the listeners
+   * directly. TODO Make it private
+   */
+  protected fun getSurfaceListeners(): ImmutableList<DesignSurfaceListener> {
+    listenersLock.withLock {
+      return ImmutableList.copyOf(listeners)
+    }
+  }
 }

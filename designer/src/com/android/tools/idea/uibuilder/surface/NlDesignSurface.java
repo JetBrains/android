@@ -330,7 +330,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   public void showInspectorAccessoryPanel(boolean show) {
-    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+    for (DesignSurfaceListener listener : getSurfaceListeners()) {
       listener.showAccessoryPanel(this, show);
     }
   }
