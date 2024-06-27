@@ -79,6 +79,7 @@
     <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.refactorings.common" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.psi" scope="TEST" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.compose-compiler-plugin" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.compose-ide-plugin" />
 </module>
