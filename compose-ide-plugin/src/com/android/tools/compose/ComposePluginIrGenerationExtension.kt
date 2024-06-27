@@ -25,6 +25,7 @@ import com.android.tools.idea.run.deployment.liveedit.CompileScope
 import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
@@ -42,7 +43,8 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
           useK2 = KotlinPluginModeProvider.isK2Mode(),
           featureFlags = FeatureFlags().apply {
             setFeature(IntrinsicRemember, false)
-          }
+          },
+          messageCollector = MessageCollector.NONE
         )
         .generate(moduleFragment, pluginContext)
     } catch (e: ProcessCanceledException) {
