@@ -32,7 +32,6 @@ import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
 import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
@@ -42,7 +41,6 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.scene.SceneUpdateListener;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
@@ -50,10 +48,8 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.Interactable;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.LayoutScannerControl;
-import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.ScaleChange;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller;
@@ -61,15 +57,9 @@ import com.android.tools.idea.common.layout.scroller.ReferencePointScroller;
 import com.android.tools.idea.common.layout.scroller.TopLeftCornerScroller;
 import com.android.tools.idea.common.layout.scroller.ZoomCenterScroller;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.rendering.RenderErrorModelFactory;
-import com.android.tools.idea.rendering.RenderSettings;
-import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.editor.NlActionManager;
-import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
@@ -81,35 +71,25 @@ import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutMa
 import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager;
 import com.android.tools.idea.common.layout.positionable.PositionableContent;
 import com.android.tools.idea.common.layout.option.SurfaceLayoutManager;
-import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
-import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
-import com.android.tools.rendering.RenderResult;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -118,7 +98,6 @@ import java.util.stream.Collectors;
 import javax.swing.JScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * The {@link DesignSurface} for the layout editor, which contains the full background, rulers, one
@@ -162,6 +141,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Nullable private final LayoutScannerControl myScannerControl;
 
   @NotNull private final Supplier<ImmutableSet<NlSupportedActions>> mySupportedActionsProvider;
+
+  private final ErrorQueue myErrorQueue = new ErrorQueue(this, getProject());
 
   private final boolean myShouldRenderErrorsPanel;
 
@@ -431,93 +412,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       return;
     }
 
-    assert ApplicationManager.getApplication().isDispatchThread() ||
-           !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
-
-    getErrorQueue().cancelAllUpdates();
-    getErrorQueue().queue(new Update("errors") {
-      @Override
-      public void run() {
-        // Whenever error queue is active, make sure to resume any paused scanner control.
-        if (myScannerControl != null) {
-          myScannerControl.resume();
-        }
-        // Look up *current* result; a newer one could be available
-        Map<LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()
-          .filter(sceneManager -> sceneManager.getRenderResult() != null)
-          .collect(Collectors.toMap(Function.identity(), LayoutlibSceneManager::getRenderResult));
-        if (results.isEmpty()) {
-          return;
-        }
-
-        Project project = getProject();
-        if (project.isDisposed()) {
-          return;
-        }
-
-        // createErrorModel needs to run in Smart mode to resolve the classes correctly
-        DumbService.getInstance(project).runReadActionInSmartMode(() -> {
-          ImmutableList<RenderIssueProvider> renderIssueProviders = null;
-          if (GradleBuildState.getInstance(project).isBuildInProgress()) {
-            for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
-              if (entry.getValue().getLogger().hasErrors()) {
-                // We are still building, display the message to the user.
-                renderIssueProviders = ImmutableList.of(new RenderIssueProvider(
-                  entry.getKey().getModel(), RenderErrorModel.STILL_BUILDING_ERROR_MODEL));
-                break;
-              }
-            }
-          }
-
-          if (renderIssueProviders == null) {
-            renderIssueProviders = results.entrySet().stream()
-              .map(entry -> {
-                RenderErrorModel errorModel = RenderErrorModelFactory
-                  .createErrorModel(NlDesignSurface.this, entry.getValue());
-                return new RenderIssueProvider(entry.getKey().getModel(), errorModel);
-              })
-              .collect(toImmutableList());
-          }
-          myRenderIssueProviders.forEach(renderIssueProvider -> getIssueModel().removeIssueProvider(renderIssueProvider));
-          myRenderIssueProviders = renderIssueProviders;
-          renderIssueProviders.forEach(renderIssueProvider -> getIssueModel().addIssueProvider(renderIssueProvider));
-        });
-
-        boolean hasLayoutValidationOpen = VisualizationToolWindowFactory.hasVisibleValidationWindow(project);
-        boolean hasRunAtfOnMainPreview = hasLayoutValidationOpen;
-        if (!hasLayoutValidationOpen) {
-          List<NlModel> modelsForBackgroundRun = new ArrayList<>();
-          Map<RenderResult, NlModel> renderResultsForAnalysis = new HashMap<>();
-          results.forEach((manager, result) -> {
-            switch (manager.getVisualLintMode()) {
-              case RUN_IN_BACKGROUND:
-                modelsForBackgroundRun.add(manager.getModel());
-                break;
-              case RUN_ON_PREVIEW_ONLY:
-                renderResultsForAnalysis.put(result, manager.getModel());
-                break;
-              case DISABLED:
-                break;
-            }
-          });
-          hasRunAtfOnMainPreview = !renderResultsForAnalysis.isEmpty();
-          VisualLintService.getInstance(project).runVisualLintAnalysis(
-            NlDesignSurface.this,
-            myVisualLintIssueProvider,
-            modelsForBackgroundRun,
-            renderResultsForAnalysis);
-        }
-
-        if (myScannerControl != null && !hasRunAtfOnMainPreview) {
-          myScannerControl.validateAndUpdateLint(results);
-        }
-      }
-
-      @Override
-      public boolean canEat(@NotNull Update update) {
-        return true;
-      }
-    });
+    myErrorQueue.updateErrorDisplay(
+      myScannerControl, myVisualLintIssueProvider, this, getIssueModel(), this::getSceneManagers);
   }
 
   private void modelRendered() {
