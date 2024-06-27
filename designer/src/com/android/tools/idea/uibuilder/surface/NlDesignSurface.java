@@ -30,6 +30,7 @@ import com.android.tools.idea.common.diagnostics.NlDiagnosticKey;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
+import com.android.tools.idea.common.layout.SceneViewAlignment;
 import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -50,6 +51,7 @@ import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.LayoutScannerControl;
 import com.android.tools.idea.common.surface.ScaleChange;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.SceneViewPanel;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.ZoomControlsPolicy;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
@@ -779,5 +781,13 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @NotNull
   public VisualLintIssueProvider getVisualLintIssueProvider() {
     return myVisualLintIssueProvider;
+  }
+
+  /**
+   * Sets the {@link SceneViewAlignment} for the {@link SceneView}s. This only applies to {@link SceneView}s when the
+   * content size is less than the minimum size allowed. See {@link SceneViewPanel}.
+   */
+  public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
+    mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.getAlignmentX());
   }
 }
