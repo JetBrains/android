@@ -44,7 +44,6 @@ import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
@@ -418,50 +417,6 @@ class LayoutInspectorManagerTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(layoutInspector.inspectorClientSettings.inLiveMode).isTrue()
-  }
-
-  @Test
-  @RunsInEdt
-  fun testToggleLayoutInspectorShowsOptOutFirstTime() = withEmbeddedLayoutInspector {
-    PropertiesComponent.getInstance().unsetValue(SHOW_EMBEDDED_LI_BANNER_KEY)
-
-    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
-
-    verifyUiInjected(tab1)
-    val notifications1 = notificationModel.notifications
-    assertThat(notifications1).hasSize(1)
-    val firstNotification = notifications1.single()
-    assertThat(firstNotification.message)
-      .isEqualTo("Layout Inspector is now embedded within the Running Devices window")
-    assertThat(firstNotification.actions[0].name).isEqualTo("Don't Show Again")
-    assertThat(firstNotification.actions[1].name).isEqualTo("Opt-out")
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
-
-    verifyUiInjected(tab1)
-    val notifications2 = notificationModel.notifications
-    assertThat(notifications2).hasSize(1)
-
-    val doNotShowAgain = firstNotification.actions[0]
-    doNotShowAgain.invoke(firstNotification)
-
-    val notifications3 = notificationModel.notifications
-    assertThat(notifications3).hasSize(0)
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
-
-    val notifications4 = notificationModel.notifications
-    assertThat(notifications4).hasSize(0)
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
-
-    verifyUiRemoved(tab1)
   }
 
   @Test
