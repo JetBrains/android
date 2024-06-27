@@ -846,7 +846,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFromAndToWebpTest"],
     tags = COMMON_TAGS + [
-        "no_mac",  # Cannot be automated in MAC
+        "no_test_mac",  # Cannot be automated in MAC
         "noci:studio-win",
         "qa_smoke",
     ],

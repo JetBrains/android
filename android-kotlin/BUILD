@@ -165,7 +165,6 @@ iml_module(
         "other": {},
     },
     tags = [
-        "no_test_mac",  # b/156004634
         "noci:studio-win",
     ],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",

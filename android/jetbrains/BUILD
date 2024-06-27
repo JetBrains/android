@@ -31,7 +31,6 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
-        "no_test_mac",
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],

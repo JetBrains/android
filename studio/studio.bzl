@@ -1366,7 +1366,7 @@ def intellij_platform(
         name = name + "_spec_test",
         srcs = ["//tools/adt/idea/studio:intellij_test.py"],
         main = "intellij_test.py",
-        tags = ["noci:studio-win", "no_test_mac"],
+        tags = ["noci:studio-win"],
         data = native.glob([src + "/**/lib/*.jar", "**/product-info.json"]),
         env = {
             "spec": json.encode(spec),
