@@ -39,9 +39,9 @@ class AutoFillHintsConverter : ResolvingConverter<String>() {
     private const val ANDROIDX_HINTS_CONSTANTS_CLASS = "androidx.autofill.HintConstants"
   }
 
-  override fun fromString(s: String?, context: ConvertContext?) = s
+  override fun fromString(s: String?, context: ConvertContext) = s
 
-  override fun toString(t: String?, context: ConvertContext?) = t
+  override fun toString(t: String?, context: ConvertContext) = t
 
   override fun getVariants(context: ConvertContext): List<String> {
     val project = context.project

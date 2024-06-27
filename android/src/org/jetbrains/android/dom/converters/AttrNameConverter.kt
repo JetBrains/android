@@ -184,8 +184,8 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
     return ResourceUrl.parseAttrReference(s)?.resolve(xmlElement)
   }
 
-  override fun toString(resourceReference: ResourceReference?, context: ConvertContext?): String? {
-    if (resourceReference == null || context == null) {
+  override fun toString(resourceReference: ResourceReference?, context: ConvertContext): String? {
+    if (resourceReference == null) {
       return null
     }
     val tag = context.tag ?: return resourceReference.resourceUrl.toString()
