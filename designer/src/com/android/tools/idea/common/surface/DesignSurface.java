@@ -30,16 +30,12 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.error.IssueListener;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.LintIssueProvider;
-import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
-import com.android.tools.idea.common.layout.SceneViewAlignment;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.ItemTransferable;
-import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
@@ -53,7 +49,6 @@ import com.android.tools.idea.common.surface.layout.NonScrollableDesignSurfaceVi
 import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewport;
 import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -68,23 +63,14 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.EditorNotifications;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.components.Magnificator;
-import com.intellij.ui.components.ZoomableViewport;
-import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.update.MergingUpdateQueue;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -93,14 +79,12 @@ import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -118,8 +102,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,11 +141,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @NotNull private final MouseClickDisplayPanel myMouseClickDisplayPanel;
   @VisibleForTesting
   private final GuiInputHandler myGuiInputHandler;
-  private final Object myListenersLock = new Object();
-  @GuardedBy("myListenersLock")
-  protected final ArrayList<DesignSurfaceListener> myListeners = new ArrayList<>();
-  @GuardedBy("myListenersLock")
-  @NotNull private final ArrayList<PanZoomListener> myZoomListeners = new ArrayList<>();
+
   private final ActionManager<? extends DesignSurface<T>> myActionManager;
   private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
   @GuardedBy("myModelToSceneManagersLock")
@@ -508,26 +486,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   /**
-   * Gets a copy of {@code myListeners} under a lock. Use this method instead of accessing the listeners directly.
-   */
-  @NotNull
-  private ImmutableList<DesignSurfaceListener> getListeners() {
-    synchronized (myListenersLock) {
-      return ImmutableList.copyOf(myListeners);
-    }
-  }
-
-  /**
-   * Gets a copy of {@code myZoomListeners} under a lock. Use this method instead of accessing the listeners directly.
-   */
-  @NotNull
-  private ImmutableList<PanZoomListener> getZoomListeners() {
-    synchronized (myListenersLock) {
-      return ImmutableList.copyOf(myZoomListeners);
-    }
-  }
-
-  /**
    * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, it will
    * be moved to the bottom of the list and a refresh will be triggered.
    * The scene views are updated before starting to render and the callback
@@ -585,7 +543,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       .supplyAsync(() -> addModel(modelToAdd), AppExecutorUtil.getAppExecutorService())
       .whenCompleteAsync((model, ex) -> {
           if (getProject().isDisposed() || modelToAdd.isDisposed()) return;
-          for (DesignSurfaceListener listener : getListeners()) {
+          for (DesignSurfaceListener listener : getSurfaceListeners()) {
             // TODO: The listeners have the expectation of the call happening in the EDT. We need
             //       to address that.
             listener.modelChanged(this, modelToAdd);
@@ -695,10 +653,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   @Override
   public void dispose() {
-    synchronized (myListenersLock) {
-      myListeners.clear();
-      myZoomListeners.clear();
-    }
+    clearListeners();
     myGuiInputHandler.stopListening();
     Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);
     synchronized (myRenderFutures) {
@@ -1003,7 +958,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
-    List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
+    List<DesignSurfaceListener> listeners = getSurfaceListeners();
     for (DesignSurfaceListener listener : listeners) {
       listener.componentSelectionChanged(this, newSelection);
     }
@@ -1026,32 +981,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       if (listener.activatePreferredEditor(this, component)) {
         break;
       }
-    }
-  }
-
-  public void addListener(@NotNull DesignSurfaceListener listener) {
-    synchronized (myListenersLock) {
-      myListeners.remove(listener); // ensure single registration
-      myListeners.add(listener);
-    }
-  }
-
-  public void removeListener(@NotNull DesignSurfaceListener listener) {
-    synchronized (myListenersLock) {
-      myListeners.remove(listener);
-    }
-  }
-
-  public void addPanZoomListener(PanZoomListener listener) {
-    synchronized (myListenersLock) {
-      myZoomListeners.remove(listener);
-      myZoomListeners.add(listener);
-    }
-  }
-
-  public void removePanZoomListener(PanZoomListener listener) {
-    synchronized (myListenersLock) {
-      myZoomListeners.remove(listener);
     }
   }
 
