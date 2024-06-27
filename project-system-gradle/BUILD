@@ -188,7 +188,6 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
-        "no_test_mac",
         "noci:studio-win",
     ],
     test_timeout = "long",
@@ -281,7 +280,6 @@ generate_old_agp_tests_from_list(
             ],
             tags = [
                 "block-network",
-                "no_test_mac",
                 "noci:studio-win",
             ],
             test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemOldAgpTestSuite",

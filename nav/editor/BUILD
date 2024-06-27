@@ -39,7 +39,6 @@ iml_module(
     name = "intellij.android.nav.editor.tests",
     iml_files = ["intellij.android.nav.editor.tests.iml"],
     tags = [
-        "no_test_mac",  # b/156004626
         "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.naveditor.NavEditorTestSuite",

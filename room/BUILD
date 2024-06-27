@@ -21,7 +21,6 @@ iml_module(
     name = "intellij.android.room.tests",
     iml_files = ["intellij.android.room.tests.iml"],
     tags = [
-        "no_test_mac",  # b/160881096
         "noci:studio-win",  # b/135665870
     ],
     test_class = "com.android.tools.idea.room.AndroidRoomTestSuite",

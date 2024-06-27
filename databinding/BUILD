@@ -38,7 +38,6 @@ iml_module(
         "non-gradle": {},
     },
     tags = [
-        "no_test_mac",
         "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",

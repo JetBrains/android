@@ -186,7 +186,6 @@ maven_repository(
 
 COMMON_OLD_AGP_TEST_TARGETS_TAGS = [
     "block-network",
-    "no_test_mac",
     "noci:studio-win",
 ]
 
