@@ -237,6 +237,9 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       "        </intent>\n" +
       "    </queries>\n" +
       "    <queries>\n" +
+      "        <<error descr=\"'action' child tag should be defined\">intent</error> />\n" +
+      "    </queries>\n" +
+      "    <queries>\n" +
       "        <provider android:authorities=\"p1.p2\"/>\n" +
       "    </queries>\n" +
       "</manifest>").getVirtualFile();
@@ -289,6 +292,24 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     AndroidTestUtils.moveCaret(myFixture, " <provider |/>");
     myFixture.completeBasic();
     assertThat(myFixture.getLookupElementStrings()).containsExactly("android:authorities");
+  }
+
+  public void testQueriesIntentDataAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <queries>\n" +
+      "        <intent>\n" +
+      "           <data <caret>\n" +
+      "        </intent>\n" +
+      "    </queries>\n" +
+      "</manifest>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+
+    assertThat(myFixture.getLookupElementStrings()).containsExactly(
+      "android:host", "android:mimeType", "android:pathAdvancedPattern", "android:pathPattern", "android:pathSuffix",
+      "android:scheme", "android:ssp", "android:sspAdvancedPattern", "android:sspPattern", "android:sspPrefix", "android:sspSuffix");
   }
 
   public void testQueriesCategoryNameCompletion() {
