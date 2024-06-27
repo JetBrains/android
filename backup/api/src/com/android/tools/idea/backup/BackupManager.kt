@@ -17,6 +17,7 @@
 package com.android.tools.idea.backup
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.run.RunConfigSection
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
@@ -55,7 +56,11 @@ interface BackupManager {
    */
   suspend fun getApplicationId(backupFile: Path): String?
 
+  /** Returns a new [RunConfigSection] object */
+  fun getRestoreRunConfigSection(project: Project): RunConfigSection
+
   companion object {
+    @JvmStatic
     fun getInstance(project: Project): BackupManager = project.getService(BackupManager::class.java)
   }
 }

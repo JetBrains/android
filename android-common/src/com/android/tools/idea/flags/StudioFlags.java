@@ -2132,6 +2132,14 @@ public final class StudioFlags {
       "Show restore action in project view",
       "Show restore action in project view",
       false);
+
+  public static final Flag<Boolean> BACKUP_SHOW_RESTORE_SECION_IN_RUN_CONFIG =
+    new BooleanFlag(
+      BACKUP,
+      "show.in.run.config",
+      "Show restore section in run config",
+      "Show restore section in run config",
+      false);
   // endregion Backup
 
   public static Boolean isBuildOutputShowsDownloadInfo() {

@@ -86,6 +86,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
+        "//tools/adt/idea/backup:intellij.android.backup.api[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android/lib:instantapps-api",
         "//tools/analytics-library/crash:analytics-crash[module]",
