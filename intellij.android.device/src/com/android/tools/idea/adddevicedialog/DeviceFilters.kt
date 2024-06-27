@@ -44,6 +44,7 @@ internal fun DeviceFilters(filterState: DeviceFilterState, modifier: Modifier = 
   Box(modifier.fillMaxSize()) {
     Column(Modifier.padding(6.dp).testTag("DeviceFilters").verticalScroll(scrollState)) {
       ApiFilter(filterState.apiLevelFilter)
+      SingleSelectionDropdown(filterState.formFactorFilter)
       for (attribute in DeviceSetAttributes) {
         SetFilter(filterState[attribute])
       }
@@ -61,6 +62,7 @@ internal class DeviceFilterState(profiles: List<DeviceProfile>) : RowFilter<Devi
     DeviceSetAttributes.map { it.initialSetFilterState(profiles) }.toImmutableList()
 
   val apiLevelFilter = ApiLevelSelectionState()
+  val formFactorFilter = FormFactor.initialSingleSelectionFilterState("Phone", profiles)
 
   val textFilter = TextFilterState()
 
@@ -68,7 +70,10 @@ internal class DeviceFilterState(profiles: List<DeviceProfile>) : RowFilter<Devi
     setFilters.find { it.attribute == attribute } as SetFilterState<DeviceProfile, V>
 
   override fun apply(row: DeviceProfile): Boolean {
-    return setFilters.all { it.apply(row) } && apiLevelFilter.apply(row) && textFilter.apply(row)
+    return setFilters.all { it.apply(row) } &&
+      formFactorFilter.apply(row) &&
+      apiLevelFilter.apply(row) &&
+      textFilter.apply(row)
   }
 }
 
@@ -87,7 +92,7 @@ private val IsRemote = DeviceAttribute("Type") { if (it.isRemote) "Remote" else 
 private val FormFactor = DeviceAttribute("Form Factor") { it.formFactor }
 // The DeviceAttributes that we use set-based filters on. Note that this determines the display
 // order.
-internal val DeviceSetAttributes = listOf<DeviceAttribute<*>>(IsRemote, FormFactor, Manufacturer)
+internal val DeviceSetAttributes = listOf<DeviceAttribute<*>>(IsRemote, Manufacturer)
 
 internal fun <V : Comparable<V>> DeviceAttribute(name: String, value: (DeviceProfile) -> V) =
   DeviceAttribute(name, Comparator.naturalOrder(), value)

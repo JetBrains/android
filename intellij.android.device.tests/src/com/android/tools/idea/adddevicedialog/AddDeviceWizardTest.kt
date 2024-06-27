@@ -21,6 +21,7 @@ import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsToggleable
 import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -65,22 +66,22 @@ class AddDeviceWizardTest {
     val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
     composeTestRule.setContent { StudioTestTheme { wizard.Content() } }
 
-    composeTestRule.onNodeWithText("Television (4K)").performClick()
+    composeTestRule.onNodeWithText("Pixel Fold").performClick()
     composeTestRule.waitForIdle()
     wizard.performAction(wizard.nextAction)
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Configuring Television (4K)").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Configuring Pixel Fold").assertIsDisplayed()
 
     wizard.performAction(wizard.prevAction)
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Television (4K)").assertIsSelected()
+    composeTestRule.onNodeWithText("Pixel Fold").assertIsSelected()
 
     wizard.performAction(wizard.nextAction)
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Configuring Television (4K)").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Configuring Pixel Fold").assertIsDisplayed()
   }
 
   @Test
@@ -98,30 +99,31 @@ class AddDeviceWizardTest {
 
     assertThat(wizard.nextAction.action).isNull()
 
-    composeTestRule.onNodeWithText("Television (4K)").performClick()
+    composeTestRule.onNodeWithText("Pixel Fold").performClick()
     composeTestRule.waitForIdle()
 
-    // TV device selected, can advance to config page
-    composeTestRule.onNodeWithText("Television (4K)").assertIsSelected()
-    composeTestRule.onNodeWithText("TV").assertIsToggleable()
-    composeTestRule.onNodeWithText("TV").assertIsOn()
+    // Google device selected, can advance to config page
+    composeTestRule.onNodeWithText("Pixel Fold").assertIsSelected()
+    val googleFilter = hasText("Google") and hasAnyAncestor(hasTestTag("DeviceFilters"))
+    composeTestRule.onNode(googleFilter).assertIsToggleable()
+    composeTestRule.onNode(googleFilter).assertIsOn()
     assertThat(wizard.nextAction.action).isNotNull()
 
-    // Disable TV devices
-    composeTestRule.onNodeWithText("TV").performClick()
+    // Disable Google devices
+    composeTestRule.onNode(googleFilter).performClick()
     composeTestRule.waitForIdle()
 
     // Can't advance; selected device is filtered out
-    composeTestRule.onNodeWithText("TV").assertIsOff()
-    composeTestRule.onNodeWithText("Television (4K)").assertDoesNotExist()
+    composeTestRule.onNode(googleFilter).assertIsOff()
+    composeTestRule.onNodeWithText("Pixel Fold").assertDoesNotExist()
     assertThat(wizard.nextAction.action).isNull()
 
-    // Re-enable TV devices
-    composeTestRule.onNodeWithText("TV").performClick()
+    // Re-enable Google devices
+    composeTestRule.onNode(googleFilter).performClick()
     composeTestRule.waitForIdle()
 
     // Can advance again
-    composeTestRule.onNodeWithText("Television (4K)").assertIsSelected()
+    composeTestRule.onNodeWithText("Pixel Fold").assertIsSelected()
     assertThat(wizard.nextAction.action).isNotNull()
   }
 }
