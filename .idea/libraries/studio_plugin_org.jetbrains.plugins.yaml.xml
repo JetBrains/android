@@ -1,6 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-org.jetbrains.plugins.yaml">
     <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/yaml/lib/yaml-editing.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/yaml/lib/yaml.jar!/" />
     </CLASSES>
     <JAVADOC />
