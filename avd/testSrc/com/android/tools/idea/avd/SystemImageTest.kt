@@ -25,6 +25,8 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.Hardware
+import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.devices.VendorDevices
 import com.android.sdklib.repository.IdDisplay
@@ -35,6 +37,7 @@ import com.android.sdklib.repository.generated.sysimg.v4.SysImgDetailsType
 import com.android.testutils.MockitoKt
 import com.android.utils.NullLogger
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -45,32 +48,6 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class SystemImageTest {
-  @Test
-  fun matchesApiLevelEqualsApiRangeUpperEndpoint() {
-    // Arrange
-    val image =
-      SystemImage(
-        true,
-        "system-images;android-34-ext10;google_apis_playstore;arm64-v8a",
-        "Google Play ARM 64 v8a System Image",
-        AndroidVersion(34, null, 10, false),
-        Services.GOOGLE_PLAY_STORE,
-        setOf(Abi.ARM64_V8A).toImmutableSet(),
-        setOf<Abi>().toImmutableSet(),
-        persistentListOf(),
-        Storage(1_549_122_970),
-      )
-
-    val device = MockitoKt.mock<VirtualDevice>()
-    MockitoKt.whenever(device.androidVersion).thenReturn(AndroidVersion(34))
-
-    // Act
-    val matches = image.matches(device)
-
-    // Assert
-    assertTrue(matches)
-  }
-
   @Test
   fun matchesDevice() {
     val devices = VendorDevices(NullLogger())
@@ -131,14 +108,63 @@ class SystemImageTest {
         Storage(65_781_578),
       )
 
-    val device = MockitoKt.mock<VirtualDevice>()
-    MockitoKt.whenever(device.androidVersion).thenReturn(AndroidVersion(34))
+    val device = mockPixel8()
 
     // Act
     val matches = image.matches(device)
 
     // Assert
     assertFalse(matches)
+  }
+
+  @Test
+  fun matchesDeviceIsntTabletEtc() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-34;google_apis_tablet;arm64-v8a",
+        "Google APIs Tablet ARM 64 v8a System Image",
+        AndroidVersion(34, null, 7, true),
+        Services.GOOGLE_APIS,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        setOf<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.GOOGLE_APIS_TAG, SystemImageTags.TABLET_TAG).toImmutableList(),
+        Storage(1_775_178_445),
+      )
+
+    val device = mockPixel8()
+
+    // Act
+    val matches = image.matches(device)
+
+    // Assert
+    assertFalse(matches)
+  }
+
+  @Test
+  fun matchesApiLevelEqualsApiRangeUpperEndpoint() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-34-ext10;google_apis_playstore;arm64-v8a",
+        "Google Play ARM 64 v8a System Image",
+        AndroidVersion(34, null, 10, false),
+        Services.GOOGLE_PLAY_STORE,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        setOf<Abi>().toImmutableSet(),
+        persistentListOf(),
+        Storage(1_549_122_970),
+      )
+
+    val device = mockPixel8()
+
+    // Act
+    val matches = image.matches(device)
+
+    // Assert
+    assertTrue(matches)
   }
 
   @Test
@@ -282,6 +308,22 @@ class SystemImageTest {
   }
 
   private companion object {
+    private fun mockPixel8(): VirtualDevice {
+      val screen = MockitoKt.mock<Screen>()
+
+      val hardware = MockitoKt.mock<Hardware>()
+      MockitoKt.whenever(hardware.screen).thenReturn(screen)
+
+      val device = MockitoKt.mock<Device>()
+      MockitoKt.whenever(device.defaultHardware).thenReturn(hardware)
+
+      val virtualDevice = MockitoKt.mock<VirtualDevice>()
+      MockitoKt.whenever(virtualDevice.androidVersion).thenReturn(AndroidVersion(34))
+      MockitoKt.whenever(virtualDevice.device).thenReturn(device)
+
+      return virtualDevice
+    }
+
     private fun mockGooglePlayIntelX86AtomSystemImage() =
       mockRepoPackage(
         1_153_916_727,
