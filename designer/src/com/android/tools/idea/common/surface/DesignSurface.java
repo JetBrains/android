@@ -614,27 +614,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return getInteractionPane();
   }
 
-  @Override
-  @Nullable
-  public SceneView getFocusedSceneView() {
-    ImmutableList<T> managers = getSceneManagers();
-    if (managers.size() == 1) {
-      // Always return primary SceneView In single-model mode,
-      SceneManager manager = getSceneManager();
-      assert manager != null;
-      return Iterables.getFirst(manager.getSceneViews(), null);
-    }
-    List<NlComponent> selection = getSelectionModel().getSelection();
-    if (!selection.isEmpty()) {
-      NlComponent primary = selection.get(0);
-      SceneManager manager = getSceneManager(primary.getModel());
-      if (manager != null) {
-        return Iterables.getFirst(manager.getSceneViews(), null);
-      }
-    }
-    return null;
-  }
-
   /**
    * Returns the list of SceneViews attached to this surface
    */
@@ -944,20 +923,10 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   /**
-   * @see #getSceneManager(NlModel)
-   * @deprecated Use {@link #getSceneManager(NlModel)} or {@link #getSceneManagers} instead.
-   * Using this method will cause the code not to correctly support multiple previews.
-   */
-  @Nullable
-  public T getSceneManager() {
-    NlModel model = getModel();
-    return model != null ? getSceneManager(model) : null;
-  }
-
-  /**
    * @return The {@link SceneManager} associated to the given {@link NlModel}.
    */
   @Nullable
+  @Override
   public T getSceneManager(@NotNull NlModel model) {
     if (model.getModule().isDisposed()) {
       return null;
