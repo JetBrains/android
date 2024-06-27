@@ -307,9 +307,16 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
 
-    assertThat(myFixture.getLookupElementStrings()).containsExactly(
-      "android:host", "android:mimeType", "android:pathAdvancedPattern", "android:pathPattern", "android:pathSuffix",
-      "android:scheme", "android:ssp", "android:sspAdvancedPattern", "android:sspPattern", "android:sspPrefix", "android:sspSuffix");
+    // Validate that completed attributes include a few from the AndroidManifestData styleable, but exclude those
+    // called out at https://developer.android.com/training/package-visibility/declaring#intent-filter-signature.
+    List<String> lookupStrings = myFixture.getLookupElementStrings();
+    assertThat(lookupStrings).contains("android:host");
+    assertThat(lookupStrings).contains("android:mimeType");
+    assertThat(lookupStrings).doesNotContain("android:path");
+    assertThat(lookupStrings).doesNotContain("android:pathPrefix");
+    assertThat(lookupStrings).doesNotContain("android:pathPattern");
+    assertThat(lookupStrings).doesNotContain("android:port");
+    assertThat(lookupStrings).doesNotContain("android:mimeGroup");
   }
 
   public void testQueriesCategoryNameCompletion() {

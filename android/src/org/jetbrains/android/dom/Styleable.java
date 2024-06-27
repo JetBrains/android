@@ -39,4 +39,5 @@ import java.lang.annotation.Target;
 public @interface Styleable {
   String[] value();
   String packageName() default "android";
+  String[] skippedAttributes() default {};
 }

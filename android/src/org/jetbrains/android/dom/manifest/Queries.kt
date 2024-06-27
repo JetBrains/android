@@ -21,6 +21,7 @@ import com.intellij.util.xml.DefinesXml
 import com.intellij.util.xml.Required
 import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.AndroidDomElement
+import org.jetbrains.android.dom.Styleable
 import org.jetbrains.android.dom.converters.AndroidPackageConverter
 
 @DefinesXml
@@ -52,29 +53,11 @@ interface Queries : ManifestElement {
      * https://developer.android.com/training/package-visibility/declaring#intent-filter-signature.
      */
     @DefinesXml
-    interface Data : AndroidDomElement {
-      @Attribute("mimeType") fun getMimeType(): AndroidAttributeValue<String>
-
-      fun getScheme(): AndroidAttributeValue<String>
-
-      fun getSsp(): AndroidAttributeValue<String>
-
-      @Attribute("sspPrefix") fun getSspPrefix(): AndroidAttributeValue<String>
-
-      @Attribute("sspPattern") fun getSspPattern(): AndroidAttributeValue<String>
-
-      @Attribute("sspAdvancedPattern") fun getSspAdvancedPattern(): AndroidAttributeValue<String>
-
-      @Attribute("sspSuffix") fun getSspSuffix(): AndroidAttributeValue<String>
-
-      fun getHost(): AndroidAttributeValue<String>
-
-      @Attribute("pathPattern") fun getPathPattern(): AndroidAttributeValue<String>
-
-      @Attribute("pathAdvancedPattern") fun getPathAdvancedPattern(): AndroidAttributeValue<String>
-
-      @Attribute("pathSuffix") fun getPathSuffix(): AndroidAttributeValue<String>
-    }
+    @Styleable(
+      "AndroidManifestData",
+      skippedAttributes = ["path", "pathPrefix", "pathPattern", "port", "mimeGroup"],
+    )
+    interface Data : AndroidDomElement {}
   }
 
   @DefinesXml
