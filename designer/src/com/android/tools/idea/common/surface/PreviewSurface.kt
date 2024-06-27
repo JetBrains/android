@@ -18,7 +18,9 @@ package com.android.tools.idea.common.surface
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
+import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.ui.designer.EditorDesignSurface
@@ -29,6 +31,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.LayoutManager
 import java.lang.ref.WeakReference
 import java.util.function.Consumer
+import javax.swing.Timer
 
 /**
  * @param actionHandlerProvider Allow a test to override myActionHandlerProvider when the surface is
@@ -93,4 +96,31 @@ abstract class PreviewSurface<T : SceneManager>(
       EditorNotifications.getInstance(project).updateNotifications(file)
     }
   }
+
+  /** Calls [repaint] with delay. TODO Make it private */
+  protected val repaintTimer = Timer(15) { repaint() }
+
+  /** Call this to generate repaints */
+  fun needsRepaint() {
+    if (!repaintTimer.isRunning) {
+      repaintTimer.isRepeats = false
+      repaintTimer.start()
+    }
+  }
+
+  // TODO Make it private
+  protected val modelListener: ModelListener =
+    object : ModelListener {
+      override fun modelDerivedDataChanged(model: NlModel) {
+        updateNotifications()
+      }
+
+      override fun modelChanged(model: NlModel) {
+        updateNotifications()
+      }
+
+      override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
+        repaint()
+      }
+    }
 }
