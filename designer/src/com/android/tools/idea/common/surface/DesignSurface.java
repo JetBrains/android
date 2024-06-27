@@ -129,7 +129,7 @@ import org.jetbrains.annotations.TestOnly;
  * A generic design surface for use in a graphical editor.
  */
 public abstract class DesignSurface<T extends SceneManager> extends PreviewSurface<T>
-  implements Disposable, InteractableScenesSurface, ZoomableViewport, ScaleListener {
+  implements Disposable, InteractableScenesSurface, ScaleListener {
 
   /**
    * Filter got {@link #getModels()} to avoid returning disposed elements
@@ -143,11 +143,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10;
   private static final Integer LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10;
-
-  /**
-   * The scale level when magnification started. This is used as a standard when the new scale level is evaluated.
-   */
-  @SurfaceScale private double myMagnificationStartedScale;
 
   /**
    * {@link JScrollPane} contained in this surface when zooming is enabled.
@@ -820,45 +815,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     for (SceneView sceneView : getSceneViews()) {
       sceneView.onHover(x, y);
     }
-  }
-
-  @Nullable
-  @Override
-  public Magnificator getMagnificator() {
-    return (scale, at) -> null;
-  }
-
-  @Override
-  public void magnificationStarted(Point at) {
-    myMagnificationStartedScale = getZoomController().getScale();
-  }
-
-  @Override
-  public void magnificationFinished(double magnification) {
-  }
-
-  @Override
-  public void magnify(double magnification) {
-    if (Double.compare(magnification, 0) == 0) {
-      return;
-    }
-
-    Point mouse;
-    if (!GraphicsEnvironment.isHeadless()) {
-      PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-      if (pointerInfo == null) {
-        return;
-      }
-      mouse = pointerInfo.getLocation();
-      SwingUtilities.convertPointFromScreen(mouse, getViewport().getViewportComponent());
-    }
-    else {
-      // In headless mode we assume the scale point is at the center.
-      mouse = new Point(getWidth() / 2, getHeight() / 2);
-    }
-    double sensitivity = AndroidEditorSettings.getInstance().getGlobalState().getMagnifySensitivity();
-    @SurfaceScale double newScale = myMagnificationStartedScale + magnification * sensitivity;
-    getZoomController().setScale(newScale, mouse.x, mouse.y);
   }
 
   @Override
