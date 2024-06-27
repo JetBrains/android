@@ -19,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import com.android.resources.ScreenRound
-import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Device
@@ -28,12 +28,14 @@ import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.google.common.collect.Range
 import icons.StudioIconsCompose
+import java.util.NavigableSet
+import java.util.TreeSet
 import kotlin.time.Duration
 
 @Immutable
 internal data class VirtualDeviceProfile(
   val device: Device,
-  override val apiRange: Range<Int>,
+  override val apiLevels: NavigableSet<AndroidVersion>,
   override val manufacturer: String,
   override val name: String,
   override val resolution: Resolution,
@@ -81,9 +83,9 @@ internal data class VirtualDeviceProfile(
   class Builder : DeviceProfile.Builder() {
     lateinit var device: Device
 
-    fun initializeFromDevice(device: Device) {
+    fun initializeFromDevice(device: Device, androidVersions: Set<AndroidVersion>) {
       this.device = device
-      apiRange = device.apiRange
+      apiLevels = androidVersions.filterTo(TreeSet()) { device.androidVersionRange.contains(it) }
       manufacturer = device.manufacturer
       name = device.displayName
       val screen = device.defaultHardware.screen
@@ -103,7 +105,7 @@ internal data class VirtualDeviceProfile(
     override fun build(): VirtualDeviceProfile =
       VirtualDeviceProfile(
         device = device,
-        apiRange = apiRange,
+        apiLevels = apiLevels,
         manufacturer = manufacturer,
         name = name,
         resolution = resolution,
@@ -116,12 +118,11 @@ internal data class VirtualDeviceProfile(
   }
 }
 
-private val Device.apiRange: Range<Int>
+private val Device.androidVersionRange: Range<AndroidVersion>
   get() =
     allSoftware
-      .map { Range.closed(it.minSdkLevel, it.maxSdkLevel) }
-      .reduce(Range<Int>::span)
-      .intersection(Range.closed(1, SdkVersionInfo.HIGHEST_KNOWN_API))
+      .map { Range.closed(AndroidVersion(it.minSdkLevel), AndroidVersion(it.maxSdkLevel)) }
+      .reduce(Range<AndroidVersion>::span)
 
 private val Device.formFactor: String
   get() =

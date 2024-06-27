@@ -46,6 +46,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import java.awt.Component
+import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
@@ -172,21 +173,29 @@ internal class LocalVirtualDeviceSource(
     return true
   }
 
-  override val profiles: List<DeviceProfile> =
-    DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.map {
-      it.toVirtualDeviceProfile()
-    }
+  override val profiles: List<DeviceProfile>
+    get() =
+      DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.mapNotNull { device ->
+        val androidVersions =
+          systemImages.filter { it.matches(device) }.mapTo(TreeSet()) { it.androidVersion }
+        // If there are no system images for a device, we can't create it.
+        if (androidVersions.isEmpty()) null else device.toVirtualDeviceProfile(androidVersions)
+      }
 }
 
-internal fun Device.toVirtualDeviceProfile(): VirtualDeviceProfile =
-  VirtualDeviceProfile.Builder().apply { initializeFromDevice(this@toVirtualDeviceProfile) }.build()
+internal fun Device.toVirtualDeviceProfile(
+  androidVersions: Set<AndroidVersion>
+): VirtualDeviceProfile =
+  VirtualDeviceProfile.Builder()
+    .apply { initializeFromDevice(this@toVirtualDeviceProfile, androidVersions) }
+    .build()
 
 internal fun VirtualDeviceProfile.toVirtualDevice() =
   // TODO: Check that these are appropriate defaults
   VirtualDevice(
     name = device.displayName,
     device = device,
-    androidVersion = AndroidVersion(apiRange.upperEndpoint()),
+    androidVersion = apiLevels.last(),
     // TODO(b/335267252): Set the skin appropriately.
     skin = NoSkin.INSTANCE,
     frontCamera = AvdCamera.EMULATED,

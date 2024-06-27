@@ -36,7 +36,11 @@ import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun DeviceDetails(device: DeviceProfile, apiLevel: Int?, modifier: Modifier = Modifier) {
+fun DeviceDetails(
+  device: DeviceProfile,
+  apiLevelSelection: ApiLevelSelection,
+  modifier: Modifier = Modifier,
+) {
   Column(
     verticalArrangement = Arrangement.spacedBy(4.dp),
     modifier = modifier.padding(4.dp).verticalScroll(rememberScrollState()),
@@ -61,14 +65,15 @@ fun DeviceDetails(device: DeviceProfile, apiLevel: Int?, modifier: Modifier = Mo
     LabeledValue("Density", "${device.displayDensity} dpi")
 
     Header("System Image")
-    if (device.apiRange.lowerEndpoint() != device.apiRange.upperEndpoint()) {
-      LabeledValue("Selected API", (apiLevel ?: device.apiRange.upperEndpoint()).toString())
+    if (device.apiLevels.size > 1) {
+      LabeledValue("Selected API", apiLevelSelection.apply(device).toString())
       LabeledValue(
         "Supported APIs",
-        "${device.apiRange.lowerEndpoint()} - ${device.apiRange.upperEndpoint()}",
+        // TODO: Join to a range?
+        device.apiLevels.map { it.apiStringWithoutExtension }.joinToString(", "),
       )
     } else {
-      LabeledValue("API", device.apiRange.upperEndpoint().toString())
+      LabeledValue("API", device.apiLevels.last().toString())
     }
     LabeledValue("Primary ABI", device.abis.firstOrNull()?.toString() ?: "Unknown")
     if (device.abis.size > 1) {
