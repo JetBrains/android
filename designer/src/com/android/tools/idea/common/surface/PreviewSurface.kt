@@ -312,8 +312,33 @@ abstract class PreviewSurface<T : SceneManager>(
   val model: NlModel?
     get() = models.firstOrNull()
 
+  @Deprecated(
+    "Use getSceneManager(NlModel) or getSceneManagers() instead. Using this method will cause the code not to correctly support multiple previews."
+  )
+  open val sceneManager: T?
+    get() = model?.let { getSceneManager(it) }
+
   abstract val models: ImmutableList<NlModel>
   abstract val sceneManagers: ImmutableList<T>
+
+  abstract fun getSceneManager(model: NlModel): T?
+
+  override val focusedSceneView: SceneView?
+    get() {
+      val managers = sceneManagers
+      if (managers.size == 1) {
+        // Always return primary SceneView In single-model mode,
+        val manager: T = checkNotNull(sceneManager)
+        return manager.sceneViews.firstOrNull()
+      }
+      val selection = selectionModel.selection
+      if (selection.isNotEmpty()) {
+        val primary = selection[0]
+        val manager: T? = getSceneManager(primary.model)
+        return manager?.sceneViews?.firstOrNull()
+      }
+      return null
+    }
 
   val layoutType: DesignerEditorFileType
     get() = model?.type ?: DefaultDesignerFileType
