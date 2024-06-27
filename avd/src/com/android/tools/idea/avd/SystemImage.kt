@@ -67,18 +67,18 @@ internal constructor(
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
       return !SystemImageTags.isTvImage(tags) &&
-             !SystemImageTags.isWearImage(tags) &&
-             !SystemImageTags.isAutomotiveImage(tags) &&
-             !SystemImageTags.isDesktopImage(tags) &&
-             !tags.contains(SystemImageTags.CHROMEOS_TAG)
+        !SystemImageTags.isWearImage(tags) &&
+        !SystemImageTags.isAutomotiveImage(tags) &&
+        !SystemImageTags.isDesktopImage(tags) &&
+        !tags.contains(SystemImageTags.CHROMEOS_TAG)
     }
 
     // Android TV / Google TV and vice versa
     if (
       device.tagId == SystemImageTags.ANDROID_TV_TAG.id ||
-      device.tagId == SystemImageTags.GOOGLE_TV_TAG.id
+        device.tagId == SystemImageTags.GOOGLE_TV_TAG.id
     ) {
-      return SystemImageTags.isTvImage(tags);
+      return SystemImageTags.isTvImage(tags)
     }
 
     // The device has a tag; the system image must have a corresponding tag
@@ -95,7 +95,7 @@ internal constructor(
       return false
     }
 
-    return true
+    return matches(device.device)
   }
 
   override fun toString() = if (isRemote) "$name (${size.toUiString()})" else name
