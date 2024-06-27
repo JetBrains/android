@@ -774,7 +774,7 @@ py_test(
         ":android-studio.win.zip",
     ],
     tags = [
-        "no_windows",  # b/234018495
+        "noci:studio-win",  # b/234018495
     ],
 )
 
@@ -806,7 +806,7 @@ py_test(
             ":android-studio.win.zip",
         ],
     }),
-    tags = ["no_windows"],  # b/233968084
+    tags = ["noci:studio-win"],  # b/233968084
 )
 
 filegroup(
@@ -830,7 +830,7 @@ py_test(
         "update_sdk_files": "$(locations :update_sdk_files)",
     },
     tags = [
-        "no_windows",
+        "noci:studio-win",
     ],
     visibility = ["//visibility:public"],
 )
@@ -856,7 +856,7 @@ py_test(
         "mkspec_files": "$(locations :mkspec_files)",
     },
     tags = [
-        "no_windows",
+        "noci:studio-win",
     ],
     visibility = ["//visibility:public"],
 )
@@ -894,7 +894,7 @@ py_test(
     name = "tools_test",
     srcs = ["tools_test.py"],
     tags = [
-        "no_windows",
+        "noci:studio-win",
     ],
     visibility = ["//visibility:public"],
     deps = [":stamper"],
@@ -937,7 +937,7 @@ java_binary(
     main_class = "com.intellij.updater.Runner",
     tags = [
         "block_network",
-        "no_windows",
+        "noci:studio-win",
     ],
     visibility = ["//visibility:public"],
     runtime_deps = [
@@ -1007,7 +1007,7 @@ iml_module(
     ],
     iml_files = ["tests/intellij.android.studio.tests.iml"],
     tags = [
-        "no_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.testutils.JarTestSuite",
     test_data = [
