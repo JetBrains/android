@@ -422,7 +422,8 @@ class TestDesignSurface(
     ZoomControlsPolicy.VISIBLE,
   ) {
 
-  override fun getLayoutManagerSwitcher(): LayoutManagerSwitcher? = null
+  override val layoutManagerSwitcher: LayoutManagerSwitcher?
+    get() = null
 
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
@@ -441,7 +442,8 @@ class TestDesignSurface(
 
   override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
-  override fun getSelectableComponents(): List<NlComponent> = emptyList()
+  override val selectableComponents: List<NlComponent>
+    get() = emptyList()
 
   private val zoomControllerFake =
     createDesignSurfaceZoomControllerFake(
