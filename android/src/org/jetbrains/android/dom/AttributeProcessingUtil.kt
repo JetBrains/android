@@ -114,7 +114,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.raw.XmlRawResourceElement
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil.PreferenceSource.Companion.getPreferencesSource
-import org.jetbrains.android.dom.xml.Intent
+import org.jetbrains.android.dom.xml.PreferenceElementBase.Intent
 import org.jetbrains.android.dom.xml.XmlResourceElement
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.TagFromClassDescriptor
