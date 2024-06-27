@@ -169,23 +169,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @GuardedBy("myModelToSceneManagersLock")
   private final LinkedHashMap<NlModel, T> myModelToSceneManagers = new LinkedHashMap<>();
 
-  private final ModelListener myModelListener = new ModelListener() {
-    @Override
-    public void modelDerivedDataChanged(@NotNull NlModel model) {
-      updateNotifications();
-    }
-
-    @Override
-    public void modelChanged(@NotNull NlModel model) {
-      updateNotifications();
-    }
-
-    @Override
-    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-      repaint();
-    }
-  };
-
   @NotNull
   private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
 
@@ -204,10 +187,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
    * After that it leave user to control the zoom. This flag indicates if the initial zoom-to-fit is done or not.
    */
   private boolean myIsInitialZoomLevelDetermined = false;
-
-  private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
-    repaint();
-  });
 
   @NotNull
   private final Function<DesignSurface<T>, DesignSurfaceActionHandler> myActionHandlerProvider;
@@ -502,7 +481,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       }
     }
 
-    model.addListener(myModelListener);
+    model.addListener(getModelListener());
     // SceneManager creation is a slow operation. Multiple can happen in parallel.
     // We optimistically create a new scene manager for the given model and then, with the mapping
     // locked we checked if a different one has been added.
@@ -640,7 +619,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
     model.deactivate(this);
 
-    model.removeListener(myModelListener);
+    model.removeListener(getModelListener());
 
     Disposer.dispose(manager);
     UIUtil.invokeLaterIfNeeded(this::revalidateScrollArea);
@@ -732,8 +711,8 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       }
       myRenderFutures.clear();
     }
-    if (myRepaintTimer.isRunning()) {
-      myRepaintTimer.stop();
+    if (getRepaintTimer().isRunning()) {
+      getRepaintTimer().stop();
     }
     getModels().forEach(this::removeModelImpl);
   }
@@ -767,16 +746,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   public JComponent getPreferredFocusedComponent() {
     return getInteractionPane();
-  }
-
-  /**
-   * Call this to generate repaints
-   */
-  public void needsRepaint() {
-    if (!myRepaintTimer.isRunning()) {
-      myRepaintTimer.setRepeats(false);
-      myRepaintTimer.start();
-    }
   }
 
   @Override
