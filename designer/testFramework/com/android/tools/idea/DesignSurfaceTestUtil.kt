@@ -73,13 +73,11 @@ object DesignSurfaceTestUtil {
       whenever(surface.actionManager)
         .thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
     }
-    Mockito.doAnswer { listeners.add(it.getArgument(0)) }
-      .whenever(surface)
-      .addListener(ArgumentMatchers.any(DesignSurfaceListener::class.java))
+    Mockito.doAnswer { listeners.add(it.getArgument(0)) }.whenever(surface).addListener(any())
 
     Mockito.doAnswer { listeners.remove(it.getArgument<Any>(0) as DesignSurfaceListener) }
       .whenever(surface)
-      .removeListener(ArgumentMatchers.any(DesignSurfaceListener::class.java))
+      .removeListener(any())
 
     selectionModel.addListener { _, selection ->
       listeners.forEach { listener -> listener.componentSelectionChanged(surface, selection) }
