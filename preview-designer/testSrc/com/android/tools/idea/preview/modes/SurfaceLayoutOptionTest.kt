@@ -15,32 +15,13 @@
  */
 package com.android.tools.idea.preview.modes
 
-import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
-import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
+import com.android.tools.idea.uibuilder.layout.positionable.HeaderTestPositionableContent
+import com.android.tools.idea.uibuilder.layout.positionable.TestPositionableContent
 import com.google.common.truth.Truth.assertThat
-import java.awt.Dimension
-import java.awt.Insets
 import org.junit.Test
 
 class SurfaceLayoutOptionTest {
-
-  open class TestPositionableContent(override val organizationGroup: OrganizationGroup?) :
-    PositionableContent {
-    override val scale = 0.0
-    override val x = 0
-    override val y = 0
-    override val isFocusedContent = false
-
-    override fun getContentSize(dimension: Dimension?) = Dimension(0, 0)
-
-    override fun setLocation(x: Int, y: Int) {}
-
-    override fun getMargin(scale: Double): Insets = Insets(0, 0, 0, 0)
-  }
-
-  class HeaderTestPositionableContent(override val organizationGroup: OrganizationGroup?) :
-    TestPositionableContent(organizationGroup), HeaderPositionableContent
 
   @Test
   fun groupByOrganizationId1() {

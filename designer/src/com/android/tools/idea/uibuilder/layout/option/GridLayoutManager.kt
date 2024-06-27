@@ -21,10 +21,12 @@ import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
+import com.android.tools.idea.uibuilder.layout.positionable.content
 import com.android.tools.idea.uibuilder.surface.layout.MAX_ITERATION_TIMES
 import com.android.tools.idea.uibuilder.surface.layout.SCALE_UNIT
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
@@ -35,6 +37,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 import org.jetbrains.annotations.ApiStatus
+import org.jetbrains.annotations.VisibleForTesting
 
 /** The minumum height x width what should be available for the preview. */
 private const val minumumPreviewSpacePx = 100 * 100
@@ -49,6 +52,12 @@ class GridLayoutManager(
   private val padding: OrganizationPadding,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
+
+  /** The list of all the [GridLayoutGroup]s applied in this manager. */
+  private val currentLayoutGroups: MutableList<GridLayoutGroup> = mutableListOf()
+
+  /** When this value is true it should update [currentLayoutGroups]. */
+  private var currentAvailableWidth: Int? = null
 
   /** Get the total required size to layout the [content] with the given conditions. */
   override fun getSize(
@@ -221,15 +230,29 @@ class GridLayoutManager(
    * [PositionableContent]. The [widthFunc] is for getting the preferred widths of
    * [PositionableContent]s when filling the horizontal spaces.
    */
-  private fun createLayoutGroup(
+  @VisibleForTesting
+  fun createLayoutGroup(
     group: PositionableGroup,
     scaleFunc: PositionableContent.() -> Double,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate widthFunc: PositionableContent.() -> Int,
   ): GridLayoutGroup {
+    val isSameWidth = currentAvailableWidth == availableWidth
+    currentAvailableWidth = availableWidth
+
     if (group.content.isEmpty()) {
       return GridLayoutGroup(group.header, emptyList())
     }
+
+    // We skip creating a new layout group if the content hasn't changed, in this way we keep the
+    // same size and layout group order when zooming in or when resizing the window.
+    currentLayoutGroups
+      .takeIf { StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get() }
+      ?.firstOrNull { it.content() == group.content && it.header == group.header && isSameWidth }
+      ?.let {
+        return it
+      }
+
     // Need to take into account canvas padding and group offset
     val width =
       availableWidth -
@@ -253,7 +276,7 @@ class GridLayoutManager(
     }
 
     if (columnList.isNotEmpty()) gridList.add(columnList)
-    return GridLayoutGroup(group.header, gridList)
+    return GridLayoutGroup(group.header, gridList).apply { currentLayoutGroups.add(this) }
   }
 
   override fun measure(
