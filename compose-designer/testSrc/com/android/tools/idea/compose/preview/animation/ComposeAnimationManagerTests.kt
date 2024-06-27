@@ -152,19 +152,19 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       }
 
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { toolbar, ui ->
-      delayUntilCondition(200) { transitionCalls == 1 }
+      withContext(workerThread) { delayUntilCondition(200) { transitionCalls == 1 } }
       assertEquals(1, transitionCalls)
-      delayUntilCondition(200) { stateCalls == 1 }
+      withContext(workerThread) { delayUntilCondition(200) { stateCalls == 1 } }
       assertEquals(1, stateCalls)
       // Swap
       ui.clickOn(toolbar.components[1])
-      delayUntilCondition(200) { transitionCalls == 2 }
+      withContext(workerThread) { delayUntilCondition(200) { transitionCalls == 2 } }
       assertEquals(2, transitionCalls)
       assertEquals(2, stateCalls)
       // Swap again
       ui.clickOn(toolbar.components[1])
       assertEquals(2, transitionCalls)
-      delayUntilCondition(200) { stateCalls == 3 }
+      withContext(workerThread) { delayUntilCondition(200) { stateCalls == 3 } }
       assertEquals(3, stateCalls)
     }
   }
@@ -201,7 +201,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
         val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
         ui.updateToolbars()
         ui.layout()
-        delayUntilCondition(200) { numberOfCalls == 1 }
+        withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 1 } }
         val errorPanel =
           TreeWalker(ui.root)
             .descendantStream()
