@@ -58,6 +58,7 @@ import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.scopeTypeByName
 import com.android.tools.idea.res.AndroidInnerClassFinder
@@ -280,7 +281,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       for (androidFacet in project.getAndroidFacets()) {
         val model = GradleAndroidModel.get(androidFacet) ?: continue
         val mainModule = androidFacet.mainModule
-        val androidTestModule = androidFacet.androidTestModule
+        val androidTestModule = mainModule.getAndroidTestModule()
         model.androidProject.namespace?.let { namespace ->
           packageToModule.put(namespace, mainModule)
 
