@@ -23,8 +23,12 @@ import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface.ZoomControlsPolicy
 import com.android.tools.idea.ui.designer.EditorDesignSurface
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotifications
+import com.intellij.util.ui.UIUtil
 import java.awt.LayoutManager
+import java.lang.ref.WeakReference
 import java.util.function.Consumer
 
 /**
@@ -68,5 +72,28 @@ abstract class PreviewSurface<T : SceneManager>(
 
   fun removeIssueListener(listener: IssueListener) {
     myIssueListeners.remove(listener)
+  }
+
+  private var _fileEditorDelegate = WeakReference<FileEditor?>(null)
+
+  /**
+   * Sets the file editor to which actions like undo/redo will be delegated. This is only needed if
+   * this DesignSurface is not a child of a [FileEditor].
+   *
+   * The surface will only keep a [WeakReference] to the editor.
+   */
+  var fileEditorDelegate: FileEditor?
+    get() = _fileEditorDelegate.get()
+    set(value) {
+      _fileEditorDelegate = WeakReference(value)
+    }
+
+  /** Updates the notifications panel associated to this [DesignSurface]. */
+  protected fun updateNotifications() {
+    val fileEditor: FileEditor? = _fileEditorDelegate.get()
+    val file = fileEditor?.file ?: return
+    UIUtil.invokeLaterIfNeeded {
+      EditorNotifications.getInstance(project).updateNotifications(file)
+    }
   }
 }
