@@ -22,7 +22,7 @@ import org.jetbrains.android.dom.Styleable;
  * Framework code: TranslateAnimation(Context, AttributeSet) constructor
  * @see org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription
  */
-@Styleable("TranslateAnimation")
+@Styleable({"TranslateAnimation", "Animation"})
 @DefinesXml
 public interface Translate extends AnimationElement {
 }
