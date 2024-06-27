@@ -26,8 +26,6 @@ import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.configurations.Configuration;
-import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueModel;
@@ -35,7 +33,6 @@ import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
-import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
@@ -47,8 +44,6 @@ import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.layout.manager.MatchParentLayoutManager;
 import com.android.tools.idea.common.surface.layout.NonScrollableDesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewport;
-import com.android.tools.idea.common.type.DefaultDesignerFileType;
-import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -82,10 +77,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
-import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -146,9 +139,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
   @GuardedBy("myModelToSceneManagersLock")
   private final LinkedHashMap<NlModel, T> myModelToSceneManagers = new LinkedHashMap<>();
-
-  @NotNull
-  private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
 
   protected final IssueModel myIssueModel;
   private boolean myIsActive = false;
@@ -621,15 +611,15 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     clearListeners();
     myGuiInputHandler.stopListening();
     Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);
-    synchronized (myRenderFutures) {
-      for (CompletableFuture<Void> future : myRenderFutures) {
+    synchronized (getRenderFutures()) {
+      for (CompletableFuture<Void> future : getRenderFutures()) {
         try {
           future.cancel(true);
         }
         catch (CancellationException ignored) {
         }
       }
-      myRenderFutures.clear();
+      getRenderFutures().clear();
     }
     if (getRepaintTimer().isRunning()) {
       getRepaintTimer().stop();
@@ -1105,55 +1095,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return requestSequentialRender(manager -> manager.requestLayoutAndRenderAsync(false));
   }
 
-  /**
-   * Schedule the render requests sequentially for all {@link SceneManager}s in this {@link DesignSurface}.
-   *
-   * @param renderRequest The requested rendering to be scheduled. This gives the caller a chance to choose the preferred rendering request.
-   * @return A callback which is triggered when the scheduled rendering are completed.
-   */
-  @NotNull
-  protected CompletableFuture<Void> requestSequentialRender(@NotNull Function<T, CompletableFuture<Void>> renderRequest) {
-    CompletableFuture<Void> callback = new CompletableFuture<>();
-    synchronized (myRenderFutures) {
-      if (!myRenderFutures.isEmpty()) {
-        // TODO: This may make the rendered previews not match the last status of NlModel if the modifications happen during rendering.
-        //       Similar case happens in LayoutlibSceneManager#requestRender function, both need to be fixed.
-        myRenderFutures.add(callback);
-        return callback;
-      }
-      else {
-        myRenderFutures.add(callback);
-      }
-    }
 
-    // Cascading the CompletableFuture to make them executing sequentially.
-    CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
-    for (T manager : getSceneManagers()) {
-      renderFuture = renderFuture.thenCompose(it -> {
-        CompletableFuture<Void> future = renderRequest.apply(manager);
-        invalidate();
-        return future;
-      });
-    }
-    renderFuture.thenRun(() -> {
-      synchronized (myRenderFutures) {
-        myRenderFutures.forEach(future -> future.complete(null));
-        myRenderFutures.clear();
-      }
-      updateNotifications();
-    });
-
-    return callback;
-  }
-
-  /**
-   * Returns true if this surface is currently refreshing.
-   */
-  public final boolean isRefreshing() {
-    synchronized (myRenderFutures) {
-      return !myRenderFutures.isEmpty();
-    }
-  }
 
   /**
    * Converts a given point that is in view coordinates to viewport coordinates.
