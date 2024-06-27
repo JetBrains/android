@@ -25,7 +25,6 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
-        "no_test_mac",
         "noci:studio-win",  # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
     ],
     test_timeout = "long",

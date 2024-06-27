@@ -3,7 +3,6 @@ load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 SYNC_PERFGATE_TAGS = [
     "block-network",
-    "no_test_mac",
     "noci:studio-win",
     "noci:studio-linux",
     "ci:perfgate-linux",
@@ -11,7 +10,6 @@ SYNC_PERFGATE_TAGS = [
 
 SYNC_SMOKE_TAGS = [
     "block-network",
-    "no_test_mac",
     "noci:studio-win",
 ]
 

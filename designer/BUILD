@@ -101,7 +101,6 @@ iml_module(
     test_tags = [
         "block-network",
         "cpu:3",
-        "no_test_mac",  # b/72973198
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],

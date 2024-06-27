@@ -53,7 +53,6 @@ iml_module(
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
             "tags": [
-                "no_test_mac",  # b/113099009
                 "noci:studio-win",  # b/135665870
             ],
         },
@@ -134,7 +133,6 @@ generate_old_agp_tests_from_list(
             ],
             tags = [
                 "block-network",
-                "no_test_mac",
                 "noci:studio-win",
             ],
             test_class = "com.android.build.attribution.AndroidBuildAttributionOldAgpTestSuite",
