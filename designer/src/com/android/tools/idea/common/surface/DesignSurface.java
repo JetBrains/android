@@ -357,13 +357,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @NotNull
   protected abstract T createSceneManager(@NotNull NlModel model);
 
-  /**
-   * When not null, returns a {@link JPanel} to be rendered next to the primary panel of the editor.
-   */
-  public JPanel getAccessoryPanel() {
-    return null;
-  }
-
   @NotNull
   public DesignerEditorFileType getLayoutType() {
     NlModel model = getModel();
@@ -379,16 +372,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @NotNull
   public Function<DesignSurface<T>, DesignSurfaceActionHandler> getActionHandlerProvider() {
     return myActionHandlerProvider;
-  }
-
-  @NotNull
-  public abstract ItemTransferable getSelectionAsTransferable();
-
-  /**
-   * Returns whether render error panels should be rendered when {@link SceneView}s in this surface have render errors.
-   */
-  public boolean shouldRenderErrorsPanel() {
-    return false;
   }
 
   /**
@@ -765,11 +748,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   /**
-   * Scroll to the center of a list of given components. Usually the center of the area containing these elements.
-   */
-  public abstract void scrollToCenter(@NotNull List<NlComponent> list);
-
-  /**
    * Given a rectangle relative to a sceneView, find its absolute coordinates and then scroll to
    * center such rectangle. See {@link #scrollToCenter(Rectangle)}
    * @param sceneView the {@link SceneView} that contains the given rectangle.
@@ -890,10 +868,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     notifyScaleChanged(update.getPreviousScale(), update.getNewScale());
   }
 
-  protected boolean isKeepingScaleWhenReopen() {
-    return true;
-  }
-
   /**
    * Save the current zoom level from the file of the given {@link NlModel}.
    */
@@ -924,18 +898,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     }
   }
 
-  private void notifyScaleChanged(double previousScale, double newScale) {
-    for (PanZoomListener myZoomListener : getZoomListeners()) {
-      myZoomListener.zoomChanged(previousScale, newScale);
-    }
-  }
-
-  private void notifyPanningChanged(AdjustmentEvent adjustmentEvent) {
-    for (PanZoomListener myZoomListener : getZoomListeners()) {
-      myZoomListener.panningChanged(adjustmentEvent);
-    }
-  }
-
   @NotNull
   public JComponent getLayeredPane() {
     return myLayeredPane;
@@ -950,11 +912,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @NotNull
   public DesignerAnalyticsManager getAnalyticsManager() {
     return myAnalyticsManager;
-  }
-
-  @Nullable
-  public LayoutScannerControl getLayoutScannerControl() {
-    return null;
   }
 
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {

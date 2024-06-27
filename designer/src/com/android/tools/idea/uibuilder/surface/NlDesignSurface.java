@@ -630,7 +630,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   @Override
-  public void scrollToCenter(@NotNull List<NlComponent> list) {
+  public void scrollToCenter(List<? extends NlComponent> list) {
     SceneView view = getFocusedSceneView();
     if (list.isEmpty() || view == null) {
       return;
