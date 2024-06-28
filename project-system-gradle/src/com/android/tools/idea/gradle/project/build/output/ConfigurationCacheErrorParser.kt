@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
+import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
-import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
@@ -55,10 +56,12 @@ class ConfigurationCacheErrorParser : BuildOutputParser {
 
     BuildOutputParserUtils.consumeRestOfOutput(reader)
 
-    val buildIssue = object : BuildIssue {
+    val buildIssue = object : ErrorMessageAwareBuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
       override val title: String = BUILD_ISSUE_TITLE
+      override val buildErrorMessage: BuildErrorMessage
+        get() = BuildErrorMessage.newBuilder().setErrorShownType(BuildErrorMessage.ErrorType.CONFIGURATION_CACHE).build()
 
       override fun getNavigatable(project: Project): Navigatable? = null
 
