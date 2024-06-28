@@ -38,6 +38,7 @@ import kotlin.system.exitProcess
 class SafeMode : ApplicationLoadListener {
   companion object {
     private val LOG = Logger.getInstance(SafeMode::class.java)
+    private const val ENABLED = false
   }
 
   internal var safeModeEnabled = false
@@ -112,6 +113,10 @@ class SafeMode : ApplicationLoadListener {
   }
 
   private fun safeModeDisabled(): Boolean {
+    if (!ENABLED) {
+      return true
+    }
+
     if (SystemInfo.isMac) {
       return true
     }
