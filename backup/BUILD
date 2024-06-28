@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
+        "//tools/adt/idea/backup:intellij.android.backup.api[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
@@ -41,5 +42,19 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/backup:intellij.android.backup[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.backup.api",
+    srcs = ["api/src"],
+    iml_files = ["intellij.android.backup.api.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
     ],
 )
