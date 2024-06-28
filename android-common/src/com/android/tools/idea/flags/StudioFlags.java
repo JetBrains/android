@@ -1532,7 +1532,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_TILE_PREVIEW = new BooleanFlag(
     WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
     "If enabled, a preview for functions annotated with @Preview and returning TilePreviewData is displayed",
-    ChannelDefault.enabledUpTo(CANARY));
+    true);
   // endregion
 
   // region Wear Health Services
