@@ -180,7 +180,7 @@ void Controller::InitializeVirtualKeyboard() {
   }
 }
 
-VirtualMouse& Controller::GetVirtualMouse(int32_t display_id) {
+[[maybe_unused]] VirtualMouse& Controller::GetVirtualMouse(int32_t display_id) {
   if (virtual_mouse_ == nullptr) {
     virtual_mouse_ = new VirtualMouse();
     if (!virtual_mouse_->IsValid()) {
@@ -584,11 +584,11 @@ void Controller::StopVideoStream(const StopVideoStreamMessage& message) {
   Agent::StopVideoStream(message.display_id());
 }
 
-void Controller::StartAudioStream(const StartAudioStreamMessage& message) {
+void Controller::StartAudioStream([[maybe_unused]] const StartAudioStreamMessage& message) {
   Agent::StartAudioStream();
 }
 
-void Controller::StopAudioStream(const StopAudioStreamMessage& message) {
+void Controller::StopAudioStream([[maybe_unused]] const StopAudioStreamMessage& message) {
   Agent::StopAudioStream();
 }
 
