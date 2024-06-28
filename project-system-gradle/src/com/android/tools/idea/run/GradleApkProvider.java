@@ -59,6 +59,7 @@ import com.android.tools.idea.gradle.util.BuildOutputUtil;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
@@ -631,7 +632,7 @@ public final class GradleApkProvider implements ApkProvider {
       Module targetModule = ApplicationManager.getApplication().runReadAction(
         (Computable<Module>)() -> {
           Project project = myFacet.getModule().getProject();
-          GradleProjectPath projectPath = getGradleProjectPath(myFacet.getHolderModule());
+          GradleProjectPath projectPath = getGradleProjectPath(ModuleSystemUtil.getHolderModule(myFacet.getModule()));
           if (projectPath == null) return null;
           GradleProjectPath targetProjectPath = new GradleHolderProjectPath(projectPath.getBuildRoot(), targetGradlePath);
           return resolveIn(targetProjectPath, project);

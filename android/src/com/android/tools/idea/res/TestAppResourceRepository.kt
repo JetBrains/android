@@ -52,10 +52,11 @@ private constructor(private val facet: AndroidFacet, parentDisposable: Disposabl
         StudioResourceRepositoryManager.getInstance(facet).testModuleResources
       val localRepositories = mutableListOf(moduleTestResources)
       val androidModuleSystem = facet.getModuleSystem()
+      val holderModule = androidModuleSystem.module.getHolderModule()
       localRepositories.addAll(
         androidModuleSystem
           .getAndroidTestDirectResourceModuleDependencies()
-          .filter { it.getHolderModule() != facet.holderModule }
+          .filter { it.getHolderModule() != holderModule }
           .mapNotNull { it.androidFacet }
           .map { StudioResourceRepositoryManager.getModuleResources(it) }
       )
