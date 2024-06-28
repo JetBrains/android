@@ -44,7 +44,6 @@ import javax.swing.SwingConstants
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -417,7 +416,6 @@ abstract class AnimationPreview<T : AnimationManager>(
     animationPreviewPanel.add(errorPanel, TabularLayout.Constraint(0, 0))
     animationPreviewPanel.revalidate()
     animationPreviewPanel.repaint()
-    scope.cancel("Error in Animation Inspector", e)
   }
 
   override fun dispose() {
