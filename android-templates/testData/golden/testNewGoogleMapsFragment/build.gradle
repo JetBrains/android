@@ -1,15 +1,4 @@
-buildscript {
-    repositories {
-        // This will be populated by AndroidGradleTestCase
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:+'
-        classpath libs.secrets.gradle.plugin
-    }
-}
-
-allprojects {
-    repositories {
-        // This will be populated by AndroidGradleTestCase
-    }
+plugins {
+alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin) apply false
 }

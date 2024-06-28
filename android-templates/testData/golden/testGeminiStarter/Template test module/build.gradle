@@ -1,7 +1,7 @@
 plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
 }
 
 android {
@@ -50,21 +50,21 @@ android {
 
 dependencies {
 
-    implementation libs.core.ktx
-    implementation libs.lifecycle.runtime.ktx
-    implementation libs.lifecycle.viewmodel.compose
-    implementation libs.activity.compose
-    implementation platform(libs.compose.bom)
-    implementation libs.ui
-    implementation libs.ui.graphics
-    implementation libs.ui.tooling.preview
-    implementation libs.material3
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.lifecycle.runtime.ktx
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.activity.compose
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.ui
+    implementation libs.androidx.ui.graphics
+    implementation libs.androidx.ui.tooling.preview
+    implementation libs.androidx.material3
     implementation libs.generativeai
     testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
-    androidTestImplementation platform(libs.compose.bom)
-    androidTestImplementation libs.ui.test.junit4
-    debugImplementation libs.ui.tooling
-    debugImplementation libs.ui.test.manifest
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+    androidTestImplementation platform(libs.androidx.compose.bom)
+    androidTestImplementation libs.androidx.ui.test.junit4
+    debugImplementation libs.androidx.ui.tooling
+    debugImplementation libs.androidx.ui.test.manifest
 }
