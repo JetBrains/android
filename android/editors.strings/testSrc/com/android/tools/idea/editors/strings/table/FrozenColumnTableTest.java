@@ -45,15 +45,15 @@ public final class FrozenColumnTableTest {
 
   @Test
   public void getRowHeight() {
-    FrozenColumnTable frozenColumnTable = new FrozenColumnTable(new DefaultTableModel(1, 4), 2);
+    FrozenColumnTable<DefaultTableModel> frozenColumnTable = new FrozenColumnTable<>(new DefaultTableModel(1, 4), 2);
 
     JTable frozenTable = frozenColumnTable.getFrozenTable();
     frozenTable.setRowHeight(26);
-    frozenTable.getRowHeight();
+    assertThat(frozenTable.getRowHeight()).isEqualTo(26);
 
     JTable scrollableTable = frozenColumnTable.getScrollableTable();
     scrollableTable.setRowHeight(29);
-    scrollableTable.getRowHeight();
+    assertThat(scrollableTable.getRowHeight()).isEqualTo(29);
 
     assertThat(frozenColumnTable.getRowHeight()).isEqualTo(29);
   }
@@ -67,7 +67,7 @@ public final class FrozenColumnTableTest {
     };
     Object[] columns = new Object[]{"Key", "Resource Folder", "Untranslatable", "Default Value"};
     DefaultTableModel model = new DefaultTableModel(data, columns);
-    FrozenColumnTable frozenColumnTable = new FrozenColumnTable(model, 4);
+    FrozenColumnTable<DefaultTableModel> frozenColumnTable = new FrozenColumnTable<>(model, 4);
     frozenColumnTable.getFrozenTable().createDefaultColumnsFromModel();
     frozenColumnTable.getScrollableTable().createDefaultColumnsFromModel();
     JScrollPane pane = (JScrollPane)frozenColumnTable.getScrollPane();
@@ -144,7 +144,7 @@ public final class FrozenColumnTableTest {
     };
     Object[] columns = new Object[]{"Key", "Resource Folder", "Untranslatable", "Default Value"};
     DefaultTableModel model = new DefaultTableModel(data, columns);
-    FrozenColumnTable frozenColumnTable = new FrozenColumnTable(model, 4);
+    FrozenColumnTable<DefaultTableModel> frozenColumnTable = new FrozenColumnTable<>(model, 4);
     frozenColumnTable.getFrozenTable().createDefaultColumnsFromModel();
     frozenColumnTable.getScrollableTable().createDefaultColumnsFromModel();
     JScrollPane pane = (JScrollPane)frozenColumnTable.getScrollPane();
