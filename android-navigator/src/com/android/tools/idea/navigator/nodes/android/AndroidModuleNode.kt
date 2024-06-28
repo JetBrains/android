@@ -123,7 +123,7 @@ class AndroidModuleNode(
       settings: ViewSettings
     ): Collection<AbstractTreeNode<*>> {
       val result: MutableList<AbstractTreeNode<*>> = ArrayList()
-      result.addAll(AndroidViewNodeProvider.getProviders().mapNotNull { it.getModuleChildren(facet.holderModule, settings) }.flatten())
+      result.addAll(AndroidViewNodeProvider.getProviders().mapNotNull { it.getModuleChildren(facet.module.getHolderModule(), settings) }.flatten())
       return result
     }
 

@@ -54,6 +54,7 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.rendering.BuildTargetReference;
@@ -313,7 +314,7 @@ public class AndroidJavaDocRenderer {
       int rank = 0;
 
       for (AndroidFacet reachableFacet : Iterables.concat(ImmutableList.of(facet), dependencies)) {
-        String facetModuleName = reachableFacet.getHolderModule().getName();
+        String facetModuleName = ModuleSystemUtil.getHolderModule(reachableFacet.getModule()).getName();
         SourceProviders sourceProviders = SourceProviders.getInstance(reachableFacet);
         Set<NamedIdeaSourceProvider> selectedProviders = new HashSet<>();
         for (NamedIdeaSourceProvider sourceProvider : ImmutableList.copyOf(sourceProviders.getCurrentSourceProviders()).reverse()) {

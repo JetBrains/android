@@ -104,21 +104,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Obtains the empty module which should be used when sources or dependencies aren't needed, or to get information to display to the user.
-   *
-   * For Gradle, If module per source set is enabled then this will return the module that has as children all the modules from this
-   * Android Gradle project, this module will contain no sources or dependencies and is just used to group the other modules.
-   * Or, If module per source set is disabled then this will return the combined module with all sources, tests and dependencies
-   * for the combined main, unit test and android test artifacts.
-   */
-  @NotNull
-  public Module getHolderModule() {
-    Module holderModule = getModuleByMethod(LinkedAndroidModuleGroup::getHolder);
-    if (holderModule == null) throw new IllegalStateException("Holder modules shouldn't be null, something has gone wrong!");
-    return holderModule;
-  }
-
-  /**
    * Helper method to find different modules related to this Android facet.
    *
    * @param func the getter from the {@link LinkedAndroidModuleGroup} for the module needed
