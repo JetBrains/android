@@ -55,6 +55,7 @@ class NewKotlinMultiplatformLibraryModuleModel(
       get() = { td: TemplateData ->
         generateMultiplatformModule(
           data = td as ModuleTemplateData,
+          useKts = true
         )
       }
   }
