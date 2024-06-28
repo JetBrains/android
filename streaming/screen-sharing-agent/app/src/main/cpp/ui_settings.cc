@@ -246,7 +246,6 @@ bool ParseAppLanguageLine(const string& line, string* application_id, string* lo
 }
 
 void ProcessAppLanguage(TokenIterator* it, UiSettingsState* state) {
-  string locale;
   string application_id;
   if (it->has_next()) {
     string line = it->next();
