@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -233,10 +234,10 @@ class FacetFinderTest {
     appFacet = project.getAndroidFacets().find { it.module.name.contains("app") }!!
     libFacet = project.getAndroidFacets().find { it.module.name.contains("lib") }!!
 
-    writeManifestFileContents(appFacet.mainModule, appManifest)
-    writeManifestFileContents(appFacet.mainModule, appDebugManifest, sourceSetName = "debug")
+    writeManifestFileContents(appFacet.module.getMainModule(), appManifest)
+    writeManifestFileContents(appFacet.module.getMainModule(), appDebugManifest, sourceSetName = "debug")
     writeManifestFileContents(appFacet.module.getAndroidTestModule(), appAndroidTestManifest)
-    writeManifestFileContents(libFacet.mainModule, libManifest)
+    writeManifestFileContents(libFacet.module.getMainModule(), libManifest)
     writeManifestFileContents(libFacet.module.getAndroidTestModule(), libAndroidTestManifest)
     writeManifestFileContents(libFacet.module.getAndroidTestModule(), libDebugAndroidTestManifest, sourceSetName = "androidTestDebug")
   }
@@ -260,28 +261,28 @@ class FacetFinderTest {
   @Test
   fun testPackageName() {
     val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = "applicationId", processName = "overridden"))
-    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testLocalProcessFromAppModule() {
     val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = "applicationId", processName = "applicationId:localfromapp"))
-    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testLocalProcessFromLibModule() {
     val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = "applicationId", processName = "applicationId:localfromlib"))
-    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromAppModule() {
     val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromapp"))
-    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
 
@@ -295,7 +296,7 @@ class FacetFinderTest {
   @Test
   fun testGlobalProcessFromLibModule() {
     val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromlib"))
-    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
 

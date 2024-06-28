@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.google.common.annotations.VisibleForTesting;
@@ -146,7 +147,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Generating Signed APKs", false, null) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        List<Module> modules = ImmutableList.of(myFacet.getMainModule());
+        List<Module> modules = ImmutableList.of(ModuleSystemUtil.getMainModule(myFacet.getModule()));
         Consumer<ListenableFuture<AssembleInvocationResult>> buildHandler = prepareBuildResultHandler(modules);
         if (buildHandler == null) {
           // Nothing to do, there was an error detected while generating the result handler (and was already logged)
