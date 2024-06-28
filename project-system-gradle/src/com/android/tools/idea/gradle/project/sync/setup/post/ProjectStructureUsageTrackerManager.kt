@@ -163,7 +163,7 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
       if (androidModel != null) {
         val moduleAndroidProject = androidModel.androidProject
         val androidModule = GradleAndroidModule.newBuilder()
-        androidModule.setModuleName(AnonymizerUtil.anonymizeUtf8(facet.holderModule.name))
+        androidModule.setModuleName(AnonymizerUtil.anonymizeUtf8(facet.module.name))
           .setSigningConfigCount(moduleAndroidProject.signingConfigs.size.toLong())
           .setIsLibrary(moduleAndroidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)
           .setBuildTypeCount(androidModel.buildTypeNames.size.toLong())
@@ -175,7 +175,7 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
         gradleAndroidModules.add(androidModule.build())
       }
       var shouldReportNative = false
-      val ndkModel = NdkModuleModel.get(facet.holderModule)
+      val ndkModel = NdkModuleModel.get(facet.module)
       var buildSystemType = NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE
       var moduleName = ""
       var ndkVersion = ""

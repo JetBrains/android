@@ -47,7 +47,7 @@ fun getSelectedVariantDetails(androidModel: GradleAndroidModel, selectedAbi: Str
 }
 
 internal fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
-  val module = holderModule
+  val module = module
   val moduleId = module.getModuleIdForSyncRequest() ?: return null
   val gradleAndroidModel = GradleAndroidModel.get(this)
   val ndkModuleModel = NdkModuleModel.get(module)
