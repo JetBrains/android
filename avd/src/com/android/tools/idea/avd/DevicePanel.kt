@@ -45,20 +45,18 @@ import org.jetbrains.jewel.ui.component.separator
 
 @Composable
 internal fun DevicePanel(
-  device: VirtualDevice,
-  state: DevicePanelState,
+  configureDevicePanelState: ConfigureDevicePanelState,
+  devicePanelState: DevicePanelState,
   servicesCollection: ImmutableCollection<Services>,
   images: ImmutableList<SystemImage>,
-  systemImageTableSelectionState: TableSelectionState<SystemImage>,
-  onDeviceChange: (VirtualDevice) -> Unit,
-  onStateChange: (DevicePanelState) -> Unit,
+  onDevicePanelStateChange: (DevicePanelState) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
 ) {
   Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
   TextField(
-    device.name,
-    onValueChange = { onDeviceChange(device.copy(name = it)) },
+    configureDevicePanelState.device.name,
+    onValueChange = configureDevicePanelState::setDeviceName,
     Modifier.padding(bottom = Padding.MEDIUM_LARGE),
   )
 
@@ -70,32 +68,36 @@ internal fun DevicePanel(
   )
 
   ServicesDropdown(
-    state.selectedServices,
+    devicePanelState.selectedServices,
     servicesCollection,
-    onSelectedServicesChange = { onStateChange(state.copy(selectedServices = it)) },
+    onSelectedServicesChange = {
+      onDevicePanelStateChange(devicePanelState.copy(selectedServices = it))
+    },
     Modifier.padding(bottom = Padding.MEDIUM_LARGE),
   )
 
   SystemImageTable(
     images,
-    state,
-    systemImageTableSelectionState,
+    devicePanelState,
+    configureDevicePanelState.systemImageTableSelectionState,
     onDownloadButtonClick,
     Modifier.height(150.dp).padding(bottom = Padding.SMALL),
   )
 
   ShowSdkExtensionSystemImagesCheckbox(
-    state.sdkExtensionSystemImagesVisible,
+    devicePanelState.sdkExtensionSystemImagesVisible,
     onSdkExtensionSystemImagesVisibleChange = {
-      onStateChange(state.copy(sdkExtensionSystemImagesVisible = it))
+      onDevicePanelStateChange(devicePanelState.copy(sdkExtensionSystemImagesVisible = it))
     },
     Modifier.padding(bottom = Padding.SMALL),
   )
 
   CheckboxRow(
     "Only show system images recommended for my host CPU architecture",
-    state.onlyForHostCpuArchitectureVisible,
-    onCheckedChange = { onStateChange(state.copy(onlyForHostCpuArchitectureVisible = it)) },
+    devicePanelState.onlyForHostCpuArchitectureVisible,
+    onCheckedChange = {
+      onDevicePanelStateChange(devicePanelState.copy(onlyForHostCpuArchitectureVisible = it))
+    },
   )
 }
 

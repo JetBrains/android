@@ -38,21 +38,13 @@ import org.jetbrains.jewel.ui.component.Text
 internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   images: ImmutableList<SystemImage>,
-  systemImageTableSelectionState: TableSelectionState<SystemImage>,
   onDownloadButtonClick: (String) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
   Column {
     Text("Configure device")
     Text("Add a device to device manager")
-
-    Tabs(
-      configureDevicePanelState,
-      images,
-      systemImageTableSelectionState,
-      onDownloadButtonClick,
-      onImportButtonClick,
-    )
+    Tabs(configureDevicePanelState, images, onDownloadButtonClick, onImportButtonClick)
   }
 }
 
@@ -60,7 +52,6 @@ internal fun ConfigureDevicePanel(
 private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
   images: ImmutableList<SystemImage>,
-  systemImageTableSelectionState: TableSelectionState<SystemImage>,
   onDownloadButtonClick: (String) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
@@ -85,13 +76,11 @@ private fun Tabs(
   when (selectedTab) {
     Tab.DEVICE ->
       DevicePanel(
-        configureDevicePanelState.device,
+        configureDevicePanelState,
         devicePanelState,
         servicesSet,
         images,
-        systemImageTableSelectionState,
-        configureDevicePanelState::device::set,
-        onStateChange = { devicePanelState = it },
+        onDevicePanelStateChange = { devicePanelState = it },
         onDownloadButtonClick,
       )
     Tab.ADDITIONAL_SETTINGS ->
@@ -104,11 +93,17 @@ private fun Tabs(
 }
 
 internal class ConfigureDevicePanelState
-internal constructor(skins: ImmutableCollection<Skin>, device: VirtualDevice) {
+internal constructor(device: VirtualDevice, skins: ImmutableCollection<Skin>, image: SystemImage) {
+  internal var device by mutableStateOf(device)
+
   internal var skins by mutableStateOf(skins)
     private set
 
-  internal var device by mutableStateOf(device)
+  internal val systemImageTableSelectionState = TableSelectionState(image)
+
+  internal fun setDeviceName(deviceName: String) {
+    device = device.copy(name = deviceName)
+  }
 
   internal fun importSkin(path: Path) {
     var skin = skins.find { it.path() == path }
