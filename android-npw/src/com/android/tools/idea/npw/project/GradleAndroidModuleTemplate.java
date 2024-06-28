@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.project;
 
 import static com.android.SdkConstants.FD_AIDL;
 import static com.android.SdkConstants.FD_JAVA;
+import static com.android.SdkConstants.FD_KOTLIN;
 import static com.android.SdkConstants.FD_MAIN;
 import static com.android.SdkConstants.FD_ML_MODELS;
 import static com.android.SdkConstants.FD_RESOURCES;
@@ -25,6 +26,7 @@ import static com.android.SdkConstants.FD_TEST;
 import static com.android.SdkConstants.FD_UNIT_TEST;
 
 import com.android.tools.idea.projectsystem.AndroidModulePathsImpl;
+import com.android.tools.idea.projectsystem.KotlinMultiplatformModulePathsImpl;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
@@ -69,6 +71,17 @@ public class GradleAndroidModuleTemplate {
   }
 
   /**
+   * Create a {@link NamedModuleTemplate} with default values for a new KMP Module inside an existing project.
+   * @param moduleName Module names may use ":" for sub folders. This mapping is only true when creating new modules, as the user
+   *                   can later customize the Module Path (called Project Path in gradle world) in "settings.gradle"
+   */
+  public static NamedModuleTemplate createMultiplatformModuleTemplate(@NotNull Project project, @NotNull String moduleName) {
+    String projectLocation = project.getBasePath();
+    File moduleRoot = getModuleRootForNewModule(projectLocation, moduleName);
+    return createMultiplatformTemplateAt(moduleRoot);
+  }
+
+  /**
    * Create an {@link NamedModuleTemplate} with default values.
    * Assumes the 'main' flavor and default android locations for the source, test, res,
    * aidl and manifest.
@@ -85,6 +98,29 @@ public class GradleAndroidModuleTemplate {
       new File(baseFlavorDir, FD_AIDL),
       ImmutableList.of(new File(baseFlavorDir, FD_RESOURCES)),
       ImmutableList.of(new File(baseFlavorDir, FD_ML_MODELS))
+    ));
+  }
+
+  /**
+   * Create a {@link NamedModuleTemplate} for a KMP module with default values.
+   * Assumes default locations for 'androidMain' and 'commonMain' source directories and default
+   * locations for tests (androidUnitTest, androidInstrumentedTest)
+   */
+  public static NamedModuleTemplate createMultiplatformTemplateAt(@NotNull File moduleRoot) {
+    File baseSrcDir = new File(moduleRoot, FD_SOURCES);
+    File androidMainDir = new File(baseSrcDir, "androidMain");
+    File commonMainDir = new File(baseSrcDir, "commonMain");
+
+    return new NamedModuleTemplate("main", new KotlinMultiplatformModulePathsImpl(
+      moduleRoot,
+      androidMainDir,
+      new File(androidMainDir, FD_KOTLIN),
+      new File(commonMainDir, FD_KOTLIN),
+      new File(baseSrcDir.getPath(), "androidUnitTest" + File.separatorChar + FD_KOTLIN),
+      new File(baseSrcDir.getPath(), "androidInstrumentedTest" + File.separatorChar + FD_KOTLIN),
+      null,
+      ImmutableList.of(new File(androidMainDir, FD_RESOURCES)),
+      ImmutableList.of()
     ));
   }
 

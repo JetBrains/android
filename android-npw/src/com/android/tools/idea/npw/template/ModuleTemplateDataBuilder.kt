@@ -69,6 +69,7 @@ class ModuleTemplateDataBuilder(
   private val viewBindingSupport: ViewBindingSupport
 ) {
   var srcDir: File? = null
+  var commonSrcDir: File? = null
   var resDir: File? = null
   var manifestDir: File? = null
   var testDir: File? = null
@@ -219,6 +220,7 @@ class ModuleTemplateDataBuilder(
 
   fun build(): ModuleTemplateData {
     check(category != Category.Compose || isCompose) { "Template in Compose category must have isCompose set" }
+
     return ModuleTemplateData(
       projectTemplateDataBuilder.build(),
       srcDir!!,
@@ -241,7 +243,8 @@ class ModuleTemplateDataBuilder(
       isCompose,
       isMaterial3,
       useGenericLocalTests = useGenericLocalTests,
-      useGenericInstrumentedTests = useGenericInstrumentedTests
+      useGenericInstrumentedTests = useGenericInstrumentedTests,
+      commonSrcDir = commonSrcDir,
     )
   }
 }
@@ -275,4 +278,3 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
     )
   }
 }
-

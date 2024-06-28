@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.multiplatform
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.model.ExistingProjectModelData
@@ -23,7 +24,9 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.generateMultiplatformModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.observable.core.OptionalValueProperty
+import com.android.tools.idea.projectsystem.KotlinMultiplatformModulePathsImpl
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
@@ -35,15 +38,18 @@ import com.intellij.openapi.project.Project
 class NewKotlinMultiplatformLibraryModuleModel(
   project: Project,
   moduleParent: String,
-  projectSyncInvoker: ProjectSyncInvoker
+  projectSyncInvoker: ProjectSyncInvoker,
+  name: String = "kmplibrary",
 ) : ModuleModel(
-  name = "kmplibrary",
+  name = name,
   commandName = "New Kotlin Multiplatform Library Module",
   isLibrary = true,
+  _template = GradleAndroidModuleTemplate.createMultiplatformModuleTemplate(project, name),
   projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
   moduleParent = moduleParent,
   wizardContext = NEW_MODULE,
 ) {
+
   override val androidSdkInfo = OptionalValueProperty(
     AndroidVersionsInfo().apply { loadLocalVersions() }
       .getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API)
@@ -51,6 +57,16 @@ class NewKotlinMultiplatformLibraryModuleModel(
   )
 
   override val renderer: MultiTemplateRenderer.TemplateRenderer = object : ModuleTemplateRenderer() {
+
+    @WorkerThread
+    override fun init() {
+      super.init()
+
+      moduleTemplateDataBuilder.apply {
+        commonSrcDir = (template.get().paths as KotlinMultiplatformModulePathsImpl)
+          .getCommonSrcDirectory(this@NewKotlinMultiplatformLibraryModuleModel.packageName.get())
+      }
+    }
     override val recipe: Recipe
       get() = { td: TemplateData ->
         generateMultiplatformModule(
