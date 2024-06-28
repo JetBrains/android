@@ -79,8 +79,8 @@ DisplayInfo DisplayManager::GetDisplayInfo(Jni jni, int32_t display_id) {
     // Null result means that the display no longer exists.
     return DisplayInfo();
   }
-  if (Log::IsEnabled(Log::Level::DEBUG)) {
-    Log::D("display_info=%s", display_info.ToString().c_str());
+  if (Log::IsEnabled(Log::Level::VERBOSE)) {
+    Log::V("display_info=%s", display_info.ToString().c_str());
   }
   int logical_width = display_info.GetIntField(jni, logical_width_field_);
   int logical_height = display_info.GetIntField(logical_height_field_);
