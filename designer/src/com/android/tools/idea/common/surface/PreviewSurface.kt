@@ -39,8 +39,7 @@ import javax.swing.Timer
 import kotlin.concurrent.withLock
 
 /**
- * @param actionHandlerProvider Allow a test to override myActionHandlerProvider when the surface is
- *   a mockito mock
+ * TODO Once [DesignSurface] is converted to kt, rename [PreviewSurface] back to [DesignSurface].
  */
 abstract class PreviewSurface<T : SceneManager>(
   val project: Project,
