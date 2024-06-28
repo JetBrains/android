@@ -6,6 +6,7 @@ import argparse
 import copy
 import json
 import posixpath
+import re
 import shlex
 import shutil
 import subprocess
@@ -349,8 +350,12 @@ def transfer_user_files(src_project: Path, dst_project: Path):
 # JSON map from IDE distribution JARs to their corresponding source modules/libraries.
 def generate_intellij_source_map(intellij_root: Path, outfile: Path):
     command = [
-        str(intellij_root.joinpath('platform/jps-bootstrap/jps-bootstrap.sh')),
+        f"{intellij_root}/platform/jps-bootstrap/jps-bootstrap.sh",
+        f"-Dintellij.build.output.root={intellij_root}/out/studio",
+        "-Dintellij.build.dev.mode=false",
         "-Dcompile.parallel=true",
+        "-Dintellij.build.incremental.compilation=true",
+        "-Dintellij.build.incremental.compilation.fallback.rebuild=false",
         str(intellij_root),
         "intellij.idea.community.build",
         "AndroidStudioSourceMapBuildTarget",
@@ -378,14 +383,18 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
     source_map_text = read_jps_file(source_map_file, {"PROJECT_DIR": intellij.root})
     source_map = json.loads(source_map_text)
 
+    platform_jar_pattern = re.compile(r".*/dist\.all/lib/(modules/)?[^/]*\.jar")
+    plugin_jar_pattern = re.compile(r".*/dist\.all/plugins/([^/]*)/lib/(modules/)?[^/]*\.jar")
+
     # Studio refers to plugins by their plugin ID. So, we need to find the plugin ID associated
     # with each plugin (by querying the plugin.xml file inside each plugin directory).
     plugin_dir_to_id = {}
     for mapping in source_map:
         path = Path(mapping["path"])
         type = mapping["type"]
-        if not path.match("**/dist.all/plugins/*/lib/*.jar"):
+        if not plugin_jar_pattern.fullmatch(str(path)):
             continue  # Not a plugin.
+        plugin_dir = plugin_jar_pattern.fullmatch(str(path)).group(1)
         if type != "module-output":
             continue  # Not a module (there will be no plugin.xml file).
         module_name = mapping["name"]
@@ -400,8 +409,7 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
                 continue
             plugin_xml = ET.parse(plugin_xml)
             id = plugin_xml.findtext("./id") or fail(f"Plugin ID not found in {plugin_xml}")
-            dir = path.parent.parent.name
-            plugin_dir_to_id[dir] = id
+            plugin_dir_to_id[plugin_dir] = id
             break
 
     res: dict[str,list[ET.Element]] = {}
@@ -410,10 +418,10 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
         path = Path(mapping["path"])
         if path.match("**/dist.all/lib/testFramework.jar"):
             intellij_sdk_lib = "intellij-test-framework"
-        elif path.match("**/dist.all/lib/*.jar"):
+        elif platform_jar_pattern.fullmatch(str(path)):
             intellij_sdk_lib = "studio-sdk"
-        elif path.match("**/dist.all/plugins/*/lib/*.jar"):
-            plugin_dir = path.parent.parent.name
+        elif plugin_jar_pattern.fullmatch(str(path)):
+            plugin_dir = plugin_jar_pattern.fullmatch(str(path)).group(1)
             plugin_id = plugin_dir_to_id[plugin_dir]
             intellij_sdk_lib = f"studio-plugin-{plugin_id}"
         else:
@@ -441,7 +449,7 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
     # Special case: updater-full.jar is missing from the IntelliJ source map.
     # Fixme: we only add the main updater module, not its bundled dependencies.
     res["intellij-updater"] = [
-        ET.Element("orderEntry", {"type": "module", "module-name": "intellij.platform.updater"})
+        ET.Element("orderEntry", {"type": "module", "module-name": "intellij.tools.updater"})
     ]
 
     return res
