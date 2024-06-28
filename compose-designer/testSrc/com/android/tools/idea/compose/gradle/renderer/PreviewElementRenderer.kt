@@ -111,7 +111,7 @@ private fun validateOriginFile(
       ProjectFileIndex.getInstance(facet.module.project)
         .getModuleForFile(originFile)
         ?.getMainModule()
-    } != facet.mainModule
+    } != facet.module.getMainModule()
   ) {
     error("originFile($originFile) does not match facet($facet)")
   }

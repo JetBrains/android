@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.resources.aar.AarResourceRepository
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.res.LocalResourceRepository
@@ -64,7 +65,7 @@ private constructor(private val facet: AndroidFacet, parentDisposable: Disposabl
       if (facet.configuration.isLibraryProject) {
         // In library projects, there's only one APK when testing and the test R class contains all
         // resources.
-        facet.mainModule.androidFacet?.let {
+        facet.module.getMainModule().androidFacet?.let {
           localRepositories += StudioResourceRepositoryManager.getAppResources(it)
         }
       }

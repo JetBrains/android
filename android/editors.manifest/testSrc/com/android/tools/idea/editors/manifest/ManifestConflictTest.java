@@ -19,6 +19,7 @@ import com.android.manifmerger.MergingReport;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
@@ -63,7 +64,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
     // error message, and therefore we expect no link generated in the ManifestPanel's error message.
     // See b/269085620 for details. This is a temporary behavior until we fix the way we compute dynamic feature's set of dependency manifests.
     loadProject(MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_NOT_IN_XML);
-    var dynFeatureModule = ModuleManager.getInstance(myAndroidFacet.getMainModule().getProject())
+    var dynFeatureModule = ModuleManager.getInstance(myAndroidFacet.getModule().getProject())
       .findModuleByName("testDynamicFeatureExternalDependencyAttributeConflictNotInXml.app.dynamicfeature");
     String[] errors = getErrorHtml(dynFeatureModule);
     assertEquals(1, errors.length);
@@ -73,7 +74,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   public void testDynamicFeatureExternalDependencyAttributeConflictInXml() throws Exception{
     // Load a project with dynamic feature within an app and a node with conflicting attribute.
     loadProject(MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_IN_XML);
-    var dynFeatureModule = ModuleManager.getInstance(myAndroidFacet.getMainModule().getProject())
+    var dynFeatureModule = ModuleManager.getInstance(myAndroidFacet.getModule().getProject())
       .findModuleByName("testDynamicFeatureExternalDependencyAttributeConflictInXml.app.dynamicfeature");
     String[] errors = getErrorHtml(dynFeatureModule);
     assertEquals(1, errors.length);
@@ -97,7 +98,8 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   private String[] getErrorHtml() throws Exception {
-    return getErrorHtml(myAndroidFacet.getMainModule());
+    Module mainModule = ModuleSystemUtil.getMainModule(myAndroidFacet.getModule());
+    return getErrorHtml(mainModule);
   }
 
   private String[] getErrorHtml(Module module) throws Exception {

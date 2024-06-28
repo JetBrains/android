@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.preview.navigation.findNavigatableComponen
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.util.getRootComponent
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
@@ -117,7 +118,7 @@ class PreviewNavigationTest {
   @Test
   fun testComposableNavigation() {
     val facet = projectRule.androidFacet(":app")
-    val module = facet.mainModule
+    val module = facet.module.getMainModule()
     val mainActivityFile =
       facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
@@ -184,7 +185,7 @@ class PreviewNavigationTest {
   @Test
   fun testInlineNavigation() {
     val facet = projectRule.androidFacet(":app")
-    val module = facet.mainModule
+    val module = facet.module.getMainModule()
     val mainActivityFile =
       facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
@@ -219,7 +220,7 @@ class PreviewNavigationTest {
   @Test
   fun testInProjectNavigation() {
     val facet = projectRule.androidFacet(":app")
-    val module = facet.mainModule
+    val module = facet.module.getMainModule()
     val mainActivityFile =
       facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
@@ -259,7 +260,7 @@ class PreviewNavigationTest {
   @Test
   fun testDuplicateFileNavigation() {
     val facet = projectRule.androidFacet(":app")
-    val module = facet.mainModule
+    val module = facet.module.getMainModule()
     val mainActivityFile =
       facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 

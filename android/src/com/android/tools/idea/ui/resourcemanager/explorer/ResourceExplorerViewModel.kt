@@ -25,6 +25,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.getAppThemeName
 import com.android.tools.idea.configurations.getDeviceDefaultTheme
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
@@ -141,7 +142,7 @@ class ResourceExplorerViewModel private constructor(
   var facet: AndroidFacet by Delegates.observable(defaultFacet) { _, oldFacet, newFacet ->
     if (newFacet != oldFacet) {
       contextFileForConfiguration = null // AndroidFacet changed, optional Configuration file is not valid.
-      selectedModuleName = newFacet.mainModule.name
+      selectedModuleName = newFacet.module.getMainModule().name
       unsubscribeListener(oldFacet)
       subscribeListener(newFacet)
       facetUpdaterCallback(newFacet)

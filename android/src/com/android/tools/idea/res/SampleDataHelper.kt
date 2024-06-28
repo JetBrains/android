@@ -22,6 +22,7 @@ import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.application.readAction
@@ -78,9 +79,10 @@ private suspend fun loadSampleDataItems(
   facet: AndroidFacet,
   repository: SampleDataResourceRepository,
 ): ImmutableList<SampleDataResourceItem> {
-  val psiManager = PsiManager.getInstance(facet.getMainModule().project)
+  val mainModule = facet.module.getMainModule()
+  val psiManager = PsiManager.getInstance(mainModule.project)
   val lookupModules =
-    listOf(facet.mainModule) + facet.mainModule.getModuleSystem().getResourceModuleDependencies()
+    listOf(mainModule) + mainModule.getModuleSystem().getResourceModuleDependencies()
 
   // This collects all modules and dependencies and finds the sampledata directory in all of them.
   // The order is relevant since the
