@@ -1,5 +1,5 @@
 [versions]
-agp = "8.6.0-dev"
+agp = "8.7.0-dev"
 leanback = "1.0.0"
 glide = "4.11.0"
 

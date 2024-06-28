@@ -328,18 +328,23 @@ maven_repository(
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",  # Needed for EmptyActivity
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.9.0",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.0.0",  # Kotlin/Compose 2.0.0 templates
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.22",
+        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.0",  # Kotlin/Compose 2.0.0 templates
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.0",  # Kotlin/Compose 2.0.0 templates
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.0.0",  # Kotlin/Compose 2.0.0 templates
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.22",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-test-junit",
+        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.0",  # Kotlin/Compose 2.0.0 templates
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.7.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication

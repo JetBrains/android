@@ -1,6 +1,6 @@
 [versions]
-agp = "8.6.0-dev"
-kotlin = "1.9.0"
+agp = "8.7.0-dev"
+kotlin = "2.0.0"
 playServicesWearable = "18.0.0"
 composeBom = "2024.04.01"
 composeMaterial = "1.2.1"
@@ -13,8 +13,9 @@ coreSplashscreen = "1.0.1"
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 ui = { group = "androidx.compose.ui", name = "ui" }
-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterial" }
@@ -26,4 +27,5 @@ core-splashscreen = { group = "androidx.core", name = "core-splashscreen", versi
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
