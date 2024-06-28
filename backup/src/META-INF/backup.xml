@@ -19,6 +19,25 @@
     <projectService
         serviceInterface="com.android.tools.idea.backup.BackupManager"
         serviceImplementation="com.android.tools.idea.backup.BackupManagerImpl"/>
+
     <notificationGroup id="Backup" displayType="BALLOON"/>
+
+    <fileType
+        name="Android Backup File"
+        implementationClass="com.android.tools.idea.backup.BackupFileType"
+        fieldName="INSTANCE"
+        extensions="backup"
+    />
   </extensions>
+
+  <actions>
+    <action
+        id="id" class="com.android.tools.idea.backup.RestoreFileAction"
+        text="Restore Application"
+        description="Restore Application from file"
+        icon="AllIcons.Actions.Download">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+    </action>
+  </actions>
+
 </idea-plugin>
