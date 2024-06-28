@@ -44,7 +44,6 @@ import com.google.gct.login.LoginState
 import com.google.gct.login.LoginStatus
 import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -228,7 +227,6 @@ class VitalsConfigurationManager(
             clientDeferred.await(),
             queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
             offlineStatusManager,
-            onIssuesChanged = { DaemonCodeAnalyzer.getInstance(project).restart() },
             tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
             clock = Clock.systemDefaultZone(),
             project = project,
