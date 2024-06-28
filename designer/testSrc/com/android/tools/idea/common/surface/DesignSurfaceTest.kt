@@ -352,15 +352,14 @@ class TestDesignSurface(
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
     get() = null
 
-  override fun getSelectionAsTransferable(): ItemTransferable {
-    return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
-  }
+  override val selectionAsTransferable: ItemTransferable
+    get() = ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
 
   override fun createSceneManager(model: NlModel) = runBlocking {
     createSceneManager(model, this@TestDesignSurface).apply { updateSceneView() }
   }
 
-  override fun scrollToCenter(list: MutableList<NlComponent>) {}
+  override fun scrollToCenter(list: List<NlComponent>) {}
 
   override fun getScrollToVisibleOffset() = Dimension()
 
