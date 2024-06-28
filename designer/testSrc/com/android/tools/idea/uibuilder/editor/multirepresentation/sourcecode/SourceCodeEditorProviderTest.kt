@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
@@ -29,13 +30,17 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWit
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.JDOMUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -50,9 +55,18 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
 
-class SourceCodeEditorProviderTest {
+@RunWith(Parameterized::class)
+class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
+  enum class EditorCreationMode {
+    /** Synchronous deprecated mode. */
+    SYNC,
+    /** Asynchronous mode. */
+    ASYNC,
+  }
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val fixture: CodeInsightTestFixture
@@ -61,6 +75,21 @@ class SourceCodeEditorProviderTest {
   lateinit var provider: SourceCodeEditorProvider
 
   private val ideInfo: IdeInfo = mock(IdeInfo::class.java)
+
+  private suspend fun buildEditor(
+    provider: SourceCodeEditorProvider,
+    project: Project,
+    file: VirtualFile,
+  ): FileEditor {
+    return when (asyncMode) {
+      EditorCreationMode.SYNC -> withContext(uiThread) { provider.createEditor(project, file) }
+      EditorCreationMode.ASYNC -> {
+        val builder =
+          withContext(workerThread) { readAction { provider.createEditorAsync(project, file) } }
+        withContext(uiThread) { builder.build() }
+      }
+    }.also { Disposer.register(projectRule.testRootDisposable, it) }
+  }
 
   @Before
   fun setUp() {
@@ -121,7 +150,7 @@ class SourceCodeEditorProviderTest {
   fun testCreatableForKotlinFile(): Unit = runBlocking {
     val file = fixture.addFileToProject("src/Preview.kt", "")
 
-    val editor = withContext(uiThread) { provider.createEditor(file.project, file.virtualFile) }
+    val editor = buildEditor(provider, file.project, file.virtualFile)
 
     TestCase.assertNotNull(editor)
 
@@ -144,9 +173,7 @@ class SourceCodeEditorProviderTest {
         )
       )
     val editor =
-      withContext(uiThread) {
-        return@withContext serializationProvider.createEditor(file.project, file.virtualFile)
-      }
+      buildEditor(serializationProvider, file.project, file.virtualFile)
         as TextEditorWithMultiRepresentationPreview<*>
     // Wait for the initializations
     editor.preview.onInit()
@@ -154,36 +181,32 @@ class SourceCodeEditorProviderTest {
       // Editor are not selected in unit testing. Force the preview activation so it loads the
       // state.
       editor.preview.onActivate()
-      try {
-        val rootElement = Element("root")
-        serializationProvider.writeState(
-          editor.getState(FileEditorStateLevel.FULL),
-          fixture.project,
-          rootElement,
-        )
-        assertTrue(JDOMUtil.writeElement(rootElement, "\n").isNotBlank())
-        val state =
-          serializationProvider.readState(rootElement, fixture.project, file.virtualFile)
-            as SourceCodeEditorWithMultiRepresentationPreviewState
+      val rootElement = Element("root")
+      serializationProvider.writeState(
+        editor.getState(FileEditorStateLevel.FULL),
+        fixture.project,
+        rootElement,
+      )
+      assertTrue(JDOMUtil.writeElement(rootElement, "\n").isNotBlank())
+      val state =
+        serializationProvider.readState(rootElement, fixture.project, file.virtualFile)
+          as SourceCodeEditorWithMultiRepresentationPreviewState
 
-        assertContainsElements(
-          state.previewState.representations.map { it.key },
-          "Representation1",
-          "Representation2",
-        )
-        val settings =
-          state.previewState.representations.single { it.key == "Representation2" }.settings
-        assertEquals(
-          """
+      assertContainsElements(
+        state.previewState.representations.map { it.key },
+        "Representation1",
+        "Representation2",
+      )
+      val settings =
+        state.previewState.representations.single { it.key == "Representation2" }.settings
+      assertEquals(
+        """
         key1 -> value1
         key2 -> value2
       """
-            .trimIndent(),
-          settings.map { "${it.key} -> ${it.value}" }.joinToString("\n"),
-        )
-      } finally {
-        Disposer.dispose(editor)
-      }
+          .trimIndent(),
+        settings.map { "${it.key} -> ${it.value}" }.joinToString("\n"),
+      )
     }
   }
 
@@ -192,9 +215,7 @@ class SourceCodeEditorProviderTest {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val representation = TestPreviewRepresentationProvider("Representation1", false)
     val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
-    val editor =
-      withContext(uiThread) { sourceCodeProvider.createEditor(file.project, file.virtualFile) }
-        .also { Disposer.register(fixture.testRootDisposable, it) }
+    val editor = buildEditor(sourceCodeProvider, file.project, file.virtualFile)
     val preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
 
     preview.awaitForRepresentationsUpdated()
@@ -269,5 +290,11 @@ class SourceCodeEditorProviderTest {
     assertTrue(sourceCodeProvider.accept(project = projectRule.project, file))
     type = PlainTextFileType.INSTANCE
     assertFalse(sourceCodeProvider.accept(project = projectRule.project, file))
+  }
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "editorCreationmode={0}")
+    fun data(): List<EditorCreationMode> = listOf(EditorCreationMode.SYNC, EditorCreationMode.ASYNC)
   }
 }
