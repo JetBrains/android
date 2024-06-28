@@ -31,7 +31,12 @@ void DisplayControl::InitializeStatics(Jni jni) {
   unique_lock lock(static_initialization_mutex);
 
   if (class_.IsNull()) {
-    if (Agent::feature_level() >= 34) {
+    // Before API 34 QPR1 getPhysicalDisplayIds and getPhysicalDisplayToken used to be part of SurfaceControl.
+    class_ = jni.GetClass("android/view/SurfaceControl");
+    get_physical_display_ids_method_ = class_.FindStaticMethod("getPhysicalDisplayIds", "()[J");
+    if (get_physical_display_ids_method_ == nullptr) {
+      // SurfaceControl doesn't have the necessary method. Load libandroid_servers.so and use DisplayControl instead.
+      class_.Release();
       JClass class_loader_class = jni.GetClass("java/lang/ClassLoader");
       jmethodID get_system_class_loader_method = class_loader_class.GetStaticMethod("getSystemClassLoader", "()Ljava/lang/ClassLoader;");
       JObject system_class_loader = class_loader_class.CallStaticObjectMethod(get_system_class_loader_method);
@@ -57,11 +62,10 @@ void DisplayControl::InitializeStatics(Jni jni) {
         return;
       }
       class_ = std::move(display_control_class);
-    } else {
-      // Before API 34 getPhysicalDisplayIds and getPhysicalDisplayToken used to be part of SurfaceControl.
-      class_ = jni.GetClass("android/view/SurfaceControl");
     }
-    get_physical_display_ids_method_ = class_.GetStaticMethod("getPhysicalDisplayIds", "()[J");
+    if (get_physical_display_ids_method_ == nullptr) {
+      get_physical_display_ids_method_ = class_.GetStaticMethod("getPhysicalDisplayIds", "()[J");
+    }
     get_physical_display_token_method_ = class_.GetStaticMethod("getPhysicalDisplayToken", "(J)Landroid/os/IBinder;");
     class_.MakeGlobal();
   }
