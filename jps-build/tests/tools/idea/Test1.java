@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.test;
+
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.junit.runners.JUnit4;
+import org.junit.Test;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({})
-public class Test {
-    static {
-        System.out.println(System.getProperty("user.dir"));
+@RunWith(JUnit4.class)
+public class Test1 {
+
+    @Test
+    public void testDownloadFile() {
+        System.out.println("Test1::testDownloadFile");
         Path down = Path.of("test_download");
         down.toFile().mkdirs();
         Path artifact = down.resolve("artifact.txt");
@@ -39,5 +43,10 @@ public class Test {
                 throw new RuntimeException("Downloaded artifact does not exist.");
             }
         }
+    }
+
+    @Test
+    public void testOther() {
+        System.out.println("Test1::testOther");
     }
 }

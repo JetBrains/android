@@ -26,9 +26,13 @@ jps_library(
 jps_test(
     name = "jps_test",
     download_cache = "tools/adt/idea/jps-build/tests/test_cache",
+    ignore_suites = [
+        "com.android.tools.test.Test2",
+    ],
     module = "module.to.test",
+    shard_count = 2,
     target_compatible_with = ["@platforms//os:linux"],
-    test_suite = "Test",
+    test_suite = "com.android.tools.test.ModuleTestSuite",
     deps = [
         ":jps_lib",
         ":source",
@@ -39,7 +43,12 @@ jps_test(
 
 java_library(
     name = "test",
-    srcs = ["Test.java"],
+    srcs = [
+        "InnerRunner.java",
+        "Test1.java",
+        "Test2.java",
+        "Test3.java",
+    ],
     deps = ["@bazel_tools//tools/jdk:TestRunner"],
 )
 

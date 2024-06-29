@@ -1,25 +1,50 @@
 load("//tools/adt/idea/jps-build:idea.bzl", "jps_library")
-load(":ij-debugger-tests.bzl", "art_debugger_test", "jvm_debugger_test")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
+load(":ignored-tests.bzl", "IGNORED_SUITES")
+load(":ij-debugger-tests.bzl", "debugger_test")
 
 jps_library(
-    name = "test_lib",
+    name = "kotlin.jvm-debugger.test_lib",
     download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_lib",
     module = "kotlin.jvm-debugger.test",
-    target_compatible_with = ["@platforms//:incompatible"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//tools/base/bazel/ci/conditions:studio-linux": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_lib",
         "//tools/idea:idea_source",
     ],
 )
 
-jvm_debugger_test(
-    name = "jvm-step-into",
-    suite = "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$StepInto",
-    target_compatible_with = ["@platforms//:incompatible"],
+debugger_test(
+    name = "kotlin.jvm-debugger.test_tests",
+    size = "large",
+    download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
+    ignore_suites = IGNORED_SUITES,
+    module = "kotlin.jvm-debugger.test",
+    shard_count = 2,
+    suite = "com.android.tools.test.ModuleTestSuite",
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//tools/base/bazel/ci/conditions:studio-linux": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":kotlin.jvm-debugger.test_lib",
+        ":test_repo.zip",
+        "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_lib",
+        "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_tests",
+        "//tools/idea:idea_source",
+    ],
 )
 
-art_debugger_test(
-    name = "art-step-into",
-    suite = "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$StepInto",
-    target_compatible_with = ["@platforms//:incompatible"],
+maven_repository(
+    name = "test_repo",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:org.jetbrains.annotations-java5_24.0.0",
+    ],
+    zip_prefix = "maven/",
 )
