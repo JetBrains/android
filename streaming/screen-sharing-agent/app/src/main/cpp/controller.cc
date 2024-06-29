@@ -800,15 +800,16 @@ void Controller::StopDisplayPolling() {
 }
 
 void Controller::PollDisplays() {
-  auto displays = GetDisplays();
-  Log::D("Controller::PollDisplays: displays: %s", DisplayInfo::ToDebugString(displays).c_str());
-  for (auto d1 = displays.begin(), d2 = current_displays_.begin(); d1 != displays.end() || d2 != current_displays_.end();) {
+  auto old_displays = current_displays_;
+  current_displays_ = GetDisplays();
+  Log::D("Controller::PollDisplays: displays: %s", DisplayInfo::ToDebugString(current_displays_).c_str());
+  for (auto d1 = current_displays_.begin(), d2 = old_displays.begin(); d1 != current_displays_.end() || d2 != old_displays.end();) {
     if (d2 == current_displays_.end()) {
       // Due to uncertain timing of events we have to assume that the display was both added and changed.
       DisplayManager::OnDisplayAdded(jni_, d1->first);
       DisplayManager::OnDisplayChanged(jni_, d1->first);
       d1++;
-    } else if (d1 == displays.end()) {
+    } else if (d1 == current_displays_.end()) {
       DisplayManager::OnDisplayRemoved(jni_, d2->first);
       d2++;
     } else if (d1->first < d2->first) {
@@ -828,7 +829,6 @@ void Controller::PollDisplays() {
     }
   }
 
-  current_displays_ = displays;
   if (steady_clock::now() > poll_displays_until_) {
     StopDisplayPolling();
   }
