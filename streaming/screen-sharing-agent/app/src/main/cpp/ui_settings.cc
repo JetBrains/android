@@ -297,49 +297,47 @@ void ProcessAdbOutput(const string& output, UiSettingsState* state, CommandConte
 }
 
 void GetApplicationLocales(const vector<string>& application_ids, UiSettingsState* state) {
-  string command;
+  ShellCommand command;
   for (auto it = application_ids.begin(); it != application_ids.end(); it++) {
-    command += "echo " APP_LANGUAGE_DIVIDER "; ";
-    command += "cmd locale get-app-locales ";
-    command += *it;
-    command += "; ";
+    command += "echo " APP_LANGUAGE_DIVIDER;
+    command += StringPrintf("cmd locale get-app-locales %s", it->c_str());
   }
-  string output = ExecuteShellCommand(command.c_str());
+  string output = ExecuteShellCommand(command);
   ProcessAdbOutput(TrimEnd(output), state, nullptr);
 }
 
 bool IsFontScaleSettable(int32_t font_scale) {
-  string command = StringPrintf("settings put system font_scale %g 2>&1 >/dev/null", font_scale / 100.0f);
+  ShellCommand command = StringPrintf("settings put system font_scale %g 2>&1 >/dev/null", font_scale / 100.0f);
   string error = ExecuteShellCommand(command);
   return error.empty();
 }
 
 bool IsScreenDensitySettable(int32_t density) {
-  string command = StringPrintf("wm density %d 2>&1 >/dev/null", density);
+  ShellCommand command = StringPrintf("wm density %d 2>&1 >/dev/null", density);
   string error = ExecuteShellCommand(command);
   return error.empty();
 }
 
-string CreateSetDarkModeCommand(bool dark_mode) {
-  return StringPrintf("cmd uimode night %s;\n", dark_mode ? "yes" : "no");
+ShellCommand CreateSetDarkModeCommand(bool dark_mode) {
+  return StringPrintf("cmd uimode night %s", dark_mode ? "yes" : "no");
 }
 
-string CreateSetFontScaleCommand(int32_t font_scale) {
-  return StringPrintf("settings put system font_scale %g;\n", font_scale / 100.0f);
+ShellCommand CreateSetFontScaleCommand(int32_t font_scale) {
+  return StringPrintf("settings put system font_scale %g", font_scale / 100.0f);
 }
 
-string CreateSetScreenDensityCommand(int32_t density) {
-  return StringPrintf("wm density %d;\n", density);
+ShellCommand CreateSetScreenDensityCommand(int32_t density) {
+  return StringPrintf("wm density %d", density);
 }
 
 void GetSecureSettings(CommandContext* context) {
   if (!context->secure_settings_retrieved) {
-    string command =
-      "echo " ACCESSIBILITY_SERVICES_DIVIDER "; "
-      "settings get secure " ENABLED_ACCESSIBILITY_SERVICES "; "
-      "echo " ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "; "
-      "settings get secure " ACCESSIBILITY_BUTTON_TARGETS "; ";
-    string output = ExecuteShellCommand(command.c_str());
+    ShellCommand command =
+      "echo " ACCESSIBILITY_SERVICES_DIVIDER ";\n"
+      "settings get secure " ENABLED_ACCESSIBILITY_SERVICES ";\n"
+      "echo " ACCESSIBILITY_BUTTON_TARGETS_DIVIDER ";\n"
+      "settings get secure " ACCESSIBILITY_BUTTON_TARGETS;
+    string output = ExecuteShellCommand(command);
     TokenIterator it(output);
     while (it.has_next()) {
       string line = it.next();
@@ -357,37 +355,37 @@ string CombineServices(string serviceA, string serviceB) {
   return serviceA + ":" + serviceB;
 }
 
-string CreateSecureSettingChangeCommand(bool on, string settingsName, string serviceName, set<string>* services) {
+ShellCommand CreateSecureSettingChangeCommand(bool on, string settingsName, string serviceName, set<string>* services) {
   if (on) {
     services->insert(serviceName);
   } else {
     services->erase(serviceName);
   }
   if (services->empty()) {
-    return StringPrintf("settings delete secure %s;\n", settingsName.c_str());
+    return StringPrintf("settings delete secure %s", settingsName.c_str());
   } else {
     string result = accumulate(services->begin(), services->end(), string(), CombineServices);
-    return StringPrintf("settings put secure %s %s;\n", settingsName.c_str(), result.c_str());
+    return StringPrintf("settings put secure %s %s", settingsName.c_str(), result.c_str());
   }
 }
 
-string CreateSetTalkBackCommand(bool on, CommandContext* context) {
+ShellCommand CreateSetTalkBackCommand(bool on, CommandContext* context) {
   return CreateSecureSettingChangeCommand(on, ENABLED_ACCESSIBILITY_SERVICES, TALK_BACK_SERVICE_NAME, &context->enabled);
 }
 
-string CreateSetSelectToSpeakCommand(bool on, CommandContext* context) {
+ShellCommand CreateSetSelectToSpeakCommand(bool on, CommandContext* context) {
   return CreateSecureSettingChangeCommand(on, ENABLED_ACCESSIBILITY_SERVICES, SELECT_TO_SPEAK_SERVICE_NAME, &context->enabled)
       +  CreateSecureSettingChangeCommand(on, ACCESSIBILITY_BUTTON_TARGETS, SELECT_TO_SPEAK_SERVICE_NAME, &context->buttons);
 }
 
-string CreateDefaultSetGestureNavigationCommand(bool gesture_navigation) {
+ShellCommand CreateDefaultSetGestureNavigationCommand(bool gesture_navigation) {
   auto operation = gesture_navigation ? "enable" : "disable";
   auto opposite = !gesture_navigation ? "enable" : "disable";
-  return StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY ";\n", operation, opposite);
+  return StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY, operation, opposite);
 }
 
-string CreateSetGestureNavigationCommand(bool gesture_navigation) {
-  string command;
+ShellCommand CreateSetGestureNavigationCommand(bool gesture_navigation) {
+  ShellCommand command;
   if (Agent::device_manufacturer() == SAMSUNG) {
     // Samsung devices are sensitive to the global setting: navigation_bar_gesture_while_hidden.
     // Some Samsung devices also need the overlay commands from CreateDefaultSetGestureNavigationCommand.
@@ -400,8 +398,8 @@ string CreateSetGestureNavigationCommand(bool gesture_navigation) {
     // On these devices changing the value of the global setting: "navigation_bar_gesture_while_hidden" between 0 and 1
     // together with enabling/disabling the overlays would cause the device to change the overlays and update the display
     // properly. If the user is on the device settings "Navigation bar", the settings page would also update correctly.
-    command = StringPrintf("settings put global navigation_bar_gesture_while_hidden %d;\n", gesture_navigation ? 1 : 0) +
-      CreateDefaultSetGestureNavigationCommand(gesture_navigation);
+    command = StringPrintf("settings put global navigation_bar_gesture_while_hidden %d", gesture_navigation ? 1 : 0) +
+        CreateDefaultSetGestureNavigationCommand(gesture_navigation);
   }
   else if (Agent::device_manufacturer() == XIAOMI) {
     // Xiaomi devices are sensitive to the global setting: force_fsg_nav_bar. Tested on:
@@ -411,7 +409,7 @@ string CreateSetGestureNavigationCommand(bool gesture_navigation) {
     // device to change the overlays and update the display properly. If the user is on the device settings "System navigation",
     // the settings page would also update correctly.
     // The overlays settings did not seem to matter.
-    command = StringPrintf("settings put global force_fsg_nav_bar %d;\n", gesture_navigation ? 1 : 0);
+    command = StringPrintf("settings put global force_fsg_nav_bar %d", gesture_navigation ? 1 : 0);
   }
   else if (Agent::device_manufacturer() == ONE_PLUS || Agent::device_manufacturer() == OPPO) {
     // These devices are sensitive to the secure setting: hide_navigationbar_enable. Tested on:
@@ -423,7 +421,7 @@ string CreateSetGestureNavigationCommand(bool gesture_navigation) {
     // cause the device to change the overlays and update the display properly. For the OnPlus devices: if the user is
     // on the device settings for gesture navigation, the settings page would also update correctly.
     // The overlays settings did not seem to matter.
-    command = StringPrintf("settings put secure hide_navigationbar_enable %d;\n", gesture_navigation ? 3 : 0);
+    command = StringPrintf("settings put secure hide_navigationbar_enable %d", gesture_navigation ? 3 : 0);
   }
   else {
     command = CreateDefaultSetGestureNavigationCommand(gesture_navigation);
@@ -431,53 +429,53 @@ string CreateSetGestureNavigationCommand(bool gesture_navigation) {
   return command;
 }
 
-string CreateSetDebugLayoutCommand(bool debug_layout) {
+ShellCommand CreateSetDebugLayoutCommand(bool debug_layout) {
   auto operation = debug_layout ? "true" : "false";
-  return StringPrintf("setprop debug.layout %s;\nservice call activity %d;\n", operation, SYSPROPS_TRANSACTION);
+  return StringPrintf("setprop debug.layout %s; service call activity %d", operation, SYSPROPS_TRANSACTION);
 }
 
-string CreateSetAppLanguageCommand(const string& application_id, const string& locale) {
-  return StringPrintf("cmd locale set-app-locales %s --locales %s;\n", application_id.c_str(), locale.c_str());
+ShellCommand CreateSetAppLanguageCommand(const string& application_id, const string& locale) {
+  return StringPrintf("cmd locale set-app-locales %s --locales %s", application_id.c_str(), locale.c_str());
 }
 
 void GetSettings(UiSettingsState* state, CommandContext* context) {
-  string command =
-    "echo " DARK_MODE_DIVIDER "; "
-    "cmd uimode night; "
-    "echo " LIST_PACKAGES_DIVIDER "; "
-    "pm list packages | grep package:" TALKBACK_PACKAGE_NAME "$; "
-    "echo " ACCESSIBILITY_SERVICES_DIVIDER "; "
-    "settings get secure " ENABLED_ACCESSIBILITY_SERVICES "; "
-    "echo " ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "; "
-    "settings get secure " ACCESSIBILITY_BUTTON_TARGETS "; "
-    "echo " FONT_SCALE_DIVIDER "; "
-    "settings get system font_scale; "
-    "echo " DENSITY_DIVIDER "; "
-    "wm density; "
-    "echo " DEBUG_LAYOUT_DIVIDER "; "
-    "getprop debug.layout; "
-    "echo " FOREGROUND_APPLICATION_DIVIDER "; "
-    "dumpsys activity activities | grep mFocusedApp=ActivityRecord; ";
+  ShellCommand command =
+    "echo " DARK_MODE_DIVIDER ";\n"
+    "cmd uimode night;\n"
+    "echo " LIST_PACKAGES_DIVIDER ";\n"
+    "pm list packages | grep package:" TALKBACK_PACKAGE_NAME "$;\n"
+    "echo " ACCESSIBILITY_SERVICES_DIVIDER ";\n"
+    "settings get secure " ENABLED_ACCESSIBILITY_SERVICES ";\n"
+    "echo " ACCESSIBILITY_BUTTON_TARGETS_DIVIDER ";\n"
+    "settings get secure " ACCESSIBILITY_BUTTON_TARGETS ";\n"
+    "echo " FONT_SCALE_DIVIDER ";\n"
+    "settings get system font_scale;\n"
+    "echo " DENSITY_DIVIDER ";\n"
+    "wm density;\n"
+    "echo " DEBUG_LAYOUT_DIVIDER ";\n"
+    "getprop debug.layout;\n"
+    "echo " FOREGROUND_APPLICATION_DIVIDER ";\n"
+    "dumpsys activity activities | grep mFocusedApp=ActivityRecord";
 
   if (Agent::device_manufacturer() == SAMSUNG) {
-    command += "echo " OEM_GESTURES_DIVIDER "; settings get global navigation_bar_gesture_while_hidden; ";
+    command += "echo " OEM_GESTURES_DIVIDER "; settings get global navigation_bar_gesture_while_hidden";
   }
   else if (Agent::device_manufacturer() == XIAOMI) {
-    command += "echo " OEM_GESTURES_DIVIDER "; settings get global force_fsg_nav_bar; ";
+    command += "echo " OEM_GESTURES_DIVIDER "; settings get global force_fsg_nav_bar";
   }
   else if (Agent::device_manufacturer() == ONE_PLUS || Agent::device_manufacturer() == OPPO) {
-    command += "echo " OEM_GESTURES_DIVIDER "; settings get secure hide_navigationbar_enable; ";
+    command += "echo " OEM_GESTURES_DIVIDER "; settings get secure hide_navigationbar_enable";
   }
   else if (Agent::device_manufacturer() == GOOGLE || Agent::device_manufacturer() == MOTOROLA) {
-    command += "echo " GESTURES_DIVIDER "; cmd overlay list android | grep " GESTURES_OVERLAY "$; ";
+    command += "echo " GESTURES_DIVIDER "; cmd overlay list android | grep " GESTURES_OVERLAY "$";
   }
   else {
     // This will disable gesture navigation setting on untested devices.
     // Since ProcessOemGestureNavigation will call: state->set_gesture_overlay_installed(false);
-    command += "echo " OEM_GESTURES_DIVIDER "; ";
+    command += "echo " OEM_GESTURES_DIVIDER "";
   }
 
-  string output = ExecuteShellCommand(command.c_str());
+  string output = ExecuteShellCommand(command);
   ProcessAdbOutput(TrimEnd(output), state, context);
 
   auto foreground_application_id = context->foreground_application_id;
@@ -573,7 +571,7 @@ const bool UiSettings::has_original_values() {
   return CreateResetCommand().empty();
 }
 
-const string UiSettings::CreateResetCommand() {
+const ShellCommand UiSettings::CreateResetCommand() {
   if (!initial_settings_recorded_) {
     return "";
   }
@@ -581,7 +579,7 @@ const string UiSettings::CreateResetCommand() {
   vector<string> application_ids = initial_settings_.get_application_ids();
   CommandContext context;
 
-  string command;
+  ShellCommand command;
   if (last_settings_.dark_mode() != initial_settings_.dark_mode()) {
     command += CreateSetDarkModeCommand(initial_settings_.dark_mode());
   }
