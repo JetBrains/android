@@ -40,6 +40,7 @@ constexpr int BUFFER_SIZE = 4096;
 constexpr int UTF8_MAX_BYTES_PER_CHARACTER = 4;
 
 constexpr duration SOCKET_RECEIVE_POLL_TIMEOUT = 250ms;
+constexpr duration DISPLAY_POLLING_DURATION = 500ms;
 
 constexpr int FINGER_TOUCH_SIZE = 1;
 
@@ -790,7 +791,7 @@ void Controller::StartDisplayPolling() {
   }
   current_displays_ = displays;
   Log::D("Controller::StartDisplayPolling current_displays_: %s", DisplayInfo::ToDebugString(current_displays_).c_str());
-  poll_displays_until_ = steady_clock::now() + 500ms;
+  poll_displays_until_ = steady_clock::now() + DISPLAY_POLLING_DURATION;
 }
 
 void Controller::StopDisplayPolling() {
