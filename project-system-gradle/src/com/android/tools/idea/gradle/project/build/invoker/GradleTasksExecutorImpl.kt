@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.hasCause
 import com.android.tools.idea.gradle.util.addAndroidStudioPluginVersion
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.SelectSdkDialog
@@ -102,7 +103,6 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import javax.swing.event.HyperlinkEvent
 
 internal class GradleTasksExecutorImpl : GradleTasksExecutor {
   override fun execute(
@@ -213,13 +213,13 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
 
     private fun invokeGradleTasks(buildAction: BuildAction<*>?): GradleInvocationResult {
       val project = myRequest.project
-      val executionSettings = myRequest.data.executionSettings ?:
-                              GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(
-                                project).apply {
-          this.withVmOptions(myRequest.jvmArguments)
-            .withArguments(myRequest.commandLineArguments)
-            .withEnvironmentVariables(myRequest.env)
-            .passParentEnvs(myRequest.isPassParentEnvs)
+      val executionSettings = myRequest.data.executionSettings ?: GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(
+        project
+      ).apply {
+        this.withVmOptions(myRequest.jvmArguments)
+          .withArguments(myRequest.commandLineArguments)
+          .withEnvironmentVariables(myRequest.env)
+          .passParentEnvs(myRequest.isPassParentEnvs)
       }
       val model = AtomicReference<Any?>(null)
       val gradleRootProjectPath = myRequest.rootProjectPath.path
@@ -229,7 +229,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val gradleTasks = myRequest.gradleTasks
         val executingTasksText = "Executing tasks: $gradleTasks in project $gradleRootProjectPath"
         addToEventLog(executingTasksText, MessageType.INFO)
-        var buildError: Throwable? = null
         val id = myRequest.taskId
         val taskListener = myListener
         val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
@@ -240,7 +239,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
         var buildAttributionManager: BuildAttributionManager? = null
         val enableBuildAttribution = isBuildAttributionEnabledForProject(myProject)
-        try {
+        val invocationResult = try {
           val buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project)
           val commandLineArguments: MutableList<String?> = Lists.newArrayList(*buildConfiguration.commandLineOptions)
           if (!commandLineArguments.contains(GradleBuilds.PARALLEL_BUILD_OPTION) &&
@@ -331,48 +330,57 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           } else {
             (operation as BuildLauncher).run()
           }
-          buildCompleter.buildFinished(BuildStatus.SUCCESS)
-          taskListener.onSuccess(id)
-          val buildInfo: BasicBuildAttributionInfo?
-          buildInfo = buildAttributionManager?.onBuildSuccess(myRequest)
-          if (buildInfo != null && buildInfo.agpVersion != null) {
+          val buildInfo = buildAttributionManager?.onBuildSuccess(myRequest)
+          if (buildInfo?.agpVersion != null) {
             reportAgpVersionMismatch(project, buildInfo)
           }
+          GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, null, model.get())
         } catch (e: BuildException) {
-          buildError = e
+          val failure = runCatching { buildAttributionManager?.onBuildFailure(myRequest) }.exceptionOrNull() ?: e
+          GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get())
         } catch (e: Throwable) {
-          buildError = e
-          handleTaskExecutionError(e)
-        } finally {
-          executeWithoutProcessCanceledException {
-            val application = ApplicationManager.getApplication()
-            if (buildError != null) {
-              buildAttributionManager?.onBuildFailure(myRequest)
-              if (wasBuildCanceled(buildError)) {
-                buildCompleter.buildFinished(BuildStatus.CANCELED)
-                taskListener.onCancel(id)
-              } else {
-                buildCompleter.buildFinished(BuildStatus.FAILED)
-                val projectResolverChain = GradleProjectResolver.createProjectResolverChain()
-                val userFriendlyError = projectResolverChain.getUserFriendlyError(null, buildError, gradleRootProjectPath, null)
-                taskListener.onFailure(id, userFriendlyError)
-              }
-            }
-            taskListener.onEnd(id)
-            myBuildStopper.remove(id)
-            if (GuiTestingService.getInstance().isGuiTestingMode) {
-              val testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY)
-              if (StringUtil.isNotEmpty(testOutput)) {
-                application.putUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null)
-              }
-            }
-            application.invokeLater { notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(TimeUnit.MILLISECONDS)) }
-          }
-          if (!getProject().isDisposed) {
-            return@Function GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, buildError, model.get())
-          }
+          val failure = runCatching {
+            buildAttributionManager?.onBuildFailure(myRequest)
+            handleTaskExecutionError(e)
+          }.exceptionOrNull() ?: e
+          GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get())
         }
-        GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, null)
+
+
+        executeWithoutProcessCanceledException {
+          val application = ApplicationManager.getApplication()
+          val buildError = invocationResult.buildError
+          when {
+            buildError == null -> {
+              buildCompleter.buildFinished(BuildStatus.SUCCESS)
+              taskListener.onSuccess(id)
+            }
+
+            wasBuildCanceled(buildError) -> {
+              buildCompleter.buildFinished(BuildStatus.CANCELED)
+              taskListener.onCancel(id)
+            }
+
+            else -> {
+              buildCompleter.buildFinished(BuildStatus.FAILED)
+              taskListener.onFailure(
+                id,
+                GradleProjectResolver.createProjectResolverChain()
+                  .getUserFriendlyError(null, buildError, gradleRootProjectPath, null)
+              )
+            }
+          }
+          taskListener.onEnd(id)
+          myBuildStopper.remove(id)
+          if (GuiTestingService.getInstance().isGuiTestingMode) {
+            val testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY)
+            if (StringUtil.isNotEmpty(testOutput)) {
+              application.putUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null)
+            }
+          }
+          application.invokeLater { notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(TimeUnit.MILLISECONDS)) }
+        }
+        invocationResult
       }
       if (GuiTestingService.getInstance().isGuiTestingMode) {
         // We use this task in GUI tests to simulate errors coming from Gradle project sync.
@@ -564,11 +572,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
       private const val GRADLE_RUNNING_MSG_TITLE = "Gradle Running"
       private const val PASSWORD_KEY_SUFFIX = ".password="
       private fun wasBuildCanceled(buildError: Throwable): Boolean {
-        return GradleProjectSystemUtil.hasCause(buildError,
-                                                                                                      BuildCancelledException::class.java) || GradleProjectSystemUtil.hasCause(
-          buildError,
-          ProcessCanceledException::class.java
-        )
+        return hasCause(buildError, BuildCancelledException::class.java) || hasCause(buildError, ProcessCanceledException::class.java)
       }
 
       private val logger: Logger
