@@ -17,6 +17,7 @@
 #pragma once
 
 #include "control_messages.h"
+#include "shell_command.h"
 #include "ui_settings_state.h"
 
 namespace screensharing {
@@ -54,7 +55,7 @@ private:
   void StoreInitialSettings(const UiSettingsState& state);
 
   // Creates the shell command that resets all the UI settings to the initial state.
-  const std::string CreateResetCommand();
+  const ShellCommand CreateResetCommand();
 
   // Returns true if no commands are required to reset the UI settings to the initial state.
   const bool has_original_values();
