@@ -1254,7 +1254,7 @@ class LogcatMainPanelTest {
     val deviceComboBox = logcatMainPanel.headerPanel.deviceComboBox
     logcatMainPanel.pauseLogcat()
 
-    waitForCondition { deviceComboBox.model.size > 0 }
+    waitForCondition { deviceComboBox.model.size == 2 }
     deviceComboBox.selectedIndex = 1
     waitForCondition { logcatMainPanel.getSelectedDevice() == device2 }
 
