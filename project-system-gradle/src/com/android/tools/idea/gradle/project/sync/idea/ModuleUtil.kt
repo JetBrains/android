@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
-import com.android.tools.idea.util.LinkedAndroidModuleGroup
+import com.android.tools.idea.projectsystem.LINKED_ANDROID_MODULE_GROUP
+import com.android.tools.idea.projectsystem.LinkedAndroidModuleGroup
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
