@@ -21,7 +21,7 @@ import com.android.tools.idea.projectsystem.FindDependenciesWithResourcesToken
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
-import com.android.tools.idea.projectsystem.isScreenshotTestModule
+import com.android.tools.idea.projectsystem.gradle.isScreenshotTestModule
 import com.intellij.openapi.module.Module
 
 class FindDependenciesWithResourcesGradleToken : FindDependenciesWithResourcesToken<GradleModuleSystem>, GradleToken {

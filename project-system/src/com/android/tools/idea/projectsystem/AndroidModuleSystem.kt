@@ -484,10 +484,6 @@ fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_G
 
 fun Module.isMainModule() : Boolean = getMainModule() == this
 
-fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest
-
-fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
-
 fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
 
 fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
