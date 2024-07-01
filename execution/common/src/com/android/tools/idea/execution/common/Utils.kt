@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.execution.common
 
+import com.android.backup.BackupProgressListener
+import com.android.backup.BackupResult.Error
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.impl.isOfSameType
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 
 
 fun RunnerAndConfigurationSettings.getProcessHandlersForDevices(project: Project, devices: List<IDevice>): List<ProcessHandler> {
@@ -48,6 +53,17 @@ fun clearAppStorage(project: Project, device: IDevice, packageName: String, stat
         val message = "Failed to clear app storage for $packageName on device ${device.name}"
         RunConfigurationNotifier.notifyWarning(project, "", message)
       }
+    }
+  }
+}
+
+suspend fun restoreAppFromFile(project: Project, device: IDevice, backupFile: String, stats: RunStats) {
+  stats.track("RESTORE_APP") {
+    val backupManager = BackupManager.getInstance(project)
+    val result = backupManager.restore(device.serialNumber, backupFile.asPath(), notify = false)
+    if (result is Error) {
+      val message = "Failed to restore app from backup on device ${device.name}\n${result.throwable.message}"
+      throw ExecutionException(message, result.throwable)
     }
   }
 }

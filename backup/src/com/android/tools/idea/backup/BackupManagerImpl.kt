@@ -57,10 +57,15 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
   private val logger: Logger = Logger.getInstance(this::class.java)
 
   @UiThread
-  override fun backup(serialNumber: String, applicationId: String, backupFile: Path) {
+  override fun backupModal(
+    serialNumber: String,
+    applicationId: String,
+    backupFile: Path,
+    notify: Boolean,
+  ): BackupResult {
     logger.debug("Backing up '$applicationId' from $backupFile on '${serialNumber}'")
     // TODO(348406593): Find a way to make the modal dialog be switched to background task
-    runWithModalProgressBlocking(
+    return runWithModalProgressBlocking(
       ModalTaskOwner.project(project),
       message("backup"),
       cancellable(),
@@ -70,27 +75,55 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
         val handler =
           BackupHandler(adbSession, serialNumber, logger, listener, backupFile, applicationId)
         val result = handler.backup()
-        result.notify(message("backup"))
+        val operation = message("backup")
+        if (notify) {
+          result.notify(operation)
+        }
+        if (result is Error) {
+          logger.warn(message("notification.error", operation), result.throwable)
+        }
+        result
       }
     }
   }
 
   @UiThread
-  override fun restore(serialNumber: String, backupFile: Path) {
-    logger.debug("Restoring from $backupFile on '${serialNumber}'")
+  override fun restoreModal(serialNumber: String, backupFile: Path, notify: Boolean): BackupResult {
     // TODO(348406593): Find a way to make the modal dialog be switched to background task
-    runWithModalProgressBlocking(
+    return runWithModalProgressBlocking(
       ModalTaskOwner.project(project),
       message("restore"),
       cancellable(),
     ) {
       reportSequentialProgress { reporter ->
         val listener = BackupProgressListener(reporter::onStep)
-        val handler = RestoreHandler(adbSession, logger, serialNumber, listener, backupFile)
-        val result = handler.restore()
-        result.notify(message("restore"))
+        restore(serialNumber, backupFile, listener, notify)
       }
     }
+  }
+
+  override suspend fun restore(
+    serialNumber: String,
+    backupFile: Path,
+    listener: BackupProgressListener?,
+    notify: Boolean,
+  ): BackupResult {
+    val path =
+      when {
+        backupFile.pathString.startsWith('/') -> backupFile
+        else -> Path.of(project.basePath ?: "", backupFile.pathString)
+      }
+    logger.debug("Restoring from $path on '${serialNumber}'")
+    val handler = RestoreHandler(adbSession, logger, serialNumber, listener, path)
+    val result = handler.restore()
+    val operation = message("restore")
+    if (notify) {
+      result.notify(operation)
+    }
+    if (result is Error) {
+      logger.warn(message("notification.error", operation), result.throwable)
+    }
+    return result
   }
 
   override suspend fun chooseBackupFile(nameHint: String): Path? {
@@ -143,7 +176,6 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
       return
     }
     val notification = Notification(NOTIFICATION_GROUP, message, WARNING)
-    logger.warn(message, throwable)
     Notifications.Bus.notify(notification, project)
   }
 
